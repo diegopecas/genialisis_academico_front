@@ -1,0 +1,208 @@
+<div class="modulo">
+    <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [raiz]="'/'" [regresar]="'/menu'"></app-header>
+
+    <div class="container-fluid mt-5">
+        <div class="text-center mb-5">
+            <h2 class="titulo-seccion">¿Qué operación deseas realizar hoy?</h2>
+            <p class="subtitulo-seccion">Selecciona una opción para comenzar</p>
+        </div>
+
+        <div class="row justify-content-center">
+            <!-- Actividades -->
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card-maestro menu-principal" [class.active]="menuActivo === 'actividades'" (click)="toggleMenu('actividades', $event)">
+                    <div class="card-maestro-content">
+                        <div class="icono-container actividades">
+                            <img src="assets/images/actividades.png" alt="Actividades" />
+                        </div>
+                        <h3 class="card-titulo">Actividades</h3>
+                        <p class="card-descripcion">Registro de medidas y gestión de galerías</p>
+                        <div class="card-footer-custom">
+                            <span class="link-accion">Ver opciones <i class="fas fa-chevron-down"></i></span>
+                        </div>
+                    </div>
+                    <div class="submenu-container">
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <div class="submenu-item" (click)="seleccionarOpcion('registro-medidas')">
+                                    <img src="assets/images/medidas.png" alt="Registro de Medidas" />
+                                    <span>Registro de Medidas</span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="submenu-item" (click)="seleccionarOpcion('galerias')">
+                                    <img src="assets/images/galeria.png" alt="Gestión de Galerías" />
+                                    <span>Gestión de Galerías</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Inventario -->
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card-maestro menu-principal" [class.active]="menuActivo === 'inventario'" (click)="toggleMenu('inventario', $event)">
+                    <div class="card-maestro-content">
+                        <div class="icono-container inventario">
+                            <img src="assets/images/inventario.png" alt="Inventario" />
+                        </div>
+                        <h3 class="card-titulo">Inventario</h3>
+                        <p class="card-descripcion">Movimientos y salidas de productos</p>
+                        <div class="card-footer-custom">
+                            <span class="link-accion">Ver opciones <i class="fas fa-chevron-down"></i></span>
+                        </div>
+                    </div>
+                    <div class="submenu-container">
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <div class="submenu-item" (click)="seleccionarOpcion('movimientos-inventario')">
+                                    <img src="assets/images/movimientos-inventario.png" alt="Movimientos de Inventario" />
+                                    <span>Movimientos de Inventario</span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="submenu-item" (click)="seleccionarOpcion('salidas-alimentacion')">
+                                    <img src="assets/images/salidas_alimentacion.png" alt="Salidas de Alimentación" />
+                                    <span>Salidas de Alimentación</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Apoyo -->
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card-maestro menu-principal" [class.active]="menuActivo === 'apoyo'" (click)="toggleMenu('apoyo', $event)">
+                    <div class="card-maestro-content">
+                        <div class="icono-container apoyo">
+                            <img src="assets/images/apoyo.png" alt="Apoyo" />
+                        </div>
+                        <h3 class="card-titulo">Apoyo</h3>
+                        <p class="card-descripcion">Registro, control de limpieza y cocina</p>
+                        <div class="card-footer-custom">
+                            <span class="link-accion">Ver opciones <i class="fas fa-chevron-down"></i></span>
+                        </div>
+                    </div>
+                    <div class="submenu-container">
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <div class="submenu-item" (click)="seleccionarOpcion('registros-limpieza')">
+                                    <img src="assets/images/limpieza.png" alt="Registro de Limpieza" />
+                                    <span>Registro de Limpieza</span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="submenu-item" (click)="seleccionarOpcion('disponibilidad-cocina')">
+                                    <img src="assets/images/disponiblidad_cocina.png" alt="Disponibilidad Cocina" />
+                                    <span>Disponibilidad Cocina</span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="submenu-item" (click)="seleccionarOpcion('asignacion-onces')">
+                                    <img src="assets/images/asignar_alimentacion.png" alt="Asignación de Onces" />
+                                    <span>Asignación de Onces</span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="submenu-item" (click)="seleccionarOpcion('entrega-alimentacion')">
+                                    <img src="assets/images/entrega_alimentacion.png" alt="Entrega Alimentación" />
+                                    <span>Entrega Alimentación</span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="submenu-item" (click)="seleccionarOpcion('inventario-alimentacion')">
+                                    <img src="assets/images/salidas_alimentacion.png" alt="Inventario Alimentación" />
+                                    <span>Inventario Alimentación</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Estudiantes -->
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card-maestro menu-principal" [class.active]="menuActivo === 'estudiantes'" (click)="toggleMenu('estudiantes', $event)">
+                    <div class="card-maestro-content">
+                        <div class="icono-container estudiantes">
+                            <img src="assets/images/estudiantes.png" alt="Estudiantes" />
+                        </div>
+                        <h3 class="card-titulo">Estudiantes</h3>
+                        <p class="card-descripcion">Gestión y seguimiento de estudiantes</p>
+                        <div class="card-footer-custom">
+                            <span class="link-accion">Ver opciones <i class="fas fa-chevron-down"></i></span>
+                        </div>
+                    </div>
+                    <div class="submenu-container">
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <div class="submenu-item" (click)="seleccionarOpcion('actualizacion-datos-estudiantes')">
+                                    <img src="assets/images/cambio-estado-estudiantes.png" alt="Actualización Datos" />
+                                    <span>Actualización Datos</span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="submenu-item" (click)="seleccionarOpcion('evaluacion-desarrollo')">
+                                    <img src="assets/images/tamizajes.png" alt="Evaluación EAD-3" />
+                                    <span>Evaluación EAD-3</span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="submenu-item" (click)="seleccionarOpcion('seguimiento-asistencia')">
+                                    <img src="assets/images/seguimiento-asistencia.png" alt="Seguimiento Asistencia" />
+                                    <span>Seguimiento Asistencia</span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="submenu-item" (click)="seleccionarOpcion('recordatorios-generales')">
+                                    <img src="assets/images/recordatorio-pagos.png" alt="Recordatorios Generales" />
+                                    <span>Recordatorios Generales</span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="submenu-item" (click)="seleccionarOpcion('inscripcion-cursos-extra')">
+                                    <img src="assets/images/cursos-extra.png" alt="Inscripción Cursos Extra" />
+                                    <span>Inscripción Cursos Extra</span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="submenu-item" (click)="seleccionarOpcion('observaciones-informe')">
+                                    <img src="assets/images/observaciones.png" alt="Observaciones para Informe" />
+                                    <span>Informes</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Financiero -->
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card-maestro menu-principal" [class.active]="menuActivo === 'financiero'" (click)="toggleMenu('financiero', $event)">
+                    <div class="card-maestro-content">
+                        <div class="icono-container financiero">
+                            <img src="assets/images/finanzas.png" alt="Financiero" />
+                        </div>
+                        <h3 class="card-titulo">Financiero</h3>
+                        <p class="card-descripcion">Recordatorios de cobro y gestión de pagos</p>
+                        <div class="card-footer-custom">
+                            <span class="link-accion">Ver opciones <i class="fas fa-chevron-down"></i></span>
+                        </div>
+                    </div>
+                    <div class="submenu-container">
+                        <div class="row g-2">
+                            <div class="col-12">
+                                <div class="submenu-item" (click)="seleccionarOpcion('recordatorio-pagos')">
+                                    <img src="assets/images/recordatorio-pagos.png" alt="Recordatorio de Pagos" />
+                                    <span>Recordatorio de Pagos</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

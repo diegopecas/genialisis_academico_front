@@ -1,0 +1,39 @@
+<div class="franja-titulo">
+
+  <!-- SECCIÓN IZQUIERDA: Logo + Nombre Jardín -->
+  <div class="seccion-izquierda">
+    <a [routerLink]="['/menu']" class="logo-link">
+      <img [src]="logoGenialisis" class="icono-titulo" alt="Genialisis" />
+    </a>
+    <a [routerLink]="['/menu']" class="nombre-jardin">{{ nombreJardin }}</a>
+  </div>
+
+  <!-- SECCIÓN CENTRO: Título del módulo -->
+  <div class="seccion-centro">
+    <h2 class="letra-robot texto-titulo">{{ capitalizarTitulo(titulo) }}</h2>
+  </div>
+
+  <!-- SECCIÓN DERECHA: Botones -->
+  <div class="seccion-derecha">
+    <button class="header-btn pin-btn" *ngIf="esTrackeable" (click)="togglePin()" [class.pinned]="esFijado" [title]="esFijado ? 'Quitar de accesos rápidos' : 'Fijar como acceso rápido'">
+      <span class="btn-icon">{{ esFijado ? '📌' : '📍' }}</span>
+      <span class="btn-label">{{ esFijado ? 'Fijado' : 'Fijar' }}</span>
+    </button>
+
+    <button class="header-btn help-btn" (click)="abrirAyuda()" title="Ayuda">
+      <span class="btn-icon">?</span>
+      <span class="btn-label">Ayuda</span>
+    </button>
+
+    <button class="header-btn create-btn" [routerLink]="[path]" *ngIf="iconoCrear">
+      <span class="btn-icon">{{ createIcon }}</span>
+      <span class="btn-label">Crear</span>
+    </button>
+
+    <button class="header-btn back-btn" [routerLink]="[pathRegresar]">
+      <span class="btn-icon">{{ backIcon }}</span>
+      <span class="btn-label">Regresar</span>
+    </button>
+  </div>
+
+</div>

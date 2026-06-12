@@ -1,0 +1,38 @@
+<div class="modulo">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="false"
+    [accion]="'ConsultarTodos'"
+    [raiz]="'/administracion/configuracion-google'"
+    [regresar]="'/administracion/datos-maestros'"
+    [iconoTitulo]="'/assets/images/google.png'"
+  ></app-header>
+
+  <div class="container mt-4">
+    <div class="card mb-4">
+      <div class="card-body d-flex align-items-center justify-content-between">
+        <div>
+          <h6 class="mb-1">Estado de conexión con Google Calendar</h6>
+          <span *ngIf="googleConectado" class="badge bg-success"><i class="fas fa-check-circle me-1"></i> Conectado</span>
+          <span *ngIf="!googleConectado" class="badge bg-warning text-dark"><i class="fas fa-exclamation-circle me-1"></i> No conectado</span>
+        </div>
+        <button class="btn btn-primary" (click)="conectarGoogleCalendar()">
+          <i class="fas fa-link me-1"></i>
+          {{ googleConectado ? 'Reconectar' : 'Conectar Google Calendar' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <app-tablas
+    [titulos]="titulos"
+    [datos]="datos"
+    [raiz]="'/administracion/configuracion-google'"
+    [acciones]="acciones"
+    [accionEditar]="true"
+    [accionEliminar]="false"
+    [mostrarBuscar]="true"
+    [columnasFiltro]="columnasFiltro"
+    (clicAccion)="clicAccion($event)"
+  ></app-tablas>
+</div>

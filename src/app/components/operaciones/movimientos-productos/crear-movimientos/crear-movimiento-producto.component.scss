@@ -1,0 +1,571 @@
+// Variables
+$primary-color: #ffbd31;
+$success-color: #28a745;
+$info-color: #17a2b8;
+$warning-color: #ffc107;
+$danger-color: #dc3545;
+$light-gray: #f8f9fa;
+$border-color: #dee2e6;
+$border-radius: 0.5rem;
+$box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+$box-shadow-hover: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+$transition: all 0.3s ease;
+
+// Mixins
+@mixin card-base {
+  background: white;
+  border: 1px solid $border-color;
+  border-radius: $border-radius;
+  box-shadow: $box-shadow;
+  transition: $transition;
+}
+
+// Contenedor principal
+.modulo {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
+
+  .container-fluid {
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+}
+
+// Controles principales
+.controles-principales,
+.filtros-productos {
+  @include card-base;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+
+  .form-control,
+  .form-select {
+    border: 2px solid $border-color;
+    transition: $transition;
+
+    &:focus {
+      border-color: $primary-color;
+      box-shadow: 0 0 0 0.2rem rgba(255, 189, 49, 0.25);
+    }
+
+    &:disabled {
+      background-color: #f8f9fa;
+      opacity: 0.7;
+    }
+  }
+
+  .form-label {
+    color: #495057;
+    margin-bottom: 0.5rem;
+
+    i {
+      opacity: 0.8;
+    }
+  }
+}
+
+// Estadísticas
+.estadisticas-movimiento {
+  margin-bottom: 1.5rem;
+
+  .card {
+    border: none;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+
+    .card-body {
+      padding: 1rem;
+
+      h6 {
+        font-size: 0.875rem;
+        margin-bottom: 0.5rem;
+        opacity: 0.9;
+      }
+
+      h3 {
+        font-size: 1.75rem;
+        font-weight: bold;
+        margin: 0;
+      }
+    }
+
+    &.bg-primary {
+      background: linear-gradient(135deg, $primary-color 0%, lighten($primary-color, 10%) 100%) !important;
+    }
+
+    &.bg-success {
+      background: linear-gradient(135deg, $success-color 0%, lighten($success-color, 10%) 100%) !important;
+    }
+  }
+}
+
+// Grid de productos
+.productos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
+// Card de producto
+.producto-card {
+  @include card-base;
+  transition: $transition;
+
+  &:hover {
+    box-shadow: $box-shadow-hover;
+  }
+
+  &.seleccionado {
+    border: 2px solid $primary-color;
+    background-color: rgba($primary-color, 0.05);
+  }
+
+  &.con-error {
+    border: 2px solid $danger-color;
+    background-color: rgba($danger-color, 0.05);
+  }
+}
+
+// Header del producto
+.producto-header {
+  padding: 1rem 1.25rem;
+  background: linear-gradient(135deg, #ffffff, #f8f9fa);
+  border-bottom: 1px solid $border-color;
+  cursor: pointer;
+
+  &:hover {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+  }
+
+  .producto-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .producto-check {
+    .form-check-input {
+      width: 1.25rem;
+      height: 1.25rem;
+      cursor: pointer;
+
+      &:checked {
+        background-color: $primary-color;
+        border-color: $primary-color;
+      }
+    }
+  }
+
+  .producto-datos {
+    flex: 1;
+
+    .producto-nombre {
+      margin: 0 0 0.25rem 0;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #212529;
+    }
+
+    .tipo-badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      background-color: $info-color;
+      color: white;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+  }
+}
+
+// Información de stock
+.stock-info {
+  padding: 1rem 1.25rem;
+  background-color: $light-gray;
+  border-bottom: 1px solid $border-color;
+
+  small {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .fw-bold {
+    font-size: 1.1rem;
+  }
+}
+
+// Campos del movimiento
+.movimiento-campos {
+  padding: 1.25rem;
+  background-color: white;
+  animation: slideDown 0.3s ease-out;
+
+  .campo-grupo {
+    margin-bottom: 1.25rem;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  .campo-label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.5rem;
+    display: block;
+
+    i {
+      opacity: 0.8;
+      color: $info-color;
+    }
+  }
+
+  .form-control {
+    font-size: 1rem;
+    padding: 0.5rem 0.75rem;
+
+    &.is-invalid {
+      border-color: $danger-color;
+    }
+  }
+
+  .input-group-text {
+    background-color: $light-gray;
+    border: 2px solid $border-color;
+    border-left: none;
+  }
+}
+
+// Stock resultante
+.stock-resultante {
+  padding: 0.5rem;
+  background-color: $light-gray;
+  border-radius: 0.25rem;
+
+  small {
+    font-size: 0.75rem;
+  }
+
+  .fw-bold {
+    font-size: 1rem;
+  }
+}
+
+// Subtotal
+.subtotal {
+  padding: 0.75rem;
+  background-color: $light-gray;
+  border-radius: 0.25rem;
+  border-left: 3px solid $primary-color;
+
+  strong {
+    font-size: 1.1rem;
+    color: $primary-color;
+  }
+}
+
+// Alertas
+.alert {
+  border: none;
+  border-radius: $border-radius;
+
+  &.alert-success {
+    background-color: rgba($success-color, 0.1);
+    color: darken($success-color, 10%);
+    border-left: 4px solid $success-color;
+  }
+
+  &.alert-danger {
+    background-color: rgba($danger-color, 0.1);
+    color: $danger-color;
+    border-left: 4px solid $danger-color;
+  }
+
+  &.alert-info {
+    background-color: rgba($info-color, 0.1);
+    color: darken($info-color, 10%);
+    border-left: 4px solid $info-color;
+  }
+
+  &.alert-warning {
+    background-color: rgba($warning-color, 0.1);
+    color: darken($warning-color, 20%);
+    border-left: 4px solid $warning-color;
+  }
+}
+
+// Botones
+.btn {
+  transition: $transition;
+  border-radius: 0.25rem;
+
+  &:focus {
+    box-shadow: 0 0 0 0.25rem rgba(255, 189, 49, 0.25);
+  }
+
+  &.btn-outline-secondary {
+    border: 2px solid #6c757d;
+
+    &:hover {
+      background-color: #6c757d;
+      border-color: #6c757d;
+    }
+  }
+
+  &.btn-outline-danger {
+    border: 2px solid $danger-color;
+    color: $danger-color;
+
+    &:hover {
+      background-color: $danger-color;
+      border-color: $danger-color;
+    }
+  }
+}
+
+// Botones de acción
+.botones-accion {
+  @include card-base;
+  padding: 1.5rem;
+  background-color: white;
+
+  .btn-lg {
+    padding: 0.75rem 1.5rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
+}
+
+// Spinner
+.spinner-border {
+  width: 3rem;
+  height: 3rem;
+}
+
+// Animaciones
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+    overflow: hidden;
+  }
+
+  to {
+    opacity: 1;
+    max-height: 1000px;
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+
+  .controles-principales,
+  .filtros-productos {
+    padding: 1rem;
+
+    .row {
+      margin: 0;
+
+      [class*="col-"] {
+        padding: 0 0 1rem 0;
+
+        &:last-child {
+          padding-bottom: 0;
+        }
+      }
+    }
+  }
+
+  .producto-card {
+    margin-bottom: 0.5rem;
+  }
+
+  .producto-header {
+    padding: 0.875rem 1rem;
+
+    .producto-nombre {
+      font-size: 1rem;
+    }
+  }
+
+  .movimiento-campos {
+    padding: 1rem;
+  }
+
+  .botones-accion {
+    padding: 1rem;
+
+    .btn-lg {
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      margin-bottom: 0.5rem;
+    }
+  }
+}
+
+@media (max-width: 576px) {
+  .productos-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .modulo .container-fluid {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+}
+
+.filtros-productos {
+  .form-check {
+    background-color: rgba($info-color, 0.1);
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem;
+    border: 1px solid rgba($info-color, 0.3);
+    display: inline-block;
+
+    &:hover {
+      background-color: rgba($info-color, 0.15);
+      border-color: rgba($info-color, 0.5);
+    }
+
+    .form-check-input {
+      margin-top: 0.3rem;
+      cursor: pointer;
+
+      &:checked {
+        background-color: $info-color;
+        border-color: $info-color;
+      }
+
+      &:focus {
+        box-shadow: 0 0 0 0.25rem rgba($info-color, 0.25);
+      }
+    }
+
+    .form-check-label {
+      cursor: pointer;
+      font-weight: 500;
+      color: darken($info-color, 10%);
+
+      .badge {
+        font-size: 0.7rem;
+        padding: 0.2rem 0.4rem;
+        vertical-align: middle;
+      }
+    }
+  }
+}
+
+// Estilos mejorados para productos bloqueados/registrados
+.producto-card {
+  &.bloqueado {
+    border: 2px solid $info-color;
+    background-color: rgba($info-color, 0.05);
+    position: relative;
+
+    // Agregar una marca visual en la esquina
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 0;
+      height: 0;
+      border-style: solid;
+      border-width: 0 30px 30px 0;
+      border-color: transparent $info-color transparent transparent;
+    }
+
+    &::after {
+      content: '✓';
+      position: absolute;
+      top: 2px;
+      right: 3px;
+      color: white;
+      font-size: 0.8rem;
+      font-weight: bold;
+    }
+
+    .producto-header {
+      background: linear-gradient(135deg, rgba($info-color, 0.1), rgba($info-color, 0.05));
+    }
+  }
+
+  // Badge de producto registrado
+  .producto-nombre {
+    .badge.bg-info {
+      background: linear-gradient(135deg, $info-color, lighten($info-color, 10%)) !important;
+      font-size: 0.65rem;
+      padding: 0.25rem 0.5rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+
+      i {
+        font-size: 0.6rem;
+      }
+    }
+  }
+}
+
+// Alert de resumen mejorado
+.alert.alert-info {
+  &.py-2 {
+    background: linear-gradient(135deg, rgba($info-color, 0.1), rgba($info-color, 0.05));
+    border-left: 4px solid $info-color;
+
+    small {
+      strong {
+        color: darken($info-color, 10%);
+      }
+    }
+  }
+}
+
+// Animación para cuando se aplica el filtro
+@keyframes filterApplied {
+  0% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  50% {
+    transform: scale(1.02);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.productos-grid {
+
+  // Cuando el filtro está activo, animar los productos mostrados
+  &.filter-active {
+    .producto-card {
+      animation: filterApplied 0.3s ease-out;
+    }
+  }
+}
+
+// Responsive para el filtro
+@media (max-width: 768px) {
+  .filtros-productos {
+    .form-check {
+      width: 100%;
+      margin-bottom: 0.5rem;
+
+      &.mb-2 {
+        margin-bottom: 0.75rem !important;
+      }
+    }
+  }
+}

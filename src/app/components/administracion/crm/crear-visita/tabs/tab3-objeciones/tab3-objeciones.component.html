@@ -1,0 +1,314 @@
+<div class="tab3-container">
+
+  <!-- 🎯 BARRA DE PROGRESO GENERAL -->
+  <div class="progress-bar-container">
+    <div class="progress-info">
+      <div class="progress-stats">
+        <span class="progress-icon">⚠️</span>
+        <span class="progress-text">Objeciones registradas</span>
+        <span class="progress-percentage">{{ objecionesEncontradas.length }}</span>
+      </div>
+      <button class="btn-toggle-all" (click)="toggleTodasLasCards()" type="button">
+        <i class="bi" [class.bi-arrows-expand]="!todasExpandidas" [class.bi-arrows-collapse]="todasExpandidas"></i>
+        {{ todasExpandidas ? 'Colapsar todo' : 'Expandir todo' }}
+      </button>
+    </div>
+    <div class="progress-info-extra">
+      <span class="info-badge">
+        <i class="bi bi-book"></i> {{ tiposObjeciones.length }} tipos de objeciones en la guía
+      </span>
+    </div>
+  </div>
+
+  <!-- 🔍 BUSCADOR DE OBJECIONES -->
+  <div class="buscador-container">
+    <div class="buscador-header">
+      <i class="bi bi-search"></i>
+      <h6>Buscar objeción</h6>
+    </div>
+    <div class="buscador-input-wrapper">
+      <i class="bi bi-search buscador-icon"></i>
+      <input 
+        type="text" 
+        class="form-control" 
+        placeholder="Busca por nombre o palabra clave..."
+        [(ngModel)]="textoBusqueda"
+        (input)="filtrarObjeciones()">
+      <button 
+        class="btn-limpiar" 
+        *ngIf="textoBusqueda"
+        (click)="limpiarBusqueda()"
+        type="button">
+        <i class="bi bi-x-circle-fill"></i>
+      </button>
+    </div>
+    <div class="buscador-resultados" *ngIf="textoBusqueda">
+      <span *ngIf="tiposObjecionesFiltrados.length > 0">
+        Mostrando <strong>{{ tiposObjecionesFiltrados.length }}</strong> de {{ tiposObjeciones.length }} objeciones
+      </span>
+      <span *ngIf="tiposObjecionesFiltrados.length === 0" class="text-danger">
+        No se encontraron resultados para "{{ textoBusqueda }}"
+      </span>
+    </div>
+  </div>
+
+  <!-- 📌 INFORMACIÓN ESTÁTICA SIEMPRE VISIBLE -->
+  <div class="info-estatica-container">
+    
+    <!-- Las 3 reglas básicas -->
+    <div class="reglas-basicas">
+      <h4 class="mb-4 text-center">⭐ LAS 3 REGLAS BÁSICAS PARA CUALQUIER OBJECIÓN</h4>
+      <div class="row">
+        <div class="col-md-4">
+          <div class="regla-item text-center">
+            <div style="font-size: 3rem;">👂</div>
+            <h5>1. ESCUCHA</h5>
+            <p class="mb-0">Deja que termine de hablar. No interrumpas.</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="regla-item text-center">
+            <div style="font-size: 3rem;">👍</div>
+            <h5>2. VALIDA</h5>
+            <p class="mb-0">Felicita o valida la objeción. Muestra empatía.</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="regla-item text-center">
+            <div style="font-size: 3rem;">❓</div>
+            <h5>3. PREGUNTA</h5>
+            <p class="mb-0">Para entender mejor y profundizar.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Principio de oro -->
+    <div class="principio-oro">
+      <h5 class="text-center mb-3">🏆 PRINCIPIO DE ORO</h5>
+      <p class="text-center mb-0 fs-5">
+        <strong>"Sin objeción, no hay venta"</strong><br>
+        <small>Las objeciones son oportunidades para generar confianza y ayudar a tomar la mejor decisión</small>
+      </p>
+    </div>
+
+  </div>
+
+  <!-- 📦 SISTEMA DE CARDS COLAPSABLES -->
+  <div class="cards-container">
+
+    <!-- CARD 1: OBJECIONES ENCONTRADAS EN ESTA VISITA -->
+    <div class="collapsible-card" [class.expanded]="cardsExpandidas[0]" [class.completed]="esCardCompleta(0)">
+      <div class="card-header" (click)="toggleCard(0)">
+        <div class="card-header-left">
+          <span class="card-icon">⚠️</span>
+          <h3 class="card-title">OBJECIONES ENCONTRADAS EN ESTA VISITA</h3>
+          <span class="card-badge" [class.badge-complete]="esCardCompleta(0)" [class.badge-progress]="!esCardCompleta(0) && tieneProgreso(0)">
+            {{ objecionesEncontradas.length }} registrada{{ objecionesEncontradas.length !== 1 ? 's' : '' }}
+          </span>
+        </div>
+        <div class="card-header-right">
+          <i class="bi" [class.bi-chevron-down]="!cardsExpandidas[0]" [class.bi-chevron-up]="cardsExpandidas[0]"></i>
+        </div>
+      </div>
+
+      <!-- Resumen mini cuando está colapsada -->
+      <div class="card-summary" *ngIf="!cardsExpandidas[0] && objecionesEncontradas.length > 0">
+        <span class="summary-item" *ngFor="let obj of objecionesEncontradas.slice(0, 3)">
+          <i class="bi bi-exclamation-triangle"></i> {{ obtenerNombreObjecion(obj.id_tipo_objecion) }}
+        </span>
+        <span class="summary-item" *ngIf="objecionesEncontradas.length > 3">
+          <i class="bi bi-three-dots"></i> +{{ objecionesEncontradas.length - 3 }} más
+        </span>
+      </div>
+
+      <!-- Contenido expandible -->
+      <div class="card-content" [@slideDown]="cardsExpandidas[0] ? 'expanded' : 'collapsed'">
+        <div class="form-section">
+          
+          <div class="alert alert-info" *ngIf="objecionesEncontradas.length === 0">
+            <strong>ℹ️ Sin objeciones registradas</strong><br>
+            Si durante la visita surgieron objeciones, regístralas usando los botones <strong>"Registrar"</strong> en cada tipo de objeción de la guía.
+          </div>
+
+          <div *ngFor="let objecion of objecionesEncontradas; let i = index" class="objecion-registrada">
+            <div class="objecion-registrada-header">
+              <h6>
+                <i class="bi bi-exclamation-triangle-fill text-warning"></i>
+                {{ obtenerNombreObjecion(objecion.id_tipo_objecion) }}
+              </h6>
+              <button 
+                class="btn btn-sm btn-danger"
+                (click)="eliminarObjecionEncontrada(i)"
+                *ngIf="!soloLectura">
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+
+            <div class="row mt-3">
+              <div class="col-md-12">
+                <label class="form-label">¿Cómo se manejó?</label>
+                <textarea 
+                  class="form-control" 
+                  rows="3"
+                  [value]="objecion.como_se_manejo"
+                  (input)="actualizarObjecion(i, 'como_se_manejo', $any($event.target).value)"
+                  placeholder="Describe cómo manejaste esta objeción..."
+                  [readonly]="soloLectura"></textarea>
+              </div>
+            </div>
+
+            <div class="row mt-3">
+              <div class="col-md-6">
+                <label class="form-label">¿Se superó la objeción?</label>
+                <div class="d-flex gap-3 mt-2">
+                  <div class="form-check">
+                    <input 
+                      class="form-check-input" 
+                      type="radio"
+                      [name]="'superada_' + i"
+                      [checked]="objecion.superada === true"
+                      (change)="actualizarObjecion(i, 'superada', true)"
+                      [disabled]="soloLectura">
+                    <label class="form-check-label">Sí</label>
+                  </div>
+                  <div class="form-check">
+                    <input 
+                      class="form-check-input" 
+                      type="radio"
+                      [name]="'superada_' + i"
+                      [checked]="objecion.superada === false"
+                      (change)="actualizarObjecion(i, 'superada', false)"
+                      [disabled]="soloLectura">
+                    <label class="form-check-label">No</label>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Notas adicionales</label>
+                <input 
+                  type="text" 
+                  class="form-control"
+                  [value]="objecion.notas_adicionales"
+                  (input)="actualizarObjecion(i, 'notas_adicionales', $any($event.target).value)"
+                  placeholder="Comentarios adicionales..."
+                  [readonly]="soloLectura">
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- CARDS DINÁMICAS: UNA CARD POR CADA TIPO DE OBJECIÓN -->
+    <div *ngFor="let objecion of tiposObjecionesFiltrados; let i = index" 
+         class="collapsible-card objecion-card-tipo"
+         [class.expanded]="cardsExpandidas[i + 1]" 
+         [class.completed]="esCardCompleta(i + 1)"
+         [class.registrada]="esObjecionRegistrada(objecion.id)">
+      
+      <div class="card-header" (click)="toggleCard(i + 1)">
+        <div class="card-header-left">
+          <span class="card-icon-numero">{{ i + 1 }}</span>
+          <div class="card-title-group">
+            <h3 class="card-title">"{{ objecion.nombre }}"</h3>
+            <p class="card-subtitle" *ngIf="objecion.descripcion">{{ objecion.descripcion.substring(0, 80) }}{{ objecion.descripcion.length > 80 ? '...' : '' }}</p>
+          </div>
+          <span class="card-badge badge-registrada" *ngIf="esObjecionRegistrada(objecion.id)">
+            ✓ Registrada
+          </span>
+        </div>
+        <div class="card-header-right">
+          <button 
+            class="btn btn-sm btn-registrar"
+            (click)="agregarObjecionEncontrada(objecion.id); $event.stopPropagation()"
+            *ngIf="!soloLectura && !esObjecionRegistrada(objecion.id)">
+            <i class="bi bi-plus-circle"></i> Registrar
+          </button>
+          <i class="bi chevron-icon" [class.bi-chevron-down]="!cardsExpandidas[i + 1]" [class.bi-chevron-up]="cardsExpandidas[i + 1]"></i>
+        </div>
+      </div>
+
+      <!-- Resumen mini cuando está colapsada -->
+      <div class="card-summary" *ngIf="!cardsExpandidas[i + 1]">
+        <span class="summary-item" *ngIf="objecion.estrategia_array?.length > 0">
+          <i class="bi bi-lightbulb"></i> {{ objecion.estrategia_array.length }} estrategia{{ objecion.estrategia_array.length !== 1 ? 's' : '' }}
+        </span>
+        <span class="summary-item" *ngIf="objecion.role_plays_array?.length > 0">
+          <i class="bi bi-chat-dots"></i> {{ objecion.role_plays_array.length }} role play{{ objecion.role_plays_array.length !== 1 ? 's' : '' }}
+        </span>
+        <span class="summary-item" *ngIf="objecion.respuestas_rapidas_array?.length > 0">
+          <i class="bi bi-lightning"></i> {{ objecion.respuestas_rapidas_array.length }} respuesta{{ objecion.respuestas_rapidas_array.length !== 1 ? 's' : '' }} rápida{{ objecion.respuestas_rapidas_array.length !== 1 ? 's' : '' }}
+        </span>
+      </div>
+
+      <!-- Contenido expandible -->
+      <div class="card-content" [@slideDown]="cardsExpandidas[i + 1] ? 'expanded' : 'collapsed'">
+        <div class="form-section">
+
+          <!-- Descripción -->
+          <div class="warning-box" *ngIf="objecion.descripcion">
+            <strong>⚠️ IMPORTANTE:</strong> {{ objecion.descripcion }}
+          </div>
+
+          <!-- Estrategia general -->
+          <div class="estrategia-box" *ngIf="objecion.estrategia_array?.length > 0">
+            <strong>🎯 Estrategia general:</strong>
+            <ul class="mb-0 mt-2">
+              <li *ngFor="let item of objecion.estrategia_array">{{ item }}</li>
+            </ul>
+          </div>
+
+          <!-- Role plays -->
+          <div *ngIf="objecion.role_plays_array?.length > 0">
+            <h6 class="section-subtitle">💬 Role Play</h6>
+            
+            <div *ngFor="let rolePlay of objecion.role_plays_array; let rpIndex = index" class="role-play-box">
+              <h6 class="role-play-titulo" *ngIf="rolePlay.titulo">{{ rolePlay.titulo }}</h6>
+              
+              <div *ngFor="let dialogo of rolePlay.dialogos" 
+                   [class]="dialogo.tipo === 'prospecto' ? 'dialogo-prospecto' : 'dialogo-tu'">
+                <strong>{{ dialogo.tipo === 'prospecto' ? '👤 Prospecto:' : '🎯 Tú:' }}</strong>
+                {{ dialogo.texto }}
+              </div>
+
+              <small class="text-muted d-block mt-3" *ngIf="rolePlay.nota">
+                → {{ rolePlay.nota }}
+              </small>
+            </div>
+          </div>
+
+          <!-- Respuestas rápidas -->
+          <div *ngIf="objecion.respuestas_rapidas_array?.length > 0">
+            <h6 class="section-subtitle">⚡ Respuestas rápidas</h6>
+            <div *ngFor="let respuesta of objecion.respuestas_rapidas_array" class="quick-response">
+              {{ respuesta }}
+            </div>
+          </div>
+
+          <!-- Tips adicionales -->
+          <div *ngIf="objecion.tips_object" class="tips-box">
+            <strong>✅ {{ objecion.tips_object.titulo }}</strong>
+            <ul>
+              <li *ngFor="let tip of objecion.tips_object.items">{{ tip }}</li>
+            </ul>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RECORDATORIO FINAL -->
+  <div class="principio-oro recordatorio-final">
+    <h5 class="text-center mb-3">🎯 RECORDATORIO FINAL</h5>
+    <p class="text-center fs-6"><strong>Las objeciones son oportunidades, no problemas.</strong></p>
+    <p class="text-center mb-0">
+      Si has escuchado con atención, has hecho preguntas inteligentes, has mostrado empatía y te has centrado en el valor... 
+      <strong>no habrá objeción que se te resista.</strong>
+    </p>
+  </div>
+
+</div>

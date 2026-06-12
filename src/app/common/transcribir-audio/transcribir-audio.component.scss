@@ -1,0 +1,81 @@
+.transcribir-audio-container {
+  display: flex;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.btn-outline-warning {
+  border-color: #ffbd31;
+  color: #b88a00;
+
+  &:hover {
+    background-color: #ffbd31;
+    color: #000;
+  }
+
+  &:focus {
+    box-shadow: 0 0 0 0.25rem rgba(255, 189, 49, 0.25);
+  }
+}
+
+.btn-outline-danger {
+  border-color: #dc3545;
+  color: #dc3545;
+
+  &:hover {
+    background-color: #dc3545;
+    color: white;
+  }
+}
+
+.btn-outline-secondary {
+  border-color: #6c757d;
+  color: #6c757d;
+}
+
+.govco-microphone-alt-slash {
+  background-image: url("/assets/govco/icons/microphone-alt-slash.svg");
+  min-width: 1rem;
+  min-height: 1rem;
+  display: inline-block;
+  background-repeat: no-repeat;
+  background-size: 1rem 1rem;
+  vertical-align: middle;
+  margin-right: 0.25rem;
+}
+
+.grabando-indicador {
+  display: inline-block;
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+  background-color: #dc3545;
+  margin-right: 0.4rem;
+  vertical-align: middle;
+  animation: pulso-rec 1s ease-in-out infinite;
+}
+
+@keyframes pulso-rec {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.4;
+    transform: scale(1.15);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.bi-hourglass-split {
+  animation: spin 2s linear infinite;
+  margin-right: 0.25rem;
+}

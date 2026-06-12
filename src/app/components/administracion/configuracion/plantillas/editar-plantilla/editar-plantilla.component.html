@@ -1,0 +1,288 @@
+<div class="modulo">
+    <app-header 
+        [tituloModulo]="titulo" 
+        [mostrarCrear]="false" 
+        [accion]="accion" 
+        [raiz]="'/administracion/configuracion/plantillas'"
+        [regresar]="regresar" 
+        [iconoTitulo]="'/assets/images/plantillas.png'">
+    </app-header>
+
+    <div class="container mt-5">
+        <!-- Información básica -->
+        <div class="row">
+            <div class="col-12">
+                <label for="titulo" class="form-label">Título de la plantilla <span class="text-danger">*</span></label>
+                <input 
+                    class="form-control form-control-lg" 
+                    type="text" 
+                    id="titulo" 
+                    [(ngModel)]="model.titulo"
+                    [disabled]="!editable">
+            </div>
+        </div>
+
+        <div class="row mt-3">
+            <div class="col-sm-6">
+                <label for="clave" class="form-label">Clave</label>
+                <input 
+                    class="form-control form-control-lg" 
+                    type="text" 
+                    id="clave" 
+                    [(ngModel)]="model.clave"
+                    disabled>
+            </div>
+            <div class="col-sm-6">
+                <label for="tipo" class="form-label">Tipo</label>
+                <input 
+                    class="form-control form-control-lg" 
+                    type="text" 
+                    id="tipo" 
+                    [(ngModel)]="model.tipo_nombre"
+                    disabled>
+            </div>
+        </div>
+
+        <hr class="my-4">
+
+        <!-- Selector de modo de edición -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h5>Modo de Edición</h5>
+                <div class="btn-group w-100" role="group">
+                    <button 
+                        type="button" 
+                        class="btn btn-lg"
+                        [ngClass]="{'btn-modo-activo': modoEdicion === 'estructurado', 'btn-outline-secondary': modoEdicion !== 'estructurado'}"
+                        (click)="cambiarModoEdicion('estructurado')"
+                        [disabled]="!editable">
+                        <i class="fas fa-list-alt"></i> Modo Estructurado
+                    </button>
+                    <button 
+                        type="button" 
+                        class="btn btn-lg"
+                        [ngClass]="{'btn-modo-activo': modoEdicion === 'json', 'btn-outline-secondary': modoEdicion !== 'json'}"
+                        (click)="cambiarModoEdicion('json')"
+                        [disabled]="!editable">
+                        <i class="fas fa-code"></i> Modo JSON Directo
+                    </button>
+                </div>
+                <small class="text-muted d-block mt-2">
+                    <i class="fas fa-info-circle"></i> 
+                    <span *ngIf="modoEdicion === 'estructurado'">Edita los campos de forma guiada</span>
+                    <span *ngIf="modoEdicion === 'json'">Edita el JSON completo directamente</span>
+                </small>
+            </div>
+        </div>
+
+        <!-- Controles de vista (solo en modo estructurado) -->
+        <div class="row mb-3" *ngIf="tieneSingularPlural && modoEdicion === 'estructurado'">
+            <div class="col-12">
+                <h5>Vista de Contenido</h5>
+                <div class="btn-group w-100" role="group">
+                    <button 
+                        type="button" 
+                        class="btn btn-lg"
+                        [ngClass]="{'btn-vista-activo': modoVista === 'dual', 'btn-outline-secondary': modoVista !== 'dual'}"
+                        (click)="cambiarModoVista('dual')"
+                        [disabled]="!editable">
+                        <i class="fas fa-columns"></i> Vista Dual (Plural y Singular)
+                    </button>
+                    <button 
+                        type="button" 
+                        class="btn btn-lg"
+                        [ngClass]="{'btn-vista-activo': modoVista === 'plural', 'btn-outline-secondary': modoVista !== 'plural'}"
+                        (click)="cambiarModoVista('plural')"
+                        [disabled]="!editable">
+                        <i class="fas fa-users"></i> Solo Plural
+                    </button>
+                    <button 
+                        type="button" 
+                        class="btn btn-lg"
+                        [ngClass]="{'btn-vista-activo': modoVista === 'singular', 'btn-outline-secondary': modoVista !== 'singular'}"
+                        (click)="cambiarModoVista('singular')"
+                        [disabled]="!editable">
+                        <i class="fas fa-user"></i> Solo Singular
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contenido del modo estructurado -->
+        <div *ngIf="modoEdicion === 'estructurado'">
+            <div class="row">
+                <div class="col-12">
+                    <h5>Contenido de la plantilla</h5>
+                    <small class="text-muted">Edita los campos del JSON de forma estructurada</small>
+                </div>
+            </div>
+
+            <!-- Vista Dual -->
+            <div class="row mt-3" *ngIf="modoVista === 'dual' && tieneSingularPlural">
+                <div class="col-md-6">
+                    <h6 class="text-center header-plural text-white p-2 rounded">VERSIÓN PLURAL (Dos acudientes)</h6>
+                    <div class="editor-container">
+                        <div *ngFor="let campo of camposEditables" class="mb-3">
+                            <label class="form-label fw-bold">{{ campo.label }}</label>
+                            <textarea 
+                                class="form-control" 
+                                [rows]="campo.rows || 3"
+                                [(ngModel)]="contenidoEditable[campo.key]"
+                                [disabled]="!editable">
+                            </textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="text-center header-singular text-white p-2 rounded">VERSIÓN SINGULAR (Un acudiente)</h6>
+                    <div class="editor-container">
+                        <div *ngFor="let campo of camposSingulares" class="mb-3">
+                            <label class="form-label fw-bold">{{ campo.label }}</label>
+                            <textarea 
+                                class="form-control" 
+                                [rows]="campo.rows || 3"
+                                [(ngModel)]="contenidoEditable[campo.key]"
+                                [disabled]="!editable">
+                            </textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vista Solo Plural -->
+            <div class="row mt-3" *ngIf="modoVista === 'plural' && tieneSingularPlural">
+                <div class="col-12">
+                    <div class="editor-container">
+                        <div *ngFor="let campo of camposEditables" class="mb-3">
+                            <label class="form-label fw-bold">{{ campo.label }}</label>
+                            <textarea 
+                                class="form-control" 
+                                [rows]="campo.rows || 3"
+                                [(ngModel)]="contenidoEditable[campo.key]"
+                                [disabled]="!editable">
+                            </textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vista Solo Singular -->
+            <div class="row mt-3" *ngIf="modoVista === 'singular' && tieneSingularPlural">
+                <div class="col-12">
+                    <div class="editor-container">
+                        <div *ngFor="let campo of camposSingulares" class="mb-3">
+                            <label class="form-label fw-bold">{{ campo.label }}</label>
+                            <textarea 
+                                class="form-control" 
+                                [rows]="campo.rows || 3"
+                                [(ngModel)]="contenidoEditable[campo.key]"
+                                [disabled]="!editable">
+                            </textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vista simple (sin singular/plural) -->
+            <div class="row mt-3" *ngIf="!tieneSingularPlural">
+                <div class="col-12">
+                    <div class="editor-container">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">JSON Completo</label>
+                            <textarea 
+                                class="form-control font-monospace" 
+                                rows="20"
+                                [(ngModel)]="contenidoJSON"
+                                [disabled]="!editable"
+                                (blur)="validarJSON()">
+                            </textarea>
+                            <small class="text-danger" *ngIf="errorJSON">{{ errorJSON }}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botón para ver JSON completo (solo en modo estructurado) -->
+            <div class="row mt-3" *ngIf="tieneSingularPlural">
+                <div class="col-12 text-center">
+                    <button 
+                        class="btn btn-outline-secondary"
+                        (click)="mostrarJSON = !mostrarJSON">
+                        <i class="fas" [ngClass]="mostrarJSON ? 'fa-eye-slash' : 'fa-eye'"></i>
+                        {{ mostrarJSON ? 'Ocultar' : 'Ver' }} JSON Completo
+                    </button>
+                </div>
+            </div>
+
+            <!-- JSON Completo (colapsable) -->
+            <div class="row mt-3" *ngIf="mostrarJSON && tieneSingularPlural">
+                <div class="col-12">
+                    <div class="alert alert-info">
+                        <strong>Vista previa del JSON:</strong>
+                        <pre class="mt-2 p-3 bg-dark text-white rounded">{{ contenidoJSON }}</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contenido del modo JSON directo -->
+        <div *ngIf="modoEdicion === 'json'">
+            <div class="row">
+                <div class="col-12">
+                    <h5>Editor JSON Directo</h5>
+                    <small class="text-muted">Puedes copiar y pegar JSON completo aquí</small>
+                </div>
+            </div>
+
+            <div class="row mt-3">
+                <div class="col-12">
+                    <div class="d-flex justify-content-end mb-2">
+                        <button 
+                            class="btn btn-sm btn-outline-primary me-2" 
+                            (click)="formatearJSON()"
+                            [disabled]="!editable">
+                            <i class="fas fa-magic"></i> Formatear JSON
+                        </button>
+                        <button 
+                            class="btn btn-sm btn-outline-info" 
+                            (click)="copiarJSON()">
+                            <i class="fas fa-copy"></i> Copiar
+                        </button>
+                    </div>
+                    <textarea 
+                        class="form-control font-monospace json-editor" 
+                        rows="25"
+                        [(ngModel)]="contenidoJSON"
+                        [disabled]="!editable"
+                        (blur)="validarJSONDirecto()"
+                        placeholder="Pega aquí tu JSON...">
+                    </textarea>
+                    <div class="mt-2">
+                        <small class="text-success" *ngIf="!errorJSON && contenidoJSON">
+                            <i class="fas fa-check-circle"></i> JSON válido
+                        </small>
+                        <small class="text-danger" *ngIf="errorJSON">
+                            <i class="fas fa-times-circle"></i> {{ errorJSON }}
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botones de acción -->
+    <div class="container mt-5 mb-5">
+        <div class="row">
+            <div class="col-sm-6" *ngIf="editable">
+                <button class="btn btn-lg btn-warning w-100" (click)="guardarPlantilla()">
+                    <i class="fas fa-save"></i> Guardar
+                </button>
+            </div>
+            <div class="col-sm-6">
+                <button class="btn btn-lg btn-secondary w-100" (click)="volver()">
+                    <i class="fas fa-arrow-left"></i> Volver
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

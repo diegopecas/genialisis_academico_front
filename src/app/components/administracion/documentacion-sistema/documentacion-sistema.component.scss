@@ -1,0 +1,553 @@
+$gold-primary: #ffbd31;
+$gold-dark: #e6a800;
+$corporate-yellow: #d4af37;
+$negro: #1A1A1A;
+$negro-suave: #2D2D2D;
+$gris-claro: #F5F5F5;
+$gris-medio: #E0E0E0;
+$gris-texto: #757575;
+$blanco: #FFFFFF;
+
+.modulo {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
+}
+
+.contenido-principal {
+  .row { min-height: calc(100vh - 150px); }
+}
+
+// =====================================================
+// PANEL ÁRBOL
+// =====================================================
+.panel-arbol {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 150px);
+  background: rgba($blanco, 0.9);
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+.panel-arbol-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: rgba($gold-primary, 0.06);
+  border-bottom: 1px solid rgba($gold-primary, 0.1);
+  flex-shrink: 0;
+
+  h6 {
+    font-weight: 600;
+    color: $negro-suave;
+    font-size: 13px;
+    i { color: $gold-primary; margin-right: 6px; }
+  }
+}
+
+.btn-mini {
+  width: 26px;
+  height: 26px;
+  border: none;
+  background: transparent;
+  color: $gris-texto;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  transition: all 0.2s;
+
+  &:hover {
+    background: rgba($gold-primary, 0.15);
+    color: $gold-dark;
+  }
+}
+
+.buscador-wrapper {
+  padding: 8px 10px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+  flex-shrink: 0;
+
+  .input-group-text {
+    background: $gris-claro;
+    border-color: $gris-medio;
+    color: $gris-texto;
+    font-size: 11px;
+  }
+
+  .buscador-input {
+    border-color: $gris-medio;
+    font-size: 12px;
+    &:focus { border-color: $gold-primary; box-shadow: none; }
+  }
+}
+
+.filtro-imagenes {
+  select {
+    font-size: 12px;
+    border-color: $gris-medio;
+    &:focus { border-color: $gold-primary; box-shadow: none; }
+  }
+}
+
+.arbol-scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: auto;
+  padding: 6px 0;
+
+  &::-webkit-scrollbar { width: 4px; height: 4px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb { background: $gris-medio; border-radius: 3px; }
+}
+
+// =====================================================
+// NODOS DEL ÁRBOL
+// =====================================================
+.nodo-doc {
+  white-space: nowrap;
+
+  .nodo-row {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    padding: 4px 6px 4px 0;
+    border-radius: 6px;
+    margin: 0 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+
+    &:hover { background: rgba($gold-primary, 0.06); }
+
+    &.nodo-activo {
+      background: rgba($gold-primary, 0.12);
+      .nodo-nombre-doc { color: $gold-dark; font-weight: 600; }
+    }
+  }
+
+  .btn-expand {
+    width: 20px;
+    height: 20px;
+    border: none;
+    background: none;
+    color: $gris-texto;
+    font-size: 9px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    i { transition: transform 0.2s; }
+    i.rotado { transform: rotate(90deg); }
+    &:hover { color: $gold-dark; }
+  }
+
+  .btn-expand-placeholder {
+    width: 20px;
+    flex-shrink: 0;
+  }
+
+  .nodo-contenido {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .nodo-icono-img {
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+    flex-shrink: 0;
+  }
+
+  .nodo-nombre-doc {
+    font-size: 12px;
+    color: $negro-suave;
+  }
+
+  .nodo-badges {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    margin-left: 4px;
+    flex-shrink: 0;
+  }
+
+  .badge-doc {
+    font-size: 10px;
+    line-height: 1;
+  }
+
+  .badge-img {
+    font-size: 10px;
+    color: $gold-primary;
+  }
+}
+
+// =====================================================
+// PANEL DETALLE / EDICIÓN
+// =====================================================
+.panel-detalle {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 150px);
+  background: rgba($blanco, 0.9);
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+.estado-vacio-doc {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: $gris-texto;
+
+  i {
+    font-size: 48px;
+    color: $gris-medio;
+    margin-bottom: 14px;
+  }
+
+  h5 { color: $negro-suave; font-weight: 600; margin-bottom: 6px; }
+  p { font-size: 13px; }
+}
+
+.detalle-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px 16px;
+  background: rgba($gold-primary, 0.06);
+  border-bottom: 1px solid rgba($gold-primary, 0.1);
+  flex-shrink: 0;
+}
+
+.detalle-titulo-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.detalle-icono {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.detalle-titulo {
+  margin: 0;
+  font-weight: 700;
+  color: $negro;
+  font-size: 16px;
+}
+
+.detalle-meta {
+  font-size: 11px;
+}
+
+.detalle-body {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+
+  &::-webkit-scrollbar { width: 4px; }
+  &::-webkit-scrollbar-thumb { background: $gris-medio; border-radius: 3px; }
+}
+
+// =====================================================
+// CKEDITOR
+// =====================================================
+.editor-wrapper {
+  position: relative;
+
+  .editor-container {
+    min-height: 180px;
+    border-radius: 0.375rem;
+  }
+
+  .ck-editor {
+    .ck-editor__main {
+      .ck-content {
+        min-height: 180px;
+        max-height: 350px;
+        overflow-y: auto;
+        font-size: 0.95rem;
+        line-height: 1.6;
+        border: 2px solid $gris-medio;
+
+        &:focus {
+          border-color: $corporate-yellow !important;
+          box-shadow: 0 0 0 0.2rem rgba($corporate-yellow, 0.25) !important;
+        }
+
+        p { margin-bottom: 0.75rem; }
+        ul, ol { margin-bottom: 0.75rem; padding-left: 1.5rem; }
+      }
+    }
+
+    .ck-toolbar {
+      border-top-left-radius: 0.375rem;
+      border-top-right-radius: 0.375rem;
+      background-color: $gris-claro;
+      border: 2px solid $gris-medio;
+      border-bottom: 2px solid $corporate-yellow;
+    }
+
+    &.ck-focused {
+      .ck-toolbar { border-color: $corporate-yellow; }
+    }
+  }
+}
+
+// =====================================================
+// IMÁGENES + DRAG & DROP
+// =====================================================
+.card-header-dorado {
+  background: linear-gradient(135deg, $corporate-yellow 0%, darken($corporate-yellow, 8%) 100%);
+  color: $negro;
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+}
+
+.card-imagenes {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.galeria-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 8px;
+}
+
+.galeria-thumb-edit {
+  position: relative;
+  aspect-ratio: 16/10;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 2px solid transparent;
+  transition: all 0.2s;
+  background: $gris-claro;
+
+  &:hover {
+    border-color: $gold-primary;
+    .btn-quitar-img { opacity: 1; }
+    .drag-handle { opacity: 1; }
+  }
+
+  &.border-warning {
+    border-color: $gold-primary;
+  }
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    cursor: pointer;
+  }
+
+  .btn-quitar-img {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(244, 67, 54, 0.85);
+    color: white;
+    font-size: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s;
+    z-index: 2;
+  }
+
+  .drag-handle {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    width: 22px;
+    height: 22px;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    font-size: 10px;
+    cursor: grab;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s;
+    z-index: 2;
+
+    &:active { cursor: grabbing; }
+  }
+
+  .img-nombre {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    font-size: 9px;
+    padding: 2px 4px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+// CDK Drag & Drop
+.drag-placeholder {
+  background: rgba($gold-primary, 0.15);
+  border: 2px dashed $gold-primary;
+  border-radius: 8px;
+  aspect-ratio: 16/10;
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.cdk-drag-preview {
+  box-shadow: 0 5px 25px rgba(0, 0, 0, 0.25);
+  border-radius: 8px;
+  overflow: hidden;
+  opacity: 0.9;
+}
+
+.cdk-drag-animating {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.galeria-grid.cdk-drop-list-dragging .galeria-thumb-edit:not(.cdk-drag-placeholder) {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+// =====================================================
+// GALERÍA MODAL
+// =====================================================
+.galeria-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.92);
+  z-index: 10001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.15s ease;
+}
+
+.galeria-contenido {
+  position: relative;
+  max-width: 90vw;
+  max-height: 90vh;
+}
+
+.galeria-img-full {
+  max-width: 90vw;
+  max-height: 85vh;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.galeria-cerrar {
+  position: absolute;
+  top: -40px;
+  right: 0;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 22px;
+  cursor: pointer;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  &:hover { background: rgba(255, 255, 255, 0.1); }
+}
+
+.galeria-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.5);
+  border: none;
+  color: white;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+
+  &:hover { background: rgba($gold-primary, 0.6); }
+  &.galeria-prev { left: -50px; }
+  &.galeria-next { right: -50px; }
+}
+
+.galeria-counter {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+  margin-top: 8px;
+}
+
+// =====================================================
+// ANIMACIONES
+// =====================================================
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+// =====================================================
+// RESPONSIVE
+// =====================================================
+@media (max-width: 768px) {
+  .contenido-principal .row {
+    min-height: auto;
+    flex-direction: column;
+  }
+
+  .panel-arbol {
+    height: 40vh;
+  }
+
+  .panel-detalle {
+    height: auto;
+    min-height: 50vh;
+    margin-top: 8px;
+  }
+
+  .galeria-nav {
+    &.galeria-prev { left: -10px; }
+    &.galeria-next { right: -10px; }
+  }
+
+  .galeria-grid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  }
+}

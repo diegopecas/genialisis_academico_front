@@ -1,0 +1,51 @@
+<div class="modulo">
+  <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [raiz]="'/reportes'" [regresar]="'/reportes'" [iconoTitulo]="'/assets/images/reporte-asistencia-colaboradores.png'"></app-header>
+
+  <div class="container-fluid mt-4">
+
+    <!-- Filtros -->
+    <div class="filters-container">
+      <div class="row align-items-end">
+        <div class="col-md-3">
+          <div class="form-group">
+            <label for="fechaInicio" class="form-label"><i class="fas fa-calendar"></i> Fecha inicial:</label>
+            <input type="date" id="fechaInicio" class="form-control" [(ngModel)]="fechaInicio" (change)="onFiltrosChange()">
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="form-group">
+            <label for="fechaFin" class="form-label"><i class="fas fa-calendar"></i> Fecha final:</label>
+            <input type="date" id="fechaFin" class="form-control" [(ngModel)]="fechaFin" [min]="fechaInicio" (change)="onFiltrosChange()">
+          </div>
+        </div>
+        <div class="col-md-6" *ngIf="!cargando && estadisticas">
+          <div class="stats-row">
+            <div class="stat-card stat-total"><div class="stat-number">{{ estadisticas.total_registros_dia || 0 }}</div><div class="stat-label">Registros</div></div>
+            <div class="stat-card stat-ok"><div class="stat-number">{{ estadisticas.a_tiempo || 0 }}</div><div class="stat-label">A tiempo</div></div>
+            <div class="stat-card stat-tarde"><div class="stat-number">{{ estadisticas.tarde || 0 }}</div><div class="stat-label">Tarde</div></div>
+            <div class="stat-card stat-anticipada"><div class="stat-number">{{ estadisticas.entrada_anticipada || 0 }}</div><div class="stat-label">Anticipada</div></div>
+            <div class="stat-card stat-manual"><div class="stat-number">{{ estadisticas.manuales || 0 }}</div><div class="stat-label">Manuales</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabla -->
+    <app-tablas *ngIf="!cargando" [titulos]="titulos" [datos]="datos" [raiz]="'/reportes'" [acciones]="acciones" [accionEditar]="false" [mostrarBuscar]="true" [columnasFiltro]="['Colaborador', 'Tipo Registro', 'Estado', 'Día']"></app-tablas>
+
+    <!-- Loading -->
+    <div *ngIf="cargando" class="loading-container">
+      <div class="spinner-border text-warning" role="status"></div>
+      <p>Cargando asistencias del {{ fechaInicio }} al {{ fechaFin }}...</p>
+    </div>
+
+    <!-- Exportar -->
+    <div class="export-container">
+      <button class="btn btn-success" (click)="exportarExcel()" [disabled]="exportando || cargando || datos.length === 0">
+        <i class="fas fa-file-excel"></i>
+        {{ exportando ? 'Exportando...' : 'Exportar a Excel' }}
+      </button>
+    </div>
+
+  </div>
+</div>

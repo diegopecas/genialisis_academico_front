@@ -1,0 +1,69 @@
+<div class="modulo">
+    <app-header 
+        [tituloModulo]="titulo" 
+        [mostrarCrear]="true" 
+        [raiz]="'/administracion/crm/visitas'"
+        [regresar]="'/administracion'">
+    </app-header>
+    
+    <div class="container-fluid mt-5">
+        <!-- Título descriptivo -->
+        <div class="text-center mb-5">
+            <h2 class="titulo-seccion">Módulo CRM</h2>
+            <p class="subtitulo-seccion">Gestiona las visitas, contactos del portal y el seguimiento de prospectos</p>
+        </div>
+
+        <!-- Tarjetas de opciones -->
+        <div class="row justify-content-center">
+            
+            <!-- Gestionar Visitas -->
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card-maestro" (click)="seleccionarOpcion('visitas')">
+                    <div class="card-maestro-content">
+                        <div class="icono-container visitas">
+                            <img src="assets/images/visitas.png" alt="Visitas" />
+                        </div>
+                        <h3 class="card-titulo">Gestionar Visitas</h3>
+                        <p class="card-descripcion">Registra y da seguimiento a las visitas de prospectos</p>
+                        <div class="card-footer-custom">
+                            <span class="link-accion">Administrar <i class="fas fa-arrow-right"></i></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Contactos del Portal -->
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card-maestro" (click)="seleccionarOpcion('contactos-portal')">
+                    <div class="card-maestro-content">
+                        <div class="icono-container contactos">
+                            <img src="assets/images/contactos_portal.png" alt="Contactos Portal" />
+                        </div>
+                        <h3 class="card-titulo">Contactos del Portal</h3>
+                        <p class="card-descripcion">Gestiona los contactos que llegan desde el portal web</p>
+                        <div class="card-footer-custom">
+                            <span class="link-accion">Ver Contactos <i class="fas fa-arrow-right"></i></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Dashboard CRM -->
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card-maestro" (click)="seleccionarOpcion('dashboard')">
+                    <div class="card-maestro-content">
+                        <div class="icono-container dashboard">
+                            <img src="assets/images/dashboard_crm.png" alt="Dashboard" />
+                        </div>
+                        <h3 class="card-titulo">Dashboard</h3>
+                        <p class="card-descripcion">Visualiza métricas y estadísticas de visitas y contactos</p>
+                        <div class="card-footer-custom">
+                            <span class="link-accion">Ver Dashboard <i class="fas fa-arrow-right"></i></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</div>

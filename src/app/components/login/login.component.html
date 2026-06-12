@@ -1,0 +1,141 @@
+<div class="login-container">
+  <div class="background-image" [style.background-image]="'url(' + fondoUrl + ')'"></div>
+  <div class="background-overlay"></div>
+
+  <div class="login-content">
+    
+    <div class="logo-header">
+      <img [src]="logoGenialisis" alt="Genialisis" class="genialisis-logo" />
+    </div>
+
+    <div class="login-card">
+      <h1 class="login-title">Bienvenido</h1>
+      <p class="login-subtitle">Ingresa tus credenciales para continuar</p>
+
+      <form class="login-form" (submit)="ingresar(); $event.preventDefault()">
+        
+        <div class="form-group">
+          <label for="usuario" class="form-label">Usuario</label>
+          <input 
+            type="text" 
+            id="usuario"
+            [(ngModel)]="usuario" 
+            name="usuario"
+            placeholder="Ingresa tu usuario"
+            class="form-input"
+            autocomplete="username"
+            [disabled]="isLoading"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="password" class="form-label">Contraseña</label>
+          <div class="password-wrapper">
+            <input 
+              [type]="showPassword ? 'text' : 'password'"
+              id="password"
+              [(ngModel)]="password" 
+              name="password"
+              placeholder="Ingresa tu contraseña"
+              class="form-input"
+              autocomplete="current-password"
+              [disabled]="isLoading"
+              required
+            />
+            <button 
+              type="button"
+              class="toggle-password"
+              (click)="togglePasswordVisibility()"
+              tabindex="-1"
+            >
+              <span class="toggle-icon">{{ showPassword ? '👁️' : '👁️‍🗨️' }}</span>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" class="submit-button" [disabled]="isLoading">
+          <span *ngIf="!isLoading" class="button-text">Iniciar Sesión</span>
+          <span *ngIf="isLoading" class="button-text">Verificando...</span>
+        </button>
+
+        <!-- Botón de biométrico - funciona sin escribir usuario -->
+        <div class="biometric-section" *ngIf="webAuthnSoportado">
+          <div class="biometric-divider">
+            <span class="divider-line"></span>
+            <span class="divider-text">o</span>
+            <span class="divider-line"></span>
+          </div>
+
+          <button 
+            type="button" 
+            class="biometric-button"
+            (click)="loginConBiometrico()"
+            [disabled]="isLoading"
+            title="Ingresar con biométrico"
+          >
+            <span class="biometric-icon">🔐</span>
+            <span class="biometric-text">Ingresar con biométrico</span>
+          </button>
+        </div>
+
+      </form>
+
+      <div class="login-footer">
+        <button type="button" class="footer-link" (click)="mostrarAyudaContrasena()">
+          ¿Olvidaste tu contraseña?
+        </button>
+      </div>
+    </div>
+
+    <div class="app-footer">
+      <p>Genialisis © {{ currentYear }} - Sistema de Gestión Educativa</p>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Selector de Institución -->
+<div class="modal-overlay" *ngIf="mostrarSelectorTenant" (click)="cerrarSelectorTenant()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Selecciona tu institución</h2>
+      <p>Tu usuario tiene acceso a múltiples instituciones</p>
+    </div>
+    
+    <div class="modal-body">
+      <div class="tenant-list">
+        <div 
+          *ngFor="let tenant of tenantsDisponibles" 
+          class="tenant-item"
+          [class.selected]="tenantSeleccionado?.id === tenant.id"
+          (click)="seleccionarTenant(tenant)"
+        >
+          <div class="tenant-logo">
+            <img 
+              [src]="'/assets/images/instituciones/' + tenant.codigo + '/logo_basico.png'" 
+              [alt]="tenant.nombre"
+              (error)="$any($event.target).src='/assets/images/logo_app.png'"
+            />
+          </div>
+          <div class="tenant-info">
+            <span class="tenant-nombre">{{ tenant.nombre }}</span>
+          </div>
+          <div class="tenant-check" *ngIf="tenantSeleccionado?.id === tenant.id">
+            ✓
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="modal-footer">
+      <button class="btn-cancelar" (click)="cerrarSelectorTenant()">Cancelar</button>
+      <button 
+        class="btn-continuar" 
+        [disabled]="!tenantSeleccionado"
+        (click)="confirmarSeleccionTenantBiometrico()"
+      >
+        Continuar
+      </button>
+    </div>
+  </div>
+</div>

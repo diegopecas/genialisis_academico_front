@@ -1,0 +1,171 @@
+$gold: #d4af37;
+$black: #222;
+
+.modulo {
+  background: #f5f7fa;
+  min-height: 100vh;
+  padding-bottom: 2rem;
+}
+
+.info-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border-left: 4px solid $gold;
+
+  h5 {
+    font-weight: 600;
+    color: $black;
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+
+    i { color: $gold; }
+  }
+
+  p {
+    color: #666;
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+}
+
+.acciones-mapa {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.btn-accion-mapa {
+  background: white;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: $black;
+  cursor: pointer;
+  transition: all 0.25s ease;
+
+  &:hover {
+    border-color: $gold;
+    color: $gold;
+  }
+
+  &.btn-limpiar {
+    border-color: #ef9a9a;
+    color: #c62828;
+    &:hover { background: #ffebee; }
+  }
+
+  &.btn-dibujar {
+    border-color: $gold;
+    color: $gold;
+    font-weight: 700;
+    &:hover { background: rgba($gold, 0.1); }
+  }
+
+  &.btn-cerrar {
+    border-color: #66bb6a;
+    color: #2e7d32;
+    font-weight: 700;
+    &:hover { background: #e8f5e9; }
+    &:disabled { opacity: 0.4; cursor: not-allowed; }
+  }
+}
+
+.dibujo-activo-banner {
+  background: linear-gradient(135deg, $gold 0%, darken($gold, 10%) 100%);
+  color: $black;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  animation: pulseBanner 1.5s infinite alternate;
+
+  i { font-size: 0.85rem; }
+}
+
+@keyframes pulseBanner {
+  from { opacity: 0.85; }
+  to { opacity: 1; }
+}
+
+.mapa-dibujando {
+  cursor: crosshair !important;
+}
+
+.estado-poligono {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #666;
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+}
+
+.mapa-container {
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  border: 2px solid #e0e0e0;
+}
+
+.mapa-leaflet {
+  width: 100%;
+  height: 500px;
+}
+
+.btn-save {
+  background-color: #f0b429;
+  color: $black;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 20px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  &:hover:not(:disabled) {
+    background-color: darken(#f0b429, 8%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(#f0b429, 0.3);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.btn-cancel {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 20px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  &:hover {
+    background-color: darken(#6c757d, 8%);
+    transform: translateY(-2px);
+  }
+}
+
+@media (max-width: 768px) {
+  .mapa-leaflet { height: 350px; }
+  .acciones-mapa { flex-direction: column; align-items: flex-start; }
+  .estado-poligono { margin-left: 0; }
+}

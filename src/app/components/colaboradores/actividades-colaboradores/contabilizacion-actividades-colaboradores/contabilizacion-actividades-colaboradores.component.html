@@ -1,0 +1,312 @@
+<div class="modulo">
+  <app-header 
+    [tituloModulo]="titulo" 
+    [mostrarCrear]="false" 
+    [raiz]="'/administracion/actividades-colaboradores'" 
+    [regresar]="'/administracion/actividades-colaboradores'" 
+    [iconoTitulo]="'/assets/images/contabilizar_actividades.png'">
+  </app-header>
+
+  <div class="container-fluid px-4">
+    
+    <!-- Loader -->
+    <div *ngIf="cargando" class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+      <p class="mt-3">Cargando colaboradores...</p>
+    </div>
+
+    <!-- Sin datos -->
+    <div *ngIf="!cargando && colaboradores.length === 0" class="alert alert-info mt-4">
+      <i class="fa fa-info-circle me-2"></i>
+      No hay colaboradores con actividades pendientes de contabilizar
+    </div>
+
+    <!-- Barra de acciones superior -->
+    <div *ngIf="!cargando && colaboradores.length > 0" class="card mt-4">
+      <div class="card-body">
+        <div class="row align-items-center">
+          <div class="col-md-6">
+            <h5 class="mb-0">
+              <i class="fa fa-users me-2"></i>
+              {{ colaboradores.length }} Colaborador(es) con actividades pendientes
+            </h5>
+          </div>
+          <div class="col-md-6 text-end">
+            <button class="btn btn-outline-primary me-2" (click)="seleccionarTodos()">
+              <i class="fa fa-check-square me-1"></i>
+              Seleccionar Todos
+            </button>
+            <button 
+              class="btn btn-success btn-lg" 
+              [disabled]="!algunoSeleccionado()"
+              (click)="cruzarSeleccionadosAutomatico()">
+              <i class="fa fa-exchange-alt me-2"></i>
+              Cruzar Seleccionados (Automático)
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lista de colaboradores -->
+    <div *ngFor="let colaborador of colaboradores" class="colaborador-card mt-3">
+      <div class="card">
+        <!-- Header del colaborador (siempre visible) -->
+        <div class="card-header" [class.seleccionado]="colaborador.seleccionado">
+          <div class="row align-items-center">
+            <!-- Checkbox de selección -->
+            <div class="col-auto">
+              <input 
+                type="checkbox" 
+                class="form-check-input checkbox-lg" 
+                [checked]="colaborador.seleccionado"
+                [disabled]="!puedeHacerCruce(colaborador)"
+                (change)="toggleSeleccionColaborador(colaborador)">
+            </div>
+
+            <!-- Nombre del colaborador -->
+            <div class="col-md-3">
+              <h6 class="mb-0">
+                <i class="fa fa-user me-2"></i>
+                {{ colaborador.nombre_colaborador }}
+              </h6>
+            </div>
+
+            <!-- Resumen de minutos -->
+            <div class="col-md-6">
+              <div class="row text-center">
+                <div class="col-4">
+                  <small class="text-muted d-block">Permisos</small>
+                  <span class="badge bg-danger">
+                    {{ formatearMinutos(colaborador.minutos_permisos) }}
+                    ({{ colaborador.cantidad_permisos }})
+                  </span>
+                </div>
+                <div class="col-4">
+                  <small class="text-muted d-block">Horas Extras</small>
+                  <span class="badge bg-success">
+                    {{ formatearMinutos(colaborador.minutos_horas) }}
+                    ({{ colaborador.cantidad_horas }})
+                  </span>
+                </div>
+                <div class="col-4">
+                  <small class="text-muted d-block">Valor Horas</small>
+                  <span class="badge bg-warning text-dark">
+                    {{ formatearValor(colaborador.valor_horas) }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Acciones -->
+            <div class="col-md-2 text-end">
+              <button 
+                *ngIf="puedeHacerCruce(colaborador)"
+                class="btn btn-sm btn-primary me-2" 
+                (click)="toggleExpandir(colaborador); $event.stopPropagation()">
+                <i class="fa" [class.fa-chevron-down]="!colaborador.expandido" 
+                   [class.fa-chevron-up]="colaborador.expandido"></i>
+                {{ colaborador.expandido ? 'Contraer' : 'Ver' }}
+              </button>
+              <button 
+                *ngIf="puedeHacerCruce(colaborador)"
+                class="btn btn-sm btn-success" 
+                (click)="cruzarColaborador(colaborador); $event.stopPropagation()">
+                <i class="fa fa-exchange-alt me-1"></i>
+                Cruzar
+              </button>
+              <span *ngIf="!puedeHacerCruce(colaborador)" class="badge bg-secondary">
+                <i class="fa fa-exclamation-triangle me-1"></i>
+                No se puede cruzar
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Detalle del colaborador (expandible) -->
+        <div *ngIf="colaborador.expandido" class="card-body">
+          <div class="row">
+            
+            <!-- Columna de PERMISOS -->
+            <div class="col-md-6">
+              <div class="seccion-actividades">
+                <div class="seccion-header bg-danger text-white">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">
+                      <i class="fa fa-calendar-times me-2"></i>
+                      Permisos ({{ colaborador.permisos?.length || 0 }})
+                    </h6>
+                    <button 
+                      class="btn btn-sm btn-light"
+                      (click)="seleccionarTodasActividadesColaborador(colaborador, 'permisos')">
+                      <i class="fa fa-check-square me-1"></i>
+                      Todos
+                    </button>
+                  </div>
+                </div>
+
+                <div class="table-responsive">
+                  <table class="table table-sm table-hover mb-0">
+                    <thead>
+                      <tr>
+                        <th width="40"></th>
+                        <th>Tipo</th>
+                        <th class="text-center">Disponible</th>
+                        <th class="text-center">Fecha</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let permiso of colaborador.permisos" 
+                          [class.actividad-seleccionada]="permiso.seleccionado">
+                        <td>
+                          <input 
+                            type="checkbox" 
+                            class="form-check-input"
+                            [(ngModel)]="permiso.seleccionado">
+                        </td>
+                        <td>
+                          {{ permiso.nombre_tipo_actividad }}
+                          <span *ngIf="permiso.minutos_ya_aplicados > 0" 
+                                class="badge bg-warning text-dark ms-1"
+                                title="Contabilizado parcial">
+                            Parcial
+                          </span>
+                        </td>
+                        <td class="text-center">
+                          <strong>{{ permiso.disponible_formateado }}</strong>
+                          <small *ngIf="permiso.minutos_ya_aplicados > 0" class="text-muted d-block">
+                            de {{ formatearMinutos(permiso.minutos_totales) }}
+                          </small>
+                        </td>
+                        <td class="text-center">
+                          <small>{{ permiso.fecha_aprobacion | date:'dd/MM/yyyy' }}</small>
+                        </td>
+                      </tr>
+                      <tr *ngIf="!colaborador.permisos || colaborador.permisos.length === 0">
+                        <td colspan="4" class="text-center text-muted py-3">
+                          <i class="fa fa-inbox me-2"></i>
+                          Sin permisos pendientes
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- Columna de HORAS ADICIONALES -->
+            <div class="col-md-6">
+              <div class="seccion-actividades">
+                <div class="seccion-header bg-success text-white">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">
+                      <i class="fa fa-clock me-2"></i>
+                      Horas Adicionales ({{ colaborador.horas?.length || 0 }})
+                    </h6>
+                    <button 
+                      class="btn btn-sm btn-light"
+                      (click)="seleccionarTodasActividadesColaborador(colaborador, 'horas')">
+                      <i class="fa fa-check-square me-1"></i>
+                      Todas
+                    </button>
+                  </div>
+                </div>
+
+                <div class="table-responsive">
+                  <table class="table table-sm table-hover mb-0">
+                    <thead>
+                      <tr>
+                        <th width="40"></th>
+                        <th>Tipo</th>
+                        <th class="text-center">Disponible</th>
+                        <th class="text-end">Valor</th>
+                        <th class="text-center">Fecha</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let hora of colaborador.horas" 
+                          [class.actividad-seleccionada]="hora.seleccionado">
+                        <td>
+                          <input 
+                            type="checkbox" 
+                            class="form-check-input"
+                            [(ngModel)]="hora.seleccionado">
+                        </td>
+                        <td>
+                          {{ hora.nombre_tipo_actividad }}
+                          <span *ngIf="hora.minutos_ya_aplicados > 0" 
+                                class="badge bg-warning text-dark ms-1"
+                                title="Contabilizado parcial">
+                            Parcial
+                          </span>
+                        </td>
+                        <td class="text-center">
+                          <strong>{{ hora.disponible_formateado }}</strong>
+                          <small *ngIf="hora.minutos_ya_aplicados > 0" class="text-muted d-block">
+                            de {{ formatearMinutos(hora.minutos_totales) }}
+                          </small>
+                        </td>
+                        <td class="text-end">
+                          <strong class="text-success">{{ hora.valor_calculado }}</strong>
+                        </td>
+                        <td class="text-center">
+                          <small>{{ hora.fecha_aprobacion | date:'dd/MM/yyyy' }}</small>
+                        </td>
+                      </tr>
+                      <tr *ngIf="!colaborador.horas || colaborador.horas.length === 0">
+                        <td colspan="5" class="text-center text-muted py-3">
+                          <i class="fa fa-inbox me-2"></i>
+                          Sin horas adicionales pendientes
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Resumen del cruce para este colaborador -->
+          <div class="row mt-3">
+            <div class="col-12">
+              <div class="alert alert-info mb-0">
+                <div class="row text-center">
+                  <div class="col-md-3">
+                    <small class="text-muted d-block">Permisos Seleccionados</small>
+                    <strong>{{ formatearMinutos(calcularPermisosSeleccionados(colaborador)) }}</strong>
+                  </div>
+                  <div class="col-md-3">
+                    <small class="text-muted d-block">Horas Seleccionadas</small>
+                    <strong>{{ formatearMinutos(calcularHorasSeleccionadas(colaborador)) }}</strong>
+                  </div>
+                  <div class="col-md-3">
+                    <small class="text-muted d-block">Se Cruzarán</small>
+                    <strong class="text-primary">{{ formatearMinutos(calcularMinutosCruzar(colaborador)) }}</strong>
+                  </div>
+                  <div class="col-md-3">
+                    <small class="text-muted d-block">Valor Horas</small>
+                    <strong class="text-success">{{ formatearValor(calcularValorHorasSeleccionadas(colaborador)) }}</strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Información adicional -->
+    <div *ngIf="!cargando && colaboradores.length > 0" class="alert alert-info mt-4">
+      <i class="fa fa-info-circle me-2"></i>
+      <strong>Nota:</strong> 
+      <ul class="mb-0 mt-2">
+        <li>Use el <strong>modo automático</strong> para cruzar rápidamente múltiples colaboradores con todas sus actividades</li>
+        <li>Expanda un colaborador para ver el <strong>modo manual</strong> y seleccionar actividades específicas</li>
+        <li>Las actividades <span class="badge bg-warning text-dark">Parciales</span> ya tienen minutos contabilizados en cruces anteriores</li>
+        <li>Solo se cruzan <strong>Permisos</strong> y <strong>Horas Adicionales</strong>. Vacaciones e Incapacidades van directo a nómina</li>
+      </ul>
+    </div>
+  </div>
+</div>

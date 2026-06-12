@@ -1,0 +1,11 @@
+<div class="modulo">
+    <app-header [tituloModulo]="titulo" [mostrarCrear]="true" [accion]="'ConsultarTodos'"
+        [raiz]="'/operaciones/movimientos-productos'" [regresar]="'/operaciones'"
+        [iconoTitulo]="'/assets/images/movimientos-inventario.png'"></app-header>
+
+    <!-- Vista de tabla -->
+    <app-tablas [titulos]="titulos" [datos]="datos" [raiz]="'/operaciones/movimientos-productos'" 
+        [acciones]="acciones" [accionVer]="true" [accionEditar]="true" [accionEliminar]="false" 
+        [mostrarBuscar]="true" [columnasFiltro]="columnasFiltro"
+        (clicAccion)="clicAccion($event)"></app-tablas>
+</div>

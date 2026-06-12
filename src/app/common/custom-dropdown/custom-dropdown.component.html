@@ -1,0 +1,39 @@
+<div class="custom-dropdown" [class.is-invalid]="isInvalid" [class.disabled]="disabled">
+  <!-- Cabecera del dropdown (lo que se ve cuando está cerrado) -->
+  <div class="custom-dropdown-header" (click)="toggleDropdown($event)" [class.disabled]="disabled">
+    <span>{{ getSelectedText() }}</span>
+    <i class="bi bi-chevron-down"></i>
+  </div>
+
+  <!-- Opciones del dropdown (aparecen al hacer clic) -->
+  <div class="custom-dropdown-options" *ngIf="dropdownOpen">
+    <!-- Campo de búsqueda -->
+    <div class="custom-dropdown-search">
+      <input 
+        type="text" 
+        class="form-control" 
+        [placeholder]="searchPlaceholder" 
+        [(ngModel)]="searchTerm" 
+        (input)="searchOptions()"
+        (click)="onSearchClick($event)"
+      >
+    </div>
+    
+    <!-- Opción "Todos" si está habilitada -->
+    <div *ngIf="showAllOption" class="custom-dropdown-option" (click)="selectOption('', $event)">
+      {{ allOptionText }}
+    </div>
+
+    <!-- Mensaje cuando no hay resultados -->
+    <div *ngIf="filteredOptions.length === 0" class="custom-dropdown-no-results">
+      No se encontraron resultados
+    </div>
+
+    <!-- Lista de opciones -->
+    <div *ngFor="let option of filteredOptions" class="custom-dropdown-option"
+      (click)="selectOption(option[valueKey], $event)">
+      <div class="option-name">{{ option[displayKey] }}</div>
+      <div *ngIf="option[detailKey]" class="option-details">{{ option[detailKey] }}</div>
+    </div>
+  </div>
+</div>

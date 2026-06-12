@@ -1,0 +1,21 @@
+<div class="modulo">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="true"
+    [accion]="'ConsultarTodos'"
+    [raiz]="'/administracion/productos-limpieza'"
+    [regresar]="'/administracion/datos-maestros'"
+    [iconoTitulo]="'/assets/images/productos-limpieza.png'"
+  ></app-header>
+  
+  <app-tablas
+    [titulos]="titulos"
+    [datos]="datos"
+    [raiz]="'/administracion/productos-limpieza'"
+    [accionEditar]="true"
+    [accionEliminar]="true"
+    [mostrarBuscar]="true"
+    [columnasFiltro]="columnasFiltro"
+    (clicAccion)="clicAccion($event)"
+  ></app-tablas>
+</div>

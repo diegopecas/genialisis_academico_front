@@ -1,0 +1,149 @@
+.procesar-nomina-container {
+  padding: 1rem;
+}
+
+.nomina-table {
+  font-size: 0.875rem;
+  
+  thead th {
+    font-size: 0.75rem;
+    font-weight: 600;
+    vertical-align: middle;
+    padding: 0.5rem 0.25rem;
+    white-space: nowrap;
+  }
+  
+  tbody td {
+    padding: 0.4rem 0.3rem;
+    vertical-align: middle;
+  }
+  
+  tfoot td {
+    padding: 0.5rem 0.3rem;
+    font-size: 0.9rem;
+  }
+  
+  // Fondo para totales
+  .bg-success-subtle {
+    background-color: #d1e7dd !important;
+  }
+  
+  .bg-danger-subtle {
+    background-color: #f8d7da !important;
+  }
+  
+  .bg-warning-subtle {
+    background-color: #fff3cd !important;
+  }
+  
+  .bg-primary-subtle {
+    background-color: #cfe2ff !important;
+  }
+  
+  // Hover en filas
+  tbody tr:hover {
+    background-color: #f8f9fa !important;
+    cursor: pointer;
+  }
+  
+  // Filas con estado
+  .table-success {
+    background-color: #d1e7dd !important;
+    
+    &:hover {
+      background-color: #c4dcd0 !important;
+    }
+  }
+  
+  .table-secondary {
+    background-color: #e2e3e5 !important;
+    opacity: 0.7;
+    
+    &:hover {
+      background-color: #d6d7d9 !important;
+    }
+  }
+  
+  .table-light {
+    background-color: #f8f9fa !important;
+  }
+  
+  // Input de días
+  input[type="number"] {
+    font-size: 0.875rem;
+    padding: 0.25rem;
+    text-align: center;
+    
+    &::-webkit-inner-spin-button,
+    &::-webkit-outer-spin-button {
+      opacity: 1;
+    }
+  }
+  
+  // Checkbox
+  .form-check-input {
+    cursor: pointer;
+    transform: scale(1.1);
+  }
+}
+
+// Botones de acción
+.btn-group {
+  .btn {
+    font-weight: 600;
+    
+    i {
+      margin-right: 0.5rem;
+    }
+  }
+}
+
+// Badge
+.badge {
+  font-size: 0.7rem;
+  padding: 0.25rem 0.5rem;
+}
+
+// Alert
+.alert {
+  font-size: 0.9rem;
+  
+  i {
+    font-size: 1.1rem;
+  }
+}
+
+// Responsive
+@media (max-width: 1400px) {
+  .nomina-table {
+    font-size: 0.75rem;
+    
+    thead th {
+      font-size: 0.7rem;
+      padding: 0.4rem 0.2rem;
+    }
+    
+    tbody td {
+      padding: 0.3rem 0.2rem;
+    }
+  }
+}
+
+@media print {
+  .btn-group,
+  .alert,
+  .form-check-input,
+  input[type="number"] {
+    display: none !important;
+  }
+  
+  .nomina-table {
+    font-size: 0.7rem;
+    
+    thead th,
+    tbody td,
+    tfoot td {
+      padding: 0.2rem !important;
+    }
+  }
+}

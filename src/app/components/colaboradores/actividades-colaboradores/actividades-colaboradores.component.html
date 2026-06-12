@@ -1,0 +1,89 @@
+<div class="modulo">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="false"
+    [raiz]="'/gestion-colaboradores'"
+    [regresar]="'/gestion-colaboradores'"
+    [iconoTitulo]="'/assets/images/actividades_colaboradores.png'"
+  >
+  </app-header>
+
+  <div class="container-fluid mt-5">
+
+
+    <!-- Tarjetas de opciones -->
+    <div class="row justify-content-center">
+      <!-- Aprobar Actividades -->
+      <div class="col-lg-3 col-md-6 mb-4">
+        <div class="card-opcion" (click)="seleccionarOpcion('aprobar')">
+          <div class="card-opcion-content">
+            <div class="icono-container aprobar">
+              <img
+                [src]="'/assets/images/aprobar_actividades.png'"
+                alt="Aprobar Actividades"
+              />
+            </div>
+            <h3 class="card-titulo">Aprobar Actividades</h3>
+            <p class="card-descripcion">
+              Revisa y aprueba permisos, horas adicionales y otras actividades
+              registradas por colaboradores
+            </p>
+            <div class="card-footer-custom">
+              <span class="link-accion"
+                >Aprobar <i class="fas fa-arrow-right"></i
+              ></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contabilizar Actividades -->
+      <div class="col-lg-3 col-md-6 mb-4">
+        <div class="card-opcion" (click)="seleccionarOpcion('contabilizar')">
+          <div class="card-opcion-content">
+            <div class="icono-container contabilizar">
+              <img
+                [src]="'/assets/images/contabilizar_actividades.png'"
+                alt="Contabilizar Actividades"
+              />
+            </div>
+            <h3 class="card-titulo">Contabilizar Actividades</h3>
+            <p class="card-descripcion">
+              Cruza permisos con horas adicionales y procesa las
+              contabilizaciones para nómina
+            </p>
+            <div class="card-footer-custom">
+              <span class="link-accion"
+                >Contabilizar <i class="fas fa-arrow-right"></i
+              ></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Calendario de Colaboradores -->
+      <div class="col-lg-3 col-md-6 mb-4">
+        <div class="card-opcion" (click)="seleccionarOpcion('calendario')">
+          <div class="card-opcion-content">
+            <div class="icono-container calendario">
+              <img
+                [src]="'/assets/images/calendario_actividades.png'"
+                alt="Calendario"
+              />
+            </div>
+            <h3 class="card-titulo">Calendario de Actividades</h3>
+            <p class="card-descripcion">
+              Visualiza en un calendario todas las actividades y horarios de los
+              colaboradores por día, semana o mes
+            </p>
+            <div class="card-footer-custom">
+              <span class="link-accion"
+                >Ver Calendario <i class="fas fa-arrow-right"></i
+              ></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

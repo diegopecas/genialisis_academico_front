@@ -1,0 +1,80 @@
+.section-title {
+    color: #2c3e50;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+.card {
+    border: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    
+    .card-header {
+        border-radius: 8px 8px 0 0;
+        padding: 1rem 1.25rem;
+        
+        h5 {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+    }
+    
+    .card-body {
+        padding: 1.5rem;
+    }
+}
+
+.info-item {
+    margin-bottom: 0.5rem;
+    
+    .info-label {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #6c757d;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.25rem;
+        display: block;
+    }
+    
+    .info-value {
+        font-size: 1rem;
+        color: #2c3e50;
+        margin-bottom: 0;
+        padding: 0.5rem 0;
+        
+        i {
+            color: #3498db;
+        }
+    }
+}
+
+.mensaje-box {
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 6px;
+    border-left: 4px solid #3498db;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: #495057;
+    
+    i {
+        color: #3498db;
+        font-size: 1.1rem;
+    }
+}
+
+.form-control-plaintext {
+    font-size: 1rem;
+    color: #495057;
+    padding-left: 0;
+}
+
+// Separador visual entre secciones
+hr {
+    border-top: 2px solid #e9ecef;
+    margin: 2rem 0;
+}

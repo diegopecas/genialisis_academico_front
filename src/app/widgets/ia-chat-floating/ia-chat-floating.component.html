@@ -1,0 +1,150 @@
+<!-- Solo visible cuando hay usuario logueado -->
+<ng-container *ngIf="visible">
+  <!-- Botón flotante -->
+  <button class="chat-fab" (click)="toggleChat()" [class.active]="chatAbierto">
+    <span class="fab-icon" *ngIf="!chatAbierto">💬</span>
+    <span class="fab-icon" *ngIf="chatAbierto">✕</span>
+    <span class="fab-pulse" *ngIf="!chatAbierto"></span>
+  </button>
+
+  <!-- Panel del chat -->
+  <div class="chat-panel" [class.open]="chatAbierto">
+    <!-- Header -->
+    <div class="chat-header">
+      <div class="header-left" *ngIf="!verHistorial">
+        <div class="avatar-lumi">🤖</div>
+        <div class="header-info">
+          <span class="header-nombre">{{ nombreAsistente }}</span>
+          <span class="header-estado">Asistente del Jardín</span>
+        </div>
+      </div>
+      <div class="header-left" *ngIf="verHistorial">
+        <button class="btn-volver" (click)="volverAlChat()">←</button>
+        <span class="header-nombre">Conversaciones</span>
+      </div>
+      <div class="header-actions">
+        <button
+          class="btn-header"
+          (click)="toggleHistorial()"
+          title="Historial"
+        >
+          📋
+        </button>
+        <button
+          class="btn-header"
+          (click)="nuevaConversacion()"
+          title="Nueva conversación"
+          *ngIf="!verHistorial"
+        >
+          ✚
+        </button>
+        <button
+          class="btn-header btn-cerrar-ia"
+          (click)="toggleChat()"
+          title="Cerrar"
+        >
+          ✕
+        </button>
+      </div>
+    </div>
+
+    <!-- Vista de historial de conversaciones -->
+    <div class="chat-historial" *ngIf="verHistorial">
+      <div class="historial-vacio" *ngIf="conversaciones.length === 0">
+        <span class="vacio-icon">💭</span>
+        <p>No hay conversaciones previas</p>
+      </div>
+      <div
+        class="historial-item"
+        *ngFor="let conv of conversaciones"
+        (click)="cargarConversacion(conv)"
+      >
+        <div class="historial-info">
+          <span class="historial-titulo">{{ conv.titulo }}</span>
+          <span class="historial-fecha">{{
+            conv.fecha_actualizacion | date: "dd/MM/yy HH:mm"
+          }}</span>
+        </div>
+        <button
+          class="btn-eliminar"
+          (click)="eliminarConversacion(conv, $event)"
+          title="Eliminar"
+        >
+          🗑
+        </button>
+      </div>
+    </div>
+
+    <!-- Área de mensajes -->
+    <div class="chat-mensajes" *ngIf="!verHistorial" #scrollContainer>
+      <!-- Mensaje de bienvenida -->
+      <div
+        class="mensaje-bienvenida"
+        *ngIf="mensajes.length === 0 && !cargando"
+      >
+        <div class="bienvenida-icon">🌟</div>
+        <p class="bienvenida-texto">
+          ¡Hola{{ nombreUsuario ? " " + nombreUsuario : "" }}! Soy
+          <strong>{{ nombreAsistente }}</strong
+          >, tu asistente virtual.
+        </p>
+        <p class="bienvenida-sub">¿En qué puedo ayudarte hoy?</p>
+        <div class="sugerencias">
+          <button
+            class="chip-sugerencia"
+            *ngFor="let sug of sugerencias"
+            (click)="enviarSugerencia(sug)"
+          >
+            {{ sug }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Mensajes del chat -->
+      <div
+        class="mensaje"
+        *ngFor="let msg of mensajes"
+        [class.user]="msg.rol_mensaje === 'user'"
+        [class.assistant]="msg.rol_mensaje === 'assistant'"
+      >
+        <div class="mensaje-avatar" *ngIf="msg.rol_mensaje === 'assistant'">
+          🤖
+        </div>
+        <div class="mensaje-burbuja">
+          <p class="mensaje-texto" [innerHTML]="formatearMensaje(msg.mensaje)"></p>
+          <span class="mensaje-hora">{{ msg.fecha | date: "HH:mm" }}</span>
+        </div>
+      </div>
+
+      <!-- Indicador de cargando -->
+      <div class="mensaje assistant" *ngIf="esperandoRespuesta">
+        <div class="mensaje-avatar">🤖</div>
+        <div class="mensaje-burbuja typing">
+          <div class="typing-dots"><span></span><span></span><span></span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Input de mensaje -->
+    <div class="chat-input" *ngIf="!verHistorial">
+      <div class="input-wrapper">
+        <textarea
+          #inputMensaje
+          [(ngModel)]="textoMensaje"
+          (keydown.enter)="onEnter($event)"
+          placeholder="Escribe tu mensaje..."
+          rows="1"
+          [disabled]="esperandoRespuesta"
+          (input)="autoResize($event)"
+        ></textarea>
+        <button
+          class="btn-enviar"
+          (click)="enviarMensaje()"
+          [disabled]="!textoMensaje.trim() || esperandoRespuesta"
+        >
+          ▶
+        </button>
+      </div>
+    </div>
+  </div>
+</ng-container>

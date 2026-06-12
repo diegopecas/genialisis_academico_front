@@ -1,0 +1,230 @@
+<div class="modulo">
+    <app-header 
+        [tituloModulo]="titulo" 
+        [mostrarCrear]="false" 
+        [accion]="accion" 
+        [raiz]="'/administracion/crm/contactos-portal'"
+        [regresar]="regresar" 
+        [iconoTitulo]="'/assets/images/contactos_portal.png'">
+    </app-header>
+
+    <div class="container mt-5">
+        
+        <!-- Información del contacto (Solo lectura) -->
+        <div class="card mb-4">
+            <div class="col-12">
+         
+                <h4 class="section-title">📋 Información del Contacto</h4>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="info-item">
+                            <label class="info-label">Nombre del Padre/Madre</label>
+                            <p class="info-value">{{ model.nombre_padre }}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="info-item">
+                            <label class="info-label">Email</label>
+                            <p class="info-value">
+                                <i class="fas fa-envelope me-1"></i>{{ model.email }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="info-item">
+                            <label class="info-label">Teléfono</label>
+                            <p class="info-value">
+                                <i class="fas fa-phone me-1"></i>{{ model.telefono }}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="info-item">
+                            <label class="info-label">Edad del Niño</label>
+                            <p class="info-value">
+                                <i class="fas fa-child me-1"></i>
+                                {{ model.edad_nino ? model.edad_nino + ' años' : 'No especificado' }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="info-item">
+                            <label class="info-label">Tipo de Consulta</label>
+                            <p class="info-value">{{ model.tipo_consulta }}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="info-item">
+                            <label class="info-label">Programa de Interés</label>
+                            <p class="info-value">
+                                <i class="fas fa-graduation-cap me-1"></i>
+                                {{ model.programa_interes || 'No especificado' }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <div class="info-item">
+                            <label class="info-label">¿Cómo nos conoció?</label>
+                            <p class="info-value">
+                                {{ model.como_conocio }}
+                                <span *ngIf="model.como_conocio_detalle" class="text-muted"> 
+                                    ({{ model.como_conocio_detalle }})
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <div class="info-item">
+                            <label class="info-label">Mensaje</label>
+                            <div class="mensaje-box">
+                                <i class="fas fa-comment-dots me-2"></i>{{ model.mensaje }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="info-item">
+                            <label class="info-label">Fecha de Registro</label>
+                            <p class="info-value text-muted">
+                                <i class="fas fa-calendar-plus me-1"></i>
+                                {{ formatearFecha(model.created_at) }}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="info-item">
+                            <label class="info-label">Última Actualización</label>
+                            <p class="info-value text-muted">
+                                <i class="fas fa-clock me-1"></i>
+                                {{ formatearFecha(model.updated_at) }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <hr class="my-4" />
+
+        <!-- Sección de Gestión (Editable) -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h4 class="section-title">⚙️ Gestión del Contacto</h4>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-sm-12 col-md-6">
+                <label for="estado" class="form-label">Estado del Contacto <span class="text-danger">*</span></label>
+                <select 
+                    class="form-select form-select-lg" 
+                    id="estado" 
+                    [(ngModel)]="model.id_estado"
+                    [disabled]="!editable"
+                    [ngClass]="{'is-invalid': !model.id_estado && submitted}">
+                    <option value="">Seleccionar</option>
+                    <option *ngFor="let estado of catalogos.estados_contacto" [value]="estado.id">
+                        {{ estado.nombre }}
+                    </option>
+                </select>
+            </div>
+            <div class="col-sm-12 col-md-6">
+                <label for="cita_estado" class="form-label">Estado de la Cita</label>
+                <select 
+                    class="form-select form-select-lg" 
+                    id="cita_estado" 
+                    [(ngModel)]="model.cita_estado"
+                    [disabled]="!editable">
+                    <option value="">Seleccionar</option>
+                    <option *ngFor="let estado of catalogos.estados_cita" [value]="estado.id">
+                        {{ estado.nombre }}
+                    </option>
+                </select>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <label for="fecha_cita" class="form-label">Fecha de Cita</label>
+                <input 
+                    type="datetime-local" 
+                    class="form-control form-control-lg" 
+                    id="fecha_cita"
+                    [(ngModel)]="model.fecha_cita"
+                    [disabled]="!editable">
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <label for="notas_internas" class="form-label">Notas Internas</label>
+                <textarea 
+                    class="form-control" 
+                    id="notas_internas" 
+                    rows="5"
+                    [(ngModel)]="model.notas_internas"
+                    placeholder="Notas internas sobre el contacto..."
+                    [disabled]="!editable">
+                </textarea>
+                <small class="form-text text-muted">Estas notas son solo para uso interno del equipo</small>
+            </div>
+        </div>
+
+        <hr class="my-4" />
+
+        <!-- Información Técnica (Solo consulta) -->
+        <div class="row mb-4" *ngIf="accion === 'consultar'">
+            <div class="col-12">
+                <h4 class="section-title">🔧 Información Técnica</h4>
+            </div>
+        </div>
+
+        <div class="row" *ngIf="accion === 'consultar'">
+            <div class="col-sm-12 col-md-6">
+                <label class="form-label fw-bold">IP de Origen</label>
+                <p class="form-control-plaintext"><small>{{ model.ip_address }}</small></p>
+            </div>
+            <div class="col-sm-12 col-md-6">
+                <label class="form-label fw-bold">User Agent</label>
+                <p class="form-control-plaintext"><small>{{ model.user_agent }}</small></p>
+            </div>
+        </div>
+
+        <!-- Botones de acción -->
+        <div class="container mt-5">
+            <div class="row">
+                <div class="col-sm-6" *ngIf="editable">
+                    <button 
+                        class="btn btn-lg btn-warning w-100" 
+                        (click)="guardarContacto()">
+                        Guardar Cambios
+                    </button>
+                </div>
+                <div class="col-sm-6">
+                    <button 
+                        class="btn btn-lg btn-secondary w-100" 
+                        (click)="volver()">
+                        Volver
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>

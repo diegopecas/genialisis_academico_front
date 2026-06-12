@@ -1,0 +1,167 @@
+<div class="modulo">
+  <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [raiz]="'/administracion/crm/visitas'"
+    [regresar]="'/administracion/crm/visitas'" [iconoTitulo]="'/assets/images/visitas.png'">
+  </app-header>
+
+  <div class="container-visitas">
+
+    <!-- Navegación de tabs - Desktop -->
+    <ul class="nav nav-tabs" id="visitaTab" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" [class.active]="tabActivo === 1" (click)="irATab(1)">
+          <i class="fas fa-clipboard-list me-2"></i>Registro
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" [class.active]="tabActivo === 2" (click)="irATab(2)">
+          <i class="fas fa-book-open me-2"></i>Protocolo
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" [class.active]="tabActivo === 3" (click)="irATab(3)">
+          <i class="fas fa-exclamation-triangle me-2"></i>Objeciones
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" [class.active]="tabActivo === 4" (click)="irATab(4)">
+          <i class="fas fa-bullseye me-2"></i>Cierre
+        </button>
+      </li>
+    </ul>
+
+    <!-- Navegación móvil tipo grid -->
+    <div class="mobile-nav-grid">
+      <div class="nav-card" [class.active]="tabActivo === 1" (click)="irATab(1)">
+        <div class="nav-icon">
+          <i class="fas fa-clipboard-list"></i>
+        </div>
+        <div class="nav-label">Registro</div>
+      </div>
+      <div class="nav-card" [class.active]="tabActivo === 2" (click)="irATab(2)">
+        <div class="nav-icon">
+          <i class="fas fa-book-open"></i>
+        </div>
+        <div class="nav-label">Protocolo</div>
+      </div>
+      <div class="nav-card" [class.active]="tabActivo === 3" (click)="irATab(3)">
+        <div class="nav-icon">
+          <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div class="nav-label">Objeciones</div>
+      </div>
+      <div class="nav-card" [class.active]="tabActivo === 4" (click)="irATab(4)">
+        <div class="nav-icon">
+          <i class="fas fa-bullseye"></i>
+        </div>
+        <div class="nav-label">Cierre</div>
+      </div>
+    </div>
+
+    <!-- Contenido de los tabs -->
+    <div class="tab-content border border-top-0 rounded-bottom shadow" id="visitaTabContent">
+
+      <!-- TAB 1: Registro -->
+      <div class="tab-pane fade" [class.show]="tabActivo === 1" [class.active]="tabActivo === 1" id="registro"
+        role="tabpanel">
+        <div class="p-4">
+          <app-tab1-registro [visitaData]="visitaData" [soloLectura]="soloLectura" [catalogos]="catalogos"
+            (datosActualizados)="onDatosActualizados($event, 1)">
+          </app-tab1-registro>
+        </div>
+      </div>
+
+      <!-- TAB 2: Protocolo -->
+      <div class="tab-pane fade" [class.show]="tabActivo === 2" [class.active]="tabActivo === 2" id="protocolo"
+        role="tabpanel">
+        <div class="p-4">
+          <app-tab2-protocolo [visitaData]="visitaData" [soloLectura]="soloLectura" [catalogos]="catalogos"
+            (datosActualizados)="onDatosActualizados($event, 2)">
+          </app-tab2-protocolo>
+        </div>
+      </div>
+
+      <!-- TAB 3: Objeciones -->
+      <div class="tab-pane fade" [class.show]="tabActivo === 3" [class.active]="tabActivo === 3" id="objeciones"
+        role="tabpanel">
+        <div class="p-4">
+          <app-tab3-objeciones [visitaData]="visitaData" [soloLectura]="soloLectura" [catalogos]="catalogos"
+            (datosActualizados)="onDatosActualizados($event, 3)">
+          </app-tab3-objeciones>
+        </div>
+      </div>
+
+      <!-- TAB 4: Cierre -->
+      <div class="tab-pane fade" [class.show]="tabActivo === 4" [class.active]="tabActivo === 4" id="cierre"
+        role="tabpanel">
+        <div class="p-4">
+          <app-tab4-cierre [visitaData]="visitaData" [soloLectura]="soloLectura" [catalogos]="catalogos"
+            (datosActualizados)="onDatosActualizados($event, 4)">
+          </app-tab4-cierre>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- ✅ BOTONES FLOTANTES ESTILO "GLOBITOS" -->
+  <div class="floating-actions">
+    
+    <!-- Badge de cambios sin guardar -->
+    <div class="floating-badge" *ngIf="cambiosSinGuardar && !guardando && !soloLectura">
+      <i class="bi bi-exclamation-circle-fill"></i>
+      <span>Sin guardar</span>
+    </div>
+
+    <!-- Botón Cancelar/Cerrar -->
+    <button 
+      class="fab fab-secondary" 
+      (click)="cancelar()"
+      [title]="soloLectura ? 'Cerrar' : 'Cancelar'">
+      <i class="bi bi-x-circle"></i>
+      <span class="fab-label">{{ soloLectura ? 'Cerrar' : 'Cancelar' }}</span>
+    </button>
+
+    <!-- Botón Guardar -->
+    <button 
+      *ngIf="!soloLectura"
+      class="fab fab-primary" 
+      (click)="guardar()" 
+      [disabled]="guardando"
+      [class.loading]="guardando"
+      title="Guardar cambios">
+      <div class="fab-content">
+        <i class="bi bi-save" *ngIf="!guardando"></i>
+        <div class="spinner-border spinner-border-sm" *ngIf="guardando"></div>
+        <span class="fab-label">{{ guardando ? 'Guardando...' : 'Guardar' }}</span>
+      </div>
+    </button>
+
+  </div>
+
+  <!-- Botón flotante de navegación rápida (móvil) -->
+  <div class="mobile-quick-nav">
+    <button class="quick-nav-btn" [class.open]="menuRapidoAbierto" (click)="toggleMenuRapido()">
+      <i class="fas fa-bars"></i>
+    </button>
+    <div class="quick-nav-menu" [class.open]="menuRapidoAbierto">
+      <div class="quick-nav-item" (click)="navegarRapido(1)">
+        <i class="fas fa-clipboard-list"></i>
+        <span>Registro</span>
+      </div>
+      <div class="quick-nav-item" (click)="navegarRapido(2)">
+        <i class="fas fa-book-open"></i>
+        <span>Protocolo</span>
+      </div>
+      <div class="quick-nav-item" (click)="navegarRapido(3)">
+        <i class="fas fa-exclamation-triangle"></i>
+        <span>Objeciones</span>
+      </div>
+      <div class="quick-nav-item" (click)="navegarRapido(4)">
+        <i class="fas fa-bullseye"></i>
+        <span>Cierre</span>
+      </div>
+    </div>
+  </div>
+
+</div>

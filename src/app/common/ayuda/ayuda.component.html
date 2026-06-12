@@ -1,0 +1,163 @@
+<div class="ayuda-overlay" *ngIf="abierto" (click)="cerrar()">
+  <div class="ayuda-modal" (click)="$event.stopPropagation()">
+
+    <!-- Header del modal -->
+    <div class="ayuda-modal-header">
+      <div class="ayuda-header-left">
+        <i class="fas fa-book-open"></i>
+        <span>Centro de Ayuda</span>
+      </div>
+      <button class="ayuda-cerrar" (click)="cerrar()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <!-- Loading -->
+    <div class="text-center py-5" *ngIf="cargando">
+      <div class="spinner-border text-warning" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+      <p class="mt-3 text-muted">Cargando documentación...</p>
+    </div>
+
+    <!-- Contenido -->
+    <div class="ayuda-modal-body" *ngIf="!cargando && cargado">
+      <div class="row g-3 h-100">
+
+        <!-- Panel izquierdo: Árbol -->
+        <div class="col-lg-4 col-md-5 h-100">
+          <div class="panel-arbol">
+            <div class="panel-arbol-header">
+              <h6 class="mb-0"><i class="fas fa-sitemap"></i> Módulos</h6>
+              <div class="d-flex gap-1">
+                <button class="btn-mini" (click)="expandirTodos()" title="Expandir todos">
+                  <i class="fas fa-expand-arrows-alt"></i>
+                </button>
+                <button class="btn-mini" (click)="contraerTodos()" title="Contraer todos">
+                  <i class="fas fa-compress-arrows-alt"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Buscador -->
+            <div class="buscador-wrapper">
+              <div class="input-group input-group-sm">
+                <span class="input-group-text"><i class="fas fa-search"></i></span>
+                <input type="text" class="form-control buscador-input"
+                  placeholder="Buscar módulo..."
+                  [(ngModel)]="terminoBusqueda"
+                  (input)="filtrarArbol()">
+                <button class="btn btn-outline-secondary btn-sm" (click)="limpiarBusqueda()" *ngIf="terminoBusqueda">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Árbol -->
+            <div class="arbol-scroll">
+              <ng-container *ngFor="let nodo of arbol">
+                <ng-container *ngTemplateOutlet="nodoAyuda; context: { $implicit: nodo, nivel: 0 }"></ng-container>
+              </ng-container>
+
+              <div class="text-center py-4 text-muted" *ngIf="arbol.length === 0 && cargado">
+                <i class="fas fa-info-circle" style="font-size: 28px; color: #ffbd31;"></i>
+                <p class="mt-2 mb-0" style="font-size: 13px;">Aún no tienes módulos de ayuda disponibles.<br>Pronto tendrás acceso a la documentación.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel derecho: Detalle -->
+        <div class="col-lg-8 col-md-7 h-100">
+          <div class="panel-detalle">
+
+            <!-- Estado vacío -->
+            <div class="estado-vacio-ayuda" *ngIf="!moduloSeleccionado">
+              <i class="fas fa-book-open"></i>
+              <h5>Selecciona un módulo</h5>
+              <p>Elige un módulo del árbol para ver su documentación</p>
+            </div>
+
+            <!-- Detalle del módulo -->
+            <ng-container *ngIf="moduloSeleccionado">
+              <div class="detalle-header">
+                <div class="detalle-titulo-row">
+                  <img *ngIf="moduloSeleccionado.icono" [src]="'assets/images/' + moduloSeleccionado.icono"
+                    class="detalle-icono" alt="">
+                  <h5 class="detalle-titulo">{{ moduloSeleccionado.nombre }}</h5>
+                </div>
+                <button class="btn btn-sm btn-gold" (click)="irAlModulo(moduloSeleccionado)"
+                  *ngIf="moduloSeleccionado.ruta_principal || moduloSeleccionado.ruta">
+                  <i class="fas fa-external-link-alt"></i> Ir al módulo
+                </button>
+              </div>
+
+              <div class="detalle-body">
+                <div class="detalle-descripcion" *ngIf="moduloSeleccionado.descripcion"
+                  [innerHTML]="moduloSeleccionado.descripcion"></div>
+
+                <div class="text-muted py-3" *ngIf="!moduloSeleccionado.descripcion && !moduloSeleccionado.descripcion_texto">
+                  Este módulo aún no tiene documentación disponible.
+                </div>
+
+                <!-- Imágenes de referencia -->
+                <div class="detalle-galeria" *ngIf="moduloSeleccionado.imagenes.length > 0">
+                  <h6 class="galeria-titulo"><i class="fas fa-images"></i> Imágenes de referencia</h6>
+                  <div class="galeria-grid">
+                    <div class="galeria-thumb" *ngFor="let img of moduloSeleccionado.imagenes; let i = index"
+                      (click)="abrirGaleria(i)">
+                      <img [src]="getRutaImagen(img)" [alt]="moduloSeleccionado.nombre" loading="lazy">
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </ng-container>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Template recursivo del árbol -->
+<ng-template #nodoAyuda let-nodo let-nivel="nivel">
+  <div class="nodo-ayuda" [style.padding-left.px]="nivel * 6" *ngIf="nodo.visible">
+    <div class="nodo-row" [class.nodo-activo]="moduloSeleccionado?.id === nodo.id"
+      [class.nodo-sin-acceso]="nodo.tiene_acceso === false">
+
+      <button class="btn-expand" (click)="toggleExpandir(nodo); $event.stopPropagation()"
+        *ngIf="nodo.hijos.length > 0">
+        <i class="fas fa-chevron-right" [class.rotado]="nodo.expandido"></i>
+      </button>
+      <span class="btn-expand-placeholder" *ngIf="nodo.hijos.length === 0"></span>
+
+      <div class="nodo-contenido" (click)="seleccionarModulo(nodo)">
+        <img *ngIf="nodo.icono" [src]="'assets/images/' + nodo.icono" class="nodo-icono-img" alt="">
+        <span class="nodo-nombre-ayuda">{{ nodo.nombre }}</span>
+      </div>
+    </div>
+
+    <div *ngIf="nodo.expandido">
+      <ng-container *ngFor="let hijo of nodo.hijos">
+        <ng-container *ngTemplateOutlet="nodoAyuda; context: { $implicit: hijo, nivel: nivel + 1 }"></ng-container>
+      </ng-container>
+    </div>
+  </div>
+</ng-template>
+
+<!-- Modal Galería -->
+<div class="galeria-modal" *ngIf="galeriaAbierta && moduloSeleccionado" (click)="cerrarGaleria()">
+  <div class="galeria-contenido" (click)="$event.stopPropagation()">
+    <button class="galeria-cerrar" (click)="cerrarGaleria()"><i class="fas fa-times"></i></button>
+    <button class="galeria-nav galeria-prev" (click)="galeriaAnterior()"
+      *ngIf="moduloSeleccionado.imagenes.length > 1">
+      <i class="fas fa-chevron-left"></i>
+    </button>
+    <img [src]="getRutaImagen(moduloSeleccionado.imagenes[galeriaImagenIdx])" class="galeria-img-full" alt="">
+    <button class="galeria-nav galeria-next" (click)="galeriaSiguiente()"
+      *ngIf="moduloSeleccionado.imagenes.length > 1">
+      <i class="fas fa-chevron-right"></i>
+    </button>
+    <div class="galeria-counter">{{ galeriaImagenIdx + 1 }} / {{ moduloSeleccionado.imagenes.length }}</div>
+  </div>
+</div>

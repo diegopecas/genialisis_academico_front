@@ -1,0 +1,36 @@
+<!-- web-speech.component.html actualizado -->
+<div class="web-speech-container my-2">
+  @if(estilo == "") {
+  <button
+    *ngIf="listening$ | async; else mic"
+    (click)="stop()"
+    class="micro-active"
+  >
+    <img src="/assets/micro.png" />
+  </button>
+  }@else {
+  <button
+    *ngIf="listening$ | async; else mic"
+    (click)="stop()"
+    class="btn btn-sm btn-outline-danger w-100"
+  >
+    <span class="govco-microphone-alt"></span> Detener transcripción
+  </button>
+  }
+  <ng-template #mic>
+    @if(estilo == "") {
+    <button (click)="start()" class="micro">
+      <img src="/assets/micro.png" />
+    </button>
+    } @else {
+    <button (click)="start()" class="btn btn-sm btn-outline-warning w-100">
+      <span class="govco-microphone-alt-slash"></span> Iniciar transcripción
+    </button>
+    }
+  </ng-template>
+</div>
+
+<!-- Modificado para mostrar la transcripción solo cuando showTranscript sea true -->
+<section *ngIf="(transcript$ | async) && showTranscript" class="notification">
+  <div class="mensaje">{{ transcript$ | async }}</div>
+</section>

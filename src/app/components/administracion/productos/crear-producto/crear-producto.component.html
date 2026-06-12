@@ -1,0 +1,396 @@
+<div class="modulo">
+    <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [accion]="accion" [raiz]="'/administracion/productos'"
+        [regresar]="regresar" [iconoTitulo]="'/assets/images/productos.png'">
+    </app-header>
+
+    <!-- Sección de información del producto -->
+    <div class="container mt-5">
+        
+        <!-- Información básica del producto -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-box"></i> Información del Producto</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <!-- Columna izquierda con los campos del formulario -->
+                    <div class="col-md-8">
+                        <div class="row">
+                            <div class="col-sm-12 col-md-6">
+                                <label for="tipoProducto" class="form-label">Tipo de producto <span class="text-danger">*</span></label>
+                                <select class="form-select form-select-lg" id="tipoProducto" 
+                                    [(ngModel)]="model.idTipoProducto" required
+                                    [ngClass]="{'is-invalid': !model.idTipoProducto && submitted}"
+                                    [disabled]="!editable">
+                                    <option value="">Seleccionar</option>
+                                    <ng-container *ngFor="let tp of listas.tiposProducto">
+                                        <option [value]="tp.id">{{ tp.nombre }}</option>
+                                    </ng-container>
+                                </select>
+                                <div class="invalid-feedback">
+                                    El tipo de producto es requerido
+                                </div>
+                            </div>
+                            <div class="col-sm-12 col-md-6">
+                                <label for="nombre" class="form-label">Nombre del producto <span class="text-danger">*</span></label>
+                                <input class="form-control form-control-lg" type="text" id="nombre" 
+                                    [(ngModel)]="model.nombre" required
+                                    [ngClass]="{'is-invalid': !model.nombre && submitted}"
+                                    [disabled]="!editable"
+                                    placeholder="Ej: Arroz Diana x 500g">
+                                <div class="invalid-feedback">
+                                    El nombre del producto es requerido
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <label for="descripcion" class="form-label">Descripción</label>
+                                <textarea class="form-control" id="descripcion" rows="3"
+                                    [(ngModel)]="model.descripcion"
+                                    [disabled]="!editable"
+                                    placeholder="Descripción detallada del producto..."></textarea>
+                            </div>
+                        </div>
+
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <label for="unidadMedida" class="form-label">Unidad de medida <span class="text-danger">*</span></label>
+                                <select class="form-select form-select-lg" id="unidadMedida" 
+                                    [(ngModel)]="model.idUnidadMedida" required
+                                    [ngClass]="{'is-invalid': !model.idUnidadMedida && submitted}"
+                                    [disabled]="!editable">
+                                    <option value="">Seleccionar</option>
+                                    <ng-container *ngFor="let um of listas.unidadesMedida">
+                                        <option [value]="um.id">{{ um.nombre }} ({{ um.abreviatura }})</option>
+                                    </ng-container>
+                                </select>
+                                <div class="invalid-feedback">
+                                    La unidad de medida es requerida
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Columna derecha con la imagen -->
+                    <div class="col-md-4">
+                        <div class="imagen-producto-container">
+                            <label class="form-label">Imagen del producto</label>
+                            <div class="imagen-preview-wrapper">
+                                <img [src]="imagenPreview" alt="Imagen del producto" class="imagen-preview">
+                                <div class="imagen-overlay" *ngIf="editable">
+                                    <button type="button" class="btn btn-sm btn-light" 
+                                        (click)="abrirModalImagen()" 
+                                        [disabled]="cargandoImagen">
+                                        <i class="fas fa-camera"></i> Cambiar
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-danger ms-2" 
+                                        (click)="eliminarImagen()"
+                                        *ngIf="imagenFile || model.imagen"
+                                        [disabled]="cargandoImagen">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                                <div class="loading-spinner" *ngIf="cargandoImagen">
+                                    <i class="fas fa-spinner fa-spin fa-2x"></i>
+                                </div>
+                            </div>
+                            <small class="text-muted d-block mt-2">
+                                Formatos: JPG, PNG, GIF, WEBP. Máx: 5MB
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Estado del producto -->
+                <div class="row mt-4" *ngIf="accion === 'editar' || accion === 'consultar'">
+                    <div class="col-12">
+                        <hr class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="productoActivo"
+                                [(ngModel)]="productoActivoSwitch" (change)="cambiarEstadoProducto()"
+                                [disabled]="accion === 'consultar'">
+                            <label class="form-check-label" for="productoActivo">
+                                <strong>
+                                    {{ productoActivoSwitch ? 'Producto Activo' : 'Producto Inactivo' }}
+                                </strong>
+                            </label>
+                            <small class="d-block mt-1 text-muted">
+                                {{ productoActivoSwitch ? 'El producto está disponible para ventas y movimientos' : 
+                                'El producto no está disponible para operaciones' }}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Proveedores del producto -->
+        <div class="card mb-4">
+            <div class="card-header card-header-secondary">
+                <h5 class="mb-0"><i class="fas fa-truck"></i> Proveedores</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <button class="btn btn-success" (click)="abrirModalProveedores()" 
+                            [disabled]="!editable || !model.id">
+                            <i class="fas fa-plus"></i> Agregar Proveedor
+                        </button>
+                        <small class="text-muted ms-2" *ngIf="!model.id">
+                            Guarde el producto primero para asignar proveedores
+                        </small>
+                    </div>
+                </div>
+                
+                <div class="table-responsive" *ngIf="proveedoresAsignados.length > 0">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Proveedor</th>
+                                <th>Tipo</th>
+                                <th>Código</th>
+                                <th>Precio Compra</th>
+                                <th *ngIf="editable">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let prov of proveedoresAsignados">
+                                <td>{{ prov.nombre_proveedor }}</td>
+                                <td>{{ prov.tipo_proveedor }}</td>
+                                <td>{{ prov.codigo_proveedor || '-' }}</td>
+                                <td>{{ prov.precio_compra ? formatearPrecio(prov.precio_compra) : '-' }}</td>
+                                <td *ngIf="editable">
+                                    <button class="btn btn-sm btn-warning me-1" 
+                                        (click)="editarProveedorAsignado(prov)">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-danger" 
+                                        (click)="quitarProveedor(prov)">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div *ngIf="proveedoresAsignados.length === 0" class="text-center text-muted py-3">
+                    <i class="fas fa-box-open fa-2x mb-2"></i>
+                    <p>No hay proveedores asignados a este producto</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Control de Inventario -->
+        <div class="card mb-4">
+            <div class="card-header card-header-tertiary">
+                <h5 class="mb-0"><i class="fas fa-warehouse"></i> Control de Inventario</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-sm-12 col-md-4">
+                        <label for="stockActual" class="form-label">Stock actual <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <input class="form-control form-control-lg" type="number" id="stockActual"
+                                [(ngModel)]="model.stockActual" required min="0"
+                                [ngClass]="{'is-invalid': (model.stockActual === null || model.stockActual < 0) && submitted}"
+                                [disabled]="!editable">
+                            <span class="input-group-text">{{ obtenerAbreviaturaUnidad() }}</span>
+                        </div>
+                        <div class="invalid-feedback">
+                            El stock actual es requerido y debe ser mayor o igual a 0
+                        </div>
+                    </div>
+                    <div class="col-sm-12 col-md-4">
+                        <label for="stockMinimo" class="form-label">Stock mínimo <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <input class="form-control form-control-lg" type="number" id="stockMinimo"
+                                [(ngModel)]="model.stockMinimo" required min="0"
+                                [ngClass]="{'is-invalid': (model.stockMinimo === null || model.stockMinimo < 0) && submitted}"
+                                [disabled]="!editable">
+                            <span class="input-group-text">{{ obtenerAbreviaturaUnidad() }}</span>
+                        </div>
+                        <small class="form-text text-muted">Cantidad mínima antes de requerir reabastecimiento</small>
+                        <div class="invalid-feedback">
+                            El stock mínimo es requerido y debe ser mayor o igual a 0
+                        </div>
+                    </div>
+                    <div class="col-sm-12 col-md-4">
+                        <label for="precioUnitario" class="form-label">Precio unitario <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input class="form-control form-control-lg" type="number" id="precioUnitario"
+                                [(ngModel)]="model.precioUnitario" required min="0" step="100"
+                                [ngClass]="{'is-invalid': (model.precioUnitario === null || model.precioUnitario < 0) && submitted}"
+                                [disabled]="!editable">
+                        </div>
+                        <small class="form-text text-muted">Precio por unidad en pesos colombianos</small>
+                        <div class="invalid-feedback">
+                            El precio unitario es requerido y debe ser mayor o igual a 0
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Indicador de stock -->
+                <div class="row mt-3" *ngIf="model.stockActual !== null && model.stockMinimo !== null">
+                    <div class="col-12">
+                        <div class="alert" 
+                            [ngClass]="{
+                                'alert-danger': model.stockActual === 0,
+                                'alert-warning': model.stockActual > 0 && model.stockActual <= model.stockMinimo,
+                                'alert-success': model.stockActual > model.stockMinimo
+                            }">
+                            <i class="fas fa-info-circle"></i>
+                            <strong>Estado del Stock:</strong>
+                            <span *ngIf="model.stockActual === 0">Sin existencias</span>
+                            <span *ngIf="model.stockActual > 0 && model.stockActual <= model.stockMinimo">
+                                Stock bajo - Se recomienda reabastecer
+                            </span>
+                            <span *ngIf="model.stockActual > model.stockMinimo">
+                                Stock normal
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Botones de acción -->
+    <div class="container mt-5 mb-5">
+        <div class="row">
+            <div class="col-sm-6" *ngIf="editable">
+                <button class="btn btn-lg btn-warning w-100" (click)="guardarProducto()"
+                    [disabled]="guardando">
+                    <span *ngIf="!guardando">
+                        <i class="fas fa-save"></i> Guardar
+                    </span>
+                    <span *ngIf="guardando">
+                        <i class="fas fa-spinner fa-spin"></i> Guardando...
+                    </span>
+                </button>
+            </div>
+            <div class="col-sm-6">
+                <button class="btn btn-lg btn-secondary w-100" (click)="volver()">
+                    <i class="fas fa-arrow-left"></i> Volver
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL IMAGEN PRODUCTO (patrón idéntico a FotoPersonaComponent) -->
+<div class="modal-overlay" *ngIf="mostrarModalImagen" (click)="cerrarModalImagen()">
+    <div class="modal-dialog" (click)="$event.stopPropagation()">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-camera me-2"></i>
+                    {{ model.imagen ? 'Cambiar' : 'Subir' }} Imagen
+                </h5>
+                <button type="button" class="btn-close" (click)="cerrarModalImagen()">×</button>
+            </div>
+            <div class="modal-body">
+                
+                <!-- MODO CÁMARA -->
+                <div *ngIf="modoCamara" class="camara-container">
+                    
+                    <div class="video-wrapper">
+                        <video 
+                            #videoElement 
+                            autoplay 
+                            playsinline
+                            class="video-elemento"></video>
+                        <canvas #canvasElement style="display: none;"></canvas>
+                    </div>
+
+                    <div class="camara-controles">
+                        <button 
+                            type="button"
+                            class="btn-camara-control"
+                            (click)="volverASeleccion()">
+                            <i class="fas fa-arrow-left"></i>
+                            Volver
+                        </button>
+                        <button 
+                            type="button"
+                            class="btn-capturar"
+                            (click)="capturarFoto()"
+                            [disabled]="!camaraActiva">
+                            <i class="fas fa-camera"></i>
+                        </button>
+                        <button 
+                            type="button"
+                            class="btn-camara-control"
+                            (click)="cambiarCamara()"
+                            [disabled]="!camaraActiva">
+                            <i class="fas fa-sync-alt"></i>
+                            Voltear
+                        </button>
+                    </div>
+                </div>
+
+                <!-- MODO SELECCIÓN -->
+                <div *ngIf="!modoCamara">
+                    
+                    <div class="preview-container">
+                        <div class="preview-rect">
+                            <img 
+                                *ngIf="previewUrl" 
+                                [src]="previewUrl" 
+                                alt="Preview"
+                                class="preview-img">
+                            <div *ngIf="!previewUrl" class="preview-placeholder">
+                                <i class="fas fa-box fa-3x"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="opciones-carga">
+                        <button 
+                            *ngIf="camaraDisponible"
+                            type="button"
+                            class="btn-opcion-carga"
+                            (click)="activarCamara()">
+                            <i class="fas fa-camera fa-2x"></i>
+                            <span>Tomar Foto</span>
+                        </button>
+
+                        <label class="btn-opcion-carga">
+                            <i class="fas fa-folder-open fa-2x"></i>
+                            <span>Seleccionar Archivo</span>
+                            <input 
+                                type="file" 
+                                style="display: none;"
+                                (change)="onArchivoSeleccionado($event)"
+                                accept="image/jpeg,image/jpg,image/png,image/gif,image/webp">
+                        </label>
+                    </div>
+
+                    <small class="form-text text-center">
+                        Formatos: JPG, PNG, GIF, WEBP (máx. 5MB)
+                    </small>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button 
+                    type="button" 
+                    class="btn-secondary" 
+                    (click)="cerrarModalImagen()">
+                    Cancelar
+                </button>
+                <button 
+                    *ngIf="archivoSeleccionado && !modoCamara"
+                    type="button" 
+                    class="btn-primary" 
+                    (click)="confirmarImagen()">
+                    <i class="fas fa-check"></i> Aceptar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

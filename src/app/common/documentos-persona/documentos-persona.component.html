@@ -1,0 +1,560 @@
+<div class="documentos-persona-container">
+
+  <!-- ================================ -->
+  <!-- MODO SOLO SUBIR                  -->
+  <!-- ================================ -->
+  <div *ngIf="modoSoloSubir && !cargando">
+    <!-- Si ya subió un documento -->
+    <div *ngIf="documentoRecienSubido" class="documento-subido-simple">
+      <div class="documento-subido-info">
+        <i [class]="getIconoDocumento(documentoRecienSubido.nombre_archivo)" class="documento-icon"></i>
+        <span class="documento-nombre-simple">{{ documentoRecienSubido.nombre_archivo }}</span>
+      </div>
+      <button class="btn-cambiar-doc" (click)="abrirModal(tiposDocumentos[0])" *ngIf="tiposDocumentos.length > 0">
+        <i class="fas fa-sync-alt"></i> Cambiar
+      </button>
+    </div>
+
+    <!-- Si no ha subido documento -->
+    <div *ngIf="!documentoRecienSubido">
+      <button
+        class="btn-subir-simple"
+        (click)="abrirModal(tiposDocumentos[0])"
+        *ngIf="tiposDocumentos.length > 0"
+      >
+        <i class="fas fa-upload"></i> Adjuntar comprobante
+      </button>
+    </div>
+  </div>
+
+  <!-- ================================ -->
+  <!-- MODO NORMAL (completo)           -->
+  <!-- ================================ -->
+  <ng-container *ngIf="!modoSoloSubir">
+  <!-- Header -->
+  <div class="card-simple mb-3">
+    <div class="card-header-simple">
+      <i class="fas fa-folder-open me-2"></i>
+      <span>Documentos {{ nombrePersona ? "de " + nombrePersona : "" }}</span>
+    </div>
+  </div>
+
+  <!-- Alertas de vencimientos -->
+  <div *ngIf="documentos.length > 0 && !soloLectura" class="mb-3">
+    <div *ngFor="let doc of documentos" class="alert-vencimiento">
+      <div
+        *ngIf="doc.estado_vencimiento === 'VENCIDO'"
+        class="alert alert-danger py-2 mb-2"
+      >
+        <i class="fas fa-exclamation-circle me-2"></i>
+        <strong>{{ doc.nombre_documento }}</strong> - VENCIDO desde
+        {{ formatearFecha(doc.fecha_vencimiento) }}
+      </div>
+      <div
+        *ngIf="doc.estado_vencimiento === 'PROXIMO_VENCER'"
+        class="alert alert-warning py-2 mb-2"
+      >
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        <strong>{{ doc.nombre_documento }}</strong> - Vence en
+        {{ doc.dias_para_vencer }} días
+      </div>
+    </div>
+  </div>
+
+  <!-- Alerta: Sin emails para firma digital -->
+  <div
+    *ngIf="
+      !soloLectura &&
+      hayDocumentosQueRequierenFirma() &&
+      (!emailsFirmantes || emailsFirmantes.length === 0)
+    "
+    class="alert alert-info mb-3"
+  >
+    <i class="fas fa-info-circle me-2"></i>
+    <strong>Firma Digital:</strong> No se puede enviar a firma porque no hay
+    correos electrónicos de firmantes configurados.
+  </div>
+
+  <!-- Loader -->
+  <div *ngIf="cargando" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+  </div>
+
+  <!-- Lista de Tipos de Documentos -->
+  <div *ngIf="!cargando" class="documentos-grid">
+    <div *ngFor="let tipoDoc of tiposDocumentos" class="documento-card-wrapper">
+      <div
+        class="documento-card"
+        [ngClass]="{ obligatorio: tipoDoc.obligatorio }"
+      >
+        <!-- Header del Card -->
+        <div class="documento-header">
+          <div class="header-content">
+            <div class="header-info">
+              <h6>{{ tipoDoc.nombre }}</h6>
+              <span *ngIf="tipoDoc.obligatorio" class="badge badge-danger"
+                >Obligatorio</span
+              >
+              <span *ngIf="!tipoDoc.obligatorio" class="badge badge-secondary"
+                >Opcional</span
+              >
+            </div>
+            <button
+              *ngIf="!soloLectura && puedeModificar(tipoDoc)"
+              class="btn-upload"
+              (click)="abrirModal(tipoDoc)"
+              title="Subir documento"
+            >
+              <i class="fas fa-upload"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Documentos subidos -->
+        <div class="documento-body">
+          <div *ngIf="!tieneDocumento(tipoDoc.id)" class="sin-documentos">
+            <i class="fas fa-info-circle"></i>
+            <span>Sin documentos</span>
+          </div>
+
+          <div
+            *ngFor="let doc of obtenerDocumentosPorTipo(tipoDoc.id)"
+            class="documento-item-wrapper"
+          >
+            <div class="documento-item-content">
+              <div class="documento-info">
+                <i
+                  [class]="getIconoDocumento(doc.nombre_archivo)"
+                  class="documento-icon"
+                ></i>
+                <div class="documento-detalles">
+                  <div class="documento-nombre-row">
+                    <div class="documento-nombre" [title]="doc.nombre_archivo">
+                      {{ truncarNombre(doc.nombre_archivo) }}
+                    </div>
+                    <!-- Icono de firma digital -->
+                    <i
+                      *ngIf="doc.firma_digital_estado === 'enviado'"
+                      class="fas fa-clock icono-firma-pendiente"
+                      title="Enviado a firma digital"
+                    ></i>
+                    <i
+                      *ngIf="doc.firma_digital_estado === 'firmado'"
+                      class="fas fa-certificate icono-firma-completada"
+                      title="Firmado digitalmente"
+                    ></i>
+                    <button
+                      class="btn-info-doc"
+                      (click)="abrirModalDetalles(doc)"
+                      title="Ver detalles"
+                    >
+                      <i class="fas fa-info-circle"></i>
+                    </button>
+                  </div>
+                  <div class="documento-metadata">
+                    {{ formatearTamanio(doc.tamanio_bytes!) }} •
+                    {{ formatearFecha(doc.fecha_subida) }}
+                  </div>
+                  <div
+                    *ngIf="doc.fecha_vencimiento"
+                    class="documento-vencimiento"
+                  >
+                    <span
+                      [class]="
+                        getClaseEstadoVencimiento(doc.estado_vencimiento!)
+                      "
+                    >
+                      {{
+                        getTextoEstadoVencimiento(
+                          doc.estado_vencimiento!,
+                          doc.dias_para_vencer
+                        )
+                      }}
+                    </span>
+                  </div>
+                  <div *ngIf="doc.firma_digital_estado" class="documento-firma">
+                    <span
+                      [class]="getClaseEstadoFirma(doc.firma_digital_estado)"
+                    >
+                      <i class="fas fa-signature me-1"></i>
+                      {{ getTextoEstadoFirma(doc.firma_digital_estado) }}
+                    </span>
+                    <span
+                      *ngIf="requiereSincronizacion(doc)"
+                      class="texto-sincronizar"
+                    >
+                      <i class="fas fa-exclamation-circle"></i> Sincronice para
+                      descargar
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Botones de acción en fila horizontal debajo -->
+            <div class="documento-acciones-horizontal">
+              <button
+                *ngIf="puedeEnviarAFirmar(doc)"
+                class="btn-accion btn-firma"
+                (click)="abrirModalFirma(doc)"
+                title="Enviar a firmar digitalmente"
+              >
+                <i class="fas fa-signature"></i>
+              </button>
+              <button
+                *ngIf="puedeConsultarEstado(doc)"
+                class="btn-accion btn-consultar"
+                (click)="consultarEstadoFirma(doc)"
+                [disabled]="consultandoEstado"
+                [title]="
+                  requiereSincronizacion(doc)
+                    ? 'Sincronizar documento firmado'
+                    : 'Consultar estado de firma'
+                "
+              >
+                <i
+                  [class]="
+                    requiereSincronizacion(doc)
+                      ? 'fas fa-sync-alt'
+                      : 'fas fa-search'
+                  "
+                ></i>
+              </button>
+              <button
+                *ngIf="puedeReenviarCorreo(doc)"
+                class="btn-accion btn-reenviar"
+                (click)="reenviarCorreoFirma(doc)"
+                [disabled]="reenviandoCorreo"
+                title="Reenviar correo de firma"
+              >
+                <i class="fas fa-envelope"></i>
+              </button>
+              <button
+                class="btn-accion btn-descargar"
+                (click)="descargarDocumento(doc)"
+                [disabled]="requiereSincronizacion(doc)"
+                [title]="
+                  requiereSincronizacion(doc)
+                    ? 'Sincronice primero'
+                    : 'Descargar'
+                "
+              >
+                <i class="fas fa-download"></i>
+              </button>
+              <button
+                *ngIf="!soloLectura && puedeModificar(tipoDoc)"
+                class="btn-accion btn-eliminar"
+                (click)="eliminarDocumento(doc)"
+                title="Eliminar"
+              >
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sin tipos de documentos -->
+  <div
+    *ngIf="!modoSoloSubir && !cargando && tiposDocumentos.length === 0"
+    class="alert alert-info"
+  >
+    <i class="fas fa-info-circle me-2"></i>
+    No hay tipos de documentos configurados para este tipo de persona.
+  </div>
+
+  </ng-container>
+
+  <!-- MODAL SUBIR DOCUMENTO -->
+  <div class="modal-overlay" *ngIf="mostrarModal" (click)="cerrarModal()">
+    <div class="modal-dialog" (click)="$event.stopPropagation()">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">
+            <i class="fas fa-upload me-2"></i>
+            Subir {{ tipoDocumentoSeleccionado?.nombre }}
+          </h5>
+          <button
+            type="button"
+            class="btn-close"
+            (click)="cerrarModal()"
+            [disabled]="subiendoArchivo"
+          >
+            ×
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group mb-3">
+            <label class="form-label">Archivo</label>
+            <input
+              type="file"
+              class="form-control"
+              (change)="onFileSelected($event)"
+              accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx"
+            />
+            <small class="text-muted"
+              >Formatos: PDF, JPG, PNG, DOC, XLS. Máximo 10MB</small
+            >
+          </div>
+
+          <div
+            class="form-group mb-3"
+            *ngIf="tipoDocumentoSeleccionado?.requiere_vencimiento"
+          >
+            <label class="form-label">Fecha de Vencimiento</label>
+            <input
+              type="date"
+              class="form-control"
+              [(ngModel)]="fechaVencimiento"
+            />
+          </div>
+
+          <div class="form-group mb-3">
+            <label class="form-label">Observaciones (opcional)</label>
+            <textarea
+              class="form-control"
+              [(ngModel)]="observaciones"
+              rows="3"
+              placeholder="Notas adicionales sobre el documento..."
+            ></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn-secondary"
+            (click)="cerrarModal()"
+            [disabled]="subiendoArchivo"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            class="btn-primary"
+            (click)="subirDocumento()"
+            [disabled]="!archivoSeleccionado || subiendoArchivo"
+          >
+            <span *ngIf="!subiendoArchivo">
+              <i class="fas fa-upload"></i> Subir
+            </span>
+            <span *ngIf="subiendoArchivo">
+              <span class="spinner"></span> Subiendo...
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DETALLES DOCUMENTO -->
+<div
+  class="modal-overlay"
+  *ngIf="mostrarModalDetalles"
+  (click)="cerrarModalDetalles()"
+>
+  <div
+    class="modal-dialog modal-dialog-detalles"
+    (click)="$event.stopPropagation()"
+  >
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-file-alt me-2"></i>
+          Detalles del Documento
+        </h5>
+        <button type="button" class="btn-close" (click)="cerrarModalDetalles()">
+          ×
+        </button>
+      </div>
+      <div class="modal-body" *ngIf="documentoSeleccionado">
+        <!-- Nombre del Archivo -->
+        <div class="detalle-grupo">
+          <label class="detalle-label">
+            <i class="fas fa-file me-2"></i>Nombre del Archivo
+          </label>
+          <div class="detalle-valor">
+            <i
+              [class]="getIconoDocumento(documentoSeleccionado.nombre_archivo)"
+              class="me-2"
+            ></i>
+            {{ documentoSeleccionado.nombre_archivo }}
+          </div>
+        </div>
+
+        <!-- Tipo de Documento -->
+        <div class="detalle-grupo">
+          <label class="detalle-label">
+            <i class="fas fa-tag me-2"></i>Tipo de Documento
+          </label>
+          <div class="detalle-valor">
+            {{ documentoSeleccionado.nombre_documento }}
+          </div>
+        </div>
+
+        <!-- Tamaño -->
+        <div class="detalle-grupo">
+          <label class="detalle-label">
+            <i class="fas fa-hdd me-2"></i>Tamaño
+          </label>
+          <div class="detalle-valor">
+            {{ formatearTamanio(documentoSeleccionado.tamanio_bytes!) }}
+          </div>
+        </div>
+
+        <!-- Fecha de Subida -->
+        <div class="detalle-grupo">
+          <label class="detalle-label">
+            <i class="fas fa-calendar-plus me-2"></i>Fecha de Subida
+          </label>
+          <div class="detalle-valor">
+            {{ formatearFecha(documentoSeleccionado.fecha_subida) }}
+          </div>
+        </div>
+
+        <!-- Usuario que Subió -->
+        <div
+          class="detalle-grupo"
+          *ngIf="documentoSeleccionado.nombre_usuario_subio"
+        >
+          <label class="detalle-label">
+            <i class="fas fa-user me-2"></i>Subido por
+          </label>
+          <div class="detalle-valor">
+            {{ documentoSeleccionado.nombre_usuario_subio }}
+          </div>
+        </div>
+
+        <!-- Fecha de Vencimiento -->
+        <div
+          class="detalle-grupo"
+          *ngIf="documentoSeleccionado.fecha_vencimiento"
+        >
+          <label class="detalle-label">
+            <i class="fas fa-calendar-times me-2"></i>Fecha de Vencimiento
+          </label>
+          <div class="detalle-valor">
+            {{ formatearFecha(documentoSeleccionado.fecha_vencimiento) }}
+            <span
+              [class]="
+                getClaseEstadoVencimiento(
+                  documentoSeleccionado.estado_vencimiento!
+                )
+              "
+              class="ms-2"
+            >
+              {{
+                getTextoEstadoVencimiento(
+                  documentoSeleccionado.estado_vencimiento!,
+                  documentoSeleccionado.dias_para_vencer
+                )
+              }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Observaciones -->
+        <div class="detalle-grupo" *ngIf="documentoSeleccionado.observaciones">
+          <label class="detalle-label">
+            <i class="fas fa-comment-dots me-2"></i>Observaciones
+          </label>
+          <div class="detalle-valor detalle-observaciones">
+            {{ documentoSeleccionado.observaciones }}
+          </div>
+        </div>
+
+        <!-- Sin Observaciones -->
+        <div class="detalle-grupo" *ngIf="!documentoSeleccionado.observaciones">
+          <label class="detalle-label">
+            <i class="fas fa-comment-dots me-2"></i>Observaciones
+          </label>
+          <div class="detalle-valor text-muted-custom">Sin observaciones</div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button
+          type="button"
+          class="btn-primary"
+          (click)="descargarDocumento(documentoSeleccionado!)"
+        >
+          <i class="fas fa-download me-2"></i> Descargar
+        </button>
+        <button
+          type="button"
+          class="btn-secondary"
+          (click)="cerrarModalDetalles()"
+        >
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- MODAL ENVIAR A FIRMA DIGITAL -->
+<div
+  class="modal-overlay"
+  *ngIf="mostrarModalFirma"
+  (click)="cerrarModalFirma()"
+>
+  <div class="modal-dialog" (click)="$event.stopPropagation()">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-file-signature me-2"></i>
+          Enviar a Firma Digital
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          (click)="cerrarModalFirma()"
+          [disabled]="enviandoFirma"
+        >
+          ×
+        </button>
+      </div>
+      <div class="modal-body" *ngIf="documentoSeleccionado">
+        <div class="alert alert-info mb-3">
+          <i class="fas fa-info-circle me-2"></i>
+          El documento será enviado para firma digital a los siguientes correos:
+        </div>
+
+        <div class="firmantes-lista mb-3">
+          <div *ngFor="let email of emailsFirmantes" class="firmante-item">
+            <i class="fas fa-envelope me-2"></i>
+            {{ email }}
+          </div>
+        </div>
+
+        <div class="documento-info-firma">
+          <strong>Documento:</strong> {{ documentoSeleccionado.nombre_archivo }}
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button
+          type="button"
+          class="btn-secondary"
+          (click)="cerrarModalFirma()"
+          [disabled]="enviandoFirma"
+        >
+          Cancelar
+        </button>
+        <button
+          type="button"
+          class="btn-primary"
+          (click)="enviarAFirmar()"
+          [disabled]="enviandoFirma"
+        >
+          <span *ngIf="!enviandoFirma">
+            <i class="fas fa-paper-plane"></i> Enviar a Firmar
+          </span>
+          <span *ngIf="enviandoFirma">
+            <span class="spinner"></span> Enviando...
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

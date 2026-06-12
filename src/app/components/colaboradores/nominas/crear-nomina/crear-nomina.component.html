@@ -1,0 +1,123 @@
+<div class="modulo">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="false"
+    [accion]="accion"
+    [raiz]="'/administracion/nominas'"
+    [regresar]="regresar"
+    [iconoTitulo]="'/assets/images/nomina.png'"
+  >
+  </app-header>
+
+  <div class="container mt-5">
+    <form [formGroup]="formulario" (ngSubmit)="guardar()">
+      <div class="row">
+        <!-- Periodo -->
+        <div class="col-sm-12 col-md-6">
+          <label for="periodo" class="form-label">
+            Periodo <span class="text-danger">*</span>
+          </label>
+          <input
+            type="text"
+            class="form-control form-control-lg"
+            id="periodo"
+            formControlName="periodo"
+            placeholder="Ej: 2025-01, Enero 2025"
+            [ngClass]="{ 'is-invalid': campoNoValido('periodo') }"
+            [disabled]="!editable"
+          />
+          <div class="invalid-feedback">
+            El periodo es requerido (máximo 20 caracteres)
+          </div>
+          <small class="form-text text-muted">
+            Formato sugerido: YYYY-MM o Mes YYYY
+          </small>
+        </div>
+
+        <!-- Fecha Inicio -->
+        <div class="col-sm-12 col-md-3">
+          <label for="fecha_inicio" class="form-label">
+            Fecha Inicio <span class="text-danger">*</span>
+          </label>
+          <input
+            type="date"
+            class="form-control form-control-lg"
+            id="fecha_inicio"
+            formControlName="fecha_inicio"
+            [ngClass]="{ 'is-invalid': campoNoValido('fecha_inicio') }"
+            [disabled]="!editable"
+          />
+          <div class="invalid-feedback">La fecha de inicio es requerida</div>
+        </div>
+
+        <!-- Fecha Fin -->
+        <div class="col-sm-12 col-md-3">
+          <label for="fecha_fin" class="form-label">
+            Fecha Fin <span class="text-danger">*</span>
+          </label>
+          <input
+            type="date"
+            class="form-control form-control-lg"
+            id="fecha_fin"
+            formControlName="fecha_fin"
+            [ngClass]="{ 'is-invalid': campoNoValido('fecha_fin') }"
+            [disabled]="!editable"
+          />
+          <div class="invalid-feedback">La fecha de fin es requerida</div>
+        </div>
+      </div>
+
+      <!-- Observaciones -->
+      <div class="row">
+        <div class="col-12">
+          <label for="observaciones" class="form-label"> Observaciones </label>
+          <textarea
+            class="form-control form-control-lg"
+            id="observaciones"
+            formControlName="observaciones"
+            rows="3"
+            placeholder="Observaciones adicionales (opcional)"
+            [disabled]="!editable"
+          >
+          </textarea>
+        </div>
+      </div>
+
+      <hr />
+
+      <!-- Sección de procesamiento de nómina -->
+      <div class="row" *ngIf="accion === 'editar' || accion === 'consultar'">
+        <div class="col-12">
+          <app-procesar-nomina
+            [idNomina]="idNomina"
+            [fechaInicio]="formulario.value.fecha_inicio"
+            [fechaFin]="formulario.value.fecha_fin"
+            [editable]="editable && accion === 'editar'"
+          >
+          </app-procesar-nomina>
+        </div>
+      </div>
+
+      <!-- Botones de acción -->
+      <div class="container mt-5">
+        <div class="row">
+          <div class="col-sm-6" *ngIf="editable">
+            <button type="submit" class="btn btn-lg btn-warning w-100">
+              <i class="fas fa-save"></i>
+              {{ accion === "crear" ? "Grabar" : "Actualizar" }}
+            </button>
+          </div>
+          <div [ngClass]="editable ? 'col-sm-6' : 'col-sm-12'">
+            <button
+              type="button"
+              class="btn btn-lg btn-secondary w-100"
+              (click)="volver()"
+            >
+              <i class="fas fa-arrow-left"></i> Volver
+            </button>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>

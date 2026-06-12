@@ -1,0 +1,131 @@
+.modulo {
+  min-height: 100vh;
+  background-color: #f8f9fa;
+}
+
+.card {
+  border: none;
+  border-radius: 10px;
+  
+  &.shadow-sm {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+  }
+}
+
+.card-header {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+  
+  &.bg-primary {
+    background-color: #0d6efd !important;
+  }
+}
+
+.btn-success {
+  background-color: #198754;
+  border-color: #198754;
+  
+  &:hover:not(:disabled) {
+    background-color: #157347;
+    border-color: #146c43;
+  }
+  
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  &.btn-lg {
+    padding: 0.75rem 1.5rem;
+    font-size: 1.125rem;
+    font-weight: 500;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    
+    &:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+  }
+}
+
+.total-box {
+  padding: 20px;
+  border-radius: 8px;
+  background-color: #f8f9fa;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.075);
+  transition: all 0.3s ease;
+  
+  &.seleccion-box {
+    border-left: 4px solid #0d6efd;
+  }
+  
+  &.total-box-info {
+    border-left: 4px solid #0dcaf0;
+  }
+  
+  &.permisos-box {
+    border-left: 4px solid #dc3545;
+  }
+  
+  &.horas-box {
+    border-left: 4px solid #198754;
+  }
+  
+  &.valor-box {
+    border-left: 4px solid #ffc107;
+  }
+  
+  h6 {
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 10px;
+  }
+  
+  .total-value {
+    font-size: 2rem;
+    font-weight: bold;
+    margin: 0;
+    
+    &.text-primary {
+      color: #0d6efd !important;
+    }
+    
+    &.text-success {
+      color: #198754 !important;
+    }
+    
+    &.text-danger {
+      color: #dc3545 !important;
+    }
+    
+    &.text-info {
+      color: #0dcaf0 !important;
+    }
+    
+    &.text-warning {
+      color: #ffc107 !important;
+    }
+  }
+  
+  small {
+    color: #6c757d;
+    font-size: 0.875rem;
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .total-value {
+    font-size: 1.5rem;
+  }
+  
+  .total-box {
+    margin-bottom: 15px;
+  }
+}
+
+.fa {
+  vertical-align: middle;
+}

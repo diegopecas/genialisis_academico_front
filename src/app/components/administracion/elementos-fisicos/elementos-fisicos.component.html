@@ -1,0 +1,21 @@
+<div class="modulo">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="true"
+    [accion]="'ConsultarTodos'"
+    [raiz]="'/administracion/elementos-fisicos'"
+    [regresar]="'/administracion/datos-maestros'"
+    [iconoTitulo]="'/assets/images/elementos-fisicos.png'"
+  ></app-header>
+  
+  <app-tablas
+    [titulos]="titulos"
+    [datos]="datos"
+    [raiz]="'/administracion/elementos-fisicos'"
+    [accionEditar]="true"
+    [accionEliminar]="true"
+    [mostrarBuscar]="true"
+    [columnasFiltro]="columnasFiltro"
+    (clicAccion)="clicAccion($event)"
+  ></app-tablas>
+</div>

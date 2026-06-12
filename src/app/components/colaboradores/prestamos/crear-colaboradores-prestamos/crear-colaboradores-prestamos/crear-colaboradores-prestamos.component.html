@@ -1,0 +1,348 @@
+<div class="modulo">
+  <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [raiz]="'/colaboradores-prestamos/' + idColaborador"
+    [regresar]="'/colaboradores-prestamos/' + idColaborador" [iconoTitulo]="'/assets/images/prestamos.png'">
+  </app-header>
+
+  <div class="container-fluid px-4 py-4">
+    <!-- Información del colaborador -->
+    <div class="card mb-4 shadow-sm">
+      <div class="card-header bg-primary text-white">
+        <h5 class="card-title mb-0">
+          <i class="bi bi-person-badge"></i> Información del Colaborador
+        </h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-6">
+            <p><strong>Nombre:</strong> {{ colaborador.nombre_completo }}</p>
+          </div>
+          <div class="col-md-6">
+            <p><strong>Documento:</strong> {{ colaborador.numero_identificacion }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Formulario de préstamo -->
+    <div class="card mb-4 shadow-sm">
+      <div class="card-header bg-info text-white">
+        <h5 class="card-title mb-0">
+          <i class="bi bi-cash-coin"></i> Datos del Préstamo
+        </h5>
+      </div>
+      <div class="card-body">
+        <form>
+          <div class="row">
+            <!-- Tipo de préstamo -->
+            <div class="col-md-6 mb-3">
+              <label for="id_tipo_prestamo" class="form-label">Tipo de Préstamo *</label>
+              <select class="form-select" id="id_tipo_prestamo" [(ngModel)]="prestamo.id_tipo_prestamo"
+                name="id_tipo_prestamo" [disabled]="soloLectura">
+                <option [value]="0">Seleccione...</option>
+                <option *ngFor="let tipo of tiposPrestamo" [value]="tipo.id">
+                  {{ tipo.nombre }}
+                </option>
+              </select>
+            </div>
+
+            <!-- Fecha del préstamo -->
+            <div class="col-md-3 mb-3">
+              <label for="fecha_prestamo" class="form-label">Fecha Préstamo *</label>
+              <input type="date" class="form-control" id="fecha_prestamo" [(ngModel)]="prestamo.fecha_prestamo"
+                name="fecha_prestamo" [disabled]="soloLectura">
+            </div>
+
+            <!-- Fecha inicio de cobro -->
+            <div class="col-md-3 mb-3">
+              <label for="fecha_inicio_cobro" class="form-label">Fecha Inicio Cobro *</label>
+              <input type="date" class="form-control" id="fecha_inicio_cobro" [(ngModel)]="prestamo.fecha_inicio_cobro"
+                name="fecha_inicio_cobro" [disabled]="soloLectura">
+            </div>
+            <!-- Monto prestado -->
+            <div class="col-md-4 mb-3">
+              <label for="monto_prestado" class="form-label">Monto Prestado *</label>
+              <div class="input-group">
+                <span class="input-group-text">$</span>
+                <input type="text" class="form-control" id="monto_prestado" [value]="obtenerMontoPrestadoFormateado()"
+                  (input)="formatearMontoPrestado($event)" (focus)="onFocusMontoPrestado($event)" name="monto_prestado"
+                  placeholder="0" [disabled]="soloLectura">
+              </div>
+            </div>
+            <!-- Tasa de interés -->
+            <div class="col-md-4 mb-3">
+              <label for="tasa_interes" class="form-label">Tasa Interés (%) *</label>
+              <input type="number" class="form-control" id="tasa_interes" [(ngModel)]="prestamo.tasa_interes"
+                name="tasa_interes" step="0.01" (change)="calcularMontoTotal()" [disabled]="soloLectura">
+            </div>
+
+            <!-- Número de cuotas -->
+            <div class="col-md-4 mb-3">
+              <label for="numero_cuotas" class="form-label">Número de Cuotas *</label>
+              <input type="number" class="form-control" id="numero_cuotas" [(ngModel)]="prestamo.numero_cuotas"
+                name="numero_cuotas" (change)="calcularMontoCuota()" [disabled]="soloLectura">
+            </div>
+
+            <!-- Periodicidad de Pago -->
+            <div class="col-md-4 mb-3" *ngIf="accion === 'crear'">
+              <label for="periodicidad_pago" class="form-label">Periodicidad de Pago *</label>
+              <select class="form-select" id="periodicidad_pago" [(ngModel)]="periodicidadPago"
+                name="periodicidad_pago">
+                <option value="mensual">Mensual</option>
+                <option value="quincenal">Quincenal</option>
+              </select>
+            </div>
+
+            <!-- Monto total (calculado con separador) -->
+            <div [ngClass]="{'col-md-4': accion === 'crear', 'col-md-6': accion !== 'crear'}" class="mb-3">
+              <label for="monto_total" class="form-label">Monto Total</label>
+              <div class="input-group">
+                <span class="input-group-text">$</span>
+                <input type="text" class="form-control bg-light" id="monto_total"
+                  [value]="formatearValorConSeparador(prestamo.monto_total)" name="monto_total" readonly>
+              </div>
+            </div>
+
+            <!-- Monto cuota (calculado con separador) -->
+            <div [ngClass]="{'col-md-4': accion === 'crear', 'col-md-6': accion !== 'crear'}" class="mb-3">
+              <label for="monto_cuota" class="form-label">Monto por Cuota</label>
+              <div class="input-group">
+                <span class="input-group-text">$</span>
+                <input type="text" class="form-control bg-light" id="monto_cuota"
+                  [value]="formatearValorConSeparador(prestamo.monto_cuota)" name="monto_cuota" readonly>
+              </div>
+            </div>
+
+            <!-- Tipo de descuento -->
+            <div class="col-md-4 mb-3">
+              <label for="id_tipo_descuento" class="form-label">Tipo de Descuento *</label>
+              <select class="form-select" id="id_tipo_descuento" [(ngModel)]="prestamo.id_tipo_descuento"
+                name="id_tipo_descuento" [disabled]="soloLectura">
+                <option [value]="0">Seleccione...</option>
+                <option *ngFor="let tipo of tiposDescuento" [value]="tipo.id">
+                  {{ tipo.nombre }}
+                </option>
+              </select>
+            </div>
+
+            <!-- Estado -->
+            <div class="col-md-6 mb-3" *ngIf="accion !== 'crear'">
+              <label for="id_estado" class="form-label">Estado</label>
+              <select class="form-select" id="id_estado" [(ngModel)]="prestamo.id_estado" name="id_estado"
+                [disabled]="soloLectura">
+                <option *ngFor="let estado of estados" [value]="estado.id">
+                  {{ estado.nombre }}
+                </option>
+              </select>
+            </div>
+
+            <!-- Observaciones -->
+            <div class="col-md-12 mb-3">
+              <label for="observaciones" class="form-label">Observaciones</label>
+              <textarea class="form-control" id="observaciones" [(ngModel)]="prestamo.observaciones"
+                name="observaciones" rows="3" [disabled]="soloLectura"></textarea>
+            </div>
+          </div>
+
+          <!-- Botón para regenerar/recalcular cuotas -->
+          <div class="row mt-3" *ngIf="accion === 'crear' || accion === 'editar'">
+            <div class="col-12 text-end">
+              <button type="button" class="btn btn-outline-secondary btn-sm"
+                (click)="accion === 'crear' ? generarCuotas() : recalcularCuotas()">
+                <i class="bi bi-arrow-clockwise"></i>
+                {{ accion === 'crear' ? 'Regenerar Cuotas' : 'Recalcular Cuotas' }}
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Tabla de cuotas -->
+    <div class="card mb-4 shadow-sm" *ngIf="cuotas.length > 0">
+      <div class="card-header bg-success text-white">
+        <h5 class="card-title mb-0">
+          <i class="bi bi-calendar3"></i> Tabla de Cuotas
+          <span class="badge bg-light text-dark ms-2" *ngIf="accion === 'crear'">
+            {{ periodicidadPago === 'mensual' ? 'Mensual' : 'Quincenal' }}
+          </span>
+        </h5>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-hover table-striped">
+            <thead class="table-dark">
+              <tr>
+                <th class="text-center">Cuota</th>
+                <th class="text-center">Fecha Programada</th>
+                <th class="text-end">Monto Cuota</th>
+                <th class="text-end">Capital</th>
+                <th class="text-end">Interés</th>
+                <th class="text-center" *ngIf="accion !== 'crear'">Estado</th>
+                <th class="text-center" *ngIf="accion !== 'crear'">Fecha Pago</th>
+                <th class="text-center" *ngIf="accion !== 'crear'">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let cuota of cuotas; let i = index">
+                <td class="text-center">{{ cuota.numero_cuota }}</td>
+                <td class="text-center">{{ cuota.fecha_programada | date: 'dd/MM/yyyy' }}</td>
+
+                <!-- Monto cuota editable con formato en crear -->
+                <td class="text-end" *ngIf="accion === 'crear' || accion === 'editar'">
+                  <div class="input-group input-group-sm" style="width: 150px; display: inline-flex;">
+                    <span class="input-group-text">$</span>
+                    <input type="text" class="form-control text-end" [value]="obtenerValorCuotaFormateado(cuota)"
+                      (input)="actualizarMontoCuota(i, $event)" [name]="'monto_cuota_' + i" [disabled]="!cuota.editable"
+                      [class.bg-light]="!cuota.editable" [style.cursor]="!cuota.editable ? 'not-allowed' : 'text'">
+                  </div>
+                </td>
+                <td class="text-end" *ngIf="accion === 'ver'">
+                  {{ cuota.monto_cuota | currency:'COP ':'symbol':'1.0-0' }}
+                </td>
+
+                <td class="text-end">{{ cuota.monto_capital | currency:'COP ':'symbol':'1.0-0' }}</td>
+                <td class="text-end">{{ cuota.monto_interes | currency:'COP ':'symbol':'1.0-0' }}</td>
+
+                <td class="text-center" *ngIf="accion !== 'crear'">
+                  <span class="badge" [ngClass]="{
+                'bg-warning': cuota.nombre_estado === 'Pendiente',
+                'bg-success': cuota.nombre_estado === 'Pagada',
+                'bg-danger': cuota.nombre_estado === 'Anulada'
+              }">
+                    {{ cuota.nombre_estado }}
+                  </span>
+                </td>
+
+                <td class="text-center" *ngIf="accion !== 'crear'">
+                  {{ cuota.fecha_pago ? (cuota.fecha_pago | date: 'dd/MM/yyyy') : '-' }}
+                </td>
+
+                <!-- Nueva columna de acciones -->
+                <td class="text-center" *ngIf="accion !== 'crear'">
+                  <button *ngIf="cuota.id_estado !== 1" class="btn btn-sm btn-info" (click)="verPagosCuota(cuota)"
+                    title="Ver pagos">
+                    <i class="bi bi-eye"></i> Ver
+                  </button>
+                  <span *ngIf="cuota.id_estado === 1" class="text-muted">-</span>
+                </td>
+              </tr>
+            </tbody>
+            <tfoot class="table-light">
+              <tr>
+                <th colspan="2" class="text-end">TOTAL:</th>
+                <th class="text-end">{{ calcularTotalCuotas() | currency:'COP ':'symbol':'1.0-0' }}</th>
+                <th colspan="5"></th>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <!-- Alerta de validación de totales -->
+        <div class="row mt-2" *ngIf="accion === 'crear' && cuotas.length > 0">
+          <div class="col-12">
+            <div class="alert" [ngClass]="{
+               'alert-success': Math.abs(calcularTotalCuotas() - prestamo.monto_total) <= 10,
+               'alert-danger': Math.abs(calcularTotalCuotas() - prestamo.monto_total) > 10
+             }">
+              <div class="row">
+                <div class="col-md-4">
+                  <strong>Monto Total Préstamo:</strong>
+                  {{ prestamo.monto_total | currency:'COP ':'symbol':'1.0-0' }}
+                </div>
+                <div class="col-md-4">
+                  <strong>Suma de Cuotas:</strong>
+                  {{ calcularTotalCuotas() | currency:'COP ':'symbol':'1.0-0' }}
+                </div>
+                <div class="col-md-4">
+                  <strong>Diferencia:</strong>
+                  <span [ngClass]="{
+                'text-success': Math.abs(calcularTotalCuotas() - prestamo.monto_total) <= 10,
+                'text-danger': Math.abs(calcularTotalCuotas() - prestamo.monto_total) > 10
+              }">
+                    {{ Math.abs(calcularTotalCuotas() - prestamo.monto_total) | currency:'COP ':'symbol':'1.0-0' }}
+                  </span>
+                  <i class="bi bi-check-circle-fill text-success ms-2"
+                    *ngIf="Math.abs(calcularTotalCuotas() - prestamo.monto_total) <= 10"></i>
+                  <i class="bi bi-exclamation-triangle-fill text-danger ms-2"
+                    *ngIf="Math.abs(calcularTotalCuotas() - prestamo.monto_total) > 10"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Botón para regenerar cuotas si es necesario -->
+        <div class="row mt-3" *ngIf="accion === 'crear'">
+          <div class="col-12 text-end">
+            <button type="button" class="btn btn-outline-secondary btn-sm" (click)="generarCuotas()">
+              <i class="bi bi-arrow-clockwise"></i> Regenerar Cuotas
+            </button>
+          </div>
+        </div>
+
+        <!-- Botón para registrar pago (solo en ver/editar) -->
+        <div class="row mt-3" *ngIf="accion !== 'crear' && prestamo.id_estado !== 3">
+          <div class="col-12">
+            <button type="button" class="btn btn-primary" (click)="irARegistrarPago()">
+              <i class="bi bi-cash-coin"></i> Registrar Pago
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Información adicional (solo en ver/editar) -->
+    <div class="card mb-4 shadow-sm" *ngIf="accion !== 'crear' && idPrestamo != 0">
+      <div class="card-header bg-secondary text-white">
+        <h5 class="card-title mb-0">
+          <i class="bi bi-info-circle"></i> Información Adicional
+        </h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-6">
+            <p><strong>Total Pagado:</strong> {{ prestamo.total_pagado | currency:'COP ':'symbol':'1.0-0' }}</p>
+          </div>
+          <div class="col-md-6">
+            <p><strong>Saldo Pendiente:</strong> {{ prestamo.saldo | currency:'COP ':'symbol':'1.0-0' }}</p>
+          </div>
+          <div class="col-md-6">
+            <p><strong>Fecha Registro:</strong> {{ prestamo.fecha_registro | date: 'dd/MM/yyyy HH:mm' }}</p>
+          </div>
+          <div class="col-md-6">
+            <p><strong>Registrado por:</strong> {{ prestamo.nombre_completo_usuario_registro }}</p>
+          </div>
+          <div class="col-md-6" *ngIf="prestamo.fecha_aprobacion">
+            <p><strong>Fecha Aprobación:</strong> {{ prestamo.fecha_aprobacion | date: 'dd/MM/yyyy HH:mm' }}</p>
+          </div>
+          <div class="col-md-6" *ngIf="prestamo.nombre_completo_usuario_aprobacion">
+            <p><strong>Aprobado por:</strong> {{ prestamo.nombre_completo_usuario_aprobacion }}</p>
+          </div>
+          <div class="col-md-6" *ngIf="prestamo.fecha_anulacion">
+            <p><strong>Fecha Anulación:</strong> {{ prestamo.fecha_anulacion | date: 'dd/MM/yyyy HH:mm' }}</p>
+          </div>
+          <div class="col-md-6" *ngIf="prestamo.nombre_completo_usuario_anulacion">
+            <p><strong>Anulado por:</strong> {{ prestamo.nombre_completo_usuario_anulacion }}</p>
+          </div>
+          <div class="col-md-12" *ngIf="prestamo.motivo_anulacion">
+            <p><strong>Motivo Anulación:</strong> {{ prestamo.motivo_anulacion }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botones de acción -->
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <div class="d-flex justify-content-end gap-2">
+          <button type="button" class="btn btn-secondary" (click)="cancelar()">
+            <i class="bi bi-x-circle"></i> {{ soloLectura ? 'Volver' : 'Cancelar' }}
+          </button>
+          <button type="button" class="btn btn-primary" (click)="guardar()" *ngIf="!soloLectura">
+            <i class="bi bi-save"></i> Guardar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

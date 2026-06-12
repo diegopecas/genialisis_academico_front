@@ -1,0 +1,105 @@
+<div class="modulo">
+  <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [raiz]="'/'" [regresar]="'/reportes'"></app-header>
+
+  <!-- Filtro de año -->
+  <div class="row mb-4">
+    <div class="col-md-3">
+      <label for="anioSelector" class="form-label">Año:</label>
+      <select id="anioSelector" class="form-select" [(ngModel)]="anioSeleccionado" (change)="cambiarAnio()">
+        <option *ngFor="let anio of aniosDisponibles" [value]="anio">{{ anio }}</option>
+      </select>
+    </div>
+    <div class="col-md-9 d-flex align-items-end">
+      <p class="text-muted mb-0">
+        <i class="fas fa-info-circle me-1"></i>
+        Detalle de ingresos y egresos registrados. Seleccione filas para recalcular totales con registros específicos.
+      </p>
+    </div>
+  </div>
+
+  <hr />
+
+  <!-- Cargando -->
+  <div *ngIf="cargando" class="text-center py-5">
+    <div class="spinner-border" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+    <p class="mt-2">Cargando movimientos financieros...</p>
+  </div>
+
+  <!-- Sin datos -->
+  <div *ngIf="!cargando && !datosDisponibles" class="no-data">
+    <i class="fas fa-chart-line"></i>
+    <p>No se encontraron movimientos financieros para el año {{ anioSeleccionado }}.</p>
+  </div>
+
+  <!-- Contenido -->
+  <div *ngIf="!cargando && datosDisponibles">
+
+    <!-- Tarjetas resumen -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="resumen-card">
+          <h5 class="mb-3">
+            <i class="fas fa-chart-line me-2"></i>Resumen Financiero {{ anioSeleccionado }}
+            <span *ngIf="haySeleccion" class="badge bg-warning text-dark ms-2">
+              <i class="fas fa-check-square me-1"></i>{{ totalesGenerales.cantidadRegistros }} seleccionados
+            </span>
+          </h5>
+          <div class="row">
+            <!-- Registros -->
+            <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+              <div class="estadistica-item registros-bg">
+                <span class="estadistica-valor">{{ totalesGenerales.cantidadRegistros | number }}</span>
+                <span class="estadistica-label">Movimientos</span>
+                <span class="estadistica-extra">
+                  {{ totalesGenerales.cantidadIngresos }} ingresos · {{ totalesGenerales.cantidadGastos }} gastos
+                </span>
+              </div>
+            </div>
+            <!-- Total Ingresos -->
+            <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+              <div class="estadistica-item ingresos-bg">
+                <span class="estadistica-valor">{{ totalesGenerales.totalIngresos | currency:'':'symbol':'1.0-0' }}</span>
+                <span class="estadistica-label">Total Ingresos</span>
+              </div>
+            </div>
+            <!-- Total Gastos -->
+            <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+              <div class="estadistica-item gastos-bg">
+                <span class="estadistica-valor">{{ totalesGenerales.totalGastos | currency:'':'symbol':'1.0-0' }}</span>
+                <span class="estadistica-label">Total Gastos</span>
+              </div>
+            </div>
+            <!-- Balance Neto -->
+            <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+              <div class="estadistica-item" [ngClass]="totalesGenerales.balanceNeto >= 0 ? 'balance-positivo-bg' : 'balance-negativo-bg'">
+                <span class="estadistica-valor">{{ totalesGenerales.balanceNeto | currency:'':'symbol':'1.0-0' }}</span>
+                <span class="estadistica-label">Balance Neto</span>
+                <span class="estadistica-extra">
+                  <i class="fas" [ngClass]="totalesGenerales.balanceNeto >= 0 ? 'fa-arrow-up' : 'fa-arrow-down'"></i>
+                  {{ totalesGenerales.balanceNeto >= 0 ? 'Superávit' : 'Déficit' }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabla con selección múltiple -->
+    <app-tablas
+      [titulos]="titulosTabla"
+      [datos]="movimientos"
+      [mostrarBuscar]="true"
+      [columnasFiltro]="columnasFiltro"
+      [exportarExcel]="true"
+      [seleccionMultiple]="true"
+      [campoId]="'id'"
+      [prefiltrosExcluir]="prefiltrosExcluir"
+      [prefiltrosFecha]="prefiltrosFecha"
+      (datosFiltradosCambiados)="onDatosFiltradosCambiados($event)"
+      (seleccionCambiada)="onSeleccionCambiada($event)"
+    ></app-tablas>
+  </div>
+</div>

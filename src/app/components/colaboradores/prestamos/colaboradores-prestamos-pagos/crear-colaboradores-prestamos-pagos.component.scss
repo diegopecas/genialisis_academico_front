@@ -1,0 +1,126 @@
+.modulo {
+  min-height: 100vh;
+  background-color: #f8f9fa;
+}
+
+.card {
+  border: none;
+  border-radius: 10px;
+  
+  &.shadow-sm {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+  }
+}
+
+.card-header {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+  border-radius: 10px 10px 0 0 !important;
+  
+  h5 {
+    margin: 0;
+    font-size: 1.1rem;
+  }
+}
+
+.table {
+  margin-bottom: 0;
+  
+  thead {
+    th {
+      font-weight: 600;
+      font-size: 0.9rem;
+      padding: 12px 8px;
+    }
+  }
+  
+  tbody {
+    td {
+      padding: 10px 8px;
+      vertical-align: middle;
+    }
+    
+    tr {
+      transition: background-color 0.2s;
+      
+      &.table-active {
+        background-color: #e7f3ff !important;
+      }
+    }
+  }
+  
+  tfoot {
+    th {
+      font-weight: 700;
+      padding: 12px 8px;
+    }
+  }
+}
+
+.form-check-input {
+  cursor: pointer;
+  width: 1.2em;
+  height: 1.2em;
+}
+
+.btn-group {
+  .btn {
+    padding: 0.75rem 1.5rem;
+    
+    i {
+      margin-right: 0.5rem;
+    }
+  }
+}
+
+.input-group {
+  .input-group-text {
+    font-weight: 600;
+    min-width: 40px;
+    justify-content: center;
+    background-color: #e9ecef;
+  }
+  
+  input.form-control {
+    text-align: right;
+    
+    &:focus {
+      border-color: #86b7fe;
+      box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+  }
+}
+
+.gap-2 {
+  gap: 0.5rem !important;
+}
+
+.btn {
+  padding: 0.5rem 1.25rem;
+  border-radius: 5px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  }
+  
+  i {
+    margin-right: 0.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .card-body {
+    padding: 1rem;
+  }
+  
+  .table-responsive {
+    font-size: 0.85rem;
+  }
+  
+  .btn {
+    font-size: 0.875rem;
+    padding: 0.4rem 1rem;
+  }
+}

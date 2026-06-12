@@ -1,0 +1,207 @@
+// Variables de color
+$primary-color: #ffbd31;
+$secondary-color: #ff9800;
+$text-dark: #2c3e50;
+$text-light: #7f8c8d;
+$card-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+$hover-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+
+.modulo {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
+}
+
+// Títulos
+.titulo-seccion {
+  color: $text-dark;
+  font-weight: 600;
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.subtitulo-seccion {
+  color: $text-light;
+  font-size: 1.1rem;
+  margin-bottom: 0;
+}
+
+// Tarjetas de opciones
+.card-opcion {
+  background: white;
+  border-radius: 20px;
+  box-shadow: $card-shadow;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  height: 100%;
+  overflow: hidden;
+
+  &:hover {
+    transform: translateY(-10px);
+    box-shadow: $hover-shadow;
+
+    .icono-container {
+      transform: scale(1.1);
+    }
+
+    .link-accion {
+      color: $primary-color;
+
+      i {
+        transform: translateX(5px);
+      }
+    }
+  }
+}
+
+.card-opcion-content {
+  padding: 2.5rem 2rem;
+  text-align: center;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+// Contenedor de iconos
+.icono-container {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: transform 0.3s ease;
+
+  &.productos {
+    background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+  }
+
+  &.inventario {
+    background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
+  }
+
+  &.aprobar {
+    background: linear-gradient(135deg, #d1f2eb 0%, #a7f3d0 100%);
+  }
+  &.aprobar-colaboradores {
+    background: linear-gradient(135deg, #cff4fc 0%, #9eeaf9 100%);
+  }
+
+  &.auditoria {
+    background: linear-gradient(135deg, #f8d7da 0%, #f5c2c7 100%);
+  }
+
+  &.datos-maestros {
+    background: linear-gradient(135deg, #e7e5ff 0%, #d4d1ff 100%);
+  }
+
+  &.contabilizar-actividades {
+    background: linear-gradient(135deg, #cfe2ff 0%, #9ec5fe 100%);
+  }
+  &.financiero {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  }
+  img {
+    width: 70%;
+    height: 70%;
+    object-fit: contain;
+  }
+}
+
+.card-titulo {
+  color: $text-dark;
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.card-descripcion {
+  color: $text-light;
+  font-size: 0.95rem;
+  margin-bottom: 2rem;
+  flex-grow: 1;
+  line-height: 1.6;
+}
+
+.card-footer-custom {
+  margin-top: auto;
+}
+
+.link-accion {
+  color: $text-dark;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+
+  i {
+    transition: transform 0.3s ease;
+    font-size: 0.875rem;
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .titulo-seccion {
+    font-size: 1.5rem;
+  }
+
+  .card-opcion-content {
+    padding: 2rem 1.5rem;
+  }
+
+  .icono-container {
+    width: 100px;
+    height: 100px;
+    margin-bottom: 1.5rem;
+  }
+
+  .card-titulo {
+    font-size: 1.2rem;
+  }
+}
+
+// Animaciones
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.card-opcion {
+  animation: fadeInUp 0.6s ease-out;
+
+  &:nth-child(1) {
+    animation-delay: 0.1s;
+  }
+
+  &:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+
+  &:nth-child(3) {
+    animation-delay: 0.3s;
+  }
+
+  &:nth-child(4) {
+    animation-delay: 0.4s;
+  }
+
+  &:nth-child(5) {
+    animation-delay: 0.5s;
+  }
+}
+
+// Efecto hover adicional para móvil
+@media (hover: none) {
+  .card-opcion:active {
+    transform: scale(0.98);
+  }
+}

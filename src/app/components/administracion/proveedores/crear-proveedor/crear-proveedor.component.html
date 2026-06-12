@@ -1,0 +1,194 @@
+<div class="modulo">
+    <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [accion]="accion" [raiz]="'/administracion/proveedores'"
+        [regresar]="regresar" [iconoTitulo]="'/assets/images/proveedores.png'">
+    </app-header>
+
+    <!-- Sección de documento de identidad -->
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-sm-12 col-md-6">
+                <label for="tipoDocumento" class="form-label">Tipo de documento <span
+                        class="text-danger">*</span></label>
+                <select class="form-select form-select-lg" id="tipoDocumento" [(ngModel)]="model.tipoIdentificacion"
+                    (change)="onTipoIdentificacionChange()" required
+                    [ngClass]="{'is-invalid': !model.tipoIdentificacion && submitted}"
+                    [disabled]="documentoEncontrado || !editable">
+                    <option value="">Seleccionar</option>
+                    <ng-container *ngFor="let ti of listas.tiposIdentificacion">
+                        <option [value]="ti.id">{{ ti.nombre }}</option>
+                    </ng-container>
+                </select>
+            </div>
+            <div class="col-sm-12 col-md-6">
+                <label for="numeroDocumento" class="form-label">Número de documento <span
+                        class="text-danger">*</span></label>
+                <input class="form-control form-control-lg" type="text" id="numeroDocumento"
+                    [(ngModel)]="model.numeroIdentificacion" required
+                    [ngClass]="{'is-invalid': !model.numeroIdentificacion && submitted}"
+                    [disabled]="documentoEncontrado || !editable">
+            </div>
+        </div>
+        <div class="row mt-1" *ngIf="editable && !documentoEncontrado">
+            <div class="col-sm-12 col-md-6">
+                <button class="btn btn-sm btn-warning"
+                    (click)="consultaPersona(model.tipoIdentificacion, model.numeroIdentificacion)">
+                    Verificar
+                </button>
+            </div>
+        </div>
+        <hr />
+    </div>
+
+    <!-- Sección de información del proveedor -->
+    <div class="container mt-3" [ngClass]="{ 'disabled-container': !camposHabilitados && editable }">
+
+        <!-- Razón Social - Solo visible para NIT (persona jurídica) -->
+        <div class="row" *ngIf="esPersonaJuridica">
+            <div class="col-12">
+                <label for="razonSocial" class="form-label">Razón Social <span class="text-danger">*</span></label>
+                <input class="form-control form-control-lg" type="text" id="razonSocial" [(ngModel)]="model.razonSocial"
+                    placeholder="Razón social de la empresa"
+                    [ngClass]="{'is-invalid': esPersonaJuridica && !model.razonSocial && submitted}"
+                    [disabled]="!camposHabilitados && editable">
+                <small class="form-text text-muted">Nombre legal de la empresa</small>
+            </div>
+        </div>
+
+        <!-- Nombres - Solo visible para personas naturales (NO NIT) -->
+        <div class="row" *ngIf="!esPersonaJuridica">
+            <div class="col-sm-12 col-md-6">
+                <label for="primerNombre" class="form-label">Primer nombre</label>
+                <input class="form-control form-control-lg" type="text" id="primerNombre"
+                    [(ngModel)]="model.primerNombre" [disabled]="!camposHabilitados && editable">
+            </div>
+            <div class="col-sm-12 col-md-6">
+                <label for="segundoNombre" class="form-label">Segundo nombre</label>
+                <input class="form-control form-control-lg" type="text" id="segundoNombre"
+                    [(ngModel)]="model.segundoNombre" [disabled]="!camposHabilitados && editable">
+            </div>
+        </div>
+
+        <div class="row" *ngIf="!esPersonaJuridica">
+            <div class="col-sm-12 col-md-6">
+                <label for="primerApellido" class="form-label">Primer apellido</label>
+                <input class="form-control form-control-lg" type="text" id="primerApellido"
+                    [(ngModel)]="model.primerApellido" [disabled]="!camposHabilitados && editable">
+            </div>
+            <div class="col-sm-12 col-md-6">
+                <label for="segundoApellido" class="form-label">Segundo apellido</label>
+                <input class="form-control form-control-lg" type="text" id="segundoApellido"
+                    [(ngModel)]="model.segundoApellido" [disabled]="!camposHabilitados && editable">
+            </div>
+        </div>
+
+        <!-- Tipo de proveedor -->
+        <div class="row">
+            <div class="col-sm-12 col-md-6">
+                <label for="tipoProveedor" class="form-label">Tipo de proveedor <span
+                        class="text-danger">*</span></label>
+                <select class="form-select form-select-lg" id="tipoProveedor" [(ngModel)]="model.tipoProveedor" required
+                    [ngClass]="{'is-invalid': !model.tipoProveedor && submitted}"
+                    [disabled]="!camposHabilitados && editable">
+                    <option value="">Seleccionar</option>
+                    <ng-container *ngFor="let tp of listas.tiposProveedor">
+                        <option [value]="tp.id">{{ tp.nombre }}</option>
+                    </ng-container>
+                </select>
+            </div>
+            <div class="col-sm-12 col-md-6">
+                <label for="telefono" class="form-label">Teléfono</label>
+                <input class="form-control form-control-lg" type="tel" id="telefono" [(ngModel)]="model.telefono"
+                    placeholder="Ej: 3001234567" pattern="[0-9]{10}"
+                    title="Ingrese un número de teléfono válido de 10 dígitos"
+                    [disabled]="!camposHabilitados && editable">
+                <small class="form-text text-muted">Ingrese un número de 10 dígitos sin espacios ni guiones</small>
+            </div>
+        </div>
+
+        <!-- Información adicional -->
+        <div class="row">
+            <div class="col-sm-12 col-md-6">
+                <label for="correoElectronico" class="form-label">Correo electrónico</label>
+                <input class="form-control form-control-lg" type="email" id="correoElectronico"
+                    [(ngModel)]="model.correoElectronico" placeholder="ejemplo@correo.com"
+                    pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$" title="Ingrese un correo electrónico válido"
+                    [disabled]="!camposHabilitados && editable">
+                <small class="form-text text-muted">Formato: ejemplo&#64;correo.com</small>
+            </div>
+            <div class="col-sm-12 col-md-6">
+                <label for="ciudad" class="form-label">Ciudad</label>
+                <select class="form-select form-select-lg" id="ciudad" [(ngModel)]="model.ciudad"
+                    [disabled]="!camposHabilitados && editable">
+                    <option value="">Seleccionar</option>
+                    <ng-container *ngFor="let c of listas.ciudades">
+                        <option [value]="c.id">{{ c.nombre }}</option>
+                    </ng-container>
+                </select>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <label for="direccion" class="form-label">Dirección</label>
+                <input class="form-control form-control-lg" type="text" id="direccion" [(ngModel)]="model.direccion"
+                    [disabled]="!camposHabilitados && editable">
+            </div>
+        </div>
+        <!-- Campos adicionales -->
+        <div class="row" *ngIf="!esPersonaJuridica">
+            <div class="col-sm-12 col-md-6">
+                <label for="fechaNacimiento" class="form-label">Fecha de nacimiento</label>
+                <input class="form-control form-control-lg" type="date" id="fechaNacimiento"
+                    [(ngModel)]="model.fechaNacimiento" [disabled]="!camposHabilitados && editable">
+            </div>
+            <div class="col-sm-12 col-md-6">
+                <label for="genero" class="form-label">Género</label>
+                <select class="form-select form-select-lg" id="genero" [(ngModel)]="model.genero"
+                    [disabled]="!camposHabilitados && editable">
+                    <option value="">Seleccionar</option>
+                    <ng-container *ngFor="let g of listas.generos">
+                        <option [value]="g.id">{{ g.nombre }}</option>
+                    </ng-container>
+                </select>
+            </div>
+        </div>
+
+        <!-- Estado del proveedor -->
+        <div class="row mt-3" *ngIf="accion === 'editar' || accion === 'consultar'">
+            <div class="col-12">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="proveedorActivo"
+                        [(ngModel)]="proveedorActivoSwitch" (change)="cambiarEstadoProveedor()"
+                        [disabled]="accion === 'consultar'">
+                    <label class="form-check-label" for="proveedorActivo">
+                        <strong>
+                            {{ proveedorActivoSwitch ? 'Proveedor Activo' : 'Proveedor Inactivo' }}
+                        </strong>
+                    </label>
+                    <small class="d-block mt-1 text-muted">
+                        {{ proveedorActivoSwitch ? 'El proveedor está activo en el sistema' : 'El proveedor está
+                        inactivo en el sistema' }}
+                    </small>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Botones de acción -->
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-sm-6" *ngIf="editable">
+                <button class="btn btn-lg btn-warning w-100" (click)="guardarPersona(model)"
+                    [disabled]="!camposHabilitados">
+                    Grabar
+                </button>
+            </div>
+            <div class="col-sm-6">
+                <button class="btn btn-lg btn-secondary w-100" (click)="volver()">
+                    Volver
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

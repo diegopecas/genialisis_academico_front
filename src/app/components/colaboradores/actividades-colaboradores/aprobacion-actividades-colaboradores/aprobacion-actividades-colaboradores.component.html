@@ -1,0 +1,87 @@
+<div class="modulo">
+  <app-header 
+    [tituloModulo]="titulo" 
+    [mostrarCrear]="false" 
+    [raiz]="'/administracion/actividades-colaboradores'" 
+    [regresar]="'/administracion/actividades-colaboradores'" 
+    [iconoTitulo]="'/assets/images/aprobar_actividades.png'">
+  </app-header>
+
+  <!-- Tabla de datos con selección múltiple -->
+  <app-tablas 
+    [titulos]="titulos" 
+    [datos]="datos" 
+    [raiz]="'/administracion/aprobacion-actividades-colaboradores'" 
+    [accionVer]="false"
+    [accionEditar]="false" 
+    [accionEliminar]="false" 
+    [columnasFiltro]="columnasFiltro"
+    [seleccionMultiple]="true"
+    [campoId]="'id'"
+    (seleccionCambiada)="onSeleccionCambiada($event)">
+  </app-tablas>
+
+  <!-- Sección de totales -->
+  <div class="container-fluid px-4">
+    <div class="card mt-3 shadow-sm" *ngIf="cantidadSeleccionada > 0">
+      <div class="card-header bg-primary text-white">
+        <h5 class="card-title mb-0">
+          <i class="fa fa-check-circle me-2"></i>Resumen de Selección
+        </h5>
+      </div>
+      <div class="card-body">
+        <div class="row text-center">
+          <div class="col-md-2">
+            <div class="total-box seleccion-box">
+              <h6 class="text-muted">Actividades seleccionadas:</h6>
+              <p class="total-value text-primary">{{ cantidadSeleccionada }}</p>
+            </div>
+          </div>
+          <div class="col-md-2">
+            <div class="total-box total-box-info">
+              <h6 class="text-muted">Total minutos:</h6>
+              <p class="total-value text-info">
+                {{ formatearMinutos(totalSeleccionado) }}
+              </p>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="total-box permisos-box">
+              <h6 class="text-muted">Permisos:</h6>
+              <p class="total-value text-danger">
+                {{ formatearMinutos(minutosPermisos) }}
+              </p>
+            </div>
+          </div>
+          <div class="col-md-2">
+            <div class="total-box horas-box">
+              <h6 class="text-muted">Horas Adicionales:</h6>
+              <p class="total-value text-success">
+                {{ formatearMinutos(minutosHorasExtras) }}
+              </p>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="total-box valor-box">
+              <h6 class="text-muted">Valor Total Horas:</h6>
+              <p class="total-value text-warning">{{ formatearValor(valorTotalHoras) }}</p>
+              <small>Suma de valores</small>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Botón de aprobar -->
+        <div class="row mt-4">
+          <div class="col-12 text-center">
+            <button class="btn btn-success btn-lg px-5" 
+                    [disabled]="cantidadSeleccionada === 0"
+                    (click)="aprobarSeleccionados()">
+              <i class="fa fa-check me-2"></i>
+              Aprobar {{ cantidadSeleccionada > 0 ? '(' + cantidadSeleccionada + ')' : '' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,70 @@
+<!-- searchable-dropdown.component.html -->
+<div class="searchable-dropdown" 
+     [class.disabled]="disabled"
+     [class.is-invalid]="required && !selectedValue">
+  
+  <!-- Header del dropdown -->
+  <div class="searchable-dropdown-header" 
+       (click)="toggleDropdown()"
+       [class.disabled]="disabled">
+    <span class="selected-text">{{ getDisplayText() }}</span>
+    
+    <div class="dropdown-icons">
+      <!-- Botón para limpiar selección -->
+      <i *ngIf="clearable && selectedValue && !disabled" 
+         class="bi bi-x-circle clear-icon"
+         (click)="clearSelection(); $event.stopPropagation()"
+         title="Limpiar selección"></i>
+      
+      <!-- Icono de dropdown -->
+      <i class="bi bi-chevron-down dropdown-icon" 
+         [class.rotated]="dropdownOpen"></i>
+    </div>
+  </div>
+
+  <!-- Opciones del dropdown -->
+  <div class="searchable-dropdown-options" 
+       *ngIf="dropdownOpen"
+       [style.max-height]="maxHeight">
+    
+    <!-- Campo de búsqueda -->
+    <div class="search-container" *ngIf="showSearch">
+      <div class="search-input-wrapper">
+        <i class="bi bi-search search-icon"></i>
+        <input type="text" 
+               class="form-control search-input"
+               [placeholder]="searchPlaceholder"
+               [(ngModel)]="searchTerm"
+               (input)="filterItems()"
+               (click)="onSearchInputClick($event)">
+      </div>
+    </div>
+
+    <!-- Opción para limpiar selección -->
+    <div class="dropdown-option clear-option" 
+         *ngIf="clearable"
+         (click)="selectItem(null)">
+      <span class="option-text">{{ placeholder }}</span>
+    </div>
+
+    <!-- Mensaje cuando no hay resultados -->
+    <div *ngIf="filteredItems.length === 0" 
+         class="no-results">
+      {{ emptyMessage }}
+    </div>
+
+    <!-- Lista de opciones -->
+    <div *ngFor="let item of filteredItems" 
+         class="dropdown-option"
+         [class.disabled]="item.disabled"
+         [class.selected]="selectedValue === item.id"
+         (click)="selectItem(item)">
+      
+      <div class="option-content">
+        <div class="option-title">{{ item.nombre }}</div>
+        <div *ngIf="item.descripcion" 
+             class="option-description">{{ item.descripcion }}</div>
+      </div>
+    </div>
+  </div>
+</div>

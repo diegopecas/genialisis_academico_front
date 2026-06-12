@@ -1,0 +1,200 @@
+<div class="modulo">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="false"
+    [accion]="accion"
+    [raiz]="'/colaboradores'"
+    [regresar]="regresar"
+    [iconoTitulo]="'/assets/images/contratos.png'"
+  >
+  </app-header>
+
+  <div
+    class="container-custom py-4"
+    [ngClass]="{ 'disabled-container': !editable }"
+  >
+    <!-- Alerta de contrato firmado -->
+    <div *ngIf="contrato.firmado == 1" class="alert alert-success mb-3">
+      <i class="fas fa-check-circle me-2"></i>
+      <strong>Contrato Firmado:</strong> Este contrato fue firmado y no puede ser modificado.
+    </div>
+
+    <!-- Información del Colaborador -->
+    <div class="card-simple mb-3">
+      <div class="card-header-simple justify-content-start">
+        <i class="fas fa-user-tie me-2"></i>
+        <span>Información del Colaborador</span>
+      </div>
+      <div class="card-body-simple">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="label-simple">Nombre Completo</label>
+            <div class="value-simple">{{ colaborador?.colaborador_nombre }}</div>
+          </div>
+          <div class="col-md-3">
+            <label class="label-simple">Documento</label>
+            <div class="value-simple">{{ colaborador?.numero_identificacion }}</div>
+          </div>
+          <div class="col-md-3">
+            <label class="label-simple">Correo</label>
+            <div class="value-simple">{{ colaborador?.correo_electronico }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Datos del Contrato -->
+    <div class="card-simple mb-3">
+      <div class="card-header-simple justify-content-start">
+        <i class="fas fa-file-signature me-2"></i>
+        <span>Datos del Contrato</span>
+      </div>
+      <div class="card-body-simple">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Cargo <span class="text-danger">*</span></label>
+            <select class="form-select" [(ngModel)]="contrato.id_cargo"
+              [ngClass]="{ 'is-invalid': !contrato.id_cargo && submitted }">
+              <option [ngValue]="0">Seleccionar</option>
+              <ng-container *ngFor="let c of cargos">
+                <option [ngValue]="c.id">{{ c.nombre }}</option>
+              </ng-container>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Tipo de contrato <span class="text-danger">*</span></label>
+            <select class="form-select" [(ngModel)]="contrato.id_tipo_contrato"
+              [ngClass]="{ 'is-invalid': !contrato.id_tipo_contrato && submitted }">
+              <option [ngValue]="0">Seleccionar</option>
+              <ng-container *ngFor="let tc of tiposContrato">
+                <option [ngValue]="tc.id">{{ tc.nombre }}</option>
+              </ng-container>
+            </select>
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label">Salario mensual <span class="text-danger">*</span></label>
+            <div class="input-group">
+              <span class="input-group-text">$</span>
+              <input type="text" inputmode="numeric" class="form-control"
+                [ngModel]="salarioFormateado"
+                (ngModelChange)="onSalarioChange($event)"
+                [ngClass]="{ 'is-invalid': !contrato.salario_mensual && submitted }" />
+            </div>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Periodo de pago</label>
+            <select class="form-select" [(ngModel)]="contrato.periodo_pago">
+              <option value="Mensual">Mensual</option>
+              <option value="Quincenal">Quincenal</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Jornada (horas/semana)</label>
+            <input type="number" class="form-control" [(ngModel)]="contrato.jornada_horas" min="0" />
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label">Fecha de inicio <span class="text-danger">*</span></label>
+            <input type="date" class="form-control" [(ngModel)]="contrato.fecha_inicio"
+              (ngModelChange)="onFechaInicioChange()"
+              [ngClass]="{ 'is-invalid': !contrato.fecha_inicio && submitted }" />
+            <small class="text-muted">Inicio de labores</small>
+          </div>
+          <div class="col-md-4" *ngIf="requiereFechaFin">
+            <label class="form-label">Fecha de fin <span class="text-danger">*</span></label>
+            <input type="date" class="form-control" [(ngModel)]="contrato.fecha_fin"
+              [min]="contrato.fecha_inicio || null"
+              [ngClass]="{ 'is-invalid': requiereFechaFin && !contrato.fecha_fin && submitted }" />
+            <small class="text-muted">Fecha en que termina labores</small>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Periodo de prueba</label>
+            <input type="text" class="form-control" [(ngModel)]="contrato.periodo_prueba"
+              placeholder="Ej: dos (2) meses" />
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Lugar de desempeño</label>
+            <input type="text" class="form-control" [(ngModel)]="contrato.lugar_desempeno" />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Lugar de firma</label>
+            <input type="text" class="form-control" [(ngModel)]="contrato.lugar_firma" />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Fecha de firma</label>
+            <input type="date" class="form-control" [(ngModel)]="contrato.fecha_firma" />
+          </div>
+
+          <div class="col-md-12">
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" id="repFirmaDigital"
+                [checked]="contrato.representante_firma_digital === 1"
+                (change)="contrato.representante_firma_digital = $any($event.target).checked ? 1 : 0; onToggleRepresentante()" />
+              <label class="form-check-label" for="repFirmaDigital">
+                El representante legal firma digitalmente
+                <small class="text-muted">(si se desmarca, se estampa su firma en el PDF)</small>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Observaciones -->
+    <div class="card-simple mb-3">
+      <div class="card-header-simple justify-content-start">
+        <i class="fas fa-comment-dots me-2"></i>
+        <span>Observaciones</span>
+      </div>
+      <div class="card-body-simple">
+        <textarea class="form-control" rows="3" [(ngModel)]="contrato.observaciones"
+          placeholder="Observaciones adicionales (opcional)..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMPONENTE DOCUMENTOS - FUERA DEL DISABLED-CONTAINER -->
+  <div class="container-custom pb-4">
+    <div class="card-simple mb-3" *ngIf="accion !== 'crear' && colaborador && idContrato">
+      <div class="card-header-simple justify-content-start">
+        <i class="fas fa-file-contract me-2"></i>
+        <span>Contrato y Firma</span>
+      </div>
+      <div class="card-body-simple">
+        <app-documentos-persona
+          [idPersona]="colaborador.id_persona"
+          [tipoPersona]="'colaborador'"
+          [idContrato]="idContrato"
+          [nombrePersona]="colaborador.colaborador_nombre"
+          [soloLectura]="!editable"
+          [emailsFirmantes]="emailsFirmantes"
+          [filtroCodigosTipoDocumento]="['contrato_trabajo']"
+          (documentoSubido)="onDocumentoSubido($event)">
+        </app-documentos-persona>
+      </div>
+    </div>
+  </div>
+
+  <!-- Botones de acción -->
+  <div class="container-custom pb-4">
+    <div class="row g-3">
+      <div class="col-md-3" *ngIf="editable">
+        <button class="btn btn-warning w-100" (click)="guardar()" [disabled]="guardando">
+          <i class="fas fa-save me-2"></i>{{ guardando ? "Guardando..." : "Guardar Contrato" }}
+        </button>
+      </div>
+      <div class="col-md-3" *ngIf="editable">
+        <button class="btn btn-success w-100" (click)="descargarPDF()" [disabled]="guardando">
+          <i class="fas fa-file-pdf me-2"></i>Guardar y Generar PDF
+        </button>
+      </div>
+      <div class="col-md-3">
+        <button class="btn btn-secondary w-100" (click)="volver()">
+          <i class="fas fa-arrow-left me-2"></i>Volver
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

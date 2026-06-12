@@ -1,0 +1,45 @@
+.modulo {
+  width: 100%;
+  min-height: 100vh;
+  background-color: #f5f5f7;
+}
+
+// Alerta personalizada para productos bajo stock
+.alert-warning {
+  border-left: 5px solid #ffc107;
+  
+  i {
+    font-size: 1.2rem;
+  }
+  
+  .btn-warning {
+    padding: 0.25rem 0.75rem;
+    font-size: 0.875rem;
+    
+    &:hover {
+      background-color: #e0a800;
+      border-color: #d39e00;
+    }
+  }
+}
+// Estilos para el modal de historial
+:host ::ng-deep {
+  .swal-wide {
+    .swal2-html-container {
+      max-width: 100%;
+      overflow: visible;
+    }
+    
+    table {
+      font-size: 0.9rem;
+      
+      thead {
+        border-bottom: 2px solid #dee2e6;
+      }
+      
+      .badge {
+        font-size: 0.75rem;
+      }
+    }
+  }
+}

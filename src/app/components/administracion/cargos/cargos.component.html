@@ -1,0 +1,22 @@
+<div class="modulo">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="true"
+    [accion]="'ConsultarTodos'"
+    [raiz]="'/administracion/cargos'"
+    [regresar]="'/administracion/datos-maestros'"
+    [iconoTitulo]="'/assets/images/cargos.png'"
+  ></app-header>
+  
+  <app-tablas
+    [titulos]="titulos"
+    [datos]="datos"
+    [raiz]="'/administracion/cargos'"
+    [acciones]="acciones"
+    [accionEditar]="true"
+    [accionEliminar]="true"
+    [mostrarBuscar]="true"
+    [columnasFiltro]="columnasFiltro"
+    (clicAccion)="clicAccion($event)"
+  ></app-tablas>
+</div>

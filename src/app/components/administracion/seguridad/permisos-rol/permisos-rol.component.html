@@ -1,0 +1,187 @@
+<div class="modulo">
+    <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [raiz]="'/'" [regresar]="'/administracion/datos-maestros'"
+        [iconoTitulo]="'/assets/images/seguridad.png'"></app-header>
+
+    <div class="container mt-5 mb-5">
+
+        <!-- Selector de Portal y Rol -->
+        <div class="card card-selector mb-4">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-3">
+                        <label for="portalSelect" class="form-label selector-label">
+                            <i class="fas fa-globe"></i> Portal
+                        </label>
+                        <select class="form-select form-select-lg selector-rol" id="portalSelect"
+                            [(ngModel)]="portalSeleccionado" (change)="cambiarPortal()">
+                            <option *ngFor="let p of portales" [ngValue]="p">{{ p }}</option>
+                        </select>
+                    </div>
+                    <div class="col-md-5">
+                        <label for="rolSelect" class="form-label selector-label">
+                            <i class="fas fa-user-shield"></i> Seleccionar Rol
+                        </label>
+                        <select class="form-select form-select-lg selector-rol" id="rolSelect"
+                            [(ngModel)]="rolSeleccionado" (change)="seleccionarRol()">
+                            <option [ngValue]="null">-- Seleccione un rol --</option>
+                            <option *ngFor="let rol of roles" [ngValue]="rol.id">{{ rol.nombre }}</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 text-end" *ngIf="rolSeleccionado && !cargando">
+                        <div class="contador-permisos">
+                            <span class="badge badge-total">{{ totalSeleccionados }} / {{ totalPermisos }}</span>
+                            <span class="contador-texto">permisos seleccionados</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading -->
+        <div class="text-center py-5" *ngIf="cargando">
+            <div class="spinner-border text-warning" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+            <p class="mt-3 text-muted">Cargando permisos del rol...</p>
+        </div>
+
+        <!-- Árbol de Permisos -->
+        <div *ngIf="rolSeleccionado && !cargando && arbol.length > 0">
+
+            <!-- Buscador + Acciones -->
+            <div class="card card-acciones mb-3">
+                <div class="card-body py-2">
+                    <div class="row align-items-center">
+                        <div class="col-md-5">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                <input type="text" class="form-control buscador-input"
+                                    placeholder="Buscar módulo o permiso..."
+                                    [(ngModel)]="terminoBusqueda"
+                                    (input)="filtrarArbol()">
+                                <button class="btn btn-outline-secondary" (click)="limpiarBusqueda()" 
+                                    *ngIf="terminoBusqueda">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-7">
+                            <div class="d-flex flex-wrap gap-2 justify-content-end align-items-center">
+                                <button class="btn btn-sm btn-outline-gold" (click)="seleccionarTodos()">
+                                    <i class="fas fa-check-double"></i> Seleccionar todos
+                                </button>
+                                <button class="btn btn-sm btn-outline-secondary" (click)="deseleccionarTodos()">
+                                    <i class="fas fa-times"></i> Quitar todos
+                                </button>
+                                <div class="vr mx-1"></div>
+                                <button class="btn btn-sm btn-outline-secondary" (click)="expandirTodos()">
+                                    <i class="fas fa-expand-arrows-alt"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-secondary" (click)="contraerTodos()">
+                                    <i class="fas fa-compress-arrows-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Árbol -->
+            <div class="card card-arbol">
+                <div class="card-body">
+                    <ng-container *ngFor="let nodo of arbol">
+                        <ng-container *ngTemplateOutlet="nodoTemplate; context: { $implicit: nodo, nivel: 0 }"></ng-container>
+                    </ng-container>
+                </div>
+            </div>
+
+            <!-- Botón Guardar -->
+            <div class="mt-4 text-center" *ngIf="puedeGuardar">
+                <button class="btn btn-lg btn-gold px-5" (click)="guardar()" [disabled]="guardando">
+                    <span *ngIf="!guardando">
+                        <i class="fas fa-save"></i> Guardar permisos de {{ rolNombre }}
+                    </span>
+                    <span *ngIf="guardando">
+                        <i class="fas fa-spinner fa-spin"></i> Guardando...
+                    </span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Estado vacío -->
+        <div class="text-center py-5" *ngIf="!rolSeleccionado && !cargando">
+            <div class="estado-vacio">
+                <i class="fas fa-shield-alt"></i>
+                <h4>Selecciona un rol</h4>
+                <p>Elige un rol para ver y gestionar sus permisos</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Template recursivo del árbol -->
+<ng-template #nodoTemplate let-nodo let-nivel="nivel">
+    <div class="nodo-arbol" [style.margin-left.px]="nivel * 16" *ngIf="nodo.visible">
+        
+        <!-- Cabecera del nodo -->
+        <div class="nodo-header" [class.nodo-con-hijos]="tieneContenidoExpandible(nodo)">
+            
+            <!-- Flecha expandir -->
+            <button class="btn-expandir" (click)="toggleExpandir(nodo)"
+                *ngIf="tieneContenidoExpandible(nodo)">
+                <i class="fas" [class.fa-chevron-right]="!nodo.expandido" [class.fa-chevron-down]="nodo.expandido"></i>
+            </button>
+            <span class="btn-expandir-placeholder" *ngIf="!tieneContenidoExpandible(nodo)"></span>
+
+            <!-- Checkbox del nodo (usa el permiso principal si existe, o controla la rama) -->
+            <label class="nodo-checkbox-wrapper" *ngIf="tieneContenido(nodo)">
+                <input type="checkbox" 
+                    [checked]="nodoEstaSeleccionado(nodo)" 
+                    [indeterminate]="nodoEstaIndeterminado(nodo)"
+                    (change)="toggleNodoCompleto(nodo)"
+                    class="nodo-checkbox">
+                <span class="nodo-checkmark"></span>
+            </label>
+
+            <!-- Nombre del módulo -->
+            <span class="nodo-nombre" (click)="tieneContenidoExpandible(nodo) ? toggleExpandir(nodo) : null">
+                <img *ngIf="nodo.icono" [src]="'assets/images/' + nodo.icono" class="nodo-icono" alt="">
+                {{ nodo.nombre }}
+            </span>
+
+            <!-- Código del permiso principal -->
+            <code class="permiso-codigo-nodo" *ngIf="nodo.permisoPrincipal">
+                {{ nodo.permisoPrincipal.codigo }}
+            </code>
+
+            <!-- Badge contador -->
+            <span class="badge badge-nodo" *ngIf="contarPermisosEnNodo(nodo) > 0">
+                {{ contarPermisosSeleccionadosEnNodo(nodo) }}/{{ contarPermisosEnNodo(nodo) }}
+            </span>
+        </div>
+
+        <!-- Contenido expandible -->
+        <div class="nodo-contenido" *ngIf="nodo.expandido">
+            
+            <!-- Permisos de acción (crear, editar, eliminar, etc.) -->
+            <div class="permisos-lista" *ngIf="nodo.permisosAcciones.length > 0" [style.margin-left.px]="(nivel + 1) * 16 + 28">
+                <div class="permiso-item" *ngFor="let permiso of nodo.permisosAcciones">
+                    <label class="permiso-checkbox-wrapper">
+                        <input type="checkbox" 
+                            [checked]="permiso.seleccionado" 
+                            (change)="togglePermisoAccion(permiso)"
+                            class="permiso-checkbox">
+                        <span class="permiso-checkmark"></span>
+                        <span class="permiso-nombre">{{ permiso.nombre }}</span>
+                        <code class="permiso-codigo">{{ permiso.codigo }}</code>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Hijos recursivos -->
+            <ng-container *ngFor="let hijo of nodo.hijos">
+                <ng-container *ngTemplateOutlet="nodoTemplate; context: { $implicit: hijo, nivel: nivel + 1 }"></ng-container>
+            </ng-container>
+        </div>
+    </div>
+</ng-template>

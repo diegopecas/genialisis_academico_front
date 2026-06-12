@@ -1,0 +1,1211 @@
+<!-- 🎨 Contenedor con tema dinámico y efectos -->
+<div class="tabla-container" [attr.data-theme]="currentTheme.name">
+  <!-- 🎨 NUEVO: Resplandor de fondo animado -->
+  <div class="theme-glow"></div>
+
+  <!-- 🎨 NUEVO: Partículas decorativas -->
+  <div class="table-particles">
+    <span class="particle" *ngFor="let p of particleDecorations">{{ p }}</span>
+  </div>
+
+  <!-- Sección de búsqueda desktop -->
+  <div class="form-tablas mt-3 mb-1 d-none d-sm-block">
+    <app-buscar (buscar)="buscar($event)" *ngIf="buscador"></app-buscar>
+  </div>
+
+  <!-- Sección de búsqueda móvil -->
+  <div class="form-tablas-sm mt-2 mb-1 d-block d-sm-none" *ngIf="buscador">
+    <app-buscar (buscar)="buscar($event)"></app-buscar>
+  </div>
+
+  <!-- Botón Exportar Excel -->
+  <div class="form-tablas mt-3 mb-1 d-none d-sm-block" *ngIf="exportarExcel">
+    <div class="d-flex justify-content-end w-100">
+      <button
+        class="btn btn-sm btn-success"
+        (click)="exportarAExcel()"
+        [disabled]="!tabla.datosFiltrados || tabla.datosFiltrados.length === 0"
+      >
+        <i class="fas fa-file-excel me-1"></i> Exportar Excel
+      </button>
+    </div>
+  </div>
+
+  <!-- Sección de filtros estilo Excel mejorada -->
+  <div
+    class="form-tablas mt-3 mb-1 d-none d-sm-block"
+    *ngIf="columnasFiltro && columnasFiltro.length > 0"
+  >
+    <div class="row">
+      <ng-container *ngFor="let titulo of tabla.titulos">
+        <div
+          class="col-md-3 mb-2"
+          *ngIf="
+            columnaEstaEnFiltros(titulo.alias) &&
+            (opcionesFiltro[titulo.clave] || esFiltroFecha(titulo.clave) || esFiltroRango(titulo.clave))
+          "
+        >
+          <!-- Filtro de FECHA (Año, Mes y Día) -->
+          <div *ngIf="esFiltroFecha(titulo.clave)" class="dropdown">
+            <button
+              class="btn btn-sm btn-outline-secondary dropdown-toggle w-100 d-flex justify-content-between align-items-center"
+              type="button"
+              (click)="
+                toggleFiltro(titulo.clave); cerrarOtrosDropdowns(titulo.clave)
+              "
+            >
+              <span>{{ titulo.alias }}</span>
+              <span
+                *ngIf="
+                  filtrosFecha[titulo.clave].anioSeleccionado ||
+                  filtrosFecha[titulo.clave].mesSeleccionado ||
+                  filtrosFecha[titulo.clave].diaSeleccionado
+                "
+                class="badge bg-warning rounded-pill ms-2"
+              >
+                <i class="fas fa-filter"></i>
+              </span>
+            </button>
+            <div
+              class="dropdown-menu p-3"
+              [ngClass]="{ show: filtroAbierto[titulo.clave] }"
+              (click)="$event.stopPropagation()"
+            >
+              <h6 class="dropdown-header">Filtrar por fecha</h6>
+
+              <!-- Selector de Año -->
+              <div class="mb-3">
+                <label class="form-label small">Año:</label>
+                <select
+                  class="form-select form-select-sm"
+                  [(ngModel)]="filtrosFecha[titulo.clave].anioSeleccionado"
+                  (change)="aplicarFiltroFecha(titulo.clave)"
+                >
+                  <option [ngValue]="null">Todos los años</option>
+                  <option
+                    *ngFor="let anio of filtrosFecha[titulo.clave].anios"
+                    [ngValue]="anio"
+                  >
+                    {{ anio }}
+                  </option>
+                </select>
+              </div>
+
+              <!-- Selector de Mes -->
+              <div class="mb-3">
+                <label class="form-label small">Mes:</label>
+                <select
+                  class="form-select form-select-sm"
+                  [(ngModel)]="filtrosFecha[titulo.clave].mesSeleccionado"
+                  (change)="aplicarFiltroFecha(titulo.clave)"
+                >
+                  <option [ngValue]="null">Todos los meses</option>
+                  <option
+                    *ngFor="let mes of filtrosFecha[titulo.clave].meses"
+                    [ngValue]="mes"
+                  >
+                    {{ nombresMeses[mes - 1] }}
+                  </option>
+                </select>
+              </div>
+
+              <!-- Selector de Día -->
+              <div class="mb-3">
+                <label class="form-label small">Día:</label>
+                <select
+                  class="form-select form-select-sm"
+                  [(ngModel)]="filtrosFecha[titulo.clave].diaSeleccionado"
+                  (change)="aplicarFiltroFecha(titulo.clave)"
+                >
+                  <option [ngValue]="null">Todos los días</option>
+                  <option
+                    *ngFor="let dia of filtrosFecha[titulo.clave].dias"
+                    [ngValue]="dia"
+                  >
+                    {{ dia }}
+                  </option>
+                </select>
+              </div>
+
+              <div class="dropdown-divider"></div>
+
+              <!-- Botones de acción -->
+              <div class="filter-actions">
+                <button
+                  class="btn btn-sm btn-secondary"
+                  (click)="toggleFiltro(titulo.clave)"
+                >
+                  Cerrar
+                </button>
+                <button
+                  class="btn btn-sm btn-warning"
+                  (click)="resetFiltroFecha(titulo.clave)"
+                >
+                  Limpiar
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Filtro de RANGO (desde/hasta) -->
+          <div *ngIf="esFiltroRango(titulo.clave)" class="dropdown">
+            <button
+              class="btn btn-sm btn-outline-secondary dropdown-toggle w-100 d-flex justify-content-between align-items-center"
+              type="button"
+              (click)="toggleFiltro(titulo.clave); cerrarOtrosDropdowns(titulo.clave)"
+            >
+              <span>{{ titulo.alias }}</span>
+              <span
+                *ngIf="
+                  (filtrosRango[titulo.clave].desde !== null && filtrosRango[titulo.clave].desde !== '') ||
+                  (filtrosRango[titulo.clave].hasta !== null && filtrosRango[titulo.clave].hasta !== '')
+                "
+                class="badge bg-warning rounded-pill ms-2"
+              >
+                <i class="fas fa-filter"></i>
+              </span>
+            </button>
+            <div
+              class="dropdown-menu p-3 dropdown-rango"
+              [ngClass]="{ show: filtroAbierto[titulo.clave] }"
+              (click)="$event.stopPropagation()"
+            >
+              <h6 class="dropdown-header">
+                {{ filtrosRango[titulo.clave].tipoInput === 'date' ? 'Rango de fechas' : 'Rango de valores' }}
+              </h6>
+
+              <div class="mb-3">
+                <label class="form-label small">Desde:</label>
+                <input
+                  [type]="filtrosRango[titulo.clave].tipoInput"
+                  class="form-control form-control-sm"
+                  [(ngModel)]="filtrosRango[titulo.clave].desde"
+                  (change)="aplicarFiltroRango(titulo.clave)"
+                  [step]="filtrosRango[titulo.clave].tipoInput === 'number' ? 'any' : undefined"
+                />
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label small">Hasta:</label>
+                <input
+                  [type]="filtrosRango[titulo.clave].tipoInput"
+                  class="form-control form-control-sm"
+                  [(ngModel)]="filtrosRango[titulo.clave].hasta"
+                  (change)="aplicarFiltroRango(titulo.clave)"
+                  [step]="filtrosRango[titulo.clave].tipoInput === 'number' ? 'any' : undefined"
+                />
+              </div>
+
+              <div class="dropdown-divider"></div>
+
+              <div class="filter-actions">
+                <button
+                  class="btn btn-sm btn-secondary"
+                  (click)="toggleFiltro(titulo.clave)"
+                >
+                  Cerrar
+                </button>
+                <button
+                  class="btn btn-sm btn-warning"
+                  (click)="resetFiltroRango(titulo.clave)"
+                >
+                  Limpiar
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Filtro NORMAL (Checkboxes) -->
+          <div
+            *ngIf="
+              !esFiltroFecha(titulo.clave) &&
+              !esFiltroRango(titulo.clave) &&
+              opcionesFiltro[titulo.clave] &&
+              opcionesFiltro[titulo.clave].length > 0
+            "
+            class="dropdown"
+          >
+            <button
+              class="btn btn-sm btn-outline-secondary dropdown-toggle w-100 d-flex justify-content-between align-items-center"
+              type="button"
+              (click)="
+                toggleFiltro(titulo.clave); cerrarOtrosDropdowns(titulo.clave)
+              "
+            >
+              <span>{{ titulo.alias }}</span>
+              <span
+                *ngIf="
+                  filtrosActivos[titulo.clave] &&
+                  filtrosActivos[titulo.clave].length <
+                    opcionesFiltro[titulo.clave].length
+                "
+                class="badge bg-warning rounded-pill ms-2"
+              >
+                {{ filtrosActivos[titulo.clave].length }} /
+                {{ opcionesFiltro[titulo.clave].length }}
+              </span>
+            </button>
+            <div
+              class="dropdown-menu p-3"
+              [ngClass]="{ show: filtroAbierto[titulo.clave] }"
+              (click)="$event.stopPropagation()"
+            >
+              <!-- Campo de búsqueda -->
+              <div class="search-filter">
+                <input
+                  type="text"
+                  class="form-control form-control-sm"
+                  placeholder="Buscar..."
+                  [(ngModel)]="busquedaFiltro[titulo.clave]"
+                  (input)="filtrarOpciones(titulo.clave)"
+                />
+              </div>
+
+              <div
+                class="d-flex justify-content-between align-items-center mb-2"
+              >
+                <div class="form-check">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    [checked]="todosSeleccionados[titulo.clave]"
+                    (change)="toggleTodos(titulo.clave)"
+                    id="check-todos-{{ titulo.clave }}"
+                  />
+                  <label
+                    class="form-check-label"
+                    for="check-todos-{{ titulo.clave }}"
+                  >
+                    Seleccionar todos
+                  </label>
+                </div>
+                <small class="text-muted"
+                  >{{ contarSeleccionados(titulo.clave) }} de
+                  {{
+                    (opcionesFiltroFiltradas[titulo.clave] || []).length
+                  }}</small
+                >
+              </div>
+
+              <div class="dropdown-divider"></div>
+
+              <!-- Lista de opciones con scroll -->
+              <div class="options-container">
+                <div
+                  class="form-check mb-1"
+                  *ngFor="
+                    let opcion of opcionesFiltroFiltradas[titulo.clave];
+                    let i = index
+                  "
+                >
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    [checked]="opcion.seleccionado"
+                    (change)="
+                      toggleOpcion(
+                        titulo.clave,
+                        getOpcionOriginalIndex(titulo.clave, opcion)
+                      )
+                    "
+                    id="check-{{ titulo.clave }}-{{ i }}"
+                  />
+                  <label
+                    class="form-check-label"
+                    for="check-{{ titulo.clave }}-{{ i }}"
+                    [title]="getValorMostrar(opcion.valor)"
+                    [innerHTML]="getValorMostrar(opcion.valor)"
+                  >
+                  </label>
+                </div>
+                <div
+                  *ngIf="opcionesFiltroFiltradas[titulo.clave]?.length === 0"
+                  class="text-center text-muted py-2"
+                >
+                  No se encontraron resultados
+                </div>
+              </div>
+
+              <div class="dropdown-divider"></div>
+
+              <!-- Botones de acción -->
+              <div class="filter-actions">
+                <button
+                  class="btn btn-sm btn-secondary"
+                  (click)="toggleFiltro(titulo.clave)"
+                >
+                  Cerrar
+                </button>
+                <button
+                  class="btn btn-sm btn-primary"
+                  (click)="
+                    aplicarSeleccion(titulo.clave); toggleFiltro(titulo.clave)
+                  "
+                >
+                  Aplicar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+
+      <!-- Botón para resetear filtros mejorado -->
+      <div
+        class="col-md-3 mb-2 d-flex align-items-start"
+        *ngIf="cantidadFiltrosActivos > 0"
+      >
+        <button class="btn btn-sm btn-reset-filters" (click)="resetFiltros()">
+          <i class="mdi mdi-filter-remove"></i>
+          Limpiar filtros
+          <span class="filter-count">{{ cantidadFiltrosActivos }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabla con scroll y encabezado fijo -->
+  <div
+    class="form-tablas tabla-scroll-container mt-1 d-none d-sm-block"
+    (click)="cerrarTodosLosDropdowns()"
+  >
+    <table>
+      <thead>
+        <tr>
+          <!-- Columna de checkbox para selección múltiple -->
+          <th *ngIf="seleccionMultiple">
+            <input
+              type="checkbox"
+              class="form-check-input"
+              [checked]="todosSeleccionadosPagina"
+              (change)="toggleTodosPagina()"
+              title="Seleccionar todos en esta página"
+            />
+          </th>
+          <!-- Columna de acciones con menú desplegable -->
+          <th *ngIf="tieneAcciones">Acciones</th>
+          <!-- Columnas de datos -->
+          <ng-container *ngFor="let titulo of tabla.titulos">
+            <th
+              class="columna-ordenable"
+              (click)="ordenarPorColumna(titulo.clave)"
+            >
+              <div class="d-flex align-items-center justify-content-center">
+                <span>{{ titulo.alias }}</span>
+                <i
+                  class="fas ms-2"
+                  [ngClass]="getIconoOrden(titulo.clave)"
+                  [class.text-primary]="columnaOrdenada === titulo.clave"
+                >
+                </i>
+              </div>
+            </th>
+          </ng-container>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Mensaje cuando no hay datos -->
+        <tr *ngIf="tabla.datosFiltrados.length === 0">
+          <td
+            [attr.colspan]="
+              tabla.titulos.length +
+              (tieneAcciones ? 1 : 0) +
+              (seleccionMultiple ? 1 : 0)
+            "
+            class="text-center py-3"
+          >
+            No se encontraron resultados
+          </td>
+        </tr>
+
+        <!-- Datos de la tabla -->
+        <ng-container
+          *ngIf="
+            tabla.datosFiltrados.length > 0 && tabla.paginas[tabla.paginaActual]
+          "
+        >
+          <tr
+            *ngFor="let dato of tabla.paginas[tabla.paginaActual]"
+            [style]="
+              (dato.color ? 'background-color: ' + dato.color + ';' : '') +
+              (dato._estiloFila || '')
+            "
+          >
+            <!-- Checkbox de selección múltiple -->
+            <td *ngIf="seleccionMultiple" class="text-center">
+              <input
+                type="checkbox"
+                class="form-check-input"
+                [checked]="registrosSeleccionados.has(dato[campoId])"
+                (change)="toggleSeleccionRegistro(dato[campoId])"
+              />
+            </td>
+            <!-- Menú desplegable de acciones -->
+            <td *ngIf="tieneAcciones">
+              <div class="dropdown acciones-dropdown">
+                <button
+                  class="btn btn-sm btn-outline-secondary dropdown-toggle"
+                  type="button"
+                  (click)="toggleAccionesMenu(dato.id)"
+                  [id]="'dropdown-acciones-' + dato.id"
+                >
+                  <i class="fa fa-ellipsis-v"></i> Acciones
+                </button>
+                <div
+                  class="dropdown-menu acciones-menu"
+                  [ngClass]="{ show: accionesMenuAbierto[dato.id] }"
+                  (click)="$event.stopPropagation()"
+                >
+                  <!-- Acción de editar primero (si está activada) -->
+                  <a
+                    class="dropdown-item"
+                    *ngIf="accionEditarActivo"
+                    (click)="seleccionar('editar', dato.id, dato)"
+                  >
+                    <img
+                      src="/assets/images/editar.png"
+                      width="20"
+                      class="me-2"
+                    />
+                    Editar
+                  </a>
+
+                  <!-- Todas las acciones personalizadas -->
+                  <ng-container *ngFor="let accion of tabla.acciones">
+                    <a
+                      class="dropdown-item"
+                      *ngIf="
+                        !accion.condicion ||
+                        dato[accion.condicion] === accion.valor
+                      "
+                      (click)="seleccionar(accion.id, dato.id, dato)"
+                    >
+                      <img
+                        [src]="
+                          accion.icono
+                            ? accion.icono
+                            : '/assets/images/detalle.png'
+                        "
+                        width="20"
+                        class="me-2"
+                      />
+                      {{ accion.label }}
+                    </a>
+                  </ng-container>
+
+                  <!-- Otras acciones predefinidas al final -->
+                  <a
+                    class="dropdown-item"
+                    *ngIf="accionVerActivo"
+                    (click)="seleccionar('consultar', dato.id, dato)"
+                  >
+                    <img
+                      src="/assets/images/detalle.png"
+                      width="20"
+                      class="me-2"
+                    />
+                    Ver detalle
+                  </a>
+                  <a
+                    class="dropdown-item"
+                    *ngIf="accionEliminarActivo"
+                    (click)="seleccionar('eliminar', dato.id, dato)"
+                  >
+                    <img
+                      src="/assets/images/eliminar.png"
+                      width="20"
+                      class="me-2"
+                    />
+                    Eliminar
+                  </a>
+                </div>
+              </div>
+            </td>
+            <ng-container *ngFor="let titulo of tabla.titulos">
+              <td>
+                <!-- Tipo no especificado (texto simple) -->
+                <label
+                  [class]="titulo.alinear"
+                  *ngIf="titulo.tipo == undefined || titulo.tipo == null"
+                >
+                  {{ dato[titulo.clave] }}
+                </label>
+
+                <!-- Formato Money actual -->
+                <label [class]="titulo.alinear" *ngIf="titulo.tipo == 'money'">
+                  $ {{ dato[titulo.clave] | customDecimalFormat: 0 }}
+                </label>
+
+                <!-- Formato Currency (alternativa a money)-->
+                <label
+                  [class]="titulo.alinear"
+                  *ngIf="titulo.tipo == 'currency'"
+                >
+                  {{
+                    formatValue(
+                      dato[titulo.clave],
+                      "currency",
+                      formatConfig[titulo.clave]
+                    )
+                  }}
+                </label>
+
+                <!-- Formato de Números -->
+                <label [class]="titulo.alinear" *ngIf="titulo.tipo == 'number'">
+                  {{
+                    formatValue(
+                      dato[titulo.clave],
+                      "number",
+                      formatConfig[titulo.clave]
+                    )
+                  }}
+                </label>
+
+                <!-- Formato de Enteros -->
+                <label
+                  [class]="titulo.alinear"
+                  *ngIf="titulo.tipo == 'integer'"
+                >
+                  {{
+                    formatValue(
+                      dato[titulo.clave],
+                      "integer",
+                      formatConfig[titulo.clave]
+                    )
+                  }}
+                </label>
+
+                <!-- Formato de Porcentaje -->
+                <label
+                  [class]="titulo.alinear"
+                  *ngIf="titulo.tipo == 'percent'"
+                >
+                  {{
+                    formatValue(
+                      dato[titulo.clave],
+                      "percent",
+                      formatConfig[titulo.clave]
+                    )
+                  }}
+                </label>
+
+                <!-- Formato de Fecha -->
+                <label [class]="titulo.alinear" *ngIf="titulo.tipo == 'date'">
+                  {{
+                    formatValue(
+                      dato[titulo.clave],
+                      "date",
+                      formatConfig[titulo.clave]
+                    )
+                  }}
+                </label>
+
+                <!-- Formato de Fecha y Hora -->
+                <label
+                  [class]="titulo.alinear"
+                  *ngIf="titulo.tipo == 'datetime'"
+                >
+                  {{
+                    formatValue(
+                      dato[titulo.clave],
+                      "datetime",
+                      formatConfig[titulo.clave]
+                    )
+                  }}
+                </label>
+
+                <!-- Formato de Hora -->
+                <label [class]="titulo.alinear" *ngIf="titulo.tipo == 'time'">
+                  {{
+                    formatValue(
+                      dato[titulo.clave],
+                      "time",
+                      formatConfig[titulo.clave]
+                    )
+                  }}
+                </label>
+
+                <!-- Formato Link -->
+                <a
+                  target="_blank"
+                  [attr.href]="dato[titulo.clave]"
+                  [class]="titulo.alinear"
+                  *ngIf="titulo.tipo == 'link'"
+                >
+                  abrir
+                </a>
+
+                <!-- Tipo Badge -->
+                <span
+                  [class]="
+                    'badge ' +
+                    (dato[titulo.claseCSS] ||
+                      titulo.claseCSS ||
+                      'badge-secondary')
+                  "
+                  *ngIf="titulo.tipo == 'badge'"
+                >
+                  {{ dato[titulo.clave] }}
+                </span>
+
+                <!-- Tipo Progreso -->
+                <div *ngIf="titulo.tipo == 'progreso'" class="progress-wrapper">
+                  <div class="progress">
+                    <div
+                      class="progress-bar"
+                      [class]="
+                        dato[titulo.claseCSS] || titulo.claseCSS || 'bg-primary'
+                      "
+                      [style.width.%]="dato[titulo.clave] || 0"
+                      role="progressbar"
+                      [attr.aria-valuenow]="dato[titulo.clave] || 0"
+                      aria-valuemin="0"
+                      aria-valuemax="100"
+                    >
+                      {{ dato[titulo.clave] || 0 }}%
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Tipo HTML -->
+                <span
+                  [innerHTML]="dato[titulo.clave]"
+                  *ngIf="titulo.tipo == 'html'"
+                ></span>
+
+                <!-- Tipo Icono -->
+                <span *ngIf="titulo.tipo == 'icono'" [class]="titulo.alinear">
+                  <i
+                    [class]="
+                      dato[titulo.clave + '_class'] ||
+                      titulo.iconoClase ||
+                      'fas fa-circle'
+                    "
+                    [style.color]="
+                      dato[titulo.clave + '_color'] || titulo.iconoColor
+                    "
+                    [title]="dato[titulo.clave + '_title'] || ''"
+                  ></i>
+                  <span class="ms-1" *ngIf="dato[titulo.clave + '_texto']">{{
+                    dato[titulo.clave + "_texto"]
+                  }}</span>
+                </span>
+
+                <!-- Tipo Booleano -->
+                <span
+                  *ngIf="titulo.tipo == 'booleano'"
+                  [class]="titulo.alinear"
+                >
+                  <i
+                    class="fas"
+                    [ngClass]="{
+                      'fa-check text-success':
+                        dato[titulo.clave] == 1 || dato[titulo.clave] === true,
+                      'fa-times text-danger':
+                        dato[titulo.clave] == 0 || dato[titulo.clave] === false,
+                    }"
+                    [title]="
+                      dato[titulo.clave] == 1 || dato[titulo.clave] === true
+                        ? 'Sí'
+                        : 'No'
+                    "
+                  ></i>
+                </span>
+
+                <!-- Tipo Botón clickeable -->
+                <span
+                  *ngIf="titulo.tipo == 'boton'"
+                  [class]="titulo.alinear"
+                  class="text-center"
+                >
+                  <i
+                    *ngIf="titulo.iconoClase"
+                    [class]="titulo.iconoClase + ' btn-boton-tabla'"
+                    [title]="titulo.tooltip || titulo.alias || ''"
+                    (click)="seleccionar(titulo.accionId || titulo.clave, dato[campoId] || dato.id, dato)"
+                  ></i>
+                  <img
+                    *ngIf="!titulo.iconoClase && titulo.icono"
+                    [src]="titulo.icono"
+                    width="30"
+                    class="btn-boton-tabla"
+                    [title]="titulo.tooltip || titulo.alias || ''"
+                    (click)="seleccionar(titulo.accionId || titulo.clave, dato[campoId] || dato.id, dato)"
+                  />
+                </span>
+              </td>
+            </ng-container>
+          </tr>
+        </ng-container>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Paginación -->
+  <div
+    class="form-tablas mt-1 mb-3 d-none d-sm-block"
+    *ngIf="tabla.paginas.length > 1"
+  >
+    <div class="pagination-container w-100">
+      <div class="d-flex align-items-center">
+        <label class="me-2">Registros por página:</label>
+        <select
+          [(ngModel)]="registrosPagina"
+          (change)="filtrarDatos()"
+          class="form-select form-select-sm"
+          style="width: auto"
+        >
+          <option [value]="5">5</option>
+          <option [value]="10">10</option>
+          <option [value]="25">25</option>
+          <option [value]="50">50</option>
+          <option [value]="100">100</option>
+          <option [value]="0">Todos</option>
+        </select>
+        <span class="ms-3">
+          Mostrando {{ tabla.paginaActual * registrosPagina + 1 }} -
+          {{
+            Math.min(
+              (tabla.paginaActual + 1) * registrosPagina,
+              tabla.datosFiltrados.length
+            )
+          }}
+          de {{ tabla.datosFiltrados.length }}
+        </span>
+      </div>
+      <nav>
+        <ul class="pagination mb-0">
+          <li class="page-item" [class.disabled]="tabla.paginaActual === 0">
+            <a class="page-link" (click)="tabla.paginaActual = 0">
+              <i class="fas fa-angle-double-left"></i>
+            </a>
+          </li>
+          <li class="page-item" [class.disabled]="tabla.paginaActual === 0">
+            <a
+              class="page-link"
+              (click)="tabla.paginaActual = tabla.paginaActual - 1"
+            >
+              <i class="fas fa-angle-left"></i>
+            </a>
+          </li>
+          <ng-container *ngFor="let pagina of tabla.paginas; let i = index">
+            <li
+              class="page-item"
+              [class.active]="i === tabla.paginaActual"
+              *ngIf="i >= tabla.paginaActual - 2 && i <= tabla.paginaActual + 2"
+            >
+              <a class="page-link" (click)="tabla.paginaActual = i">{{
+                i + 1
+              }}</a>
+            </li>
+          </ng-container>
+          <li
+            class="page-item"
+            [class.disabled]="tabla.paginaActual === tabla.paginas.length - 1"
+          >
+            <a
+              class="page-link"
+              (click)="tabla.paginaActual = tabla.paginaActual + 1"
+            >
+              <i class="fas fa-angle-right"></i>
+            </a>
+          </li>
+          <li
+            class="page-item"
+            [class.disabled]="tabla.paginaActual === tabla.paginas.length - 1"
+          >
+            <a
+              class="page-link"
+              (click)="tabla.paginaActual = tabla.paginas.length - 1"
+            >
+              <i class="fas fa-angle-double-right"></i>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </div>
+
+  <!-- Controles de selección masiva -->
+  <div
+    class="form-tablas mt-1 mb-3 d-none d-sm-block"
+    *ngIf="seleccionMultiple && tabla.datosFiltrados.length > 0"
+  >
+    <div class="d-flex justify-content-between align-items-center w-100 p-2">
+      <div>
+        <span class="me-3"
+          >{{ registrosSeleccionados.size }} registros seleccionados</span
+        >
+        <button
+          class="btn btn-sm btn-outline-primary me-2"
+          (click)="seleccionarTodos()"
+        >
+          <i class="fa fa-check-square"></i> Seleccionar todos
+        </button>
+        <button
+          class="btn btn-sm btn-outline-secondary"
+          (click)="limpiarSeleccion()"
+        >
+          <i class="fa fa-square"></i> Limpiar selección
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== VISTA MÓVIL ==================== -->
+  <ng-container *ngFor="let dato of tabla.paginas[tabla.paginaActual]">
+    <div
+      class="form-tablas-sm mb-3 d-block d-sm-none"
+      [style]="
+        (dato.color ? 'background-color: ' + dato.color + ';' : '') +
+        (dato._estiloFila || '')
+      "
+    >
+      <!-- Checkbox de selección para móvil -->
+      <div class="row mb-2" *ngIf="seleccionMultiple">
+        <div class="col-12">
+          <div class="form-check">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              [checked]="registrosSeleccionados.has(dato[campoId])"
+              (change)="toggleSeleccionRegistro(dato[campoId])"
+              [id]="'mobile-check-' + dato[campoId]"
+            />
+            <label
+              class="form-check-label"
+              [for]="'mobile-check-' + dato[campoId]"
+            >
+              Seleccionar
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <ng-container *ngFor="let titulo of tabla.titulos">
+          <div class="col-12 col-md-6">
+            <!-- Tipo no especificado (texto simple) -->
+            <p
+              [class]="titulo.alinear"
+              *ngIf="titulo.tipo == undefined || titulo.tipo == null"
+            >
+              <sub>{{ titulo.alias + ":" }}</sub
+              ><br />{{ dato[titulo.clave] }}
+            </p>
+
+            <!-- Formato Money -->
+            <p [class]="titulo.alinear" *ngIf="titulo.tipo == 'money'">
+              <sub>{{ titulo.alias + ":" }}</sub
+              ><br />$ {{ dato[titulo.clave] | customDecimalFormat: 0 }}
+            </p>
+
+            <!-- Formato Currency -->
+            <p [class]="titulo.alinear" *ngIf="titulo.tipo == 'currency'">
+              <sub>{{ titulo.alias + ":" }}</sub
+              ><br />{{
+                formatValue(
+                  dato[titulo.clave],
+                  "currency",
+                  formatConfig[titulo.clave]
+                )
+              }}
+            </p>
+
+            <!-- Formato Número -->
+            <p [class]="titulo.alinear" *ngIf="titulo.tipo == 'number'">
+              <sub>{{ titulo.alias + ":" }}</sub
+              ><br />{{
+                formatValue(
+                  dato[titulo.clave],
+                  "number",
+                  formatConfig[titulo.clave]
+                )
+              }}
+            </p>
+
+            <!-- Formato Entero -->
+            <p [class]="titulo.alinear" *ngIf="titulo.tipo == 'integer'">
+              <sub>{{ titulo.alias + ":" }}</sub
+              ><br />{{
+                formatValue(
+                  dato[titulo.clave],
+                  "integer",
+                  formatConfig[titulo.clave]
+                )
+              }}
+            </p>
+
+            <!-- Formato Porcentaje -->
+            <p [class]="titulo.alinear" *ngIf="titulo.tipo == 'percent'">
+              <sub>{{ titulo.alias + ":" }}</sub
+              ><br />{{
+                formatValue(
+                  dato[titulo.clave],
+                  "percent",
+                  formatConfig[titulo.clave]
+                )
+              }}
+            </p>
+
+            <!-- Formato Fecha -->
+            <p [class]="titulo.alinear" *ngIf="titulo.tipo == 'date'">
+              <sub>{{ titulo.alias + ":" }}</sub
+              ><br />{{
+                formatValue(
+                  dato[titulo.clave],
+                  "date",
+                  formatConfig[titulo.clave]
+                )
+              }}
+            </p>
+
+            <!-- Formato Fecha y Hora -->
+            <p [class]="titulo.alinear" *ngIf="titulo.tipo == 'datetime'">
+              <sub>{{ titulo.alias + ":" }}</sub
+              ><br />{{
+                formatValue(
+                  dato[titulo.clave],
+                  "datetime",
+                  formatConfig[titulo.clave]
+                )
+              }}
+            </p>
+
+            <!-- Formato Hora -->
+            <p [class]="titulo.alinear" *ngIf="titulo.tipo == 'time'">
+              <sub>{{ titulo.alias + ":" }}</sub
+              ><br />{{
+                formatValue(
+                  dato[titulo.clave],
+                  "time",
+                  formatConfig[titulo.clave]
+                )
+              }}
+            </p>
+
+            <!-- Formato Link -->
+            <a
+              target="_blank"
+              [attr.href]="dato[titulo.clave]"
+              [class]="titulo.alinear"
+              *ngIf="titulo.tipo == 'link'"
+            >
+              <sub>{{ titulo.alias + ":" }}</sub
+              ><br />abrir
+            </a>
+
+            <!-- Tipo Badge -->
+            <p [class]="titulo.alinear" *ngIf="titulo.tipo == 'badge'">
+              <sub>{{ titulo.alias + ":" }}</sub
+              ><br />
+              <span
+                [class]="
+                  'badge ' +
+                  (dato[titulo.claseCSS] ||
+                    titulo.claseCSS ||
+                    'badge-secondary')
+                "
+                *ngIf="titulo.tipo == 'badge'"
+              >
+                {{ dato[titulo.clave] }}
+              </span>
+            </p>
+
+            <!-- Tipo Progreso -->
+            <div *ngIf="titulo.tipo == 'progreso'">
+              <sub>{{ titulo.alias + ":" }}</sub>
+              <div class="progress mt-1">
+                <div
+                  class="progress-bar"
+                  [class]="
+                    dato[titulo.claseCSS] || titulo.claseCSS || 'bg-primary'
+                  "
+                  [style.width.%]="dato[titulo.clave] || 0"
+                  role="progressbar"
+                  [attr.aria-valuenow]="dato[titulo.clave] || 0"
+                  aria-valuemin="0"
+                  aria-valuemax="100"
+                >
+                  {{ dato[titulo.clave] || 0 }}%
+                </div>
+              </div>
+            </div>
+
+            <!-- Tipo HTML -->
+            <p [class]="titulo.alinear" *ngIf="titulo.tipo == 'html'">
+              <sub>{{ titulo.alias + ":" }}</sub
+              ><br />
+              <span [innerHTML]="dato[titulo.clave]"></span>
+            </p>
+
+            <!-- Tipo Icono -->
+            <p *ngIf="titulo.tipo == 'icono'" [class]="titulo.alinear">
+              <sub>{{ titulo.alias + ":" }}</sub
+              ><br />
+              <i
+                [class]="
+                  dato[titulo.clave + '_class'] ||
+                  titulo.iconoClase ||
+                  'fas fa-circle'
+                "
+                [style.color]="
+                  dato[titulo.clave + '_color'] || titulo.iconoColor
+                "
+                [title]="dato[titulo.clave + '_title'] || ''"
+              ></i>
+              <span class="ms-1" *ngIf="dato[titulo.clave + '_texto']">{{
+                dato[titulo.clave + "_texto"]
+              }}</span>
+            </p>
+
+            <!-- Tipo Booleano -->
+            <p *ngIf="titulo.tipo == 'booleano'" [class]="titulo.alinear">
+              <sub>{{ titulo.alias + ":" }}</sub
+              ><br />
+              <i
+                class="fas"
+                [ngClass]="{
+                  'fa-check text-success':
+                    dato[titulo.clave] == 1 || dato[titulo.clave] === true,
+                  'fa-times text-danger':
+                    dato[titulo.clave] == 0 || dato[titulo.clave] === false,
+                }"
+                [title]="
+                  dato[titulo.clave] == 1 || dato[titulo.clave] === true
+                    ? 'Sí'
+                    : 'No'
+                "
+              ></i>
+            </p>
+
+            <!-- Tipo Botón clickeable (móvil) -->
+            <p *ngIf="titulo.tipo == 'boton'" [class]="titulo.alinear">
+              <sub>{{ titulo.alias + ":" }}</sub><br />
+              <i
+                *ngIf="titulo.iconoClase"
+                [class]="titulo.iconoClase + ' btn-boton-tabla'"
+                [title]="titulo.tooltip || titulo.alias || ''"
+                (click)="seleccionar(titulo.accionId || titulo.clave, dato[campoId] || dato.id, dato)"
+              ></i>
+              <img
+                *ngIf="!titulo.iconoClase && titulo.icono"
+                [src]="titulo.icono"
+                width="40"
+                class="btn-boton-tabla"
+                [title]="titulo.tooltip || titulo.alias || ''"
+                (click)="seleccionar(titulo.accionId || titulo.clave, dato[campoId] || dato.id, dato)"
+              />
+            </p>
+          </div>
+        </ng-container>
+      </div>
+      <!-- Vista móvil -->
+      <div class="row">
+        <!-- Acción de editar primero (similar al menú desplegable) -->
+        <div class="col" *ngIf="accionEditarActivo">
+          <p class="accion">
+            <img
+              src="/assets/images/editar.png"
+              width="50"
+              (click)="seleccionar('editar', dato.id, dato)"
+            />
+          </p>
+        </div>
+
+        <!-- Acciones personalizadas -->
+        <ng-container *ngFor="let accion of tabla.acciones">
+          <div
+            class="col"
+            *ngIf="!accion.condicion || dato[accion.condicion] === accion.valor"
+          >
+            <p class="accion">
+              <img
+                [src]="
+                  accion.icono ? accion.icono : '/assets/images/detalle.png'
+                "
+                width="50"
+                (click)="seleccionar(accion.id, dato.id, dato)"
+              />
+            </p>
+          </div>
+        </ng-container>
+
+        <!-- Otras acciones predefinidas al final -->
+        <div class="col" *ngIf="accionVerActivo">
+          <p class="accion">
+            <img
+              src="/assets/images/detalle.png"
+              width="50"
+              (click)="seleccionar('consultar', dato.id, dato)"
+            />
+          </p>
+        </div>
+        <div class="col" *ngIf="accionEliminarActivo">
+          <p class="accion">
+            <img
+              src="/assets/images/eliminar.png"
+              width="50"
+              (click)="seleccionar('eliminar', dato.id, dato)"
+            />
+          </p>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- Paginación móvil simplificada -->
+  <div
+    class="form-tablas-sm mt-2 mb-2 d-block d-sm-none"
+    *ngIf="tabla.paginas.length > 1"
+  >
+    <div class="paginacion-movil">
+      <div class="paginacion-movil-info">
+        Página {{ tabla.paginaActual + 1 }} de {{ tabla.paginas.length }}
+        <span class="text-muted ms-1"
+          >({{ tabla.datosFiltrados.length }} registros)</span
+        >
+      </div>
+      <div class="paginacion-movil-botones">
+        <button
+          class="btn btn-sm btn-outline-primary"
+          [disabled]="tabla.paginaActual === 0"
+          (click)="tabla.paginaActual = tabla.paginaActual - 1"
+        >
+          <i class="fas fa-chevron-left"></i> Anterior
+        </button>
+        <button class="btn btn-sm btn-outline-primary" (click)="verTodos()">
+          Ver todos
+        </button>
+        <button
+          class="btn btn-sm btn-outline-primary"
+          [disabled]="tabla.paginaActual === tabla.paginas.length - 1"
+          (click)="tabla.paginaActual = tabla.paginaActual + 1"
+        >
+          Siguiente <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Agregar controles de selección masiva para móvil -->
+  <div
+    class="form-tablas-sm mt-3 mb-3 d-block d-sm-none text-center"
+    *ngIf="seleccionMultiple && tabla.datosFiltrados.length > 0"
+  >
+    <div class="btn-group w-100" role="group">
+      <button
+        class="btn btn-sm btn-outline-primary"
+        (click)="seleccionarTodos()"
+      >
+        <i class="fa fa-check-square"></i> Todos
+      </button>
+      <button
+        class="btn btn-sm btn-outline-secondary"
+        (click)="limpiarSeleccion()"
+      >
+        <i class="fa fa-square"></i> Ninguno
+      </button>
+    </div>
+  </div>
+</div>
+<!-- 🎨 CIERRE del tabla-container -->

@@ -1,0 +1,256 @@
+<div class="modulo">
+  <app-header 
+    [tituloModulo]="titulo" 
+    [mostrarCrear]="false"
+    [raiz]="'/colaboradores-prestamos/' + idColaborador"
+    [regresar]="'/colaboradores-prestamos/' + idColaborador"
+    [iconoTitulo]="'/assets/images/pagos.png'">
+  </app-header>
+
+  <div class="container-fluid px-4 py-4">
+    
+    <!-- Información del préstamo -->
+    <div class="card mb-4 shadow-sm">
+      <div class="card-header bg-primary text-white">
+        <h5 class="card-title mb-0">
+          <i class="bi bi-info-circle"></i> Información del Préstamo
+        </h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-4">
+            <p><strong>Préstamo:</strong> #{{ prestamo.id }}</p>
+          </div>
+          <div class="col-md-4">
+            <p><strong>Colaborador:</strong> {{ colaborador.nombre_completo || 'Sin nombre' }}</p>
+          </div>
+          <div class="col-md-4">
+            <p><strong>Tipo:</strong> {{ prestamo.nombre_tipo_prestamo }}</p>
+          </div>
+          <div class="col-md-4">
+            <p><strong>Monto Total:</strong> ${{ prestamo.monto_total | number:'1.0-0' }}</p>
+          </div>
+          <div class="col-md-4">
+            <p><strong>Total Pagado:</strong> ${{ prestamo.total_pagado | number:'1.0-0' }}</p>
+          </div>
+          <div class="col-md-4">
+            <p><strong>Saldo Pendiente:</strong> 
+              <span class="text-danger fw-bold">${{ prestamo.saldo | number:'1.0-0' }}</span>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cuotas pendientes -->
+    <div class="card mb-4 shadow-sm">
+      <div class="card-header bg-warning text-dark">
+        <div class="d-flex justify-content-between align-items-center">
+          <h5 class="card-title mb-0">
+            <i class="bi bi-calendar-check"></i> Cuotas Pendientes
+          </h5>
+          <button 
+            type="button" 
+            class="btn btn-sm btn-outline-dark"
+            (click)="seleccionarTodasCuotas()">
+            <i class="bi bi-check-all"></i> 
+            {{ cuotasSeleccionadas.length === cuotasPendientes.length ? 'Desmarcar todas' : 'Seleccionar todas' }}
+          </button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div *ngIf="cuotasPendientes.length === 0" class="alert alert-success">
+          <i class="bi bi-check-circle"></i> 
+          <strong>¡Excelente!</strong> Este préstamo no tiene cuotas pendientes.
+        </div>
+
+        <div *ngIf="cuotasPendientes.length > 0" class="table-responsive">
+          <table class="table table-hover">
+            <thead class="table-light">
+              <tr>
+                <th class="text-center" style="width: 50px;">
+                  <input 
+                    type="checkbox" 
+                    class="form-check-input"
+                    [checked]="cuotasSeleccionadas.length === cuotasPendientes.length"
+                    (change)="seleccionarTodasCuotas()">
+                </th>
+                <th class="text-center">N°</th>
+                <th class="text-center">Fecha Programada</th>
+                <th class="text-end">Monto Cuota</th>
+                <th class="text-end">Total Pagado</th>
+                <th class="text-end">Saldo</th>
+                <th class="text-center">Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr 
+                *ngFor="let cuota of cuotasPendientes"
+                [class.table-active]="isCuotaSeleccionada(cuota.id)"
+                style="cursor: pointer;"
+                (click)="toggleCuota(cuota.id)">
+                <td class="text-center">
+                  <input 
+                    type="checkbox" 
+                    class="form-check-input"
+                    [checked]="isCuotaSeleccionada(cuota.id)"
+                    (click)="$event.stopPropagation()"
+                    (change)="toggleCuota(cuota.id)">
+                </td>
+                <td class="text-center">{{ cuota.numero_cuota }}</td>
+                <td class="text-center">{{ cuota.fecha_programada | date: 'dd/MM/yyyy' }}</td>
+                <td class="text-end">{{ cuota.monto_cuota | currency:'COP ':'symbol':'1.0-0' }}</td>
+                <td class="text-end">{{ cuota.total_pagado | currency:'COP ':'symbol':'1.0-0' }}</td>
+                <td class="text-end">
+                  <strong class="text-danger">{{ cuota.saldo | currency:'COP ':'symbol':'1.0-0' }}</strong>
+                </td>
+                <td class="text-center">
+                  <span class="badge bg-warning">{{ cuota.nombre_estado }}</span>
+                </td>
+              </tr>
+            </tbody>
+            <tfoot class="table-light">
+              <tr>
+                <th colspan="5" class="text-end">Cuotas seleccionadas: {{ cuotasSeleccionadas.length }}</th>
+                <th class="text-end text-primary">
+                  ${{ formatearValorConSeparador(pago.monto_pagado) }}
+                </th>
+                <th></th>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Formulario de pago -->
+    <div class="card mb-4 shadow-sm" *ngIf="cuotasPendientes.length > 0">
+      <div class="card-header bg-success text-white">
+        <h5 class="card-title mb-0">
+          <i class="bi bi-cash-coin"></i> Datos del Pago
+        </h5>
+      </div>
+      <div class="card-body">
+        <form>
+          <!-- Tipo de pago -->
+          <div class="row mb-4">
+            <div class="col-12">
+              <label class="form-label fw-bold">Forma de Pago *</label>
+              <div class="btn-group w-100" role="group">
+                <input 
+                  type="radio" 
+                  class="btn-check" 
+                  name="tipoPago" 
+                  id="tipoNomina"
+                  [checked]="tipoPago === 'nomina'"
+                  (change)="cambiarTipoPago('nomina')">
+                <label class="btn btn-outline-primary" for="tipoNomina">
+                  <i class="bi bi-file-earmark-text"></i> Descuento de Nómina
+                </label>
+
+                <input 
+                  type="radio" 
+                  class="btn-check" 
+                  name="tipoPago" 
+                  id="tipoManual"
+                  [checked]="tipoPago === 'manual'"
+                  (change)="cambiarTipoPago('manual')">
+                <label class="btn btn-outline-success" for="tipoManual">
+                  <i class="bi bi-cash"></i> Pago Manual
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Nómina (si tipo = nómina) -->
+          <div class="row" *ngIf="tipoPago === 'nomina'">
+            <div class="col-md-6 mb-3">
+              <label for="id_nomina" class="form-label">Seleccionar Nómina *</label>
+              <select 
+                class="form-select" 
+                id="id_nomina" 
+                [(ngModel)]="pago.id_nomina"
+                name="id_nomina">
+                <option [value]="null">Seleccione una nómina...</option>
+                <option *ngFor="let nomina of nominas" [value]="nomina.id">
+                  {{ nomina.nombre }} - {{ nomina.periodo }}
+                </option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Datos del pago -->
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <label for="fecha_pago" class="form-label">Fecha de Pago *</label>
+              <input 
+                type="date" 
+                class="form-control" 
+                id="fecha_pago"
+                [(ngModel)]="pago.fecha_pago"
+                name="fecha_pago">
+            </div>
+
+            <div class="col-md-4 mb-3">
+              <label for="monto_pagado" class="form-label">Monto a Pagar *</label>
+              <div class="input-group">
+                <span class="input-group-text">$</span>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  id="monto_pagado"
+                  [value]="obtenerMontoPagadoFormateado()"
+                  (input)="formatearMontoPagado($event)"
+                  (focus)="onFocusMontoPagado($event)"
+                  name="monto_pagado"
+                  placeholder="0">
+              </div>
+              <small class="text-muted">Monto sugerido basado en cuotas seleccionadas</small>
+            </div>
+
+            <div class="col-md-4 mb-3">
+              <label for="referencia" class="form-label">Referencia / Comprobante</label>
+              <input 
+                type="text" 
+                class="form-control" 
+                id="referencia"
+                [(ngModel)]="pago.referencia"
+                name="referencia"
+                placeholder="Ej: Comprobante #123">
+            </div>
+
+            <div class="col-md-12 mb-3">
+              <label for="observaciones" class="form-label">Observaciones</label>
+              <textarea 
+                class="form-control" 
+                id="observaciones"
+                [(ngModel)]="pago.observaciones"
+                name="observaciones"
+                rows="3"
+                placeholder="Observaciones adicionales sobre el pago..."></textarea>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Botones de acción -->
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <div class="d-flex justify-content-end gap-2">
+          <button type="button" class="btn btn-secondary" (click)="cancelar()">
+            <i class="bi bi-x-circle"></i> Cancelar
+          </button>
+          <button 
+            type="button" 
+            class="btn btn-success" 
+            (click)="guardar()"
+            [disabled]="cuotasPendientes.length === 0">
+            <i class="bi bi-check-circle"></i> Registrar Pago
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

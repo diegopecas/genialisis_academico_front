@@ -1,0 +1,292 @@
+<div class="modulo">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="false"
+    [raiz]="'/'"
+    [regresar]="'/administracion'"
+  ></app-header>
+
+  <div class="container-fluid mt-5">
+
+    <!-- Tarjetas de opciones con submenús -->
+    <div class="row justify-content-center">
+      <!-- Catálogos de Productos -->
+      <div class="col-lg-4 col-md-6 mb-4" *ngIf="permisosService.tienePermiso('admin.catalogos_productos')">
+        <div class="card-maestro menu-principal" [class.active]="menuActivo === 'catalogos'" (click)="toggleMenu('catalogos', $event)">
+          <div class="card-maestro-content">
+            <div class="icono-container catalogos">
+              <img src="assets/images/catalogos-productos.png" alt="Catálogos de Productos" />
+            </div>
+            <h3 class="card-titulo">Catálogos de Productos</h3>
+            <p class="card-descripcion">Gestiona productos, servicios y proveedores</p>
+            <div class="card-footer-custom">
+              <span class="link-accion">Ver opciones <i class="fas fa-chevron-down"></i></span>
+            </div>
+          </div>
+
+          <div class="submenu-container">
+            <div class="row g-2">
+              <div class="col-6" *ngIf="permisosService.tienePermiso('admin.productos')">
+                <div class="submenu-item" (click)="seleccionarOpcion('productos')">
+                  <img src="assets/images/productos.png" alt="Productos" />
+                  <span>Productos</span>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="submenu-item" (click)="seleccionarOpcion('proveedores')">
+                  <img src="assets/images/proveedores.png" alt="Proveedores" />
+                  <span>Proveedores</span>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="submenu-item" (click)="seleccionarOpcion('productos-servicios')">
+                  <img src="assets/images/productos_servicios.png" alt="Productos y Servicios" />
+                  <span>Productos y Servicios</span>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="submenu-item" (click)="seleccionarOpcion('productos-mobiliario')">
+                  <img src="assets/images/productos-mobiliario.png" alt="Mobiliario" />
+                  <span>Productos Mobiliario</span>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="submenu-item" (click)="seleccionarOpcion('productos-limpieza')">
+                  <img src="assets/images/productos-limpieza.png" alt="Limpieza" />
+                  <span>Productos Limpieza</span>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="submenu-item" (click)="seleccionarOpcion('productos-alimentacion')">
+                  <img src="assets/images/productos-alimentacion.png" alt="Alimentación" />
+                  <span>Productos Alimentación</span>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="submenu-item" (click)="seleccionarOpcion('productos-academico')">
+                  <img src="assets/images/productos-academico.png" alt="Académico" />
+                  <span>Productos Académico</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Infraestructura y Espacios -->
+      <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card-maestro menu-principal" [class.active]="menuActivo === 'infraestructura'" (click)="toggleMenu('infraestructura', $event)">
+          <div class="card-maestro-content">
+            <div class="icono-container infraestructura">
+              <img src="assets/images/infraestructura-espacios.png" alt="Infraestructura y Espacios" />
+            </div>
+            <h3 class="card-titulo">Infraestructura y Espacios</h3>
+            <p class="card-descripcion">Administra áreas físicas y elementos del colegio</p>
+            <div class="card-footer-custom">
+              <span class="link-accion">Ver opciones <i class="fas fa-chevron-down"></i></span>
+            </div>
+          </div>
+
+          <div class="submenu-container">
+            <div class="row g-2">
+              <div class="col-6">
+                <div class="submenu-item" (click)="seleccionarOpcion('areas-fisicas')">
+                  <img src="assets/images/areas_fisicas.png" alt="Áreas Físicas" />
+                  <span>Áreas Físicas</span>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="submenu-item" (click)="seleccionarOpcion('elementos-fisicos')">
+                  <img src="assets/images/elementos-fisicos.png" alt="Elementos Físicos" />
+                  <span>Elementos Físicos</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Operaciones -->
+      <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card-maestro menu-principal" [class.active]="menuActivo === 'operaciones'" (click)="toggleMenu('operaciones', $event)">
+          <div class="card-maestro-content">
+            <div class="icono-container operaciones">
+              <img src="assets/images/operaciones.png" alt="Operaciones" />
+            </div>
+            <h3 class="card-titulo">Operaciones</h3>
+            <p class="card-descripcion">Gestiona menús y configuraciones operativas</p>
+            <div class="card-footer-custom">
+              <span class="link-accion">Ver opciones <i class="fas fa-chevron-down"></i></span>
+            </div>
+          </div>
+
+          <div class="submenu-container">
+            <div class="row g-2">
+              <div class="col-6">
+                <div class="submenu-item" (click)="seleccionarOpcion('menus')">
+                  <img src="assets/images/menu-restaurante.png" alt="Menús" />
+                  <span>Menús del Restaurante</span>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="submenu-item" (click)="seleccionarOpcion('gestion-medidas')">
+                  <img src="assets/images/medidas.png" alt="Medidas Corporales" />
+                  <span>Gestión de Medidas Corporales</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Plantillas -->
+      <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card-maestro menu-principal" [class.active]="menuActivo === 'plantillas'" (click)="toggleMenu('plantillas', $event)">
+          <div class="card-maestro-content">
+            <div class="icono-container plantillas">
+              <img src="assets/images/plantillas.png" alt="Plantillas" />
+            </div>
+            <h3 class="card-titulo">Plantillas</h3>
+            <p class="card-descripcion">Gestiona plantillas institucionales y de WhatsApp</p>
+            <div class="card-footer-custom">
+              <span class="link-accion">Ver opciones <i class="fas fa-chevron-down"></i></span>
+            </div>
+          </div>
+
+          <div class="submenu-container">
+            <div class="row g-2">
+              <div class="col-6">
+                <div class="submenu-item" (click)="seleccionarOpcion('plantillas-institucionales')">
+                  <img src="assets/images/plantillas_institucionales.png" alt="Institucionales" />
+                  <span>Institucionales</span>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="submenu-item" (click)="seleccionarOpcion('plantillas-whatsapp')">
+                  <img src="assets/images/plantillas_whatsapp.png" alt="WhatsApp" />
+                  <span>WhatsApp</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Configuración -->
+      <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card-maestro menu-principal" [class.active]="menuActivo === 'configuracion'" (click)="toggleMenu('configuracion', $event)">
+          <div class="card-maestro-content">
+            <div class="icono-container configuracion">
+              <img src="assets/images/configuracion.png" alt="Configuración" />
+            </div>
+            <h3 class="card-titulo">Configuración</h3>
+            <p class="card-descripcion">Gestiona parámetros globales del sistema</p>
+            <div class="card-footer-custom">
+              <span class="link-accion">Ver opciones <i class="fas fa-chevron-down"></i></span>
+            </div>
+          </div>
+
+          <div class="submenu-container">
+            <div class="row g-2">
+              <div class="col-6">
+                <div class="submenu-item" (click)="seleccionarOpcion('configuracion-global')">
+                  <img src="assets/images/configuracion.png" alt="Configuración Global" />
+                  <span>Configuración Global</span>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="submenu-item" (click)="seleccionarOpcion('cargos')">
+                  <img src="assets/images/cargos.png" alt="Cargos" />
+                  <span>Cargos</span>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="submenu-item" (click)="seleccionarOpcion('tipos-documentos')">
+                  <img src="assets/images/tipos-documentos.png" alt="Tipos de Documentos" />
+                  <span>Tipos de Documentos</span>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="submenu-item" (click)="seleccionarOpcion('configuracion-ia')">
+                  <img src="assets/images/configuracion-ia.png" alt="Configuración IA" />
+                  <span>Configuración IA</span>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="submenu-item" (click)="seleccionarOpcion('configuracion-google')">
+                  <img src="assets/images/google.png" alt="Google Calendar" />
+                  <span>Google</span>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="submenu-item" (click)="seleccionarOpcion('configuracion-geofence')">
+                  <img src="assets/images/geofence.png" alt="Zona Asistencia" />
+                  <span>Zona de Asistencia</span>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="submenu-item" (click)="seleccionarOpcion('datos-estudiantes')">
+                  <img src="assets/images/estudiantes.png" alt="Datos Estudiantes" />
+                  <span>Datos Estudiantes</span>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="submenu-item" (click)="seleccionarOpcion('conectar-whatsapp')">
+                  <img src="assets/images/whatsapp.png" alt="Conexión WhatsApp" />
+                  <span>Conexión WhatsApp</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Seguridad -->
+      <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card-maestro menu-principal" [class.active]="menuActivo === 'seguridad'" (click)="toggleMenu('seguridad', $event)">
+          <div class="card-maestro-content">
+            <div class="icono-container seguridad">
+              <img src="assets/images/seguridad.png" alt="Seguridad" />
+            </div>
+            <h3 class="card-titulo">Seguridad</h3>
+            <p class="card-descripcion">Gestiona usuarios, roles y permisos</p>
+            <div class="card-footer-custom">
+              <span class="link-accion">Ver opciones <i class="fas fa-chevron-down"></i></span>
+            </div>
+          </div>
+
+          <div class="submenu-container">
+            <div class="row g-2">
+              <div class="col-6">
+                <div class="submenu-item submenu-disabled">
+                  <img src="assets/images/usuarios.png" alt="Usuarios" />
+                  <span>Usuarios</span>
+                  <small class="text-muted">(Próximamente)</small>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="submenu-item submenu-disabled">
+                  <img src="assets/images/roles.png" alt="Roles" />
+                  <span>Roles</span>
+                  <small class="text-muted">(Próximamente)</small>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="submenu-item" (click)="seleccionarOpcion('permisos')">
+                  <img src="assets/images/permisos.png" alt="Permisos" />
+                  <span>Permisos por Rol</span>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="submenu-item" (click)="seleccionarOpcion('documentacion-sistema')">
+                  <img src="assets/images/documentacion_configuracion.png" alt="Documentación" />
+                  <span>Documentación</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

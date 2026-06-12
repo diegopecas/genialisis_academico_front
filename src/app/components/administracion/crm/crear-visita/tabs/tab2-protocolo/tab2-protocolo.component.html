@@ -1,0 +1,305 @@
+<div class="tab2-container">
+
+  <!-- 🎯 BARRA DE PROGRESO GENERAL -->
+  <div class="progress-bar-container">
+    <div class="progress-info">
+      <div class="progress-stats">
+        <span class="progress-icon">📊</span>
+        <span class="progress-text">Progreso del protocolo</span>
+        <span class="progress-percentage">{{ progresoProtocolo }}%</span>
+      </div>
+      <button class="btn-toggle-all" (click)="toggleTodasLasCards()" type="button">
+        <i class="bi" [class.bi-arrows-expand]="!todasExpandidas" [class.bi-arrows-collapse]="todasExpandidas"></i>
+        {{ todasExpandidas ? 'Colapsar todo' : 'Expandir todo' }}
+      </button>
+    </div>
+    <div class="progress-bar-track">
+      <div class="progress-bar-fill" [style.width.%]="progresoProtocolo"></div>
+    </div>
+  </div>
+
+  <!-- 📦 SISTEMA DE CARDS COLAPSABLES -->
+  <div class="cards-container">
+
+    <!-- CARD 1: SELECTOR DE PERFIL DISC -->
+    <div class="collapsible-card" [class.expanded]="cardsExpandidas[0]" [class.completed]="esCardCompleta(0)">
+      <div class="card-header" (click)="toggleCard(0)">
+        <div class="card-header-left">
+          <span class="card-icon">🎯</span>
+          <h3 class="card-title">SELECCIONA EL PERFIL DETECTADO</h3>
+          <span class="card-badge" [class.badge-complete]="esCardCompleta(0)"
+            [class.badge-progress]="!esCardCompleta(0) && tieneProgreso(0)">
+            {{ esCardCompleta(0) ? '✓ Completo' : (tieneProgreso(0) ? '● En progreso' : '○ Pendiente') }}
+          </span>
+        </div>
+        <div class="card-header-right">
+          <i class="bi" [class.bi-chevron-down]="!cardsExpandidas[0]" [class.bi-chevron-up]="cardsExpandidas[0]"></i>
+        </div>
+      </div>
+
+      <!-- Resumen mini cuando está colapsada -->
+      <div class="card-summary" *ngIf="!cardsExpandidas[0] && perfilSeleccionado">
+        <span class="summary-item">
+          <i class="bi bi-person-badge"></i> {{ obtenerNombrePerfil(perfilSeleccionado) }}
+        </span>
+        <span class="summary-item" *ngIf="perfilSugerido && perfilSugerido === perfilSeleccionado">
+          <i class="bi bi-lightbulb"></i> Perfil sugerido aplicado
+        </span>
+      </div>
+
+      <!-- Contenido expandible -->
+      <div class="card-content" [@slideDown]="cardsExpandidas[0] ? 'expanded' : 'collapsed'">
+        <div class="form-section">
+
+          <div class="alert alert-info">
+            <h5 class="mb-2">📖 Guía de Protocolo de Visita</h5>
+            <p class="mb-0">
+              Este protocolo te ayudará a cerrar la venta siguiendo los 5 pasos clave.
+              <strong *ngIf="tienePerfilSugerido">Hemos detectado el perfil {{ obtenerNombrePerfil(perfilSugerido)
+                }}</strong>
+              para adaptar el contenido.
+            </p>
+          </div>
+
+          <div class="alert alert-warning" *ngIf="tienePerfilSugerido">
+            <strong>💡 Sugerencia:</strong> Basado en las observaciones DISC del TAB 1, sugerimos usar el perfil
+            <strong>{{ obtenerNombrePerfil(perfilSugerido) }}</strong>
+          </div>
+
+          <div class="perfil-selector-grid">
+            <!-- PERFIL D - Orientado a RESULTADOS -->
+            <div class="perfil-card perfil-D" [class.active]="perfilSeleccionado === 'D'"
+              [class.sugerido]="tieneVisitantesEnPerfil('D')" (click)="seleccionarPerfil('D')">
+              <div class="perfil-icon">🎯</div>
+              <h6>Orientado a RESULTADOS</h6>
+              <small>Dominancia (D)</small>
+              <div class="badge-sugerido" *ngIf="tieneVisitantesEnPerfil('D')">
+                <div class="badge-title">✓ Aplica para:</div>
+                <div class="visitantes-list">
+                  <div *ngFor="let nombre of obtenerNombresVisitantesPerfil('D')" class="visitante-nombre">
+                    {{ nombre }}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- PERFIL I - Orientado a EXPERIENCIAS -->
+            <div class="perfil-card perfil-I" [class.active]="perfilSeleccionado === 'I'"
+              [class.sugerido]="tieneVisitantesEnPerfil('I')" (click)="seleccionarPerfil('I')">
+              <div class="perfil-icon">🎉</div>
+              <h6>Orientado a EXPERIENCIAS</h6>
+              <small>Influencia (I)</small>
+              <div class="badge-sugerido" *ngIf="tieneVisitantesEnPerfil('I')">
+                <div class="badge-title">✓ Aplica para:</div>
+                <div class="visitantes-list">
+                  <div *ngFor="let nombre of obtenerNombresVisitantesPerfil('I')" class="visitante-nombre">
+                    {{ nombre }}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- PERFIL S - Orientado a SEGURIDAD -->
+            <div class="perfil-card perfil-S" [class.active]="perfilSeleccionado === 'S'"
+              [class.sugerido]="tieneVisitantesEnPerfil('S')" (click)="seleccionarPerfil('S')">
+              <div class="perfil-icon">🛡️</div>
+              <h6>Orientado a SEGURIDAD</h6>
+              <small>Estabilidad (S)</small>
+              <div class="badge-sugerido" *ngIf="tieneVisitantesEnPerfil('S')">
+                <div class="badge-title">✓ Aplica para:</div>
+                <div class="visitantes-list">
+                  <div *ngFor="let nombre of obtenerNombresVisitantesPerfil('S')" class="visitante-nombre">
+                    {{ nombre }}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- PERFIL C - Orientado a INFORMACIÓN -->
+            <div class="perfil-card perfil-C" [class.active]="perfilSeleccionado === 'C'"
+              [class.sugerido]="tieneVisitantesEnPerfil('C')" (click)="seleccionarPerfil('C')">
+              <div class="perfil-icon">📊</div>
+              <h6>Orientado a INFORMACIÓN</h6>
+              <small>Cumplimiento (C)</small>
+              <div class="badge-sugerido" *ngIf="tieneVisitantesEnPerfil('C')">
+                <div class="badge-title">✓ Aplica para:</div>
+                <div class="visitantes-list">
+                  <div *ngFor="let nombre of obtenerNombresVisitantesPerfil('C')" class="visitante-nombre">
+                    {{ nombre }}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- PROTOCOLO GENERAL (sin cambios) -->
+            <div class="perfil-card perfil-GENERAL" [class.active]="perfilSeleccionado === 'GENERAL'"
+              (click)="seleccionarPerfil('GENERAL')">
+              <div class="perfil-icon">📋</div>
+              <h6>PROTOCOLO GENERAL</h6>
+              <small>Sin perfil específico</small>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- CARDS DINÁMICAS: UN CARD POR CADA PASO DEL PROTOCOLO -->
+    <div *ngFor="let paso of protocoloPasos; let i = index" class="collapsible-card"
+      [class.expanded]="cardsExpandidas[i + 1]" [class.completed]="esCardCompleta(i + 1)">
+
+      <div class="card-header" (click)="toggleCard(i + 1)">
+        <div class="card-header-left">
+          <span class="card-icon-numero">{{ paso.numero_paso }}</span>
+          <div class="card-title-group">
+            <h3 class="card-title">{{ paso.nombre }}</h3>
+            <p class="card-subtitle">{{ paso.descripcion }}</p>
+          </div>
+          <span class="card-badge" [class.badge-complete]="pasosCompletados[paso.id]"
+            [class.badge-progress]="!pasosCompletados[paso.id] && tieneProgreso(i + 1)">
+            {{ pasosCompletados[paso.id] ? '✓ Completado' : (tieneProgreso(i + 1) ? '● En progreso' : '○ Pendiente') }}
+          </span>
+        </div>
+        <div class="card-header-right">
+          <i class="bi" [class.bi-chevron-down]="!cardsExpandidas[i + 1]"
+            [class.bi-chevron-up]="cardsExpandidas[i + 1]"></i>
+        </div>
+      </div>
+
+      <!-- Resumen mini cuando está colapsada -->
+      <div class="card-summary" *ngIf="!cardsExpandidas[i + 1] && tieneProgreso(i + 1)">
+        <span class="summary-item" *ngIf="pasosCompletados[paso.id]">
+          <i class="bi bi-check-circle-fill text-success"></i> Paso completado
+        </span>
+        <span class="summary-item" *ngIf="paso.objetivo">
+          <i class="bi bi-bullseye"></i> {{ paso.objetivo.substring(0, 50) }}{{ paso.objetivo.length > 50 ? '...' : ''
+          }}
+        </span>
+        <span class="summary-item" *ngIf="obtenerChecklistCompletados(paso.id) > 0">
+          <i class="bi bi-list-check"></i> {{ obtenerChecklistCompletados(paso.id) }} item{{
+          obtenerChecklistCompletados(paso.id) !== 1 ? 's' : '' }} marcado{{ obtenerChecklistCompletados(paso.id) !== 1
+          ? 's' : '' }}
+        </span>
+      </div>
+
+      <!-- Contenido expandible -->
+      <div class="card-content" [@slideDown]="cardsExpandidas[i + 1] ? 'expanded' : 'collapsed'">
+        <div class="form-section">
+
+          <!-- Checkbox de paso completado -->
+          <div class="paso-completado-checkbox" *ngIf="!soloLectura">
+            <input type="checkbox" class="form-check-input" [id]="'paso_' + paso.id"
+              [checked]="pasosCompletados[paso.id]" (change)="togglePasoCompletado(paso.id)">
+            <label [for]="'paso_' + paso.id" class="form-check-label">
+              <strong>Marcar este paso como completado</strong>
+            </label>
+          </div>
+
+          <!-- Objetivo -->
+          <div class="objetivo-box" *ngIf="paso.objetivo">
+            <strong>🎯 Objetivo:</strong> {{ paso.objetivo }}
+          </div>
+
+          <!-- Script sugerido -->
+          <div class="script-box" *ngIf="paso.script_sugerido">
+            <strong>💬 Script sugerido:</strong>
+            <p class="mb-0 mt-2">"{{ paso.script_sugerido }}"</p>
+          </div>
+          <!-- Consejos importantes -->
+          <div class="consejos-box" *ngIf="paso.consejos_array && paso.consejos_array.length > 0">
+            <strong>
+              <i class="bi bi-lightbulb-fill"></i>
+              Consejos importantes:
+            </strong>
+            <ul>
+              <li *ngFor="let consejo of paso.consejos_array">{{ consejo }}</li>
+            </ul>
+          </div>
+          <!-- Contenido específico del perfil -->
+          <div *ngIf="perfilSeleccionado !== 'GENERAL' && obtenerContenidoPaso(paso.id)" class="contenido-perfil">
+
+            <div class="perfil-badge-header">
+              <i class="bi bi-star-fill"></i>
+              Contenido personalizado para {{ obtenerNombrePerfil(perfilSeleccionado) }}
+            </div>
+
+            <ng-container *ngIf="obtenerContenidoPaso(paso.id) as contenido">
+
+              <!-- Puntos a enfatizar -->
+              <div class="puntos-enfatizar" *ngIf="contenido.puntos_enfatizar_array?.length > 0">
+                <h6>✅ Enfatizar con este perfil:</h6>
+                <ul>
+                  <li *ngFor="let punto of contenido.puntos_enfatizar_array">{{ punto }}</li>
+                </ul>
+              </div>
+
+              <!-- Frases efectivas -->
+              <div class="frases-efectivas" *ngIf="contenido.frases_efectivas_array?.length > 0">
+                <h6>💬 Frases efectivas:</h6>
+                <div *ngFor="let frase of contenido.frases_efectivas_array" class="frase-item">
+                  ✓ {{ frase }}
+                </div>
+              </div>
+
+              <!-- Qué mostrar -->
+              <div class="que-mostrar" *ngIf="contenido.que_mostrar_array?.length > 0">
+                <h6>🎯 Mostrar/Mencionar:</h6>
+                <div class="row">
+                  <div *ngFor="let item of contenido.que_mostrar_array" class="col-md-6 mb-2">
+                    <div class="mostrar-item">
+                      {{ item }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Qué evitar -->
+              <div class="que-evitar" *ngIf="contenido.que_evitar_array?.length > 0">
+                <h6>⚠️ Evitar con este perfil:</h6>
+                <ul>
+                  <li *ngFor="let item of contenido.que_evitar_array">{{ item }}</li>
+                </ul>
+              </div>
+
+            </ng-container>
+          </div>
+
+          <!-- Checklist del paso -->
+          <div class="checklist-section" *ngIf="paso.checklist_items_array?.length > 0">
+            <h6 class="checklist-titulo">✓ Checklist rápido:</h6>
+            <div *ngFor="let item of paso.checklist_items_array; let idx = index" class="checklist-item">
+              <input type="checkbox" class="form-check-input" [id]="'check_' + paso.id + '_' + idx"
+                [checked]="isChecklistItemChecked(paso.id, idx)" (change)="toggleChecklistItem(paso.id, idx)"
+                [disabled]="soloLectura">
+              <label [for]="'check_' + paso.id + '_' + idx" class="form-check-label">
+                {{ item }}
+              </label>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD FINAL: RECORDATORIO -->
+    <div class="collapsible-card card-recordatorio">
+      <div class="card-header">
+        <div class="card-header-left">
+          <span class="card-icon">🎯</span>
+          <h3 class="card-title">RECORDATORIO FINAL</h3>
+        </div>
+      </div>
+      <div class="card-content-static">
+        <div class="alert alert-success mb-0">
+          <h5 class="mb-2">🎯 Cierre efectivo</h5>
+          <p class="mb-0">
+            <strong>SIEMPRE</strong> salir de la reunión con un compromiso claro y una fecha agendada.
+            Nunca dejar en el aire. Registra los compromisos en el TAB 1.
+          </p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>

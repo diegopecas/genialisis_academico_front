@@ -1,0 +1,241 @@
+$primary-color: #007bff;
+$success-color: #28a745;
+$danger-color: #dc3545;
+$warning-color: #ffc107;
+$info-color: #17a2b8;
+$text-dark: #2c3e50;
+$text-muted: #7f8c8d;
+$border-color: #dee2e6;
+$bg-light: #f8f9fa;
+$wa-green: #25D366;
+
+.modulo {
+  min-height: 100vh;
+  background-color: #fff;
+  padding: 1rem;
+}
+
+.filtros-container {
+  background: $bg-light;
+  border-radius: 8px;
+  padding: 1rem 1.5rem;
+  border: 1px solid $border-color;
+}
+
+.tabla-pagos-container {
+  background: white;
+  border-radius: 8px;
+  border: 1px solid $border-color;
+  max-height: 65vh;
+  overflow-y: auto;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.tabla-pagos {
+  font-size: 0.82rem;
+  margin-bottom: 0;
+
+  thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: $bg-light;
+  }
+
+  th {
+    white-space: nowrap;
+    padding: 0.5rem 0.4rem;
+    font-weight: 600;
+    color: #495057;
+    border-bottom: 2px solid $border-color;
+    font-size: 0.78rem;
+  }
+
+  td {
+    padding: 0.35rem 0.4rem;
+    vertical-align: middle;
+  }
+
+  .col-check { width: 35px; }
+  .col-estudiante { min-width: 130px; max-width: 170px; }
+  .col-grupo { width: 65px; }
+  .col-saldo { width: 85px; }
+  .col-acudiente { min-width: 110px; max-width: 150px; }
+  .col-tipo-pago { width: 95px; }
+  .col-documento { width: 65px; }
+  .col-fecha { width: 110px; }
+  .col-referencia { width: 95px; }
+  .col-valor { width: 105px; }
+  .col-observaciones { min-width: 130px; }
+  .col-dist { width: 115px; }
+}
+
+.fila-seleccionada {
+  background-color: rgba($primary-color, 0.05) !important;
+  &:hover { background-color: rgba($primary-color, 0.08) !important; }
+}
+
+.fila-sin-saldo { opacity: 0.5; }
+.fila-lista { border-left: 3px solid $success-color !important; }
+
+.nombre-estudiante { font-weight: 500; color: $text-dark; font-size: 0.8rem; }
+
+.badge-grupo {
+  background-color: #e8f4f8; color: #2980b9; padding: 2px 6px;
+  border-radius: 10px; font-size: 0.72rem; font-weight: 500; white-space: nowrap;
+}
+
+.saldo {
+  font-weight: 600; font-size: 0.82rem;
+  &.saldo-positivo { color: $danger-color; }
+  &.saldo-cero { color: $success-color; }
+}
+
+.celda-documento { min-width: 70px; }
+
+.celda-dist {
+  min-width: 110px;
+  .btn-xs { padding: 0.12rem 0.35rem; font-size: 0.68rem; }
+}
+
+.btn-adjuntar {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border-radius: 6px; background: #eef2ff;
+  color: $primary-color; cursor: pointer; transition: all 0.2s ease;
+  border: 1px dashed $primary-color;
+  &:hover { background: $primary-color; color: white; border-style: solid; }
+  i { font-size: 0.85rem; }
+}
+
+.ia-loading {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  small { font-size: 0.62rem; }
+}
+
+.archivo-adjunto {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  .archivo-adjunto-acciones { display: flex; align-items: center; gap: 3px; }
+  i.fa-check-circle { font-size: 1rem; }
+  small { font-size: 0.62rem; color: $text-muted; }
+}
+
+.btn-eliminar-archivo {
+  background: none; border: none; padding: 0; cursor: pointer;
+  color: $danger-color; font-size: 0.85rem; opacity: 0.6; transition: opacity 0.2s;
+  &:hover { opacity: 1; }
+}
+
+.campo-prellenado {
+  border-color: $success-color !important;
+  background-color: rgba($success-color, 0.05) !important;
+  animation: brilloIA 1.5s ease-in-out;
+}
+
+@keyframes brilloIA {
+  0% { box-shadow: 0 0 0 0 rgba($success-color, 0.4); }
+  50% { box-shadow: 0 0 8px 2px rgba($success-color, 0.3); }
+  100% { box-shadow: none; }
+}
+
+.tabla-pagos {
+  .form-select-sm, .form-control-sm { font-size: 0.78rem; padding: 0.2rem 0.4rem; }
+  .input-group-sm .input-group-text { font-size: 0.78rem; padding: 0.2rem 0.35rem; }
+}
+
+.resumen-container {
+  background: white; border-radius: 8px; padding: 0.75rem 1.25rem;
+  border: 1px solid $border-color; border-top: 3px solid $success-color;
+  position: sticky; bottom: 0; z-index: 20;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.resumen-datos { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+.resumen-item { font-size: 0.9rem; color: $text-dark; }
+.resumen-separador { color: $border-color; }
+.resumen-total { font-size: 1.05rem; color: $success-color; }
+
+// ============================================
+// Botón WhatsApp (estilo recordatorio-pagos)
+// ============================================
+.btn-wa {
+  background-color: $wa-green;
+  border-color: $wa-green;
+  color: white;
+  &:hover { background-color: darken($wa-green, 10%); border-color: darken($wa-green, 10%); color: white; }
+  &:disabled { background-color: lighten($wa-green, 20%); border-color: lighten($wa-green, 20%); }
+}
+
+.btn-wa-outline {
+  background-color: transparent;
+  border-color: $wa-green;
+  color: $wa-green;
+  &:hover { background-color: $wa-green; border-color: $wa-green; color: white; }
+  &:disabled { border-color: lighten($wa-green, 20%); color: lighten($wa-green, 20%); }
+}
+
+// ============================================
+// Modales (estilo recordatorio-pagos)
+// ============================================
+.modal {
+  .modal-header {
+    background-color: $bg-light;
+    border-bottom: 2px solid $border-color;
+    .modal-title { font-weight: 600; color: #333; }
+  }
+  .modal-body {
+    padding: 1.5rem;
+    h6 {
+      color: #495057; font-weight: 600;
+      border-bottom: 1px solid $border-color;
+      padding-bottom: 0.5rem; margin-bottom: 1rem;
+    }
+  }
+  .modal-footer {
+    background-color: $bg-light;
+    border-top: 2px solid $border-color;
+  }
+}
+
+.acudiente-card {
+  padding: 1rem;
+  border: 1px solid $border-color;
+  border-radius: 0.5rem;
+  background-color: $bg-light;
+  transition: all 0.3s ease;
+
+  &:hover {
+    border-color: $wa-green;
+    box-shadow: 0 0.25rem 0.5rem rgba($wa-green, 0.15);
+  }
+
+  &.border-dashed {
+    border-style: dashed;
+    border-color: #adb5bd;
+    background-color: #fff;
+  }
+}
+
+// ============================================
+// Responsive
+// ============================================
+@media (max-width: 768px) {
+  .tabla-pagos-container { max-height: 55vh; }
+  .tabla-pagos {
+    font-size: 0.72rem;
+    th, td { padding: 0.25rem; }
+    .col-acudiente, .col-grupo, .col-dist, .col-observaciones { display: none; }
+  }
+  .resumen-container { padding: 0.5rem 0.75rem; }
+  .resumen-datos { flex-direction: column; align-items: flex-start; gap: 0.25rem; }
+  .resumen-separador { display: none; }
+}
+
+.tabla-pagos-container {
+  &::-webkit-scrollbar { width: 6px; height: 6px; }
+  &::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 3px; }
+  &::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; &:hover { background: #aaa; } }
+}
+
+.tabla-pagos {
+  input[disabled], select[disabled] { opacity: 0.4; cursor: not-allowed; background-color: $bg-light; }
+}

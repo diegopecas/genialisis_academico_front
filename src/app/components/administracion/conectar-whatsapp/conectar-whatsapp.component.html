@@ -1,0 +1,160 @@
+<div class="modulo">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="false"
+    [raiz]="'/'"
+    [regresar]="'/administracion/datos-maestros'"
+  ></app-header>
+
+  <div class="container-fluid mt-5">
+
+    <!-- Cargando estado -->
+    <div class="estado-centro" *ngIf="cargandoEstado">
+      <div class="spinner"></div>
+      <p>Cargando estado de conexión...</p>
+    </div>
+
+    <!-- Error al cargar estado -->
+    <div class="estado-centro error" *ngIf="!cargandoEstado && errorEstado">
+      <span class="error-icon">⚠️</span>
+      <p>{{ errorEstado }}</p>
+      <button class="btn-reintentar" (click)="cargarEstado()">Reintentar</button>
+    </div>
+
+    <!-- Vista principal -->
+    <div class="onboarding-wrapper" *ngIf="!cargandoEstado && !errorEstado">
+
+      <!-- NO CONECTADO -->
+      <div class="tarjeta-estado" *ngIf="!estaConectado()">
+        <div class="estado-header">
+          <div class="estado-icono no-conectado">
+            <img src="assets/images/whatsapp.png" alt="WhatsApp" />
+          </div>
+          <div class="estado-info">
+            <h2>WhatsApp no conectado</h2>
+            <p>Conecta tu cuenta de WhatsApp Business para empezar a enviar y recibir mensajes desde GENIALISIS.</p>
+          </div>
+        </div>
+
+        <div class="estado-detalles">
+          <h4>¿Qué incluye la conexión?</h4>
+          <ul class="lista-beneficios">
+            <li>📱 Sincronización con tu WhatsApp Business del celular</li>
+            <li>💬 Envío y recepción de mensajes desde GENIALISIS</li>
+            <li>📋 Historial de conversaciones unificado</li>
+            <li>🔔 Notificaciones automáticas a padres</li>
+            <li>📨 Plantillas de mensajes aprobadas por Meta</li>
+          </ul>
+        </div>
+
+        <div class="estado-acciones">
+          <button
+            class="btn-conectar"
+            [disabled]="cargandoSdk || procesando"
+            (click)="iniciarConexion()"
+          >
+            <span *ngIf="!cargandoSdk && !procesando">
+              <img src="assets/images/whatsapp.png" alt="WA" class="btn-icono" />
+              Conectar WhatsApp con Meta
+            </span>
+            <span *ngIf="cargandoSdk">Cargando SDK de Facebook...</span>
+            <span *ngIf="procesando">Procesando conexión...</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- CONECTADO -->
+      <div class="tarjeta-estado conectado" *ngIf="estaConectado()">
+        <div class="estado-header">
+          <div class="estado-icono conectado">
+            <img src="assets/images/whatsapp.png" alt="WhatsApp" />
+            <span class="badge-online">●</span>
+          </div>
+          <div class="estado-info">
+            <h2>WhatsApp conectado</h2>
+            <p>Tu cuenta de WhatsApp Business está activa y sincronizada.</p>
+          </div>
+        </div>
+
+        <div class="datos-conexion">
+          <div class="dato-fila">
+            <span class="dato-label">Número:</span>
+            <span class="dato-valor">{{ estado?.display_phone_number || estado?.phone_number_id }}</span>
+          </div>
+          <div class="dato-fila">
+            <span class="dato-label">Modo:</span>
+            <span class="dato-valor">
+              <span class="badge-modo" *ngIf="estado?.es_coexistence">Coexistence (sincronizado con celular)</span>
+              <span class="badge-modo modo-directo" *ngIf="!estado?.es_coexistence">Directo</span>
+            </span>
+          </div>
+          <div class="dato-fila" *ngIf="estado?.fecha_onboarding">
+            <span class="dato-label">Conectado desde:</span>
+            <span class="dato-valor">{{ estado.fecha_onboarding }}</span>
+          </div>
+          <div class="dato-fila" *ngIf="estado?.fecha_ultima_actividad">
+            <span class="dato-label">Última actividad:</span>
+            <span class="dato-valor">{{ estado.fecha_ultima_actividad }}</span>
+          </div>
+          <div class="dato-fila" *ngIf="estado?.es_coexistence">
+            <span class="dato-label">Historial sincronizado:</span>
+            <span class="dato-valor">
+              <span *ngIf="estado?.historial_sincronizado">✅ Sí ({{ estado?.historial_sync_fecha }})</span>
+              <span *ngIf="!estado?.historial_sincronizado">⏳ Pendiente</span>
+            </span>
+          </div>
+        </div>
+
+        <div class="estado-acciones">
+          <button
+            class="btn-desconectar"
+            [disabled]="procesando"
+            (click)="abrirConfirmarDesconexion()"
+          >
+            🔌 Desconectar WhatsApp
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Modal confirmar desconexión -->
+    <div class="modal-overlay" *ngIf="mostrarConfirmarDesconexion" (click)="cerrarConfirmarDesconexion()">
+      <div class="modal-panel" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>¿Desconectar WhatsApp?</h3>
+          <button class="btn-cerrar-modal" (click)="cerrarConfirmarDesconexion()">✕</button>
+        </div>
+        <div class="modal-body">
+          <p>Si desconectas tu cuenta de WhatsApp:</p>
+          <ul>
+            <li>Dejarás de enviar y recibir mensajes desde GENIALISIS</li>
+            <li>Los mensajes históricos se mantendrán</li>
+            <li>Para reconectar, deberás hacer el proceso de Embedded Signup nuevamente</li>
+          </ul>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-cancelar" (click)="cerrarConfirmarDesconexion()">Cancelar</button>
+          <button class="btn-confirmar-desconexion" [disabled]="procesando" (click)="confirmarDesconexion()">
+            <span *ngIf="!procesando">Sí, desconectar</span>
+            <span *ngIf="procesando">Procesando...</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal notificación -->
+    <div class="notificacion-overlay" *ngIf="mostrarNotificacion" (click)="cerrarNotificacion()">
+      <div class="notificacion-panel" [ngClass]="tipoNotificacion" (click)="$event.stopPropagation()">
+        <div class="notificacion-icono">
+          <span *ngIf="tipoNotificacion === 'exito'">✅</span>
+          <span *ngIf="tipoNotificacion === 'error'">❌</span>
+          <span *ngIf="tipoNotificacion === 'info'">ℹ️</span>
+        </div>
+        <p class="notificacion-mensaje">{{ mensajeNotificacion }}</p>
+        <button class="btn-notificacion-cerrar" (click)="cerrarNotificacion()">Aceptar</button>
+      </div>
+    </div>
+
+  </div>
+</div>

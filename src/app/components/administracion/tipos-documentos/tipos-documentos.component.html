@@ -1,0 +1,22 @@
+<div class="modulo">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="true"
+    [accion]="'ConsultarTodos'"
+    [raiz]="'/administracion/tipos-documentos'"
+    [regresar]="'/administracion/datos-maestros'"
+    [iconoTitulo]="'/assets/images/tipos-documentos.png'"
+  ></app-header>
+  
+  <app-tablas
+    [titulos]="titulos"
+    [datos]="datos"
+    [raiz]="'/administracion/tipos-documentos'"
+    [acciones]="acciones"
+    [accionEditar]="true"
+    [accionEliminar]="true"
+    [mostrarBuscar]="true"
+    [columnasFiltro]="columnasFiltro"
+    (clicAccion)="clicAccion($event)"
+  ></app-tablas>
+</div>

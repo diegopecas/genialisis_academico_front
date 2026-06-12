@@ -1,0 +1,106 @@
+<div class="modulo">
+    <app-header 
+        [tituloModulo]="titulo" 
+        [mostrarCrear]="false" 
+        [accion]="accion" 
+        [raiz]="'/administracion/configuracion/configuracion-global'"
+        [regresar]="regresar" 
+        [iconoTitulo]="'/assets/images/configuracion.png'">
+    </app-header>
+
+    <div class="container mt-5">
+        <!-- Clave (solo lectura) -->
+        <div class="row">
+            <div class="col-12">
+                <label for="clave" class="form-label">Clave <span class="text-danger">*</span></label>
+                <input 
+                    class="form-control form-control-lg" 
+                    type="text" 
+                    id="clave" 
+                    [(ngModel)]="model.clave"
+                    disabled>
+                <small class="form-text text-muted">Identificador único del parámetro (no modificable)</small>
+            </div>
+        </div>
+
+        <!-- Descripción -->
+        <div class="row mt-3">
+            <div class="col-12">
+                <label for="descripcion" class="form-label">Descripción</label>
+                <textarea 
+                    class="form-control form-control-lg" 
+                    id="descripcion" 
+                    [(ngModel)]="model.descripcion"
+                    rows="2"
+                    [disabled]="!editable">
+                </textarea>
+            </div>
+        </div>
+
+        <!-- Valores -->
+        <div class="row mt-3">
+            <div class="col-12">
+                <h5>Valores</h5>
+                <p class="text-muted">Solo puede tener un valor a la vez (texto, número o fecha)</p>
+            </div>
+        </div>
+
+        <!-- Valor Texto -->
+        <div class="row">
+            <div class="col-12">
+                <label for="valorTexto" class="form-label">Valor Texto</label>
+                <textarea 
+                    class="form-control form-control-lg" 
+                    id="valorTexto" 
+                    [(ngModel)]="model.valor_texto"
+                    rows="3"
+                    (change)="limpiarOtrosValores('texto')"
+                    [disabled]="!editable">
+                </textarea>
+            </div>
+        </div>
+
+        <!-- Valor Número -->
+        <div class="row mt-3">
+            <div class="col-sm-12 col-md-6">
+                <label for="valorNumero" class="form-label">Valor Número</label>
+                <input 
+                    class="form-control form-control-lg" 
+                    type="number" 
+                    step="0.01"
+                    id="valorNumero" 
+                    [(ngModel)]="model.valor_numero"
+                    (change)="limpiarOtrosValores('numero')"
+                    [disabled]="!editable">
+            </div>
+
+            <!-- Valor Fecha -->
+            <div class="col-sm-12 col-md-6">
+                <label for="valorFecha" class="form-label">Valor Fecha</label>
+                <input 
+                    class="form-control form-control-lg" 
+                    type="date" 
+                    id="valorFecha" 
+                    [(ngModel)]="model.valor_fecha"
+                    (change)="limpiarOtrosValores('fecha')"
+                    [disabled]="!editable">
+            </div>
+        </div>
+    </div>
+
+    <!-- Botones de acción -->
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-sm-6" *ngIf="editable">
+                <button class="btn btn-lg btn-warning w-100" (click)="guardarConfiguracion()">
+                    Grabar
+                </button>
+            </div>
+            <div class="col-sm-6">
+                <button class="btn btn-lg btn-secondary w-100" (click)="volver()">
+                    Volver
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

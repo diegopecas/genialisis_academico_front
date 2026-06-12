@@ -1,0 +1,173 @@
+$primary-color: #007bff;
+$success-color: #28a745;
+$danger-color: #dc3545;
+$warning-color: #ffc107;
+$info-color: #17a2b8;
+$light-gray: #f8f9fa;
+$border-color: #dee2e6;
+
+$mobile: 576px;
+$tablet: 768px;
+$desktop: 992px;
+
+.modulo {
+  padding: 1rem;
+  background-color: #f5f7fa;
+  min-height: calc(100vh - 100px);
+}
+
+.card {
+  border: none;
+  border-radius: 0.75rem;
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.1) !important;
+  }
+
+  .card-body {
+    padding: 1.5rem;
+
+    @media (max-width: $mobile) {
+      padding: 1rem;
+    }
+  }
+
+  .card-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+
+    i {
+      font-size: 1.2rem;
+    }
+  }
+
+  h2 {
+    color: #2c3e50;
+    
+    @media (max-width: $tablet) {
+      font-size: 1.75rem;
+    }
+    
+    @media (max-width: $mobile) {
+      font-size: 1.5rem;
+    }
+  }
+
+  h6 {
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+  }
+
+  small {
+    font-size: 0.875rem;
+  }
+}
+
+canvas {
+  max-height: 300px !important;
+  
+  @media (max-width: $tablet) {
+    max-height: 250px !important;
+  }
+  
+  @media (max-width: $mobile) {
+    max-height: 200px !important;
+  }
+}
+
+.spinner-border {
+  width: 3rem;
+  height: 3rem;
+  border-width: 0.3rem;
+}
+
+.text-success {
+  color: $success-color !important;
+}
+
+.text-danger {
+  color: $danger-color !important;
+}
+
+.text-warning {
+  color: $warning-color !important;
+}
+
+.text-info {
+  color: $info-color !important;
+}
+
+.text-primary {
+  color: $primary-color !important;
+}
+
+.bg-light {
+  background-color: $light-gray !important;
+}
+
+.border-start {
+  border-left-width: 3px !important;
+}
+
+.border-4 {
+  border-width: 4px !important;
+}
+
+.border-primary {
+  border-color: $primary-color !important;
+}
+
+.border-danger {
+  border-color: $danger-color !important;
+}
+
+.border-success {
+  border-color: $success-color !important;
+}
+
+// Animaciones
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.card {
+  animation: fadeIn 0.4s ease-in-out;
+}
+
+// Responsive
+@media (max-width: $mobile) {
+  .modulo {
+    padding: 0.5rem;
+  }
+
+  h2 {
+    font-size: 1.5rem !important;
+  }
+
+  h5 {
+    font-size: 1rem !important;
+  }
+
+  h6 {
+    font-size: 0.75rem !important;
+  }
+
+  small {
+    font-size: 0.75rem !important;
+  }
+}

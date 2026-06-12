@@ -1,0 +1,77 @@
+<div class="modulo">
+
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="false"
+    [regresar]="'/menu'"
+    [iconoTitulo]="'/assets/images/colaboradores.png'">
+  </app-header>
+
+  <div class="perfil-saludo" *ngIf="nombreColaborador">
+    <p>Bienvenido(a), <strong>{{ nombreColaborador }}</strong></p>
+  </div>
+
+  <div class="perfil-tabs-wrapper">
+    <div class="perfil-tabs">
+      <button
+        *ngFor="let tab of tabs"
+        class="perfil-tab"
+        [class.activo]="esTabActivo(tab.id)"
+        (click)="cambiarTab(tab.id)">
+        <img [src]="tab.icono" [alt]="tab.label" class="tab-icono" />
+        <span class="tab-label">{{ tab.label }}</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="perfil-contenido">
+
+    <!-- Ingreso / Salida -->
+    <div *ngIf="tabYaCargado('ingreso-salida')" [hidden]="tabActivo !== 'ingreso-salida'">
+      <app-registro-ingreso-salida [modoEmbebido]="true"></app-registro-ingreso-salida>
+    </div>
+
+    <!-- Mis Datos -->
+    <div *ngIf="tabYaCargado('mis-datos')" [hidden]="tabActivo !== 'mis-datos'">
+      <app-crear-colaboradores
+        [idColaboradorInput]="idColaborador"
+        [modoEmbebido]="true">
+      </app-crear-colaboradores>
+    </div>
+
+    <!-- Gestión Tiempo -->
+    <div *ngIf="tabYaCargado('gestion-tiempo')" [hidden]="tabActivo !== 'gestion-tiempo'">
+      <app-gestion-tiempo-colaborador
+        [idColaboradorInput]="idColaborador">
+      </app-gestion-tiempo-colaborador>
+    </div>
+
+    <!-- Productos / Servicios -->
+    <div *ngIf="tabYaCargado('productos-servicios')" [hidden]="tabActivo !== 'productos-servicios'">
+      <app-colaboradores-productos-servicios
+        [idColaboradorInput]="idColaborador">
+      </app-colaboradores-productos-servicios>
+    </div>
+
+    <!-- Pagos Recibidos -->
+    <div *ngIf="tabYaCargado('pagos-recibidos')" [hidden]="tabActivo !== 'pagos-recibidos'">
+      <app-colaboradores-pagos-recibidos
+        [idColaboradorInput]="idColaborador">
+      </app-colaboradores-pagos-recibidos>
+    </div>
+
+    <!-- Préstamos -->
+    <div *ngIf="tabYaCargado('prestamos')" [hidden]="tabActivo !== 'prestamos'">
+      <app-colaboradores-prestamos
+        [idColaboradorInput]="idColaborador">
+      </app-colaboradores-prestamos>
+    </div>
+
+    <!-- Seguridad -->
+    <div *ngIf="tabYaCargado('seguridad')" [hidden]="tabActivo !== 'seguridad'">
+      <app-seguridad-perfil></app-seguridad-perfil>
+    </div>
+
+  </div>
+
+</div>

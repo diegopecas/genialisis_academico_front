@@ -1,0 +1,86 @@
+// movimientos-financieros.component.scss
+
+.modulo {
+  padding: 20px;
+}
+
+// Estilos para la tabla - estos se aplicarán si el componente tabla los usa
+::ng-deep {
+  .tabla-container {
+    table {
+      tbody {
+        tr {
+          // Estilo para filas anuladas
+          &[data-estado="Anulado"],
+          &.anulado {
+            background-color: #d6d6d6 !important;
+            color: #6c757d !important;
+            opacity: 0.7;
+            
+            td {
+              color: #6c757d !important;
+              text-decoration: line-through;
+            }
+          }
+          
+          // Estilo para filas aprobadas
+          &[data-estado="Aprobado"],
+          &.aprobado {
+            background-color: #d4edda !important;
+            color: #155724 !important;
+            
+            td {
+              color: #155724 !important;
+              font-weight: 500;
+            }
+          }
+          
+          // Estilo para filas registradas (normales)
+          &[data-estado="Registrado"],
+          &.registrado {
+            background-color: transparent;
+          }
+        }
+      }
+    }
+  }
+  
+  // Alternativa si el componente tabla usa clases inline
+  .estado-anulado {
+    background-color: #d6d6d6 !important;
+    color: #6c757d !important;
+    opacity: 0.7;
+    
+    td {
+      color: #6c757d !important;
+      text-decoration: line-through;
+    }
+  }
+  
+  .estado-aprobado {
+    background-color: #d4edda !important;
+    color: #155724 !important;
+    
+    td {
+      color: #155724 !important;
+    }
+  }
+}
+
+// Estilos adicionales para los botones de acción en registros anulados
+::ng-deep {
+  tr.anulado,
+  tr[data-estado="Anulado"],
+  .estado-anulado {
+    .btn-group {
+      .btn {
+        opacity: 0.5;
+        cursor: not-allowed;
+        
+        &:hover {
+          opacity: 0.5;
+        }
+      }
+    }
+  }
+}

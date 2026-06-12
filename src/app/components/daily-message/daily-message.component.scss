@@ -1,0 +1,173 @@
+// Overlay backdrop - cierra al hacer clic fuera
+.daily-message-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 499;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.daily-message {
+  --msg-color: #ffbd31;
+  position: relative;
+  max-width: 450px;
+  width: 90%;
+  padding: 25px;
+  background: rgba(0, 0, 0, 0.95);
+  backdrop-filter: blur(20px);
+  border: 2px solid var(--msg-color);
+  border-radius: 20px;
+  box-shadow: 0 15px 50px rgba(255, 189, 49, 0.7);
+  z-index: 500;
+  animation: slideUp 0.8s ease-out;
+
+  &[data-theme="christmas"] {
+    --msg-color: #e0f4ff;
+    box-shadow: 0 15px 50px rgba(224, 244, 255, 0.7);
+  }
+
+  &[data-theme="halloween"] {
+    --msg-color: #ff8c00;
+  }
+
+  &[data-theme="valentine"] {
+    --msg-color: #ff1493;
+  }
+
+  &[data-theme="spring"] {
+    --msg-color: #32cd32;
+  }
+}
+
+.message-glow {
+  position: absolute;
+  inset: -15px;
+  background: radial-gradient(circle, var(--msg-color), transparent 70%);
+  opacity: 0.4;
+  border-radius: 20px;
+  filter: blur(20px);
+  animation: pulse 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.message-content {
+  position: relative;
+  text-align: center;
+  color: #fff;
+}
+
+.close-btn {
+  position: absolute;
+  top: -15px;
+  right: -15px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid var(--msg-color);
+  color: var(--msg-color);
+  font-size: 18px;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background: var(--msg-color);
+    color: #000;
+    transform: rotate(90deg);
+  }
+}
+
+.message-icon {
+  font-size: 40px;
+  margin-bottom: 15px;
+  animation: bounce 2s ease-in-out infinite;
+}
+
+.message-text {
+  font-size: 17px;
+  line-height: 1.6;
+  margin: 15px 0;
+  color: #fff;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+  font-weight: 500;
+}
+
+.message-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.message-type {
+  font-size: 12px;
+  color: var(--msg-color);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.message-stats {
+  font-size: 11px;
+  opacity: 0.7;
+  color: var(--msg-color);
+}
+
+// Animaciones
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bounce {
+  0%, 100% { 
+    transform: translateY(0); 
+  }
+  50% { 
+    transform: translateY(-10px); 
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { 
+    opacity: 0.3; 
+  }
+  50% { 
+    opacity: 0.6; 
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .daily-message {
+    padding: 20px;
+    max-width: 95%;
+  }
+
+  .message-text {
+    font-size: 15px;
+  }
+
+  .message-icon {
+    font-size: 32px;
+  }
+}

@@ -1,0 +1,23 @@
+<div class="modulo">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="false"
+    [accion]="'ConsultarTodos'"
+    [raiz]="'/administracion/crm/contactos-portal'"
+    [regresar]="'/administracion/crm'"
+    [iconoTitulo]="'/assets/images/contactos_portal.png'"
+  ></app-header>
+  
+  <!-- Vista de tabla -->
+  <app-tablas
+    [titulos]="titulos"
+    [datos]="datos"
+    [raiz]="'/administracion/crm/contactos-portal'"
+    [acciones]="acciones"
+    [accionEditar]="true"
+    [accionEliminar]="false"
+    [mostrarBuscar]="true"
+    [columnasFiltro]="columnasFiltro"
+    (clicAccion)="clicAccion($event)"
+  ></app-tablas>
+</div>

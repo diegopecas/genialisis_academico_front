@@ -1,0 +1,26 @@
+<div [ngClass]="{'fullscreen-container': isFullscreen}">
+  <div class="signature-pad-container" [ngClass]="{'fullscreen': isFullscreen}">
+    <canvas #signatureCanvas [ngClass]="{'disabled': disabled || readOnly}" (mousedown)="onMouseDown($event)" (touchstart)="onTouchStart($event)"></canvas>
+    
+    <div class="signature-pad-actions">
+      <div class="row g-2">
+        <div class="col" *ngIf="!disabled && !readOnly">
+          <button type="button" class="btn btn-sm btn-outline-danger" (click)="clear()">
+            <i class="bi bi-eraser"></i> Limpiar
+          </button>
+        </div>
+        <div class="col text-end">
+          <button *ngIf="!isFullscreen && !disabled && !readOnly" type="button" class="btn btn-sm btn-outline-primary" (click)="enterFullscreen()">
+            <i class="bi bi-fullscreen"></i> Pantalla completa
+          </button>
+          <button *ngIf="isFullscreen" type="button" class="btn btn-sm btn-success" (click)="acceptFullscreenSignature()">
+            <i class="bi bi-check-lg"></i> Aceptar firma
+          </button>
+          <button *ngIf="isFullscreen" type="button" class="btn btn-sm btn-outline-secondary ms-2" (click)="exitFullscreen()">
+            <i class="bi bi-fullscreen-exit"></i> Salir
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

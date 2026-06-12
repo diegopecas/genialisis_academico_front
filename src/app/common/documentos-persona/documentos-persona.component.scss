@@ -1,0 +1,1057 @@
+.documentos-persona-container {
+  padding: 1rem;
+}
+
+// ============================================
+// GRID DE DOCUMENTOS
+// ============================================
+.documentos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1rem;
+  
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.documento-card-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+// ============================================
+// CARD DE DOCUMENTO
+// ============================================
+.documento-card {
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: box-shadow 0.2s;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: white;
+
+  &:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  &.obligatorio {
+    border-left: 4px solid #dc3545;
+  }
+}
+
+// ============================================
+// HEADER DEL CARD
+// ============================================
+.documento-header {
+  background: #f8f9fa;
+  padding: 1rem;
+  border-bottom: 1px solid #dee2e6;
+  
+  .header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .header-info {
+    flex: 1;
+    min-width: 0;
+
+    h6 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin: 0 0 0.5rem 0;
+      color: #212529;
+    }
+  }
+
+  .btn-upload {
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 0.5rem 0.75rem;
+    cursor: pointer;
+    transition: background 0.2s;
+    flex-shrink: 0;
+
+    &:hover {
+      background: #0056b3;
+    }
+
+    i {
+      font-size: 0.9rem;
+    }
+  }
+}
+
+// ============================================
+// BADGES
+// ============================================
+.badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: 4px;
+
+  &.badge-danger {
+    background: #dc3545;
+    color: white;
+  }
+
+  &.badge-secondary {
+    background: #6c757d;
+    color: white;
+  }
+
+  &.badge.bg-danger {
+    background: #dc3545;
+    color: white;
+  }
+
+  &.badge.bg-warning {
+    background: #ffc107;
+    color: #212529;
+  }
+
+  &.badge.bg-success {
+    background: #28a745;
+    color: white;
+  }
+
+  &.badge.bg-secondary {
+    background: #6c757d;
+    color: white;
+  }
+}
+
+// ============================================
+// BODY DEL CARD
+// ============================================
+.documento-body {
+  padding: 1rem;
+  flex-grow: 1;
+  background: white;
+}
+
+.sin-documentos {
+  color: #6c757d;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  i {
+    color: #6c757d;
+  }
+}
+
+// ============================================
+// ITEM DE DOCUMENTO - LA PARTE CLAVE
+// ============================================
+.documento-item-wrapper {
+  margin-bottom: 0.75rem;
+  width: 100%;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.documento-item-content {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: flex-start !important;
+  gap: 0.75rem !important;
+  padding: 0.75rem !important;
+  background: #f8f9fa !important;
+  border-radius: 6px !important;
+  border: 1px solid #e9ecef !important;
+  transition: background 0.2s;
+  width: 100%;
+
+  &:hover {
+    background: #e9ecef !important;
+  }
+}
+
+.documento-info {
+  flex: 1 !important;
+  min-width: 0 !important;
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 0.75rem !important;
+}
+
+.documento-icon {
+  font-size: 1.5rem !important;
+  flex-shrink: 0 !important;
+  margin-top: 0.125rem !important;
+  width: 24px;
+}
+
+.documento-detalles {
+  flex: 1 !important;
+  min-width: 0 !important;
+}
+
+.documento-nombre-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.documento-nombre {
+  font-weight: 600 !important;
+  font-size: 0.875rem !important;
+  color: #212529 !important;
+  word-break: break-word;
+  flex: 1;
+}
+
+.btn-info-doc {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 20px !important;
+  height: 20px !important;
+  min-width: 20px !important;
+  background: transparent !important;
+  border: none !important;
+  cursor: pointer !important;
+  color: #17a2b8 !important;
+  font-size: 0.875rem !important;
+  padding: 0 !important;
+  flex-shrink: 0 !important;
+  transition: all 0.2s !important;
+
+  &:hover {
+    color: #138496 !important;
+    transform: scale(1.1);
+  }
+
+  i {
+    pointer-events: none !important;
+  }
+}
+
+.documento-metadata {
+  font-size: 0.75rem !important;
+  color: #6c757d !important;
+  margin-bottom: 0.25rem !important;
+}
+
+.documento-vencimiento {
+  margin-top: 0.25rem !important;
+}
+
+// ============================================
+// BOTONES DE ACCIÓN - LAYOUT HORIZONTAL
+// ============================================
+.documento-acciones-horizontal {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: wrap !important;
+  gap: 0.5rem !important;
+  margin-top: 0.5rem !important;
+  padding-top: 0.5rem !important;
+  border-top: 1px dashed #dee2e6 !important;
+  justify-content: flex-start !important;
+}
+
+// Mantener estilo vertical para compatibilidad
+.documento-acciones {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.5rem !important;
+  flex-shrink: 0 !important;
+  align-items: center !important;
+  width: 40px;
+}
+
+.btn-accion {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+  min-height: 36px !important;
+  max-width: 36px !important;
+  max-height: 36px !important;
+  border: 1px solid !important;
+  border-radius: 6px !important;
+  background: white !important;
+  cursor: pointer !important;
+  transition: all 0.2s !important;
+  font-size: 0.875rem !important;
+  padding: 0 !important;
+  flex-shrink: 0 !important;
+
+  &.btn-descargar {
+    border-color: #007bff !important;
+    color: #007bff !important;
+
+    &:hover {
+      background: #007bff !important;
+      color: white !important;
+    }
+  }
+
+  &.btn-eliminar {
+    border-color: #dc3545 !important;
+    color: #dc3545 !important;
+
+    &:hover {
+      background: #dc3545 !important;
+      color: white !important;
+    }
+  }
+
+  i {
+    pointer-events: none !important;
+  }
+}
+
+// ============================================
+// ALERTAS
+// ============================================
+.alert-vencimiento {
+  .alert {
+    border-left: 4px solid;
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    
+    &.alert-danger {
+      background: #f8d7da;
+      color: #721c24;
+      border-left-color: #dc3545;
+    }
+    
+    &.alert-warning {
+      background: #fff3cd;
+      color: #856404;
+      border-left-color: #ffc107;
+    }
+  }
+}
+
+// ============================================
+// MODAL
+// ============================================
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050;
+  padding: 1rem;
+}
+
+.modal-dialog {
+  width: 100%;
+  max-width: 500px;
+  margin: 0;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #dee2e6;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  .modal-title {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+  }
+
+  .btn-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6c757d;
+    transition: color 0.2s;
+
+    &:hover {
+      color: #212529;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+}
+
+.modal-body {
+  padding: 1.5rem;
+  overflow-y: auto;
+}
+
+.modal-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #dee2e6;
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+// ============================================
+// FORMULARIOS EN MODAL
+// ============================================
+.form-group {
+  margin-bottom: 1rem;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+  color: #495057;
+}
+
+.form-control {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: #495057;
+  background: white;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+
+  &:focus {
+    border-color: #80bdff;
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  }
+
+  &:disabled {
+    background-color: #e9ecef;
+    opacity: 1;
+  }
+}
+
+textarea.form-control {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.form-text {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: #6c757d;
+}
+
+.text-danger {
+  color: #dc3545;
+}
+
+// ============================================
+// BOTONES DEL MODAL
+// ============================================
+.btn-primary,
+.btn-secondary {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  &:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+  }
+}
+
+.btn-primary {
+  background: #007bff;
+  color: white;
+
+  &:hover:not(:disabled) {
+    background: #0056b3;
+  }
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+
+  &:hover:not(:disabled) {
+    background: #5a6268;
+  }
+}
+
+// ============================================
+// SPINNER
+// ============================================
+.spinner {
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spinner-border {
+  display: inline-block;
+  width: 2rem;
+  height: 2rem;
+  border: 0.25rem solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+  
+  &.text-primary {
+    color: #007bff;
+  }
+}
+
+.text-center {
+  text-align: center;
+}
+
+.py-5 {
+  padding-top: 3rem;
+  padding-bottom: 3rem;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+// ============================================
+// UTILIDADES
+// ============================================
+.mb-3 {
+  margin-bottom: 1rem;
+}
+
+.mb-2 {
+  margin-bottom: 0.5rem;
+}
+
+.me-2 {
+  margin-right: 0.5rem;
+}
+
+.py-2 {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+// ============================================
+// ÍCONOS DE ARCHIVOS
+// ============================================
+.fa-file-pdf {
+  color: #dc3545;
+}
+
+.fa-file-word {
+  color: #007bff;
+}
+
+.fa-file-excel {
+  color: #28a745;
+}
+
+.fa-file-image {
+  color: #17a2b8;
+}
+
+.text-secondary {
+  color: #6c757d;
+}
+
+// ============================================
+// ALERT INFO
+// ============================================
+.alert.alert-info {
+  background: #d1ecf1;
+  color: #0c5460;
+  border: 1px solid #bee5eb;
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+}
+
+// ============================================
+// CARDS SIMPLES (para header)
+// ============================================
+.card-simple {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.card-header-simple {
+  padding: 0.75rem 1rem;
+  border-bottom: 2px solid #d4af37;
+  font-weight: 600;
+  font-size: 1rem;
+  color: #333;
+  background: white;
+  display: flex;
+  align-items: center;
+  
+  i {
+    color: #d4af37;
+  }
+}
+
+// ============================================
+// MODAL DE DETALLES
+// ============================================
+.modal-dialog-detalles {
+  max-width: 600px;
+}
+
+.detalle-grupo {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e9ecef;
+
+  &:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+  }
+}
+
+.detalle-label {
+  display: block;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #495057;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+
+  i {
+    color: #6c757d;
+    width: 20px;
+  }
+}
+
+.detalle-valor {
+  font-size: 0.9rem;
+  color: #212529;
+  background: #f8f9fa;
+  padding: 0.75rem;
+  border-radius: 6px;
+  border-left: 3px solid #007bff;
+  display: flex;
+  align-items: center;
+  word-break: break-word;
+
+  i {
+    flex-shrink: 0;
+  }
+}
+
+.detalle-observaciones {
+  white-space: pre-wrap;
+  line-height: 1.6;
+  display: block;
+}
+
+.text-muted-custom {
+  color: #6c757d !important;
+  font-style: italic;
+  border-left-color: #6c757d !important;
+}
+
+// ============================================
+// RESPONSIVE
+// ============================================
+@media (max-width: 768px) {
+  .documentos-persona-container {
+    padding: 0.5rem;
+  }
+
+  .documento-item-content {
+    gap: 0.5rem !important;
+  }
+
+  .documento-info {
+    gap: 0.5rem !important;
+  }
+
+  .documento-icon {
+    font-size: 1.25rem !important;
+    width: 20px;
+  }
+
+  .documento-nombre {
+    font-size: 0.8rem !important;
+  }
+
+  .documento-metadata {
+    font-size: 0.7rem !important;
+  }
+
+  .documento-acciones {
+    width: 35px;
+    gap: 0.25rem !important;
+  }
+
+  .btn-accion {
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    min-height: 32px !important;
+    max-width: 32px !important;
+    max-height: 32px !important;
+  }
+
+  .modal-dialog {
+    max-width: 100%;
+  }
+
+  .modal-dialog-detalles {
+    max-width: 100%;
+  }
+
+  .detalle-label {
+    font-size: 0.8rem;
+  }
+
+  .detalle-valor {
+    font-size: 0.85rem;
+    padding: 0.5rem;
+  }
+}
+
+// Pantallas muy pequeñas
+@media (max-width: 480px) {
+  .documento-item-content {
+    padding: 0.5rem !important;
+    gap: 0.35rem !important;
+  }
+
+  .documento-nombre {
+    font-size: 0.75rem !important;
+  }
+
+  .documento-icon {
+    font-size: 1.1rem !important;
+    width: 18px;
+  }
+
+  .documento-acciones {
+    width: 30px;
+  }
+
+  .btn-accion {
+    width: 28px !important;
+    height: 28px !important;
+    min-width: 28px !important;
+    min-height: 28px !important;
+    max-width: 28px !important;
+    max-height: 28px !important;
+    font-size: 0.75rem !important;
+  }
+}
+
+// ============================================
+// ESTILOS PARA FIRMA DIGITAL
+// ============================================
+.documento-firma {
+  margin-top: 5px;
+  
+  .badge {
+    font-size: 11px;
+    padding: 3px 8px;
+  }
+}
+
+// Botón enviar a firma (dorado)
+.btn-accion.btn-firma {
+  background: linear-gradient(135deg, #d4af37 0%, #c9a227 100%) !important;
+  color: white !important;
+  border: none !important;
+  
+  &:hover:not(:disabled) {
+    background: linear-gradient(135deg, #c9a227 0%, #d4af37 100%) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4);
+  }
+
+  i {
+    color: white !important;
+  }
+}
+
+// Botón consultar estado (dorado claro)
+.btn-accion.btn-consultar {
+  background: linear-gradient(135deg, #e6c65c 0%, #d4af37 100%) !important;
+  color: white !important;
+  border: none !important;
+  
+  &:hover:not(:disabled) {
+    background: linear-gradient(135deg, #d4af37 0%, #e6c65c 100%) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  i {
+    color: white !important;
+  }
+}
+
+// Botón reenviar correo (azul)
+.btn-accion.btn-reenviar {
+  background: linear-gradient(135deg, #17a2b8 0%, #138496 100%) !important;
+  color: white !important;
+  border: none !important;
+  
+  &:hover:not(:disabled) {
+    background: linear-gradient(135deg, #138496 0%, #17a2b8 100%) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(23, 162, 184, 0.4);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  i {
+    color: white !important;
+  }
+}
+
+// Botón descargar firmado (verde)
+.btn-accion.btn-firmado {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
+  color: white !important;
+  border: none !important;
+  
+  &:hover:not(:disabled) {
+    background: linear-gradient(135deg, #20c997 0%, #28a745 100%) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  i {
+    color: white !important;
+  }
+}
+
+.firmantes-lista {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 15px;
+  
+  .firmante-item {
+    padding: 8px 12px;
+    background: white;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    border-left: 3px solid #667eea;
+    
+    i {
+      color: #667eea;
+    }
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+
+.documento-info-firma {
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 3px solid #28a745;
+}
+
+// ============================================
+// ICONOS DE FIRMA DIGITAL (junto al nombre)
+// ============================================
+.icono-firma-pendiente {
+  color: #d4af37 !important;
+  font-size: 0.85rem;
+  margin-left: 0.25rem;
+  animation: pulse-gold 2s infinite;
+}
+
+.icono-firma-completada {
+  color: #28a745 !important;
+  font-size: 0.85rem;
+  margin-left: 0.25rem;
+}
+
+@keyframes pulse-gold {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+.texto-sincronizar {
+  font-size: 0.75rem;
+  color: #dc3545;
+  margin-left: 8px;
+  animation: pulse-red 1.5s infinite;
+  
+  i {
+    margin-right: 3px;
+  }
+}
+
+@keyframes pulse-red {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+// ============================================
+// MODO SOLO SUBIR
+// ============================================
+.btn-subir-simple {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border: 2px dashed #bdbdbd;
+  border-radius: 8px;
+  background: #fafafa;
+  color: #616161;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+  justify-content: center;
+
+  &:hover {
+    border-color: #FFC107;
+    background: rgba(255, 193, 7, 0.05);
+    color: #8B6914;
+  }
+
+  i { font-size: 16px; }
+}
+
+.documento-subido-simple {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: #e8f5e9;
+  border: 1px solid #a5d6a7;
+  border-radius: 8px;
+  gap: 12px;
+
+  .documento-subido-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+
+    .documento-icon { font-size: 20px; flex-shrink: 0; }
+
+    .documento-nombre-simple {
+      font-size: 13px;
+      font-weight: 600;
+      color: #2e7d32;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  .btn-cambiar-doc {
+    background: none;
+    border: 1px solid #a5d6a7;
+    border-radius: 6px;
+    padding: 4px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #616161;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: #fff;
+      border-color: #66bb6a;
+    }
+  }
+}

@@ -1,0 +1,226 @@
+// aprobacion-multiple.component.scss
+
+.modulo {
+  padding: 20px;
+  min-height: calc(100vh - 100px);
+}
+
+// Estilos para las cajas de totales
+.total-box {
+  padding: 15px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  h6 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 10px;
+  }
+
+  .total-value {
+    font-weight: bold;
+    margin: 0;
+
+    &.fs-3 {
+      font-size: 1.75rem !important;
+    }
+
+    &.fs-4 {
+      font-size: 1.5rem !important;
+    }
+  }
+}
+
+// Estilos para el card principal
+.card {
+  border: none;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+
+  .card-header {
+    border: none;
+    font-weight: 600;
+    padding: 15px 20px;
+
+    &.bg-success {
+      background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
+    }
+
+    .card-title {
+      display: flex;
+      align-items: center;
+
+      i {
+        font-size: 1.2rem;
+      }
+    }
+  }
+
+  .card-body {
+    padding: 25px;
+  }
+}
+
+// Estilos para los bordes de colores
+.border-start {
+  padding-left: 15px !important;
+
+  &.border-3 {
+    border-width: 3px !important;
+  }
+
+  &.border-success {
+    border-color: #28a745 !important;
+  }
+
+  &.border-danger {
+    border-color: #dc3545 !important;
+  }
+
+  &.border-info {
+    border-color: #17a2b8 !important;
+  }
+
+  &.border-warning {
+    border-color: #ffc107 !important;
+  }
+}
+
+// Estilos para el botón de aprobación
+.btn-success {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  border: none;
+  font-weight: 600;
+  padding: 12px 30px;
+  transition: all 0.3s ease;
+
+  &:hover:not(:disabled) {
+    background: linear-gradient(135deg, #20c997 0%, #28a745 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(40, 167, 69, 0.3);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  i {
+    transition: transform 0.3s ease;
+  }
+
+  &:hover:not(:disabled) i {
+    transform: scale(1.2);
+  }
+}
+
+// Estilos para el alert informativo
+.alert-info {
+  background-color: #e7f4ff;
+  border: 1px solid #b8e0ff;
+  color: #0066cc;
+  border-radius: 8px;
+  padding: 15px 20px;
+
+  i {
+    font-size: 1.1rem;
+  }
+}
+
+// Animaciones
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.card {
+  animation: fadeIn 0.3s ease;
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .total-box {
+    margin-bottom: 15px;
+
+    h6 {
+      font-size: 0.8rem;
+    }
+
+    .total-value {
+      &.fs-3 {
+        font-size: 1.5rem !important;
+      }
+
+      &.fs-4 {
+        font-size: 1.25rem !important;
+      }
+    }
+  }
+
+  .btn-success {
+    width: 100%;
+    padding: 15px;
+  }
+}
+
+// Estilos adicionales para la tabla
+::ng-deep {
+  .tabla-container {
+    margin-bottom: 0;
+    overflow-x: auto;
+
+    // Scrollbar estilizado acorde a la paleta
+    &::-webkit-scrollbar {
+      height: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: #c0a96e;
+      border-radius: 3px;
+    }
+
+    // Soporte Firefox
+    scrollbar-width: thin;
+    scrollbar-color: #c0a96e transparent;
+
+    // Colores para las filas según el tipo de movimiento
+    table tbody tr {
+      &[data-tipo="Ingreso"] {
+        background-color: #e8f5e9 !important;
+      }
+
+      &[data-tipo="Gasto"] {
+        background-color: #ffebee !important;
+      }
+    }
+
+    // Checkbox de selección más visible
+    .form-check-input {
+      width: 1.2em;
+      height: 1.2em;
+      cursor: pointer;
+
+      &:checked {
+        background-color: #28a745;
+        border-color: #28a745;
+      }
+    }
+  }
+}

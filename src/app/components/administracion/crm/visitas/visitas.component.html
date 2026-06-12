@@ -1,0 +1,11 @@
+<div class="modulo">
+    <app-header [tituloModulo]="titulo" [mostrarCrear]="true" [accion]="'ConsultarTodos'"
+        [raiz]="'/administracion/crm/visitas'" [regresar]="'/administracion/crm'"
+        [iconoTitulo]="'/assets/images/visitas.png'">
+    </app-header>
+
+    <!-- Vista de tabla -->
+    <app-tablas [titulos]="titulos" [datos]="datos" [raiz]="'/administracion/crm/visitas'"
+        [accionVer]="true" [accionEditar]="true" [accionEliminar]="true" [mostrarBuscar]="true" [columnasFiltro]="columnasFiltro"
+        (clicAccion)="clicAccion($event)"></app-tablas>
+</div>

@@ -1,0 +1,59 @@
+<div class="modulo">
+  <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [raiz]="'/administracion'" 
+    [regresar]="'/administracion/financiero'"  [iconoTitulo]="'/assets/images/contabilizar.png'"></app-header>
+
+  <!-- Tabla de datos con selección múltiple -->
+  <app-tablas 
+    [titulos]="titulos" 
+    [datos]="datos" 
+    [raiz]="'/administracion/contabilizacion-multiple'" 
+    [accionVer]="false"
+    [accionEditar]="false" 
+    [accionEliminar]="false" 
+    [columnasFiltro]="columnasFiltro"
+    [seleccionMultiple]="true"
+    [campoId]="'id'"
+    (seleccionCambiada)="onSeleccionCambiada($event)">
+  </app-tablas>
+
+  <!-- Sección de totales -->
+  <div class="container-fluid px-4">
+    <div class="card mt-3 shadow-sm" *ngIf="cantidadSeleccionada > 0">
+      <div class="card-header bg-primary text-white">
+        <h5 class="card-title mb-0">
+          <i class="fa fa-calculator me-2"></i>Resumen de Selección
+        </h5>
+      </div>
+      <div class="card-body">
+        <div class="row text-center">
+          <div class="col-md-6">
+            <div class="total-box">
+              <h6 class="text-muted">Pagos seleccionados:</h6>
+              <p class="total-value text-primary">{{ cantidadSeleccionada }}</p>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="total-box">
+              <h6 class="text-muted">Total a contabilizar:</h6>
+              <p class="total-value text-success">
+                {{ totalSeleccionado | currency:'COP ':'symbol':'1.0-0' }}
+              </p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Botón de contabilizar integrado en el resumen -->
+        <div class="row mt-4">
+          <div class="col-12 text-center">
+            <button class="btn btn-success btn-lg px-5" 
+                    [disabled]="cantidadSeleccionada === 0"
+                    (click)="contabilizarSeleccionados()">
+              <i class="fa fa-calculator me-2"></i>
+              Contabilizar {{ cantidadSeleccionada > 0 ? '(' + cantidadSeleccionada + ')' : '' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

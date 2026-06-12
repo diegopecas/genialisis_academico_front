@@ -1,0 +1,192 @@
+<div class="modulo">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="false"
+    [raiz]="'/'"
+    [regresar]="'/administracion/datos-maestros'"
+  ></app-header>
+
+  <div class="container-fluid mt-5">
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <div class="toolbar-info">
+        <span class="total-badge" *ngIf="!cargando">{{ templates.length }} plantilla{{ templates.length !== 1 ? 's' : '' }}</span>
+      </div>
+      <button class="btn-crear" (click)="abrirFormulario()">
+        ➕ Crear plantilla
+      </button>
+    </div>
+
+    <!-- Cargando -->
+    <div class="estado-centro" *ngIf="cargando">
+      <div class="spinner"></div>
+      <p>Cargando plantillas desde Meta...</p>
+    </div>
+
+    <!-- Error -->
+    <div class="estado-centro error" *ngIf="!cargando && error">
+      <span class="error-icon">⚠️</span>
+      <p>{{ error }}</p>
+      <button class="btn-reintentar" (click)="cargarTemplates()">Reintentar</button>
+    </div>
+
+    <!-- Sin templates -->
+    <div class="estado-centro" *ngIf="!cargando && !error && templates.length === 0">
+      <span class="vacio-icon">📋</span>
+      <p>No hay plantillas creadas</p>
+      <p class="texto-secundario">Crea tu primera plantilla para enviar mensajes fuera de la ventana de 24h.</p>
+    </div>
+
+    <!-- Lista de templates -->
+    <div class="templates-grid" *ngIf="!cargando && !error && templates.length > 0">
+      <div *ngFor="let tpl of templates" class="template-card">
+        <div class="template-card-header">
+          <div class="template-card-titulo">
+            <h4>{{ tpl.name }}</h4>
+            <span class="estado-badge" [ngClass]="getEstadoClase(tpl.status)">{{ getEstadoTexto(tpl.status) }}</span>
+          </div>
+          <div class="template-card-meta">
+            <span class="categoria-badge">{{ getCategoriaTexto(tpl.category) }}</span>
+            <span class="idioma-badge">{{ tpl.language }}</span>
+          </div>
+        </div>
+
+        <div class="template-card-body">
+          <p class="template-body-text">{{ tpl.body_text }}</p>
+        </div>
+
+        <div class="template-card-actions">
+          <button class="btn-eliminar" (click)="eliminarTemplate(tpl)" title="Eliminar plantilla">
+            🗑️ Eliminar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal crear template -->
+    <div class="modal-overlay" *ngIf="mostrarFormulario" (click)="cerrarFormulario()">
+      <div class="modal-panel" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Crear plantilla de WhatsApp</h3>
+          <button class="btn-cerrar-modal" (click)="cerrarFormulario()">✕</button>
+        </div>
+
+        <div class="modal-body">
+          <!-- Nombre -->
+          <div class="campo">
+            <label>Nombre <span class="requerido">*</span></label>
+            <input
+              type="text"
+              [(ngModel)]="formulario.name"
+              placeholder="ej: recordatorio_pago"
+              maxlength="512"
+            />
+            <small>Solo minúsculas, números y guiones bajos. Meta lo normaliza automáticamente.</small>
+          </div>
+
+          <!-- Categoría -->
+          <div class="campo">
+            <label>Categoría <span class="requerido">*</span></label>
+            <select [(ngModel)]="formulario.category">
+              <option value="UTILITY">Utilidad (recordatorios, confirmaciones)</option>
+              <option value="MARKETING">Marketing (promociones, campañas)</option>
+              <option value="AUTHENTICATION">Autenticación (códigos, verificación)</option>
+            </select>
+            <small>Las de utilidad se aprueban más rápido y cuestan menos.</small>
+          </div>
+
+          <!-- Idioma -->
+          <div class="campo">
+            <label>Idioma</label>
+            <select [(ngModel)]="formulario.language">
+              <option value="es">Español</option>
+              <option value="en">Inglés</option>
+            </select>
+          </div>
+
+          <!-- Header (opcional) -->
+          <div class="campo">
+            <label>Encabezado <span class="opcional">(opcional)</span></label>
+            <input
+              type="text"
+              [(ngModel)]="formulario.header_text"
+              placeholder="ej: Jardín Infantil Lumen"
+              maxlength="60"
+            />
+          </div>
+
+          <!-- Body -->
+          <div class="campo">
+            <label>Cuerpo del mensaje <span class="requerido">*</span></label>
+            <textarea
+              [(ngModel)]="formulario.body_text"
+              (input)="onBodyTextChange()"
+              placeholder="ej: Hola {{1}}, le recordamos que el pago de {{2}} por valor de {{3}} se encuentra pendiente."
+              rows="4"
+              maxlength="1024"
+            ></textarea>
+            <small>Usa &#123;&#123;1&#125;&#125;, &#123;&#123;2&#125;&#125;, etc. para variables dinámicas.</small>
+          </div>
+
+          <!-- Variables ejemplo -->
+          <div class="campo" *ngIf="variablesDetectadas.length > 0">
+            <label>Ejemplos de variables <span class="requerido">*</span></label>
+            <small class="mb-2">Meta requiere ejemplos para aprobar la plantilla.</small>
+            <div *ngFor="let v of variablesDetectadas; let i = index" class="variable-ejemplo-row">
+              <span class="variable-tag">{{ v }}</span>
+              <input
+                type="text"
+                [(ngModel)]="formulario.variables_example[i]"
+                [placeholder]="'Ejemplo para ' + v"
+              />
+            </div>
+          </div>
+
+          <!-- Footer (opcional) -->
+          <div class="campo">
+            <label>Pie de mensaje <span class="opcional">(opcional)</span></label>
+            <input
+              type="text"
+              [(ngModel)]="formulario.footer_text"
+              placeholder="ej: Gracias por confiar en nosotros"
+              maxlength="60"
+            />
+          </div>
+
+          <!-- Preview -->
+          <div class="preview-container" *ngIf="formulario.body_text.trim()">
+            <span class="preview-label">Vista previa</span>
+            <div class="preview-burbuja">
+              <p class="preview-header" *ngIf="formulario.header_text.trim()">{{ formulario.header_text }}</p>
+              <p class="preview-body">{{ getPreview() }}</p>
+              <p class="preview-footer" *ngIf="formulario.footer_text.trim()">{{ formulario.footer_text }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn-cancelar" (click)="cerrarFormulario()">Cancelar</button>
+          <button class="btn-guardar" [disabled]="!puedeGuardar() || guardando" (click)="guardarTemplate()">
+            <span *ngIf="!guardando">Crear plantilla</span>
+            <span *ngIf="guardando">Creando...</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal notificación -->
+    <div class="notificacion-overlay" *ngIf="mostrarNotificacion" (click)="cerrarNotificacion()">
+      <div class="notificacion-panel" [ngClass]="tipoNotificacion" (click)="$event.stopPropagation()">
+        <div class="notificacion-icono">
+          <span *ngIf="tipoNotificacion === 'exito'">✅</span>
+          <span *ngIf="tipoNotificacion === 'error'">❌</span>
+          <span *ngIf="tipoNotificacion === 'info'">ℹ️</span>
+        </div>
+        <p class="notificacion-mensaje">{{ mensajeNotificacion }}</p>
+        <button class="btn-notificacion-cerrar" (click)="cerrarNotificacion()">Aceptar</button>
+      </div>
+    </div>
+
+  </div>
+</div>

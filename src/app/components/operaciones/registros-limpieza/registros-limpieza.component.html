@@ -1,0 +1,24 @@
+<div class="modulo">
+    <app-header 
+        [tituloModulo]="titulo" 
+        [mostrarCrear]="true" 
+        [accion]="'ConsultarTodos'"
+        [raiz]="'/operaciones/registros-limpieza'" 
+        [regresar]="'/operaciones'"
+        [iconoTitulo]="'/assets/images/limpieza.png'">
+    </app-header>
+
+    <!-- Vista de tabla -->
+    <app-tablas 
+        [titulos]="titulos" 
+        [datos]="datos" 
+        [raiz]="'/operaciones/registros-limpieza'" 
+        [acciones]="acciones" 
+        [accionVer]="true" 
+        [accionEditar]="true" 
+        [accionEliminar]="false" 
+        [mostrarBuscar]="true" 
+        [columnasFiltro]="columnasFiltro"
+        (clicAccion)="clicAccion($event)">
+    </app-tablas>
+</div>

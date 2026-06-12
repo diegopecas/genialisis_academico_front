@@ -1,0 +1,253 @@
+<div class="modulo">
+    <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [accion]="accion"
+        [raiz]="'/administracion/elementos-fisicos'" [regresar]="regresar"
+        [iconoTitulo]="'/assets/images/elementos-fisicos.png'">
+    </app-header>
+
+    <div class="container mt-5">
+        <!-- Sistema de Tabs -->
+        <ul class="nav nav-tabs mb-4" id="elementoFisicoTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="datos-generales-tab" data-bs-toggle="tab"
+                    data-bs-target="#datos-generales" type="button" role="tab" aria-controls="datos-generales"
+                    aria-selected="true" (click)="tabActivo = 'datos-generales'">
+                    <i class="fas fa-info-circle"></i> Datos Generales
+                </button>
+            </li>
+            <li class="nav-item" role="presentation" *ngIf="accion !== 'crear'">
+                <button class="nav-link" id="procesos-limpieza-tab" data-bs-toggle="tab"
+                    data-bs-target="#procesos-limpieza" type="button" role="tab" aria-controls="procesos-limpieza"
+                    aria-selected="false" (click)="tabActivo = 'procesos-limpieza'">
+                    <i class="fas fa-tasks"></i> Procesos de Limpieza
+                    <span class="badge bg-success ms-2" *ngIf="procesosLimpiezaAsignados.length > 0">
+                        {{ procesosLimpiezaAsignados.length }}
+                    </span>
+                </button>
+            </li>
+        </ul>
+
+        <!-- Contenido de los Tabs -->
+        <div class="tab-content" id="elementoFisicoTabsContent">
+
+            <!-- Tab 1: Datos Generales -->
+            <div class="tab-pane fade show active" id="datos-generales" role="tabpanel"
+                aria-labelledby="datos-generales-tab">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-building"></i> Información del Elemento Físico</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-sm-12 col-md-6">
+                                <label for="nombre" class="form-label">Nombre <span
+                                        class="text-danger">*</span></label>
+                                <input class="form-control form-control-lg" type="text" id="nombre"
+                                    [(ngModel)]="model.nombre" required
+                                    [ngClass]="{'is-invalid': !model.nombre && submitted}"
+                                    [disabled]="!editable"
+                                    placeholder="Ej: Baño principal, Piso aula 101">
+                                <div class="invalid-feedback">
+                                    El nombre es requerido
+                                </div>
+                            </div>
+                            <div class="col-sm-12 col-md-6">
+                                <label for="material" class="form-label">Material</label>
+                                <input class="form-control form-control-lg" type="text" id="material"
+                                    [(ngModel)]="model.material"
+                                    [disabled]="!editable"
+                                    placeholder="Ej: Cerámica, Madera, Acero inoxidable">
+                            </div>
+                        </div>
+
+                        <div class="row mt-3">
+                            <div class="col-sm-12 col-md-6">
+                                <label for="unidadMedida" class="form-label">Unidad de Medida <span
+                                        class="text-danger">*</span></label>
+                                <select class="form-select form-select-lg" id="unidadMedida"
+                                    [(ngModel)]="model.idUnidadMedida" required
+                                    [ngClass]="{'is-invalid': !model.idUnidadMedida && submitted}"
+                                    [disabled]="!editable">
+                                    <option value="">Seleccionar</option>
+                                    <ng-container *ngFor="let unidad of listas.unidadesMedida">
+                                        <option [value]="unidad.value">{{ unidad.label }} ({{ unidad.abreviatura }})</option>
+                                    </ng-container>
+                                </select>
+                                <div class="invalid-feedback">
+                                    La unidad de medida es requerida
+                                </div>
+                                <small class="text-muted">
+                                    Esta unidad se usará para calcular las cantidades de productos de limpieza
+                                </small>
+                            </div>
+                            <div class="col-sm-12 col-md-6">
+                                <label for="descripcion" class="form-label">Descripción</label>
+                                <textarea class="form-control form-control-lg" id="descripcion"
+                                    [(ngModel)]="model.descripcion"
+                                    [disabled]="!editable"
+                                    rows="3"
+                                    placeholder="Descripción detallada del elemento físico..."></textarea>
+                            </div>
+                        </div>
+
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <div class="alert alert-info" *ngIf="accion === 'crear'">
+                                    <i class="fas fa-info-circle"></i>
+                                    Una vez creado el elemento físico, podrá configurar procesos de limpieza.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 2: Procesos de Limpieza -->
+            <div class="tab-pane fade" id="procesos-limpieza" role="tabpanel" aria-labelledby="procesos-limpieza-tab"
+                *ngIf="accion !== 'crear'">
+
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fas fa-tasks"></i> Procesos de Limpieza
+                            </h5>
+                            <button class="btn btn-success btn-sm" (click)="abrirModalAsignarProcesoLimpieza()"
+                                [disabled]="!editable">
+                                <i class="fas fa-plus"></i> Nuevo Proceso
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info" *ngIf="procesosLimpiezaAsignados.length === 0">
+                            <i class="fas fa-info-circle"></i> No hay procesos de limpieza configurados para este elemento físico
+                        </div>
+
+                        <!-- Acordeón para procesos con múltiples productos -->
+                        <div class="accordion" id="accordionProcesos" *ngIf="procesosLimpiezaAsignados.length > 0">
+                            <div class="accordion-item"
+                                *ngFor="let proceso of procesosLimpiezaAsignados; let i = index">
+                                <h2 class="accordion-header" [id]="'heading' + i">
+                                    <button class="accordion-button collapsed" type="button"
+                                        [attr.data-bs-toggle]="'collapse'" [attr.data-bs-target]="'#collapse' + i"
+                                        [attr.aria-expanded]="'false'" [attr.aria-controls]="'collapse' + i">
+                                        <div class="d-flex justify-content-between w-100 me-3">
+                                            <div>
+                                                <strong>{{ proceso.nombre_proceso }}</strong>
+                                                <span class="ms-2 badge bg-secondary">
+                                                    {{ proceso.productos?.length || 0 }} producto(s)
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </button>
+                                </h2>
+                                <div [id]="'collapse' + i" class="accordion-collapse collapse"
+                                    [attr.aria-labelledby]="'heading' + i" data-bs-parent="#accordionProcesos">
+                                    <div class="accordion-body">
+                                        <!-- Descripción del proceso -->
+                                        <div class="mb-3" *ngIf="proceso.descripcion_proceso">
+                                            <small class="text-muted">{{ proceso.descripcion_proceso }}</small>
+                                        </div>
+
+                                        <!-- Tabla de productos del proceso -->
+                                        <div class="table-responsive"
+                                            *ngIf="proceso.productos && proceso.productos.length > 0">
+                                            <table class="table table-sm">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Producto</th>
+                                                        <th>Concentración</th>
+                                                        <th class="text-center">Cantidad</th>
+                                                        <th>Instrucciones</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr *ngFor="let prod of proceso.productos">
+                                                        <td>
+                                                            <strong>{{ prod.nombre_producto }}</strong>
+                                                        </td>
+                                                        <td>{{ prod.concentracion || '-' }}</td>
+                                                        <td class="text-center">
+                                                            <span class="badge bg-primary">
+                                                                {{ prod.cantidad_sugerida || '-' }} {{
+                                                                prod.unidad_medida || '' }}
+                                                            </span>
+                                                        </td>
+                                                        <td>
+                                                            <small>{{ truncarTexto(prod.instrucciones, 100) }}</small>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+
+                                        <!-- Mensaje si no hay productos -->
+                                        <div class="alert alert-warning"
+                                            *ngIf="!proceso.productos || proceso.productos.length === 0">
+                                            <i class="fas fa-exclamation-triangle"></i>
+                                            Este proceso no tiene productos específicos asignados.
+                                        </div>
+
+                                        <!-- Botones de acción -->
+                                        <div class="mt-3 text-end" *ngIf="editable">
+                                            <button class="btn btn-sm btn-outline-secondary me-2"
+                                                (click)="editarProcesoLimpieza(proceso)">
+                                                <i class="fas fa-edit"></i> Editar
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger"
+                                                (click)="eliminarProcesoLimpieza(proceso)">
+                                                <i class="fas fa-trash"></i> Eliminar
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Resumen de procesos -->
+                        <div class="row mt-4" *ngIf="procesosLimpiezaAsignados.length > 0">
+                            <div class="col-md-12">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6 class="card-title">
+                                            <i class="fas fa-chart-bar"></i> Resumen de Procesos
+                                        </h6>
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <small class="text-muted">Total de Procesos</small>
+                                                <h5 class="text-primary">{{ procesosLimpiezaAsignados.length }}</h5>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <small class="text-muted">Total Productos en Procesos</small>
+                                                <h5 class="text-success">{{ contarTotalProductosEnProcesos() }}</h5>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <small class="text-muted">Productos Únicos</small>
+                                                <h5 class="text-warning">{{ contarProductosDiferentes() }}</h5>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botones de acción -->
+    <div class="container mt-4 mb-5">
+        <div class="row">
+            <div class="col-sm-6" *ngIf="editable">
+                <button class="btn btn-lg btn-warning w-100" (click)="guardarElementoFisico()">
+                    <i class="fas fa-save"></i> Guardar
+                </button>
+            </div>
+            <div class="col-sm-6">
+                <button class="btn btn-lg btn-secondary w-100" (click)="volver()">
+                    <i class="fas fa-arrow-left"></i> Volver
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,21 @@
+<div class="modulo">
+  <app-header 
+    [tituloModulo]="titulo" 
+    [mostrarCrear]="true" 
+    [accion]="'ConsultarTodos'" 
+    [raiz]="'/colaboradores'" 
+    [regresar]="'/gestion-colaboradores'" 
+    [iconoTitulo]="'/assets/images/colaboradores.png'">
+  </app-header>
+  
+  <app-tablas 
+    [titulos]="titulos" 
+    [datos]="datosFiltrados" 
+    [raiz]="'/colaboradores'" 
+    [accionVer]="true" 
+    [accionEditar]="true" 
+    [accionEliminar]="true"
+    [acciones]="acciones"
+    (clicAccion)="accionTabla($event)">
+  </app-tablas>
+</div>

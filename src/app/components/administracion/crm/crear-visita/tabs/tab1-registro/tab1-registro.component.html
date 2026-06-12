@@ -1,0 +1,1077 @@
+<div class="tab1-container">
+
+  <!-- 🎯 BARRA DE PROGRESO GENERAL -->
+  <div class="progress-bar-container">
+    <div class="progress-info">
+      <div class="progress-stats">
+        <span class="progress-icon">📊</span>
+        <span class="progress-text">Progreso general</span>
+        <span class="progress-percentage">{{ calcularProgresoGeneral() }}%</span>
+      </div>
+      <button class="btn-toggle-all" (click)="toggleTodasLasCards()" type="button">
+        <i class="bi" [class.bi-arrows-expand]="!todasExpandidas" [class.bi-arrows-collapse]="todasExpandidas"></i>
+        {{ todasExpandidas ? 'Colapsar todo' : 'Expandir todo' }}
+      </button>
+    </div>
+    <div class="progress-bar-track">
+      <div class="progress-bar-fill" [style.width.%]="calcularProgresoGeneral()"></div>
+    </div>
+  </div>
+
+  <!-- 📦 SISTEMA DE CARDS COLAPSABLES -->
+  <div class="cards-container">
+
+    <!-- CARD 1: INFORMACIÓN DE LA VISITA -->
+    <div class="collapsible-card" [class.expanded]="cardsExpandidas[0]" [class.completed]="esCardCompleta(0)">
+      <div class="card-header" (click)="toggleCard(0)">
+        <div class="card-header-left">
+          <span class="card-icon">📅</span>
+          <h3 class="card-title">INFORMACIÓN DE LA VISITA</h3>
+          <span class="card-badge" [class.badge-complete]="esCardCompleta(0)"
+            [class.badge-progress]="!esCardCompleta(0) && tieneProgreso(0)">
+            {{ esCardCompleta(0) ? '✓ Completo' : (tieneProgreso(0) ? '● En progreso' : '○ Pendiente') }}
+          </span>
+        </div>
+        <div class="card-header-right">
+          <i class="bi" [class.bi-chevron-down]="!cardsExpandidas[0]" [class.bi-chevron-up]="cardsExpandidas[0]"></i>
+        </div>
+      </div>
+
+      <!-- Resumen mini cuando está colapsada -->
+      <div class="card-summary" *ngIf="!cardsExpandidas[0] && tieneProgreso(0)">
+        <span class="summary-item" *ngIf="formVisita.get('fecha')?.value">
+          <i class="bi bi-calendar-check"></i> {{ formVisita.get('fecha')?.value | date:'dd/MM/yyyy' }}
+        </span>
+        <span class="summary-item" *ngIf="formVisita.get('hora')?.value">
+          <i class="bi bi-clock"></i> {{ formVisita.get('hora')?.value }}
+        </span>
+        <span class="summary-item" *ngIf="nombreTipoContacto">
+          <i class="bi bi-person-badge"></i> {{ nombreTipoContacto }}
+        </span>
+        <span class="summary-item" *ngIf="formVisita.get('agendada')?.value">
+          <i class="bi bi-check-circle"></i> Agendada
+        </span>
+      </div>
+
+      <!-- Contenido expandible -->
+      <div class="card-content" [@slideDown]="cardsExpandidas[0] ? 'expanded' : 'collapsed'">
+        <div class="form-section" [formGroup]="formVisita">
+          <div class="row">
+            <div class="col-md-3">
+              <label class="form-label required-field">Fecha</label>
+              <input type="date" class="form-control" formControlName="fecha">
+            </div>
+
+            <div class="col-md-3">
+              <label class="form-label required-field">Hora</label>
+              <input type="time" class="form-control" formControlName="hora">
+            </div>
+
+            <div class="col-md-3">
+              <label class="form-label">¿Agendada?</label>
+              <div class="d-flex gap-3 mt-2">
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" formControlName="agendada" [value]="true">
+                  <label class="form-check-label">Sí</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" formControlName="agendada" [value]="false">
+                  <label class="form-check-label">No</label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="row mt-3">
+            <div class="col-md-6">
+              <label class="form-label required-field">Tipo de contacto</label>
+              <div class="tipo-contacto-grid">
+                <div *ngFor="let tipo of tiposContacto" class="tipo-contacto-card"
+                  [class.selected]="formVisita.get('id_tipo_contacto')?.value === tipo.id"
+                  (click)="!soloLectura && seleccionarTipoContacto(tipo.id)">
+                  <div class="tipo-contacto-icon">{{ tipo.icono }}</div>
+                  <div class="tipo-contacto-nombre">{{ tipo.nombre }}</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label required-field">¿Cómo nos conoció?</label>
+              <select class="form-select" formControlName="id_como_conocio">
+                <option [value]="null">Seleccionar...</option>
+                <option *ngFor="let como of tiposComoConocio" [value]="como.id">
+                  {{ como.nombre }}
+                </option>
+              </select>
+
+              <input *ngIf="mostrarDetalleComoConocio" type="text" class="form-control mt-2"
+                formControlName="detalle_como_conocio" [placeholder]="placeholderDetalleComoConocio">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 2: QUIÉN NOS VISITA -->
+    <div class="collapsible-card" [class.expanded]="cardsExpandidas[1]" [class.completed]="esCardCompleta(1)">
+      <div class="card-header" (click)="toggleCard(1)">
+        <div class="card-header-left">
+          <span class="card-icon">👥</span>
+          <h3 class="card-title">¿QUIÉN NOS VISITA?</h3>
+          <span class="card-badge" [class.badge-complete]="esCardCompleta(1)"
+            [class.badge-progress]="!esCardCompleta(1) && tieneProgreso(1)">
+            {{ esCardCompleta(1) ? '✓ Completo' : (tieneProgreso(1) ? '● En progreso' : '○ Pendiente') }}
+          </span>
+        </div>
+        <div class="card-header-right">
+          <i class="bi" [class.bi-chevron-down]="!cardsExpandidas[1]" [class.bi-chevron-up]="cardsExpandidas[1]"></i>
+        </div>
+      </div>
+
+      <!-- Resumen mini cuando está colapsada -->
+      <div class="card-summary" *ngIf="!cardsExpandidas[1] && visitantes.length > 0">
+        <span class="summary-item">
+          <i class="bi bi-people-fill"></i> {{ visitantes.length }} visitante{{ visitantes.length !== 1 ? 's' : '' }}
+        </span>
+        <span class="summary-item" *ngIf="obtenerContactoPrincipal()">
+          <i class="bi bi-star-fill"></i> {{ obtenerNombreCompleto(obtenerContactoPrincipal()!) }}
+        </span>
+        <span class="summary-item" *ngIf="contarPerfilesDiscCalculados() > 0">
+          <i class="bi bi-graph-up"></i> {{ contarPerfilesDiscCalculados() }} perfil{{ contarPerfilesDiscCalculados()
+          !== 1 ? 'es' : '' }} DISC
+        </span>
+      </div>
+
+      <!-- Contenido expandible -->
+      <div class="card-content" [@slideDown]="cardsExpandidas[1] ? 'expanded' : 'collapsed'">
+        <div class="form-section">
+
+          <div class="alert alert-info mb-3" role="alert">
+            <strong>📌 Si ningún padre asistió:</strong> Por favor registre los datos completos de mamá y papá en la
+            lista de
+            visitantes, incluyendo su información de contacto.
+          </div>
+
+          <!-- Formulario para agregar visitante -->
+          <div class="row g-3 mb-3" [formGroup]="formContactoPrincipal">
+
+            <div class="col-md-3">
+              <label class="form-label required-field">Primer nombre</label>
+              <input type="text" class="form-control" formControlName="primer_nombre" placeholder="Ej: María">
+            </div>
+
+            <div class="col-md-3">
+              <label class="form-label">Segundo nombre</label>
+              <input type="text" class="form-control" formControlName="segundo_nombre" placeholder="Opcional">
+            </div>
+
+            <div class="col-md-3">
+              <label class="form-label">Primer apellido</label>
+              <input type="text" class="form-control" formControlName="primer_apellido" placeholder="Ej: González">
+            </div>
+
+            <div class="col-md-3">
+              <label class="form-label">Segundo apellido</label>
+              <input type="text" class="form-control" formControlName="segundo_apellido" placeholder="Opcional">
+            </div>
+
+            <div class="col-md-3">
+              <label class="form-label">Tipo de identificación</label>
+              <select class="form-select" formControlName="id_tipo_identificacion">
+                <option [value]="null">Seleccionar...</option>
+                <option *ngFor="let tipo of tiposIdentificacion" [value]="tipo.id">
+                  {{ tipo.nombre }}
+                </option>
+              </select>
+            </div>
+
+            <div class="col-md-3">
+              <label class="form-label">Número de identificación</label>
+              <input type="text" class="form-control" formControlName="numero_identificacion" placeholder="1234567890">
+            </div>
+
+            <div class="col-md-2">
+              <label class="form-label">Género</label>
+              <select class="form-select" formControlName="id_genero">
+                <option [value]="null">Seleccionar...</option>
+                <option *ngFor="let genero of generos" [value]="genero.id">
+                  {{ genero.nombre }}
+                </option>
+              </select>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label">Ciudad</label>
+              <select class="form-select" formControlName="id_ciudad">
+                <option [value]="null">Seleccionar...</option>
+                <option *ngFor="let ciudad of ciudades" [value]="ciudad.id">
+                  {{ ciudad.nombre }} - {{ ciudad.nombre_departamento }}
+                </option>
+              </select>
+            </div>
+
+            <div class="col-md-3">
+              <label class="form-label">Teléfono</label>
+              <input type="tel" class="form-control" formControlName="telefono" placeholder="3001234567">
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label">Email</label>
+              <input type="email" class="form-control" formControlName="email" placeholder="ejemplo@correo.com">
+            </div>
+
+            <div class="col-md-2">
+              <label class="form-label">¿Asistió?</label>
+              <div class="form-check mt-2">
+                <input class="form-check-input" type="checkbox" formControlName="asistio" id="asistio_nuevo">
+                <label class="form-check-label" for="asistio_nuevo">Sí</label>
+              </div>
+            </div>
+
+            <div class="col-md-3 d-flex align-items-end">
+              <button *ngIf="!soloLectura" class="btn btn-primary w-100" (click)="agregarVisitante()" type="button">
+                <i class="bi bi-plus-circle"></i> Agregar
+              </button>
+            </div>
+          </div>
+
+          <!-- Lista de visitantes registrados -->
+          <div class="visitantes-lista" *ngIf="visitantes.length > 0">
+            <h6 class="mb-3 fw-bold">Visitantes registrados</h6>
+
+            <div *ngFor="let visitante of visitantes; let i = index" class="visitante-card">
+
+              <div class="visitante-header">
+                <div class="visitante-info">
+                  <div class="d-flex align-items-center gap-2 mb-2">
+                    <h6 class="mb-0">{{ obtenerNombreCompleto(visitante) }}</h6>
+
+                    <span *ngIf="visitante.es_contacto_principal" class="badge bg-success">
+                      Contacto Principal
+                    </span>
+
+                    <span *ngIf="!visitante.asistio" class="badge bg-warning text-dark">
+                      No asistió
+                    </span>
+                  </div>
+
+                  <!-- Datos editables -->
+                  <div class="row g-2 mb-3">
+                    <div class="col-md-3">
+                      <label class="form-label small">Primer nombre *</label>
+                      <input type="text" class="form-control form-control-sm" [(ngModel)]="visitante.primer_nombre"
+                        [ngModelOptions]="{standalone: true}" (ngModelChange)="emitirCambios()"
+                        [readonly]="soloLectura">
+                    </div>
+
+                    <div class="col-md-3">
+                      <label class="form-label small">Segundo nombre</label>
+                      <input type="text" class="form-control form-control-sm" [(ngModel)]="visitante.segundo_nombre"
+                        [ngModelOptions]="{standalone: true}" (ngModelChange)="emitirCambios()"
+                        [readonly]="soloLectura">
+                    </div>
+
+                    <div class="col-md-3">
+                      <label class="form-label small">Primer apellido</label>
+                      <input type="text" class="form-control form-control-sm" [(ngModel)]="visitante.primer_apellido"
+                        [ngModelOptions]="{standalone: true}" (ngModelChange)="emitirCambios()"
+                        [readonly]="soloLectura">
+                    </div>
+
+                    <div class="col-md-3">
+                      <label class="form-label small">Segundo apellido</label>
+                      <input type="text" class="form-control form-control-sm" [(ngModel)]="visitante.segundo_apellido"
+                        [ngModelOptions]="{standalone: true}" (ngModelChange)="emitirCambios()"
+                        [readonly]="soloLectura">
+                    </div>
+
+                    <div class="col-md-3">
+                      <label class="form-label small">Tipo de identificación </label>
+                      <select class="form-select form-select-sm" [(ngModel)]="visitante.id_tipo_identificacion"
+                        [ngModelOptions]="{standalone: true}" (ngModelChange)="emitirCambios()"
+                        [disabled]="soloLectura">
+                        <option [value]="null">Ninguno</option>
+                        <option *ngFor="let tipo of tiposIdentificacion" [value]="tipo.id">
+                          {{ tipo.nombre }}
+                        </option>
+                      </select>
+                    </div>
+
+                    <div class="col-md-3">
+                      <label class="form-label small">Número de identificación</label>
+                      <input type="text" class="form-control form-control-sm"
+                        [(ngModel)]="visitante.numero_identificacion" [ngModelOptions]="{standalone: true}"
+                        (ngModelChange)="emitirCambios()" [readonly]="soloLectura">
+                    </div>
+
+                    <div class="col-md-2">
+                      <label class="form-label small">Género</label>
+                      <select class="form-select form-select-sm" [(ngModel)]="visitante.id_genero"
+                        [ngModelOptions]="{standalone: true}" (ngModelChange)="emitirCambios()"
+                        [disabled]="soloLectura">
+                        <option [value]="null">Ninguno</option>
+                        <option *ngFor="let genero of generos" [value]="genero.id">
+                          {{ genero.nombre }}
+                        </option>
+                      </select>
+                    </div>
+
+                    <div class="col-md-4">
+                      <label class="form-label small">Ciudad</label>
+                      <select class="form-select form-select-sm" [(ngModel)]="visitante.id_ciudad"
+                        [ngModelOptions]="{standalone: true}" (ngModelChange)="emitirCambios()"
+                        [disabled]="soloLectura">
+                        <option [value]="null">Ninguna</option>
+                        <option *ngFor="let ciudad of ciudades" [value]="ciudad.id">
+                          {{ ciudad.nombre }}
+                        </option>
+                      </select>
+                    </div>
+
+                    <div class="col-md-3">
+                      <label class="form-label small">Teléfono</label>
+                      <input type="tel" class="form-control form-control-sm" [(ngModel)]="visitante.telefono"
+                        [ngModelOptions]="{standalone: true}" (ngModelChange)="emitirCambios()"
+                        [readonly]="soloLectura">
+                    </div>
+
+                    <div class="col-md-4">
+                      <label class="form-label small">Email</label>
+                      <input type="email" class="form-control form-control-sm" [(ngModel)]="visitante.email"
+                        [ngModelOptions]="{standalone: true}" (ngModelChange)="emitirCambios()"
+                        [readonly]="soloLectura">
+                    </div>
+
+                    <div class="col-md-2">
+                      <label class="form-label small">¿Asistió?</label>
+                      <div class="form-check mt-1">
+                        <input class="form-check-input" type="checkbox" [(ngModel)]="visitante.asistio"
+                          [ngModelOptions]="{standalone: true}" (ngModelChange)="emitirCambios()" [id]="'asistio_' + i"
+                          [disabled]="soloLectura">
+                        <label class="form-check-label small" [for]="'asistio_' + i">Sí</label>
+                      </div>
+                    </div>
+
+                    <div class="col-md-3 d-flex align-items-end">
+                      <div class="form-check">
+                        <input class="form-check-input" type="checkbox" [(ngModel)]="visitante.es_contacto_principal"
+                          [ngModelOptions]="{standalone: true}" (ngModelChange)="marcarComoContactoPrincipal(i)"
+                          [id]="'principal_' + i" [disabled]="soloLectura">
+                        <label class="form-check-label small" [for]="'principal_' + i">
+                          Contacto Principal
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div *ngIf="!mostrarDatosContacto(visitante)" class="text-danger small mb-2">
+                    <i class="bi bi-exclamation-circle-fill"></i> Sin datos de contacto
+                  </div>
+                </div>
+
+                <div class="visitante-actions">
+
+                  <label *ngIf="!soloLectura" class="btn-eliminar-visitante" (click)="eliminarVisitante(i)"
+                    title="Eliminar visitante">
+                    <i class="fas fa-trash-alt"></i>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Grid de parentesco -->
+              <div class="row mt-3">
+                <div class="col-md-12">
+                  <label class="form-label small fw-bold">Parentesco</label>
+                  <div class="parentesco-grid">
+                    <div *ngFor="let parentesco of tiposParentesco" class="form-check">
+                      <input class="form-check-input" type="radio" [name]="'parentesco_' + i"
+                        [id]="'parentesco_' + i + '_' + parentesco.id" [value]="parentesco.id"
+                        [checked]="visitante.id_parentesco === parentesco.id"
+                        (change)="actualizarParentesco(i, parentesco.id)" [disabled]="soloLectura">
+                      <label class="form-check-label" [for]="'parentesco_' + i + '_' + parentesco.id">
+                        {{ parentesco.icono }} {{ parentesco.nombre }}
+                      </label>
+                    </div>
+                  </div>
+
+                  <div *ngIf="tieneOtroParentesco(i)" class="mt-2">
+                    <input type="text" class="form-control form-control-sm" [(ngModel)]="visitante.parentesco_otro"
+                      [ngModelOptions]="{standalone: true}" (ngModelChange)="emitirCambios()"
+                      placeholder="Especificar parentesco" [readonly]="soloLectura">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Perfil DISC -->
+              <div class="row mt-3">
+                <div class="col-md-12">
+                  <label class="form-label small fw-bold">Perfil DISC calculado</label>
+                  <div class="d-flex align-items-center gap-3 flex-wrap">
+                    <span class="perfil-disc-badge" [class.perfil-D]="visitante.perfil_disc_calculado === 'D'"
+                      [class.perfil-I]="visitante.perfil_disc_calculado === 'I'"
+                      [class.perfil-S]="visitante.perfil_disc_calculado === 'S'"
+                      [class.perfil-C]="visitante.perfil_disc_calculado === 'C'"
+                      [class.perfil-none]="!visitante.perfil_disc_calculado">
+                      {{ visitante.perfil_disc_calculado ? obtenerNombrePerfilDisc(visitante.perfil_disc_calculado) : '❓
+                      Sin
+                      calcular' }}
+                    </span>
+
+                    <div *ngIf="visitante.perfil_disc_calculado" class="puntajes-disc">
+                      <span class="puntaje-badge puntaje-D">D: {{ obtenerPuntajesDisc(i).D }}</span>
+                      <span class="puntaje-badge puntaje-I">I: {{ obtenerPuntajesDisc(i).I }}</span>
+                      <span class="puntaje-badge puntaje-S">S: {{ obtenerPuntajesDisc(i).S }}</span>
+                      <span class="puntaje-badge puntaje-C">C: {{ obtenerPuntajesDisc(i).C }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Botón para registrar observaciones DISC -->
+              <div class="mt-3">
+                <button *ngIf="!soloLectura" class="btn btn-outline-dark btn-sm" type="button"
+                  (click)="toggleObservacionesDisc(i)">
+                  <i class="bi bi-clipboard-data"></i>
+                  {{ observacionesDiscExpandido === i ? 'Ocultar' : 'Registrar' }} observaciones DISC
+                </button>
+              </div>
+
+              <!-- Panel de observaciones DISC -->
+              <div *ngIf="observacionesDiscExpandido === i" class="disc-observaciones-container mt-3">
+
+                <div *ngFor="let categoria of categoriasDisc; let catIndex = index" class="disc-categoria"
+                  [class.mt-3]="catIndex > 0">
+                  <h6 class="disc-categoria-titulo">{{ categoria.nombre }}</h6>
+                  <div class="row">
+                    <div *ngFor="let param of categoria.parametros" class="col-md-6 mb-2">
+                      <div class="form-check">
+                        <input class="form-check-input" type="checkbox"
+                          [id]="'disc_' + categoria.codigo + '_' + i + '_' + param.id"
+                          [checked]="esObservacionMarcada(i, categoria.codigo, param.id)"
+                          (change)="toggleObservacionDisc(i, categoria.codigo, param.id)" [disabled]="soloLectura">
+                        <label class="form-check-label" [for]="'disc_' + categoria.codigo + '_' + i + '_' + param.id">
+                          {{ param.descripcion }}
+                          <span class="badge-perfil ms-1" [class.badge-D]="param.perfil_asociado === 'D'"
+                            [class.badge-I]="param.perfil_asociado === 'I'"
+                            [class.badge-S]="param.perfil_asociado === 'S'"
+                            [class.badge-C]="param.perfil_asociado === 'C'">
+                            {{ param.perfil_asociado }}
+                          </span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Mensaje cuando no hay visitantes -->
+          <div *ngIf="visitantes.length === 0" class="alert alert-warning">
+            <i class="bi bi-info-circle-fill"></i>
+            <strong>No hay visitantes registrados.</strong> Agregue al menos un visitante para continuar.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 3: DATOS DEL NIÑO(S) -->
+    <div class="collapsible-card" [class.expanded]="cardsExpandidas[2]" [class.completed]="esCardCompleta(2)">
+      <div class="card-header" (click)="toggleCard(2)">
+        <div class="card-header-left">
+          <span class="card-icon">👶</span>
+          <h3 class="card-title">DATOS DEL NIÑO(S)</h3>
+          <span class="card-badge" [class.badge-complete]="esCardCompleta(2)"
+            [class.badge-progress]="!esCardCompleta(2) && tieneProgreso(2)">
+            {{ esCardCompleta(2) ? '✓ Completo' : (tieneProgreso(2) ? '● En progreso' : '○ Pendiente') }}
+          </span>
+        </div>
+        <div class="card-header-right">
+          <i class="bi" [class.bi-chevron-down]="!cardsExpandidas[2]" [class.bi-chevron-up]="cardsExpandidas[2]"></i>
+        </div>
+      </div>
+
+      <!-- Resumen mini -->
+      <div class="card-summary" *ngIf="!cardsExpandidas[2] && ninos.length > 0">
+        <span class="summary-item">
+          <i class="bi bi-emoji-smile"></i> {{ ninos.length }} niño{{ ninos.length !== 1 ? 's' : '' }}
+        </span>
+        <span class="summary-item" *ngIf="ninos[0]?.nombre_nino">
+          {{ ninos[0].nombre_nino }}{{ calcularEdad(ninos[0].fecha_nacimiento) ? ' (' +
+          calcularEdad(ninos[0].fecha_nacimiento) + ' años)' : '' }}
+        </span>
+        <span class="summary-item" *ngIf="ninos.length > 1">
+          + {{ ninos.length - 1 }} más
+        </span>
+      </div>
+
+      <!-- Contenido expandible -->
+      <div class="card-content" [@slideDown]="cardsExpandidas[2] ? 'expanded' : 'collapsed'">
+        <div class="form-section">
+          <button class="btn btn-primary mb-3" (click)="agregarNino()" type="button" *ngIf="!soloLectura">
+            <i class="bi bi-plus-circle"></i> Agregar Niño
+          </button>
+
+          <div *ngFor="let nino of ninos; let i = index" class="nino-card">
+            <div class="nino-header">
+              <h6><i class="bi bi-emoji-smile"></i> Niño {{ i + 1 }}</h6>
+              <label *ngIf="!soloLectura" class="btn-eliminar-nino" (click)="eliminarNino(i)" title="Eliminar niño">
+                <i class="fas fa-trash-alt"></i>
+              </label>
+            </div>
+
+            <!-- INFORMACIÓN BÁSICA -->
+            <div class="subsection-title">Información básica</div>
+            <div class="row">
+              <div class="col-md-4">
+                <label class="form-label required-field">Nombre del niño</label>
+                <input type="text" class="form-control" [value]="nino.nombre_nino"
+                  (input)="actualizarNino(i, 'nombre_nino', $any($event.target).value)" placeholder="Ej: Sofía García"
+                  [readonly]="soloLectura">
+              </div>
+
+              <div class="col-md-3">
+                <label class="form-label required-field">Fecha de nacimiento</label>
+                <input type="date" class="form-control" [value]="nino.fecha_nacimiento"
+                  (input)="actualizarNino(i, 'fecha_nacimiento', $any($event.target).value)" [readonly]="soloLectura">
+                <small class="text-muted" *ngIf="calcularEdad(nino.fecha_nacimiento)">
+                  {{ calcularEdad(nino.fecha_nacimiento) }} años
+                </small>
+              </div>
+
+              <div class="col-md-2">
+                <label class="form-label">Género</label>
+                <select class="form-select" [(ngModel)]="nino.id_genero"
+                  (ngModelChange)="actualizarNino(i, 'id_genero', $event)" [disabled]="soloLectura">
+                  <option [ngValue]="null">Seleccionar...</option>
+                  <option *ngFor="let genero of generos" [ngValue]="genero.id">
+                    {{ genero.nombre }}
+                  </option>
+                </select>
+              </div>
+
+              <div class="col-md-3">
+                <label class="form-label">Nivel/Grupo de interés</label>
+                <select class="form-select" [(ngModel)]="nino.id_grupo"
+                  (ngModelChange)="actualizarNino(i, 'id_grupo', $event)" [disabled]="soloLectura">
+                  <option [ngValue]="null">Seleccionar...</option>
+                  <option *ngFor="let grupo of grupos" [ngValue]="grupo.id">
+                    {{ grupo.nombre }}
+                  </option>
+                </select>
+              </div>
+            </div>
+
+            <!-- DATO SIGNIFICATIVO -->
+            <div class="row mt-3">
+              <div class="col-md-12">
+                <label class="form-label">💫 Dato significativo</label>
+                <input type="text" class="form-control" [value]="nino.dato_significativo"
+                  (input)="actualizarNino(i, 'dato_significativo', $any($event.target).value)"
+                  placeholder="Ej: Su mascota es un perro llamado Max, le encantan los dinosaurios, su comida favorita es la pizza..."
+                  [readonly]="soloLectura">
+                <small class="text-muted">Algo especial del niño que nos ayude a conectar con él/ella</small>
+              </div>
+            </div>
+
+            <!-- HERMANOS EN EL JARDÍN -->
+            <div class="row mt-3">
+              <div class="col-md-3">
+                <label class="form-label">¿Tiene hermanos en el jardín?</label>
+                <div class="d-flex gap-3 mt-2">
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio" [name]="'hermanos_' + i"
+                      [checked]="nino.tiene_hermanos_en_jardin == true || nino.tiene_hermanos_en_jardin == 1"
+                      (change)="actualizarNino(i, 'tiene_hermanos_en_jardin', true)" [disabled]="soloLectura">
+                    <label class="form-check-label">Sí</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio" [name]="'hermanos_' + i"
+                      [checked]="nino.tiene_hermanos_en_jardin == false || nino.tiene_hermanos_en_jardin == 0"
+                      (change)="actualizarNino(i, 'tiene_hermanos_en_jardin', false)" [disabled]="soloLectura">
+                    <label class="form-check-label">No</label>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-md-9" *ngIf="nino.tiene_hermanos_en_jardin == true || nino.tiene_hermanos_en_jardin == 1">
+                <label class="form-label">Nombres de los hermanos</label>
+                <input type="text" class="form-control" [value]="nino.nombre_hermanos_en_jardin"
+                  (input)="actualizarNino(i, 'nombre_hermanos_en_jardin', $any($event.target).value)"
+                  placeholder="Ej: Juan García (Grupo Genius), María García (Grupo Talents)" [readonly]="soloLectura">
+              </div>
+            </div>
+
+            <!-- ESCOLARIZACIÓN PREVIA -->
+            <div class="subsection-title mt-4">Escolarización previa</div>
+            <div class="row">
+              <div class="col-md-3">
+                <label class="form-label">¿Escolarizado antes?</label>
+                <div class="d-flex gap-3 mt-2">
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio" [name]="'escolarizado_' + i"
+                      [checked]="nino.ha_estado_escolarizado == true || nino.ha_estado_escolarizado == 1"
+                      (change)="actualizarNino(i, 'ha_estado_escolarizado', true)" [disabled]="soloLectura">
+                    <label class="form-check-label">Sí</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio" [name]="'escolarizado_' + i"
+                      [checked]="nino.ha_estado_escolarizado == false || nino.ha_estado_escolarizado == 0"
+                      (change)="actualizarNino(i, 'ha_estado_escolarizado', false)" [disabled]="soloLectura">
+                    <label class="form-check-label">No</label>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-md-9" *ngIf="nino.ha_estado_escolarizado == true || nino.ha_estado_escolarizado == 1">
+                <label class="form-label">¿Dónde estuvo?</label>
+                <input type="text" class="form-control" [value]="nino.donde_estuvo"
+                  (input)="actualizarNino(i, 'donde_estuvo', $any($event.target).value)"
+                  placeholder="Nombre del jardín o institución anterior" [readonly]="soloLectura">
+              </div>
+            </div>
+
+            <!-- NECESIDADES ESPECIALES -->
+            <div class="subsection-title mt-4">Necesidades especiales</div>
+            <div class="alert alert-info mb-3" role="alert">
+              <i class="bi bi-info-circle"></i>
+              <strong>Seleccione todas las que apliquen.</strong> Esto nos ayudará a brindar la mejor atención al niño.
+            </div>
+
+            <div class="necesidades-grid">
+              <div *ngFor="let necesidad of tiposNecesidadesEspeciales" class="necesidad-item">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" [id]="'necesidad_' + i + '_' + necesidad.id"
+                    [checked]="esNecesidadSeleccionada(i, necesidad.id)" (change)="toggleNecesidadNino(i, necesidad.id)"
+                    [disabled]="soloLectura">
+                  <label class="form-check-label" [for]="'necesidad_' + i + '_' + necesidad.id">
+                    {{ necesidad.icono }} {{ necesidad.nombre }}
+                  </label>
+                </div>
+
+                <!-- Campo de detalle si la necesidad está seleccionada -->
+                <div *ngIf="esNecesidadSeleccionada(i, necesidad.id)" class="mt-2">
+                  <input type="text" class="form-control form-control-sm"
+                    [value]="obtenerDetalleNecesidad(i, necesidad.id)"
+                    (input)="actualizarDetalleNecesidad(i, necesidad.id, $any($event.target).value)"
+                    placeholder="Especifique detalles..." [readonly]="soloLectura">
+                </div>
+              </div>
+            </div>
+
+            <!-- Si no hay necesidades -->
+            <div *ngIf="!nino.necesidades || nino.necesidades.length === 0" class="alert alert-success mt-3">
+              <i class="bi bi-check-circle"></i> Sin necesidades especiales registradas
+            </div>
+
+            <!-- RAZONES DE BÚSQUEDA -->
+            <div class="subsection-title mt-4">¿Por qué buscan jardín / quieren cambiar?</div>
+            <div class="row">
+              <div *ngFor="let razon of tiposRazonesBusqueda" class="col-md-4 mb-2">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" [id]="'razon_' + razon.id"
+                    [checked]="esRazonSeleccionada(razon.id)" (change)="toggleRazonBusqueda(razon.id)"
+                    [disabled]="soloLectura">
+                  <label class="form-check-label" [for]="'razon_' + razon.id">
+                    {{ razon.nombre }}
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="row mt-3" [formGroup]="formVisita">
+              <div class="col-md-12">
+                <label class="form-label">Comentarios adicionales</label>
+                <textarea class="form-control" rows="3" formControlName="comentarios_razones"
+                  placeholder="Detalles importantes sobre la situación o necesidades específicas..."></textarea>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Mensaje cuando no hay niños -->
+          <div *ngIf="ninos.length === 0" class="alert alert-warning">
+            <i class="bi bi-info-circle-fill"></i>
+            <strong>No hay niños registrados.</strong> Agregue al menos un niño para continuar.
+          </div>
+
+        </div>
+      </div>
+    </div>
+    <!-- CARD 4: TEMPERATURA DEL PROSPECTO -->
+    <div class="collapsible-card" [class.expanded]="cardsExpandidas[3]" [class.completed]="esCardCompleta(3)">
+      <div class="card-header" (click)="toggleCard(3)">
+        <div class="card-header-left">
+          <span class="card-icon">🌡️</span>
+          <h3 class="card-title">TEMPERATURA DEL PROSPECTO</h3>
+          <span class="card-badge" [class.badge-complete]="esCardCompleta(3)"
+            [class.badge-progress]="!esCardCompleta(3) && tieneProgreso(3)">
+            {{ esCardCompleta(3) ? '✓ Completo' : (tieneProgreso(3) ? '● En progreso' : '○ Pendiente') }}
+          </span>
+        </div>
+        <div class="card-header-right">
+          <i class="bi" [class.bi-chevron-down]="!cardsExpandidas[3]" [class.bi-chevron-up]="cardsExpandidas[3]"></i>
+        </div>
+      </div>
+
+      <!-- Resumen mini -->
+      <div class="card-summary" *ngIf="!cardsExpandidas[3] && tieneProgreso(3)">
+        <span class="summary-item" *ngIf="obtenerNombreNivelInteres()">
+          <i class="bi bi-thermometer-half"></i> {{ obtenerNombreNivelInteres() }}
+        </span>
+        <span class="summary-item" *ngIf="obtenerNombreUrgencia()">
+          <i class="bi bi-clock-history"></i> {{ obtenerNombreUrgencia() }}
+        </span>
+        <span class="summary-item" *ngIf="formVisita.get('pregunto_costos')?.value">
+          <i class="bi bi-currency-dollar"></i> Preguntó por costos
+        </span>
+      </div>
+
+
+      <!-- Contenido expandible -->
+      <div class="card-content" [@slideDown]="cardsExpandidas[3] ? 'expanded' : 'collapsed'">
+        <div class="form-section" [formGroup]="formVisita">
+          <div class="subsection-title">Nivel de interés</div>
+
+          <div class="temperatura-grid">
+            <div *ngFor="let nivel of tiposNivelInteres" class="temperatura-card"
+              [class.selected]="formVisita.get('id_nivel_interes')?.value === nivel.id"
+              (click)="!soloLectura && seleccionarNivelInteres(nivel.id)">
+              <div class="temperatura-icon">{{ nivel.icono }}</div>
+              <h6>{{ nivel.nombre }}</h6>
+            </div>
+          </div>
+
+          <div class="row mt-4">
+            <div class="col-md-6">
+              <label class="form-label">Urgencia - ¿Para cuándo necesitan?</label>
+              <select class="form-select" formControlName="id_urgencia">
+                <option [value]="null">Seleccionar...</option>
+                <option *ngFor="let urgencia of tiposUrgencia" [value]="urgencia.id">
+                  {{ urgencia.nombre }}
+                </option>
+              </select>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">¿Pidió descuento?</label>
+              <div class="d-flex gap-3 mt-2">
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" formControlName="pidio_descuento" [value]="true">
+                  <label class="form-check-label">Sí</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" formControlName="pidio_descuento" [value]="false">
+                  <label class="form-check-label">No</label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="row mt-3">
+            <div class="col-md-6">
+              <label class="form-label">¿Visitó las instalaciones completas?</label>
+              <div class="d-flex gap-3 mt-2">
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" formControlName="visito_instalaciones_completas"
+                    [value]="true">
+                  <label class="form-check-label">Sí</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" formControlName="visito_instalaciones_completas"
+                    [value]="false">
+                  <label class="form-check-label">No</label>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">¿Preguntó por proceso de matrícula?</label>
+              <div class="d-flex gap-3 mt-2">
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" formControlName="pregunto_por_matricula" [value]="true">
+                  <label class="form-check-label">Sí</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" formControlName="pregunto_por_matricula" [value]="false">
+                  <label class="form-check-label">No</label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 5: Seguimiento y Toma de Decisión -->
+    <div class="collapsible-card" [class.expanded]="cardsExpandidas[4]" [class.completed]="esCardCompleta(4)">
+      <div class="card-header" (click)="toggleCard(4)">
+        <div class="card-header-left">
+          <span class="card-icon">📅</span>
+          <h3 class="card-title">SEGUIMIENTO Y TOMA DE DECISIÓN</h3>
+          <span class="card-badge" [class.badge-complete]="esCardCompleta(4)"
+            [class.badge-progress]="!esCardCompleta(4) && tieneProgreso(4)">
+            {{ esCardCompleta(4) ? '✓ Completo' : (tieneProgreso(4) ? '● En progreso' : '○ Pendiente') }}
+          </span>
+        </div>
+        <div class="card-header-right">
+          <i class="bi" [class.bi-chevron-down]="!cardsExpandidas[4]" [class.bi-chevron-up]="cardsExpandidas[4]"></i>
+        </div>
+      </div>
+
+      <!-- Resumen mini -->
+      <div class="card-summary" *ngIf="!cardsExpandidas[4] && tieneProgreso(4)">
+        <span class="summary-item" *ngIf="formVisita.get('id_cuando_seguimiento')?.value">
+          <i class="bi bi-calendar-check"></i> Seguimiento programado
+        </span>
+        <span class="summary-item" *ngIf="formVisita.get('fecha_seguimiento_calculada')?.value">
+          <i class="bi bi-calendar-event"></i> {{ formVisita.get('fecha_seguimiento_calculada')?.value |
+          date:'dd/MM/yyyy' }}
+        </span>
+        <span class="summary-item" *ngIf="obtenerNombreQuienDecide()">
+          <i class="bi bi-person-check"></i> {{ obtenerNombreQuienDecide() }}
+        </span>
+      </div>
+
+      <!-- Contenido expandible -->
+      <div class="card-content" [@slideDown]="cardsExpandidas[4] ? 'expanded' : 'collapsed'">
+        <div class="form-section" [formGroup]="formVisita">
+
+          <!-- Sección: ¿Cuándo hacer seguimiento? -->
+          <div class="row">
+            <div class="col-md-6">
+              <label class="form-label">¿Cuándo podemos hacer seguimiento?</label>
+              <select class="form-select" formControlName="id_cuando_seguimiento" (change)="calcularFechaSeguimiento()">
+                <option [value]="null">Seleccionar...</option>
+                <option *ngFor="let cuando of tiposCuandoSeguimiento" [value]="cuando.id">
+                  {{ cuando.nombre }}
+                </option>
+              </select>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">
+                <i class="bi bi-calendar-event"></i> Fecha de seguimiento sugerida
+              </label>
+              <input type="date" class="form-control" formControlName="fecha_seguimiento_calculada">
+              <small class="text-muted">
+                <i class="bi bi-info-circle"></i> Se calcula automáticamente, pero puedes modificarla
+              </small>
+            </div>
+          </div>
+
+          <!-- Sección: Mejor horario para contactar -->
+          <div class="row mt-3">
+            <div class="col-12">
+              <label class="form-label">Mejor horario para contactar</label>
+              <div class="horarios-grid">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" formControlName="horario_manana" id="horario_manana">
+                  <label class="form-check-label" for="horario_manana">
+                    🌅 Mañana (8am - 12pm)
+                  </label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" formControlName="horario_tarde" id="horario_tarde">
+                  <label class="form-check-label" for="horario_tarde">
+                    ☀️ Tarde (12pm - 6pm)
+                  </label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" formControlName="horario_noche" id="horario_noche">
+                  <label class="form-check-label" for="horario_noche">
+                    🌙 Noche (6pm - 9pm)
+                  </label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" formControlName="horario_cualquiera"
+                    id="horario_cualquiera">
+                  <label class="form-check-label" for="horario_cualquiera">
+                    ⏰ Cualquier horario
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Campo de texto adicional para detalles de horario -->
+          <div class="row mt-3">
+            <div class="col-12">
+              <label class="form-label">Detalles adicionales de horario</label>
+              <input type="text" class="form-control" formControlName="mejor_horario_contacto"
+                placeholder="Ej: Llamar después de las 3pm, evitar miércoles, etc.">
+            </div>
+          </div>
+
+          <!-- Sección: Toma de decisión -->
+          <div class="subsection-title mt-4">Toma de Decisión</div>
+
+          <div class="row">
+            <div class="col-md-6">
+              <label class="form-label">¿Quién toma la decisión final?</label>
+              <select class="form-select" formControlName="id_quien_decide">
+                <option [value]="null">Seleccionar...</option>
+                <option *ngFor="let quien of tiposQuienDecide" [value]="quien.id">
+                  {{ quien.nombre }}
+                </option>
+              </select>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">¿Necesitan consultarlo con alguien más?</label>
+              <div class="d-flex gap-3 mt-2">
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" formControlName="necesita_consultar" [value]="true">
+                  <label class="form-check-label">Sí</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" formControlName="necesita_consultar" [value]="false">
+                  <label class="form-check-label">No</label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Campo condicional: ¿Con quién deben consultar? -->
+          <div class="row mt-3" *ngIf="formVisita.get('necesita_consultar')?.value === true">
+            <div class="col-12">
+              <label class="form-label">¿Con quién deben consultar?</label>
+              <input type="text" class="form-control" formControlName="con_quien_consultar"
+                placeholder="Ej: Esposo, mamá, socios, etc.">
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 6: COMPROMISOS ADQUIRIDOS -->
+    <div class="collapsible-card" [class.expanded]="cardsExpandidas[5]" [class.completed]="esCardCompleta(5)">
+      <div class="card-header" (click)="toggleCard(5)">
+        <div class="card-header-left">
+          <span class="card-icon">✅</span>
+          <h3 class="card-title">COMPROMISOS ADQUIRIDOS POR EL JARDÍN</h3>
+          <span class="card-badge" [class.badge-complete]="esCardCompleta(5)"
+            [class.badge-progress]="!esCardCompleta(5) && tieneProgreso(5)">
+            {{ esCardCompleta(5) ? '✓ Completo' : (tieneProgreso(5) ? '● En progreso' : '○ Pendiente') }}
+          </span>
+        </div>
+        <div class="card-header-right">
+          <i class="bi" [class.bi-chevron-down]="!cardsExpandidas[5]" [class.bi-chevron-up]="cardsExpandidas[5]"></i>
+        </div>
+      </div>
+
+      <!-- Resumen mini -->
+      <div class="card-summary" *ngIf="!cardsExpandidas[5] && compromisos.length > 0">
+        <span class="summary-item">
+          <i class="bi bi-check2-square"></i> {{ compromisos.length }} compromiso{{ compromisos.length !== 1 ? 's' : ''
+          }}
+        </span>
+        <span class="summary-item" *ngIf="compromisos[0]?.fecha_compromiso">
+          <i class="bi bi-calendar-event"></i> {{ compromisos[0].fecha_compromiso | date:'dd/MM/yyyy' }}
+        </span>
+      </div>
+
+      <!-- Contenido expandible -->
+      <div class="card-content" [@slideDown]="cardsExpandidas[5] ? 'expanded' : 'collapsed'">
+        <div class="form-section">
+          <div class="alert alert-info" role="alert">
+            <strong>📌 Importante:</strong> Registre TODOS los compromisos que usted hizo durante la visita
+          </div>
+
+          <!-- Grid de checkboxes para seleccionar compromisos -->
+          <div class="compromisos-grid">
+            <div *ngFor="let compromiso of tiposCompromisos" class="form-check">
+              <input class="form-check-input" type="checkbox" [id]="'comp_' + compromiso.id"
+                [checked]="esCompromisoSeleccionado(compromiso.id)" (change)="agregarCompromiso(compromiso.id)"
+                [disabled]="soloLectura">
+              <label class="form-check-label" [for]="'comp_' + compromiso.id">
+                {{ compromiso.nombre }}
+              </label>
+            </div>
+          </div>
+
+          <!-- Lista de compromisos seleccionados con sus detalles -->
+          <div *ngIf="compromisos.length > 0" class="compromisos-lista mt-4">
+            <h6 class="mb-3 fw-bold">Detalles de cada compromiso</h6>
+
+            <div *ngFor="let comp of compromisos; let i = index" class="compromiso-detalle-card">
+              <div class="compromiso-titulo">
+                <i class="bi bi-check-circle-fill text-success"></i>
+                <strong>{{ obtenerNombreCompromiso(comp.id_tipo_compromiso) }}</strong>
+              </div>
+
+              <div class="row g-2 mt-2">
+                <div class="col-md-3">
+                  <label class="form-label small">📅 Fecha compromiso</label>
+                  <input type="date" class="form-control form-control-sm" [(ngModel)]="comp.fecha_compromiso"
+                    [ngModelOptions]="{standalone: true}" (ngModelChange)="emitirCambios()" [readonly]="soloLectura">
+                </div>
+
+                <div class="col-md-2">
+                  <label class="form-label small">🕐 Hora</label>
+                  <input type="time" class="form-control form-control-sm" [(ngModel)]="comp.hora_compromiso"
+                    [ngModelOptions]="{standalone: true}" (ngModelChange)="emitirCambios()" [readonly]="soloLectura">
+                </div>
+
+                <div class="col-md-7">
+                  <label class="form-label small">📝 Detalle específico</label>
+                  <input type="text" class="form-control form-control-sm" [(ngModel)]="comp.detalle_especifico"
+                    [ngModelOptions]="{standalone: true}" (ngModelChange)="emitirCambios()"
+                    placeholder="Ej: Incluir descuento del 10%, enviar por WhatsApp, etc." [readonly]="soloLectura">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Mensaje cuando no hay compromisos -->
+          <div *ngIf="compromisos.length === 0" class="alert alert-warning mt-3">
+            <i class="bi bi-info-circle-fill"></i>
+            <strong>No hay compromisos registrados.</strong> Seleccione al menos uno arriba.
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 7: OBSERVACIONES DEL ASESOR -->
+    <div class="collapsible-card" [class.expanded]="cardsExpandidas[6]" [class.completed]="esCardCompleta(6)">
+      <div class="card-header" (click)="toggleCard(6)">
+        <div class="card-header-left">
+          <span class="card-icon">📝</span>
+          <h3 class="card-title">OBSERVACIONES DEL ASESOR</h3>
+          <span class="card-badge" [class.badge-complete]="esCardCompleta(6)"
+            [class.badge-progress]="!esCardCompleta(6) && tieneProgreso(6)">
+            {{ esCardCompleta(6) ? '✓ Completo' : (tieneProgreso(6) ? '● En progreso' : '○ Pendiente') }}
+          </span>
+        </div>
+        <div class="card-header-right">
+          <i class="bi" [class.bi-chevron-down]="!cardsExpandidas[6]" [class.bi-chevron-up]="cardsExpandidas[6]"></i>
+        </div>
+      </div>
+
+      <!-- Resumen mini -->
+      <div class="card-summary" *ngIf="!cardsExpandidas[6] && formVisita.get('observaciones')?.value">
+        <span class="summary-item">
+          <i class="bi bi-journal-text"></i> {{ (formVisita.get('observaciones')?.value || '').substring(0, 60) }}{{
+          (formVisita.get('observaciones')?.value || '').length > 60 ? '...' : '' }}
+        </span>
+      </div>
+
+      <!-- Contenido expandible -->
+      <div class="card-content" [@slideDown]="cardsExpandidas[6] ? 'expanded' : 'collapsed'">
+        <div class="form-section" [formGroup]="formVisita">
+          <div class="observaciones-box">
+            <strong>💡 Tip:</strong> Anote aquí cualquier detalle importante que no se capturó en las secciones
+            anteriores
+          </div>
+
+          <textarea class="form-control mt-3" rows="4" formControlName="observaciones"
+            placeholder="Ej: Mencionó que el hermano mayor ya estudió aquí, trabaja cerca del jardín, preocupación específica por alimentación, viene de recomendación de la familia Pérez, etc."></textarea>
+        </div>
+      </div>
+    </div>
+
+  </div>

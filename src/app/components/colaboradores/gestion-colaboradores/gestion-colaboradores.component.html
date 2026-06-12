@@ -1,0 +1,102 @@
+<div class="modulo">
+    <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [raiz]="'/'" [regresar]="'/menu'" [iconoTitulo]="'/assets/images/colaboradores.png'"></app-header>
+
+    <div class="container-fluid mt-5">
+
+        <!-- Tarjetas de opciones -->
+        <div class="row justify-content-center">
+            <!-- Colaboradores -->
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card-maestro menu-principal" [class.active]="menuActivo === 'colaboradores'" (click)="toggleMenu('colaboradores', $event)">
+                    <div class="card-maestro-content">
+                        <div class="icono-container colaboradores">
+                            <img src="assets/images/colaboradores.png" alt="Colaboradores" />
+                        </div>
+                        <h3 class="card-titulo">Colaboradores</h3>
+                        <p class="card-descripcion">Administra colaboradores, casas asignadas y actividades del equipo</p>
+                        <div class="card-footer-custom">
+                            <span class="link-accion">Ver opciones <i class="fas fa-chevron-down"></i></span>
+                        </div>
+                    </div>
+
+                    <div class="submenu-container">
+                        <div class="row g-2">
+                            <div class="col-4">
+                                <div class="submenu-item" (click)="seleccionarOpcion('colaboradores', $event)">
+                                    <img src="assets/images/colaboradores.png" alt="Gestión" />
+                                    <span>Gestión</span>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="submenu-item" (click)="seleccionarOpcion('casas-colaboradores', $event)">
+                                    <img src="assets/images/casascolaboradores.png" alt="Casas" />
+                                    <span>Casas</span>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="submenu-item" (click)="seleccionarOpcion('actividades-colaboradores', $event)">
+                                    <img src="assets/images/actividades_colaboradores.png" alt="Actividades" />
+                                    <span>Actividades</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Registro Ingreso / Salida -->
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card-maestro menu-principal" [class.active]="menuActivo === 'asistencia'" (click)="toggleMenu('asistencia', $event)">
+                    <div class="card-maestro-content">
+                        <div class="icono-container asistencia">
+                            <i class="fas fa-fingerprint"></i>
+                        </div>
+                        <h3 class="card-titulo">Registro Ingreso / Salida</h3>
+                        <p class="card-descripcion">Registra tu entrada y salida de jornada y descanso con geolocalización</p>
+                        <div class="card-footer-custom">
+                            <span class="link-accion">Ver opciones <i class="fas fa-chevron-down"></i></span>
+                        </div>
+                    </div>
+
+                    <div class="submenu-container">
+                        <div class="row g-2">
+                            <div class="col-12">
+                                <div class="submenu-item" (click)="seleccionarOpcion('registro-ingreso-salida', $event)">
+                                    <i class="fas fa-clock" style="font-size: 2rem; color: #d4af37;"></i>
+                                    <span>Registrar Ahora</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Nómina -->
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card-maestro menu-principal" [class.active]="menuActivo === 'nomina'" (click)="toggleMenu('nomina', $event)">
+                    <div class="card-maestro-content">
+                        <div class="icono-container nomina">
+                            <img src="assets/images/nomina.png" alt="Nómina" />
+                        </div>
+                        <h3 class="card-titulo">Nómina</h3>
+                        <p class="card-descripcion">Gestiona las nóminas de colaboradores, crea periodos, procesa pagos y genera reportes</p>
+                        <div class="card-footer-custom">
+                            <span class="link-accion">Ver opciones <i class="fas fa-chevron-down"></i></span>
+                        </div>
+                    </div>
+
+                    <div class="submenu-container">
+                        <div class="row g-2">
+                            <div class="col-12">
+                                <div class="submenu-item" (click)="seleccionarOpcion('nominas', $event)">
+                                    <img src="assets/images/nomina.png" alt="Nóminas" />
+                                    <span>Gestionar Nóminas</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

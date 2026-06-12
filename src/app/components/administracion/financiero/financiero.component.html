@@ -1,0 +1,155 @@
+<div class="modulo">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="false"
+    [raiz]="'/'"
+    [regresar]="'/administracion'"
+  ></app-header>
+
+  <div class="container-fluid mt-5">
+
+    <!-- Tarjetas de opciones con submenús -->
+    <div class="row justify-content-center">
+      <!-- Ingresos y Egresos -->
+      <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card-maestro menu-principal">
+          <div class="card-maestro-content">
+            <div class="icono-container ingresos-egresos">
+              <img
+                src="assets/images/ingresos-egresos.png"
+                alt="Ingresos y Egresos"
+              />
+            </div>
+            <h3 class="card-titulo">Ingresos y Egresos</h3>
+            <p class="card-descripcion">
+              Gestiona y aprueba movimientos financieros
+            </p>
+            <div class="card-footer-custom">
+              <span class="link-accion"
+                >Ver opciones <i class="fas fa-chevron-down"></i
+              ></span>
+            </div>
+          </div>
+
+          <!-- Submenú de Ingresos y Egresos -->
+          <div class="submenu-container">
+            <div class="row g-2">
+              <div class="col-6">
+                <div
+                  class="submenu-item"
+                  (click)="seleccionarOpcion('movimientos')"
+                >
+                  <img src="assets/images/finanzas.png" alt="Gestión Movimientos" />
+                  <span>Gestión Ingresos y Egresos</span>
+                </div>
+              </div>
+              <div class="col-6">
+                <div
+                  class="submenu-item"
+                  (click)="seleccionarOpcion('aprobacion-multiple')"
+                >
+                  <img src="assets/images/aprobar.png" alt="Aprobación" />
+                  <span>Aprobación Ingresos y Egresos</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pagos Institucionales -->
+      <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card-maestro menu-principal">
+          <div class="card-maestro-content">
+            <div class="icono-container pagos-institucionales">
+              <img
+                src="assets/images/pagos-institucionales.png"
+                alt="Pagos Institucionales"
+              />
+            </div>
+            <h3 class="card-titulo">Pagos Institucionales</h3>
+            <p class="card-descripcion">
+              Registro rápido y contabilización de pagos
+            </p>
+            <div class="card-footer-custom">
+              <span class="link-accion"
+                >Ver opciones <i class="fas fa-chevron-down"></i
+              ></span>
+            </div>
+          </div>
+
+          <!-- Submenú de Pagos Institucionales -->
+          <div class="submenu-container">
+            <div class="row g-2">
+              <div class="col-6">
+                <div
+                  class="submenu-item"
+                  (click)="seleccionarOpcion('registro-pagos-rapido')"
+                >
+                  <img src="assets/images/registro-pagos-rapido.png" alt="Registro Rápido" />
+                  <span>Registro Rápido de Pagos</span>
+                </div>
+              </div>
+              <div class="col-6">
+                <div
+                  class="submenu-item"
+                  (click)="seleccionarOpcion('contabilizar-pagos')"
+                >
+                  <img src="assets/images/contabilizar.png" alt="Contabilizar" />
+                  <span>Contabilización de Pagos</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cobros Automáticos (NUEVO) -->
+      <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card-maestro menu-principal" style="--color-principal: #e65100; --color-secundario: #ff9800;">
+          <div class="card-maestro-content">
+            <div class="icono-container cobros-automaticos">
+              <img
+                src="assets/images/productos.png"
+                alt="Cobros Automáticos"
+              />
+            </div>
+            <h3 class="card-titulo">Cobros Automáticos</h3>
+            <p class="card-descripcion">
+              Configura convenios y reglas de cobro automático por asistencia
+            </p>
+            <div class="card-footer-custom">
+              <span class="link-accion"
+                >Ver opciones <i class="fas fa-chevron-down"></i
+              ></span>
+            </div>
+          </div>
+
+          <!-- Submenú de Cobros Automáticos -->
+          <div class="submenu-container">
+            <div class="row g-2">
+              <div class="col-6">
+                <div
+                  class="submenu-item"
+                  (click)="seleccionarOpcion('convenios')"
+                >
+                  <img src="assets/images/contratos.png" alt="Convenios" />
+                  <span>Convenios</span>
+                </div>
+              </div>
+              <div class="col-6">
+                <div
+                  class="submenu-item"
+                  (click)="seleccionarOpcion('reglas-cobro')"
+                >
+                  <img src="assets/images/productos.png" alt="Reglas de Cobro" />
+                  <span>Reglas de Cobro</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

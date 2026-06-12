@@ -1,0 +1,100 @@
+.modulo {
+  width: 100%;
+  min-height: 100vh;
+  padding-bottom: 3rem;
+}
+
+// Colores personalizados más suaves y luminosos
+.btn-modo-activo {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-color: #667eea;
+  color: white;
+  
+  &:hover {
+    background: linear-gradient(135deg, #5568d3 0%, #6a4190 100%);
+    border-color: #5568d3;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  }
+}
+
+.btn-vista-activo {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  border-color: #f093fb;
+  color: white;
+  
+  &:hover {
+    background: linear-gradient(135deg, #e082ea 0%, #e4465b 100%);
+    border-color: #e082ea;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(240, 147, 251, 0.4);
+  }
+}
+
+.header-plural {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  box-shadow: 0 2px 8px rgba(79, 172, 254, 0.3);
+}
+
+.header-singular {
+  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+  box-shadow: 0 2px 8px rgba(67, 233, 123, 0.3);
+}
+
+.editor-container {
+  max-height: 70vh;
+  overflow-y: auto;
+  padding: 1rem;
+  border: 1px solid #dee2e6;
+  border-radius: 0.5rem;
+  background-color: #f8f9fa;
+}
+
+.json-editor {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  background-color: #282c34;
+  color: #abb2bf;
+  border: 2px solid #4b5563;
+  border-radius: 0.5rem;
+  resize: vertical;
+  
+  &:focus {
+    background-color: #282c34;
+    color: #abb2bf;
+    border-color: #60a5fa;
+    box-shadow: 0 0 0 0.2rem rgba(96, 165, 250, 0.25);
+  }
+  
+  &:disabled {
+    background-color: #1f2937;
+    color: #6b7280;
+  }
+}
+
+.font-monospace {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.875rem;
+}
+
+pre {
+  max-height: 400px;
+  overflow-y: auto;
+  font-size: 0.875rem;
+}
+
+.btn-group {
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+textarea.form-control {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  border: 1px solid #e0e0e0;
+  
+  &:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.15);
+  }
+}

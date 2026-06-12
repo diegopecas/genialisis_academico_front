@@ -1,0 +1,22 @@
+<div class="modulo">
+  <app-header-anidado
+    [tituloModulo]="titulo"
+    [path]="path"
+    [mostrarCrear]="puedeAdministrar"
+    [accion]="'ConsultarTodos'"
+    [raiz]="'/colaboradores-contratos'"
+    [regresar]="'/colaboradores'"
+    [iconoTitulo]="'/assets/images/contratos.png'">
+  </app-header-anidado>
+
+  <app-tablas
+    [titulos]="titulos"
+    [datos]="contratos"
+    [raiz]="'/colaboradores-contratos'"
+    [accionVer]="false"
+    [accionEditar]="puedeAdministrar"
+    [accionEliminar]="puedeAdministrar"
+    [columnasFiltro]="columnasFiltro"
+    (clicAccion)="accionTabla($event)">
+  </app-tablas>
+</div>

@@ -1,0 +1,770 @@
+// ============================================
+// VARIABLES DE DISEÑO MODERNO
+// ============================================
+$gold-primary: #FFC107;
+$gold-hover: #FFD54F;
+$gold-dark: #FFA000;
+$gold-light: #FFECB3;
+$gold-text-dark: #8B6914;
+$gold-text-medium: #A67C00;
+
+$black-primary: #1A1A1A;
+$black-secondary: #2D2D2D;
+$gray-medium: #757575;
+$gray-light: #E0E0E0;
+
+$ivory: #FAF8F3;
+$white: #FFFFFF;
+
+$shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1);
+$shadow-md: 0 4px 16px rgba(0, 0, 0, 0.15);
+$shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.2);
+$shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.25);
+
+$transition-base: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+$transition-fast: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+// ============================================
+// CONTENEDOR PRINCIPAL
+// ============================================
+.login-container {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+// ============================================
+// FONDO CON IMAGEN DIFUMINADA
+// ============================================
+.background-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  // background-image se asigna dinámicamente desde el componente (tenant-aware con fallback)
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  filter: blur(3px);
+  transform: scale(1.05);
+  z-index: 0;
+  transition: opacity 0.3s ease;
+}
+
+.background-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    135deg,
+    rgba(26, 26, 26, 0.45) 0%,
+    rgba(45, 45, 45, 0.35) 50%,
+    rgba(26, 26, 26, 0.45) 100%
+  );
+  z-index: 1;
+}
+
+// ============================================
+// CONTENIDO PRINCIPAL
+// ============================================
+.login-content {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+}
+
+// ============================================
+// LOGO HEADER SIMPLIFICADO
+// ============================================
+.logo-header {
+  text-align: center;
+  animation: fadeInDown 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+
+  .genialisis-logo {
+    height: 80px;
+    width: auto;
+    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
+    transition: $transition-base;
+
+    &:hover {
+      filter: drop-shadow(0 6px 16px rgba(255, 193, 7, 0.4));
+      transform: translateY(-2px);
+    }
+
+    @media (max-width: 768px) {
+      height: 64px;
+    }
+  }
+}
+
+// ============================================
+// CARD DE LOGIN
+// ============================================
+.login-card {
+  width: 100%;
+  background: $ivory;
+  border-radius: 24px;
+  padding: 40px;
+  box-shadow: $shadow-xl;
+  backdrop-filter: blur(10px);
+  animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: $transition-base;
+
+  &:hover {
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  }
+
+  @media (max-width: 768px) {
+    padding: 32px 24px;
+    border-radius: 20px;
+  }
+}
+
+// ============================================
+// TÍTULOS
+// ============================================
+.login-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: $gold-text-dark;
+  text-align: center;
+  margin: 0 0 8px 0;
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+
+  @media (max-width: 768px) {
+    font-size: 22px;
+  }
+}
+
+.login-subtitle {
+  font-size: 16px;
+  font-weight: 400;
+  color: $gold-text-medium;
+  text-align: center;
+  margin: 0 0 32px 0;
+
+  @media (max-width: 768px) {
+    font-size: 14px;
+    margin-bottom: 24px;
+  }
+}
+
+// ============================================
+// FORMULARIO
+// ============================================
+.login-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: $black-secondary;
+  margin: 0;
+  letter-spacing: 0.2px;
+}
+
+.form-input {
+  width: 100%;
+  padding: 14px 16px;
+  font-size: 16px;
+  font-family: inherit;
+  color: $black-primary;
+  background: $white;
+  border: 2px solid $gray-light;
+  border-radius: 12px;
+  outline: none;
+  transition: $transition-base;
+  box-sizing: border-box;
+
+  &::placeholder {
+    color: $gray-medium;
+  }
+
+  &:focus {
+    border-color: $gold-primary;
+    box-shadow: 0 0 0 4px rgba(255, 193, 7, 0.1);
+  }
+
+  &:hover:not(:focus) {
+    border-color: darken($gray-light, 10%);
+  }
+
+  &:disabled {
+    background: #f5f5f5;
+    cursor: not-allowed;
+  }
+
+  @media (max-width: 768px) {
+    padding: 12px 14px;
+    font-size: 16px;
+  }
+}
+
+// ============================================
+// CONTRASEÑA CON TOGGLE
+// ============================================
+.password-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.toggle-password {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: $transition-fast;
+  outline: none;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.05);
+  }
+
+  &:active {
+    background: rgba(0, 0, 0, 0.1);
+  }
+
+  .toggle-icon {
+    font-size: 20px;
+    user-select: none;
+  }
+}
+
+// ============================================
+// BOTÓN DE ENVÍO
+// ============================================
+.submit-button {
+  width: 100%;
+  padding: 16px 24px;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: $black-primary;
+  background: linear-gradient(135deg, $gold-primary 0%, $gold-hover 100%);
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  outline: none;
+  box-shadow: $shadow-md;
+  transition: $transition-base;
+  margin-top: 8px;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.3),
+      transparent
+    );
+    transition: left 0.6s;
+  }
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(255, 193, 7, 0.4);
+
+    &::before {
+      left: 100%;
+    }
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: $shadow-sm;
+  }
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .button-text {
+    position: relative;
+    z-index: 1;
+  }
+
+  @media (max-width: 768px) {
+    padding: 14px 20px;
+  }
+}
+
+// ============================================
+// SECCIÓN BIOMÉTRICA
+// ============================================
+.biometric-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.biometric-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  .divider-line {
+    flex: 1;
+    height: 1px;
+    background: $gray-light;
+  }
+
+  .divider-text {
+    font-size: 13px;
+    color: $gray-medium;
+    font-weight: 500;
+    text-transform: lowercase;
+  }
+}
+
+.biometric-button {
+  width: 100%;
+  padding: 14px 24px;
+  font-size: 15px;
+  font-weight: 600;
+  color: $black-secondary;
+  background: $white;
+  border: 2px solid $gray-light;
+  border-radius: 12px;
+  cursor: pointer;
+  outline: none;
+  transition: $transition-base;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-family: inherit;
+
+  .biometric-icon {
+    font-size: 20px;
+  }
+
+  .biometric-text {
+    letter-spacing: 0.2px;
+  }
+
+  &:hover:not(:disabled) {
+    border-color: $gold-primary;
+    background: #FFFBF0;
+    transform: translateY(-1px);
+    box-shadow: $shadow-sm;
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+    background: #FFF8E1;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+
+    &:hover {
+      transform: none;
+      border-color: $gray-light;
+      background: $white;
+      box-shadow: none;
+    }
+  }
+
+  @media (max-width: 768px) {
+    padding: 12px 20px;
+    font-size: 14px;
+  }
+}
+
+// ============================================
+// FOOTER DEL CARD
+// ============================================
+.login-footer {
+  margin-top: 24px;
+  text-align: center;
+
+  .footer-link {
+    font-size: 14px;
+    color: $gray-medium;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: $transition-fast;
+    position: relative;
+    font-family: inherit;
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 6px;
+      left: 12px;
+      right: 12px;
+      height: 2px;
+      background: $gold-primary;
+      transform: scaleX(0);
+      transition: transform 0.3s ease;
+    }
+
+    &:hover {
+      color: $gold-dark;
+      background: rgba(255, 193, 7, 0.05);
+
+      &::after {
+        transform: scaleX(1);
+      }
+    }
+
+    &:active {
+      background: rgba(255, 193, 7, 0.1);
+    }
+  }
+}
+
+// ============================================
+// FOOTER DE LA APP
+// ============================================
+.app-footer {
+  width: 100%;
+  text-align: center;
+  animation: fadeIn 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.2s backwards;
+
+  p {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.7);
+    margin: 0;
+    font-weight: 400;
+  }
+
+  @media (max-width: 768px) {
+    p {
+      font-size: 12px;
+    }
+  }
+}
+
+// ============================================
+// MODAL SELECTOR DE INSTITUCIÓN
+// ============================================
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.modal-content {
+  background: $white;
+  border-radius: 20px;
+  width: 90%;
+  max-width: 420px;
+  max-height: 80vh;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: modalIn 0.3s ease;
+}
+
+@keyframes modalIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.modal-header {
+  padding: 24px 24px 16px;
+  text-align: center;
+  border-bottom: 1px solid #f0f0f0;
+
+  h2 {
+    margin: 0 0 8px;
+    font-size: 1.4rem;
+    color: $black-secondary;
+    font-weight: 600;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: $gray-medium;
+  }
+}
+
+.modal-body {
+  padding: 16px 24px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.tenant-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tenant-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  border: 2px solid $gray-light;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: $transition-fast;
+
+  &:hover {
+    border-color: $gold-primary;
+    background: #FFFBF0;
+  }
+
+  &.selected {
+    border-color: $gold-primary;
+    background: #FFF8E1;
+  }
+}
+
+.tenant-logo {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: #f5f5f5;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+}
+
+.tenant-info {
+  flex: 1;
+
+  .tenant-nombre {
+    font-size: 1rem;
+    font-weight: 500;
+    color: $black-secondary;
+  }
+}
+
+.tenant-check {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: $gold-primary;
+  color: $white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+.modal-footer {
+  padding: 16px 24px 24px;
+  display: flex;
+  gap: 12px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.btn-cancelar,
+.btn-continuar {
+  flex: 1;
+  padding: 14px 24px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: $transition-fast;
+  border: none;
+}
+
+.btn-cancelar {
+  background: #f5f5f5;
+  color: $gray-medium;
+
+  &:hover {
+    background: $gray-light;
+  }
+}
+
+.btn-continuar {
+  background: $gold-primary;
+  color: $black-secondary;
+
+  &:hover:not(:disabled) {
+    background: $gold-dark;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+// ============================================
+// ANIMACIONES
+// ============================================
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+// ============================================
+// RESPONSIVE
+// ============================================
+@media (max-width: 768px) {
+  .login-container {
+    padding: 16px;
+  }
+
+  .login-content {
+    gap: 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .login-card {
+    padding: 28px 20px;
+  }
+
+  .modal-content {
+    width: 95%;
+    margin: 16px;
+  }
+
+  .modal-header {
+    padding: 20px 20px 12px;
+  }
+
+  .modal-body {
+    padding: 12px 20px;
+  }
+
+  .modal-footer {
+    padding: 12px 20px 20px;
+    flex-direction: column;
+  }
+}
+
+// ============================================
+// ESTILOS PERSONALIZADOS PARA SWEETALERT2
+// ============================================
+:host ::ng-deep {
+  .swal-custom-popup {
+    border-radius: 20px !important;
+    padding: 32px !important;
+  }
+
+  .swal-custom-title {
+    font-size: 24px !important;
+    font-weight: 700 !important;
+    color: $black-primary !important;
+    margin-bottom: 12px !important;
+  }
+
+  .swal-custom-html {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .swal2-icon.swal2-info {
+    border-color: $gold-primary !important;
+    color: $gold-primary !important;
+  }
+
+  .swal2-styled.swal2-confirm {
+    border-radius: 12px !important;
+    padding: 12px 32px !important;
+    font-weight: 600 !important;
+    font-size: 15px !important;
+    box-shadow: $shadow-md !important;
+    transition: $transition-base !important;
+
+    &:hover {
+      transform: translateY(-2px) !important;
+      box-shadow: 0 8px 24px rgba(255, 193, 7, 0.4) !important;
+    }
+
+    &:active {
+      transform: translateY(0) !important;
+    }
+  }
+}

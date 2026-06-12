@@ -1,0 +1,209 @@
+<div class="comprobante-container">
+  <!-- Botones de acción (no se imprimen) -->
+  <div class="botones-accion no-print">
+    <button class="btn btn-primary" (click)="imprimir()">
+      <i class="fas fa-print"></i> Imprimir
+    </button>
+    <button class="btn btn-secondary" (click)="regresar()">
+      <i class="fas fa-arrow-left"></i> Regresar
+    </button>
+  </div>
+
+  <!-- Contenido del comprobante -->
+  <div class="comprobante-content">
+    <!-- Encabezado -->
+    <div class="header">
+      <div class="logo-section">
+        <img [src]="logoUrl" alt="Logo" class="logo">
+      </div>
+      <div class="titulo-section">
+        <h2>COMPROBANTE DE MOVIMIENTO DE INVENTARIO</h2>
+        <h3 class="{{getColorTipo()}}">{{getTipoMovimiento()}}</h3>
+      </div>
+      <div class="numero-section">
+        <div class="numero-box">
+          <span class="label">No.</span>
+          <span class="numero">{{movimiento.id | number:'4.0-0'}}</span>
+        </div>
+        <div class="fecha-impresion">
+          <small>Impreso: {{fechaImpresion | date:'dd/MM/yyyy HH:mm'}}</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Información del movimiento -->
+    <div class="info-movimiento">
+      <div class="row">
+        <div class="col-md-6">
+          <table class="tabla-info">
+            <tr>
+              <td class="label-campo">Fecha Movimiento:</td>
+              <td class="valor-campo">{{formatearFecha(movimiento.fecha_movimiento)}}</td>
+            </tr>
+            <tr>
+              <td class="label-campo">Concepto:</td>
+              <td class="valor-campo">{{movimiento.concepto}}</td>
+            </tr>
+            <tr *ngIf="movimiento.proveedor">
+              <td class="label-campo">Proveedor:</td>
+              <td class="valor-campo">{{movimiento.proveedor}}</td>
+            </tr>
+            <tr>
+              <td class="label-campo">Estado:</td>
+              <td class="valor-campo">
+                <span class="{{getEstadoColor()}}">{{movimiento.estado}}</span>
+              </td>
+            </tr>
+          </table>
+        </div>
+        <div class="col-md-6">
+          <table class="tabla-info">
+            <tr>
+              <td class="label-campo">Usuario Registro:</td>
+              <td class="valor-campo">{{movimiento.usuario_registro}}</td>
+            </tr>
+            <tr>
+              <td class="label-campo">Fecha Registro:</td>
+              <td class="valor-campo">{{formatearFecha(movimiento.fecha_registro)}}</td>
+            </tr>
+            <tr *ngIf="movimiento.usuario_aprobado">
+              <td class="label-campo">Usuario Aprobación:</td>
+              <td class="valor-campo">{{movimiento.usuario_aprobado}}</td>
+            </tr>
+            <tr *ngIf="movimiento.fecha_aprobado">
+              <td class="label-campo">Fecha Aprobación:</td>
+              <td class="valor-campo">{{formatearFecha(movimiento.fecha_aprobado)}}</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+      <div class="row" *ngIf="movimiento.observaciones">
+        <div class="col-12">
+          <div class="observaciones-box">
+            <strong>Observaciones:</strong>
+            <p>{{movimiento.observaciones}}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Detalle de productos -->
+    <div class="detalle-productos">
+      <h4>DETALLE DE PRODUCTOS</h4>
+      <table class="tabla-detalle">
+        <thead>
+          <tr>
+            <th class="text-center">#</th>
+            <th class="text-center">Código</th>
+            <th>Producto</th>
+            <th class="text-center">Unidad</th>
+            <th class="text-right">Stock Anterior</th>
+            <th class="text-right">Cantidad</th>
+            <th class="text-right">Stock Final</th>
+            <th class="text-right">Precio Unit.</th>
+            <th class="text-right">Subtotal</th>
+            <th class="text-center">Vencimiento</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of detalle; let i = index">
+            <td class="text-center">{{i + 1}}</td>
+            <td class="text-center">{{item.id_producto}}</td>
+            <td>{{item.producto_nombre}}</td>
+            <td class="text-center">{{item.abreviatura || 'UND'}}</td>
+            <td class="text-right">{{item.stock_anterior || 0}}</td>
+            <td class="text-right font-weight-bold">{{item.cantidad}}</td>
+            <td class="text-right font-weight-bold" [ngClass]="{'text-success': item.stock_final > item.stock_anterior, 
+                              'text-danger': item.stock_final < item.stock_anterior}">
+              {{item.stock_final}}
+            </td>
+            <td class="text-right">{{formatearPrecio(item.precio_unitario)}}</td>
+            <td class="text-right">{{formatearPrecio(item.subtotal)}}</td>
+            <td class="text-center">
+              {{item.fecha_vencimiento ? (item.fecha_vencimiento | date:'dd/MM/yyyy') : '-'}}
+            </td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr class="totales-row">
+            <td colspan="5" class="text-right"><strong>TOTALES:</strong></td>
+            <td class="text-right"><strong>{{totalUnidades}}</strong></td>
+            <td></td>
+            <td></td>
+            <td class="text-right"><strong>{{formatearPrecio(totalValor)}}</strong></td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <!-- Resumen -->
+    <div class="resumen-box">
+      <div class="row">
+        <div class="col-md-4">
+          <div class="resumen-item">
+            <span class="resumen-label">Total Items:</span>
+            <span class="resumen-valor">{{totalItems}}</span>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="resumen-item">
+            <span class="resumen-label">Total Unidades:</span>
+            <span class="resumen-valor">{{totalUnidades}}</span>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="resumen-item">
+            <span class="resumen-label">Valor Total:</span>
+            <span class="resumen-valor text-primary">{{formatearPrecio(totalValor)}}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Información de anulación si aplica -->
+    <div class="anulacion-box" *ngIf="movimiento.id_estado === 4">
+      <div class="alert alert-danger">
+        <h5><i class="fas fa-ban"></i> MOVIMIENTO ANULADO</h5>
+        <p>
+          <strong>Usuario:</strong> {{movimiento.usuario_anulado}}<br>
+          <strong>Fecha:</strong> {{formatearFecha(movimiento.fecha_anulado)}}
+        </p>
+      </div>
+    </div>
+
+    <!-- Firmas -->
+    <div class="firmas-section">
+      <div class="row">
+        <div class="col-md-4">
+          <div class="firma-box">
+            <div class="firma-linea">
+              <span class="nombre-firma">{{nombreUsuarioRegistro || movimiento.usuario_registro}}</span>
+            </div>
+            <p>Elaborado por</p>
+            <small>{{movimiento.fecha_registro | date:'dd/MM/yyyy HH:mm'}}</small>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="firma-box">
+            <div class="firma-linea">
+              <span class="nombre-firma">{{nombreUsuarioAprobado || '&nbsp;'}}</span>
+            </div>
+            <p>Revisado por</p>
+            <small>{{movimiento.fecha_aprobado ? (movimiento.fecha_aprobado | date:'dd/MM/yyyy HH:mm') :
+              '&nbsp;'}}</small>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="firma-box">
+            <div class="firma-linea">
+              <span class="nombre-firma">&nbsp;</span>
+            </div>
+            <p>Recibido por</p>
+            <small>&nbsp;</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

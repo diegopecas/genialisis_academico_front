@@ -1,0 +1,62 @@
+<div class="container mt-5">
+    <div class="row">
+      <div class="col-sm-12 col-md-6">
+        <label for="tipoDocumento" class="form-label">Tipo de documento</label>
+        <select class="form-select form-select-lg" id="tipoDocumento" [(ngModel)]="model.tipoIdentificacion" (blur)="consultaPersona()">
+          <option value="">Seleccionar</option>
+          <ng-container *ngFor="let ti of listas.tiposIdentificacion">
+            <option [value]="ti.id">{{ ti.nombre }}</option>
+          </ng-container>
+        </select>
+      </div>
+      <div class="col-sm-12 col-md-6">
+        <label for="numeroDocumento" class="form-label">Número de documento</label>
+        <input class="form-control form-control-lg" type="text" id="numeroDocumento" [(ngModel)]="model.numeroIdentificacion" (blur)="consultaPersona()">
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-sm-12 col-md-6">
+        <label for="primerNombre" class="form-label">Primer nombre</label>
+        <input class="form-control form-control-lg" type="text" id="primerNombre" [(ngModel)]="model.primerNombre">
+      </div>
+      <div class="col-sm-12 col-md-6">
+        <label for="segundoNombre" class="form-label">Segundo nombre</label>
+        <input class="form-control form-control-lg" type="text"id="segundoNombre" [(ngModel)]="model.segundoNombre">
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-sm-12 col-md-6">
+        <label for="primerApellido" class="form-label">Primer apellido</label>
+        <input class="form-control form-control-lg" type="text" id="primerApellido" [(ngModel)]="model.primerApellido">
+      </div>
+      <div class="col-sm-12 col-md-6">
+        <label for="segundoApellido" class="form-label">Segundo apellido</label>
+        <input class="form-control form-control-lg" type="text"id="segundoApellido" [(ngModel)]="model.segundoApellido">
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-sm-12 col-md-6">
+        <label for="fechaNacimiento" class="form-label">Fecha de nacimiento</label>
+        <input class="form-control form-control-lg" type="date" id="fechaNacimiento" [(ngModel)]="model.fechaNacimiento">
+      </div>
+      <div class="col-sm-12 col-md-6">
+        <label for="genero" class="form-label">Género</label>
+        <select class="form-select form-select-lg" id="genero" [(ngModel)]="model.genero">
+          <option value="">Seleccionar</option>
+          <ng-container *ngFor="let g of listas.generos">
+            <option [value]="g.id">{{ g.nombre }}</option>
+          </ng-container>
+        </select>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-sm-12 col-md-6">
+        <label for="direccion" class="form-label">Dirección</label>
+        <input class="form-control form-control-lg" type="text" id="direccion" [(ngModel)]="model.direccion">
+      </div>
+      <div class="col-sm-12 col-md-6">
+        <label for="correoElectronico" class="form-label">Correo electrónico</label>
+        <input class="form-control form-control-lg" type="text" id="correoElectronico" [(ngModel)]="model.correoElectronico">
+      </div>
+    </div>
+</div>

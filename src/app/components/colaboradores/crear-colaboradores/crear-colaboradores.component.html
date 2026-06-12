@@ -1,0 +1,218 @@
+<div class="modulo">
+  @if (!modoEmbebido) {
+  <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [accion]="accion" [id]="id" [raiz]="'/colaboradores'" [regresar]="'/colaboradores'" [iconoTitulo]="'/assets/images/colaboradores.png'"></app-header>
+  }
+
+  <div class="layout-container mt-3">
+
+    <!-- SIDEBAR DESKTOP -->
+    <aside class="sidebar-desktop" *ngIf="!nuevo">
+      <div class="sidebar-foto" *ngIf="(accion === 'editar' || accion === 'consultar' || accion === 'ver') && model.idPersona">
+        <app-foto-persona [idPersona]="model.idPersona" [nombrePersona]="obtenerNombreCompleto()" [soloLectura]="accion === 'consultar' || accion === 'ver'"></app-foto-persona>
+      </div>
+      <nav class="sidebar-nav">
+        <a class="sidebar-link" [class.active]="seccionActiva === 'datos-personales'" (click)="cambiarSeccion('datos-personales')"><i class="fas fa-user-circle"></i> <span>Datos Personales</span></a>
+        <a class="sidebar-link" [class.active]="seccionActiva === 'datos-colaborador'" (click)="cambiarSeccion('datos-colaborador')"><i class="fas fa-briefcase"></i> <span>Info. Colaborador</span></a>
+        <a class="sidebar-link" [class.active]="seccionActiva === 'documentos'" (click)="cambiarSeccion('documentos')"><i class="fas fa-file-alt"></i> <span>Documentos</span></a>
+        <a class="sidebar-link" *ngIf="esDocente() && model.idColaborador > 0" [class.active]="seccionActiva === 'grupos'" (click)="cambiarSeccion('grupos')"><i class="fas fa-users"></i> <span>Grupos Asignados</span></a>
+        <a class="sidebar-link" *ngIf="esDocente() && model.idColaborador > 0" [class.active]="seccionActiva === 'areas'" (click)="cambiarSeccion('areas')"><i class="fas fa-book"></i> <span>Áreas Académicas</span></a>
+        <a class="sidebar-link" *ngIf="model.idColaborador > 0" [class.active]="seccionActiva === 'horarios'" (click)="cambiarSeccion('horarios')"><i class="fas fa-clock"></i> <span>Horarios</span></a>
+        <a class="sidebar-link" *ngIf="model.idColaborador > 0" [class.active]="seccionActiva === 'usuario'" (click)="cambiarSeccion('usuario')"><i class="fas fa-user-tag"></i> <span>Usuario</span></a>
+      </nav>
+    </aside>
+
+    <!-- MOBILE HEADER -->
+    <div class="mobile-header-bar" *ngIf="!nuevo">
+      <div class="mobile-foto" *ngIf="(accion === 'editar' || accion === 'consultar' || accion === 'ver') && model.idPersona">
+        <app-foto-persona [idPersona]="model.idPersona" [nombrePersona]="obtenerNombreCompleto()" [soloLectura]="accion === 'consultar' || accion === 'ver'"></app-foto-persona>
+      </div>
+      <button class="btn-seccion-mobile" (click)="toggleSidebar()">
+        <i [class]="obtenerIconoSeccion()"></i> <span>{{ obtenerNombreSeccion() }}</span> <i class="fas fa-bars ms-auto"></i>
+      </button>
+    </div>
+
+    <!-- SIDEBAR MOBILE OVERLAY -->
+    <div class="sidebar-overlay" *ngIf="sidebarAbierto" (click)="cerrarSidebar()"></div>
+    <aside class="sidebar-mobile" [class.abierto]="sidebarAbierto">
+      <div class="sidebar-mobile-header"><h6><i class="fas fa-th-list me-2"></i>Secciones</h6><button class="btn-cerrar-sidebar" (click)="cerrarSidebar()"><i class="fas fa-times"></i></button></div>
+      <nav class="sidebar-nav">
+        <a class="sidebar-link" [class.active]="seccionActiva === 'datos-personales'" (click)="cambiarSeccion('datos-personales')"><i class="fas fa-user-circle"></i> <span>Datos Personales</span></a>
+        <a class="sidebar-link" [class.active]="seccionActiva === 'datos-colaborador'" (click)="cambiarSeccion('datos-colaborador')"><i class="fas fa-briefcase"></i> <span>Info. Colaborador</span></a>
+        <a class="sidebar-link" [class.active]="seccionActiva === 'documentos'" (click)="cambiarSeccion('documentos')"><i class="fas fa-file-alt"></i> <span>Documentos</span></a>
+        <a class="sidebar-link" *ngIf="esDocente() && model.idColaborador > 0" [class.active]="seccionActiva === 'grupos'" (click)="cambiarSeccion('grupos')"><i class="fas fa-users"></i> <span>Grupos Asignados</span></a>
+        <a class="sidebar-link" *ngIf="esDocente() && model.idColaborador > 0" [class.active]="seccionActiva === 'areas'" (click)="cambiarSeccion('areas')"><i class="fas fa-book"></i> <span>Áreas Académicas</span></a>
+        <a class="sidebar-link" *ngIf="model.idColaborador > 0" [class.active]="seccionActiva === 'horarios'" (click)="cambiarSeccion('horarios')"><i class="fas fa-clock"></i> <span>Horarios</span></a>
+        <a class="sidebar-link" *ngIf="model.idColaborador > 0" [class.active]="seccionActiva === 'usuario'" (click)="cambiarSeccion('usuario')"><i class="fas fa-user-tag"></i> <span>Usuario</span></a>
+      </nav>
+    </aside>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="contenido-principal" [class.con-sidebar]="!nuevo">
+
+      <!-- ==================== DATOS PERSONALES ==================== -->
+      <div *ngIf="seccionActiva === 'datos-personales' || nuevo">
+        <div class="row mb-4">
+          <div class="col-sm-12 col-md-6"><label for="tipoDocumento" class="form-label">Tipo de documento <span class="text-danger">*</span></label><select class="form-select form-select-lg" id="tipoDocumento" [(ngModel)]="model.tipoIdentificacion" required [ngClass]="{ 'is-invalid': !model.tipoIdentificacion && submitted }" [disabled]="documentoEncontrado || !editable"><option value="">Seleccionar</option><ng-container *ngFor="let ti of listas.tiposIdentificacion"><option [value]="ti.id">{{ ti.nombre }}</option></ng-container></select></div>
+          <div class="col-sm-12 col-md-6"><label for="numeroDocumento" class="form-label">Número de documento <span class="text-danger">*</span></label><input class="form-control form-control-lg" type="text" id="numeroDocumento" [(ngModel)]="model.numeroIdentificacion" required [ngClass]="{ 'is-invalid': !model.numeroIdentificacion && submitted }" [disabled]="documentoEncontrado || !editable" /></div>
+        </div>
+        <div class="row mt-1 mb-3" *ngIf="editable && !documentoEncontrado"><div class="col-sm-12 col-md-6"><button class="btn btn-sm btn-warning" (click)="consultaPersona()"><i class="fas fa-search me-1"></i> Verificar</button></div></div>
+        <hr />
+        <div [ngClass]="{ 'disabled-container': !camposHabilitados && editable }">
+          <div class="row"><div class="col-sm-12 col-md-6"><label for="primerNombre" class="form-label">Primer nombre <span class="text-danger">*</span></label><input class="form-control form-control-lg" type="text" id="primerNombre" [(ngModel)]="model.primerNombre" required [ngClass]="{ 'is-invalid': !model.primerNombre && submitted }" [disabled]="!camposHabilitados && editable" /></div><div class="col-sm-12 col-md-6"><label for="segundoNombre" class="form-label">Segundo nombre</label><input class="form-control form-control-lg" type="text" id="segundoNombre" [(ngModel)]="model.segundoNombre" [disabled]="!camposHabilitados && editable" /></div></div>
+          <div class="row mt-3"><div class="col-sm-12 col-md-6"><label for="primerApellido" class="form-label">Primer apellido <span class="text-danger">*</span></label><input class="form-control form-control-lg" type="text" id="primerApellido" [(ngModel)]="model.primerApellido" required [ngClass]="{ 'is-invalid': !model.primerApellido && submitted }" [disabled]="!camposHabilitados && editable" /></div><div class="col-sm-12 col-md-6"><label for="segundoApellido" class="form-label">Segundo apellido</label><input class="form-control form-control-lg" type="text" id="segundoApellido" [(ngModel)]="model.segundoApellido" [disabled]="!camposHabilitados && editable" /></div></div>
+          <div class="row mt-3"><div class="col-sm-12 col-md-6"><label for="fechaNacimiento" class="form-label">Fecha de nacimiento <span class="text-danger">*</span></label><input class="form-control form-control-lg" type="date" id="fechaNacimiento" [(ngModel)]="model.fechaNacimiento" required [ngClass]="{ 'is-invalid': !model.fechaNacimiento && submitted }" [disabled]="!camposHabilitados && editable" /></div><div class="col-sm-12 col-md-6"><label for="genero" class="form-label">Género</label><select class="form-select form-select-lg" id="genero" [(ngModel)]="model.genero" [disabled]="!camposHabilitados && editable"><option value="">Seleccionar</option><ng-container *ngFor="let g of listas.generos"><option [value]="g.id">{{ g.nombre }}</option></ng-container></select></div></div>
+          <div class="row mt-3"><div class="col-sm-12 col-md-6"><label for="direccion" class="form-label">Dirección</label><input class="form-control form-control-lg" type="text" id="direccion" [(ngModel)]="model.direccion" [disabled]="!camposHabilitados && editable" /></div><div class="col-sm-12 col-md-6"><label for="telefono" class="form-label">Teléfono</label><input class="form-control form-control-lg" type="text" id="telefono" [(ngModel)]="model.telefono" placeholder="Ej: 3001234567" [disabled]="!camposHabilitados && editable" /></div></div>
+          <div class="row mt-3"><div class="col-sm-12 col-md-6"><label for="correoElectronico" class="form-label">Correo electrónico</label><input class="form-control form-control-lg" type="email" id="correoElectronico" [(ngModel)]="model.correoElectronico" placeholder="ejemplo@correo.com" [disabled]="!camposHabilitados && editable" /></div><div class="col-sm-12 col-md-6"><label for="ciudad" class="form-label">Ciudad</label><select class="form-select form-select-lg" id="ciudad" [(ngModel)]="model.ciudad" [disabled]="!camposHabilitados && editable"><option value="">Seleccionar</option><ng-container *ngFor="let c of listas.ciudades"><option [value]="c.id">{{ c.nombre }}</option></ng-container></select></div></div>
+        </div>
+        <div class="row mt-4" *ngIf="editable"><div class="col-12 d-flex gap-2"><button class="btn-save" (click)="guardarDatosPersonales()" [disabled]="!camposHabilitados"><i class="fas fa-save"></i> Guardar Datos Personales</button><button class="btn-cancel" [routerLink]="['/colaboradores']"><i class="fas fa-times-circle"></i> Cancelar</button></div></div>
+      </div>
+
+      <!-- ==================== DATOS COLABORADOR ==================== -->
+      <div *ngIf="(seccionActiva === 'datos-colaborador' || nuevo) && model.idPersona > 0" [ngClass]="{ 'disabled-container': !camposHabilitados && editable }">
+        <div class="row"><div class="col-sm-12 col-md-6"><label for="rol" class="form-label">Rol <span class="text-danger">*</span></label><select class="form-select form-select-lg" id="rol" [(ngModel)]="model.rolColaborador" required [ngClass]="{ 'is-invalid': !model.rolColaborador && submitted }" [disabled]="!camposHabilitados && editable"><option value="">Seleccionar</option><ng-container *ngFor="let rol of listas.roles"><option [value]="rol.id">{{ rol.nombre }}</option></ng-container></select></div><div class="col-sm-12 col-md-6"><label for="nivelEscolaridad" class="form-label">Nivel de Escolaridad <span class="text-danger">*</span></label><select class="form-select form-select-lg" id="nivelEscolaridad" [(ngModel)]="model.nivelEscolaridad" required [ngClass]="{ 'is-invalid': !model.nivelEscolaridad && submitted }" [disabled]="!camposHabilitados && editable"><option value="">Seleccionar</option><ng-container *ngFor="let ne of listas.nivelesEscolaridad"><option [value]="ne.id">{{ ne.nombre }}</option></ng-container></select></div></div>
+        <div class="row mt-3"><div class="col-sm-12 col-md-6"><label for="casa" class="form-label">Casa</label><select class="form-select form-select-lg" id="casa" [(ngModel)]="model.casaColaborador" [disabled]="!camposHabilitados && editable"><option value="">Seleccionar</option><ng-container *ngFor="let casa of listas.casas"><option [value]="casa.id">{{ casa.nombre }}</option></ng-container></select></div><div class="col-sm-12 col-md-6"><label for="correoInstitucional" class="form-label">Correo Institucional</label><input class="form-control form-control-lg" type="email" id="correoInstitucional" [(ngModel)]="model.correoInstitucional" placeholder="colaborador@institucion.edu.co" [disabled]="!camposHabilitados && editable" /></div></div>
+        <div class="row mt-3"><div class="col-sm-12 col-md-6"><label for="sobrenombre" class="form-label">Sobrenombre / Apodo</label><input class="form-control form-control-lg" type="text" id="sobrenombre" [(ngModel)]="model.sobrenombre" placeholder="Ej: Profe Juan" [disabled]="!camposHabilitados && editable" /></div><div class="col-sm-12 col-md-6"><label for="cargo" class="form-label">Cargo</label><select class="form-select form-select-lg" id="cargo" [(ngModel)]="model.idCargo" [disabled]="!camposHabilitados && editable"><option value="">Seleccionar</option><ng-container *ngFor="let cargo of listas.cargos"><option [value]="cargo.id">{{ cargo.nombre }}</option></ng-container></select></div></div>
+        <div class="row mt-3"><div class="col-sm-12 col-md-6"><label for="tipoContrato" class="form-label">Tipo de Contrato</label><select class="form-select form-select-lg" id="tipoContrato" [(ngModel)]="model.tipoContrato" [disabled]="!camposHabilitados && editable"><option value="">Seleccionar</option><ng-container *ngFor="let tipo of listas.tiposContrato"><option [value]="tipo.id">{{ tipo.nombre }}</option></ng-container></select></div><div class="col-sm-12 col-md-6"><label for="salarioMensual" class="form-label">Salario Mensual</label><input class="form-control form-control-lg" type="number" id="salarioMensual" [(ngModel)]="model.salarioMensual" placeholder="0.00" step="0.01" min="0" [disabled]="!camposHabilitados && editable" /></div></div>
+        <div class="row mt-3"><div class="col-sm-12 col-md-6"><label for="jefeDirecto" class="form-label">Manager</label><select class="form-select form-select-lg" id="jefeDirecto" [(ngModel)]="model.jefeDirecto" [disabled]="!camposHabilitados && editable"><option value="">Seleccionar</option><ng-container *ngFor="let jefe of listas.colaboradoresJefes"><option [value]="jefe.id" [disabled]="accion === 'editar' && jefe.id === model.idColaborador">{{ jefe.nombre_completo }} - {{ jefe.nombre_rol }}</option></ng-container></select></div><div class="col-sm-12 col-md-6"><label for="fechaIngreso" class="form-label">Fecha de Ingreso</label><input class="form-control form-control-lg" type="date" id="fechaIngreso" [(ngModel)]="model.fechaIngreso" [disabled]="!camposHabilitados && editable" /></div></div>
+        <div class="row mt-3"><div class="col-sm-12 col-md-6"><label for="fechaRetiro" class="form-label">Fecha de Retiro</label><input class="form-control form-control-lg" type="date" id="fechaRetiro" [(ngModel)]="model.fechaRetiro" [disabled]="!camposHabilitados && editable" (change)="validarFechaRetiro()" /></div><div class="col-sm-12 col-md-6" *ngIf="model.fechaRetiro"><label for="motivoRetiro" class="form-label">Motivo de Retiro</label><select class="form-select form-select-lg" id="motivoRetiro" [(ngModel)]="model.idMotivoRetiro" [disabled]="!camposHabilitados && editable"><option value="">Seleccionar</option><ng-container *ngFor="let motivo of listas.motivosRetiro"><option [value]="motivo.id">{{ motivo.nombre }}</option></ng-container></select></div></div>
+        <div class="row mt-3" *ngIf="accion === 'editar' || accion === 'ver'">
+          <div class="col-sm-12 col-md-4"><label class="form-label">Estado</label><div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="colaboradorActivo" [(ngModel)]="colaboradorActivoSwitch" (change)="cambiarEstadoColaborador()" [disabled]="accion === 'ver'" /><label class="form-check-label" for="colaboradorActivo"><strong>{{ colaboradorActivoSwitch ? "Activo" : "Inactivo" }}</strong></label></div></div>
+          <div class="col-sm-12 col-md-4"><label class="form-label">Valida Ingreso Jornada</label><div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="validaJornada" [(ngModel)]="model.validaIngresoJornada" [checked]="model.validaIngresoJornada == 1" (change)="model.validaIngresoJornada = model.validaIngresoJornada ? 1 : 0" [disabled]="accion === 'ver'" /><label class="form-check-label" for="validaJornada">{{ model.validaIngresoJornada ? "Sí" : "No" }}</label></div><small class="form-text text-muted">Check-in/out de jornada</small></div>
+          <div class="col-sm-12 col-md-4"><label class="form-label">Valida Ingreso Descanso</label><div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="validaDescanso" [(ngModel)]="model.validaIngresoDescanso" [checked]="model.validaIngresoDescanso == 1" (change)="model.validaIngresoDescanso = model.validaIngresoDescanso ? 1 : 0" [disabled]="accion === 'ver'" /><label class="form-check-label" for="validaDescanso">{{ model.validaIngresoDescanso ? "Sí" : "No" }}</label></div><small class="form-text text-muted">Check-in/out de descanso</small></div>
+        </div>
+        <div *ngIf="esDocente() && nuevo" class="alert alert-success mt-3"><i class="bi bi-check-circle me-2"></i><strong>Nota:</strong> Al guardar con rol "Docente", se creará automáticamente un registro de docente.</div>
+        <div class="row mt-4" *ngIf="editable"><div class="col-12 d-flex gap-2"><button class="btn-save" (click)="guardarInformacionColaborador()" [disabled]="!camposHabilitados"><i class="fas fa-save"></i> Guardar Información Colaborador</button><button class="btn-cancel" [routerLink]="['/colaboradores']"><i class="fas fa-times-circle"></i> Cancelar</button></div></div>
+      </div>
+
+      <!-- ==================== GRUPOS ==================== -->
+      <div *ngIf="seccionActiva === 'grupos' && esDocente() && model.idColaborador > 0">
+        <div class="alert alert-warning" *ngIf="!model.idDocente || model.idDocente === 0"><i class="fas fa-exclamation-triangle me-2"></i><strong>Registro de docente pendiente.</strong> Guarde la información del colaborador.</div>
+        <div class="row mb-3" *ngIf="editable && model.idDocente && model.idDocente > 0">
+          <div class="col-sm-12 col-md-8"><label for="nuevoGrupo" class="form-label">Asignar Nuevo Grupo</label><select class="form-select form-select-lg" id="nuevoGrupo" [(ngModel)]="nuevoGrupo.idGrupo"><option value="">Seleccionar grupo</option><ng-container *ngFor="let g of listas.grupos"><option [value]="g.id" [disabled]="grupoYaAsignado(g.id)">{{ g.nombre }} {{ grupoYaAsignado(g.id) ? "(Ya asignado)" : "" }}</option></ng-container></select></div>
+          <div class="col-sm-12 col-md-2"><label class="form-label">&nbsp;</label><div class="form-check"><input class="form-check-input" type="checkbox" id="esTitular" [(ngModel)]="nuevoGrupo.esTitular" /><label class="form-check-label" for="esTitular">Es Titular</label></div></div>
+          <div class="col-sm-12 col-md-2"><label class="form-label">&nbsp;</label><button class="btn btn-primary btn-lg w-100" (click)="asignarGrupo()" [disabled]="!nuevoGrupo.idGrupo">Asignar</button></div>
+        </div>
+        <div class="table-responsive"><table class="table table-striped"><thead><tr><th>Grupo</th><th>Es Titular</th><th>Fecha Asignación</th><th>Estado</th><th *ngIf="editable">Acciones</th></tr></thead><tbody><tr *ngFor="let grupo of gruposAsignados"><td>{{ grupo.nombre_grupo }}</td><td><span class="badge" [ngClass]="grupo.es_titular ? 'bg-success' : 'bg-secondary'">{{ grupo.es_titular ? "Sí" : "No" }}</span></td><td>{{ grupo.fecha_asignacion }}</td><td><span class="badge" [ngClass]="grupo.activo ? 'bg-success' : 'bg-danger'">{{ grupo.activo ? "Activo" : "Inactivo" }}</span></td><td *ngIf="editable"><button class="btn-action btn-action-titular me-2" (click)="cambiarTitular(grupo)" [disabled]="!grupo.activo"><i class="fas fa-exchange-alt"></i> {{ grupo.es_titular ? 'Quitar titular' : 'Hacer titular' }}</button><button class="btn-action" [ngClass]="grupo.activo ? 'btn-action-desactivar' : 'btn-action-activar'" (click)="toggleEstadoGrupo(grupo)"><i [ngClass]="grupo.activo ? 'fas fa-ban' : 'fas fa-check-circle'"></i> {{ grupo.activo ? 'Desactivar' : 'Activar' }}</button></td></tr><tr *ngIf="gruposAsignados.length === 0"><td colspan="5" class="text-center">No hay grupos asignados</td></tr></tbody></table></div>
+      </div>
+
+      <!-- ==================== ÁREAS ACADÉMICAS ==================== -->
+      <div *ngIf="seccionActiva === 'areas' && esDocente() && model.idColaborador > 0">
+        <div class="alert alert-warning" *ngIf="!model.idDocente || model.idDocente === 0"><i class="fas fa-exclamation-triangle me-2"></i><strong>Atención:</strong> Guarde la información del colaborador para asignar áreas.</div>
+        <div class="alert alert-info" *ngIf="gruposAsignados.length === 0 && model.idDocente > 0">Primero debe asignar grupos al docente.</div>
+        <div *ngFor="let grupo of gruposAsignados"><div class="card mb-3" *ngIf="grupo.activo"><div class="card-header"><h5 class="mb-0">{{ grupo.nombre_grupo }}<span class="badge bg-warning ms-2" *ngIf="grupo.es_titular">Titular</span></h5></div><div class="card-body"><div class="row" *ngIf="editable"><div class="col-sm-12 col-md-10"><select class="form-select" [(ngModel)]="nuevaArea[grupo.id_grupo]"><option value="">Seleccionar área académica</option><ng-container *ngFor="let area of listas.areasAcademicas"><option [value]="area.id" [disabled]="areaYaAsignada(area.id, grupo.id_grupo)">{{ area.nombre }} {{ areaYaAsignada(area.id, grupo.id_grupo) ? "(Ya asignada)" : "" }}</option></ng-container></select></div><div class="col-sm-12 col-md-2"><button class="btn btn-primary w-100" (click)="asignarArea(grupo.id_grupo)" [disabled]="!nuevaArea[grupo.id_grupo]">Asignar</button></div></div><div class="mt-3 areas-badges-container"><span class="area-badge me-2 mb-2" *ngFor="let area of obtenerAreasGrupo(grupo.id_grupo)" [style.background-color]="area.color || '#1976D2'" [style.color]="'#333'">{{ area.nombre_area_academica }}<i class="fas fa-times-circle ms-1 area-badge-remove" *ngIf="editable" (click)="quitarArea(area.id)"></i></span><span *ngIf="obtenerAreasGrupo(grupo.id_grupo).length === 0" class="text-muted">No hay áreas asignadas</span></div></div></div></div>
+      </div>
+
+      <!-- ==================== HORARIOS - GRILLA CALENDARIO ==================== -->
+      <div *ngIf="seccionActiva === 'horarios' && model.idColaborador > 0">
+
+        <div class="horarios-header-section">
+          <div class="horarios-resumen">
+            <div class="resumen-badge"><i class="fas fa-clock"></i><span class="resumen-numero">{{ calcularTotalHorasSemana() }}h</span><span class="resumen-texto">semanales</span></div>
+            <div class="resumen-badge"><i class="fas fa-calendar-day"></i><span class="resumen-numero">{{ contarDiasActivos() }}</span><span class="resumen-texto">días activos</span></div>
+          </div>
+          <div class="horario-leyenda">
+            <div class="leyenda-item"><div class="leyenda-color leyenda-jornada"></div><span>Jornada laboral</span></div>
+            <div class="leyenda-item"><div class="leyenda-color leyenda-descanso"></div><span>Descanso</span></div>
+          </div>
+        </div>
+
+        <p class="text-muted mb-2" *ngIf="editable" style="font-size: 0.82rem;"><i class="fas fa-info-circle me-1"></i>Haz clic en una celda vacía para definir la jornada. Clic dentro de la jornada para agregar descanso. Clic en descanso para ver detalle.</p>
+
+        <div class="horario-scroll-container">
+          <div class="horario-grid">
+            <div class="horario-header-dias">
+              <div class="horario-cell horario-time-header">Hora</div>
+              <div class="horario-cell horario-day-header" *ngFor="let dia of diasSemana">
+                <div class="dia-header-content">
+                  <span>{{ dia.nombre }}</span>
+                  <button class="btn-limpiar-dia" *ngIf="editable && getHorarioDia(dia.valor)?.activo" (click)="eliminarHorarioDia(dia.valor)" title="Limpiar día"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="dia-header-horas" *ngIf="obtenerResumenDiaHeader(dia.valor)">{{ obtenerResumenDiaHeader(dia.valor) }}</div>
+              </div>
+            </div>
+            <div class="horario-row" *ngFor="let hora of horasGrilla">
+              <div class="horario-cell horario-time-cell">{{ hora }}</div>
+              <div class="horario-cell horario-content-cell"
+                   *ngFor="let dia of diasSemana"
+                   [ngClass]="getCeldaClase(dia.valor, hora)"
+                   (click)="onCeldaClick(dia.valor, hora)">
+                <span class="celda-label" *ngIf="getCeldaLabel(dia.valor, hora)">{{ getCeldaLabel(dia.valor, hora) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="horario-resumen-dias mt-3">
+          <div *ngFor="let h of horarios" class="resumen-dia-item" [ngClass]="{'resumen-dia-activo': h.activo}">
+            <span class="resumen-dia-nombre">{{ h.nombre }}</span>
+            <span class="resumen-dia-horas" *ngIf="h.activo">{{ h.hora_entrada }} - {{ h.hora_salida }} <span *ngIf="h.hora_inicio_descanso">(Desc: {{ h.hora_inicio_descanso }}-{{ h.hora_fin_descanso }})</span> = {{ calcularHorasDia(h) }}h</span>
+            <span class="resumen-dia-horas" *ngIf="!h.activo">No labora</span>
+          </div>
+        </div>
+
+        <div class="row mt-4" *ngIf="editable">
+          <div class="col-12 d-flex gap-2">
+            <button class="btn-save" (click)="guardarHorarios()"><i class="fas fa-save"></i> Guardar Horarios</button>
+            <button class="btn-cancel" [routerLink]="['/colaboradores']"><i class="fas fa-times-circle"></i> Cancelar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== USUARIO ==================== -->
+      <div *ngIf="seccionActiva === 'usuario' && model.idColaborador > 0">
+        <div *ngIf="!tieneUsuario() && editable" class="alert alert-warning d-flex align-items-center justify-content-between mb-4"><div><i class="fas fa-info-circle me-2"></i><strong>Usuario no creado.</strong> Este colaborador aún no tiene credenciales.</div><button class="btn-save" (click)="crearUsuario()"><i class="fas fa-plus-circle"></i> Crear Usuario</button></div>
+        <div *ngIf="tieneUsuario()">
+          <div class="row"><div class="col-sm-12 col-md-6"><label class="form-label">Usuario</label><input class="form-control form-control-lg" type="text" [value]="model.numeroIdentificacion" readonly disabled /></div><div class="col-sm-12 col-md-6"><label class="form-label">Correo Electrónico <span class="text-danger">*</span></label><input class="form-control form-control-lg" type="email" [(ngModel)]="modelUsuario.correo_electronico" [ngClass]="{ 'is-invalid': !modelUsuario.correo_electronico && submittedUsuario }" [disabled]="!editable" /></div></div>
+          <div class="row mt-3"><div class="col-sm-12 col-md-4"><label class="form-label">Acceso Institucional</label><div class="form-check form-switch"><input class="form-check-input" type="checkbox" [(ngModel)]="modelUsuario.acceso_institucional" [disabled]="!editable" id="accesoInst" /><label class="form-check-label" for="accesoInst">{{ modelUsuario.acceso_institucional ? "Sí" : "No" }}</label></div></div><div class="col-sm-12 col-md-4"><label class="form-label">Acceso Portal Padres</label><div class="form-check form-switch"><input class="form-check-input" type="checkbox" [(ngModel)]="modelUsuario.acceso_portal_padres" [disabled]="!editable" id="accesoPortalPadres" /><label class="form-check-label" for="accesoPortalPadres">{{ modelUsuario.acceso_portal_padres ? "Con acceso" : "Sin acceso" }}</label></div></div><div class="col-sm-12 col-md-4"><label class="form-label">Estado</label><div class="form-check form-switch"><input class="form-check-input" type="checkbox" [(ngModel)]="modelUsuario.activo" [disabled]="!editable" id="usuarioActivo2" /><label class="form-check-label" for="usuarioActivo2">{{ modelUsuario.activo ? "Activo" : "Inactivo" }}</label></div></div></div>
+          <div *ngIf="editable && modelUsuario.id > 0" class="password-section mt-4"><h6 class="section-title mb-3"><i class="fas fa-key me-2"></i>Cambiar Contraseña</h6><div class="row align-items-end"><div class="col-sm-12 col-md-10"><label class="form-label">Nueva Contraseña <span class="text-danger">*</span></label><div class="input-group"><input class="form-control form-control-lg" [type]="mostrarClaveNueva ? 'text' : 'password'" [(ngModel)]="cambiarClaveModel.claveNueva" [ngClass]="{ 'is-invalid': !cambiarClaveModel.claveNueva && intentoCambiarClave }" placeholder="Mínimo 6 caracteres" /><button class="btn btn-outline-secondary" type="button" (click)="mostrarClaveNueva = !mostrarClaveNueva"><i [class]="mostrarClaveNueva ? 'fas fa-eye-slash' : 'fas fa-eye'"></i></button></div></div><div class="col-sm-12 col-md-2"><button class="btn-change-password w-100" (click)="cambiarContrasena()"><i class="fas fa-key"></i> Cambiar</button></div></div></div>
+          <div class="row mt-4" *ngIf="editable"><div class="col-12 d-flex gap-2"><button class="btn-save" (click)="guardarUsuario()"><i class="fas fa-save"></i> Guardar Usuario</button><button class="btn-delete-user" (click)="confirmarEliminarUsuario()"><i class="fas fa-trash"></i> Eliminar Usuario</button></div></div>
+        </div>
+        <div *ngIf="!tieneUsuario() && !editable" class="alert alert-secondary"><i class="fas fa-info-circle me-2"></i>Este colaborador no tiene credenciales de acceso al sistema.</div>
+      </div>
+
+      <!-- ==================== DOCUMENTOS ==================== -->
+      <div *ngIf="seccionActiva === 'documentos' && model.idPersona > 0">
+        <app-documentos-persona [idPersona]="model.idPersona" [tipoPersona]="'colaborador'" [nombrePersona]="obtenerNombreCompleto()" [soloLectura]="accion === 'consultar'"></app-documentos-persona>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- Modal de horario colaborador -->
+<div class="modal-overlay" *ngIf="mostrarModalHorario" (click)="cerrarModalHorario()">
+  <div class="modal-content-horario" (click)="$event.stopPropagation()">
+    <div class="modal-header-custom">
+      <h3>{{ horarioModal.tipo === 'jornada' ? 'Jornada Laboral' : 'Descanso' }} - {{ getNombreDia(horarioModal.dia_semana) }}</h3>
+      <button type="button" class="btn-close-custom" (click)="cerrarModalHorario()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body-custom">
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Hora Inicio <span class="text-danger">*</span></label>
+          <input type="time" class="form-control form-control-lg" [(ngModel)]="horarioModal.hora_inicio" (change)="validarSolapamientoModal()">
+        </div>
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Hora Fin <span class="text-danger">*</span></label>
+          <input type="time" class="form-control form-control-lg" [(ngModel)]="horarioModal.hora_fin" (change)="validarSolapamientoModal()"
+            [ngClass]="{'is-invalid': horarioModal.hora_inicio && horarioModal.hora_fin && horarioModal.hora_fin <= horarioModal.hora_inicio}">
+          <div class="invalid-feedback" *ngIf="horarioModal.hora_inicio && horarioModal.hora_fin && horarioModal.hora_fin <= horarioModal.hora_inicio">
+            La hora fin debe ser mayor que la hora inicio
+          </div>
+        </div>
+        <div class="col-12" *ngIf="horarioErrorSolapamiento">
+          <div class="alert alert-danger py-2 mb-0">
+            <i class="fas fa-exclamation-triangle me-2"></i>{{ horarioErrorSolapamiento }}
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer-custom">
+        <button class="btn btn-secondary" (click)="cerrarModalHorario()">Cancelar</button>
+        <button class="btn-save" (click)="guardarHorarioModal()"
+          [disabled]="horarioErrorSolapamiento || (horarioModal.hora_inicio && horarioModal.hora_fin && horarioModal.hora_fin <= horarioModal.hora_inicio)">
+          Guardar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,356 @@
+$gold: #d4af37;
+$black: #222;
+
+.modulo {
+  background: #f5f7fa;
+  min-height: 100vh;
+  padding-bottom: 2rem;
+}
+
+.container {
+  max-width: 600px;
+}
+
+// ========== RELOJ ==========
+
+.reloj-card {
+  background: $black;
+  color: white;
+  border-radius: 16px;
+  padding: 2rem 1.5rem;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.reloj-hora {
+  font-size: 3rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: $gold;
+  line-height: 1;
+}
+
+.reloj-fecha {
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin-top: 0.5rem;
+  text-transform: capitalize;
+}
+
+.reloj-nombre {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-top: 0.75rem;
+  color: white;
+}
+
+// ========== UBICACIÓN ==========
+
+.ubicacion-card {
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 0;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.ubicacion-ok { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+.ubicacion-fuera { background: #fff3e0; color: #e65100; border: 1px solid #ffcc80; }
+.ubicacion-error { background: #ffebee; color: #c62828; border: 1px solid #ef9a9a; }
+
+.distancia-badge {
+  background: rgba(0, 0, 0, 0.1);
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.btn-reintentar {
+  background: none;
+  border: none;
+  color: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+  &:hover { opacity: 1; }
+}
+
+.btn-ver-mapa {
+  background: rgba(0, 0, 0, 0.08);
+  border: none;
+  color: inherit;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.15);
+  }
+}
+
+// ========== MINI MAPA ==========
+
+.mini-mapa-container {
+  border-radius: 0 0 12px 12px;
+  overflow: hidden;
+  margin-bottom: 1rem;
+  border: 1px solid #e0e0e0;
+  border-top: none;
+}
+
+.mini-mapa-leaflet {
+  width: 100%;
+  height: 200px;
+}
+
+// ========== HORARIO ==========
+
+.horario-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+  border-left: 4px solid $gold;
+
+  h6 { font-weight: 600; color: $black; margin-bottom: 0.5rem; font-size: 0.9rem; }
+}
+
+.horario-detalle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #555;
+  i { color: $gold; }
+}
+
+.separador { color: #ccc; }
+
+// ========== BOTÓN PRINCIPAL ==========
+
+.registro-acciones {
+  margin-bottom: 1rem;
+}
+
+.btn-registrar-principal {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 20px 24px;
+  background: linear-gradient(135deg, $gold 0%, darken($gold, 10%) 100%);
+  border: none;
+  border-radius: 16px;
+  color: $black;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 15px rgba($gold, 0.35);
+
+  &:hover:not(:disabled) { transform: translateY(-3px); box-shadow: 0 6px 20px rgba($gold, 0.45); }
+  &:active:not(:disabled) { transform: translateY(0); }
+  &:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
+}
+
+.btn-registrar-icono-principal {
+  font-size: 2rem;
+  width: 50px;
+  text-align: center;
+  margin-right: 16px;
+  color: $black;
+}
+
+.btn-registrar-info {
+  flex: 1;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+}
+
+.btn-registrar-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  opacity: 0.7;
+}
+
+.btn-registrar-texto-principal {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+// ========== SALTAR DESCANSO ==========
+
+.saltar-descanso {
+  text-align: center;
+  margin-top: 0.75rem;
+}
+
+.btn-saltar {
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 6px 16px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+
+  i { font-size: 0.75rem; }
+
+  &:hover:not(:disabled) {
+    color: $gold;
+    background: rgba($gold, 0.08);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
+// ========== BOTÓN MANUAL ==========
+
+.registro-manual-container {
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.btn-registro-manual {
+  background: transparent;
+  border: 2px solid #bbb;
+  border-radius: 10px;
+  padding: 10px 24px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #777;
+  cursor: pointer;
+  transition: all 0.25s ease;
+
+  &:hover:not(:disabled) { border-color: $gold; color: $gold; }
+  &:disabled { opacity: 0.4; cursor: not-allowed; }
+}
+
+// ========== REGISTROS DEL DÍA ==========
+
+.registros-hoy {
+  background: white;
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+.registros-titulo {
+  font-weight: 600;
+  color: $black;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #f0f0f0;
+  i { color: $gold; }
+}
+
+.registro-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid #f8f8f8;
+  &:last-child { border-bottom: none; padding-bottom: 0; }
+}
+
+.registro-item-icono {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba($gold, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $gold;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+.registro-item-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.registro-item-tipo {
+  font-weight: 600;
+  font-size: 0.88rem;
+  color: $black;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.manual-tag {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #999;
+  background: #f0f0f0;
+  padding: 1px 6px;
+  border-radius: 8px;
+  i { font-size: 0.6rem; }
+}
+
+.registro-item-hora {
+  font-size: 0.82rem;
+  color: #999;
+}
+
+.registro-item-acciones {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.registro-item-estado {
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.btn-eliminar-registro {
+  background: none;
+  border: none;
+  color: #ccc;
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    color: #dc3545;
+    background: #ffebee;
+  }
+}
+
+// ========== ALERT ==========
+
+.alert {
+  border-radius: 10px;
+  border: none;
+  font-size: 0.9rem;
+}

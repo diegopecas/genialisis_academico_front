@@ -1,0 +1,18 @@
+{
+  "imagenes": [
+    { "nombre": "Arte Clásico", "ruta": "assets/images/recursos_compartidos/arte_clasico.png" },
+    { "nombre": "Ciencias", "ruta": "assets/images/recursos_compartidos/ciencias.png" },
+    { "nombre": "Emprendimiento", "ruta": "assets/images/recursos_compartidos/emprendimiento.png" },
+    { "nombre": "Experimentales", "ruta": "assets/images/recursos_compartidos/experimentales.png" },
+    { "nombre": "Geografía", "ruta": "assets/images/recursos_compartidos/geografia.png" },
+    { "nombre": "Historia", "ruta": "assets/images/recursos_compartidos/historia.png" },
+    { "nombre": "Inglés", "ruta": "assets/images/recursos_compartidos/ingles.png" },
+    { "nombre": "Inteligencia Emocional", "ruta": "assets/images/recursos_compartidos/inteligencia_emocional.png" },
+    { "nombre": "Lenguaje", "ruta": "assets/images/recursos_compartidos/lenguaje.png" },
+    { "nombre": "Matemáticas", "ruta": "assets/images/recursos_compartidos/matematicas.png" },
+    { "nombre": "Motricidad Fina", "ruta": "assets/images/recursos_compartidos/motricidad_fina.png" },
+    { "nombre": "Motricidad Gruesa", "ruta": "assets/images/recursos_compartidos/motricidad_gruesa.png" },
+    { "nombre": "Tecnología", "ruta": "assets/images/recursos_compartidos/tecnologia.png" },
+    { "nombre": "Vida Práctica", "ruta": "assets/images/recursos_compartidos/vida_practica.png" }
+  ]
+}

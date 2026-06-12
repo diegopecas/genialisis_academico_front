@@ -1,0 +1,538 @@
+<div class="modulo">
+  @if (!modoEmbebido) {
+  <app-header 
+    [tituloModulo]="titulo" 
+    [mostrarCrear]="false" 
+    [raiz]="'/colaboradores'" 
+    [regresar]="'/colaboradores'" 
+    [iconoTitulo]="'/assets/images/colaboradores.png'">
+  </app-header>
+  }
+
+  <div class="container mt-4">
+    <!-- Tabs de navegación -->
+    <ul class="nav nav-tabs mb-4">
+      <li class="nav-item">
+        <a class="nav-link" 
+           [class.active]="seccionActiva === 'registrar'"
+           (click)="cambiarSeccion('registrar')" 
+           style="cursor: pointer;">
+          <i class="fas fa-plus-circle me-2"></i>Registrar Actividad
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" 
+           [class.active]="seccionActiva === 'balance'"
+           (click)="cambiarSeccion('balance')" 
+           style="cursor: pointer;">
+          <i class="fas fa-balance-scale me-2"></i>Balance
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" 
+           [class.active]="seccionActiva === 'historial'"
+           (click)="cambiarSeccion('historial')" 
+           style="cursor: pointer;">
+          <i class="fas fa-history me-2"></i>Historial
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" 
+           [class.active]="seccionActiva === 'tareas'"
+           (click)="cambiarSeccion('tareas')" 
+           style="cursor: pointer;">
+          <i class="fas fa-tasks me-2"></i>Tareas
+          <span *ngIf="getTareasPendientes() > 0" class="badge bg-danger ms-1">{{ getTareasPendientes() }}</span>
+        </a>
+      </li>
+    </ul>
+
+    <!-- Sección: Registrar Actividad -->
+    <div *ngIf="seccionActiva === 'registrar'">
+      <div class="card">
+        <div class="card-header card-header-gold">
+          <h5 class="card-title mb-0"><i class="fas fa-plus-circle me-2"></i>Registrar Nueva Actividad</h5>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-6">
+              <label for="categoria" class="form-label">Categoría</label>
+              <select class="form-select form-select-lg" 
+                      id="categoria" 
+                      (change)="onCategoriaChange($event)">
+                <option value="">Seleccionar</option>
+                <option *ngFor="let cat of categorias" [value]="cat.id">
+                  {{ cat.nombre }}
+                </option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label for="tipoActividad" class="form-label">Tipo de Actividad</label>
+              <select class="form-select form-select-lg" 
+                      id="tipoActividad" 
+                      [(ngModel)]="model.id_tipo_actividad"
+                      (change)="onTipoActividadChange()">
+                <option value="">Seleccionar</option>
+                <option *ngFor="let tipo of tiposActividadesFiltrados" [value]="tipo.id">
+                  {{ tipo.nombre }}
+                  <span *ngIf="tipo.valor_hora"> - ${{ tipo.valor_hora | number:'1.0-0' }}/hora</span>
+                </option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Registro por HORAS -->
+          <div *ngIf="registroPorHoras">
+            <div class="row mt-3">
+              <div class="col-md-6">
+                <label for="fechaHoraInicio" class="form-label">Fecha y Hora Inicio</label>
+                <input type="datetime-local" 
+                       class="form-control form-control-lg" 
+                       id="fechaHoraInicio"
+                       [(ngModel)]="model.fecha_hora_inicio"
+                       (change)="calcularDuracion()">
+              </div>
+              <div class="col-md-6">
+                <label for="fechaHoraFin" class="form-label">Fecha y Hora Fin</label>
+                <input type="datetime-local" 
+                       class="form-control form-control-lg" 
+                       id="fechaHoraFin"
+                       [(ngModel)]="model.fecha_hora_fin"
+                       (change)="calcularDuracion()">
+              </div>
+            </div>
+          </div>
+
+          <!-- Registro por DÍAS -->
+          <div *ngIf="!registroPorHoras && categoriaSeleccionada">
+            <div class="row mt-3">
+              <div class="col-md-6">
+                <label for="fechaInicio" class="form-label">Fecha Inicio</label>
+                <input type="date" 
+                       class="form-control form-control-lg" 
+                       id="fechaInicio"
+                       [(ngModel)]="model.fecha_inicio"
+                       (change)="calcularDuracion()">
+                <small class="text-muted">Horario: 8:00 AM</small>
+              </div>
+              <div class="col-md-6">
+                <label for="fechaFin" class="form-label">Fecha Fin</label>
+                <input type="date" 
+                       class="form-control form-control-lg" 
+                       id="fechaFin"
+                       [(ngModel)]="model.fecha_fin"
+                       (change)="calcularDuracion()">
+                <small class="text-muted">Horario: 6:00 PM</small>
+              </div>
+            </div>
+            <div class="alert alert-info mt-3">
+              <i class="fas fa-info-circle me-2"></i>
+              <strong>Nota:</strong> Se registrará automáticamente con horario de 8:00 AM a 6:00 PM (10 horas por día)
+            </div>
+          </div>
+
+          <!-- Duración y Valor -->
+          <div class="row mt-3" *ngIf="calcularDuracion()">
+            <div class="col-md-6">
+              <div class="alert alert-success">
+                <strong>Duración:</strong> {{ calcularDuracion() }}
+              </div>
+            </div>
+            <div class="col-md-6" *ngIf="valorCalculado > 0">
+              <div class="alert alert-primary">
+                <strong>Valor calculado:</strong> {{ valorCalculado | currency:'COP ':'symbol':'1.0-0' }}
+              </div>
+            </div>
+          </div>
+
+          <div class="row mt-3">
+            <div class="col-12">
+              <label for="observaciones" class="form-label">Observaciones</label>
+              <textarea class="form-control" 
+                        id="observaciones" 
+                        rows="3"
+                        [(ngModel)]="model.observaciones"
+                        placeholder="Detalles adicionales..."></textarea>
+            </div>
+          </div>
+
+          <div class="row mt-4">
+            <div class="col-12 text-center">
+              <button class="btn btn-success btn-lg me-2" (click)="guardar()">
+                <i class="fas fa-save me-2"></i>Guardar
+              </button>
+              <button class="btn btn-secondary btn-lg" (click)="limpiarFormulario()">
+                <i class="fas fa-eraser me-2"></i>Limpiar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sección: Balance -->
+    <div *ngIf="seccionActiva === 'balance'">
+      <div class="row">
+        <div class="col-md-3">
+          <div class="card text-center">
+            <div class="card-body">
+              <h6 class="text-muted">Permisos</h6>
+              <h3 class="text-danger">{{ formatearMinutos(balance.total_permisos) }}</h3>
+              <small>{{ balance.total_permisos }} minutos</small>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card text-center">
+            <div class="card-body">
+              <h6 class="text-muted">Horas Adicionales</h6>
+              <h3 class="text-success">{{ formatearMinutos(balance.total_horas_adicionales) }}</h3>
+              <small>{{ balance.total_horas_adicionales }} minutos</small>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card text-center">
+            <div class="card-body">
+              <h6 class="text-muted">Balance</h6>
+              <h3 [class.text-success]="balance.balance_minutos >= 0" 
+                  [class.text-danger]="balance.balance_minutos < 0">
+                {{ formatearMinutos(Math.abs(balance.balance_minutos)) }}
+              </h3>
+              <small *ngIf="balance.balance_minutos >= 0">A favor</small>
+              <small *ngIf="balance.balance_minutos < 0">En contra</small>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card text-center">
+            <div class="card-body">
+              <h6 class="text-muted">Valor Horas</h6>
+              <h3 class="text-primary">
+                {{ balance.valor_horas_adicionales | currency:'COP ':'symbol':'1.0-0' }}
+              </h3>
+              <small>Por pagar</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="alert alert-info mt-4">
+        <i class="fas fa-info-circle me-2"></i>
+        <strong>Nota:</strong> Este balance muestra únicamente las actividades aprobadas que aún no han sido contabilizadas.
+      </div>
+    </div>
+
+    <!-- Sección: Historial -->
+    <div *ngIf="seccionActiva === 'historial'">
+      <app-tablas
+        [titulos]="titulosActividades"
+        [datos]="actividadesProcesadas"
+        [acciones]="accionesActividades"
+        [mostrarBuscar]="true"
+        [columnasFiltro]="columnasFiltroActividades"
+        [exportarExcel]="true"
+        (clicAccion)="onAccionActividad($event)">
+      </app-tablas>
+    </div>
+
+    <!-- Sección: Tareas -->
+    <div *ngIf="seccionActiva === 'tareas'">
+
+      <div class="mb-3 text-end">
+        <button class="btn btn-success" (click)="toggleFormularioTarea()">
+          <i class="fas" [ngClass]="mostrarFormularioTarea ? 'fa-times' : 'fa-plus'"></i>
+          {{ mostrarFormularioTarea ? 'Cancelar' : 'Nueva Tarea' }}
+        </button>
+      </div>
+
+      <!-- Formulario crear tarea -->
+      <div *ngIf="mostrarFormularioTarea" class="card mb-4">
+        <div class="card-header card-header-gold">
+          <h5 class="card-title mb-0"><i class="fas fa-plus-circle me-2"></i>Nueva Tarea</h5>
+        </div>
+        <div class="card-body">
+          <div class="row mb-3">
+            <div class="col-md-3">
+              <label class="form-label">Clase</label>
+              <select class="form-select" [(ngModel)]="modelTarea.id_clase_tarea">
+                <option *ngFor="let clase of clasesTareas" [ngValue]="clase.id">{{ clase.nombre }}</option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Tipo de tarea</label>
+              <select class="form-select" [(ngModel)]="modelTarea.id_tipo_tarea">
+                <option [ngValue]="null">Sin tipo</option>
+                <option *ngFor="let tipo of tiposTareas" [ngValue]="tipo.id">{{ tipo.nombre }}</option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Estudiante</label>
+              <div class="input-group">
+                <input type="text" class="form-control" [value]="modelTarea.nombre_estudiante" readonly placeholder="Opcional">
+                <button class="btn btn-outline-secondary" type="button" (click)="abrirSelectorEstudiantes(false)"><i class="fas fa-search"></i></button>
+                <button class="btn btn-outline-danger" type="button" (click)="limpiarEstudianteTarea()" *ngIf="modelTarea.id_estudiante"><i class="fas fa-times"></i></button>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Descripción *</label>
+              <textarea class="form-control" rows="2" [(ngModel)]="modelTarea.descripcion" placeholder="Descripción..."></textarea>
+            </div>
+          </div>
+
+          <!-- Correos asistentes (solo para Reunión) -->
+          <div *ngIf="modelTarea.id_clase_tarea === 2" class="row mb-3">
+            <div class="col-12">
+              <label class="form-label"><i class="fas fa-users me-1"></i> Asistentes de la reunión</label>
+              <div class="input-group mb-2">
+                <input type="email" class="form-control" [(ngModel)]="correoInput"
+                       placeholder="Ingrese correo y presione Enter o ,"
+                       (keydown)="onCorreoKeydown($event)">
+                <button class="btn btn-outline-success" type="button" (click)="agregarCorreo()"><i class="fas fa-plus"></i></button>
+              </div>
+              <div class="d-flex flex-wrap gap-2" *ngIf="modelTarea.correos_asistentes.length > 0">
+                <span *ngFor="let correo of modelTarea.correos_asistentes; let i = index" class="badge-pildora">
+                  {{ correo }}
+                  <i class="fas fa-times ms-1" style="cursor:pointer;" (click)="eliminarCorreo(i)"></i>
+                </span>
+              </div>
+              <small class="text-muted" *ngIf="modelTarea.correos_asistentes.length === 0">Se incluirá automáticamente al colaborador y a la cuenta organizadora</small>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-12">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="switchRecurrente" [(ngModel)]="modelTarea.esRecurrente">
+                <label class="form-check-label" for="switchRecurrente"><i class="fas fa-redo me-1"></i> Tarea recurrente</label>
+              </div>
+            </div>
+          </div>
+          <div *ngIf="!modelTarea.esRecurrente" class="row mb-3">
+            <div class="col-md-4">
+              <label class="form-label">Fecha límite *</label>
+              <input type="date" class="form-control" [(ngModel)]="modelTarea.fecha_limite">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Hora inicio</label>
+              <input type="time" class="form-control" [(ngModel)]="modelTarea.hora_inicio">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Hora fin</label>
+              <input type="time" class="form-control" [(ngModel)]="modelTarea.hora_fin">
+            </div>
+          </div>
+          <div *ngIf="modelTarea.esRecurrente">
+            <div class="row mb-3">
+              <div class="col-md-4">
+                <label class="form-label">Recurrencia</label>
+                <select class="form-select" [(ngModel)]="modelTarea.tipoRecurrencia">
+                  <option value="diario">Diario</option><option value="semanal">Semanal</option><option value="mensual">Mensual</option>
+                </select>
+              </div>
+              <div class="col-md-4"><label class="form-label">Desde *</label><input type="date" class="form-control" [(ngModel)]="modelTarea.fecha_desde"></div>
+              <div class="col-md-4"><label class="form-label">Hasta *</label><input type="date" class="form-control" [(ngModel)]="modelTarea.fecha_hasta"></div>
+            </div>
+            <div *ngIf="modelTarea.tipoRecurrencia === 'semanal'" class="row mb-3">
+              <div class="col-12">
+                <label class="form-label">Días</label>
+                <div class="d-flex gap-2 flex-wrap">
+                  <div class="form-check" *ngFor="let dia of [{val:1,label:'Lun'},{val:2,label:'Mar'},{val:3,label:'Mié'},{val:4,label:'Jue'},{val:5,label:'Vie'},{val:6,label:'Sáb'},{val:0,label:'Dom'}]">
+                    <input class="form-check-input" type="checkbox" [id]="'dia_' + dia.val" [(ngModel)]="modelTarea.diasSemana[dia.val]">
+                    <label class="form-check-label" [for]="'dia_' + dia.val">{{ dia.label }}</label>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div *ngIf="modelTarea.tipoRecurrencia === 'mensual'" class="row mb-3">
+              <div class="col-md-4"><label class="form-label">Día del mes</label>
+                <select class="form-select" [(ngModel)]="modelTarea.diaMes">
+                  <option *ngFor="let d of [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28]" [value]="d">{{ d }}</option>
+                </select>
+              </div>
+            </div>
+            <div class="row mb-3">
+              <div class="col-md-4"><label class="form-label">Hora inicio</label><input type="time" class="form-control" [(ngModel)]="modelTarea.hora_inicio"></div>
+              <div class="col-md-4"><label class="form-label">Hora fin</label><input type="time" class="form-control" [(ngModel)]="modelTarea.hora_fin"></div>
+              <div class="col-md-4 d-flex align-items-end">
+                <div class="alert alert-info mb-0 w-100 py-2 text-center" *ngIf="getCantidadTareasPreview() > 0"><strong>{{ getCantidadTareasPreview() }}</strong> tareas se crearán</div>
+              </div>
+            </div>
+          </div>
+          <div class="row mb-3"><div class="col-12"><label class="form-label">Observaciones</label><textarea class="form-control" rows="2" [(ngModel)]="modelTarea.observaciones" placeholder="Observaciones..."></textarea></div></div>
+          <div class="text-center">
+            <button class="btn btn-success me-2" (click)="crearTareaManual()"><i class="fas fa-save me-1"></i> Guardar</button>
+            <button class="btn btn-secondary" (click)="toggleFormularioTarea()"><i class="fas fa-times me-1"></i> Cancelar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabla de tareas con app-tablas -->
+      <app-tablas
+        [titulos]="titulosTareas"
+        [datos]="tareasProcesadas"
+        [acciones]="accionesTareas"
+        [mostrarBuscar]="true"
+        [columnasFiltro]="columnasFiltroTareas"
+        [exportarExcel]="true"
+        (clicAccion)="onAccionTarea($event)">
+      </app-tablas>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Detalle / Editar Tarea -->
+<div class="modal fade" id="modalDetalleTarea" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas me-2" [ngClass]="tareaEditando ? 'fa-edit' : 'fa-clipboard-list'"></i>
+          {{ tareaEditando ? 'Editar Tarea' : 'Detalle de Tarea' }}
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" *ngIf="tareaDetalle">
+
+        <!-- MODO LECTURA -->
+        <div *ngIf="!tareaEditando">
+          <div class="row mb-3">
+            <div class="col-md-4">
+              <strong>Fecha Registro</strong>
+              <p class="mb-0">{{ tareaDetalle.fecha_registro | date:'dd/MM/yyyy HH:mm' }}</p>
+            </div>
+            <div class="col-md-4">
+              <strong>Fecha Límite</strong>
+              <p class="mb-0">{{ formatearFechaHora(tareaDetalle.fecha_limite, tareaDetalle.hora_inicio, tareaDetalle.hora_fin) }}</p>
+            </div>
+            <div class="col-md-4">
+              <strong>Estado</strong>
+              <p class="mb-0">
+                <span class="badge" [style.background-color]="tareaDetalle.color_estado" style="color:#fff;">{{ tareaDetalle.nombre_estado }}</span>
+                <span *ngIf="tareaDetalle.vencido" class="badge bg-danger ms-1">Vencido</span>
+              </p>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-4">
+              <strong>Tipo</strong>
+              <p class="mb-0">{{ tareaDetalle.nombre_tipo_tarea || 'Sin tipo' }}</p>
+            </div>
+            <div class="col-md-4">
+              <strong>Estudiante</strong>
+              <p class="mb-0">{{ tareaDetalle.nombre_estudiante || '-' }}</p>
+            </div>
+            <div class="col-md-4">
+              <strong>Origen</strong>
+              <p class="mb-0">{{ getOrigenLabel(tareaDetalle.origen) }}</p>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-12">
+              <strong>Descripción</strong>
+              <div class="p-3 bg-light rounded mt-1" style="white-space:pre-wrap;min-height:100px;">{{ tareaDetalle.descripcion || '-' }}</div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-12">
+              <strong>Observaciones</strong>
+              <div class="p-3 bg-light rounded mt-1" style="white-space:pre-wrap;min-height:100px;">{{ tareaDetalle.observaciones || '-' }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MODO EDICIÓN -->
+        <div *ngIf="tareaEditando">
+          <div class="row mb-3">
+            <div class="col-md-4">
+              <label class="form-label">Tipo de tarea</label>
+              <select class="form-select" [(ngModel)]="tareaEditando.id_tipo_tarea">
+                <option [ngValue]="null">Sin tipo</option>
+                <option *ngFor="let tipo of tiposTareas" [ngValue]="tipo.id">{{ tipo.nombre }}</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Estudiante</label>
+              <div class="input-group">
+                <input type="text" class="form-control" [value]="tareaEditando.nombre_estudiante" readonly>
+                <button class="btn btn-outline-secondary" type="button" (click)="abrirSelectorEstudiantes(true)"><i class="fas fa-search"></i></button>
+                <button class="btn btn-outline-danger" type="button" (click)="limpiarEstudianteTareaEdicion()" *ngIf="tareaEditando.id_estudiante"><i class="fas fa-times"></i></button>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Estado</label>
+              <select class="form-select" [(ngModel)]="tareaEditando.id_estado">
+                <option *ngFor="let estado of estadosTareas" [value]="estado.id">{{ estado.nombre }}</option>
+              </select>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-4">
+              <label class="form-label">Fecha límite *</label>
+              <input type="date" class="form-control" [(ngModel)]="tareaEditando.fecha_limite">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Hora inicio</label>
+              <input type="time" class="form-control" [(ngModel)]="tareaEditando.hora_inicio">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Hora fin</label>
+              <input type="time" class="form-control" [(ngModel)]="tareaEditando.hora_fin">
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-12">
+              <label class="form-label">Descripción *</label>
+              <textarea class="form-control" rows="4" [(ngModel)]="tareaEditando.descripcion"></textarea>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-12">
+              <label class="form-label">Observaciones</label>
+              <textarea class="form-control" rows="4" [(ngModel)]="tareaEditando.observaciones" placeholder="Observaciones de gestión..."></textarea>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <div *ngIf="!tareaEditando">
+          <button class="btn btn-outline-secondary me-2" (click)="editarTareaEnModal()" *ngIf="tareaDetalle?.nombre_estado === 'Registrado'"><i class="fas fa-edit me-1"></i> Editar</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+        </div>
+        <div *ngIf="tareaEditando">
+          <button class="btn btn-success me-2" (click)="guardarTareaDesdeModal()"><i class="fas fa-save me-1"></i> Guardar</button>
+          <button class="btn btn-secondary" (click)="cancelarEdicionModal()">Cancelar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Selector de Estudiantes -->
+<div class="modal fade" id="modalSelectorEstudiantes" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fas fa-user-graduate me-2"></i>Seleccionar Estudiante</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row mb-3">
+          <div class="col-md-6"><select class="form-select" [(ngModel)]="grupoFiltroEstudiante" (change)="filtrarEstudiantesTarea()"><option value="">Todos los grupos</option><option *ngFor="let g of gruposEstudiantes" [value]="g.id">{{ g.nombre }}</option></select></div>
+          <div class="col-md-6"><input type="text" class="form-control" [(ngModel)]="busquedaEstudiante" (keyup)="filtrarEstudiantesTarea()" placeholder="Buscar por nombre..."></div>
+        </div>
+        <div class="table-responsive" style="max-height:400px;overflow-y:auto;">
+          <table class="table table-hover table-sm">
+            <thead class="table-light sticky-top"><tr><th>Nombre</th><th>Grupo</th><th></th></tr></thead>
+            <tbody>
+              <tr *ngFor="let est of estudiantesFiltradosTarea" (click)="seleccionarEstudianteTarea(est)" style="cursor:pointer;">
+                <td>{{ est.nombre_completo }}</td><td>{{ est.nombre_grupo }}</td><td class="text-end"><i class="fas fa-check-circle text-success"></i></td>
+              </tr>
+              <tr *ngIf="estudiantesFiltradosTarea.length === 0"><td colspan="3" class="text-center text-muted">No se encontraron estudiantes</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

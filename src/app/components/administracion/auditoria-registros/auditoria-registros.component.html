@@ -1,0 +1,335 @@
+<div class="modulo">
+  <app-header 
+    [tituloModulo]="titulo" 
+    [mostrarCrear]="false" 
+    [accion]="'consultar'" 
+    [raiz]="'/administracion'" 
+    [regresar]="'/administracion'"
+    [iconoTitulo]="'/assets/images/auditoria.png'">
+  </app-header>
+
+  <!-- Indicador de carga -->
+  <div *ngIf="cargando" class="loading-container">
+    <div class="spinner-wrapper">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+      <p class="loading-text">Analizando registros...</p>
+    </div>
+  </div>
+
+  <div class="container-fluid mt-4" *ngIf="!cargando">
+    <!-- Filtros -->
+    <div class="filtros-container mb-4">
+      <div class="row">
+        <div class="col-md-3">
+          <label class="form-label">Año:</label>
+          <select class="form-select" [(ngModel)]="anioSeleccionado" (change)="cambiarPeriodo()">
+            <option *ngFor="let anio of anios" [value]="anio">{{ anio }}</option>
+          </select>
+        </div>
+        
+        <div class="col-md-3">
+          <label class="form-label">Tipo de período:</label>
+          <select class="form-select" [(ngModel)]="tipoFiltro" (change)="cambiarTipoFiltro()">
+            <option value="mes">Mes</option>
+            <option value="sprint">Sprint</option>
+          </select>
+        </div>
+        
+        <div class="col-md-3" *ngIf="tipoFiltro === 'mes'">
+          <label class="form-label">Mes:</label>
+          <select class="form-select" [(ngModel)]="mesSeleccionado" (change)="cambiarPeriodo()">
+            <option *ngFor="let mes of meses" [value]="mes.valor">{{ mes.nombre }}</option>
+          </select>
+        </div>
+        
+        <div class="col-md-3" *ngIf="tipoFiltro === 'sprint'">
+          <label class="form-label">Sprint:</label>
+          <select class="form-select" [(ngModel)]="sprintSeleccionado" (change)="cambiarPeriodo()">
+            <option *ngFor="let sprint of sprints" [ngValue]="sprint">
+              {{ sprint.nombre_sprint }}
+            </option>
+          </select>
+        </div>
+
+        <div class="col-md-3 d-flex align-items-end">
+          <button class="btn btn-primary w-100" (click)="consultar()" [disabled]="cargando">
+            <i class="fas fa-search me-2"></i>
+            {{ cargando ? 'Consultando...' : 'Consultar' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Vista Resumen -->
+    <div *ngIf="vistaActual === 'resumen'" class="vista-resumen">
+      <h3 class="mb-4">Resumen por Grupos</h3>
+      
+      <div class="row">
+        <div class="col-lg-4 col-md-6 mb-4" *ngFor="let grupo of resumenes">
+          <div class="card-grupo" (click)="seleccionarGrupo(grupo)" 
+               [style.border-bottom-color]="grupo.color">
+            <div class="card-header-grupo">
+              <img [src]="grupo.icono" [alt]="grupo.nombre_grupo" class="grupo-icono">
+              <h5>{{ grupo.nombre_grupo }}</h5>
+              <i class="fas indicador-general" 
+                 [ngClass]="obtenerIconoIndicador(grupo.indicadorGeneral)"
+                 [class.text-success]="grupo.indicadorGeneral === 'verde'"
+                 [class.text-warning]="grupo.indicadorGeneral === 'amarillo'"
+                 [class.text-danger]="grupo.indicadorGeneral === 'rojo'">
+              </i>
+            </div>
+            
+            <div class="card-body-grupo">
+              <!-- Indicador de Medidas -->
+              <div class="indicador-item">
+                <i class="fas fa-weight"></i>
+                <span>Medidas</span>
+                <div class="indicador-valor">
+                  <span *ngIf="grupo.medidas">
+                    {{ grupo.medidas.porcentaje_cumplimiento_general | number:'1.0-0' }}%
+                  </span>
+                  <span *ngIf="!grupo.medidas">--</span>
+                </div>
+              </div>
+              
+              <!-- Indicador de Asistencia -->
+              <div class="indicador-item">
+                <i class="fas fa-calendar-check"></i>
+                <span>Asistencia</span>
+                <div class="indicador-valor">
+                  <span *ngIf="grupo.asistencia">
+                    {{ grupo.asistencia.promedio_asistencia | number:'1.0-0' }}%
+                  </span>
+                  <span *ngIf="!grupo.asistencia">--</span>
+                </div>
+              </div>
+              
+              <!-- Indicador de Clases -->
+              <div class="indicador-item">
+                <i class="fas fa-chalkboard-teacher"></i>
+                <span>Clases Normales</span>
+                <div class="indicador-valor">
+                  <span *ngIf="grupo.clases">
+                    {{ grupo.clases.porcentaje_normales | number:'1.0-0' }}%
+                  </span>
+                  <span *ngIf="!grupo.clases">--</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mensaje cuando no hay datos -->
+      <div *ngIf="resumenes.length === 0" class="text-center py-5">
+        <i class="fas fa-info-circle fa-3x text-muted mb-3"></i>
+        <p class="text-muted">Presiona el boton "Consultar" para ver los resultados</p>
+      </div>
+    </div>
+
+    <!-- Vista Detalle -->
+    <div *ngIf="vistaActual === 'detalle' && grupoSeleccionado" class="vista-detalle">
+      <button class="btn btn-outline-secondary mb-3" (click)="volverAResumen()">
+        <i class="fas fa-arrow-left me-2"></i>Volver al resumen
+      </button>
+      
+      <h3 class="mb-4">
+        <img [src]="grupoSeleccionado.icono" [alt]="grupoSeleccionado.nombre_grupo" 
+             class="grupo-icono-detalle me-2">
+        {{ grupoSeleccionado.nombre_grupo }}
+      </h3>
+      
+      <div class="row">
+        <!-- Panel de Medidas -->
+        <div class="col-md-4 mb-4">
+          <div class="panel-detalle">
+            <div class="panel-header">
+              <i class="fas fa-weight"></i>
+              <h5>Registro de Medidas</h5>
+              <button class="btn btn-sm btn-outline-light ms-auto" 
+                      (click)="verDetalleMedidas()"
+                      *ngIf="grupoSeleccionado.medidas">
+                <i class="fas fa-list"></i> Ver detalle
+              </button>
+            </div>
+            <div class="panel-body" *ngIf="grupoSeleccionado.medidas">
+              <div class="metrica-item">
+                <span class="metrica-label">Semanas analizadas:</span>
+                <span class="metrica-valor">{{ grupoSeleccionado.medidas.total_semanas }}</span>
+              </div>
+              <div class="metrica-item">
+                <span class="metrica-label">Semanas con peso:</span>
+                <span class="metrica-valor">
+                  {{ grupoSeleccionado.medidas.semanas_con_peso }} 
+                  ({{ grupoSeleccionado.medidas.porcentaje_cumplimiento_peso | number:'1.0-0' }}%)
+                </span>
+              </div>
+              <div class="metrica-item">
+                <span class="metrica-label">Semanas con talla:</span>
+                <span class="metrica-valor">
+                  {{ grupoSeleccionado.medidas.semanas_con_talla }}
+                  ({{ grupoSeleccionado.medidas.porcentaje_cumplimiento_talla | number:'1.0-0' }}%)
+                </span>
+              </div>
+              <div class="metrica-item">
+                <span class="metrica-label">Total registros:</span>
+                <span class="metrica-valor">{{ grupoSeleccionado.medidas.total_registros }}</span>
+              </div>
+            </div>
+            <div class="panel-body text-center text-muted" *ngIf="!grupoSeleccionado.medidas">
+              <i class="fas fa-info-circle"></i> Sin datos
+            </div>
+          </div>
+        </div>
+        
+        <!-- Panel de Asistencia -->
+        <div class="col-md-4 mb-4">
+          <div class="panel-detalle">
+            <div class="panel-header">
+              <i class="fas fa-calendar-check"></i>
+              <h5>Registro de Asistencia</h5>
+              <button class="btn btn-sm btn-outline-light ms-auto" 
+                      (click)="verDetalleAsistencia()"
+                      *ngIf="grupoSeleccionado.asistencia">
+                <i class="fas fa-list"></i> Ver detalle
+              </button>
+            </div>
+            <div class="panel-body" *ngIf="grupoSeleccionado.asistencia">
+              <div class="metrica-item">
+                <span class="metrica-label">Promedio asistencia:</span>
+                <span class="metrica-valor">
+                  {{ grupoSeleccionado.asistencia.promedio_asistencia | number:'1.0-0' }}%
+                </span>
+              </div>
+              <div class="metrica-item">
+                <span class="metrica-label">Promedio estancia:</span>
+                <span class="metrica-valor">
+                  {{ grupoSeleccionado.asistencia.promedio_horas_estancia | number:'1.1-1' }} horas
+                </span>
+              </div>
+              <div class="metrica-item">
+                <span class="metrica-label">Total asistencias:</span>
+                <span class="metrica-valor">{{ grupoSeleccionado.asistencia.total_asistencias }}</span>
+              </div>
+              <div class="metrica-item">
+                <span class="metrica-label">Dias habiles:</span>
+                <span class="metrica-valor">{{ grupoSeleccionado.asistencia.dias_habiles }}</span>
+              </div>
+              <div class="metrica-item alerta" 
+                   *ngIf="grupoSeleccionado.asistencia.porcentaje_registros_sospechosos > 10">
+                <span class="metrica-label">
+                  <i class="fas fa-exclamation-triangle"></i> Registros sospechosos:
+                </span>
+                <span class="metrica-valor">
+                  {{ grupoSeleccionado.asistencia.porcentaje_registros_sospechosos | number:'1.0-0' }}%
+                </span>
+              </div>
+            </div>
+            <div class="panel-body text-center text-muted" *ngIf="!grupoSeleccionado.asistencia">
+              <i class="fas fa-info-circle"></i> Sin datos
+            </div>
+          </div>
+        </div>
+        
+        <!-- Panel de Clases -->
+        <div class="col-md-4 mb-4">
+          <div class="panel-detalle">
+            <div class="panel-header">
+              <i class="fas fa-chalkboard-teacher"></i>
+              <h5>Registro de Clases</h5>
+              <button class="btn btn-sm btn-outline-light ms-auto" 
+                      (click)="verDetalleClases()"
+                      *ngIf="grupoSeleccionado.clases">
+                <i class="fas fa-list"></i> Ver detalle
+              </button>
+            </div>
+            <div class="panel-body" *ngIf="grupoSeleccionado.clases">
+              <div class="metrica-item">
+                <span class="metrica-label">Total clases:</span>
+                <span class="metrica-valor">{{ grupoSeleccionado.clases.total_clases }}</span>
+              </div>
+              <div class="metrica-item">
+                <span class="metrica-label">Ejecutadas:</span>
+                <span class="metrica-valor">
+                  {{ grupoSeleccionado.clases.clases_ejecutadas }}
+                  ({{ grupoSeleccionado.clases.porcentaje_ejecucion | number:'1.0-0' }}%)
+                </span>
+              </div>
+              <hr>
+              <div class="metrica-item" [class.alerta]="grupoSeleccionado.clases.porcentaje_muy_cortas > 20">
+                <span class="metrica-label">Muy cortas (&lt;10 min):</span>
+                <span class="metrica-valor">
+                  {{ grupoSeleccionado.clases.porcentaje_muy_cortas | number:'1.0-0' }}%
+                </span>
+              </div>
+              <div class="metrica-item">
+                <span class="metrica-label">Cortas (10-30 min):</span>
+                <span class="metrica-valor">
+                  {{ grupoSeleccionado.clases.porcentaje_cortas | number:'1.0-0' }}%
+                </span>
+              </div>
+              <div class="metrica-item text-success">
+                <span class="metrica-label">Normales (30-90 min):</span>
+                <span class="metrica-valor">
+                  {{ grupoSeleccionado.clases.porcentaje_normales | number:'1.0-0' }}%
+                </span>
+              </div>
+              <div class="metrica-item">
+                <span class="metrica-label">Muy largas (&gt;90 min):</span>
+                <span class="metrica-valor">
+                  {{ grupoSeleccionado.clases.porcentaje_muy_largas | number:'1.0-0' }}%
+                </span>
+              </div>
+              <hr>
+              <div class="metrica-item">
+                <span class="metrica-label">Duracion promedio:</span>
+                <span class="metrica-valor">
+                  {{ grupoSeleccionado.clases.promedio_duracion_minutos | number:'1.0-0' }} min
+                </span>
+              </div>
+            </div>
+            <div class="panel-body text-center text-muted" *ngIf="!grupoSeleccionado.clases">
+              <i class="fas fa-info-circle"></i> Sin datos
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal personalizado para mostrar detalles -->
+<div class="modal-backdrop" *ngIf="modalAbierto" (click)="cerrarModal()"></div>
+<div class="modal-custom" *ngIf="modalAbierto">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h4 class="modal-title">{{ modalTitulo }}</h4>
+      <button type="button" class="btn-close" aria-label="Close" (click)="cerrarModal()"></button>
+    </div>
+    <div class="modal-body">
+      <!-- Indicador de carga -->
+      <div *ngIf="modalCargando" class="text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Cargando...</span>
+        </div>
+      </div>
+      
+      <!-- Tabla con los datos -->
+      <div *ngIf="!modalCargando" class="tabla-container">
+        <app-tablas
+          [titulos]="modalTitulos"
+          [datos]="modalDatos"
+          [accionVer]="false"
+          [accionEditar]="false"
+          [accionEliminar]="false"
+          [mostrarBuscar]="true">
+        </app-tablas>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" (click)="cerrarModal()">Cerrar</button>
+    </div>
+  </div>
+</div>

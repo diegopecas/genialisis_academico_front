@@ -1,0 +1,59 @@
+.form-tablas {
+    padding: 10px;
+    box-sizing: border-box;
+    box-shadow: 0 0.125em 0.3125em rgba(0, 0, 0, 0.3);
+    display: flex;
+    border-radius: 5px;
+    background-color: #ffffff;
+    font-weight: 500;
+    margin-left: 20px;
+    margin-right: 20px;
+    font-family: 'Tektur', sans-serif;
+    font-size: 20px;
+    width: calc(100vw - 40px);
+    overflow: hidden;
+    overflow-x: auto;
+
+    table {
+        min-width: 100%;
+
+        thead {
+            tr {
+                background-color: #ffbd3155;
+                border: none;
+                th {
+                    font-weight: 600;
+                    text-align: center;
+                    padding-top: 10px;
+                    padding-bottom: 10px;
+                    padding-left: 20px;
+                    padding-right: 20px;
+                }
+            }
+        }
+
+        tbody {
+            tr {
+                td {
+                    font-weight: 400;
+                    .accion {
+                        text-align: center;
+                        cursor: pointer;
+                    }
+
+                    .centrado {
+                        text-align: center;
+                    }
+
+                    .izquierda {
+                        text-align: left;
+                    }
+
+                    .derecha {
+                        text-align: right;
+                    }
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,324 @@
+// Variables de colores
+$gold: #d4af37;
+$black: #222;
+$light-gold: rgba(212, 175, 55, 0.1);
+$gray-light: #f8f9fa;
+$gray-border: #e9ecef;
+
+// Contenedor de carga
+.loading-container {
+  text-align: center;
+  padding: 60px 20px;
+  
+  .spinner-wrapper {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    
+    .spinner-border {
+      width: 48px;
+      height: 48px;
+      border-width: 4px;
+      color: $gold !important;
+    }
+    
+    .loading-text {
+      color: #6c757d;
+      font-size: 16px;
+    }
+  }
+}
+
+// Filtros
+.filtros-container {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  
+  .form-label {
+    font-weight: 600;
+    color: $black;
+    margin-bottom: 8px;
+  }
+  
+  .form-select {
+    border: 2px solid $gray-border;
+    
+    &:focus {
+      border-color: $gold;
+      box-shadow: 0 0 0 0.2rem rgba($gold, 0.25);
+    }
+  }
+}
+
+// Vista Resumen
+.vista-resumen {
+  h3 {
+    color: $black;
+    font-weight: 600;
+  }
+  
+  .card-grupo {
+    background: white;
+    border: 2px solid $gray-border;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    overflow: hidden;
+    height: 100%;
+    border-bottom: 4px solid;
+    
+    &:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+    }
+    
+    .card-header-grupo {
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      position: relative;
+      
+      .grupo-icono {
+        width: 40px;
+        height: 40px;
+        object-fit: contain;
+      }
+      
+      h5 {
+        margin: 0;
+        flex-grow: 1;
+        font-size: 1.1rem;
+        color: $black;
+      }
+      
+      .indicador-general {
+        font-size: 24px;
+      }
+    }
+    
+    .card-body-grupo {
+      padding: 20px;
+      background: $gray-light;
+      
+      .indicador-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 12px;
+        
+        &:last-child {
+          margin-bottom: 0;
+        }
+        
+        i {
+          width: 30px;
+          color: $black;
+        }
+        
+        span {
+          flex-grow: 1;
+          color: #6c757d;
+          font-size: 0.9rem;
+        }
+        
+        .indicador-valor {
+          font-weight: 600;
+          color: $black;
+        }
+      }
+    }
+  }
+}
+
+// Vista Detalle
+.vista-detalle {
+  .grupo-icono-detalle {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+    vertical-align: middle;
+  }
+  
+  .panel-detalle {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    height: 100%;
+    
+    .panel-header {
+      background: $black;
+      color: white;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      
+      i {
+        font-size: 20px;
+        color: $gold;
+      }
+      
+      h5 {
+        margin: 0;
+        font-size: 1rem;
+      }
+    }
+    
+    .panel-body {
+      padding: 20px;
+      
+      .metrica-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid $gray-border;
+        
+        &:last-child {
+          border-bottom: none;
+        }
+        
+        &.alerta {
+          background: #fff3cd;
+          padding: 8px 12px;
+          border-radius: 4px;
+          margin-top: 8px;
+          
+          .metrica-label {
+            color: #856404;
+            
+            i {
+              color: #f0ad4e;
+            }
+          }
+          
+          .metrica-valor {
+            color: #856404;
+          }
+        }
+        
+        .metrica-label {
+          color: #6c757d;
+          font-size: 0.9rem;
+        }
+        
+        .metrica-valor {
+          font-weight: 600;
+          color: $black;
+        }
+      }
+    }
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .filtros-container {
+    .row > div {
+      margin-bottom: 12px;
+    }
+  }
+  
+  .card-grupo {
+    .card-header-grupo {
+      padding: 16px;
+      
+      .grupo-icono {
+        width: 32px;
+        height: 32px;
+      }
+      
+      h5 {
+        font-size: 1rem;
+      }
+    }
+  }
+}
+// Modal personalizado
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1040;
+}
+
+.modal-custom {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1050;
+  width: 90%;
+  max-width: 1200px;
+  max-height: 90vh;
+  
+  .modal-content {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh;
+    
+    .modal-header {
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid #dee2e6;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      
+      .modal-title {
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 500;
+      }
+      
+      .btn-close {
+        background: transparent;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+        opacity: 0.5;
+        
+        &:hover {
+          opacity: 1;
+        }
+      }
+    }
+    
+    .modal-body {
+      padding: 1.5rem;
+      overflow-y: auto;
+      flex: 1;
+      
+      .tabla-container {
+        overflow-x: auto;
+      }
+    }
+    
+    .modal-footer {
+      padding: 1rem 1.5rem;
+      border-top: 1px solid #dee2e6;
+      display: flex;
+      justify-content: flex-end;
+    }
+  }
+}
+
+// Ajustes responsive para el modal
+@media (max-width: 768px) {
+  .modal-custom {
+    width: 95%;
+    max-height: 95vh;
+    
+    .modal-content {
+      max-height: 95vh;
+    }
+  }
+}

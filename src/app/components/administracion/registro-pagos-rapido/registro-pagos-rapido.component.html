@@ -1,0 +1,434 @@
+<div class="modulo">
+  <app-header [tituloModulo]="titulo" [mostrarCrear]="false"
+    [raiz]="'/administracion/financiero'" [regresar]="regresar"></app-header>
+
+  <div class="container-fluid mt-4 px-4">
+    <div *ngIf="cargando" class="text-center py-5">
+      <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div>
+      <p class="mt-2 text-muted">Cargando estudiantes y cuentas pendientes...</p>
+    </div>
+
+    <div *ngIf="!cargando">
+      <!-- Toggle registrados -->
+      <div *ngIf="filasRegistradas.length > 0" class="mb-3">
+        <button class="btn btn-sm" [class.btn-outline-success]="!mostrarRegistrados"
+          [class.btn-success]="mostrarRegistrados" (click)="toggleMostrarRegistrados()">
+          <i class="fas" [class.fa-check-circle]="mostrarRegistrados" [class.fa-clock]="!mostrarRegistrados"></i>
+          {{ mostrarRegistrados ? 'Registrados (' + filasRegistradas.length + ')' : 'Ver registrados (' + filasRegistradas.length + ')' }}
+        </button>
+        <button *ngIf="mostrarRegistrados" class="btn btn-sm btn-outline-secondary ms-2" (click)="toggleMostrarRegistrados()">
+          <i class="fas fa-arrow-left"></i> Volver a pendientes
+        </button>
+      </div>
+
+      <!-- Filtros -->
+      <div class="filtros-container mb-3" *ngIf="!mostrarRegistrados">
+        <div class="row g-2 align-items-center">
+          <div class="col-md-3">
+            <div class="input-group">
+              <span class="input-group-text"><i class="fas fa-search"></i></span>
+              <input type="text" class="form-control" placeholder="Buscar estudiante..."
+                [(ngModel)]="busqueda" (input)="filtrarFilas()" />
+            </div>
+          </div>
+          <div class="col-md-2">
+            <select class="form-select" [(ngModel)]="filtroGrupo" (change)="filtrarFilas()">
+              <option value="">Todos los grupos</option>
+              <option *ngFor="let g of grupos" [value]="g">{{ g }}</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="soloConSaldo"
+                [(ngModel)]="mostrarSoloConSaldo" (change)="filtrarFilas()" />
+              <label class="form-check-label" for="soloConSaldo">Solo con saldo</label>
+            </div>
+          </div>
+          <div class="col-md-2">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="soloListos"
+                [(ngModel)]="mostrarSoloListos" (change)="filtrarFilas()" />
+              <label class="form-check-label" for="soloListos">
+                <i class="fas fa-check-double text-success"></i> Solo listos
+              </label>
+            </div>
+          </div>
+          <div class="col-md-3 text-end">
+            <span class="badge bg-info fs-6">{{ filasFiltradas.length }} estudiantes</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================== -->
+      <!-- VISTA: PENDIENTES DE REGISTRO  -->
+      <!-- ============================== -->
+      <div *ngIf="!mostrarRegistrados">
+        <div class="table-responsive tabla-pagos-container">
+          <table class="table table-bordered table-hover tabla-pagos">
+            <thead class="table-light sticky-header">
+              <tr>
+                <th class="text-center col-check">
+                  <input type="checkbox" class="form-check-input" (change)="seleccionarTodos($event)" />
+                </th>
+                <th class="col-estudiante">Estudiante</th>
+                <th class="col-grupo">Grupo</th>
+                <th class="col-saldo text-end">Saldo</th>
+                <th class="col-acudiente">Acudiente</th>
+                <th class="col-tipo-pago">Tipo Pago</th>
+                <th class="col-documento text-center">Doc.</th>
+                <th class="col-fecha">Fecha</th>
+                <th class="col-referencia">Referencia</th>
+                <th class="col-valor text-end">Valor</th>
+                <th class="col-observaciones">Obs.</th>
+                <th class="col-dist text-center">Dist.</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngIf="filasFiltradas.length === 0">
+                <td colspan="12" class="text-center text-muted py-4">No se encontraron estudiantes con los filtros actuales.</td>
+              </tr>
+              <tr *ngFor="let fila of filasFiltradas; trackBy: trackByEstudiante"
+                [class.fila-seleccionada]="fila.seleccionado" [class.fila-sin-saldo]="fila.saldoTotal === 0"
+                [class.fila-lista]="filaListaParaRegistrar(fila)">
+
+                <td class="text-center align-middle">
+                  <input type="checkbox" class="form-check-input" [(ngModel)]="fila.seleccionado" />
+                </td>
+                <td class="align-middle">
+                  <span class="nombre-estudiante">{{ fila.estudiante.nombre_estudiante }}</span>
+                  <small *ngIf="fila.cuentasPendientes.length > 0" class="d-block text-muted">{{ fila.cuentasPendientes.length }} cta(s)</small>
+                </td>
+                <td class="align-middle"><span class="badge-grupo">{{ fila.estudiante.grupo_estudiante }}</span></td>
+                <td class="text-end align-middle">
+                  <span class="saldo" [class.saldo-positivo]="fila.saldoTotal > 0" [class.saldo-cero]="fila.saldoTotal === 0">${{ formatearMoneda(fila.saldoTotal) }}</span>
+                </td>
+                <td class="align-middle">
+                  <select class="form-select form-select-sm" [(ngModel)]="fila.id_acudiente" [disabled]="!fila.seleccionado">
+                    <option [ngValue]="null">Sin acudiente</option>
+                    <option *ngFor="let a of fila.acudientes" [ngValue]="a.id_acudiente">{{ a.nombre_acudiente }} ({{ a.tipo_acudiente }})</option>
+                  </select>
+                </td>
+                <td class="align-middle">
+                  <select class="form-select form-select-sm" [(ngModel)]="fila.id_tipo_pago" [disabled]="!fila.seleccionado"
+                    (change)="onTipoPagoChange(fila)">
+                    <option [ngValue]="null">Seleccionar</option>
+                    <option *ngFor="let tp of tiposPago" [ngValue]="tp.id">{{ tp.nombre }}</option>
+                  </select>
+                </td>
+                <td class="text-center align-middle celda-documento">
+                  <div *ngIf="requiereDocumento(fila) && fila.seleccionado">
+                    <label *ngIf="!fila.archivo && !fila.analizandoIA" class="btn-adjuntar" [for]="'archivo_' + fila.estudiante.id_estudiante">
+                      <i class="fas fa-paperclip"></i>
+                    </label>
+                    <input [id]="'archivo_' + fila.estudiante.id_estudiante" type="file" accept=".pdf,.jpg,.jpeg,.png" class="d-none"
+                      (change)="onArchivoSeleccionado(fila, $event)" />
+                    <div *ngIf="fila.analizandoIA" class="ia-loading">
+                      <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                      <small class="text-muted d-block">IA...</small>
+                    </div>
+                    <div *ngIf="fila.archivo && !fila.analizandoIA" class="archivo-adjunto">
+                      <div class="archivo-adjunto-acciones">
+                        <i class="fas fa-check-circle text-success"></i>
+                        <button type="button" class="btn-eliminar-archivo" (click)="eliminarArchivo(fila)" title="Eliminar"><i class="fas fa-times-circle"></i></button>
+                      </div>
+                      <small class="d-block text-truncate" style="max-width: 70px;" [title]="fila.archivo.name">{{ fila.archivo.name }}</small>
+                    </div>
+                  </div>
+                  <span *ngIf="!requiereDocumento(fila) || !fila.seleccionado" class="text-muted">—</span>
+                </td>
+                <td class="align-middle">
+                  <input type="date" class="form-control form-control-sm" [(ngModel)]="fila.fecha" [disabled]="!fila.seleccionado" />
+                </td>
+                <td class="align-middle">
+                  <input type="text" class="form-control form-control-sm" [(ngModel)]="fila.referencia_bancaria"
+                    [disabled]="!fila.seleccionado" placeholder="Ref." [class.campo-prellenado]="fila.datosIA?.referencia" />
+                </td>
+                <td class="text-end align-middle">
+                  <div class="input-group input-group-sm">
+                    <span class="input-group-text">$</span>
+                    <input type="text" class="form-control form-control-sm text-end" [value]="fila.valor_recibido_formateado"
+                      (input)="onInputValor(fila, $event)" [disabled]="!fila.seleccionado" placeholder="0"
+                      [class.campo-prellenado]="fila.datosIA?.valor" />
+                  </div>
+                </td>
+                <!-- Observaciones -->
+                <td class="align-middle">
+                  <input type="text" class="form-control form-control-sm" [(ngModel)]="fila.observaciones"
+                    [disabled]="!fila.seleccionado" placeholder="Obs." />
+                </td>
+                <!-- Distribución -->
+                <td class="text-center align-middle celda-dist">
+                  <div *ngIf="fila.seleccionado && fila.valor_recibido > 0 && fila.cuentasPendientes.length > 0">
+                    <small class="d-block text-muted mb-1" [class.text-info]="fila.modoDistribucion === 'manual'"
+                      [class.fw-bold]="fila.modoDistribucion === 'manual'">{{ getDistribucionResumen(fila) }}</small>
+                    <div class="btn-group btn-group-sm">
+                      <button class="btn btn-outline-secondary btn-xs" (click)="distribuirAutoFIFO(fila)"
+                        [class.active]="fila.modoDistribucion === 'auto'" title="Automática FIFO"><i class="fas fa-magic"></i></button>
+                      <button class="btn btn-outline-secondary btn-xs" (click)="abrirModalDistribucion(fila)"
+                        [class.active]="fila.modoDistribucion === 'manual'" title="Manual"><i class="fas fa-hand-pointer"></i></button>
+                    </div>
+                  </div>
+                  <span *ngIf="!fila.seleccionado || fila.valor_recibido <= 0 || fila.cuentasPendientes.length === 0" class="text-muted">—</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Resumen -->
+        <div class="resumen-container mt-3" *ngIf="cantidadSeleccionados > 0">
+          <div class="row align-items-center">
+            <div class="col-md-8">
+              <div class="resumen-datos">
+                <span class="resumen-item"><strong>{{ cantidadSeleccionados }}</strong> pago(s)</span>
+                <span class="resumen-separador">|</span>
+                <span class="resumen-item resumen-total">Total: <strong>${{ formatearMoneda(totalValorRegistrar) }}</strong></span>
+              </div>
+            </div>
+            <div class="col-md-4 text-end">
+              <button class="btn btn-success btn-lg" (click)="registrarPagos()" [disabled]="registrando || cantidadSeleccionados === 0">
+                <span *ngIf="!registrando"><i class="fas fa-save me-2"></i>Registrar Pagos</span>
+                <span *ngIf="registrando"><span class="spinner-border spinner-border-sm me-2" role="status"></span>Registrando...</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================== -->
+      <!-- VISTA: PAGOS REGISTRADOS       -->
+      <!-- ============================== -->
+      <div *ngIf="mostrarRegistrados">
+        <div class="alert alert-success mb-3">
+          <i class="fas fa-check-circle me-2"></i>
+          <strong>{{ filasRegistradas.length }}</strong> pago(s) registrado(s). Envíe confirmaciones a los acudientes.
+        </div>
+
+        <div class="table-responsive tabla-pagos-container">
+          <table class="table table-bordered tabla-pagos">
+            <thead class="table-light">
+              <tr>
+                <th>Estudiante</th>
+                <th>Grupo</th>
+                <th class="text-end">Valor</th>
+                <th>Referencia</th>
+                <th class="text-center">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let fila of filasFiltradas">
+                <td class="align-middle"><strong>{{ fila.estudiante.nombre_estudiante }}</strong></td>
+                <td class="align-middle"><span class="badge-grupo">{{ fila.estudiante.grupo_estudiante }}</span></td>
+                <td class="text-end align-middle fw-bold text-success">${{ formatearMoneda(fila.valor_recibido) }}</td>
+                <td class="align-middle">{{ fila.referencia_bancaria || '—' }}</td>
+                <td class="text-center align-middle">
+                  <div class="btn-group btn-group-sm">
+                    <button class="btn btn-wa" (click)="abrirModalEnvio(fila)" title="Enviar confirmación">
+                      <i class="fab fa-whatsapp me-1"></i> Notificar
+                    </button>
+                    <button class="btn btn-danger" (click)="descargarComprobante(fila)" [disabled]="descargandoPDF" title="Descargar comprobante PDF">
+                      <i class="fas fa-file-pdf me-1"></i> PDF
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="text-center mt-3">
+          <button class="btn btn-outline-primary" (click)="limpiarFormulario()">
+            <i class="fas fa-plus me-2"></i>Registrar más pagos
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================== -->
+<!-- MODAL: DISTRIBUCIÓN MANUAL     -->
+<!-- ============================== -->
+<div class="modal fade" id="modalDistribucion" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-hand-pointer me-2 text-primary"></i>
+          Distribución Manual - {{ modalFila?.estudiante?.nombre_estudiante }}
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" *ngIf="modalFila">
+        <div class="row mb-3">
+          <div class="col-md-4">
+            <strong>Valor del pago:</strong>
+            <span class="text-success fw-bold ms-1">${{ formatearMoneda(modalFila.valor_recibido) }}</span>
+          </div>
+          <div class="col-md-4 text-center">
+            <strong>Aplicado:</strong>
+            <span class="fw-bold ms-1">${{ formatearMoneda(modalTotalAplicado) }}</span>
+          </div>
+          <div class="col-md-4 text-end">
+            <strong>Restante:</strong>
+            <span class="fw-bold ms-1" [class.text-warning]="modalValorRestante > 0"
+              [class.text-success]="modalValorRestante === 0" [class.text-danger]="modalValorRestante < 0">
+              ${{ formatearMoneda(modalValorRestante) }}
+            </span>
+          </div>
+        </div>
+        <hr />
+        <div class="table-responsive">
+          <table class="table table-sm table-hover">
+            <thead class="table-light">
+              <tr>
+                <th class="text-center" style="width: 40px;"></th>
+                <th>Fecha</th>
+                <th>Concepto</th>
+                <th class="text-end">Valor</th>
+                <th class="text-end">Saldo</th>
+                <th class="text-end" style="width: 160px;">Aplicar</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of modalCuentas" [class.table-success]="item.seleccionada">
+                <td class="text-center align-middle">
+                  <input type="checkbox" class="form-check-input" [checked]="item.seleccionada" (change)="toggleCuentaModal(item)" />
+                </td>
+                <td class="align-middle">{{ item.cuenta.fecha | date:'dd/MM/yyyy' }}</td>
+                <td class="align-middle">{{ item.cuenta.nombre_producto_servicio || item.cuenta.detalle }}</td>
+                <td class="text-end align-middle">${{ formatearMoneda(item.cuenta.valor) }}</td>
+                <td class="text-end align-middle text-danger fw-bold">${{ formatearMoneda(item.cuenta.saldo) }}</td>
+                <td class="text-end align-middle">
+                  <div class="input-group input-group-sm" *ngIf="item.seleccionada">
+                    <span class="input-group-text">$</span>
+                    <input type="text" class="form-control form-control-sm text-end" [value]="item.valor_aplicado_formateado"
+                      (input)="onInputValorModal(item, $event)" />
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div *ngIf="modalValorRestante > 0" class="alert alert-info mt-2">
+          <i class="fas fa-info-circle me-1"></i> Saldo a favor: <strong>${{ formatearMoneda(modalValorRestante) }}</strong>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-primary" (click)="aplicarDistribucionManual()" [disabled]="modalTotalAplicado <= 0">
+          <i class="fas fa-check me-1"></i> Aplicar distribución
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================== -->
+<!-- MODAL: ENVÍO WA / EMAIL        -->
+<!-- ============================== -->
+<div class="modal fade" id="modalEnvioWA" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fab fa-whatsapp me-2 text-success"></i>
+          Enviar Confirmación - {{ envioFila?.estudiante?.nombre_estudiante }}
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" *ngIf="envioFila">
+        <!-- Info del pago -->
+        <div class="row mb-3">
+          <div class="col-md-4">
+            <strong>Valor:</strong>
+            <span class="text-success fw-bold ms-1">${{ formatearMoneda(envioFila.valor_recibido) }}</span>
+          </div>
+          <div class="col-md-4 text-center">
+            <strong>Fecha:</strong> {{ envioFila.fecha }}
+          </div>
+          <div class="col-md-4 text-end" *ngIf="envioFila.referencia_bancaria">
+            <strong>Ref:</strong> {{ envioFila.referencia_bancaria }}
+          </div>
+        </div>
+
+        <hr />
+
+        <!-- Acudientes responsables de pago -->
+        <h6 class="mb-3">Acudientes responsables de pago</h6>
+        <div *ngIf="envioFila.acudientes.length === 0" class="alert alert-warning">
+          <i class="fas fa-exclamation-triangle"></i> No hay acudientes responsables de pago registrados.
+        </div>
+
+        <div *ngFor="let acudiente of envioFila.acudientes; let i = index" class="acudiente-card mb-3">
+          <div class="row align-items-center">
+            <div class="col-md-4">
+              <div class="fw-bold">{{ acudiente.nombre_acudiente }}</div>
+              <small class="text-muted">{{ acudiente.tipo_acudiente }}</small>
+              <div *ngIf="acudiente.correo_electronico" class="mt-1">
+                <i class="fas fa-envelope me-1 text-muted"></i>
+                <small>{{ acudiente.correo_electronico }}</small>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label mb-1"><i class="fas fa-phone me-1"></i> Teléfono</label>
+              <input type="text" class="form-control form-control-sm" [(ngModel)]="telefonosEditables[i]" />
+            </div>
+            <div class="col-md-5 text-end mt-2 mt-md-0">
+              <div class="btn-group">
+                <button class="btn btn-wa btn-sm" (click)="enviarWhatsAppAcudiente(envioFila!, acudiente, i)"
+                  [disabled]="!telefonosEditables[i]" title="Enviar por WhatsApp">
+                  <i class="fab fa-whatsapp me-1"></i> WA
+                </button>
+                <button class="btn btn-primary btn-sm" (click)="enviarCorreoAcudiente(envioFila!, acudiente)"
+                  [disabled]="!acudiente.correo_electronico" title="Enviar por correo">
+                  <i class="fas fa-envelope me-1"></i> Email
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Contacto adicional -->
+        <div class="acudiente-card mb-3 border-dashed">
+          <div class="row align-items-center">
+            <div class="col-md-3">
+              <label class="form-label mb-1"><i class="fas fa-user me-1"></i> Nombre</label>
+              <input type="text" class="form-control form-control-sm" [(ngModel)]="nombreAdicional" placeholder="Nombre" />
+            </div>
+            <div class="col-md-3">
+              <label class="form-label mb-1"><i class="fas fa-phone me-1"></i> Teléfono</label>
+              <input type="text" class="form-control form-control-sm" [(ngModel)]="telefonoAdicional" placeholder="3001234567" />
+            </div>
+            <div class="col-md-3">
+              <label class="form-label mb-1"><i class="fas fa-envelope me-1"></i> Correo</label>
+              <input type="email" class="form-control form-control-sm" [(ngModel)]="correoAdicional" placeholder="correo@ejemplo.com" />
+            </div>
+            <div class="col-md-3 text-end mt-2 mt-md-0">
+              <label class="form-label mb-1 d-none d-md-block">&nbsp;</label>
+              <div class="btn-group">
+                <button class="btn btn-wa-outline btn-sm" (click)="enviarWhatsAppAdicional(envioFila!)"
+                  [disabled]="!telefonoAdicional" title="WhatsApp">
+                  <i class="fab fa-whatsapp me-1"></i> WA
+                </button>
+                <button class="btn btn-outline-primary btn-sm" (click)="enviarCorreoAdicional(envioFila!)"
+                  [disabled]="!correoAdicional" title="Correo">
+                  <i class="fas fa-envelope me-1"></i> Email
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger me-auto" (click)="descargarComprobante(envioFila!)"
+          [disabled]="descargandoPDF">
+          <i class="fas fa-file-pdf me-1"></i>
+          <span *ngIf="!descargandoPDF">Descargar Comprobante</span>
+          <span *ngIf="descargandoPDF">Generando PDF...</span>
+        </button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>

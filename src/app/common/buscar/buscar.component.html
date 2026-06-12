@@ -1,0 +1,18 @@
+<div class="buscar-container">
+  <div class="buscar-input-wrapper">
+    <i class="fas fa-search buscar-icono"></i>
+    <input
+      type="text"
+      placeholder="Buscar... (Enter para filtrar)"
+      class="buscar-input"
+      [(ngModel)]="valor"
+      (keyup.enter)="enviar()" />
+    <button
+      *ngIf="valor"
+      class="buscar-limpiar"
+      (click)="limpiar()"
+      title="Limpiar búsqueda">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+</div>

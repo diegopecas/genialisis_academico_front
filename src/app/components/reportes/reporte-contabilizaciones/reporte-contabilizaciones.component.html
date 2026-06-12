@@ -1,0 +1,358 @@
+<div class="modulo">
+  <app-header 
+    [tituloModulo]="titulo" 
+    [mostrarCrear]="false" 
+    [raiz]="'/reportes'" 
+    [regresar]="'/reportes'" 
+    [iconoTitulo]="'/assets/images/reportes_actividades_colaboradores.png'">
+  </app-header>
+
+  <div class="container-fluid px-4">
+    
+    <!-- Filtros -->
+    <div class="card mt-4">
+      <div class="card-header bg-primary text-white">
+        <h6 class="mb-0"><i class="fas fa-filter me-2"></i>Filtros</h6>
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-md-2">
+            <label class="form-label">Fecha Inicio</label>
+            <input
+              type="date"
+              class="form-control"
+              [(ngModel)]="filtroFechaInicio"
+            />
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">Fecha Fin</label>
+            <input
+              type="date"
+              class="form-control"
+              [(ngModel)]="filtroFechaFin"
+            />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Tipo de Contabilización</label>
+            <select class="form-select" [(ngModel)]="filtroTipo">
+              <option value="">Todos los tipos</option>
+              <option value="1">Cruce entre actividades</option>
+              <option value="2">Pago en nómina</option>
+              <option value="3">Descuento en nómina</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Colaborador</label>
+            <select class="form-select" [(ngModel)]="filtroColaborador">
+              <option [ngValue]="null">Todos los colaboradores</option>
+              <option *ngFor="let colab of colaboradores" [ngValue]="colab.id">
+                {{ colab.nombre }}
+              </option>
+            </select>
+          </div>
+          <div class="col-md-2 d-flex align-items-end gap-2">
+            <button class="btn btn-dorado flex-fill" (click)="aplicarFiltros()">
+              <i class="fas fa-search me-2"></i>Buscar
+            </button>
+            <button
+              class="btn btn-outline-secondary"
+              (click)="limpiarFiltros()"
+            >
+              <i class="fas fa-eraser"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loader -->
+    <div *ngIf="cargando" class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+      <p class="mt-3">Cargando contabilizaciones...</p>
+    </div>
+
+    <!-- Sin datos -->
+    <div *ngIf="!cargando && contabilizaciones.length === 0" class="alert alert-info mt-4">
+      <i class="fa fa-info-circle me-2"></i>
+      No se encontraron contabilizaciones con los filtros aplicados
+    </div>
+
+    <!-- Contenido con TABS -->
+    <div *ngIf="!cargando && contabilizaciones.length > 0" class="mt-4">
+      
+      <!-- Navegación de Tabs -->
+      <ul class="nav nav-tabs mb-3" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button 
+            class="nav-link" 
+            [class.active]="tabActivo === 'contabilizaciones'"
+            (click)="cambiarTab('contabilizaciones')"
+            type="button">
+            <i class="fas fa-file-alt me-2"></i>
+            Por Contabilizaciones
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button 
+            class="nav-link" 
+            [class.active]="tabActivo === 'colaboradores'"
+            (click)="cambiarTab('colaboradores')"
+            type="button">
+            <i class="fas fa-users me-2"></i>
+            Por Colaboradores
+          </button>
+        </li>
+      </ul>
+
+      <!-- Contenido de los Tabs -->
+      <div class="tab-content">
+        
+        <!-- TAB 1: Por Contabilizaciones -->
+        <div *ngIf="tabActivo === 'contabilizaciones'" class="tab-pane fade show active">
+          <h5 class="mb-3">
+            <i class="fas fa-list me-2"></i>
+            {{ contabilizaciones.length }} Contabilización(es) encontrada(s)
+          </h5>
+
+          <ng-container *ngFor="let contabilizacion of contabilizaciones">
+            <!-- Header de la contabilización -->
+            <div class="contabilizacion-header" (click)="toggleDetalle(contabilizacion)">
+              <i class="fas" 
+                 [class.fa-chevron-down]="contabilizacion.expandido" 
+                 [class.fa-chevron-right]="!contabilizacion.expandido"></i>
+              <div class="flex-grow-1">
+                <strong>ID: {{ contabilizacion.id }} - {{ contabilizacion.tipo_contabilizacion }}</strong>
+                <small class="d-block text-muted">
+                  {{ formatearFecha(contabilizacion.fecha_contabilizacion) }} | 
+                  Usuario: {{ contabilizacion.usuario_contabilizacion }}
+                </small>
+              </div>
+              <div class="text-end">
+                <span class="badge bg-primary me-2">
+                  {{ formatearMinutos(contabilizacion.minutos_total) }}
+                </span>
+                <span *ngIf="contabilizacion.valor_total" class="badge bg-success">
+                  {{ formatearValor(contabilizacion.valor_total) }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Detalle de la contabilización (expandible) -->
+            <div *ngIf="contabilizacion.expandido" class="contabilizacion-detalle mb-4">
+              
+              <!-- Cargando detalle -->
+              <div *ngIf="contabilizacion.cargandoDetalle" class="text-center py-3">
+                <div class="spinner-border spinner-border-sm text-primary" role="status">
+                  <span class="visually-hidden">Cargando detalle...</span>
+                </div>
+              </div>
+
+              <!-- Colaboradores dentro de esta contabilización -->
+              <div *ngIf="!contabilizacion.cargandoDetalle && contabilizacion.colaboradores_agrupados">
+                <ng-container *ngFor="let colaborador of contabilizacion.colaboradores_agrupados">
+                  
+                  <!-- Header del colaborador -->
+                  <div class="colaborador-sub-header" (click)="toggleColaborador(colaborador)">
+                    <i class="fas" 
+                       [class.fa-chevron-down]="colaborador.expandido" 
+                       [class.fa-chevron-right]="!colaborador.expandido"></i>
+                    <strong>{{ colaborador.nombre }}</strong>
+                    <span class="badge bg-info ms-2">
+                      {{ formatearMinutos(colaborador.total_minutos) }}
+                    </span>
+                  </div>
+
+                  <!-- Tabla de cruces del colaborador -->
+                  <div *ngIf="colaborador.expandido" class="table-responsive mt-2 mb-3">
+                    <table class="table table-sm tabla-cruces">
+                      <thead>
+                        <tr>
+                          <th colspan="4" class="bg-danger text-center">PERMISO</th>
+                          <th colspan="4" class="bg-success text-center">HORA ADICIONAL</th>
+                          <th class="bg-warning text-center">CRUZADO</th>
+                        </tr>
+                        <tr>
+                          <th>Tipo</th>
+                          <th>Fecha</th>
+                          <th>Total</th>
+                          <th>Restante</th>
+                          <th>Tipo</th>
+                          <th>Fecha</th>
+                          <th>Total</th>
+                          <th>Restante</th>
+                          <th>Minutos</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <ng-container *ngFor="let grupoPermiso of agruparCrucesPorPermiso(colaborador.cruces)">
+                          <tr *ngFor="let hora of grupoPermiso.horas; let i = index">
+                            <!-- Columnas del PERMISO (solo en primera fila del grupo) -->
+                            <ng-container *ngIf="i === 0">
+                              <td [attr.rowspan]="grupoPermiso.rowspan">
+                                <small>{{ grupoPermiso.permiso.tipo_actividad }}</small>
+                              </td>
+                              <td [attr.rowspan]="grupoPermiso.rowspan">
+                                <small>{{ formatearFecha(grupoPermiso.permiso.fecha) }}</small>
+                              </td>
+                              <td [attr.rowspan]="grupoPermiso.rowspan" class="text-center">
+                                <small>{{ formatearMinutos(grupoPermiso.permiso.minutos_totales) }}</small>
+                              </td>
+                              <td [attr.rowspan]="grupoPermiso.rowspan" class="text-center">
+                                <small>{{ formatearMinutos(grupoPermiso.permiso.minutos_restantes) }}</small>
+                              </td>
+                            </ng-container>
+                            
+                            <!-- Columnas de la HORA (una por fila) -->
+                            <td>
+                              <small>{{ hora.tipo_actividad }}</small>
+                            </td>
+                            <td>
+                              <small>{{ formatearFecha(hora.fecha) }}</small>
+                            </td>
+                            <td class="text-center">
+                              <small>{{ formatearMinutos(hora.minutos_totales) }}</small>
+                            </td>
+                            <td class="text-center">
+                              <small>{{ formatearMinutos(hora.minutos_restantes) }}</small>
+                            </td>
+                            <td class="text-center">
+                              <span class="badge bg-warning text-dark">
+                                {{ formatearMinutos(hora.minutos_cruzados) }}
+                              </span>
+                            </td>
+                          </tr>
+                        </ng-container>
+                      </tbody>
+                    </table>
+                  </div>
+
+                </ng-container>
+              </div>
+            </div>
+          </ng-container>
+        </div>
+
+        <!-- TAB 2: Por Colaboradores -->
+        <div *ngIf="tabActivo === 'colaboradores'" class="tab-pane fade show active">
+          <h5 class="mb-3">
+            <i class="fas fa-users me-2"></i>
+            {{ colaboradoresAgrupados.length }} Colaborador(es) con contabilizaciones
+          </h5>
+
+          <ng-container *ngFor="let colaborador of colaboradoresAgrupados">
+            
+            <!-- Header del colaborador -->
+            <div class="colaborador-header" (click)="toggleColaborador(colaborador)">
+              <i class="fas" 
+                 [class.fa-chevron-down]="colaborador.expandido" 
+                 [class.fa-chevron-right]="!colaborador.expandido"></i>
+              <strong>{{ colaborador.nombre }}</strong>
+              <div class="ms-auto">
+                <span class="badge bg-primary me-2">
+                  Total: {{ formatearMinutos(colaborador.total_minutos) }}
+                </span>
+                <span *ngIf="colaborador.total_valor > 0" class="badge bg-success">
+                  {{ formatearValor(colaborador.total_valor) }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Detalle del colaborador (expandible) -->
+            <div *ngIf="colaborador.expandido" class="colaborador-detalle mb-4">
+              
+              <!-- Lista de contabilizaciones del colaborador -->
+              <ng-container *ngFor="let contab of colaborador.contabilizaciones">
+                
+                <!-- Header de la contabilización -->
+                <div class="contabilizacion-sub-header" (click)="toggleContabilizacionEnColaborador(contab)">
+                  <i class="fas" 
+                     [class.fa-chevron-down]="contab.expandido" 
+                     [class.fa-chevron-right]="!contab.expandido"></i>
+                  <div class="flex-grow-1">
+                    <strong>{{ contab.tipo_contabilizacion }}</strong>
+                    <small class="d-block text-muted">
+                      {{ formatearFecha(contab.fecha_contabilizacion) }}
+                    </small>
+                  </div>
+                  <span class="badge bg-info">
+                    {{ formatearMinutos(contab.minutos_contabilizados) }}
+                  </span>
+                </div>
+
+                <!-- Tabla de cruces de la contabilización -->
+                <div *ngIf="contab.expandido && contab.detalle" class="table-responsive mt-2 mb-3">
+                  <table class="table table-sm tabla-cruces">
+                    <thead>
+                      <tr>
+                        <th colspan="4" class="bg-danger text-center">PERMISO</th>
+                        <th colspan="4" class="bg-success text-center">HORA ADICIONAL</th>
+                        <th class="bg-warning text-center">CRUZADO</th>
+                      </tr>
+                      <tr>
+                        <th>Tipo</th>
+                        <th>Fecha</th>
+                        <th>Total</th>
+                        <th>Restante</th>
+                        <th>Tipo</th>
+                        <th>Fecha</th>
+                        <th>Total</th>
+                        <th>Restante</th>
+                        <th>Minutos</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <ng-container *ngFor="let grupoPermiso of agruparCrucesPorPermiso(contab.detalle)">
+                        <tr *ngFor="let hora of grupoPermiso.horas; let i = index">
+                          <!-- Columnas del PERMISO (solo en primera fila del grupo) -->
+                          <ng-container *ngIf="i === 0">
+                            <td [attr.rowspan]="grupoPermiso.rowspan">
+                              <small>{{ grupoPermiso.permiso.tipo_actividad }}</small>
+                            </td>
+                            <td [attr.rowspan]="grupoPermiso.rowspan">
+                              <small>{{ formatearFecha(grupoPermiso.permiso.fecha) }}</small>
+                            </td>
+                            <td [attr.rowspan]="grupoPermiso.rowspan" class="text-center">
+                              <small>{{ formatearMinutos(grupoPermiso.permiso.minutos_totales) }}</small>
+                            </td>
+                            <td [attr.rowspan]="grupoPermiso.rowspan" class="text-center">
+                              <small>{{ formatearMinutos(grupoPermiso.permiso.minutos_restantes) }}</small>
+                            </td>
+                          </ng-container>
+                          
+                          <!-- Columnas de la HORA (una por fila) -->
+                          <td>
+                            <small>{{ hora.tipo_actividad }}</small>
+                          </td>
+                          <td>
+                            <small>{{ formatearFecha(hora.fecha) }}</small>
+                          </td>
+                          <td class="text-center">
+                            <small>{{ formatearMinutos(hora.minutos_totales) }}</small>
+                          </td>
+                          <td class="text-center">
+                            <small>{{ formatearMinutos(hora.minutos_restantes) }}</small>
+                          </td>
+                          <td class="text-center">
+                            <span class="badge bg-warning text-dark">
+                              {{ formatearMinutos(hora.minutos_cruzados) }}
+                            </span>
+                          </td>
+                        </tr>
+                      </ng-container>
+                    </tbody>
+                  </table>
+                </div>
+
+              </ng-container>
+            </div>
+
+          </ng-container>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>

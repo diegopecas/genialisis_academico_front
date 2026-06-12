@@ -1,0 +1,311 @@
+// Variables de color
+$primary-color: #ffbd31;
+$secondary-color: #ff9800;
+$text-dark: #2c3e50;
+$text-light: #7f8c8d;
+$card-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+$hover-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+
+// Colores específicos para cada categoría
+$color-actividades: #27ae60;
+$color-inventario: #e67e22;
+$color-apoyo: #3498db;
+$color-estudiantes: #9b59b6;
+$color-financiero: #2ecc71;
+
+.modulo {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
+}
+
+// Títulos
+.titulo-seccion {
+  color: $text-dark;
+  font-weight: 600;
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.subtitulo-seccion {
+  color: $text-light;
+  font-size: 1.1rem;
+  margin-bottom: 0;
+}
+
+// Tarjetas principales con submenús
+.card-maestro {
+  background: white;
+  border-radius: 20px;
+  box-shadow: $card-shadow;
+  transition: all 0.4s ease;
+  cursor: pointer;
+  overflow: hidden;
+  position: relative;
+
+  &.menu-principal {
+    min-height: 400px;
+    height: auto;
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 5px;
+    background: linear-gradient(90deg, var(--color-principal) 0%, var(--color-secundario) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    border-radius: 20px 20px 0 0;
+  }
+
+  &:hover,
+  &.active {
+    transform: translateY(-10px);
+    box-shadow: $hover-shadow;
+
+    &::before {
+      opacity: 1;
+    }
+
+    .icono-container {
+      transform: scale(1.05);
+    }
+
+    .link-accion {
+      color: var(--color-principal);
+
+      i {
+        transform: rotate(180deg);
+      }
+    }
+
+    .submenu-container {
+      max-height: 1000px;
+      opacity: 1;
+      padding: 1.5rem;
+      margin-top: 1rem;
+      margin-bottom: 1.5rem;
+    }
+  }
+}
+
+.card-maestro-content {
+  padding: 2.5rem 2rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+}
+
+// Contenedor de iconos principales
+.icono-container {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: transform 0.3s ease;
+
+  img {
+    width: 70%;
+    height: 70%;
+    object-fit: contain;
+  }
+
+  &.actividades {
+    background: linear-gradient(135deg, #d1f2eb 0%, #a8e6cf 100%);
+    --color-principal: #{$color-actividades};
+    --color-secundario: #{lighten($color-actividades, 10%)};
+  }
+
+  &.inventario {
+    background: linear-gradient(135deg, #fdebd0 0%, #f5cba7 100%);
+    --color-principal: #{$color-inventario};
+    --color-secundario: #{lighten($color-inventario, 10%)};
+  }
+
+  &.apoyo {
+    background: linear-gradient(135deg, #cfe2ff 0%, #a6c8ff 100%);
+    --color-principal: #{$color-apoyo};
+    --color-secundario: #{lighten($color-apoyo, 10%)};
+  }
+
+  &.estudiantes {
+    background: linear-gradient(135deg, #e8d5f2 0%, #d4b5e8 100%);
+    --color-principal: #{$color-estudiantes};
+    --color-secundario: #{lighten($color-estudiantes, 10%)};
+  }
+
+  &.financiero {
+    background: linear-gradient(135deg, #d5f5e3 0%, #abebc6 100%);
+    --color-principal: #{$color-financiero};
+    --color-secundario: #{lighten($color-financiero, 10%)};
+  }
+}
+
+.card-titulo {
+  color: $text-dark;
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.card-descripcion {
+  color: $text-light;
+  font-size: 0.95rem;
+  margin-bottom: 2rem;
+  flex-grow: 1;
+  line-height: 1.6;
+}
+
+.card-footer-custom {
+  margin-top: auto;
+}
+
+.link-accion {
+  color: $text-dark;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+
+  i {
+    transition: transform 0.3s ease;
+    font-size: 0.875rem;
+  }
+}
+
+// Contenedor de submenú
+.submenu-container {
+  width: 100%;
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: all 0.4s ease;
+  padding: 0 1.5rem;
+  margin-top: 0;
+}
+
+// Items del submenú
+.submenu-item {
+  background: white;
+  border-radius: 12px;
+  padding: 1rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid #f0f0f0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+
+  img {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+  }
+
+  span {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: $text-dark;
+    line-height: 1.2;
+  }
+
+  &:hover {
+    transform: translateY(-3px);
+    border-color: var(--color-principal);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .titulo-seccion {
+    font-size: 1.5rem;
+  }
+
+  .card-maestro-content {
+    padding: 2rem 1.5rem;
+  }
+
+  .icono-container {
+    width: 100px;
+    height: 100px;
+    margin-bottom: 1.5rem;
+
+    img {
+      width: 70%;
+      height: 70%;
+    }
+  }
+
+  .card-titulo {
+    font-size: 1.2rem;
+  }
+
+  .submenu-item {
+    padding: 0.75rem;
+
+    img {
+      width: 35px;
+      height: 35px;
+    }
+
+    span {
+      font-size: 0.75rem;
+    }
+  }
+}
+
+// Animaciones
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.card-maestro {
+  animation: fadeInUp 0.6s ease-out;
+  animation-fill-mode: both;
+
+  &:nth-child(1) {
+    animation-delay: 0.1s;
+  }
+
+  &:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+
+  &:nth-child(3) {
+    animation-delay: 0.3s;
+  }
+
+  &:nth-child(4) {
+    animation-delay: 0.4s;
+  }
+
+  &:nth-child(5) {
+    animation-delay: 0.5s;
+  }
+}
+
+@media (hover: none) {
+  .card-maestro:active {
+    transform: scale(0.98);
+  }
+}

@@ -1,0 +1,300 @@
+/* ============================================
+   HEADER CON 3 SECCIONES Y BORDE NARANJA
+   ============================================ */
+.franja-titulo {
+  background: #FAF8F3;
+  padding: 16px 20px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 16px;
+  border: 1px solid #FFC107;
+  border-radius: 8px 8px 0 0;
+  margin: 8px auto 0 auto;
+  max-width: calc(100vw - 16px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-sizing: border-box;
+}
+
+@media (max-width: 1024px) {
+  .franja-titulo {
+    padding: 14px 16px;
+    gap: 12px;
+    margin: 6px auto 0 auto;
+    max-width: calc(100vw - 12px);
+  }
+}
+
+@media (max-width: 768px) {
+  .franja-titulo {
+    padding: 12px 20px;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+    gap: 12px;
+    margin: 4px auto 0 auto;
+    max-width: calc(100vw - 8px);
+  }
+
+  .seccion-izquierda {
+    grid-column: 1;
+    grid-row: 1;
+    justify-content: flex-start;
+  }
+
+  .seccion-centro {
+    grid-column: 1;
+    grid-row: 2;
+    justify-content: flex-start;
+  }
+
+  .seccion-derecha {
+    grid-column: 1;
+    grid-row: 2;
+    justify-content: flex-end;
+  }
+
+  .seccion-centro,
+  .seccion-derecha {
+    display: inline-flex;
+  }
+
+  .franja-titulo {
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  .seccion-izquierda {
+    width: 100%;
+  }
+
+  .seccion-centro {
+    flex: 1;
+  }
+
+  .seccion-derecha {
+    flex: 0 0 auto;
+  }
+}
+
+/* ============================================
+   SECCIÓN IZQUIERDA: Logo + Nombre Jardín
+   ============================================ */
+.seccion-izquierda {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  grid-column: 1;
+  min-width: 0;
+  flex-shrink: 1;
+}
+
+@media (max-width: 768px) {
+  .seccion-izquierda {
+    justify-content: flex-start;
+    width: 100%;
+  }
+}
+
+.logo-link {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  text-decoration: none;
+}
+
+.icono-titulo {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .icono-titulo {
+    width: 45px;
+    height: 45px;
+  }
+}
+
+.nombre-jardin {
+  font-size: 16px;
+  font-weight: 600;
+  color: #8B6914;
+  text-decoration: none;
+  padding: 8px 16px;
+  background: rgba(255, 193, 7, 0.1);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 193, 7, 0.2);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.nombre-jardin:hover {
+  background: rgba(255, 193, 7, 0.2);
+  border-color: #FFC107;
+  transform: translateY(-1px);
+}
+
+@media (max-width: 768px) {
+  .nombre-jardin {
+    font-size: 13px;
+    padding: 6px 12px;
+  }
+}
+
+/* ============================================
+   SECCIÓN CENTRO: Título
+   ============================================ */
+.seccion-centro {
+  grid-column: 2;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 0;
+  overflow: hidden;
+}
+
+@media (max-width: 768px) {
+  .seccion-centro {
+    justify-content: flex-start;
+  }
+}
+
+.texto-titulo {
+  font-size: 20px;
+  font-weight: 700;
+  color: #8B6914;
+  margin: 0;
+  text-align: center;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+@media (max-width: 768px) {
+  .texto-titulo {
+    font-size: 16px;
+  }
+}
+
+/* ============================================
+   SECCIÓN DERECHA: Botones
+   ============================================ */
+.seccion-derecha {
+  grid-column: 3;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .seccion-derecha {
+    gap: 8px;
+  }
+}
+
+/* ============================================
+   BOTONES REDONDOS CON BORDE
+   ============================================ */
+.header-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border: 2px solid;
+  border-radius: 25px;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+
+.header-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.create-btn {
+  border-color: #4CAF50;
+  color: #4CAF50;
+}
+
+.create-btn:hover {
+  background: #4CAF50;
+  color: #FFFFFF;
+}
+
+.back-btn {
+  border-color: #F44336;
+  color: #F44336;
+}
+
+.back-btn:hover {
+  background: #F44336;
+  color: #FFFFFF;
+}
+
+.help-btn {
+  border-color: #FFC107;
+  color: #8B6914;
+}
+
+.help-btn:hover {
+  background: #FFC107;
+  color: #FFFFFF;
+}
+
+.pin-btn {
+  border-color: #9E9E9E;
+  color: #757575;
+}
+
+.pin-btn:hover {
+  background: rgba(158, 158, 158, 0.1);
+  border-color: #757575;
+}
+
+.pin-btn.pinned {
+  border-color: #FFC107;
+  color: #8B6914;
+  background: rgba(255, 193, 7, 0.1);
+}
+
+.pin-btn.pinned:hover {
+  background: rgba(255, 193, 7, 0.2);
+}
+
+.btn-icon {
+  font-size: 18px;
+}
+
+@media (max-width: 768px) {
+  .header-btn {
+    padding: 10px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+  }
+  
+  .btn-label {
+    display: none;
+  }
+  
+  .btn-icon {
+    font-size: 20px;
+  }
+}
+
+/* ============================================
+   OCULTAR ELEMENTOS INNECESARIOS
+   ============================================ */
+.theme-glow,
+.icon-glow,
+.btn-glow,
+.header-particles,
+.icon-wrapper {
+  display: contents;
+}

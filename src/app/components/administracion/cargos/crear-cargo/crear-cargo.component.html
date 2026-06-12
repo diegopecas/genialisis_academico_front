@@ -1,0 +1,43 @@
+<div class="modulo">
+    <app-header 
+        [tituloModulo]="titulo" 
+        [mostrarCrear]="false" 
+        [accion]="accion" 
+        [raiz]="'/administracion/cargos'"
+        [regresar]="regresar" 
+        [iconoTitulo]="'/assets/images/cargos.png'">
+    </app-header>
+
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-12">
+                <label for="nombre" class="form-label">Nombre del cargo <span class="text-danger">*</span></label>
+                <input 
+                    class="form-control form-control-lg" 
+                    type="text" 
+                    id="nombre" 
+                    [(ngModel)]="model.nombre"
+                    placeholder="Ej: Director, Coordinador, Docente..."
+                    required
+                    [ngClass]="{'is-invalid': !model.nombre && submitted}"
+                    [disabled]="!editable">
+                <small class="form-text text-muted">Ingrese el nombre del cargo o puesto de trabajo</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-sm-6" *ngIf="editable">
+                <button class="btn btn-lg btn-warning w-100" (click)="guardar()">
+                    Grabar
+                </button>
+            </div>
+            <div class="col-sm-6">
+                <button class="btn btn-lg btn-secondary w-100" (click)="volver()">
+                    Volver
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

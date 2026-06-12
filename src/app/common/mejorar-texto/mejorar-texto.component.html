@@ -1,0 +1,15 @@
+<div class="mejorar-texto-container my-2">
+  <button 
+    class="btn btn-sm w-100"
+    [class.btn-outline-primary]="!procesando"
+    [class.btn-outline-secondary]="procesando"
+    [disabled]="procesando || !texto || texto.trim() === ''"
+    (click)="mejorarTexto()">
+    <span class="govco-magic"></span>
+    <i class="bi" [ngClass]="{'bi-lightbulb': !procesando, 'bi-hourglass-split': procesando}"></i>
+    <span class="ms-1">{{ procesando ? 'Mejorando texto...' : 'Mejorar redacción' }}</span>
+  </button>
+<!--   <small class="text-muted ms-2" *ngIf="!procesando && texto && texto.trim() !== ''">
+    Mejora el texto con estilo técnico docente
+  </small> -->
+</div>

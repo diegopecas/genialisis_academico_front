@@ -1,0 +1,278 @@
+<div class="procesar-nomina-container" *ngIf="idNomina && fechaInicio && fechaFin">
+  
+  <!-- Botones de acción -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center">
+        <h4 class="mb-0">
+          <i class="fas fa-calculator me-2"></i>
+          Procesamiento de Nómina
+        </h4>
+        <div class="btn-group" role="group">
+          <button 
+            type="button" 
+            class="btn btn-warning"
+            (click)="calcularNomina()"
+            [disabled]="calculando || procesando || !editable">
+            <i class="fas fa-calculator"></i>
+            {{ calculando ? 'Calculando...' : 'Calcular Nómina' }}
+          </button>
+          <button 
+            type="button" 
+            class="btn btn-success"
+            (click)="procesarNomina()"
+            [disabled]="!datosCalculados || procesando || !editable">
+            <i class="fas fa-check-circle"></i>
+            {{ procesando ? 'Procesando...' : 'Procesar en Firme' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mensaje informativo -->
+  <div class="row mb-3" *ngIf="!datosCalculados && colaboradores.length > 0">
+    <div class="col-12">
+      <div class="alert alert-info">
+        <i class="fas fa-info-circle me-2"></i>
+        <strong>Instrucciones:</strong> Seleccione los colaboradores a procesar y haga clic en "Calcular Nómina" para ver el preview.
+        Una vez revisados los cálculos, puede hacer clic en "Procesar en Firme" para guardar los datos.
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabla estilo Excel -->
+  <div class="row" *ngIf="colaboradores.length > 0">
+    <div class="col-12">
+      <div class="table-responsive">
+        <table class="table table-sm table-bordered table-hover nomina-table">
+          <thead class="table-dark">
+            <tr>
+              <th rowspan="2" class="text-center align-middle" style="width: 40px;">
+                <input 
+                  type="checkbox" 
+                  class="form-check-input"
+                  [checked]="todosSeleccionados()"
+                  (change)="toggleTodosColaboradores()"
+                  [disabled]="!editable">
+              </th>
+              <th rowspan="2" class="align-middle">Colaborador</th>
+              <th rowspan="2" class="text-center align-middle" style="width: 120px;">Tipo Contrato</th>
+              <th rowspan="2" class="text-center align-middle" style="width: 80px;">Días</th>
+              
+              <!-- Devengados -->
+              <th colspan="4" class="text-center bg-success">DEVENGADO</th>
+              
+              <!-- Deducciones -->
+              <th colspan="6" class="text-center bg-danger">DEDUCCIONES</th>
+              
+              <th rowspan="2" class="text-end align-middle bg-primary text-white" style="width: 120px;">
+                <strong>NETO A PAGAR</strong>
+              </th>
+              <th rowspan="2" class="text-center align-middle" style="width: 100px;">Estado</th>
+            </tr>
+            <tr>
+              <!-- Sub-columnas Devengados -->
+              <th class="text-end bg-success-subtle" style="width: 110px;">Salario</th>
+              <th class="text-end bg-success-subtle" style="width: 110px;">Recargos</th>
+              <th class="text-end bg-success-subtle" style="width: 110px;">Aux. Transp.</th>
+              <th class="text-end bg-success text-white" style="width: 120px;"><strong>Total Dev.</strong></th>
+              
+              <!-- Sub-columnas Deducciones -->
+              <th class="text-end bg-danger-subtle" style="width: 100px;">Salud</th>
+              <th class="text-end bg-danger-subtle" style="width: 100px;">Pensión</th>
+              <th class="text-end bg-danger-subtle" style="width: 110px;">Ded. Legales</th>
+              <th class="text-end bg-warning-subtle" style="width: 100px;">Productos</th>
+              <th class="text-end bg-warning-subtle" style="width: 100px;">Préstamos</th>
+              <th class="text-end bg-danger text-white" style="width: 110px;"><strong>Total Ded.</strong></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let colaborador of colaboradores"
+                [class.table-success]="colaborador.calculado && colaborador.incluir"
+                [class.table-secondary]="!colaborador.incluir"
+                [class.table-light]="!colaborador.aplica_nomina">
+              
+              <!-- Checkbox -->
+              <td class="text-center">
+                <input 
+                  type="checkbox" 
+                  class="form-check-input"
+                  [(ngModel)]="colaborador.incluir"
+                  [disabled]="!editable || !colaborador.aplica_nomina">
+              </td>
+              
+              <!-- Nombre -->
+              <td>
+                <strong>{{ colaborador.nombre_completo }}</strong>
+                <span class="badge bg-secondary ms-2" *ngIf="!colaborador.aplica_nomina">No aplica nómina</span>
+              </td>
+              
+              <!-- Tipo Contrato -->
+              <td class="text-center">{{ colaborador.tipo_contrato }}</td>
+              
+              <!-- Días -->
+              <td class="text-center">
+                <input 
+                  type="number" 
+                  class="form-control form-control-sm text-center"
+                  [(ngModel)]="colaborador.dias_trabajados"
+                  (change)="onDiasChange(colaborador)"
+                  [disabled]="!editable || !colaborador.incluir"
+                  min="1"
+                  max="31"
+                  style="width: 70px;">
+              </td>
+              
+              <!-- DEVENGADOS -->
+              <td class="text-end">
+                <span *ngIf="colaborador.calculado">
+                  {{ formatearNumero(colaborador.total_salario) }}
+                </span>
+                <span *ngIf="!colaborador.calculado">-</span>
+              </td>
+              
+              <td class="text-end">
+                <span *ngIf="colaborador.calculado">
+                  {{ formatearNumero(colaborador.total_recargos) }}
+                </span>
+                <span *ngIf="!colaborador.calculado">-</span>
+              </td>
+              
+              <td class="text-end">
+                <span *ngIf="colaborador.calculado">
+                  {{ formatearNumero(colaborador.total_auxilio_transporte) }}
+                </span>
+                <span *ngIf="!colaborador.calculado">-</span>
+              </td>
+              
+              <td class="text-end fw-bold bg-success-subtle">
+                <span *ngIf="colaborador.calculado">
+                  {{ formatearNumero(colaborador.total_devengado) }}
+                </span>
+                <span *ngIf="!colaborador.calculado">-</span>
+              </td>
+              
+              <!-- DEDUCCIONES -->
+              <td class="text-end">
+                <span *ngIf="colaborador.calculado">
+                  {{ formatearNumero(colaborador.total_salud) }}
+                </span>
+                <span *ngIf="!colaborador.calculado">-</span>
+              </td>
+              
+              <td class="text-end">
+                <span *ngIf="colaborador.calculado">
+                  {{ formatearNumero(colaborador.total_pension) }}
+                </span>
+                <span *ngIf="!colaborador.calculado">-</span>
+              </td>
+              
+              <td class="text-end">
+                <span *ngIf="colaborador.calculado">
+                  {{ formatearNumero(colaborador.total_deducciones_legales) }}
+                </span>
+                <span *ngIf="!colaborador.calculado">-</span>
+              </td>
+              
+              <td class="text-end text-warning">
+                <span *ngIf="colaborador.calculado && colaborador.total_productos > 0">
+                  {{ formatearNumero(colaborador.total_productos) }}
+                </span>
+                <span *ngIf="!colaborador.calculado || colaborador.total_productos === 0">-</span>
+              </td>
+              
+              <td class="text-end text-info">
+                <span *ngIf="colaborador.calculado && colaborador.total_prestamos > 0">
+                  {{ formatearNumero(colaborador.total_prestamos) }}
+                </span>
+                <span *ngIf="!colaborador.calculado || colaborador.total_prestamos === 0">-</span>
+              </td>
+              
+              <td class="text-end fw-bold bg-danger-subtle">
+                <span *ngIf="colaborador.calculado">
+                  {{ formatearNumero(colaborador.total_deducciones_legales + colaborador.total_otras_deducciones) }}
+                </span>
+                <span *ngIf="!colaborador.calculado">-</span>
+              </td>
+              
+              <!-- NETO A PAGAR -->
+              <td class="text-end fw-bold bg-primary-subtle">
+                <span *ngIf="colaborador.calculado" class="text-primary">
+                  {{ formatearMoneda(colaborador.neto_pagar) }}
+                </span>
+                <span *ngIf="!colaborador.calculado">-</span>
+              </td>
+              
+              <!-- Estado -->
+              <td class="text-center">
+                <span class="badge bg-warning" *ngIf="!colaborador.calculado && colaborador.incluir">Pendiente</span>
+                <span class="badge bg-success" *ngIf="colaborador.calculado && !colaborador.procesado">Calculado</span>
+                <span class="badge bg-primary" *ngIf="colaborador.procesado">Procesado</span>
+                <span class="badge bg-secondary" *ngIf="!colaborador.incluir">No incluido</span>
+              </td>
+            </tr>
+          </tbody>
+          
+          <!-- TOTALES -->
+          <tfoot class="table-dark" *ngIf="datosCalculados">
+            <tr>
+              <td colspan="4" class="text-end"><strong>TOTALES:</strong></td>
+              
+              <!-- Totales Devengados -->
+              <td class="text-end fw-bold">
+                {{ formatearNumero(getTotalesGenerales().total_salario) }}
+              </td>
+              <td class="text-end fw-bold">
+                {{ formatearNumero(getTotalesGenerales().total_recargos) }}
+              </td>
+              <td class="text-end fw-bold">
+                {{ formatearNumero(getTotalesGenerales().total_auxilio) }}
+              </td>
+              <td class="text-end fw-bold bg-success">
+                {{ formatearNumero(getTotalesGenerales().total_devengado) }}
+              </td>
+              
+              <!-- Totales Deducciones -->
+              <td class="text-end fw-bold">
+                {{ formatearNumero(getTotalesGenerales().total_salud) }}
+              </td>
+              <td class="text-end fw-bold">
+                {{ formatearNumero(getTotalesGenerales().total_pension) }}
+              </td>
+              <td class="text-end fw-bold">
+                {{ formatearNumero(getTotalesGenerales().total_deducciones_legales) }}
+              </td>
+              <td class="text-end fw-bold text-warning">
+                {{ formatearNumero(getTotalesGenerales().total_productos) }}
+              </td>
+              <td class="text-end fw-bold text-info">
+                {{ formatearNumero(getTotalesGenerales().total_prestamos) }}
+              </td>
+              <td class="text-end fw-bold bg-danger">
+                {{ formatearNumero(getTotalesGenerales().total_deducciones_legales + getTotalesGenerales().total_otras_deducciones) }}
+              </td>
+              
+              <!-- Neto Total -->
+              <td class="text-end fw-bold bg-primary text-white">
+                {{ formatearMoneda(getTotalesGenerales().neto_total) }}
+              </td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mensaje si no hay colaboradores -->
+  <div class="row" *ngIf="colaboradores.length === 0">
+    <div class="col-12">
+      <div class="alert alert-warning">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        No hay colaboradores activos para procesar.
+      </div>
+    </div>
+  </div>
+
+</div>

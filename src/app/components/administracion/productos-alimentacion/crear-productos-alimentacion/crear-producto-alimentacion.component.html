@@ -1,0 +1,149 @@
+<div class="modulo">
+    <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [accion]="accion"
+        [raiz]="'/administracion/productos-alimentacion'" [regresar]="regresar"
+        [iconoTitulo]="'/assets/images/productos-alimentacion.png'">
+    </app-header>
+
+    <div class="container mt-5">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-utensils"></i> Información del Producto de Alimentación</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-sm-12 col-md-6">
+                        <label for="producto" class="form-label">Producto <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <input type="text" class="form-control form-control-lg" [(ngModel)]="model.nombreProducto"
+                                [ngClass]="{'is-invalid': !model.idProducto && submitted}" [disabled]="!editable"
+                                placeholder="Seleccionar producto..." readonly>
+                            <button class="btn btn-outline-secondary" type="button" (click)="abrirModalBuscarProducto()"
+                                [disabled]="!editable">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                        <div class="invalid-feedback">
+                            El producto es requerido
+                        </div>
+                    </div>
+                    <div class="col-sm-12 col-md-6">
+                        <label for="tipoProductoAlimentacion" class="form-label">Tipo de Alimentación <span class="text-danger">*</span></label>
+                        <select class="form-select form-select-lg" id="tipoProductoAlimentacion" 
+                            [(ngModel)]="model.idTipoProductoAlimentacion" required
+                            [ngClass]="{'is-invalid': !model.idTipoProductoAlimentacion && submitted}" 
+                            [disabled]="!editable">
+                            <option value="">Seleccionar</option>
+                            <ng-container *ngFor="let tipo of listas.tiposProductoAlimentacion">
+                                <option [value]="tipo.value">{{ tipo.label }}</option>
+                            </ng-container>
+                        </select>
+                        <div class="invalid-feedback">
+                            El tipo de alimentación es requerido
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mt-3">
+                    <div class="col-sm-12 col-md-6">
+                        <label for="diasVidaUtil" class="form-label">Días de Vida Útil</label>
+                        <div class="input-group">
+                            <input class="form-control form-control-lg" type="number" id="diasVidaUtil"
+                                [(ngModel)]="model.diasVidaUtil" [disabled]="!editable"
+                                placeholder="0" min="0">
+                            <span class="input-group-text">días</span>
+                        </div>
+                        <small class="text-muted">
+                            Número de días que el producto puede consumirse desde su recepción
+                        </small>
+                    </div>
+                    <div class="col-sm-12 col-md-6">
+                        <div class="alert alert-info mt-4" *ngIf="model.diasVidaUtil > 0">
+                            <i class="fas fa-info-circle"></i>
+                            Este producto tiene una vida útil de <strong>{{ model.diasVidaUtil }}</strong> días.
+                            Se calculará la fecha de vencimiento basándose en la fecha de recepción.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Nueva sección de Clasificaciones -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-tags"></i> Clasificaciones del Producto
+                    <span class="badge bg-secondary ms-2">{{ clasificacionesSeleccionadas.length }}</span>
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-12">
+                        <p class="text-muted mb-3">
+                            Seleccione las clasificaciones que aplican para este producto de alimentación:
+                        </p>
+                        
+                        <!-- Lista de clasificaciones con checkboxes -->
+                        <div class="clasificaciones-container">
+                            <div class="row" *ngIf="listas.clasificaciones.length > 0">
+                                <div class="col-sm-6 col-md-4 mb-3" *ngFor="let clasificacion of listas.clasificaciones">
+                                    <div class="form-check clasificacion-item" 
+                                         [ngClass]="{'clasificacion-selected': clasificacion.selected, 'disabled': !editable}">
+                                        <input class="form-check-input" 
+                                               type="checkbox" 
+                                               [id]="'clasificacion_' + clasificacion.id"
+                                               [(ngModel)]="clasificacion.selected"
+                                               (change)="onClasificacionChange(clasificacion)"
+                                               [disabled]="!editable">
+                                        <label class="form-check-label" 
+                                               [for]="'clasificacion_' + clasificacion.id">
+                                            {{ clasificacion.nombre }}
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Mensaje cuando no hay clasificaciones -->
+                            <div class="alert alert-warning" *ngIf="listas.clasificaciones.length === 0">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                No hay clasificaciones disponibles. Debe crear clasificaciones primero en el módulo correspondiente.
+                            </div>
+                        </div>
+
+                        <!-- Resumen de clasificaciones seleccionadas -->
+                        <div class="mt-3" *ngIf="clasificacionesSeleccionadas.length > 0">
+                            <hr>
+                            <p class="mb-2"><strong>Clasificaciones seleccionadas:</strong></p>
+                            <div class="d-flex flex-wrap gap-2">
+                                <span class="badge bg-primary" *ngFor="let clasificacion of clasificacionesSeleccionadas">
+                                    {{ clasificacion.nombre }}
+                                    <button type="button" class="btn-close btn-close-white ms-1" 
+                                            aria-label="Quitar"
+                                            (click)="removerClasificacion(clasificacion)"
+                                            *ngIf="editable"
+                                            style="font-size: 0.65rem;">
+                                    </button>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botones de acción -->
+    <div class="container mt-4 mb-5">
+        <div class="row">
+            <div class="col-sm-6" *ngIf="editable">
+                <button class="btn btn-lg btn-warning w-100" (click)="guardarProductoAlimentacion()">
+                    <i class="fas fa-save"></i> Guardar
+                </button>
+            </div>
+            <div class="col-sm-6">
+                <button class="btn btn-lg btn-secondary w-100" (click)="volver()">
+                    <i class="fas fa-arrow-left"></i> Volver
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

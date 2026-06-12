@@ -1,0 +1,78 @@
+<div class="modulo">
+  @if (!modoEmbebido) {
+  <app-header-anidado 
+    [tituloModulo]="titulo" 
+    [path]="path" 
+    [mostrarCrear]="true" 
+    [accion]="'ConsultarTodos'"
+    [raiz]="'/colaboradores-productos-servicios'" 
+    [regresar]="'/colaboradores'"
+    [iconoTitulo]="'/assets/images/productos.png'">
+  </app-header-anidado>
+  }
+  
+  <app-tablas 
+    [titulos]="titulos" 
+    [datos]="datos" 
+    [raiz]="'/colaboradores-productos-servicios'" 
+    [accionVer]="true"
+    [accionEditar]="true" 
+    [accionEliminar]="true" 
+    [columnasFiltro]="columnasFiltro"
+    [prefiltrosExcluir]="{ 'Saldo': [0] }"
+    [seleccionMultiple]="true"
+    [campoId]="'id'"
+    (clicAccion)="seleccionar($event)"
+    (seleccionCambiada)="onSeleccionCambiada($event)"
+    (datosFiltradosCambiados)="onDatosFiltradosCambiados($event)">
+  </app-tablas>
+
+  <!-- Sección de totales -->
+  <div class="container">
+    <div class="row">
+      <div class="col">
+        <div class="tabla-container" *ngIf="datos && datos.length > 0">
+          <div class="card mt-3">
+            <div class="card-header bg-info text-white">
+              <h5 class="card-title mb-0">
+                {{ resumen.haySeleccion ? 'Resumen de Selección' : 'Resumen de Productos y Servicios' }}
+              </h5>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-3">
+                  <div class="total-box">
+                    <h6>Valor Cobrado:</h6>
+                    <p class="total-value">{{ resumen.totalValorCobrado | currency:'COP ':'symbol':'1.0-0' }}</p>
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <div class="total-box">
+                    <h6>Valor Pagado:</h6>
+                    <p class="total-value">{{ resumen.totalValorPagado | currency:'COP ':'symbol':'1.0-0' }}</p>
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <div class="total-box">
+                    <h6>Saldo Pendiente:</h6>
+                    <p class="total-value" [ngClass]="{'text-success': resumen.totalSaldo <= 0, 'text-danger': resumen.totalSaldo > 0}">
+                      {{ resumen.totalSaldo | currency:'COP ':'symbol':'1.0-0' }}
+                    </p>
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <div class="total-box vencido">
+                    <h6>Saldo Vencido:</h6>
+                    <p class="total-value text-danger">
+                      {{ resumen.totalSaldoVencido | currency:'COP ':'symbol':'1.0-0' }}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

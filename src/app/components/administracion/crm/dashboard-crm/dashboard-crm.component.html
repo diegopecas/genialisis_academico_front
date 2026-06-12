@@ -1,0 +1,255 @@
+<div class="modulo">
+    <app-header [tituloModulo]="titulo" [regresar]="'/administracion/crm'"
+        [iconoTitulo]="'/assets/images/visitas.png'">
+    </app-header>
+
+    <!-- Spinner de carga -->
+    <div *ngIf="cargando" class="text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Cargando...</span>
+        </div>
+        <p class="mt-3 text-muted">Cargando estadísticas...</p>
+    </div>
+
+    <!-- Dashboard -->
+    <div class="container-fluid" [style.display]="cargando ? 'none' : 'block'">
+        <!-- KPIs Principales -->
+        <div class="row mb-4" *ngIf="stats">
+            <!-- Visitas Mes Actual -->
+            <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-muted mb-2">Visitas Este Mes</h6>
+                                <h2 class="mb-0 fw-bold">{{ stats.visitasMesActual }}</h2>
+                                <small [ngClass]="getVariacionClass()">
+                                    <i class="fas" [ngClass]="getVariacionIcon()"></i>
+                                    {{ variacionMensual | number:'1.1-1' }}% vs mes anterior
+                                </small>
+                            </div>
+                            <div class="text-primary" style="font-size: 2.5rem; opacity: 0.3;">
+                                <i class="fas fa-users"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tasa de Conversión -->
+            <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-muted mb-2">Tasa de Conversión</h6>
+                                <h2 class="mb-0 fw-bold">{{ tasaConversion | number:'1.1-1' }}%</h2>
+                                <small class="text-muted">Últimos 6 meses</small>
+                            </div>
+                            <div class="text-success" style="font-size: 2.5rem; opacity: 0.3;">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Nivel de Interés Promedio -->
+            <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-muted mb-2">Nivel Interés Promedio</h6>
+                                <h2 class="mb-0 fw-bold">{{ nivelInteresPromedio | number:'1.1-1' }}/5</h2>
+                                <small class="text-muted">Este mes ({{ stats.nivelInteres.total }} visitas)</small>
+                            </div>
+                            <div class="text-warning" style="font-size: 2.5rem; opacity: 0.3;">
+                                <i class="fas fa-star"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Total Últimos 6 Meses -->
+            <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-muted mb-2">Últimos 6 Meses</h6>
+                                <h2 class="mb-0 fw-bold">{{ getTotalUltimos6Meses() }}</h2>
+                                <small class="text-muted">Total de visitas</small>
+                            </div>
+                            <div class="text-info" style="font-size: 2.5rem; opacity: 0.3;">
+                                <i class="fas fa-calendar-alt"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fila 1: Resultados y Evolución -->
+        <div class="row mb-4" *ngIf="stats">
+            <!-- Distribución por Resultado -->
+            <div class="col-lg-6 mb-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <h5 class="card-title mb-4">
+                            <i class="fas fa-chart-pie text-primary me-2"></i>
+                            Distribución por Resultado
+                        </h5>
+                        <div style="height: 300px;">
+                            <canvas id="chartResultados"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Evolución Mensual -->
+            <div class="col-lg-6 mb-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <h5 class="card-title mb-4">
+                            <i class="fas fa-chart-line text-primary me-2"></i>
+                            Evolución Últimos 6 Meses
+                        </h5>
+                        <div style="height: 300px;">
+                            <canvas id="chartEvolucion"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fila 2: Cómo Conoció y Objeciones -->
+        <div class="row mb-4" *ngIf="stats">
+            <!-- Top Cómo Conoció -->
+            <div class="col-lg-6 mb-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <h5 class="card-title mb-4">
+                            <i class="fas fa-bullhorn text-primary me-2"></i>
+                            Top 5 Canales de Captación
+                        </h5>
+                        <div style="height: 300px;">
+                            <canvas id="chartComoConocio"></canvas>
+                        </div>
+                        <div *ngIf="stats.topComoConocio.length === 0" class="text-center text-muted py-5" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+                            <i class="fas fa-info-circle fa-3x mb-3"></i>
+                            <p>No hay datos disponibles</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Objeciones Frecuentes -->
+            <div class="col-lg-6 mb-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <h5 class="card-title mb-4">
+                            <i class="fas fa-exclamation-triangle text-primary me-2"></i>
+                            Objeciones Más Frecuentes
+                        </h5>
+                        <div style="height: 300px;">
+                            <canvas id="chartObjeciones"></canvas>
+                        </div>
+                        <div *ngIf="stats.objecionesFrecuentes.length === 0" class="text-center text-muted py-5" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+                            <i class="fas fa-check-circle fa-3x mb-3"></i>
+                            <p>No se han registrado objeciones</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fila 3: Perfiles DISC -->
+        <div class="row mb-4" *ngIf="stats">
+            <div class="col-lg-6 mb-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <h5 class="card-title mb-4">
+                            <i class="fas fa-user-friends text-primary me-2"></i>
+                            Perfiles DISC de Contactos
+                        </h5>
+                        <div style="height: 300px;">
+                            <canvas id="chartPerfilesDisc"></canvas>
+                        </div>
+                        <div *ngIf="stats.perfilesDisc.length === 0" class="text-center text-muted py-5" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+                            <i class="fas fa-info-circle fa-3x mb-3"></i>
+                            <p>No hay perfiles DISC calculados</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Insights Rápidos -->
+            <div class="col-lg-6 mb-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <h5 class="card-title mb-4">
+                            <i class="fas fa-lightbulb text-primary me-2"></i>
+                            Insights Rápidos
+                        </h5>
+                        
+                        <div class="mb-3 p-3 border-start border-primary border-4 bg-light">
+                            <h6 class="mb-2">
+                                <i class="fas fa-trophy text-warning me-2"></i>
+                                Canal Más Efectivo
+                            </h6>
+                            <p class="mb-0" *ngIf="stats.topComoConocio.length > 0">
+                                <strong>{{ stats.topComoConocio[0].nombre }}</strong> 
+                                con {{ stats.topComoConocio[0].cantidad }} visitas
+                            </p>
+                            <p class="mb-0 text-muted" *ngIf="stats.topComoConocio.length === 0">
+                                No hay datos suficientes
+                            </p>
+                        </div>
+
+                        <div class="mb-3 p-3 border-start border-danger border-4 bg-light">
+                            <h6 class="mb-2">
+                                <i class="fas fa-times-circle text-danger me-2"></i>
+                                Objeción Principal
+                            </h6>
+                            <p class="mb-0" *ngIf="stats.objecionesFrecuentes.length > 0">
+                                <strong>{{ stats.objecionesFrecuentes[0].nombre }}</strong>
+                                <br>
+                                <small class="text-muted">
+                                    {{ stats.objecionesFrecuentes[0].cantidad }} veces, 
+                                    {{ stats.objecionesFrecuentes[0].superadas }} superadas
+                                    ({{ (stats.objecionesFrecuentes[0].superadas / stats.objecionesFrecuentes[0].cantidad * 100) | number:'1.0-0' }}%)
+                                </small>
+                            </p>
+                            <p class="mb-0 text-muted" *ngIf="stats.objecionesFrecuentes.length === 0">
+                                No se han registrado objeciones
+                            </p>
+                        </div>
+
+                        <div class="p-3 border-start border-success border-4 bg-light">
+                            <h6 class="mb-2">
+                                <i class="fas fa-user-check text-success me-2"></i>
+                                Perfil DISC Dominante
+                            </h6>
+                            <p class="mb-0" *ngIf="stats.perfilesDisc.length > 0">
+                                <strong>Perfil {{ stats.perfilesDisc[0].perfil }}</strong> 
+                                con {{ stats.perfilesDisc[0].cantidad }} contactos
+                            </p>
+                            <p class="mb-0 text-muted" *ngIf="stats.perfilesDisc.length === 0">
+                                No hay perfiles calculados
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mensaje de error -->
+    <div *ngIf="!cargando && !stats" class="text-center py-5">
+        <i class="fas fa-exclamation-triangle fa-4x text-warning mb-3"></i>
+        <h4>No se pudieron cargar las estadísticas</h4>
+        <p class="text-muted">Intenta recargar la página</p>
+    </div>
+</div>

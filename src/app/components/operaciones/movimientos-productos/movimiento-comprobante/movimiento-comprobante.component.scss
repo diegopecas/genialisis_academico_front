@@ -1,0 +1,377 @@
+.comprobante-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #f5f5f7;
+  min-height: 100vh;
+}
+
+.botones-accion {
+  margin-bottom: 20px;
+  text-align: right;
+  
+  button {
+    margin-left: 10px;
+  }
+}
+
+.comprobante-content {
+  background: white;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+// Variables de colores corporativos
+$color-lumen: #ffbd31;
+$color-negro: #000000;
+
+// Clases de colores corporativos
+.letra-color-lumen {
+  color: $color-lumen;
+}
+
+.letra-color-negro {
+  color: $color-negro;
+}
+
+// Encabezado
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 3px solid $color-lumen;
+  padding-bottom: 20px;
+  margin-bottom: 30px;
+  
+  .logo-section {
+    flex: 0 0 150px;
+    
+    .logo {
+      max-width: 120px;
+      height: auto;
+    }
+  }
+  
+  .titulo-section {
+    flex: 1;
+    text-align: center;
+    
+    h2 {
+      font-size: 1.5rem;
+      font-weight: bold;
+      margin-bottom: 5px;
+      color: #333;
+    }
+    
+    h3 {
+      font-size: 1.2rem;
+      margin: 0;
+      
+      &.text-success { color: #28a745; }
+      &.text-danger { color: #dc3545; }
+      &.text-info { color: #17a2b8; }
+    }
+  }
+  
+  .numero-section {
+    flex: 0 0 200px;
+    text-align: right;
+    
+    .numero-box {
+      border: 2px solid $color-lumen;
+      padding: 10px;
+      border-radius: 5px;
+      margin-bottom: 5px;
+      
+      .label {
+        font-weight: bold;
+        margin-right: 10px;
+      }
+      
+      .numero {
+        font-size: 1.5rem;
+        color: $color-negro;
+        font-weight: bold;
+      }
+    }
+    
+    .fecha-impresion {
+      font-size: 0.85rem;
+      color: #666;
+    }
+  }
+}
+
+// Información del movimiento
+.info-movimiento {
+  margin-bottom: 30px;
+  
+  .tabla-info {
+    width: 100%;
+    
+    tr {
+      height: 32px;
+    }
+    
+    .label-campo {
+      font-weight: 600;
+      color: #555;
+      padding-right: 15px;
+      width: 40%;
+    }
+    
+    .valor-campo {
+      color: #333;
+    }
+  }
+  
+  .observaciones-box {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 5px;
+    margin-top: 15px;
+    
+    p {
+      margin: 5px 0 0 0;
+      white-space: pre-wrap;
+    }
+  }
+}
+
+// Tabla de detalle
+.detalle-productos {
+  margin-bottom: 30px;
+  
+  h4 {
+    background-color: $color-lumen;
+    color: $color-negro;
+    padding: 10px;
+    margin: 0 0 0 0;
+    border-radius: 5px 5px 0 0;
+    font-weight: bold;
+  }
+  
+  .tabla-detalle {
+    width: 100%;
+    border-collapse: collapse;
+    
+    thead {
+      background-color: #f8f9fa;
+      
+      th {
+        padding: 10px 8px;
+        border: 1px solid #dee2e6;
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: #495057;
+      }
+    }
+    
+    tbody {
+      tr {
+        &:hover {
+          background-color: #f8f9fa;
+        }
+      }
+      
+      td {
+        padding: 8px;
+        border: 1px solid #dee2e6;
+        font-size: 0.9rem;
+        
+        &.text-center { text-align: center; }
+        &.text-right { text-align: right; }
+        &.text-success { color: #28a745; }
+        &.text-danger { color: #dc3545; }
+        &.font-weight-bold { font-weight: bold; }
+      }
+    }
+    
+    tfoot {
+      .totales-row {
+        background-color: #e9ecef;
+        font-size: 1rem;
+        
+        td {
+          padding: 12px 8px;
+          border: 2px solid #dee2e6;
+        }
+      }
+    }
+  }
+}
+
+// Resumen
+.resumen-box {
+  background-color: #f8f9fa;
+  padding: 20px;
+  border-radius: 5px;
+  margin-bottom: 30px;
+  
+  .resumen-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background: white;
+    border-radius: 5px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    
+    .resumen-label {
+      font-weight: 600;
+      color: #666;
+    }
+    
+    .resumen-valor {
+      font-size: 1.3rem;
+      font-weight: bold;
+      color: #333;
+      
+      &.text-primary {
+        color: $color-lumen !important;
+      }
+    }
+  }
+}
+
+// Anulación
+.anulacion-box {
+  margin: 30px 0;
+  
+  .alert-danger {
+    border: 2px solid #dc3545;
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 20px;
+    border-radius: 5px;
+    
+    h5 {
+      margin-bottom: 15px;
+      font-weight: bold;
+    }
+    
+    p {
+      margin: 0;
+    }
+  }
+}
+
+// Firmas
+.firmas-section {
+  margin-top: 60px;
+  padding-top: 30px;
+  
+  .firma-box {
+    text-align: center;
+    padding: 0 20px;
+    
+    .firma-linea {
+      border-bottom: 2px solid $color-negro;
+      margin-bottom: 10px;
+      min-height: 50px;
+      position: relative;
+      
+      .nombre-firma {
+        position: absolute;
+        bottom: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-weight: 600;
+        color: $color-negro;
+        font-size: 1rem;
+        white-space: nowrap;
+      }
+    }
+    
+    p {
+      margin: 5px 0;
+      font-weight: 600;
+      color: #555;
+    }
+    
+    small {
+      color: #777;
+      font-size: 0.85rem;
+    }
+  }
+}
+
+// Badges
+.badge {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border-radius: 4px;
+  display: inline-block;
+  
+  &.bg-warning {
+    background-color: #ffc107 !important;
+    color: #212529 !important;
+  }
+  
+  &.bg-primary {
+    background-color: #007bff !important;
+    color: white !important;
+  }
+  
+  &.bg-success {
+    background-color: #28a745 !important;
+    color: white !important;
+  }
+  
+  &.bg-danger {
+    background-color: #dc3545 !important;
+    color: white !important;
+  }
+  
+  &.bg-secondary {
+    background-color: #6c757d !important;
+    color: white !important;
+  }
+}
+
+// Estilos de impresión
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  .comprobante-container {
+    padding: 0;
+    background: white;
+  }
+  
+  .comprobante-content {
+    box-shadow: none;
+    padding: 20px;
+  }
+  
+  .header {
+    page-break-after: avoid;
+  }
+  
+  .tabla-detalle {
+    page-break-inside: avoid;
+    
+    tbody tr {
+      page-break-inside: avoid;
+    }
+  }
+  
+  .firmas-section {
+    page-break-inside: avoid;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+  }
+  
+  // Ajustar tamaños para impresión
+  body {
+    font-size: 11pt;
+  }
+  
+  h2 { font-size: 16pt; }
+  h3 { font-size: 14pt; }
+  h4 { font-size: 12pt; }
+}

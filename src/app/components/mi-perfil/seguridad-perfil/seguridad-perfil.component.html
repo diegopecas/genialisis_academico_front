@@ -1,0 +1,138 @@
+<div class="seguridad-container">
+
+  <!-- Sección: Cambiar Contraseña -->
+  <div class="seguridad-card">
+    <div class="card-header">
+      <span class="card-icon">🔑</span>
+      <div>
+        <h3 class="card-title">Cambiar Contraseña</h3>
+        <p class="card-subtitle">Actualiza tu contraseña de acceso</p>
+      </div>
+    </div>
+
+    <div class="card-body">
+      <div class="form-group">
+        <label class="form-label">Contraseña actual</label>
+        <div class="password-wrapper">
+          <input 
+            [type]="mostrarClaveActual ? 'text' : 'password'"
+            [(ngModel)]="claveActual"
+            placeholder="Ingresa tu contraseña actual"
+            class="form-input"
+            [disabled]="guardandoClave"
+          />
+          <button type="button" class="toggle-password" (click)="mostrarClaveActual = !mostrarClaveActual" tabindex="-1">
+            <span>{{ mostrarClaveActual ? '👁️' : '👁️‍🗨️' }}</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Nueva contraseña</label>
+        <div class="password-wrapper">
+          <input 
+            [type]="mostrarClaveNueva ? 'text' : 'password'"
+            [(ngModel)]="claveNueva"
+            placeholder="Mínimo 6 caracteres"
+            class="form-input"
+            [disabled]="guardandoClave"
+          />
+          <button type="button" class="toggle-password" (click)="mostrarClaveNueva = !mostrarClaveNueva" tabindex="-1">
+            <span>{{ mostrarClaveNueva ? '👁️' : '👁️‍🗨️' }}</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Confirmar nueva contraseña</label>
+        <div class="password-wrapper">
+          <input 
+            [type]="mostrarClaveConfirmar ? 'text' : 'password'"
+            [(ngModel)]="claveConfirmar"
+            placeholder="Repite la nueva contraseña"
+            class="form-input"
+            [disabled]="guardandoClave"
+            [class.input-error]="claveConfirmar && claveNueva && claveConfirmar !== claveNueva"
+          />
+          <button type="button" class="toggle-password" (click)="mostrarClaveConfirmar = !mostrarClaveConfirmar" tabindex="-1">
+            <span>{{ mostrarClaveConfirmar ? '👁️' : '👁️‍🗨️' }}</span>
+          </button>
+        </div>
+        <span class="input-hint error" *ngIf="claveConfirmar && claveNueva && claveConfirmar !== claveNueva">
+          Las contraseñas no coinciden
+        </span>
+      </div>
+
+      <button 
+        class="btn-primary" 
+        (click)="cambiarContrasena()"
+        [disabled]="guardandoClave || !claveActual || !claveNueva || !claveConfirmar || claveNueva !== claveConfirmar"
+      >
+        <span *ngIf="!guardandoClave">Cambiar Contraseña</span>
+        <span *ngIf="guardandoClave">Guardando...</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Sección: Huella Digital -->
+  <div class="seguridad-card" *ngIf="webAuthnSoportado">
+    <div class="card-header">
+      <span class="card-icon">🔐</span>
+      <div>
+        <h3 class="card-title">Huella Digital</h3>
+        <p class="card-subtitle">Inicia sesión rápidamente con tu biométrico</p>
+      </div>
+    </div>
+
+    <div class="card-body">
+
+      <!-- Lista de dispositivos registrados -->
+      <div class="dispositivos-lista" *ngIf="credenciales.length > 0">
+        <div class="dispositivo-item" *ngFor="let cred of credenciales">
+          <div class="dispositivo-info">
+            <span class="dispositivo-icono">📱</span>
+            <div>
+              <p class="dispositivo-nombre">{{ cred.dispositivo || 'Dispositivo' }}</p>
+              <p class="dispositivo-fecha">Registrado: {{ formatearFecha(cred.fecha_registro) }}</p>
+              <p class="dispositivo-fecha" *ngIf="cred.ultimo_uso">Último uso: {{ formatearFecha(cred.ultimo_uso) }}</p>
+            </div>
+          </div>
+          <button class="btn-eliminar" (click)="eliminarCredencial(cred)" title="Eliminar dispositivo">
+            ✕
+          </button>
+        </div>
+      </div>
+
+      <!-- Sin dispositivos -->
+      <div class="sin-dispositivos" *ngIf="credenciales.length === 0 && !cargandoCredenciales">
+        <p>No tienes dispositivos biométricos registrados.</p>
+        <p class="hint">Al registrar tu huella, podrás ingresar sin escribir tu contraseña.</p>
+      </div>
+
+      <!-- Cargando -->
+      <div class="sin-dispositivos" *ngIf="cargandoCredenciales">
+        <p>Cargando dispositivos...</p>
+      </div>
+
+      <button 
+        class="btn-secondary"
+        (click)="registrarHuella()"
+        [disabled]="registrandoHuella"
+      >
+        <span class="btn-icon">🔐</span>
+        <span *ngIf="!registrandoHuella">{{ credenciales.length > 0 ? 'Agregar otro dispositivo' : 'Registrar huella digital' }}</span>
+        <span *ngIf="registrandoHuella">Esperando verificación...</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Navegador no compatible -->
+  <div class="seguridad-card aviso" *ngIf="!webAuthnSoportado">
+    <div class="card-body">
+      <p class="aviso-texto">
+        ⚠️ Tu navegador no soporta autenticación biométrica. Usa Chrome, Safari, Edge o Firefox en su versión más reciente para habilitar esta función.
+      </p>
+    </div>
+  </div>
+
+</div>

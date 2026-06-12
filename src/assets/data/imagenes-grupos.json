@@ -1,0 +1,32 @@
+{
+  "imagenes": [
+    {
+      "nombre": "Transición",
+      "ruta": "assets/images/recursos_compartidos/lumens.png"
+    },
+    {
+      "nombre": "Jardín",
+      "ruta": "assets/images/recursos_compartidos/creators.png"
+    },
+    {
+      "nombre": "Prejardín",
+      "ruta": "assets/images/recursos_compartidos/talents.png"
+    },
+    {
+      "nombre": "Parvulos",
+      "ruta": "assets/images/recursos_compartidos/genius.png"
+    },
+    {
+      "nombre": "Caminadores",
+      "ruta": "assets/images/recursos_compartidos/explorers.png"
+    },
+    {
+      "nombre": "Sala Cuna",
+      "ruta": "assets/images/recursos_compartidos/tinies.png"
+    },
+    {
+      "nombre": "Daycare",
+      "ruta": "assets/images/recursos_compartidos/daycare.png"
+    }
+  ]
+}

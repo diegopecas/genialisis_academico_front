@@ -1,0 +1,108 @@
+<div class="modulo">
+  <app-header 
+    [tituloModulo]="titulo" 
+    [mostrarCrear]="false" 
+    [raiz]="'/administracion/financiero'" 
+    [regresar]="'/administracion/financiero'" 
+    [iconoTitulo]="'/assets/images/aprobar.png'">
+  </app-header>
+
+  <!-- Tabla de datos con selección múltiple -->
+  <app-tablas 
+    [titulos]="titulos" 
+    [datos]="datos" 
+    [raiz]="'/administracion/financiero/aprobacion-multiple'" 
+    [accionVer]="false"
+    [accionEditar]="false" 
+    [accionEliminar]="false" 
+    [columnasFiltro]="columnasFiltro"
+    [seleccionMultiple]="true"
+    [campoId]="'id'"
+    [mostrarBuscar]="true"
+    (seleccionCambiada)="onSeleccionCambiada($event)">
+  </app-tablas>
+
+  <!-- Sección de totales y resumen -->
+  <div class="container-fluid px-4">
+    <div class="card mt-3 shadow-sm" *ngIf="cantidadSeleccionada > 0">
+      <div class="card-header bg-success text-white">
+        <h5 class="card-title mb-0">
+          <i class="fas fa-check-circle me-2"></i>Resumen de Aprobación
+        </h5>
+      </div>
+      <div class="card-body">
+        <!-- Primera fila: Cantidad y Total -->
+        <div class="row text-center mb-3">
+          <div class="col-md-6">
+            <div class="total-box">
+              <h6 class="text-muted">Movimientos seleccionados:</h6>
+              <p class="total-value text-primary fs-3 mb-0">{{ cantidadSeleccionada }}</p>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="total-box">
+              <h6 class="text-muted">Total general:</h6>
+              <p class="total-value text-dark fs-3 mb-0">
+                {{ totalSeleccionado | currency:'COP ':'symbol':'1.0-0' }}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Segunda fila: Desglose de Ingresos y Gastos -->
+        <div class="row text-center mb-3" *ngIf="totalIngresos > 0 || totalGastos > 0">
+          <div class="col-md-4">
+            <div class="total-box border-start border-3 border-success">
+              <h6 class="text-muted">
+                <i class="fas fa-arrow-up text-success"></i> Ingresos:
+              </h6>
+              <p class="total-value text-success fs-4 mb-0">
+                {{ totalIngresos | currency:'COP ':'symbol':'1.0-0' }}
+              </p>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="total-box border-start border-3 border-danger">
+              <h6 class="text-muted">
+                <i class="fas fa-arrow-down text-danger"></i> Gastos:
+              </h6>
+              <p class="total-value text-danger fs-4 mb-0">
+                {{ totalGastos | currency:'COP ':'symbol':'1.0-0' }}
+              </p>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="total-box border-start border-3" 
+                 [ngClass]="balance >= 0 ? 'border-info' : 'border-warning'">
+              <h6 class="text-muted">
+                <i class="fas fa-balance-scale"></i> Balance:
+              </h6>
+              <p class="total-value fs-4 mb-0" 
+                 [ngClass]="balance >= 0 ? 'text-info' : 'text-warning'">
+                {{ balance | currency:'COP ':'symbol':'1.0-0' }}
+              </p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Botón de aprobar -->
+        <div class="row mt-4">
+          <div class="col-12 text-center">
+            <button class="btn btn-success btn-lg px-5 shadow-sm" 
+                    [disabled]="cantidadSeleccionada === 0"
+                    (click)="aprobarSeleccionados()">
+              <i class="fas fa-check-circle me-2"></i>
+              Aprobar {{ cantidadSeleccionada > 0 ? '(' + cantidadSeleccionada + ')' : '' }} Movimientos
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mensaje cuando no hay selección -->
+    <div class="alert alert-info mt-3" *ngIf="cantidadSeleccionada === 0 && datos.length > 0">
+      <i class="fas fa-info-circle me-2"></i>
+      Seleccione los movimientos que desea aprobar usando las casillas de verificación en la tabla.
+    </div>
+  </div>
+</div>

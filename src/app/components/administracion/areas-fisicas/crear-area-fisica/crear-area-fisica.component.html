@@ -1,0 +1,545 @@
+<div class="modulo">
+    <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [accion]="accion"
+        [raiz]="'/administracion/areas-fisicas'" [regresar]="regresar"
+        [iconoTitulo]="'/assets/images/areas_fisicas.png'">
+    </app-header>
+
+    <div class="container mt-5">
+        <!-- Sistema de Tabs -->
+        <ul class="nav nav-tabs mb-4" id="areaFisicaTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="datos-generales-tab" data-bs-toggle="tab"
+                    data-bs-target="#datos-generales" type="button" role="tab" aria-controls="datos-generales"
+                    aria-selected="true" (click)="tabActivo = 'datos-generales'">
+                    <i class="fas fa-info-circle"></i> Datos Generales
+                </button>
+            </li>
+            <li class="nav-item" role="presentation" *ngIf="accion !== 'crear'">
+                <button class="nav-link" id="mobiliario-tab" data-bs-toggle="tab" data-bs-target="#mobiliario"
+                    type="button" role="tab" aria-controls="mobiliario" aria-selected="false"
+                    (click)="tabActivo = 'mobiliario'">
+                    <i class="fas fa-couch"></i> Mobiliario Asignado
+                    <span class="badge bg-primary ms-2" *ngIf="mobiliarioAsignado.length > 0">
+                        {{ mobiliarioAsignado.length }}
+                    </span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation" *ngIf="accion !== 'crear'">
+                <button class="nav-link" id="elementos-tab" data-bs-toggle="tab" data-bs-target="#elementos"
+                    type="button" role="tab" aria-controls="elementos" aria-selected="false"
+                    (click)="tabActivo = 'elementos'">
+                    <i class="fas fa-cube"></i> Elementos Físicos
+                    <span class="badge bg-info ms-2" *ngIf="elementosFisicosAsignados.length > 0">
+                        {{ elementosFisicosAsignados.length }}
+                    </span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation" *ngIf="accion !== 'crear'">
+                <button class="nav-link" id="limpieza-tab" data-bs-toggle="tab" data-bs-target="#limpieza" type="button"
+                    role="tab" aria-controls="limpieza" aria-selected="false" (click)="tabActivo = 'limpieza'">
+                    <i class="fas fa-broom"></i> Procesos de Limpieza
+                    <span class="badge bg-success ms-2" *ngIf="procesosLimpieza && procesosLimpieza.length > 0">
+                        {{ procesosLimpieza.length }}
+                    </span>
+                </button>
+            </li>
+        </ul>
+
+        <!-- Contenido de los Tabs -->
+        <div class="tab-content" id="areaFisicaTabsContent">
+
+            <!-- Tab Datos Generales -->
+            <div class="tab-pane fade show active" id="datos-generales" role="tabpanel"
+                aria-labelledby="datos-generales-tab">
+
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0"><i class="fas fa-map-marker-alt"></i> Información del Área Física</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-sm-12 col-md-6">
+                                <label for="nombre" class="form-label">Nombre <span class="text-danger">*</span></label>
+                                <input class="form-control form-control-lg" type="text" id="nombre"
+                                    [(ngModel)]="model.nombre" required
+                                    [ngClass]="{'is-invalid': !model.nombre && submitted}" [disabled]="!editable"
+                                    placeholder="Ej: Aula 101, Laboratorio de Ciencias">
+                                <div class="invalid-feedback">
+                                    El nombre es requerido
+                                </div>
+                            </div>
+                            <div class="col-sm-12 col-md-6">
+                                <label for="ubicacion" class="form-label">Ubicación</label>
+                                <input class="form-control form-control-lg" type="text" id="ubicacion"
+                                    [(ngModel)]="model.ubicacion" [disabled]="!editable"
+                                    placeholder="Ej: Edificio A, Piso 2">
+                            </div>
+                        </div>
+
+                        <div class="row mt-3">
+                            <div class="col-sm-12 col-md-6">
+                                <label for="capacidad" class="form-label">Capacidad</label>
+                                <input class="form-control form-control-lg" type="number" id="capacidad"
+                                    [(ngModel)]="model.capacidad" [disabled]="!editable"
+                                    placeholder="Número de personas" min="0">
+                            </div>
+                            <div class="col-sm-12 col-md-6">
+                                <label for="descripcion" class="form-label">Descripción</label>
+                                <textarea class="form-control form-control-lg" id="descripcion"
+                                    [(ngModel)]="model.descripcion" [disabled]="!editable"
+                                    placeholder="Descripción del área..." rows="3"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <div class="alert alert-info" *ngIf="accion === 'crear'">
+                                    <i class="fas fa-info-circle"></i>
+                                    Una vez creada el área física, podrá asignar mobiliario y configurar procesos de
+                                    limpieza.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Mobiliario Asignado -->
+            <div class="tab-pane fade" id="mobiliario" role="tabpanel" aria-labelledby="mobiliario-tab"
+                *ngIf="accion !== 'crear'">
+
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fas fa-couch"></i> Gestión de Mobiliario
+                            </h5>
+                            <button class="btn btn-primary btn-sm" (click)="abrirModalAsignarMobiliario()"
+                                [disabled]="!editable">
+                                <i class="fas fa-plus"></i> Asignar Mobiliario
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info" *ngIf="mobiliarioAsignado.length === 0">
+                            <i class="fas fa-info-circle"></i> No hay mobiliario asignado a esta área física
+                        </div>
+
+                        <div class="table-responsive" *ngIf="mobiliarioAsignado.length > 0">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Producto</th>
+                                        <th>Tipo</th>
+                                        <th>Número Serie</th>
+                                        <th class="text-center">Cantidad</th>
+                                        <th class="text-center">Orden Limpieza</th>
+                                        <th>Fecha Asignación</th>
+                                        <th class="text-center" *ngIf="editable">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr *ngFor="let item of mobiliarioAsignado">
+                                        <td>
+                                            <strong>{{ item.nombre_producto }}</strong>
+                                        </td>
+                                        <td>{{ item.tipo_mobiliario || '-' }}</td>
+                                        <td>
+                                            <span class="badge bg-secondary">{{ item.numero_serie || 'Sin serie'
+                                                }}</span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-primary">{{ item.cantidad }}</span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-info" *ngIf="item.orden_limpieza">
+                                                {{ item.orden_limpieza }}°
+                                            </span>
+                                            <span *ngIf="!item.orden_limpieza">-</span>
+                                        </td>
+                                        <td>{{ formatearFecha(item.fecha_asignacion) }}</td>
+                                        <td class="text-center" *ngIf="editable">
+                                            <button class="btn btn-sm btn-danger" (click)="eliminarAsignacion(item)"
+                                                title="Eliminar asignación">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                                <tfoot class="table-light">
+                                    <tr>
+                                        <td colspan="3"><strong>Total</strong></td>
+                                        <td class="text-center">
+                                            <strong class="text-primary">{{ calcularTotalUnidades() }}</strong>
+                                        </td>
+                                        <td colspan="3"></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+
+                        <!-- Resumen del mobiliario -->
+                        <div class="row mt-4" *ngIf="mobiliarioAsignado.length > 0">
+                            <div class="col-md-12">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6 class="card-title">Resumen del Mobiliario</h6>
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <small class="text-muted">Total de Items</small>
+                                                <h5 class="text-primary">{{ mobiliarioAsignado.length }}</h5>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <small class="text-muted">Total de Unidades</small>
+                                                <h5 class="text-success">{{ calcularTotalUnidades() }}</h5>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <small class="text-muted">Items con Orden de Limpieza</small>
+                                                <h5 class="text-info">{{ contarItemsConOrdenLimpieza() }}</h5>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Procesos de Limpieza -->
+            <div class="tab-pane fade" id="limpieza" role="tabpanel" aria-labelledby="limpieza-tab"
+                *ngIf="accion !== 'crear'">
+
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fas fa-broom"></i> Procesos de Limpieza
+                            </h5>
+                            <div>
+                                <div class="form-check form-switch d-inline-block me-3">
+                                    <input class="form-check-input" type="checkbox" id="mostrarInactivos"
+                                        [(ngModel)]="mostrarInactivos" (change)="toggleMostrarInactivos()">
+                                    <label class="form-check-label" for="mostrarInactivos">
+                                        Mostrar inactivos
+                                    </label>
+                                </div>
+                                <button class="btn btn-success btn-sm" (click)="abrirModalAsignarProcesoLimpieza()"
+                                    [disabled]="!editable">
+                                    <i class="fas fa-plus"></i> Nuevo Proceso
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <!-- Resumen de carga de trabajo -->
+                        <div class="alert alert-primary mb-4" *ngIf="cargaTrabajo">
+                            <div class="row align-items-center">
+                                <div class="col-md-3 text-center">
+                                    <i class="fas fa-clock fa-2x mb-2"></i>
+                                    <h6>Carga Semanal Total</h6>
+                                    <h4 class="text-primary mb-0">{{ calcularCargaSemanal() }}</h4>
+                                </div>
+                                <div class="col-md-9">
+                                    <h6 class="mb-2">Distribución por Día:</h6>
+                                    <div class="d-flex justify-content-between flex-wrap">
+                                        <div class="text-center" style="min-width: 60px;">
+                                            <small>Lunes</small>
+                                            <div class="fw-bold">{{ formatearTiempo(cargaTrabajo.carga_lunes || 0) }}
+                                            </div>
+                                        </div>
+                                        <div class="text-center" style="min-width: 60px;">
+                                            <small>Martes</small>
+                                            <div class="fw-bold">{{ formatearTiempo(cargaTrabajo.carga_martes || 0) }}
+                                            </div>
+                                        </div>
+                                        <div class="text-center" style="min-width: 60px;">
+                                            <small>Miérc.</small>
+                                            <div class="fw-bold">{{ formatearTiempo(cargaTrabajo.carga_miercoles || 0)
+                                                }}</div>
+                                        </div>
+                                        <div class="text-center" style="min-width: 60px;">
+                                            <small>Jueves</small>
+                                            <div class="fw-bold">{{ formatearTiempo(cargaTrabajo.carga_jueves || 0) }}
+                                            </div>
+                                        </div>
+                                        <div class="text-center" style="min-width: 60px;">
+                                            <small>Viernes</small>
+                                            <div class="fw-bold">{{ formatearTiempo(cargaTrabajo.carga_viernes || 0) }}
+                                            </div>
+                                        </div>
+                                        <div class="text-center" style="min-width: 60px;">
+                                            <small>Sábado</small>
+                                            <div class="fw-bold">{{ formatearTiempo(cargaTrabajo.carga_sabado || 0) }}
+                                            </div>
+                                        </div>
+                                        <div class="text-center" style="min-width: 60px;">
+                                            <small>Domingo</small>
+                                            <div class="fw-bold">{{ formatearTiempo(cargaTrabajo.carga_domingo || 0) }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tabla de procesos asignados -->
+                        <div class="alert alert-info" *ngIf="!procesosLimpieza || procesosLimpieza.length === 0">
+                            <i class="fas fa-info-circle"></i> No hay procesos de limpieza configurados para esta área
+                            física
+                        </div>
+
+                        <div class="table-responsive"
+                            *ngIf="procesosLimpiezaFiltrados && procesosLimpiezaFiltrados.length > 0">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Proceso</th>
+                                        <th>Periodicidad</th>
+                                        <th class="text-center">Días</th>
+                                        <th class="text-center">Frecuencia</th>
+                                        <th class="text-center">Tiempo</th>
+                                        <th class="text-center">Hora</th>
+                                        <th class="text-center">Prioridad</th>
+                                        <th class="text-center">Carga Semanal</th>
+                                        <th class="text-center" *ngIf="editable">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr *ngFor="let proceso of procesosLimpiezaFiltrados"
+                                        [class.table-light]="!proceso.activo">
+                                        <td>
+                                            <div>{{ proceso.nombre_proceso }}</div>
+                                            <small class="text-muted" *ngIf="proceso.descripcion_proceso">
+                                                {{ proceso.descripcion_proceso }}
+                                            </small>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-light text-dark">{{ proceso.periodicidad_nombre
+                                                }}</span>
+                                        </td>
+                                        <td class="text-center">
+                                            <small>{{ formatearDiasSemana(proceso) }}</small>
+                                        </td>
+                                        <td class="text-center">
+                                            <small>{{ proceso.veces_por_dia }}x/día</small>
+                                        </td>
+                                        <td class="text-center">
+                                            {{ formatearTiempo(proceso.tiempo_estimado_minutos) }}
+                                        </td>
+                                        <td class="text-center">
+                                            <small>{{ proceso.hora_sugerida || '-' }}</small>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-light text-dark">
+                                                {{ obtenerTextoPrioridad(proceso.prioridad) }}
+                                            </span>
+                                        </td>
+                                        <td class="text-center">
+                                            <strong>{{ formatearTiempo(proceso.carga_semanal_minutos) }}</strong>
+                                        </td>
+                                        <td class="text-center" *ngIf="editable">
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <ng-container *ngIf="proceso.activo">
+                                                    <button class="btn btn-outline-secondary"
+                                                        (click)="editarProcesoLimpieza(proceso)" title="Editar">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button class="btn btn-outline-secondary"
+                                                        (click)="inactivarProcesoLimpieza(proceso)" title="Inactivar">
+                                                        <i class="fas fa-ban"></i>
+                                                    </button>
+                                                    <button class="btn btn-outline-danger"
+                                                        (click)="eliminarProcesoLimpieza(proceso)" title="Eliminar">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </ng-container>
+
+                                                <ng-container *ngIf="!proceso.activo">
+                                                    <button class="btn btn-outline-success"
+                                                        (click)="activarProcesoLimpieza(proceso)" title="Activar">
+                                                        <i class="fas fa-check"></i>
+                                                    </button>
+                                                    <button class="btn btn-outline-danger"
+                                                        (click)="eliminarProcesoLimpieza(proceso)" title="Eliminar">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </ng-container>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td colspan="7" class="text-end"><strong>Total Carga Semanal</strong></td>
+                                        <td class="text-center">
+                                            <strong>{{ calcularCargaSemanal() }}</strong>
+                                        </td>
+                                        <td *ngIf="editable"></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                        <!-- Información adicional -->
+                        <div class="row mt-4" *ngIf="procesosLimpieza && procesosLimpieza.length > 0">
+                            <div class="col-md-12">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6 class="card-title">
+                                            <i class="fas fa-chart-bar"></i> Resumen de Procesos
+                                        </h6>
+                                        <div class="row">
+                                            <div class="col-md-3">
+                                                <small class="text-muted">Total de Procesos</small>
+                                                <h5 class="text-primary">{{ procesosLimpieza.length }}</h5>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <small class="text-muted">Procesos Diarios</small>
+                                                <h5 class="text-info">
+                                                    {{ contarProcesosDiarios() }}
+                                                </h5>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <small class="text-muted">Alta Prioridad</small>
+                                                <h5 class="text-danger">
+                                                    {{ contarProcesosAltaPrioridad() }}
+                                                </h5>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <small class="text-muted">Horas Semanales</small>
+                                                <h5 class="text-success">{{ calcularCargaSemanal() }}</h5>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Tab Elementos Físicos -->
+            <div class="tab-pane fade" id="elementos" role="tabpanel" aria-labelledby="elementos-tab"
+                *ngIf="accion !== 'crear'">
+
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fas fa-cube"></i> Elementos Físicos Asignados
+                            </h5>
+                            <button class="btn btn-info btn-sm" (click)="abrirModalAsignarElementoFisico()"
+                                [disabled]="!editable">
+                                <i class="fas fa-plus"></i> Asignar Elemento
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info" *ngIf="elementosFisicosAsignados.length === 0">
+                            <i class="fas fa-info-circle"></i> No hay elementos físicos asignados a esta área
+                        </div>
+
+                        <div class="table-responsive" *ngIf="elementosFisicosAsignados.length > 0">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Elemento</th>
+                                        <th>Material</th>
+                                        <th class="text-center">Cantidad</th>
+                                        <th class="text-center">Condición</th>
+                                        <th>Última Inspección</th>
+                                        <th>Observaciones</th>
+                                        <th class="text-center" *ngIf="editable">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr *ngFor="let elemento of elementosFisicosAsignados">
+                                        <td>
+                                            <strong>{{ elemento.nombre_elemento }}</strong>
+                                            <br>
+                                            <small class="text-muted" *ngIf="elemento.descripcion_elemento">
+                                                {{ elemento.descripcion_elemento }}
+                                            </small>
+                                        </td>
+                                        <td>{{ elemento.material || '-' }}</td>
+                                        <td class="text-center">
+                                            <span class="badge bg-primary">
+                                                {{ elemento.cantidad }} {{ elemento.abreviatura ||
+                                                elemento.unidad_medida || 'unidades' }}
+                                            </span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge"
+                                                [style.background-color]="elemento.condicion_color || '#6c757d'">
+                                                {{ elemento.condicion_nombre || 'Sin evaluar' }}
+                                            </span>
+                                        </td>
+                                        <td>{{ formatearFecha(elemento.fecha_ultima_inspeccion) }}</td>
+                                        <td>
+                                            <small>{{ elemento.observaciones || '-' }}</small>
+                                        </td>
+                                        <td class="text-center" *ngIf="editable">
+                                            <div class="btn-group btn-group-sm">
+                                                <button class="btn btn-outline-secondary"
+                                                    (click)="editarAsignacionElemento(elemento)" title="Editar">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="btn btn-outline-danger"
+                                                    (click)="eliminarAsignacionElemento(elemento)" title="Eliminar">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                                <tfoot class="table-light">
+                                    <tr>
+                                        <td colspan="2"><strong>Total</strong></td>
+                                        <td class="text-center">
+                                            <strong class="text-primary">{{ calcularTotalElementos() }}</strong>
+                                        </td>
+                                        <td colspan="4"></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+
+                        <!-- Resumen de elementos -->
+                        <div class="row mt-4" *ngIf="elementosFisicosAsignados.length > 0">
+                            <div class="col-md-12">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6 class="card-title">
+                                            <i class="fas fa-chart-pie"></i> Resumen por Condición
+                                        </h6>
+                                        <div class="row">
+                                            <div class="col-md-3" *ngFor="let resumen of obtenerResumenCondiciones()">
+                                                <small class="text-muted">{{ resumen.nombre }}</small>
+                                                <h5 [style.color]="resumen.color">{{ resumen.cantidad }}</h5>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botones de acción -->
+    <div class="container mt-4 mb-5">
+        <div class="row">
+            <div class="col-sm-6" *ngIf="editable">
+                <button class="btn btn-lg btn-warning w-100" (click)="guardarAreaFisica()">
+                    <i class="fas fa-save"></i> Guardar
+                </button>
+            </div>
+            <div class="col-sm-6">
+                <button class="btn btn-lg btn-secondary w-100" (click)="volver()">
+                    <i class="fas fa-arrow-left"></i> Volver
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

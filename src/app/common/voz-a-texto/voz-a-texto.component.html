@@ -1,0 +1,21 @@
+<div class="voz-a-texto-container">
+  <div class="error-message" *ngIf="!soportaReconocimientoVoz">
+    Tu navegador no soporta el reconocimiento de voz.
+  </div>
+
+  <div class="contenido" *ngIf="soportaReconocimientoVoz">
+    <button 
+      class="btn btn-sm" 
+      [ngClass]="{'btn-danger': escuchando, 'btn-outline-primary': !escuchando}"
+      (click)="toggleReconocimiento()">
+      <i class="bi" [ngClass]="{'bi-mic-mute-fill': escuchando, 'bi-mic-fill': !escuchando}"></i>
+      {{ escuchando ? 'Detener' : 'Hablar' }}
+    </button>
+    
+    <div class="mensaje-container mt-1" *ngIf="escuchando || textoCompleto">
+      <small class="texto-reconocido" [ngClass]="{'escuchando': escuchando}">
+        {{ mensaje }}
+      </small>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,1254 @@
+.modulo {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  padding-bottom: 50px;
+}
+
+// ==================== VISTA DE MES ====================
+
+.calendario-mes {
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  overflow-y: auto;
+  max-height: calc(100vh - 300px);
+}
+
+.calendario-header {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  background: linear-gradient(135deg, #D4A437 0%, #B8901E 100%);
+  color: white;
+  padding: 1rem 0;
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  border-radius: 15px 15px 0 0;
+}
+
+.dia-semana-header {
+  padding: 0.5rem;
+}
+
+.calendario-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1px;
+  background: #e0e0e0;
+}
+
+.dia-celda {
+  background: white;
+  min-height: 120px;
+  padding: 0.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+
+  &:hover {
+    background: #f8f9fa;
+    transform: scale(1.02);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    z-index: 10;
+  }
+
+  &.dia-hoy {
+    background: linear-gradient(135deg, #fff8e1 0%, #ffe082 50%);
+    border: 3px solid #ffc107;
+    font-weight: bold;
+  }
+
+  &.dia-seleccionado {
+    box-shadow: inset 0 0 0 3px #1976d2;
+    background: #e3f2fd;
+  }
+
+  &.dia-otro-mes {
+    background: #fafafa;
+    
+    .dia-numero {
+      color: #bdbdbd;
+    }
+  }
+}
+
+.dia-numero {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+}
+
+.actividades-dia {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.actividad-item {
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+
+  &:hover {
+    transform: translateX(3px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  }
+}
+
+.actividad-icono {
+  font-size: 0.9rem;
+}
+
+.actividad-texto {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.horario-item {
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  background: #f5f5f5;
+  color: #424242;
+  border-left: 4px solid #2196f3;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  &:hover {
+    background: #e3f2fd;
+    transform: translateX(3px);
+  }
+}
+
+.horario-icono {
+  font-size: 0.9rem;
+}
+
+.horario-texto {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mas-items {
+  font-size: 0.7rem;
+  color: #757575;
+  padding: 2px 8px;
+  text-align: center;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background 0.2s ease, color 0.2s ease;
+
+  &:hover {
+    background: #e3f2fd;
+    color: #1976d2;
+  }
+}
+
+// ==================== VISTA DE SEMANA ====================
+
+.calendario-semana {
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  overflow: visible;
+}
+
+.semana-container {
+  display: flex;
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: calc(100vh - 300px);
+}
+
+.columna-horas {
+  width: 80px;
+  flex-shrink: 0;
+  background: #f8f9fa;
+  border-right: 2px solid #dee2e6;
+  position: sticky;
+  left: 0;
+  z-index: 5;
+}
+
+.hora-header {
+  height: 60px;
+  border-bottom: 2px solid #dee2e6;
+  background: #f8f9fa;
+  position: sticky;
+  top: 0;
+  z-index: 6;
+}
+
+.hora-celda {
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid #e0e0e0;
+  font-size: 0.85rem;
+  color: #616161;
+  font-weight: 600;
+}
+
+.dias-container {
+  flex: 1;
+  overflow-x: auto;
+}
+
+.dias-header {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  height: 60px;
+  background: linear-gradient(135deg, #D4A437 0%, #B8901E 100%);
+  color: white;
+  border-bottom: 2px solid #dee2e6;
+  position: sticky;
+  top: 0;
+  z-index: 4;
+}
+
+.dia-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  border-right: 1px solid rgba(255, 255, 255, 0.2);
+
+  &.dia-hoy {
+    background: rgba(255, 255, 255, 0.3);
+    font-weight: bold;
+  }
+}
+
+.dia-nombre {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.dia-numero-grande {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.dias-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  position: relative;
+}
+
+.dia-columna {
+  border-right: 1px solid #e0e0e0;
+  position: relative;
+}
+
+.hora-slot {
+  height: 60px;
+  border-bottom: 1px solid #e0e0e0;
+  transition: background 0.2s ease;
+
+  &:hover {
+    background: #f5f5f5;
+  }
+}
+
+.actividades-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+
+.actividad-bloque {
+  position: absolute;
+  left: 5%;
+  width: 90%;
+  border-radius: 6px;
+  padding: 8px;
+  color: white;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+  pointer-events: auto;
+  overflow: hidden;
+
+  &:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    z-index: 100;
+  }
+}
+
+.actividad-contenido {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.actividad-nombre {
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.actividad-tiempo {
+  font-size: 0.7rem;
+  opacity: 0.9;
+}
+
+.horario-bloque {
+  position: absolute;
+  left: 5%;
+  width: 90%;
+  border-radius: 6px;
+  padding: 8px;
+  background: #f5f5f5;
+  border-left: 4px solid;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+  pointer-events: auto;
+  overflow: hidden;
+
+  &:hover {
+    background: #e3f2fd;
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    z-index: 100;
+  }
+}
+
+.horario-contenido {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.horario-nombre {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #424242;
+  line-height: 1.2;
+}
+
+.horario-grupo {
+  font-size: 0.7rem;
+  color: #757575;
+}
+
+// ==================== TÍTULO COMPACTO Y BLOQUES CORTOS ====================
+
+// Título compacto en una sola línea con truncado (Grupo - Área - Horario)
+.titulo-compacto {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  width: 100%;
+
+  .actividad-nombre,
+  .horario-nombre {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .actividad-icono,
+  .horario-icono {
+    flex-shrink: 0;
+  }
+}
+
+// Bloques cortos (≤30 min): ajustar padding y alinear verticalmente
+.actividad-bloque.bloque-corto,
+.horario-bloque.bloque-corto,
+.actividad-bloque-grande.bloque-corto,
+.horario-bloque-grande.bloque-corto {
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+
+  .actividad-contenido,
+  .horario-contenido,
+  .actividad-contenido-grande,
+  .horario-contenido-grande {
+    width: 100%;
+    gap: 0;
+  }
+
+  .actividad-nombre,
+  .horario-nombre {
+    font-size: 0.75rem;
+  }
+}
+
+// Sobrenombre (segunda línea) de bloques grandes - igual estilo que en bloques chicos
+.actividad-bloque-grande .actividad-sobrenombre,
+.horario-bloque-grande .horario-sobrenombre {
+  font-size: 0.85rem;
+  opacity: 0.9;
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// Título compacto más grande en vista día
+.actividad-bloque-grande .titulo-compacto,
+.horario-bloque-grande .titulo-compacto {
+  font-size: 1rem;
+  font-weight: 700;
+  gap: 8px;
+}
+
+.horario-bloque-grande .titulo-compacto .horario-nombre {
+  color: #424242;
+}
+
+// ==================== VISTA DE DÍA ====================
+
+.calendario-dia {
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.dia-container {
+  display: flex;
+}
+
+.dia-columna-grande {
+  flex: 1;
+  position: relative;
+}
+
+.hora-slot-grande {
+  height: 60px;
+  border-bottom: 1px solid #e0e0e0;
+  transition: background 0.2s ease;
+
+  &:hover {
+    background: #f5f5f5;
+  }
+}
+
+.actividad-bloque-grande {
+  position: absolute;
+  left: 2%;
+  width: 96%;
+  border-radius: 8px;
+  padding: 12px;
+  color: white;
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+  pointer-events: auto;
+  overflow: hidden;
+
+  &:hover {
+    transform: scale(1.02);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+    z-index: 100;
+  }
+}
+
+.actividad-contenido-grande {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.actividad-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.actividad-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.85rem;
+  opacity: 0.95;
+  
+  small {
+    display: block;
+  }
+}
+
+.horario-bloque-grande {
+  position: absolute;
+  left: 2%;
+  width: 96%;
+  border-radius: 8px;
+  padding: 12px;
+  background: #f5f5f5;
+  border-left: 6px solid;
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+  pointer-events: auto;
+  overflow: hidden;
+
+  &:hover {
+    background: #e3f2fd;
+    transform: scale(1.02);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+    z-index: 100;
+  }
+}
+
+.horario-contenido-grande {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.horario-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #424242;
+}
+
+.horario-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.85rem;
+  color: #616161;
+  
+  small {
+    display: block;
+  }
+}
+
+// ==================== ESTILOS GENERALES ====================
+
+.btn-group {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+
+  .btn {
+    border: none;
+    font-weight: 600;
+    padding: 0.5rem 1.5rem;
+    transition: all 0.3s ease;
+
+    &.btn-primary {
+      background: linear-gradient(135deg, #FFC107 0%, #FFA000 100%);
+    }
+
+    &.btn-outline-primary {
+      &:hover {
+        background: linear-gradient(135deg, #FFC107 0%, #FFA000 100%);
+        color: white;
+      }
+    }
+  }
+}
+
+.card {
+  border: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-radius: 15px;
+}
+
+.form-select {
+  border-radius: 8px;
+  border: 2px solid #e0e0e0;
+  transition: all 0.3s ease;
+
+  &:focus {
+    border-color: #FFC107;
+    box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25);
+  }
+}
+
+.form-check-input {
+  width: 3rem;
+  height: 1.5rem;
+  cursor: pointer;
+  border-radius: 1rem;
+
+  &:checked {
+    background-color: #FFC107;
+    border-color: #FFC107;
+  }
+}
+
+.badge {
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border-radius: 8px;
+}
+
+.alert {
+  border-radius: 12px;
+  border: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+// ==================== ANIMACIONES ====================
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.calendario-mes,
+.calendario-semana,
+.calendario-dia {
+  animation: fadeIn 0.3s ease;
+}
+
+// ==================== RESPONSIVE ====================
+
+// ==================== RESPONSIVE - TABLET (≤992px) ====================
+
+@media (max-width: 992px) {
+  .container-fluid {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+
+  // Barra superior: apilar en 3 filas
+  .card > .card-body > .row.align-items-center {
+    row-gap: 0.75rem;
+
+    > .col-md-4 {
+      flex: 0 0 100%;
+      max-width: 100%;
+
+      &.text-center,
+      &.text-end {
+        text-align: center !important;
+      }
+    }
+  }
+
+  // Botones Día/Semana/Mes ocupan todo el ancho
+  .btn-group {
+    width: 100%;
+
+    .btn {
+      flex: 1;
+      padding: 0.5rem 0.75rem;
+    }
+  }
+
+  // Botón "Filtros" full-width
+  .col-md-4.text-end .btn-outline-secondary {
+    width: 100%;
+  }
+
+  // Panel de filtros: cada filtro en su propia fila
+  #filtrosPanel .row > [class*="col-md-"] {
+    flex: 0 0 100%;
+    max-width: 100%;
+    margin-bottom: 0.75rem;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+
+// ==================== RESPONSIVE - MOBILE (≤768px) ====================
+
+@media (max-width: 768px) {
+  .modulo {
+    padding-bottom: 30px;
+  }
+
+  // Navegación de fecha: agrandar zonas tocables, título más pequeño
+  .col-md-4 .d-flex.align-items-center {
+    justify-content: space-between;
+    gap: 0.5rem !important;
+
+    h5 {
+      font-size: 0.9rem;
+      flex: 1;
+      text-align: center;
+      margin-left: 0 !important;
+    }
+
+    .btn {
+      padding: 0.4rem 0.6rem;
+      flex-shrink: 0;
+    }
+  }
+
+  // ==================== VISTA DE MES ====================
+
+  .calendario-header {
+    font-size: 0.65rem;
+    padding: 0.5rem 0;
+    letter-spacing: 0;
+
+    .dia-semana-header {
+      padding: 0.25rem 0;
+      // Mostrar solo las 3 primeras letras
+      &::first-line {
+        text-transform: uppercase;
+      }
+    }
+  }
+
+  .dia-celda {
+    min-height: 70px;
+    padding: 0.25rem;
+
+    &:hover {
+      transform: none;
+    }
+  }
+
+  .dia-numero {
+    font-size: 0.8rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .actividades-dia {
+    gap: 2px;
+  }
+
+  // En mes: solo mostrar iconos y fondo de color, sin texto
+  .actividad-item,
+  .horario-item {
+    padding: 2px 4px;
+    font-size: 0.55rem;
+
+    .actividad-texto,
+    .horario-texto,
+    .actividad-sobrenombre,
+    .horario-sobrenombre {
+      display: none;
+    }
+
+    .actividad-icono,
+    .horario-icono {
+      font-size: 0.75rem;
+    }
+  }
+
+  .mas-items {
+    font-size: 0.6rem;
+    padding: 1px 4px;
+  }
+
+  // ==================== VISTA DE SEMANA ====================
+
+  // Forzar ancho fijo por día para que el scroll horizontal sea legible
+  .semana-container {
+    overflow-x: auto;
+    overflow-y: auto;
+    max-height: calc(100vh - 200px);
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .calendario-mes {
+    max-height: calc(100vh - 200px);
+  }
+
+  .columna-horas {
+    width: 50px;
+    position: sticky;
+    left: 0;
+    z-index: 5;
+  }
+
+  .hora-celda {
+    height: 60px;
+    font-size: 0.65rem;
+  }
+
+  .dias-container {
+    overflow-x: visible;
+    min-width: calc(120px * 7);
+  }
+
+  .dias-header,
+  .dias-grid {
+    grid-template-columns: repeat(7, 120px);
+  }
+
+  .dia-header {
+    padding: 0.25rem;
+  }
+
+  .dia-nombre {
+    font-size: 0.65rem;
+    letter-spacing: 0;
+  }
+
+  .dia-numero-grande {
+    font-size: 1.1rem;
+  }
+
+  .hora-slot,
+  .hora-slot-grande {
+    height: 60px;
+  }
+
+  .actividad-bloque,
+  .horario-bloque {
+    padding: 4px;
+    left: 2%;
+    width: 96%;
+
+    &:hover {
+      transform: none;
+    }
+  }
+
+  .actividad-nombre,
+  .horario-nombre {
+    font-size: 0.7rem;
+  }
+
+  .actividad-tiempo,
+  .horario-grupo {
+    font-size: 0.6rem;
+  }
+
+  .actividad-sobrenombre,
+  .horario-sobrenombre {
+    font-size: 0.6rem;
+  }
+
+  // ==================== VISTA DE DÍA ====================
+
+  .dia-container {
+    .columna-horas {
+      width: 50px;
+    }
+  }
+
+  .actividad-bloque-grande,
+  .horario-bloque-grande {
+    padding: 8px;
+
+    &:hover {
+      transform: none;
+    }
+  }
+
+  .actividad-header,
+  .horario-header {
+    font-size: 0.95rem;
+    gap: 6px;
+  }
+
+  .actividad-info,
+  .horario-info {
+    font-size: 0.75rem;
+    gap: 2px;
+  }
+
+  // ==================== LEYENDA ====================
+
+  .card .card-body .row {
+    .col-md-6 {
+      margin-bottom: 0.75rem;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+  }
+
+  .badge {
+    padding: 0.35rem 0.6rem;
+    font-size: 0.75rem;
+  }
+}
+
+// ==================== SELECTOR DE PERÍODO ====================
+
+.selector-periodo {
+  .form-select-sm {
+    min-width: 110px;
+    font-weight: 600;
+  }
+
+  .form-select-sm:last-child {
+    min-width: 85px;
+  }
+}
+
+// ==================== TAREAS ====================
+
+// Tarea en vista mes (item compacto)
+.tarea-item {
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  background: #f5f5f5;
+  color: #424242;
+  border-left: 4px solid #9e9e9e;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  &:hover {
+    background: #ede7f6;
+    transform: translateX(3px);
+  }
+}
+
+.tarea-icono {
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+.tarea-texto {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// Bloque de tarea con hora en vista semana
+.tarea-bloque {
+  position: absolute;
+  left: 2%;
+  width: 96%;
+  border-radius: 6px;
+  padding: 4px 8px;
+  background: #f5f5f5;
+  border-left: 5px solid #9e9e9e;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+  transition: all 0.2s ease;
+  pointer-events: auto;
+  overflow: hidden;
+  color: #424242;
+
+  &:hover {
+    background: #ede7f6;
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    z-index: 100;
+  }
+}
+
+.tarea-contenido {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tarea-nombre {
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.tarea-sobrenombre {
+  font-size: 0.7rem;
+  color: #757575;
+}
+
+// Bloque de tarea con hora en vista día
+.tarea-bloque-grande {
+  position: absolute;
+  left: 2%;
+  width: 96%;
+  border-radius: 8px;
+  padding: 12px;
+  background: #f5f5f5;
+  border-left: 6px solid #9e9e9e;
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+  pointer-events: auto;
+  overflow: hidden;
+  color: #424242;
+
+  &:hover {
+    background: #ede7f6;
+    transform: scale(1.02);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+    z-index: 100;
+  }
+}
+
+.tarea-contenido-grande {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tarea-bloque .titulo-compacto .tarea-nombre,
+.tarea-bloque-grande .titulo-compacto .tarea-nombre {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tarea-bloque-grande .titulo-compacto {
+  font-size: 1rem;
+  font-weight: 700;
+  gap: 8px;
+}
+
+.tarea-bloque.bloque-corto,
+.tarea-bloque-grande.bloque-corto {
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+
+  .tarea-contenido,
+  .tarea-contenido-grande {
+    width: 100%;
+    gap: 0;
+  }
+
+  .tarea-nombre {
+    font-size: 0.75rem;
+  }
+}
+
+// ==================== BANDA "TODO EL DÍA" ====================
+
+.franja-todo-dia {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  border-bottom: 2px solid #dee2e6;
+  background: #fafafa;
+  min-height: 40px;
+}
+
+// En vista día solo hay una columna
+.franja-todo-dia-individual {
+  grid-template-columns: 1fr;
+}
+
+.franja-todo-dia-celda {
+  border-right: 1px solid #e0e0e0;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-height: 40px;
+
+  &:last-child {
+    border-right: none;
+  }
+}
+
+// Etiqueta "Todo el día" en la columna de horas
+.franja-todo-dia-label {
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #757575;
+  background: #fafafa;
+  border-bottom: 2px solid #dee2e6;
+  text-align: center;
+  padding: 0 4px;
+}
+
+.tarea-todo-dia {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  background: #f5f5f5;
+  color: #424242;
+  border-left: 4px solid #9e9e9e;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+
+  &:hover {
+    background: #ede7f6;
+    transform: translateX(3px);
+  }
+
+  .tarea-texto {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+// ==================== SCROLL PERSONALIZADO ====================
+
+.semana-container::-webkit-scrollbar,
+.dias-container::-webkit-scrollbar {
+  height: 8px;
+}
+
+.semana-container::-webkit-scrollbar-track,
+.dias-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.semana-container::-webkit-scrollbar-thumb,
+.dias-container::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 10px;
+
+  &:hover {
+    background: #555;
+  }
+}
+// AGREGAR ESTOS ESTILOS al final del archivo calendario-colaboradores.component.scss
+
+// ==================== ESTILOS PARA SOBRENOMBRE ====================
+
+.actividad-sobrenombre {
+  display: block;
+  font-size: 0.65rem;
+  opacity: 0.85;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+.horario-sobrenombre {
+  display: block;
+  font-size: 0.65rem;
+  color: #616161;
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+// En vista de mes - ajustar el tamaño de actividad-item
+.actividad-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 5px 8px;
+  
+  .actividad-sobrenombre {
+    margin-top: 1px;
+    font-size: 0.6rem;
+  }
+}
+
+// Ajustar checkboxes normales (no switches)
+.form-check-input:not([type="checkbox"]) {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.form-check {
+  padding-left: 3.5rem;
+  display: flex;
+  align-items: center;
+  min-height: 1.75rem;
+  margin-bottom: 0.25rem;
+
+  .form-check-input {
+    margin-top: 0;
+    margin-left: -3rem;
+    flex-shrink: 0;
+  }
+
+  .form-check-label {
+    font-size: 0.9rem;
+    cursor: pointer;
+    line-height: 1.2;
+  }
+}
+
+// Chips de visualización (Actividades / Horarios)
+.chips-mostrar {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.chip-filtro {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: 1.5px solid #bdbdbd;
+  background: white;
+  color: #757575;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  i {
+    font-size: 0.75rem;
+  }
+
+  &:hover {
+    border-color: #FFC107;
+    color: #FFC107;
+  }
+
+  &.activo {
+    background: #FFC107;
+    border-color: #FFC107;
+    color: white;
+
+    &:hover {
+      background: #5568d3;
+      border-color: #5568d3;
+      color: white;
+    }
+  }
+}

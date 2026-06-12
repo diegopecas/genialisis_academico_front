@@ -1,0 +1,123 @@
+<!-- Reemplaza el contenido actual con esto -->
+<div class="modulo">
+    <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [accion]="accion"
+        [raiz]="'/administracion/productos-limpieza'" [regresar]="regresar"
+        [iconoTitulo]="'/assets/images/productos-limpieza.png'">
+    </app-header>
+
+    <div class="container mt-5">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-spray-can"></i> Información del Producto de Limpieza</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <!-- Columna izquierda con formulario -->
+                    <div class="col-md-8">
+                        <div class="row">
+                            <div class="col-12">
+                                <label for="producto" class="form-label">Producto <span
+                                        class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control form-control-lg"
+                                        [(ngModel)]="model.nombreProducto"
+                                        [ngClass]="{'is-invalid': !model.idProducto && submitted}"
+                                        [disabled]="!editable" placeholder="Seleccionar producto..." readonly>
+                                    <button class="btn btn-outline-secondary" type="button"
+                                        (click)="abrirModalBuscarProducto()" [disabled]="!editable">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                </div>
+                                <div class="invalid-feedback">
+                                    El producto es requerido
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <label for="tipoProductoLimpieza" class="form-label">Tipo de Producto de Limpieza <span
+                                        class="text-danger">*</span></label>
+                                <select class="form-select form-select-lg" id="tipoProductoLimpieza"
+                                    [(ngModel)]="model.idTipoProductoLimpieza" required
+                                    [ngClass]="{'is-invalid': !model.idTipoProductoLimpieza && submitted}"
+                                    [disabled]="!editable">
+                                    <option value="">Seleccionar</option>
+                                    <ng-container *ngFor="let tipo of listas.tiposProductoLimpieza">
+                                        <option [value]="tipo.value">{{ tipo.label }}</option>
+                                    </ng-container>
+                                </select>
+                                <div class="invalid-feedback">
+                                    El tipo de producto de limpieza es requerido
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Columna derecha con imagen -->
+                    <div class="col-md-4">
+                        <div class="imagen-producto-container text-center">
+                            <label class="form-label">Imagen del producto</label>
+                            <div class="imagen-preview-wrapper">
+                                <img [src]="imagenProducto" alt="Imagen del producto" class="imagen-preview">
+                            </div>
+                            <small class="text-muted d-block mt-2" *ngIf="!model.idProducto">
+                                Seleccione un producto para ver su imagen
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Campo de componentes con formato -->
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <label for="componentes" class="form-label">Componentes</label>
+                        <div class="editor-wrapper">
+                            <div id="editor-componentes" class="editor-container"></div>
+                            <div class="editor-footer">
+                                <div class="character-count"
+                                    [ngClass]="{'text-danger': caracteresRestantesComponentes < 100}">
+                                    <i class="fas fa-keyboard me-1"></i>
+                                    <span>{{ caracteresRestantesComponentes }}</span> caracteres restantes
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <label for="modoUso" class="form-label">Modo de Uso</label>
+                        <textarea class="form-control form-control-lg" id="modoUso" rows="3" [(ngModel)]="model.modoUso"
+                            [disabled]="!editable" placeholder="Instrucciones de uso del producto..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Botón para generar ficha técnica (solo en editar/consultar) -->
+                <div class="row mt-3" *ngIf="accion !== 'crear' && model.id">
+                    <div class="col-12">
+                        <button class="btn btn-info" (click)="generarFichaTecnica()">
+                            <i class="fas fa-file-pdf"></i> Generar Ficha Técnica PDF
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botones de acción -->
+    <div class="container mt-4 mb-5">
+        <div class="row">
+            <div class="col-sm-6" *ngIf="editable">
+                <button class="btn btn-lg btn-warning w-100" (click)="guardarProductoLimpieza()">
+                    <i class="fas fa-save"></i> Guardar
+                </button>
+            </div>
+            <div class="col-sm-6">
+                <button class="btn btn-lg btn-secondary w-100" (click)="volver()">
+                    <i class="fas fa-arrow-left"></i> Volver
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

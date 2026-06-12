@@ -1,0 +1,24 @@
+<div class="modulo">
+  <app-header 
+    [tituloModulo]="titulo" 
+    [mostrarCrear]="true" 
+    [accion]="'ConsultarTodos'"
+    [raiz]="'/administracion/financiero/movimientos-financieros'" 
+    [regresar]="'/administracion/financiero'"
+    [iconoTitulo]="'/assets/images/finanzas.png'">
+  </app-header>
+
+  <!-- Tabla de datos -->
+  <app-tablas 
+    [titulos]="titulos" 
+    [datos]="datos" 
+    [raiz]="'/administracion/financiero/movimientos-financieros'" 
+    [accionVer]="true"
+    [accionEditar]="true" 
+    [accionEliminar]="true" 
+    [mostrarBuscar]="true"
+    [columnasFiltro]="columnasFiltro" 
+    [acciones]="acciones" 
+    (clicAccion)="seleccionar($event)">
+  </app-tablas>
+</div>

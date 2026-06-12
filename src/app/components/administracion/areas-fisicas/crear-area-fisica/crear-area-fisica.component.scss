@@ -1,0 +1,413 @@
+.modulo {
+  width: 100%;
+  min-height: 100vh;
+  background-color: #f5f5f7;
+}
+
+// Estilos para los tabs
+.nav-tabs {
+  border-bottom: 2px solid #dee2e6;
+  
+  .nav-item {
+    margin-bottom: -2px;
+    
+    .nav-link {
+      color: #6c757d;
+      background-color: transparent;
+      border: none;
+      border-bottom: 3px solid transparent;
+      padding: 0.75rem 1.25rem;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      
+      i {
+        margin-right: 0.5rem;
+      }
+      
+      &:hover {
+        color: #495057;
+        border-bottom-color: #dee2e6;
+        background-color: rgba(0, 0, 0, 0.02);
+      }
+      
+      &.active {
+        color: #007bff;
+        background-color: #fff;
+        border-bottom-color: #007bff;
+        font-weight: 600;
+        
+        &:hover {
+          color: #007bff;
+          border-bottom-color: #007bff;
+        }
+      }
+      
+      .badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+        vertical-align: middle;
+      }
+    }
+  }
+}
+
+// Estilos para el contenido de los tabs
+.tab-content {
+  animation: fadeIn 0.3s ease-in;
+  
+  .tab-pane {
+    padding-top: 0;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Estilos para las cards
+.card {
+  border: none;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  margin-bottom: 1.5rem;
+  
+  .card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+    padding: 1rem 1.25rem;
+    
+    h5 {
+      color: #495057;
+      font-size: 1.1rem;
+      font-weight: 600;
+      
+      i {
+        color: #6c757d;
+        margin-right: 0.5rem;
+      }
+    }
+    
+    &.bg-light {
+      background-color: #f8f9fa !important;
+    }
+  }
+  
+  .card-body {
+    padding: 1.5rem;
+  }
+}
+
+// Estilos para la tabla de mobiliario
+.table {
+  margin-bottom: 0;
+  
+  thead {
+    th {
+      border-top: none;
+      font-weight: 600;
+      color: #495057;
+      padding: 0.75rem;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+  }
+  
+  tbody {
+    tr {
+      &:hover {
+        background-color: rgba(0, 123, 255, 0.02);
+      }
+      
+      td {
+        padding: 0.75rem;
+        vertical-align: middle;
+      }
+    }
+  }
+  
+  tfoot {
+    font-weight: 600;
+    background-color: #f8f9fa;
+  }
+}
+
+// Estilos para el placeholder de procesos de limpieza
+.text-center {
+  &.py-5 {
+    .fa-broom {
+      opacity: 0.3;
+      color: #6c757d !important;
+    }
+    
+    h4 {
+      margin-top: 1rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    .card {
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      cursor: default;
+      
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+      }
+      
+      .card-body {
+        padding: 1.25rem;
+        
+        i {
+          opacity: 0.8;
+        }
+        
+        h6 {
+          margin-top: 0.5rem;
+          margin-bottom: 0.25rem;
+          color: #495057;
+        }
+        
+        small {
+          display: block;
+          color: #6c757d;
+        }
+      }
+    }
+  }
+}
+
+// Estilos para badges
+.badge {
+  font-weight: 500;
+  
+  &.bg-primary {
+    background-color: #007bff !important;
+  }
+  
+  &.bg-secondary {
+    background-color: #6c757d !important;
+  }
+  
+  &.bg-info {
+    background-color: #17a2b8 !important;
+  }
+  
+  &.bg-success {
+    background-color: #28a745 !important;
+  }
+}
+
+// Estilos para el resumen de mobiliario
+.bg-light {
+  background-color: #f8f9fa !important;
+  
+  .card-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 1rem;
+  }
+  
+  small.text-muted {
+    display: block;
+    font-size: 0.875rem;
+    margin-bottom: 0.25rem;
+  }
+  
+  h5 {
+    font-size: 1.5rem;
+    margin: 0;
+    font-weight: 600;
+    
+    &.text-primary {
+      color: #007bff !important;
+    }
+    
+    &.text-success {
+      color: #28a745 !important;
+    }
+    
+    &.text-info {
+      color: #17a2b8 !important;
+    }
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .nav-tabs {
+    .nav-item {
+      .nav-link {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.9rem;
+        
+        i {
+          display: none;
+        }
+      }
+    }
+  }
+  
+  .card {
+    .card-header {
+      padding: 0.75rem 1rem;
+      
+      h5 {
+        font-size: 1rem;
+      }
+    }
+    
+    .card-body {
+      padding: 1rem;
+    }
+  }
+}
+
+
+// Colores más suaves
+.tab-pane#limpieza {
+  // Resumen de carga de trabajo - usar azul suave
+  .alert-primary {
+    background-color: #e8f4f8;
+    border: 1px solid #bee5eb;
+    color: #004085;
+
+    .fa-clock {
+      color: #17a2b8;
+    }
+
+    h4 {
+      color: #0066cc;
+    }
+
+    h6 {
+      color: #495057;
+      font-weight: 500;
+    }
+
+    .fw-bold {
+      color: #212529;
+      font-weight: 600 !important;
+    }
+  }
+
+  // Tabla más limpia
+  .table {
+    thead {
+      background-color: #f8f9fa;
+      
+      th {
+        color: #6c757d;
+        font-weight: 500;
+        font-size: 0.85rem;
+        border-bottom: 2px solid #dee2e6;
+      }
+    }
+
+    tbody {
+      tr:hover {
+        background-color: #f8f9fa;
+      }
+    }
+
+    tfoot {
+      background-color: #e9ecef;
+      font-weight: 500;
+    }
+  }
+
+  // Badges más sutiles
+  .badge {
+    font-weight: 400;
+    padding: 0.35em 0.65em;
+    
+    &.bg-info {
+      background-color: #17a2b8 !important;
+    }
+    
+    &.bg-warning {
+      background-color: #ffc107 !important;
+      color: #212529;
+    }
+    
+    &.bg-secondary {
+      background-color: #6c757d !important;
+    }
+  }
+
+  // Botones de acción más pequeños y sutiles
+  .btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    
+    &.btn-warning {
+      background-color: #ffc107;
+      border-color: #ffc107;
+      color: #212529;
+      
+      &:hover {
+        background-color: #e0a800;
+        border-color: #d39e00;
+      }
+    }
+    
+    &.btn-secondary {
+      background-color: #6c757d;
+      border-color: #6c757d;
+    }
+    
+    &.btn-danger {
+      background-color: #dc3545;
+      border-color: #dc3545;
+    }
+  }
+
+  // Card de resumen más suave
+  .card.bg-light {
+    background-color: #f8f9fa !important;
+    border: 1px solid #dee2e6;
+    
+    .card-title {
+      color: #495057;
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+    
+    h5 {
+      &.text-primary {
+        color: #0066cc !important;
+      }
+      
+      &.text-info {
+        color: #17a2b8 !important;
+      }
+      
+      &.text-danger {
+        color: #dc3545 !important;
+      }
+      
+      &.text-success {
+        color: #28a745 !important;
+      }
+    }
+  }
+}
+
+// Reducir intensidad general de colores
+.text-primary {
+  color: #0066cc !important;
+}
+
+.text-success {
+  color: #28a745 !important;
+}
+
+.text-danger {
+  color: #dc3545 !important;
+}

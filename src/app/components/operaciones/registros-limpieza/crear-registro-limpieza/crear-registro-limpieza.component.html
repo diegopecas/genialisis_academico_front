@@ -1,0 +1,383 @@
+<div class="modulo">
+    <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [accion]="accion"
+        [raiz]="'/operaciones/registros-limpieza'" [regresar]="'/operaciones/registros-limpieza'"
+        [iconoTitulo]="'/assets/images/limpieza.png'">
+    </app-header>
+
+    <div class="container-fluid mt-3" [ngClass]="{'mobile-container': isMobile}">
+        <!-- Selección de área y proceso -->
+        <div class="card mb-3 selection-card">
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-12 col-md-4">
+                        <label class="form-label">
+                            <i class="fas fa-calendar"></i> Fecha Programada *
+                        </label>
+                        <input type="date" class="form-control form-control-lg" [(ngModel)]="registro.fecha_programada"
+                            [disabled]="accion === 'consultar' || estadoActual > 1" [min]="fechaMinima">
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <label class="form-label">
+                            <i class="fas fa-building"></i> Área Física *
+                        </label>
+
+                        <!-- Contenedor del buscador -->
+                        <div class="area-search-container"
+                            [class.disabled]="accion === 'consultar' || estadoActual > 1">
+                            <!-- Input de búsqueda -->
+                            <div class="search-input-wrapper" *ngIf="!registro.id_area_fisica || mostrarBuscador">
+                                <input type="text" class="form-control form-control-lg search-input"
+                                    placeholder="Buscar área..." [(ngModel)]="areaBusqueda" (input)="filtrarAreas()"
+                                    (focus)="mostrarListaAreas = true" (blur)="ocultarLista()"
+                                    [disabled]="accion === 'consultar' || estadoActual > 1">
+                                <i class="fas fa-search search-icon"></i>
+                            </div>
+
+                            <!-- Área seleccionada -->
+                            <div class="selected-area" *ngIf="registro.id_area_fisica && !mostrarBuscador">
+                                <div class="selected-area-content">
+                                    <span class="selected-area-name">{{ obtenerNombreArea() }}</span>
+                                    <button type="button" class="btn-clear" (click)="limpiarAreaSeleccionada()"
+                                        [disabled]="accion === 'consultar' || estadoActual > 1">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Lista de resultados -->
+                            <div class="search-results"
+                                *ngIf="mostrarListaAreas && (mostrarBuscador || !registro.id_area_fisica)">
+                                <div class="results-container">
+                                    <div *ngFor="let area of areasFiltradas" class="result-item"
+                                        (mousedown)="seleccionarArea(area)">
+                                        <div class="result-content">
+                                            <strong>{{ area.nombre }}</strong>
+                                            <small *ngIf="area.descripcion" class="text-muted d-block">
+                                                {{ area.descripcion }}
+                                            </small>
+                                        </div>
+                                    </div>
+                                    <div *ngIf="areasFiltradas.length === 0" class="no-results">
+                                        No se encontraron áreas
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <label class="form-label">
+                            <i class="fas fa-broom"></i> Tipo de Proceso *
+                        </label>
+                        <select class="form-select form-select-lg" [(ngModel)]="registro.id_tipo_proceso_limpieza"
+                            (change)="onProcesoChange()" [disabled]="accion === 'consultar' || estadoActual > 1">
+                            <option value="">Seleccione un proceso</option>
+                            <option *ngFor="let proceso of procesos" [value]="proceso.id">
+                                {{proceso.nombre}}
+                            </option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Estado actual si está en proceso -->
+                <div *ngIf="estadoActual === 2" class="alert alert-warning mt-3 mb-0">
+                    <i class="fas fa-clock"></i>
+                    <strong>En Proceso</strong> - Iniciado a las {{horaInicio}}
+                    <span *ngIf="fechaReal"> el {{fechaReal | date:'dd/MM/yyyy'}}</span>
+                </div>
+
+                <!-- Estado actual si está realizado -->
+                <div *ngIf="estadoActual === 3" class="alert alert-success mt-3 mb-0">
+                    <i class="fas fa-check-circle"></i>
+                    <strong>Realizado</strong> - Completado
+                </div>
+
+                <!-- Estado actual si está supervisado -->
+                <div *ngIf="estadoActual === 4" class="alert alert-info mt-3 mb-0">
+                    <i class="fas fa-user-check"></i>
+                    <strong>Supervisado</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs para móvil -->
+        <div *ngIf="isMobile && registro.id_area_fisica && registro.id_tipo_proceso_limpieza" class="mobile-tabs">
+            <button class="tab-button" [class.active]="seccionActiva === 'elementos'"
+                (click)="cambiarSeccion('elementos')">
+                <i class="fas fa-check-square"></i>
+                <span>Elementos ({{elementosSeleccionadosCount}})</span>
+            </button>
+            <button class="tab-button" [class.active]="seccionActiva === 'productos'"
+                (click)="cambiarSeccion('productos')">
+                <i class="fas fa-spray-can"></i>
+                <span>Productos ({{productosIncluidosCount}})</span>
+            </button>
+            <button class="tab-button" [class.active]="seccionActiva === 'resumen'" (click)="cambiarSeccion('resumen')">
+                <i class="fas fa-clipboard-check"></i>
+                <span>Resumen</span>
+            </button>
+        </div>
+
+        <!-- Contenido principal -->
+        <div *ngIf="registro.id_area_fisica && registro.id_tipo_proceso_limpieza"
+            [ngClass]="{'mobile-content': isMobile}">
+
+            <!-- Sección de Elementos -->
+            <!-- Sección de Elementos -->
+            <div id="seccion-elementos" class="card mb-3"
+                [ngClass]="{'d-none': isMobile && seccionActiva !== 'elementos'}">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-check-square"></i>
+                        Elementos a Limpiar
+                        <span class="badge bg-primary">{{elementosSeleccionadosCount}}</span>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- Elementos Físicos -->
+                    <div *ngIf="elementosFisicos.length > 0" class="mb-3">
+                        <h6 class="text-muted mb-2">Elementos Físicos</h6>
+                        <div class="elementos-lista">
+                            <div *ngFor="let elemento of elementosFisicos" class="elemento-item"
+                                [class.seleccionado]="elemento.seleccionado">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="form-check flex-grow-1" (click)="toggleElemento(elemento)">
+                                        <input class="form-check-input" type="checkbox"
+                                            [checked]="elemento.seleccionado"
+                                            [disabled]="accion === 'consultar' || estadoActual > 1">
+                                        <label class="form-check-label">
+                                            {{elemento.nombre}}
+                                            <small class="text-muted d-block">
+                                                {{elemento.descripcion}}
+                                            </small>
+                                        </label>
+                                    </div>
+                                    <!-- Controles de cantidad para elementos -->
+                                    <div class="cantidad-control d-flex align-items-center gap-2">
+                                        <button class="btn btn-sm btn-outline-secondary"
+                                            (click)="ajustarCantidadElemento(elemento, -1); $event.stopPropagation()"
+                                            [disabled]="accion === 'consultar' || estadoActual > 1 || elemento.cantidad_actual <= 0">
+                                            <i class="fas fa-minus"></i>
+                                        </button>
+                                        <span class="badge bg-info" style="min-width: 60px;">
+                                            {{elemento.cantidad_actual}}/{{elemento.cantidad_maxima}}
+                                        </span>
+                                        <button class="btn btn-sm btn-outline-secondary"
+                                            (click)="ajustarCantidadElemento(elemento, 1); $event.stopPropagation()"
+                                            [disabled]="accion === 'consultar' || estadoActual > 1 || elemento.cantidad_actual >= elemento.cantidad_maxima">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Productos Mobiliario -->
+                    <div *ngIf="productosMobiliario.length > 0">
+                        <h6 class="text-muted mb-2">Mobiliario del Área</h6>
+                        <div class="elementos-lista">
+                            <div *ngFor="let producto of productosMobiliario" class="elemento-item"
+                                [class.seleccionado]="producto.seleccionado">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="form-check flex-grow-1" (click)="toggleElemento(producto)">
+                                        <input class="form-check-input" type="checkbox"
+                                            [checked]="producto.seleccionado"
+                                            [disabled]="accion === 'consultar' || estadoActual > 1">
+                                        <label class="form-check-label">
+                                            {{producto.nombre}}
+                                            <small class="text-muted d-block">Cantidad máxima:
+                                                {{producto.cantidad_maxima}}</small>
+                                        </label>
+                                    </div>
+                                    <!-- Controles de cantidad para mobiliario -->
+                                    <div class="cantidad-control d-flex align-items-center gap-2">
+                                        <button class="btn btn-sm btn-outline-secondary"
+                                            (click)="ajustarCantidadElemento(producto, -1); $event.stopPropagation()"
+                                            [disabled]="accion === 'consultar' || estadoActual > 1 || producto.cantidad_actual <= 0">
+                                            <i class="fas fa-minus"></i>
+                                        </button>
+                                        <span class="badge bg-info" style="min-width: 60px;">
+                                            {{producto.cantidad_actual}}
+                                        </span>
+                                        <button class="btn btn-sm btn-outline-secondary"
+                                            (click)="ajustarCantidadElemento(producto, 1); $event.stopPropagation()"
+                                            [disabled]="accion === 'consultar' || estadoActual > 1 || producto.cantidad_actual >= producto.cantidad_maxima">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sección de Productos de Limpieza -->
+            <div id="seccion-productos" class="card mb-3"
+                [ngClass]="{'d-none': isMobile && seccionActiva !== 'productos'}">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-spray-can"></i>
+                        Productos de Limpieza
+                        <span class="badge bg-info">{{productosIncluidosCount}}</span>
+                    </h5>
+                    <small class="text-muted">Las cantidades se ajustan según los elementos seleccionados</small>
+                </div>
+                <div class="card-body">
+                    <div *ngIf="productosLimpieza.length === 0" class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> Seleccione elementos para ver los productos necesarios
+                    </div>
+
+                    <div class="productos-lista">
+                        <div *ngFor="let producto of productosLimpieza" class="producto-item"
+                            [class.sin-stock]="!producto.tiene_stock" [class.excluido]="!producto.incluido">
+                            <div class="producto-header">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" [checked]="producto.incluido"
+                                        (change)="toggleProducto(producto)"
+                                        [disabled]="accion === 'consultar' || estadoActual > 1">
+                                    <label class="form-check-label">
+                                        {{producto.nombre}}
+                                        <span *ngIf="producto.cantidad_manual" class="badge bg-warning ms-2">
+                                            <i class="fas fa-edit"></i> Editado
+                                        </span>
+                                    </label>
+                                </div>
+                                <button *ngIf="producto.incluido && accion !== 'consultar' && estadoActual === 1"
+                                    class="btn btn-sm btn-outline-danger" (click)="toggleProducto(producto)">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+
+                            <div *ngIf="producto.incluido" class="producto-controls">
+                                <div class="stock-info">
+                                    <small [class.text-danger]="!producto.tiene_stock">
+                                        Stock: {{producto.stock_actual}} {{producto.abreviatura}}
+                                        <span *ngIf="!producto.tiene_stock">
+                                            <i class="fas fa-exclamation-triangle"></i> Insuficiente
+                                        </span>
+                                    </small>
+                                </div>
+
+                                <div class="cantidad-control">
+                                    <button class="btn btn-sm btn-outline-secondary"
+                                        (click)="ajustarCantidad(producto, -0.5)"
+                                        [disabled]="accion === 'consultar' || estadoActual > 1">
+                                        <i class="fas fa-minus"></i>
+                                    </button>
+                                    <input type="number" class="form-control cantidad-input"
+                                        [(ngModel)]="producto.cantidad" (change)="onCantidadChange(producto)"
+                                        [disabled]="accion === 'consultar' || estadoActual > 1" step="0.1" min="0">
+                                    <span class="unidad">{{producto.abreviatura}}</span>
+                                    <button class="btn btn-sm btn-outline-secondary"
+                                        (click)="ajustarCantidad(producto, 0.5)"
+                                        [disabled]="accion === 'consultar' || estadoActual > 1">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sección de Resumen -->
+            <div id="seccion-resumen" class="card mb-3" [ngClass]="{'d-none': isMobile && seccionActiva !== 'resumen'}">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-clipboard-check"></i> Resumen
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="resumen-grid">
+                        <div class="resumen-item">
+                            <span class="label">Fecha programada:</span>
+                            <span class="value">{{registro.fecha_programada | date:'dd/MM/yyyy'}}</span>
+                        </div>
+                        <div class="resumen-item" *ngIf="fechaReal">
+                            <span class="label">Fecha ejecución:</span>
+                            <span class="value">{{fechaReal | date:'dd/MM/yyyy'}}</span>
+                        </div>
+                        <div class="resumen-item">
+                            <span class="label">Elementos seleccionados:</span>
+                            <span class="value">{{elementosSeleccionadosCount}}</span>
+                        </div>
+                        <div class="resumen-item">
+                            <span class="label">Productos a consumir:</span>
+                            <span class="value">{{productosIncluidosCount}}</span>
+                        </div>
+                        <!-- REMOVIDO: Total consumo estimado -->
+                    </div>
+
+                    <!-- Mostrar responsables si existen -->
+                    <div class="mt-3"
+                        *ngIf="(registro.nombre_ejecutor || registro.nombre_supervisor) && accion === 'consultar'">
+                        <h6 class="text-muted mb-2">Responsables</h6>
+                        <div class="resumen-grid">
+                            <div class="resumen-item" *ngIf="registro.nombre_ejecutor">
+                                <span class="label">Ejecutor:</span>
+                                <span class="value">{{registro.nombre_ejecutor}}</span>
+                            </div>
+                            <div class="resumen-item" *ngIf="registro.nombre_supervisor">
+                                <span class="label">Supervisor:</span>
+                                <span class="value">{{registro.nombre_supervisor}}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Observaciones -->
+                    <div class="mt-3">
+                        <label class="form-label">Observaciones</label>
+                        <textarea class="form-control" [(ngModel)]="registro.observaciones"
+                            [disabled]="accion === 'consultar' || estadoActual > 1" rows="3"
+                            placeholder="Observaciones opcionales..."></textarea>
+                    </div>
+
+                    <!-- Botón para generar informe (solo para registros finalizados o supervisados) -->
+                    <div class="mt-3" *ngIf="accion === 'consultar' && (estadoActual === 3 || estadoActual === 4)">
+                        <button class="btn btn-info btn-lg w-100" (click)="generarInforme()">
+                            <i class="fas fa-file-pdf"></i> Generar Informe PDF
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botones de acción -->
+        <div class="action-buttons" *ngIf="accion !== 'consultar'">
+            <div class="d-flex gap-2 justify-content-between">
+                <button type="button" class="btn btn-secondary" (click)="cancelar()">
+                    <i class="fas fa-arrow-left"></i> Regresar
+                </button>
+
+                <div class="d-flex gap-2">
+                    <!-- Botones según estado -->
+                    <button *ngIf="estadoActual === 1 && accion === 'crear'" type="button" class="btn btn-primary"
+                        [disabled]="!puedeGuardar" (click)="guardar()">
+                        <i class="fas fa-save"></i> Programar
+                    </button>
+
+                    <button *ngIf="estadoActual === 1 && accion === 'crear'" type="button" class="btn btn-success"
+                        [disabled]="!puedeGuardar" (click)="guardarEIniciar()">
+                        <i class="fas fa-play"></i> Programar e Iniciar
+                    </button>
+
+                    <button *ngIf="estadoActual === 1 && accion === 'editar'" type="button" class="btn btn-primary"
+                        [disabled]="!puedeGuardar" (click)="guardar()">
+                        <i class="fas fa-save"></i> Actualizar
+                    </button>
+
+                    <button *ngIf="estadoActual === 1 && accion === 'editar'" type="button" class="btn btn-success"
+                        [disabled]="!puedeIniciar" (click)="iniciar()">
+                        <i class="fas fa-play"></i> Iniciar
+                    </button>
+
+                    <button *ngIf="estadoActual === 2" type="button" class="btn btn-danger btn-lg"
+                        [disabled]="!puedeFinalizar" (click)="finalizar()">
+                        <i class="fas fa-stop"></i> Finalizar y Descontar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

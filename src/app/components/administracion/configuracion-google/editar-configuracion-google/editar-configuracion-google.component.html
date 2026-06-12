@@ -1,0 +1,67 @@
+<div class="modulo">
+    <app-header 
+        [tituloModulo]="titulo" 
+        [mostrarCrear]="false" 
+        [accion]="accion" 
+        [raiz]="'/administracion/configuracion-google'"
+        [regresar]="regresar" 
+        [iconoTitulo]="'/assets/images/google.png'">
+    </app-header>
+
+    <div class="container mt-4">
+        <div class="card card-formulario mb-4">
+            <div class="card-header-custom">
+                <i class="fas fa-calendar-alt"></i>
+                <span>Parámetro de Configuración Google</span>
+            </div>
+            <div class="card-body-custom">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="clave" class="form-label">Clave</label>
+                        <input 
+                            class="form-control" 
+                            type="text" 
+                            id="clave" 
+                            [(ngModel)]="model.clave"
+                            disabled>
+                        <small class="form-text text-muted">Identificador del parámetro (no editable)</small>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="valor" class="form-label">Valor <span class="text-danger">*</span></label>
+                        <input 
+                            class="form-control" 
+                            type="text" 
+                            id="valor" 
+                            [(ngModel)]="model.valor"
+                            placeholder="Ingrese el valor"
+                            [disabled]="!editable">
+                    </div>
+                    <div class="col-12">
+                        <label for="descripcion" class="form-label">Descripción</label>
+                        <textarea 
+                            class="form-control" 
+                            id="descripcion" 
+                            [(ngModel)]="model.descripcion"
+                            placeholder="Descripción del parámetro (opcional)"
+                            rows="3"
+                            [disabled]="!editable">
+                        </textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-5">
+            <div class="col-sm-6" *ngIf="editable">
+                <button class="btn btn-lg btn-warning w-100" (click)="guardar()">
+                    <i class="fas fa-save me-2"></i> Grabar
+                </button>
+            </div>
+            <div class="col-sm-6">
+                <button class="btn btn-lg btn-secondary w-100" (click)="volver()">
+                    <i class="fas fa-arrow-left me-2"></i> Volver
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

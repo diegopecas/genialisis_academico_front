@@ -1,0 +1,192 @@
+<div class="foto-persona-container">
+    
+    <!-- Loader -->
+    <div *ngIf="cargando" class="text-center py-3">
+        <div class="spinner-border spinner-border-sm text-primary" role="status">
+            <span class="visually-hidden">Cargando...</span>
+        </div>
+    </div>
+
+    <!-- Contenedor de Foto -->
+    <div *ngIf="!cargando" class="foto-wrapper">
+        
+        <!-- Foto o Placeholder -->
+        <div class="foto-circle foto-circle--clickable" (click)="abrirLightbox()">
+            <img 
+                *ngIf="fotoActual" 
+                [src]="obtenerUrlFoto()" 
+                [alt]="nombrePersona"
+                class="foto-img">
+            <img 
+                *ngIf="!fotoActual" 
+                src="/assets/images/foto.png" 
+                alt="Foto por defecto"
+                class="foto-img">
+            <div class="foto-overlay">
+                <i class="fas fa-search-plus"></i>
+            </div>
+        </div>
+
+        <!-- Botones de Acción -->
+        <div *ngIf="!soloLectura" class="foto-acciones">
+            <button 
+                class="btn-accion btn-cambiar"
+                (click)="abrirModal()"
+                [title]="fotoActual ? 'Cambiar foto' : 'Subir foto'">
+                <i [class]="fotoActual ? 'fas fa-edit' : 'fas fa-camera'"></i>
+            </button>
+            <button 
+                *ngIf="fotoActual"
+                class="btn-accion btn-eliminar"
+                (click)="eliminarFoto()"
+                title="Eliminar foto">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+
+        <!-- Nombre (opcional) -->
+        <div *ngIf="nombrePersona" class="foto-nombre">
+            {{ nombrePersona }}
+        </div>
+    </div>
+
+</div>
+
+<!-- LIGHTBOX VER FOTO -->
+<div class="lightbox-overlay" *ngIf="mostrarLightbox" (click)="cerrarLightbox()">
+    <div class="lightbox-content" (click)="$event.stopPropagation()">
+        <button class="lightbox-cerrar" (click)="cerrarLightbox()" title="Cerrar">
+            <i class="fas fa-times"></i>
+        </button>
+        <img [src]="fotoActual ? obtenerUrlFoto() : '/assets/images/foto.png'" [alt]="nombrePersona" class="lightbox-img">
+        <div *ngIf="nombrePersona" class="lightbox-nombre">{{ nombrePersona }}</div>
+    </div>
+</div>
+<div class="modal-overlay" *ngIf="mostrarModal" (click)="cerrarModal()">
+    <div class="modal-dialog" (click)="$event.stopPropagation()">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-camera me-2"></i>
+                    {{ fotoActual ? 'Cambiar' : 'Subir' }} Foto
+                </h5>
+                <button type="button" class="btn-close" (click)="cerrarModal()" [disabled]="subiendoFoto">×</button>
+            </div>
+            <div class="modal-body">
+                
+                <!-- MODO CÁMARA -->
+                <div *ngIf="modoCamara" class="camara-container">
+                    
+                    <!-- Video de cámara -->
+                    <div class="video-wrapper">
+                        <video 
+                            #videoElement 
+                            autoplay 
+                            playsinline
+                            class="video-elemento"></video>
+                        <canvas #canvasElement style="display: none;"></canvas>
+                    </div>
+
+                    <!-- Controles de cámara -->
+                    <div class="camara-controles">
+                        <button 
+                            type="button"
+                            class="btn-camara-control"
+                            (click)="volverASeleccion()"
+                            [disabled]="subiendoFoto">
+                            <i class="fas fa-arrow-left"></i>
+                            Volver
+                        </button>
+                        <button 
+                            type="button"
+                            class="btn-capturar"
+                            (click)="capturarFoto()"
+                            [disabled]="!camaraActiva || subiendoFoto">
+                            <i class="fas fa-camera"></i>
+                        </button>
+                        <button 
+                            type="button"
+                            class="btn-camara-control"
+                            (click)="cambiarCamara()"
+                            [disabled]="!camaraActiva || subiendoFoto">
+                            <i class="fas fa-sync-alt"></i>
+                            Voltear
+                        </button>
+                    </div>
+                </div>
+
+                <!-- MODO SELECCIÓN -->
+                <div *ngIf="!modoCamara">
+                    
+                    <!-- Preview -->
+                    <div class="preview-container">
+                        <div class="preview-circle">
+                            <img 
+                                *ngIf="previewUrl" 
+                                [src]="previewUrl" 
+                                alt="Preview"
+                                class="preview-img">
+                            <div *ngIf="!previewUrl" class="preview-placeholder">
+                                <i class="fas fa-user fa-3x"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Opciones de carga -->
+                    <div class="opciones-carga">
+                        
+                        <!-- Botón Cámara -->
+                        <button 
+                            *ngIf="camaraDisponible"
+                            type="button"
+                            class="btn-opcion-carga"
+                            (click)="activarCamara()"
+                            [disabled]="subiendoFoto">
+                            <i class="fas fa-camera fa-2x"></i>
+                            <span>Tomar Foto</span>
+                        </button>
+
+                        <!-- Botón Archivo -->
+                        <label class="btn-opcion-carga" [class.disabled]="subiendoFoto">
+                            <i class="fas fa-folder-open fa-2x"></i>
+                            <span>Seleccionar Archivo</span>
+                            <input 
+                                type="file" 
+                                style="display: none;"
+                                (change)="onFileSelected($event)"
+                                [disabled]="subiendoFoto"
+                                accept="image/jpeg,image/jpg,image/png">
+                        </label>
+                    </div>
+
+                    <small class="form-text text-center">
+                        Formatos: JPG, PNG (máx. 10MB)
+                    </small>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button 
+                    type="button" 
+                    class="btn-secondary" 
+                    (click)="cerrarModal()"
+                    [disabled]="subiendoFoto">
+                    Cancelar
+                </button>
+                <button 
+                    *ngIf="archivoSeleccionado && !modoCamara"
+                    type="button" 
+                    class="btn-primary" 
+                    (click)="subirFoto()"
+                    [disabled]="subiendoFoto">
+                    <span *ngIf="!subiendoFoto">
+                        <i class="fas fa-upload"></i> Subir
+                    </span>
+                    <span *ngIf="subiendoFoto">
+                        <span class="spinner"></span> Subiendo...
+                    </span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

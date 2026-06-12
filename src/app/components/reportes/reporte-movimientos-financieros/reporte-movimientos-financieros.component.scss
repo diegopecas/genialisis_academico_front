@@ -1,0 +1,179 @@
+$gold: #F5A623;
+$gold-dark: #d4af37;
+$dark: #2C2C2C;
+$dark-light: #3a3a3a;
+$success-color: #28a745;
+$danger-color: #dc3545;
+$warning-color: #ffc107;
+$info-color: #17a2b8;
+$light-gray: #f8f9fa;
+$border-color: #dee2e6;
+$ingreso-color: #27ae60;
+$gasto-color: #e74c3c;
+$balance-color: #8e44ad;
+
+$mobile: 576px;
+$tablet: 768px;
+
+.modulo {
+  padding: 1rem;
+  background-color: #fff;
+  min-height: calc(100vh - 100px);
+}
+
+// Card contenedor del resumen — efecto glassmorphism
+.resumen-card {
+  background: linear-gradient(135deg, rgba(255,255,255,0.85) 0%, rgba(245,245,245,0.75) 100%);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255,255,255,0.6);
+  margin-bottom: 1.5rem;
+  border: 1px solid rgba(255,255,255,0.5);
+
+  @media (max-width: $mobile) {
+    padding: 1rem;
+  }
+
+  h5 {
+    color: $dark;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+
+    i {
+      color: $gold;
+    }
+  }
+
+  // Tarjeta de estadística individual — glassmorphism
+  .estadistica-item {
+    text-align: center;
+    padding: 1rem;
+    border-radius: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    transition: all 0.3s ease;
+    min-height: 120px;
+    justify-content: center;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.5);
+
+    @media (max-width: $mobile) {
+      padding: 0.75rem;
+      min-height: 100px;
+    }
+
+    &:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14), inset 0 1px 0 rgba(255,255,255,0.6);
+    }
+
+    .estadistica-valor {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      line-height: 1;
+
+      @media (max-width: $tablet) { font-size: 1.5rem; }
+      @media (max-width: $mobile) { font-size: 1.25rem; }
+    }
+
+    .estadistica-label {
+      font-size: 0.9rem;
+      opacity: 0.8;
+      margin-bottom: 0.25rem;
+      font-weight: 500;
+
+      @media (max-width: $mobile) { font-size: 0.8rem; }
+    }
+
+    .estadistica-extra {
+      font-size: 0.8rem;
+      opacity: 0.7;
+
+      @media (max-width: $mobile) { font-size: 0.75rem; }
+    }
+  }
+
+  // Colores de fondo semitransparentes para cada tarjeta
+  .registros-bg {
+    background: linear-gradient(135deg, rgba($info-color, 0.12) 0%, rgba($info-color, 0.06) 100%);
+    color: darken($info-color, 10%);
+  }
+
+  .ingresos-bg {
+    background: linear-gradient(135deg, rgba($ingreso-color, 0.14) 0%, rgba($ingreso-color, 0.06) 100%);
+    color: darken($ingreso-color, 8%);
+  }
+
+  .gastos-bg {
+    background: linear-gradient(135deg, rgba($gasto-color, 0.14) 0%, rgba($gasto-color, 0.06) 100%);
+    color: darken($gasto-color, 8%);
+  }
+
+  .balance-positivo-bg {
+    background: linear-gradient(135deg, rgba($balance-color, 0.12) 0%, rgba($balance-color, 0.05) 100%);
+    color: darken($balance-color, 5%);
+  }
+
+  .balance-negativo-bg {
+    background: linear-gradient(135deg, rgba($gasto-color, 0.18) 0%, rgba($gasto-color, 0.08) 100%);
+    color: darken($gasto-color, 12%);
+  }
+}
+
+.form-select {
+  &:focus {
+    border-color: $gold;
+    box-shadow: 0 0 0 0.2rem rgba($gold, 0.25);
+  }
+}
+
+.form-label {
+  color: $dark;
+  font-weight: 500;
+}
+
+.spinner-border {
+  width: 3rem;
+  height: 3rem;
+  border-width: 0.3rem;
+  color: $gold !important;
+}
+
+.btn {
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.15);
+  }
+}
+
+.no-data {
+  padding: 3rem;
+  text-align: center;
+  color: #6c757d;
+
+  i {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+    display: block;
+    color: $gold;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.resumen-card,
+app-tablas {
+  animation: fadeIn 0.3s ease-in-out;
+}

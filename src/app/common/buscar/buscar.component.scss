@@ -1,0 +1,67 @@
+.buscar-container {
+  width: 100%;
+}
+
+.buscar-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 1rem;
+  background-color: #F5F5F5;
+  border: 2px solid #E0E0E0;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+
+  &:focus-within {
+    border-color: #03A9F4;
+    background-color: #ffffff;
+    box-shadow: 0 0 0 3px rgba(3, 169, 244, 0.12);
+  }
+}
+
+.buscar-icono {
+  color: #9E9E9E;
+  font-size: 0.95rem;
+  transition: color 0.3s ease;
+
+  .buscar-input-wrapper:focus-within & {
+    color: #03A9F4;
+  }
+}
+
+.buscar-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: #212529;
+
+  &::placeholder {
+    color: #BDBDBD;
+    font-weight: 300;
+  }
+}
+
+.buscar-limpiar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border: none;
+  border-radius: 50%;
+  background-color: #E0E0E0;
+  color: #757575;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+  font-size: 0.7rem;
+
+  &:hover {
+    background-color: #F44336;
+    color: #ffffff;
+  }
+}

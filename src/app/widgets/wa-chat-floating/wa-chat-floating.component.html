@@ -1,0 +1,368 @@
+<ng-container *ngIf="visible">
+  <!-- Botón flotante DRAGGABLE -->
+  <button
+    class="wa-fab"
+    [class.active]="chatAbierto"
+    [style.left.px]="fabPosX"
+    [style.top.px]="fabPosY"
+    (mousedown)="onFabPointerDown($event)"
+    (touchstart)="onFabPointerDown($event)"
+  >
+    <span class="fab-icon" *ngIf="!chatAbierto">💬</span>
+    <span class="fab-icon" *ngIf="chatAbierto">✕</span>
+    <span class="fab-badge" *ngIf="!chatAbierto && totalNoLeidos > 0">{{
+      totalNoLeidos
+    }}</span>
+    <span class="fab-pulse" *ngIf="!chatAbierto && totalNoLeidos > 0"></span>
+  </button>
+
+  <!-- Panel -->
+  <div class="wa-panel" [class.open]="chatAbierto" [ngStyle]="panelStyle">
+    <!-- ============================================= -->
+    <!-- VISTA: LISTA DE CONVERSACIONES               -->
+    <!-- ============================================= -->
+    <ng-container *ngIf="vistaActual === 'lista'">
+      <div class="wa-header">
+        <div class="header-left">
+          <div class="avatar-wa">📱</div>
+          <div class="header-info">
+            <span class="header-nombre">WhatsApp</span>
+            <span class="header-estado">Mensajería del Jardín</span>
+          </div>
+        </div>
+        <div class="header-actions">
+          <button
+            class="btn-notificaciones"
+            *ngIf="notificacionesPush === 'pendiente' || notificacionesPush === 'default'"
+            (click)="activarNotificaciones()"
+            title="Activar notificaciones"
+          >
+            🔔
+          </button>
+          <span
+            class="noti-activa"
+            *ngIf="notificacionesPush === 'granted'"
+            title="Notificaciones activas"
+          >
+            🔔
+          </span>
+          <button class="btn-cerrar" (click)="toggleChat()">✕</button>
+        </div>
+      </div>
+
+      <div class="wa-buscador">
+        <input
+          type="text"
+          [(ngModel)]="buscador"
+          placeholder="Buscar conversación..."
+        />
+      </div>
+
+      <div class="wa-lista">
+        <div class="wa-estado-vacio" *ngIf="cargandoConversaciones">
+          <div class="typing-dots"><span></span><span></span><span></span></div>
+          <p>Cargando...</p>
+        </div>
+
+        <div
+          class="wa-estado-vacio"
+          *ngIf="!cargandoConversaciones && conversaciones.length === 0"
+        >
+          <span class="vacio-icon">💬</span>
+          <p>No hay conversaciones</p>
+        </div>
+
+        <div
+          *ngFor="let conv of conversacionesFiltradas"
+          class="wa-conv-item"
+          (click)="seleccionarConversacion(conv)"
+        >
+          <div
+            class="conv-avatar"
+            [style.background-color]="getColorAvatar(conv)"
+          >
+            {{ getIniciales(conv) }}
+          </div>
+          <div class="conv-info">
+            <div class="conv-row-top">
+              <span class="conv-nombre">{{
+                conv.nombre_display ||
+                  conv.nombre_whatsapp ||
+                  conv.numero_telefono
+              }}</span>
+              <span class="conv-hora">{{
+                formatearHora(conv.ultimo_mensaje_fecha)
+              }}</span>
+            </div>
+            <div class="conv-row-bottom">
+              <span class="conv-preview" *ngIf="!conv.info_acudiente">{{ getPreviewMensaje(conv) }}</span>
+              <span class="conv-preview conv-acudiente" *ngIf="conv.info_acudiente">{{ conv.info_acudiente }}</span>
+              <span class="conv-badge" *ngIf="conv.no_leidos > 0">{{
+                conv.no_leidos
+              }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+
+    <!-- ============================================= -->
+    <!-- VISTA: CHAT ACTIVO                           -->
+    <!-- ============================================= -->
+    <ng-container *ngIf="vistaActual === 'chat' && conversacionActiva">
+      <div class="wa-header">
+        <div class="header-left">
+          <button class="btn-volver" (click)="volverALista()">←</button>
+          <div
+            class="conv-avatar avatar-sm"
+            [style.background-color]="getColorAvatar(conversacionActiva)"
+          >
+            {{ getIniciales(conversacionActiva) }}
+          </div>
+          <div class="header-info">
+            <span class="header-nombre">{{
+              conversacionActiva.nombre_display ||
+                conversacionActiva.nombre_whatsapp ||
+                conversacionActiva.numero_telefono
+            }}</span>
+            <span class="header-estado header-acudiente" *ngIf="conversacionActiva.info_acudiente">
+              {{ conversacionActiva.info_acudiente }}
+            </span>
+            <span class="header-estado header-ventana" [class.ventana-abierta]="ventanaAbierta" [class.ventana-cerrada]="!ventanaAbierta">
+              {{ ventanaAbierta ? '🟢' : '🔴' }} {{ ventanaTexto }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mensajes -->
+      <div class="wa-mensajes" #scrollContainer (scroll)="onScrollMensajes($event)">
+        <div class="wa-cargando-anteriores" *ngIf="cargandoAnteriores">
+          <div class="typing-dots"><span></span><span></span><span></span></div>
+        </div>
+
+        <div class="wa-estado-vacio" *ngIf="cargandoMensajes">
+          <div class="typing-dots"><span></span><span></span><span></span></div>
+        </div>
+
+        <div
+          *ngFor="let msg of mensajes"
+          class="mensaje"
+          [class.user]="msg.direccion === 'salida'"
+          [class.assistant]="msg.direccion === 'entrada'"
+        >
+          <div class="mensaje-burbuja">
+
+            <!-- IMAGEN -->
+            <ng-container *ngIf="msg.tipo === 'imagen' && msg.url_multimedia">
+              <div class="msg-media msg-media-imagen">
+                <img
+                  [src]="getUrlMultimedia(msg)"
+                  [alt]="msg.nombre_archivo || 'Imagen'"
+                  (click)="abrirMultimedia(msg)"
+                  loading="lazy"
+                />
+              </div>
+              <p class="msg-texto" *ngIf="msg.contenido && msg.contenido !== 'Imagen'">{{ msg.contenido }}</p>
+            </ng-container>
+
+            <!-- VIDEO -->
+            <ng-container *ngIf="msg.tipo === 'video' && msg.url_multimedia">
+              <div class="msg-media msg-media-video">
+                <video
+                  [src]="getUrlMultimedia(msg)"
+                  controls
+                  preload="metadata"
+                  playsinline
+                ></video>
+              </div>
+              <p class="msg-texto" *ngIf="msg.contenido && msg.contenido !== 'Video'">{{ msg.contenido }}</p>
+            </ng-container>
+
+            <!-- AUDIO -->
+            <ng-container *ngIf="msg.tipo === 'audio' && msg.url_multimedia">
+              <div class="msg-media msg-media-audio">
+                <audio
+                  [src]="getUrlMultimedia(msg)"
+                  controls
+                  preload="metadata"
+                ></audio>
+              </div>
+            </ng-container>
+
+            <!-- DOCUMENTO -->
+            <ng-container *ngIf="msg.tipo === 'documento' && msg.url_multimedia">
+              <a class="msg-media msg-media-documento" [href]="getUrlMultimedia(msg)" target="_blank" rel="noopener">
+                <span class="doc-icon">{{ getIconoDocumento(msg.nombre_archivo) }}</span>
+                <div class="doc-info">
+                  <span class="doc-nombre">{{ msg.nombre_archivo || 'Documento' }}</span>
+                  <span class="doc-ext">{{ getExtension(msg.nombre_archivo) | uppercase }}</span>
+                </div>
+                <span class="doc-download">⬇</span>
+              </a>
+            </ng-container>
+
+            <!-- TEXTO -->
+            <ng-container *ngIf="msg.tipo === 'texto' || !msg.url_multimedia">
+              <span class="msg-tipo" *ngIf="msg.tipo !== 'texto' && !msg.url_multimedia">{{
+                getIconoTipo(msg.tipo)
+              }}</span>
+              <p class="msg-texto" *ngIf="msg.tipo === 'texto' || !msg.url_multimedia">{{ msg.contenido }}</p>
+            </ng-container>
+
+            <!-- META -->
+            <div class="msg-meta">
+              <span class="msg-hora">{{
+                formatearHoraMensaje(msg.fecha_creacion)
+              }}</span>
+              <span
+                class="msg-estado"
+                *ngIf="msg.direccion === 'salida'"
+                [class.leido]="msg.estado === 'leido'"
+              >
+                {{ getIconoEstado(msg.estado) }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="wa-estado-vacio"
+          *ngIf="!cargandoMensajes && mensajes.length === 0"
+        >
+          <p>No hay mensajes aún</p>
+        </div>
+      </div>
+
+      <!-- Preview archivo -->
+      <div class="wa-archivo-preview" *ngIf="archivoSeleccionado">
+        <div class="archivo-preview-info">
+          <span class="archivo-preview-icon">{{ getIconoDocumento(archivoSeleccionado.name) }}</span>
+          <span class="archivo-preview-nombre">{{ archivoSeleccionado.name }}</span>
+          <span class="archivo-preview-size">{{ formatearTamano(archivoSeleccionado.size) }}</span>
+        </div>
+        <button class="archivo-preview-remove" (click)="cancelarArchivo()">✕</button>
+      </div>
+
+      <!-- Input -->
+      <div class="wa-input">
+        <!-- Aviso ventana cerrada -->
+        <div class="wa-ventana-cerrada-aviso" *ngIf="!ventanaAbierta && conversacionActiva">
+          <span class="aviso-icon">🔴</span>
+          <span class="aviso-texto">Ventana cerrada. Use una plantilla para reabrir.</span>
+        </div>
+
+        <!-- Botón plantilla (siempre visible) -->
+        <div class="wa-plantilla-bar" *ngIf="conversacionActiva">
+          <button class="btn-abrir-templates" (click)="abrirSelectorTemplates()">📋 Enviar plantilla</button>
+        </div>
+
+        <div class="input-wrapper">
+          <button
+            class="btn-adjuntar"
+            (click)="abrirSelectorArchivo()"
+            [disabled]="enviando"
+            title="Adjuntar archivo"
+          >
+            📎
+          </button>
+          <input
+            type="file"
+            #inputArchivo
+            (change)="onArchivoSeleccionado($event)"
+            accept=".jpg,.jpeg,.png,.mp4,.3gp,.aac,.amr,.mp3,.m4a,.ogg,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt"
+            style="display: none"
+          />
+
+          <textarea
+            #inputMensaje
+            [(ngModel)]="textoMensaje"
+            (keydown.enter)="onEnter($event)"
+            (input)="autoResize($event)"
+            [placeholder]="archivoSeleccionado ? 'Añade un mensaje (opcional)...' : 'Escribe un mensaje...'"
+            rows="1"
+            [disabled]="enviando"
+          ></textarea>
+          <button
+            class="btn-enviar"
+            (click)="enviarMensaje()"
+            [disabled]="(!textoMensaje.trim() && !archivoSeleccionado) || enviando"
+          >
+            <span *ngIf="!enviando">➤</span>
+            <span *ngIf="enviando" class="mini-loader"></span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ============================================= -->
+      <!-- SELECTOR DE TEMPLATES (ventana cerrada)       -->
+      <!-- ============================================= -->
+      <div class="wa-templates-overlay" *ngIf="mostrarSelectorTemplates">
+        <div class="wa-templates-panel">
+          <div class="templates-header">
+            <span class="templates-titulo">📋 Enviar plantilla</span>
+            <button class="btn-cerrar-templates" (click)="cerrarSelectorTemplates()">✕</button>
+          </div>
+
+          <div class="templates-body">
+            <div class="wa-estado-vacio" *ngIf="cargandoTemplates">
+              <div class="typing-dots"><span></span><span></span><span></span></div>
+              <p>Cargando plantillas...</p>
+            </div>
+
+            <div class="wa-estado-vacio" *ngIf="!cargandoTemplates && templatesAprobados.length === 0">
+              <span class="vacio-icon">📋</span>
+              <p>No hay plantillas aprobadas</p>
+            </div>
+
+            <div class="templates-lista" *ngIf="!cargandoTemplates && !templateSeleccionado && templatesAprobados.length > 0">
+              <div
+                *ngFor="let tpl of templatesAprobados"
+                class="template-item"
+                (click)="seleccionarTemplate(tpl)"
+              >
+                <div class="template-item-header">
+                  <span class="template-nombre">{{ tpl.name }}</span>
+                  <span class="template-categoria" [class]="'cat-' + tpl.category.toLowerCase()">{{ tpl.category }}</span>
+                </div>
+                <p class="template-preview">{{ getTemplateBodyText(tpl) }}</p>
+              </div>
+            </div>
+
+            <div class="template-detalle" *ngIf="templateSeleccionado">
+              <button class="btn-volver-templates" (click)="templateSeleccionado = null">← Cambiar plantilla</button>
+
+              <div class="template-nombre-sel">{{ templateSeleccionado.name }}</div>
+
+              <div class="template-variables" *ngIf="getTemplateVariables().length > 0">
+                <div *ngFor="let v of getTemplateVariables(); let i = index" class="variable-field">
+                  <label>Variable {{ i + 1 }} <span class="variable-tag">{{ v }}</span></label>
+                  <input
+                    type="text"
+                    [(ngModel)]="variablesTemplate[v]"
+                    [placeholder]="'Valor para ' + v"
+                  />
+                </div>
+              </div>
+
+              <div class="template-preview-final">
+                <span class="preview-label">Vista previa:</span>
+                <p class="preview-text">{{ getPreviewConVariables() }}</p>
+              </div>
+
+              <button
+                class="btn-enviar-template"
+                [disabled]="!puedeEnviarTemplate() || enviandoTemplate"
+                (click)="enviarTemplateSeleccionado()"
+              >
+                <span *ngIf="!enviandoTemplate">Enviar plantilla ➤</span>
+                <span *ngIf="enviandoTemplate" class="mini-loader"></span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </ng-container>
+  </div>
+</ng-container>

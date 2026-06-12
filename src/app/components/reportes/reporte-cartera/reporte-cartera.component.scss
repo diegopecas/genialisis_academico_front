@@ -1,0 +1,724 @@
+// Variables de colores corporativos
+$primary-color: #007bff;
+$success-color: #28a745;
+$danger-color: #dc3545;
+$warning-color: #ffc107;
+$info-color: #17a2b8;
+$light-gray: #f8f9fa;
+$border-color: #dee2e6;
+
+// Variables para breakpoints
+$mobile: 576px;
+$tablet: 768px;
+$desktop: 992px;
+
+// Estilos para el módulo
+.modulo {
+  padding: 1rem;
+  background-color: #fff;
+  min-height: calc(100vh - 100px);
+}
+
+// Estilos para las tarjetas de resumen
+.resumen-cartera-card {
+  background-color: #fff;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  margin-bottom: 1.5rem;
+  border: 1px solid $border-color;
+
+  @media (max-width: $mobile) {
+    padding: 1rem;
+  }
+
+  h5 {
+    color: #333;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+
+    i {
+      color: $primary-color;
+    }
+  }
+
+  .estadistica-item {
+    text-align: center;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    transition: all 0.3s ease;
+    min-height: 120px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+
+    @media (max-width: $mobile) {
+      padding: 0.75rem;
+      min-height: 100px;
+    }
+
+    &:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+
+    .estadistica-valor {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      line-height: 1;
+
+      @media (max-width: $tablet) {
+        font-size: 1.5rem;
+      }
+
+      @media (max-width: $mobile) {
+        font-size: 1.25rem;
+      }
+    }
+
+    .estadistica-label {
+      font-size: 0.9rem;
+      opacity: 0.8;
+      margin-bottom: 0.25rem;
+      font-weight: 500;
+
+      @media (max-width: $mobile) {
+        font-size: 0.8rem;
+      }
+    }
+
+    .estadistica-extra {
+      font-size: 0.8rem;
+      opacity: 0.7;
+
+      @media (max-width: $mobile) {
+        font-size: 0.75rem;
+      }
+    }
+  }
+
+  .total-cobrado-bg {
+    background-color: rgba($primary-color, 0.1);
+    color: darken($primary-color, 10%);
+  }
+
+  .total-pagado-bg {
+    background-color: rgba($success-color, 0.1);
+    color: darken($success-color, 10%);
+  }
+
+  .saldo-total-bg {
+    background-color: rgba($warning-color, 0.1);
+    color: darken($warning-color, 10%);
+  }
+
+  .saldo-vencido-bg {
+    background-color: rgba($danger-color, 0.1);
+    color: darken($danger-color, 10%);
+  }
+}
+
+// Estilos para las tarjetas
+.card {
+  border: 1px solid $border-color;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  margin-bottom: 1.5rem;
+  transition: all 0.3s ease;
+
+  &:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  }
+
+  .card-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 1rem;
+
+    i {
+      color: $primary-color;
+    }
+  }
+}
+
+// Estilos para tabs
+.nav-tabs {
+  border-bottom: 2px solid $border-color;
+
+  .nav-link {
+    color: #6c757d;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+
+    @media (max-width: $mobile) {
+      padding: 0.5rem 0.75rem;
+      font-size: 0.9rem;
+    }
+
+    i {
+      margin-right: 0.5rem;
+
+      @media (max-width: $mobile) {
+        margin-right: 0.25rem;
+      }
+    }
+
+    &:hover {
+      color: $primary-color;
+      background-color: $light-gray;
+    }
+
+    &.active {
+      color: $primary-color;
+      background-color: #fff;
+      border-bottom: 3px solid $primary-color;
+    }
+  }
+}
+
+// Estilos para tablas
+.table {
+  margin-bottom: 0;
+
+  thead {
+    th {
+      background-color: $light-gray;
+      border-bottom: 2px solid $border-color;
+      font-weight: 600;
+      color: #495057;
+      white-space: nowrap;
+      padding: 0.75rem;
+
+      @media (max-width: $mobile) {
+        padding: 0.5rem;
+        font-size: 0.85rem;
+      }
+    }
+  }
+
+  tbody {
+    tr {
+      transition: background-color 0.2s ease;
+
+      &:hover {
+        background-color: rgba($primary-color, 0.02);
+      }
+    }
+
+    td {
+      padding: 0.75rem;
+      vertical-align: middle;
+
+      @media (max-width: $mobile) {
+        padding: 0.5rem;
+        font-size: 0.85rem;
+      }
+    }
+  }
+
+  tfoot {
+    font-weight: 600;
+    background-color: $light-gray;
+  }
+}
+
+// Estilos para badges
+.badge {
+  padding: 0.35rem 0.65rem;
+  font-weight: 500;
+  font-size: 0.85rem;
+
+  @media (max-width: $mobile) {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  &.bg-success {
+    background-color: $success-color !important;
+  }
+
+  &.bg-warning {
+    background-color: $warning-color !important;
+    color: #212529 !important;
+  }
+
+  &.bg-danger {
+    background-color: $danger-color !important;
+  }
+
+  &.bg-primary {
+    background-color: $primary-color !important;
+  }
+}
+
+// Estilos para botones
+.btn {
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.15);
+  }
+
+  &.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+
+    @media (max-width: $mobile) {
+      padding: 0.2rem 0.4rem;
+      font-size: 0.8rem;
+    }
+  }
+}
+
+// Estilos para paginación
+.pagination {
+  margin-top: 1.5rem;
+
+  .page-link {
+    color: $primary-color;
+    padding: 0.5rem 0.75rem;
+    margin: 0 0.125rem;
+    border: 1px solid $border-color;
+    transition: all 0.3s ease;
+
+    &:hover {
+      background-color: $primary-color;
+      color: #fff;
+      border-color: $primary-color;
+    }
+  }
+
+  .page-item {
+    &.active {
+      .page-link {
+        background-color: $primary-color;
+        border-color: $primary-color;
+        color: #fff;
+      }
+    }
+
+    &.disabled {
+      .page-link {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+    }
+  }
+}
+
+// Estilos para el modal
+.modal {
+  .modal-header {
+    background-color: $light-gray;
+    border-bottom: 2px solid $border-color;
+
+    .modal-title {
+      font-weight: 600;
+      color: #333;
+
+      i {
+        color: $primary-color;
+      }
+    }
+  }
+
+  .modal-body {
+    padding: 1.5rem;
+
+    @media (max-width: $mobile) {
+      padding: 1rem;
+    }
+
+    h6 {
+      color: #495057;
+      font-weight: 600;
+      border-bottom: 1px solid $border-color;
+      padding-bottom: 0.5rem;
+      margin-bottom: 1rem;
+    }
+  }
+
+  .modal-footer {
+    background-color: $light-gray;
+    border-top: 2px solid $border-color;
+  }
+}
+
+// Estilos para el input de búsqueda
+.input-group {
+  .input-group-text {
+    background-color: $light-gray;
+    border-right: none;
+    color: #6c757d;
+  }
+
+  .form-control {
+    border-left: none;
+
+    &:focus {
+      box-shadow: none;
+      border-color: $primary-color;
+
+      & + .input-group-text {
+        border-color: $primary-color;
+      }
+    }
+  }
+}
+
+// Estilos para los select
+.form-select {
+  &:focus {
+    border-color: $primary-color;
+    box-shadow: 0 0 0 0.2rem rgba($primary-color, 0.25);
+  }
+}
+
+// Estilos para el spinner de carga
+.spinner-border {
+  width: 3rem;
+  height: 3rem;
+  border-width: 0.3rem;
+}
+
+// Estilos para canvas de gráficos
+canvas {
+  max-height: 300px !important;
+  
+  @media (max-width: $tablet) {
+    max-height: 250px !important;
+  }
+  
+  @media (max-width: $mobile) {
+    max-height: 200px !important;
+  }
+}
+
+// Estilos para textos de estado
+.text-danger {
+  font-weight: 600;
+}
+
+// Estilos responsivos adicionales
+@media (max-width: $mobile) {
+  .table-responsive {
+    font-size: 0.85rem;
+    
+    table {
+      min-width: 600px;
+    }
+  }
+
+  .btn-group-sm > .btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  .modal-dialog {
+    margin: 0.5rem;
+  }
+
+  .text-end {
+    text-align: right !important;
+  }
+}
+
+// Animaciones
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tab-pane {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+// Utilidades
+.no-data {
+  padding: 3rem;
+  text-align: center;
+  color: #6c757d;
+
+  i {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+  }
+}
+
+// Estilos para impresión
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  .card {
+    page-break-inside: avoid;
+  }
+
+  .table {
+    font-size: 0.8rem;
+  }
+}
+// Estilos para tablas
+.table {
+  margin-bottom: 0;
+
+  thead {
+    th {
+      background-color: $light-gray;
+      border-bottom: 2px solid $border-color;
+      font-weight: 600;
+      color: #495057;
+      white-space: nowrap;
+      padding: 0.75rem;
+
+      @media (max-width: $mobile) {
+        padding: 0.5rem;
+        font-size: 0.85rem;
+      }
+
+      // AGREGAR ESTOS ESTILOS
+      &.sortable {
+        cursor: pointer;
+        user-select: none;
+        transition: background-color 0.2s ease;
+
+        &:hover {
+          background-color: darken($light-gray, 5%);
+        }
+
+        i {
+          font-size: 0.8rem;
+          color: #6c757d;
+          margin-left: 0.5rem;
+          transition: color 0.2s ease;
+
+          &.fa-sort-up,
+          &.fa-sort-down {
+            color: $primary-color;
+          }
+        }
+      }
+    }
+  }
+
+}
+// Estilos para el tab de productos
+#productos {
+  .table {
+    // Filas de encabezado de clasificación
+    .table-secondary {
+      background-color: rgba($primary-color, 0.1) !important;
+      
+      td {
+        padding: 0.75rem 1rem;
+        font-size: 0.95rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border: none;
+        
+        i {
+          color: $primary-color;
+        }
+      }
+    }
+    
+    // Filas de productos
+    tbody tr:not(.table-secondary):not(.table-warning):not(.spacer-row) {
+      &:hover {
+        background-color: rgba($primary-color, 0.02);
+      }
+      
+      td:first-child {
+        position: relative;
+        padding-left: 2rem;
+      }
+    }
+    
+    // Filas de subtotales
+    .table-warning {
+      background-color: rgba($warning-color, 0.15) !important;
+      
+      td {
+        border-top: 2px solid darken($warning-color, 10%);
+        border-bottom: 2px solid darken($warning-color, 10%);
+        padding: 0.75rem;
+      }
+    }
+    
+    // Espaciador entre clasificaciones
+    .spacer-row {
+      td {
+        padding: 0 !important;
+        border: none !important;
+        background-color: transparent !important;
+      }
+    }
+    
+    // Footer con totales
+    tfoot {
+      background-color: darken($light-gray, 5%);
+      
+      tr {
+        border-top: 3px solid $primary-color;
+        
+        th {
+          padding: 1rem;
+          font-size: 1.05rem;
+        }
+      }
+    }
+  }
+  
+  // Badges de porcentaje
+  .badge {
+    &.bg-success {
+      background-color: $success-color !important;
+    }
+    
+    &.bg-warning {
+      background-color: $warning-color !important;
+      color: #212529 !important;
+    }
+    
+    &.bg-danger {
+      background-color: $danger-color !important;
+    }
+  }
+  
+  // Selectores de filtros
+  .form-select {
+    &:focus {
+      border-color: $primary-color;
+      box-shadow: 0 0 0 0.2rem rgba($primary-color, 0.25);
+    }
+  }
+  
+  // Botones del tab
+  .btn-group {
+    .btn {
+      &.btn-secondary {
+        background-color: #6c757d;
+        
+        &:hover {
+          background-color: darken(#6c757d, 10%);
+        }
+      }
+      
+      &.btn-success {
+        background-color: $success-color;
+        
+        &:hover {
+          background-color: darken($success-color, 10%);
+        }
+      }
+    }
+  }
+  
+  // Resumen al final
+  .alert-info {
+    background-color: rgba($info-color, 0.1);
+    border-color: $info-color;
+    color: darken($info-color, 20%);
+    
+    .alert-heading {
+      color: darken($info-color, 25%);
+      margin-bottom: 1rem;
+      
+      i {
+        color: $info-color;
+      }
+    }
+    
+    .row {
+      .col-md-3 {
+        padding: 0.5rem;
+        
+        strong {
+          display: block;
+          margin-bottom: 0.25rem;
+          color: darken($info-color, 30%);
+        }
+      }
+    }
+  }
+}
+
+// Responsive para el tab de productos
+@media (max-width: $tablet) {
+  #productos {
+    .table {
+      font-size: 0.85rem;
+      
+      td:first-child {
+        padding-left: 1.5rem;
+        
+        .fa-box-open {
+          left: 0.5rem;
+        }
+      }
+      
+      .table-secondary td {
+        font-size: 0.85rem;
+      }
+    }
+    
+    .alert-info {
+      .row {
+        .col-md-3 {
+          width: 50%;
+          float: left;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: $mobile) {
+  #productos {
+    .table {
+      font-size: 0.75rem;
+      
+      thead th {
+        padding: 0.5rem 0.25rem;
+        font-size: 0.7rem;
+      }
+      
+      tbody td {
+        padding: 0.5rem 0.25rem;
+      }
+      
+      .badge {
+        font-size: 0.65rem;
+        padding: 0.2rem 0.4rem;
+      }
+    }
+    
+    .form-select,
+    .btn {
+      font-size: 0.85rem;
+    }
+    
+    .alert-info {
+      .row {
+        .col-md-3 {
+          width: 100%;
+          float: none;
+          margin-bottom: 0.5rem;
+        }
+      }
+    }
+  }
+}

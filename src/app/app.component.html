@@ -1,0 +1,13 @@
+<router-outlet></router-outlet>
+<app-wa-chat-floating portal="institucional"></app-wa-chat-floating>
+<app-ia-chat-floating></app-ia-chat-floating>
+<app-ayuda-modal></app-ayuda-modal>
+<ngx-spinner>
+  <div class="player-container" [class.is-hiding]="!loading">
+    <video #spinnerVideo class="player" autoplay loop muted playsinline preload="auto"
+           poster="assets/images/spinner-loader.png">
+      <source src="assets/images/spinner-loader.webm" type="video/webm" />
+      <img class="player" src="assets/images/spinner-loader.png" alt="Cargando" />
+    </video>
+  </div>
+</ngx-spinner>

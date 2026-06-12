@@ -1,0 +1,531 @@
+<div class="modulo">
+  <app-header 
+    [tituloModulo]="titulo" 
+    [mostrarCrear]="false" 
+    [raiz]="'/administracion/actividades-colaboradores'" 
+    [regresar]="'/administracion/actividades-colaboradores'" 
+    [iconoTitulo]="'/assets/images/calendario_actividades.png'">
+  </app-header>
+
+  <div class="container-fluid px-4 py-4">
+    
+    <!-- Barra de controles superior -->
+    <div class="card mb-4">
+      <div class="card-body">
+        <div class="row align-items-center">
+          
+          <!-- Navegación de fecha -->
+          <div class="col-md-4">
+            <div class="d-flex align-items-center gap-2">
+              <button class="btn btn-outline-primary" (click)="mesAnterior()">
+                <i class="fa fa-chevron-left"></i>
+              </button>
+              <button class="btn btn-primary" (click)="irHoy()">Hoy</button>
+              <button class="btn btn-outline-primary" (click)="mesSiguiente()">
+                <i class="fa fa-chevron-right"></i>
+              </button>
+
+              <!-- Selector rápido de mes/año (solo vista mes) -->
+              <div *ngIf="vistaActual === 'mes'" class="d-flex gap-2 ms-2 selector-periodo">
+                <select 
+                  class="form-select form-select-sm"
+                  [(ngModel)]="mesActual"
+                  (ngModelChange)="cambiarMesSelector()">
+                  <option *ngFor="let nombre of nombresMeses; let i = index" [ngValue]="i">
+                    {{ nombre }}
+                  </option>
+                </select>
+                <select 
+                  class="form-select form-select-sm"
+                  [(ngModel)]="anioActual"
+                  (ngModelChange)="cambiarAnioSelector()">
+                  <option *ngFor="let anio of aniosDisponibles" [ngValue]="anio">
+                    {{ anio }}
+                  </option>
+                </select>
+              </div>
+
+              <!-- Título para vista semana y día -->
+              <h5 *ngIf="vistaActual !== 'mes'" class="mb-0 ms-3">
+                <span *ngIf="vistaActual === 'semana'">{{ obtenerRangoSemana() }}</span>
+                <span *ngIf="vistaActual === 'dia'">{{ obtenerFechaDia() }}</span>
+              </h5>
+            </div>
+          </div>
+
+          <!-- Botones de vista -->
+          <div class="col-md-4 text-center">
+            <div class="btn-group" role="group">
+              <button 
+                class="btn" 
+                [class.btn-primary]="vistaActual === 'dia'"
+                [class.btn-outline-primary]="vistaActual !== 'dia'"
+                (click)="cambiarVista('dia')">
+                Día
+              </button>
+              <button 
+                class="btn" 
+                [class.btn-primary]="vistaActual === 'semana'"
+                [class.btn-outline-primary]="vistaActual !== 'semana'"
+                (click)="cambiarVista('semana')">
+                Semana
+              </button>
+              <button 
+                class="btn" 
+                [class.btn-primary]="vistaActual === 'mes'"
+                [class.btn-outline-primary]="vistaActual !== 'mes'"
+                (click)="cambiarVista('mes')">
+                Mes
+              </button>
+            </div>
+          </div>
+
+          <!-- Botón de filtros -->
+          <div class="col-md-4 text-end">
+            <button 
+              class="btn"
+              [class.btn-secondary]="mostrarFiltros"
+              [class.btn-outline-secondary]="!mostrarFiltros"
+              (click)="mostrarFiltros = !mostrarFiltros">
+              <i class="fa fa-filter me-2"></i>
+              Filtros
+            </button>
+          </div>
+        </div>
+
+        <!-- Panel de filtros (toggle con Angular) -->
+        <div *ngIf="mostrarFiltros" class="mt-3">
+          <div class="card card-body bg-light">
+            <div class="row">
+              
+              <!-- Filtro de colaborador -->
+              <div class="col-md-3">
+                <label class="form-label"><strong>Colaborador</strong></label>
+                <select 
+                  class="form-select" 
+                  [value]="colaboradorSeleccionado || ''"
+                  (change)="aplicarFiltroColaborador($event)">
+                  <option value="">Todos los colaboradores</option>
+                  <option *ngFor="let col of colaboradores" [value]="col.id">
+                    {{ col.sobrenombre || col.nombre_completo }}
+                  </option>
+                </select>
+              </div>
+
+              <!-- Filtro de grupo -->
+              <div class="col-md-2">
+                <label class="form-label"><strong>Grupo</strong></label>
+                <select 
+                  class="form-select"
+                  [value]="grupoSeleccionado || ''"
+                  (change)="aplicarFiltroGrupo($event)">
+                  <option value="">Todos los grupos</option>
+                  <option *ngFor="let grupo of grupos" [value]="grupo.id">
+                    {{ grupo.nombre }}
+                  </option>
+                </select>
+              </div>
+
+              <!-- Filtro de categoría -->
+              <div class="col-md-2">
+                <label class="form-label"><strong>Tipo de Actividad</strong></label>
+                <select 
+                  class="form-select"
+                  [value]="categoriaSeleccionada || ''"
+                  (change)="aplicarFiltroCategoria($event)">
+                  <option value="">Todas las categorías</option>
+                  <option *ngFor="let cat of categorias" [value]="cat.id">
+                    {{ cat.icono }} {{ cat.nombre }}
+                  </option>
+                </select>
+              </div>
+
+              <!-- Chips de visualización -->
+              <div class="col-md-2">
+                <label class="form-label"><strong>Mostrar</strong></label>
+                <div class="chips-mostrar">
+                  <button 
+                    type="button"
+                    class="chip-filtro"
+                    [class.activo]="mostrarActividades"
+                    (click)="mostrarActividades = !mostrarActividades; toggleMostrarActividades()">
+                    <i class="fa" [class.fa-check]="mostrarActividades" [class.fa-times]="!mostrarActividades"></i>
+                    Actividades
+                  </button>
+                  <button 
+                    type="button"
+                    class="chip-filtro"
+                    [class.activo]="mostrarHorarios"
+                    (click)="mostrarHorarios = !mostrarHorarios; toggleMostrarHorarios()">
+                    <i class="fa" [class.fa-check]="mostrarHorarios" [class.fa-times]="!mostrarHorarios"></i>
+                    Horarios
+                  </button>
+                  <button 
+                    type="button"
+                    class="chip-filtro"
+                    [class.activo]="mostrarTareas"
+                    (click)="mostrarTareas = !mostrarTareas; toggleMostrarTareas()">
+                    <i class="fa" [class.fa-check]="mostrarTareas" [class.fa-times]="!mostrarTareas"></i>
+                    Tareas
+                  </button>
+                </div>
+              </div>
+
+              <!-- Botón limpiar filtros -->
+              <div class="col-md-3 d-flex align-items-end">
+                <button class="btn btn-outline-danger w-100" (click)="limpiarFiltros()">
+                  <i class="fa fa-times me-2"></i>
+                  Limpiar Filtros
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loader -->
+    <div *ngIf="cargando" class="text-center py-5">
+      <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+      <p class="mt-3">Cargando calendario...</p>
+    </div>
+
+    <!-- ==================== VISTA DE MES ==================== -->
+    <div *ngIf="!cargando && vistaActual === 'mes'" class="calendario-mes">
+      
+      <!-- Encabezado de días de la semana -->
+      <div class="calendario-header">
+        <div class="dia-semana-header" *ngFor="let dia of nombresDias">
+          {{ dia }}
+        </div>
+      </div>
+
+      <!-- Grid de días -->
+      <div class="calendario-grid">
+        <div 
+          *ngFor="let dia of diasCalendario" 
+          class="dia-celda"
+          [class.dia-hoy]="dia.esHoy"
+          [class.dia-otro-mes]="!dia.esMesActual"
+          [class.dia-seleccionado]="esDiaSeleccionado(dia)"
+          (click)="seleccionarDia(dia)">
+          
+          <!-- Número del día -->
+          <div class="dia-numero">
+            {{ dia.dia }}
+          </div>
+
+          <!-- Actividades, horarios y tareas del día -->
+          <div class="actividades-dia">
+            <div 
+              *ngFor="let actividad of dia.actividades.slice(0, 3)" 
+              class="actividad-item"
+              [style.background-color]="actividad.color_categoria"
+              (click)="verDetalleActividad(actividad); $event.stopPropagation()">
+              <span class="actividad-icono">{{ actividad.icono_categoria }}</span>
+              <span class="actividad-texto">{{ actividad.nombre_tipo_actividad }}</span>
+              <small class="actividad-sobrenombre">{{ actividad.sobrenombre_colaborador || actividad.nombre_colaborador.split(' ')[0] }}</small>
+            </div>
+
+            <!-- Horarios del día (solo si es docente y está habilitado) -->
+            <div 
+              *ngFor="let horario of dia.horarios.slice(0, 2)" 
+              class="horario-item"
+              [style.border-left-color]="horario.color_grupo"
+              (click)="verDetalleHorario(horario); $event.stopPropagation()">
+              <span class="horario-icono">📚</span>
+              <span class="horario-texto">{{ capitalizar(horario.nombre_area_academica) }}</span>
+            </div>
+
+            <!-- Tareas del día -->
+            <div 
+              *ngFor="let tarea of (dia.tareasSinHora.concat(dia.tareasConHora)).slice(0, 2)" 
+              class="tarea-item"
+              [style.border-left-color]="tarea.color_estado"
+              (click)="verDetalleTarea(tarea); $event.stopPropagation()">
+              <span class="tarea-icono">{{ iconoDeTarea(tarea) }}</span>
+              <span class="tarea-texto">{{ descripcionCorta(tarea) }}</span>
+            </div>
+
+            <!-- Indicador de más items (clickable) -->
+            <div 
+              *ngIf="itemsOcultosDia(dia) > 0" 
+              class="mas-items"
+              (click)="verTodoDia(dia); $event.stopPropagation()">
+              +{{ itemsOcultosDia(dia) }} más
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== VISTA DE SEMANA ==================== -->
+    <div *ngIf="!cargando && vistaActual === 'semana'" class="calendario-semana">
+      
+      <div class="semana-container">
+        
+        <!-- Columna de horarios (lado izquierdo) -->
+        <div class="columna-horas">
+          <div class="hora-header"></div>
+          <div class="franja-todo-dia-label">Todo el día</div>
+          <div *ngFor="let hora of horasDelDia" class="hora-celda">
+            {{ hora }}:00
+          </div>
+        </div>
+
+        <!-- Columnas de días -->
+        <div class="dias-container">
+          
+          <!-- Encabezados de días -->
+          <div class="dias-header">
+            <div 
+              *ngFor="let dia of diasSemana" 
+              class="dia-header"
+              [class.dia-hoy]="dia.esHoy">
+              <div class="dia-nombre">{{ nombresDias[dia.fecha.getDay()] }}</div>
+              <div class="dia-numero-grande">{{ dia.dia }}</div>
+            </div>
+          </div>
+
+          <!-- Banda de tareas "todo el día" -->
+          <div class="franja-todo-dia">
+            <div *ngFor="let dia of diasSemana" class="franja-todo-dia-celda">
+              <div 
+                *ngFor="let tarea of dia.tareasSinHora" 
+                class="tarea-todo-dia"
+                [style.border-left-color]="tarea.color_estado"
+                (click)="verDetalleTarea(tarea)">
+                <span class="tarea-icono">{{ iconoDeTarea(tarea) }}</span>
+                <span class="tarea-texto">{{ descripcionCorta(tarea) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Grid de horas por día -->
+          <div class="dias-grid">
+            <div *ngFor="let dia of diasSemana" class="dia-columna">
+              
+              <!-- Celdas de horas -->
+              <div *ngFor="let hora of horasDelDia" class="hora-slot"></div>
+
+              <!-- Actividades posicionadas absolutamente -->
+              <div class="actividades-overlay">
+                
+                <!-- Actividades -->
+                <div 
+                  *ngFor="let actividad of dia.actividades" 
+                  class="actividad-bloque"
+                  [class.bloque-corto]="esBloqueCorto(actividad.minutos_totales)"
+                  [style.background-color]="actividad.color_categoria"
+                  [style.top]="calcularPosicionActividad(actividad.fecha_hora_inicio)"
+                  [style.height]="calcularAlturaActividad(actividad.minutos_totales)"
+                  (click)="verDetalleActividad(actividad)">
+                  <div class="actividad-contenido">
+                    <div class="titulo-compacto">
+                      <span class="actividad-icono">{{ actividad.icono_categoria }}</span>
+                      <span class="actividad-nombre">{{ tituloCompactoActividad(actividad) }}</span>
+                    </div>
+                    <small *ngIf="!esBloqueCorto(actividad.minutos_totales)" class="actividad-sobrenombre">
+                      {{ actividad.nombre_colaborador }}
+                    </small>
+                  </div>
+                </div>
+
+                <!-- Horarios -->
+                <div 
+                  *ngFor="let horario of dia.horarios" 
+                  class="horario-bloque"
+                  [class.bloque-corto]="esBloqueCorto(horario.total_minutos)"
+                  [style.border-left-color]="horario.color_grupo"
+                  [style.top]="calcularPosicionHorario(horario.hora_inicial)"
+                  [style.height]="calcularAlturaActividad(horario.total_minutos)"
+                  (click)="verDetalleHorario(horario)">
+                  <div class="horario-contenido">
+                    <div class="titulo-compacto">
+                      <span class="horario-icono">📚</span>
+                      <span class="horario-nombre">{{ tituloCompactoHorario(horario) }}</span>
+                    </div>
+                    <small *ngIf="!esBloqueCorto(horario.total_minutos)" class="horario-sobrenombre">
+                      {{ horario.nombre_docente }}
+                    </small>
+                  </div>
+                </div>
+
+                <!-- Tareas con hora -->
+                <div 
+                  *ngFor="let tarea of dia.tareasConHora" 
+                  class="tarea-bloque"
+                  [class.bloque-corto]="esTareaCorta(tarea)"
+                  [style.border-left-color]="tarea.color_estado"
+                  [style.top]="calcularPosicionTarea(tarea)"
+                  [style.height]="calcularAlturaTarea(tarea)"
+                  (click)="verDetalleTarea(tarea)">
+                  <div class="tarea-contenido">
+                    <div class="titulo-compacto">
+                      <span class="tarea-icono">{{ iconoDeTarea(tarea) }}</span>
+                      <span class="tarea-nombre">{{ tituloCompactoTarea(tarea) }}</span>
+                    </div>
+                    <small *ngIf="!esTareaCorta(tarea)" class="tarea-sobrenombre">
+                      {{ tarea.nombre_colaborador }}
+                    </small>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== VISTA DE DÍA ==================== -->
+    <div *ngIf="!cargando && vistaActual === 'dia'" class="calendario-dia">
+      
+      <div class="dia-container">
+        
+        <!-- Columna de horarios -->
+        <div class="columna-horas">
+          <div class="franja-todo-dia-label">Todo el día</div>
+          <div *ngFor="let hora of horasDelDia" class="hora-celda">
+            {{ hora }}:00
+          </div>
+        </div>
+
+        <!-- Columna del día -->
+        <div class="dia-columna-grande">
+          
+          <!-- Banda de tareas "todo el día" -->
+          <div class="franja-todo-dia franja-todo-dia-individual">
+            <div class="franja-todo-dia-celda">
+              <div 
+                *ngFor="let tarea of diasSemana[0]?.tareasSinHora" 
+                class="tarea-todo-dia"
+                [style.border-left-color]="tarea.color_estado"
+                (click)="verDetalleTarea(tarea)">
+                <span class="tarea-icono">{{ iconoDeTarea(tarea) }}</span>
+                <span class="tarea-texto">{{ descripcionCorta(tarea) }} - {{ tarea.nombre_colaborador }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Celdas de fondo -->
+          <div *ngFor="let hora of horasDelDia" class="hora-slot-grande"></div>
+
+          <!-- Actividades, horarios y tareas -->
+          <div class="actividades-overlay">
+            
+            <!-- Actividades -->
+            <div 
+              *ngFor="let actividad of diasSemana[0]?.actividades" 
+              class="actividad-bloque-grande"
+              [class.bloque-corto]="esBloqueCorto(actividad.minutos_totales)"
+              [style.background-color]="actividad.color_categoria"
+              [style.top]="calcularPosicionActividad(actividad.fecha_hora_inicio)"
+              [style.height]="calcularAlturaActividad(actividad.minutos_totales)"
+              (click)="verDetalleActividad(actividad)">
+              <div class="actividad-contenido-grande">
+                <div class="titulo-compacto">
+                  <span class="actividad-icono">{{ actividad.icono_categoria }}</span>
+                  <span class="actividad-nombre">{{ tituloCompactoActividad(actividad) }}</span>
+                </div>
+                <small *ngIf="!esBloqueCorto(actividad.minutos_totales)" class="actividad-sobrenombre">
+                  {{ actividad.nombre_colaborador }}
+                </small>
+              </div>
+            </div>
+
+            <!-- Horarios -->
+            <div 
+              *ngFor="let horario of diasSemana[0]?.horarios" 
+              class="horario-bloque-grande"
+              [class.bloque-corto]="esBloqueCorto(horario.total_minutos)"
+              [style.border-left-color]="horario.color_grupo"
+              [style.top]="calcularPosicionHorario(horario.hora_inicial)"
+              [style.height]="calcularAlturaActividad(horario.total_minutos)"
+              (click)="verDetalleHorario(horario)">
+              <div class="horario-contenido-grande">
+                <div class="titulo-compacto">
+                  <span class="horario-icono">📚</span>
+                  <span class="horario-nombre">{{ tituloCompactoHorario(horario) }}</span>
+                </div>
+                <small *ngIf="!esBloqueCorto(horario.total_minutos)" class="horario-sobrenombre">
+                  {{ horario.nombre_docente }}
+                </small>
+              </div>
+            </div>
+
+            <!-- Tareas con hora -->
+            <div 
+              *ngFor="let tarea of diasSemana[0]?.tareasConHora" 
+              class="tarea-bloque-grande"
+              [class.bloque-corto]="esTareaCorta(tarea)"
+              [style.border-left-color]="tarea.color_estado"
+              [style.top]="calcularPosicionTarea(tarea)"
+              [style.height]="calcularAlturaTarea(tarea)"
+              (click)="verDetalleTarea(tarea)">
+              <div class="tarea-contenido-grande">
+                <div class="titulo-compacto">
+                  <span class="tarea-icono">{{ iconoDeTarea(tarea) }}</span>
+                  <span class="tarea-nombre">{{ tituloCompactoTarea(tarea) }}</span>
+                </div>
+                <small *ngIf="!esTareaCorta(tarea)" class="tarea-sobrenombre">
+                  {{ tarea.nombre_colaborador }}
+                </small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mensaje si no hay datos -->
+    <div *ngIf="!cargando && actividades.length === 0" class="alert alert-info mt-4">
+      <i class="fa fa-info-circle me-2"></i>
+      No hay actividades registradas para este período
+    </div>
+
+    <!-- Leyenda -->
+    <div *ngIf="!cargando" class="card mt-4">
+      <div class="card-body">
+        <h6 class="mb-3"><i class="fa fa-info-circle me-2"></i>Leyenda</h6>
+        <div class="row">
+          <div class="col-md-6">
+            <strong>Categorías de Actividades:</strong>
+            <div class="d-flex flex-wrap gap-2 mt-2">
+              <span 
+                *ngFor="let cat of categorias" 
+                class="badge"
+                [style.background-color]="cat.color"
+                style="color: white;">
+                {{ cat.icono }} {{ cat.nombre }}
+              </span>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <strong>Símbolos:</strong>
+            <ul class="mt-2 mb-0">
+              <li>📚 Horarios de clase (solo docentes)</li>
+              <li>📋 Tareas de colaboradores</li>
+              <li>Clic en cualquier actividad, horario o tarea para ver detalles</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Abreviaturas de áreas académicas (solo si hay horarios cargados) -->
+        <div *ngIf="mostrarHorarios && abreviaturasAreas.length > 0" class="row mt-3">
+          <div class="col-12">
+            <strong>Abreviaturas de Áreas:</strong>
+            <div class="d-flex flex-wrap gap-2 mt-2">
+              <span
+                *ngFor="let area of abreviaturasAreas"
+                class="badge bg-light text-dark border">
+                <strong>{{ area.abreviatura }}</strong> = {{ area.nombreCompleto }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

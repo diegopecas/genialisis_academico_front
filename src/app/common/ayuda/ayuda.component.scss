@@ -1,0 +1,516 @@
+$gold-primary: #ffbd31;
+$gold-dark: #e6a800;
+$negro: #1A1A1A;
+$negro-suave: #2D2D2D;
+$gris-claro: #F5F5F5;
+$gris-medio: #E0E0E0;
+$gris-texto: #757575;
+$blanco: #FFFFFF;
+
+// =====================================================
+// OVERLAY + MODAL
+// =====================================================
+.ayuda-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 9990;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeInOverlay 0.2s ease;
+}
+
+.ayuda-modal {
+  width: 92vw;
+  max-width: 1200px;
+  height: 85vh;
+  max-height: 85vh;
+  background: rgba($blanco, 0.95);
+  backdrop-filter: blur(16px);
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba($gold-primary, 0.2);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: slideUpModal 0.25s ease;
+}
+
+.ayuda-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  background: rgba($gold-primary, 0.08);
+  border-bottom: 1px solid rgba($gold-primary, 0.15);
+  flex-shrink: 0;
+
+  .ayuda-header-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+    font-size: 16px;
+    color: $negro;
+
+    i { color: $gold-primary; }
+  }
+}
+
+.ayuda-cerrar {
+  width: 34px;
+  height: 34px;
+  border: none;
+  background: transparent;
+  color: $gris-texto;
+  font-size: 18px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+
+  &:hover {
+    background: rgba(255, 80, 80, 0.1);
+    color: #F44336;
+  }
+}
+
+.ayuda-modal-body {
+  flex: 1;
+  padding: 16px;
+  overflow: hidden;
+
+  .row { height: 100%; }
+}
+
+// =====================================================
+// PANEL ÁRBOL
+// =====================================================
+.panel-arbol {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: rgba($blanco, 0.7);
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+
+.panel-arbol-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: rgba($gold-primary, 0.06);
+  border-bottom: 1px solid rgba($gold-primary, 0.1);
+  flex-shrink: 0;
+
+  h6 {
+    font-weight: 600;
+    color: $negro-suave;
+    font-size: 13px;
+
+    i { color: $gold-primary; margin-right: 6px; }
+  }
+}
+
+.btn-mini {
+  width: 26px;
+  height: 26px;
+  border: none;
+  background: transparent;
+  color: $gris-texto;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  transition: all 0.2s;
+
+  &:hover {
+    background: rgba($gold-primary, 0.15);
+    color: $gold-dark;
+  }
+}
+
+.buscador-wrapper {
+  padding: 8px 10px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+  flex-shrink: 0;
+
+  .input-group-text {
+    background: $gris-claro;
+    border-color: $gris-medio;
+    color: $gris-texto;
+    font-size: 11px;
+  }
+
+  .buscador-input {
+    border-color: $gris-medio;
+    font-size: 12px;
+
+    &:focus {
+      border-color: $gold-primary;
+      box-shadow: none;
+    }
+  }
+}
+
+.arbol-scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: auto;
+  padding: 6px 0;
+
+  &::-webkit-scrollbar { width: 4px; height: 4px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb { background: $gris-medio; border-radius: 3px; }
+}
+
+// =====================================================
+// NODOS DEL ÁRBOL
+// =====================================================
+.nodo-ayuda {
+  white-space: nowrap;
+
+  .nodo-row {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    padding: 4px 6px 4px 0;
+    border-radius: 6px;
+    margin: 0 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+
+    &:hover { background: rgba($gold-primary, 0.06); }
+
+    &.nodo-activo {
+      background: rgba($gold-primary, 0.12);
+      .nodo-nombre-ayuda { color: $gold-dark; font-weight: 600; }
+    }
+
+    &.nodo-sin-acceso { opacity: 0.55; }
+  }
+
+  .btn-expand {
+    width: 20px;
+    height: 20px;
+    border: none;
+    background: none;
+    color: $gris-texto;
+    font-size: 9px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    i { transition: transform 0.2s; }
+    i.rotado { transform: rotate(90deg); }
+    &:hover { color: $gold-dark; }
+  }
+
+  .btn-expand-placeholder {
+    width: 20px;
+    flex-shrink: 0;
+  }
+
+  .nodo-contenido {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .nodo-icono-img {
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+    flex-shrink: 0;
+  }
+
+  .nodo-nombre-ayuda {
+    font-size: 12px;
+    color: $negro-suave;
+  }
+}
+
+// =====================================================
+// PANEL DETALLE
+// =====================================================
+.panel-detalle {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: rgba($blanco, 0.7);
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+
+.estado-vacio-ayuda {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: $gris-texto;
+
+  i {
+    font-size: 48px;
+    color: $gris-medio;
+    margin-bottom: 14px;
+  }
+
+  h5 { color: $negro-suave; font-weight: 600; margin-bottom: 6px; }
+  p { font-size: 13px; }
+}
+
+.detalle-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 12px 16px;
+  background: rgba($gold-primary, 0.06);
+  border-bottom: 1px solid rgba($gold-primary, 0.1);
+  flex-shrink: 0;
+}
+
+.detalle-titulo-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.detalle-icono {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.detalle-titulo {
+  margin: 0;
+  font-weight: 700;
+  color: $negro;
+  font-size: 16px;
+}
+
+.detalle-body {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+
+  &::-webkit-scrollbar { width: 4px; }
+  &::-webkit-scrollbar-thumb { background: $gris-medio; border-radius: 3px; }
+}
+
+.detalle-descripcion {
+  font-size: 13px;
+  line-height: 1.7;
+  color: $negro-suave;
+
+  b, strong { color: $negro; }
+}
+
+// =====================================================
+// GALERÍA
+// =====================================================
+.detalle-galeria {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid $gris-medio;
+}
+
+.galeria-titulo {
+  font-size: 13px;
+  font-weight: 600;
+  color: $negro-suave;
+  margin-bottom: 10px;
+
+  i { color: $gold-primary; margin-right: 6px; }
+}
+
+.galeria-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 8px;
+}
+
+.galeria-thumb {
+  aspect-ratio: 16/10;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.2s;
+
+  &:hover {
+    border-color: $gold-primary;
+    transform: scale(1.03);
+    box-shadow: 0 4px 12px rgba($gold-primary, 0.2);
+  }
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.galeria-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.92);
+  z-index: 10001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeInOverlay 0.15s ease;
+}
+
+.galeria-contenido {
+  position: relative;
+  max-width: 90vw;
+  max-height: 90vh;
+}
+
+.galeria-img-full {
+  max-width: 90vw;
+  max-height: 85vh;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.galeria-cerrar {
+  position: absolute;
+  top: -40px;
+  right: 0;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 22px;
+  cursor: pointer;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+
+  &:hover { background: rgba(255, 255, 255, 0.1); }
+}
+
+.galeria-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.5);
+  border: none;
+  color: white;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+
+  &:hover { background: rgba($gold-primary, 0.6); }
+  &.galeria-prev { left: -50px; }
+  &.galeria-next { right: -50px; }
+}
+
+.galeria-counter {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+  margin-top: 8px;
+}
+
+// =====================================================
+// BOTÓN GOLD
+// =====================================================
+.btn-gold {
+  background: linear-gradient(135deg, $gold-primary, $gold-dark);
+  color: $negro;
+  border: none;
+  font-weight: 600;
+  font-size: 12px;
+  border-radius: 8px;
+  transition: all 0.2s;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba($gold-primary, 0.3);
+    color: $negro;
+  }
+}
+
+// =====================================================
+// ANIMACIONES
+// =====================================================
+@keyframes fadeInOverlay {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUpModal {
+  from { opacity: 0; transform: translateY(20px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+// =====================================================
+// RESPONSIVE
+// =====================================================
+@media (max-width: 768px) {
+  .ayuda-modal {
+    width: 98vw;
+    height: 95vh;
+    max-height: 95vh;
+    border-radius: 12px;
+  }
+
+  .ayuda-modal-body {
+    padding: 8px;
+    overflow-y: auto;
+
+    .row {
+      height: auto !important;
+      flex-direction: column;
+      flex-wrap: nowrap;
+    }
+
+    .col-lg-4, .col-md-5,
+    .col-lg-8, .col-md-7 {
+      height: auto !important;
+      max-height: none !important;
+      width: 100%;
+      flex: none;
+    }
+  }
+
+  .panel-arbol {
+    max-height: 35vh;
+    height: auto;
+  }
+
+  .panel-detalle {
+    max-height: 50vh;
+    height: auto;
+    margin-top: 8px;
+  }
+
+  .galeria-nav {
+    &.galeria-prev { left: -10px; }
+    &.galeria-next { right: -10px; }
+  }
+}

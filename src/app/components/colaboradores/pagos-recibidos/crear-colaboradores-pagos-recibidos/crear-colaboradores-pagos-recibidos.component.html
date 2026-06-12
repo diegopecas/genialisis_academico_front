@@ -1,0 +1,244 @@
+<div class="modulo">
+    <app-header 
+        [tituloModulo]="titulo" 
+        [mostrarCrear]="false" 
+        [accion]="accion" 
+        [raiz]="'/colaboradores'"
+        [regresar]="regresar" 
+        [iconoTitulo]="'/assets/images/pagos.png'">
+    </app-header>
+
+    <div class="container mt-5" [ngClass]="{ 'disabled-container': !editable }">
+        <!-- Información del pago -->
+        <div class="row">
+            <!-- Fecha de Pago (editable) -->
+            <div class="col-sm-12 col-md-6">
+                <label class="form-label">Fecha de Pago <span class="text-danger">*</span></label>
+                <input type="date" class="form-control form-control-lg" [(ngModel)]="model.fecha" required
+                    [ngClass]="{'is-invalid': !model.fecha && submitted}">
+            </div>
+
+            <!-- Tipo de pago -->
+            <div class="col-sm-12 col-md-6">
+                <label class="form-label">Tipo de pago <span class="text-danger">*</span></label>
+                <select class="form-select form-select-lg" [(ngModel)]="model.id_tipo_pago" required
+                    [ngClass]="{'is-invalid': !model.id_tipo_pago && submitted}">
+                    <option value="">Seleccionar</option>
+                    <ng-container *ngFor="let tp of listas.tiposPago">
+                        <option [value]="tp.id">{{ tp.nombre }}</option>
+                    </ng-container>
+                </select>
+            </div>
+        </div>
+
+        <div class="row mt-3">
+            <!-- Valor recibido con máscara de formato -->
+            <div class="col-sm-12 col-md-4">
+                <label class="form-label">Valor recibido <span class="text-danger">*</span></label>
+                <div class="input-group input-group-lg">
+                    <span class="input-group-text">$</span>
+                    <input type="text" class="form-control form-control-lg" [value]="valorRecibidoFormateado"
+                        (input)="onInputValorRecibido($event)" required
+                        [ngClass]="{'is-invalid': !model.valor_recibido && submitted}" placeholder="0"
+                        [disabled]="accion === 'editar' || !editable">
+                </div>
+            </div>
+
+            <!-- Referencia bancaria (se muestra si es transferencia o cheque) -->
+            <div class="col-sm-12 col-md-4" *ngIf="model.id_tipo_pago == '2' || model.id_tipo_pago == '3'">
+                <label class="form-label">Referencia <span class="text-danger">*</span></label>
+                <input type="text" class="form-control form-control-lg" [(ngModel)]="model.referencia_bancaria"
+                    [ngClass]="{'is-invalid': !model.referencia_bancaria && (model.id_tipo_pago == '2' || model.id_tipo_pago == '3') && submitted}">
+            </div>
+
+            <!-- Valor restante (saldo) -->
+            <div [ngClass]="{'col-sm-12 col-md-4': model.id_tipo_pago == '2' || model.id_tipo_pago == '3', 'col-sm-12 col-md-8': !(model.id_tipo_pago == '2' || model.id_tipo_pago == '3')}"
+                *ngIf="model.id_tipo_pago">
+                <label class="form-label">Saldo restante</label>
+                <div class="input-group input-group-lg">
+                    <span class="input-group-text">$</span>
+                    <div class="form-control form-control-lg" [class.saldo-completado]="esSaldoCompletado()"
+                        [class.saldo-pendiente]="esSaldoPendiente()"
+                        style="background-color: #f8f9fa; pointer-events: none;">
+                        {{ formatearMoneda(valorRestante) }}
+                    </div>
+                </div>
+                <small class="text-muted" *ngIf="valorRestante > 0 && cuentasSeleccionadas.length > 0">
+                    Este saldo quedará a favor del colaborador para futuros pagos
+                </small>
+            </div>
+        </div>
+
+        <div class="row mt-3">
+            <div class="col-sm-12">
+                <label class="form-label">Observaciones</label>
+                <textarea class="form-control form-control-lg" rows="3" [(ngModel)]="model.observaciones"></textarea>
+            </div>
+        </div>
+
+        <!-- Información de auditoría (solo si existen) -->
+        <div class="row mt-3" *ngIf="model.fecha_registro || model.fecha_contabilizacion || model.fecha_anulacion">
+            <div class="col-sm-12 col-md-4" *ngIf="model.fecha_registro">
+                <label class="form-label text-muted">Fecha de Registro</label>
+                <input type="text" class="form-control form-control-sm" 
+                    [value]="formatearFechaCompleta(model.fecha_registro)" 
+                    readonly style="background-color: #f8f9fa; cursor: not-allowed;">
+                <small class="text-muted" *ngIf="model.nombre_completo_usuario_registro">
+                    Por: {{ model.nombre_completo_usuario_registro }}
+                </small>
+            </div>
+            <div class="col-sm-12 col-md-4" *ngIf="model.fecha_contabilizacion">
+                <label class="form-label text-muted">Fecha de Contabilización</label>
+                <input type="text" class="form-control form-control-sm" 
+                    [value]="formatearFechaCompleta(model.fecha_contabilizacion)" 
+                    readonly style="background-color: #f8f9fa; cursor: not-allowed;">
+                <small class="text-muted" *ngIf="model.nombre_completo_usuario_contable">
+                    Por: {{ model.nombre_completo_usuario_contable }}
+                </small>
+            </div>
+            <div class="col-sm-12 col-md-4" *ngIf="model.fecha_anulacion">
+                <label class="form-label text-danger">Fecha de Anulación</label>
+                <input type="text" class="form-control form-control-sm" 
+                    [value]="formatearFechaCompleta(model.fecha_anulacion)" 
+                    readonly style="background-color: #ffe6e6; cursor: not-allowed;">
+                <small class="text-danger" *ngIf="model.nombre_completo_usuario_anulacion">
+                    Por: {{ model.nombre_completo_usuario_anulacion }}
+                </small>
+            </div>
+        </div>
+
+        <!-- Lista de cuentas por cobrar -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <!-- Para el modo editar con saldo a favor -->
+                <div class="row mt-4" *ngIf="accion === 'editar' && valorRestante > 0">
+                    <div class="col-12">
+                        <div class="info-cuentas-aplicadas">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-info-circle-fill me-2" style="font-size: 1.2rem; color: #1abc9c;"></i>
+                                <div>
+                                    <strong>Información importante:</strong>
+                                    <p class="mb-0">Este pago tiene un saldo a favor de <span class="saldo-a-favor">{{
+                                            formatearMoneda(valorRestante) }}</span> que puede aplicar a otras cuentas
+                                        pendientes.</p>
+                                    <p class="mb-0 text-muted">Las cuentas que ya tienen pagos aplicados no se pueden
+                                        modificar. Solo puede seleccionar cuentas adicionales para usar el saldo
+                                        disponible.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modificar el título de la sección de cuentas -->
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <h4>
+                            <i class="bi bi-list-check me-2"></i>
+                            <span *ngIf="accion === 'crear'">Cuentas por aplicar pago</span>
+                            <span *ngIf="accion === 'editar'">Cuentas con pagos aplicados y disponibles</span>
+                            <span *ngIf="accion === 'consultar'">Cuentas con pagos aplicados</span>
+                        </h4>
+
+                        <!-- Mensajes específicos según el modo -->
+                         <div class="row">
+                            <div class="col-8">
+                                <p *ngIf="accion === 'crear' && cuentasPorCobrar.length > 0" class="text-muted ">
+                                    Seleccione las cuentas a las que desea aplicar el pago e ingrese el valor a pagar para cada
+                                    una.
+                                </p>
+                            </div>
+                            <div class="col-4">
+                                <div class="d-flex justify-content-end mb-2" *ngIf="cuentasPorCobrar.length > 0 && accion === 'crear'">
+                                    <button type="button" class="btn btn-outline-primary btn-sm" (click)="distribuirValorEnCuentas()">
+                                        <i class="bi bi-calculator"></i> Distribuir automáticamente (de más antigua a más reciente)
+                                    </button>
+                                </div>
+                            </div>
+                         </div>
+                        <p *ngIf="accion === 'editar' && cuentasPorCobrar.length > 0" class="text-muted">
+                            <span *ngIf="valorRestante > 0">Puede seleccionar cuentas adicionales para aplicar el saldo
+                                a favor de {{ formatearMoneda(valorRestante) }}.</span>
+                            <span *ngIf="valorRestante <= 0">Las cuentas ya aplicadas no se pueden modificar.</span>
+                        </p>
+                        <p *ngIf="accion === 'consultar' && cuentasPorCobrar.length > 0" class="text-muted">
+                            Detalle de las cuentas afectadas por este pago.
+                        </p>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="text-center" style="width: 50px;">Sel.</th>
+                                <th>Fecha</th>
+                                <th>Producto/Servicio</th>
+                                <th class="text-end">Valor</th>
+                                <th class="text-end" *ngIf="accion === 'crear'">Pagado</th>
+                                <th class="text-end" *ngIf="accion === 'crear'">Saldo</th>
+                                <th class="text-end">A pagar</th>
+                                <!-- Nueva columna para mostrar estado -->
+                                <th class="text-center" *ngIf="accion === 'editar'">Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngIf="cuentasPorCobrar.length === 0">
+                                <td colspan="8" class="text-center">No hay cuentas pendientes por pagar</td>
+                            </tr>
+                            <tr *ngFor="let cuenta of cuentasPorCobrar" [ngClass]="{'selected': cuentasSeleccionadas.includes(cuenta.id),
+                                           'estado-vencido-sin-pago': getEstadoCuenta(cuenta) === 'estado-vencido-sin-pago',
+                                           'estado-vencido-pago-parcial': getEstadoCuenta(cuenta) === 'estado-vencido-pago-parcial',
+                                           'cuenta-ya-aplicada': cuenta.ya_aplicada}">
+                                <td class="text-center">
+                                    <input type="checkbox" class="form-check-input"
+                                        [checked]="cuentasSeleccionadas.includes(cuenta.id)"
+                                        (change)="toggleSeleccionCuenta(cuenta.id)"
+                                        [disabled]="!editable || cuenta.ya_aplicada">
+                                </td>
+                                <td>{{ cuenta.fecha }}</td>
+                                <td>{{ cuenta.nombre_producto_servicio }}</td>
+                                <td class="text-end">{{ formatearMoneda(cuenta.valor) }}</td>
+                                <td class="text-end" *ngIf="accion === 'crear'">{{ formatearMoneda(cuenta.valor_pagado)
+                                    }}</td>
+                                <td class="text-end" *ngIf="accion === 'crear'">{{ formatearMoneda(cuenta.saldo) }}</td>
+
+                                <td class="text-end" [class.a-pagar-resaltado]="getCuentaAplicadaValor(cuenta.id) > 0">
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text">$</span>
+                                        <input type="text" class="form-control form-control-sm"
+                                            [value]="getValorAplicadoFormateado(cuenta.id)"
+                                            (input)="onInputValorAplicado(cuenta.id, $event)"
+                                            [disabled]="!cuentasSeleccionadas.includes(cuenta.id) || !editable || cuenta.ya_aplicada"
+                                            placeholder="0">
+                                    </div>
+                                </td>
+
+                                <!-- Nueva columna para mostrar estado de la cuenta -->
+                                <td class="text-center" *ngIf="accion === 'editar'">
+                                    <span *ngIf="cuenta.ya_aplicada" class="badge bg-success">Ya aplicada</span>
+                                    <span *ngIf="!cuenta.ya_aplicada && cuentasSeleccionadas.includes(cuenta.id)"
+                                        class="badge bg-primary">Seleccionada</span>
+                                    <span *ngIf="!cuenta.ya_aplicada && !cuentasSeleccionadas.includes(cuenta.id)"
+                                        class="badge bg-secondary">Pendiente</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-sm-6" *ngIf="editable">
+                <button class="btn btn-lg btn-success w-100" (click)="grabar()">
+                    <i class="bi bi-cash"></i> {{ accion === 'crear' ? 'Registrar Pago' : 'Actualizar Pago' }}
+                </button>
+            </div>
+            <div class="col-sm-6">
+                <button class="btn btn-lg btn-secondary w-100" (click)="volver()">Volver</button>
+            </div>
+        </div>
+    </div>
+</div>

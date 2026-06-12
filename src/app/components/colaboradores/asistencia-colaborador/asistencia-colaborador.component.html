@@ -1,0 +1,63 @@
+<div class="modulo">
+  <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [raiz]="'/colaboradores'" [regresar]="'/colaboradores'" [iconoTitulo]="'/assets/images/colaboradores.png'"></app-header>
+
+  <div class="container-fluid mt-4 px-4">
+
+    <!-- Filtros -->
+    <div class="filtros-card mb-4">
+      <div class="row align-items-end">
+        <div class="col-sm-12 col-md-4">
+          <label class="form-label">Desde</label>
+          <input class="form-control" type="date" [(ngModel)]="fechaDesde" />
+        </div>
+        <div class="col-sm-12 col-md-4">
+          <label class="form-label">Hasta</label>
+          <input class="form-control" type="date" [(ngModel)]="fechaHasta" />
+        </div>
+        <div class="col-sm-12 col-md-4">
+          <button class="btn-filtrar" (click)="filtrar()">
+            <i class="fas fa-search me-1"></i> Filtrar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loader -->
+    <div *ngIf="cargando" class="text-center py-5">
+      <div class="spinner-border text-warning" role="status"></div>
+    </div>
+
+    <!-- Sin registros -->
+    <div *ngIf="!cargando && registrosAgrupados.length === 0" class="text-center py-5">
+      <i class="fas fa-calendar-times fa-3x text-muted mb-3 d-block"></i>
+      <p class="text-muted">No hay registros de asistencia en el rango seleccionado</p>
+    </div>
+
+    <!-- Registros agrupados por día -->
+    <div *ngIf="!cargando">
+      <div *ngFor="let grupo of registrosAgrupados" class="dia-card mb-3">
+        <div class="dia-header">
+          <span class="dia-fecha">{{ grupo.fechaFormateada }}</span>
+          <span class="dia-count">{{ grupo.registros.length }} registro{{ grupo.registros.length > 1 ? 's' : '' }}</span>
+        </div>
+        <div class="dia-registros">
+          <div *ngFor="let reg of grupo.registros" class="registro-fila">
+            <div class="registro-icono">
+              <i [class]="obtenerIconoTipo(reg.codigo_tipo)"></i>
+            </div>
+            <div class="registro-info">
+              <span class="registro-tipo">{{ reg.nombre_tipo }}</span>
+              <span class="registro-hora">{{ reg.hora_registro?.substring(0,5) }}</span>
+              <span class="registro-distancia" *ngIf="reg.distancia_metros">{{ reg.distancia_metros }}m</span>
+            </div>
+            <div class="registro-badges">
+              <span class="estado-badge" *ngIf="reg.nombre_estado" [style.background-color]="obtenerColorEstado(reg.codigo_estado)">{{ reg.nombre_estado }}</span>
+              <span class="manual-badge" *ngIf="reg.registro_manual"><i class="fas fa-hand-paper"></i> Manual</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

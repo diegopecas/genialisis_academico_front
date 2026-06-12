@@ -1,0 +1,2512 @@
+<div class="modulo">
+  <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [raiz]="'/'" [regresar]="'/reportes'"></app-header>
+
+  <!-- Filtros principales -->
+  <div class="row mb-4">
+    <div class="col-md-3">
+      <label for="anioSelector" class="form-label">Año:</label>
+      <select id="anioSelector" class="form-select" [(ngModel)]="anioSeleccionado" (change)="cambiarAnio()">
+        <option *ngFor="let anio of aniosDisponibles" [value]="anio">{{ anio }}</option>
+      </select>
+    </div>
+
+    <div class="col-md-3">
+      <label for="grupoSelector" class="form-label">Grupo:</label>
+      <select id="grupoSelector" class="form-select" [(ngModel)]="grupoSeleccionado" (change)="aplicarFiltros()">
+        <option value="">Todos los grupos</option>
+        <option *ngFor="let grupo of grupos" [value]="grupo.id">{{ grupo.nombre }}</option>
+      </select>
+    </div>
+
+    <div class="col-md-3">
+      <label for="estadoSelector" class="form-label">Estado de cuenta:</label>
+      <select id="estadoSelector" class="form-select" [(ngModel)]="estadoSeleccionado" (change)="aplicarFiltros()">
+        <option value="">Todos</option>
+        <option value="al_dia">Al día</option>
+        <option value="con_saldo">Con saldo</option>
+        <option value="vencido">Con saldo vencido</option>
+      </select>
+    </div>
+
+    <div class="col-md-3">
+      <label class="form-label">&nbsp;</label>
+      <div class="d-grid gap-2">
+        <button class="btn btn-secondary" (click)="resetearFiltros()">
+          <i class="fas fa-eraser"></i> Limpiar filtros
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Búsqueda de estudiante -->
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <div class="input-group">
+        <span class="input-group-text"><i class="fas fa-search"></i></span>
+        <input type="text" class="form-control" placeholder="Buscar estudiante por nombre..."
+          [(ngModel)]="busquedaEstudiante" (keyup)="buscarEstudiante()">
+      </div>
+    </div>
+    <div class="col-md-6 text-end">
+      <button class="btn btn-success me-2" (click)="exportarWhatsApp()" [disabled]="cargando">
+        <i class="fab fa-whatsapp"></i> Exportar WhatsApp
+      </button>
+      <button class="btn btn-success" (click)="exportarCSV()" [disabled]="cargando">
+        <i class="fas fa-file-csv"></i> Exportar CSV
+      </button>
+    </div>
+  </div>
+
+  <hr />
+
+  <!-- Indicador de carga -->
+  <div *ngIf="cargando" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+    <p class="mt-2">Cargando información de cartera...</p>
+  </div>
+
+  <!-- Contenido principal -->
+  <div *ngIf="!cargando && datosDisponibles">
+    <!-- Resumen general de cartera -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="resumen-cartera-card">
+          <h5 class="mb-3"><i class="fas fa-chart-line me-2"></i>Resumen General de Cartera {{ anioSeleccionado }}</h5>
+          <div class="row">
+            <div class="col-md-3 col-sm-6 mb-3">
+              <div class="estadistica-item total-cobrado-bg">
+                <span class="estadistica-valor">{{ totalesGenerales.totalCobrado | currency:'':'symbol':'1.0-0'
+                  }}</span>
+                <span class="estadistica-label">Total Cobrado</span>
+                <span class="estadistica-extra">{{ totalesGenerales.cantidadEstudiantes }} estudiantes</span>
+              </div>
+            </div>
+            <div class="col-md-3 col-sm-6 mb-3">
+              <div class="estadistica-item total-pagado-bg">
+                <span class="estadistica-valor">{{ totalesGenerales.totalPagado | currency:'':'symbol':'1.0-0'
+                  }}</span>
+                <span class="estadistica-label">Total Recaudado</span>
+                <span class="estadistica-extra">{{ totalesGenerales.porcentajeRecaudo }}% recaudado</span>
+              </div>
+            </div>
+            <div class="col-md-3 col-sm-6 mb-3">
+              <div class="estadistica-item saldo-total-bg">
+                <span class="estadistica-valor">{{ totalesGenerales.saldoTotal | currency:'':'symbol':'1.0-0'
+                  }}</span>
+                <span class="estadistica-label">Saldo Total</span>
+                <span class="estadistica-extra">Por cobrar</span>
+              </div>
+            </div>
+            <div class="col-md-3 col-sm-6 mb-3">
+              <div class="estadistica-item saldo-vencido-bg">
+                <span class="estadistica-valor">{{ totalesGenerales.saldoVencido | currency:'':'symbol':'1.0-0'
+                  }}</span>
+                <span class="estadistica-label">Saldo Vencido</span>
+                <span class="estadistica-extra">{{ totalesGenerales.cantidadVencidos }} estudiantes</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gráficos -->
+    <div class="row mb-4">
+      <div class="col-md-6 mb-3">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <h6 class="card-title"><i class="fas fa-chart-bar me-2"></i>Ingresos por Mes</h6>
+            <canvas id="graficoIngresosMensuales" height="300"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 mb-3">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <h6 class="card-title"><i class="fas fa-chart-pie me-2"></i>Distribución por Clasificación</h6>
+            <canvas id="graficoClasificaciones" height="300"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabs para diferentes vistas -->
+    <ul class="nav nav-tabs mb-3" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="estudiantes-tab" data-bs-toggle="tab" data-bs-target="#estudiantes"
+          type="button" role="tab" aria-controls="estudiantes" aria-selected="true">
+          <i class="fas fa-users"></i> Por Estudiante
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="colaboradores-tab" data-bs-toggle="tab" data-bs-target="#colaboradores-cartera"
+          type="button" role="tab" aria-controls="colaboradores-cartera" aria-selected="false">
+          <i class="fas fa-user-tie"></i> Por Colaborador
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="clasificaciones-tab" data-bs-toggle="tab" data-bs-target="#clasificaciones"
+          type="button" role="tab" aria-controls="clasificaciones" aria-selected="false">
+          <i class="fas fa-tags"></i> Por Clasificación
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="productos-tab" data-bs-toggle="tab" data-bs-target="#productos" type="button"
+          role="tab" aria-controls="productos" aria-selected="false">
+          <i class="fas fa-box"></i> Por Producto
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="mensual-tab" data-bs-toggle="tab" data-bs-target="#mensual" type="button"
+          role="tab" aria-controls="mensual" aria-selected="false">
+          <i class="fas fa-calendar-alt"></i> Vista Mensual
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="diario-tab" data-bs-toggle="tab" data-bs-target="#diario" type="button" role="tab"
+          aria-controls="diario" aria-selected="false">
+          <i class="fas fa-calendar-day"></i> Movimiento Diario
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="anulados-tab" data-bs-toggle="tab" data-bs-target="#anulados" type="button"
+          role="tab" aria-controls="anulados" aria-selected="false">
+          <i class="fas fa-ban"></i> Anulados
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="saldos-pendientes-tab" data-bs-toggle="tab" data-bs-target="#saldos-pendientes"
+          type="button" role="tab" aria-controls="saldos-pendientes" aria-selected="false">
+          <i class="fas fa-calendar-check"></i> Saldos Estudiantes
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="saldos-colaboradores-tab" data-bs-toggle="tab" data-bs-target="#saldos-colaboradores"
+          type="button" role="tab" aria-controls="saldos-colaboradores" aria-selected="false">
+          <i class="fas fa-calendar-check"></i> Saldos Colaboradores
+        </button>
+      </li>
+    </ul>
+
+    <!-- Contenido de los tabs -->
+    <div class="tab-content">
+      <!-- Tab: Por Estudiante -->
+      <div class="tab-pane fade show active" id="estudiantes" role="tabpanel" aria-labelledby="estudiantes-tab">
+        <div class="card">
+          <div class="card-body">
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label class="form-label me-2">Estado:</label>
+                <select class="form-select form-select-sm d-inline-block w-auto"
+                  [(ngModel)]="filtroActivoEstudiantes" (change)="aplicarFiltros()">
+                  <option value="todos">Todos</option>
+                  <option value="activos">Solo activos</option>
+                  <option value="inactivos">Solo inactivos</option>
+                </select>
+              </div>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-hover table-striped">
+                <thead class="table-light">
+                  <tr>
+                    <th class="sortable" (click)="ordenarPor('nombre_estudiante')">
+                      Estudiante
+                      <i class="fas fa-sort float-end" [ngClass]="{
+                          'fa-sort': columnaOrdenamiento !== 'nombre_estudiante',
+                          'fa-sort-up': columnaOrdenamiento === 'nombre_estudiante' && ordenAscendente,
+                          'fa-sort-down': columnaOrdenamiento === 'nombre_estudiante' && !ordenAscendente
+                        }"></i>
+                    </th>
+                    <th class="sortable" (click)="ordenarPor('numero_identificacion')">
+                      Identificación
+                      <i class="fas fa-sort float-end" [ngClass]="{
+                        'fa-sort': columnaOrdenamiento !== 'numero_identificacion',
+                        'fa-sort-up': columnaOrdenamiento === 'numero_identificacion' && ordenAscendente,
+                        'fa-sort-down': columnaOrdenamiento === 'numero_identificacion' && !ordenAscendente
+                      }"></i>
+                    </th>
+                    <th class="sortable" (click)="ordenarPor('grupo_estudiante')">
+                      Grupo
+                      <i class="fas fa-sort float-end" [ngClass]="{
+               'fa-sort': columnaOrdenamiento !== 'grupo_estudiante',
+               'fa-sort-up': columnaOrdenamiento === 'grupo_estudiante' && ordenAscendente,
+               'fa-sort-down': columnaOrdenamiento === 'grupo_estudiante' && !ordenAscendente
+             }"></i>
+                    </th>
+                    <th class="text-end sortable" (click)="ordenarPor('totalCobrado')">
+                      Total Cobrado
+                      <i class="fas fa-sort float-end" [ngClass]="{
+                      'fa-sort': columnaOrdenamiento !== 'totalCobrado',
+                      'fa-sort-up': columnaOrdenamiento === 'totalCobrado' && ordenAscendente,
+                      'fa-sort-down': columnaOrdenamiento === 'totalCobrado' && !ordenAscendente
+                    }"></i>
+                    </th>
+                    <th class="text-end sortable" (click)="ordenarPor('totalPagado')">
+                      Total Pagado
+                      <i class="fas fa-sort float-end" [ngClass]="{
+                        'fa-sort': columnaOrdenamiento !== 'totalPagado',
+                        'fa-sort-up': columnaOrdenamiento === 'totalPagado' && ordenAscendente,
+                        'fa-sort-down': columnaOrdenamiento === 'totalPagado' && !ordenAscendente
+                      }"></i>
+                    </th>
+                    <th class="text-end sortable" (click)="ordenarPor('saldoTotal')">
+                      Saldo Total
+                      <i class="fas fa-sort float-end" [ngClass]="{
+                        'fa-sort': columnaOrdenamiento !== 'saldoTotal',
+                        'fa-sort-up': columnaOrdenamiento === 'saldoTotal' && ordenAscendente,
+                        'fa-sort-down': columnaOrdenamiento === 'saldoTotal' && !ordenAscendente
+                      }"></i>
+                    </th>
+                    <th class="text-end sortable" (click)="ordenarPor('saldoVencido')">
+                      Saldo Vencido
+                      <i class="fas fa-sort float-end" [ngClass]="{
+                        'fa-sort': columnaOrdenamiento !== 'saldoVencido',
+                        'fa-sort-up': columnaOrdenamiento === 'saldoVencido' && ordenAscendente,
+                        'fa-sort-down': columnaOrdenamiento === 'saldoVencido' && !ordenAscendente
+                      }"></i>
+                    </th>
+                    <th class="text-center">Estado</th>
+                    <th class="text-center">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Filas de estudiantes existentes -->
+                  <tr *ngFor="let estudiante of getEstudiantesPaginados()">
+                    <td>{{ estudiante.nombre_estudiante }}</td>
+                    <td>{{ estudiante.numero_identificacion }}</td>
+                    <td>{{ estudiante.grupo_estudiante }}</td>
+                    <td class="text-end">{{ estudiante.totalCobrado | currency:'':'symbol':'1.0-0' }}</td>
+                    <td class="text-end">{{ estudiante.totalPagado | currency:'':'symbol':'1.0-0' }}</td>
+                    <td class="text-end" [ngClass]="{'text-danger': estudiante.saldoTotal > 0}">
+                      {{ estudiante.saldoTotal | currency:'':'symbol':'1.0-0' }}
+                    </td>
+                    <td class="text-end" [ngClass]="{'text-danger': estudiante.saldoVencido > 0}">
+                      {{ estudiante.saldoVencido | currency:'':'symbol':'1.0-0' }}
+                    </td>
+                    <td class="text-center">
+                      <span class="badge" [ngClass]="getEstadoBadgeClass(estudiante)">
+                        {{ getEstadoTexto(estudiante) }}
+                      </span>
+                    </td>
+                    <td class="text-center">
+                      <button class="btn btn-sm btn-info" (click)="verDetalleEstudiante(estudiante)"
+                        title="Ver detalle">
+                        <i class="fas fa-eye"></i>
+                      </button>
+                    </td>
+                  </tr>
+                  <tr *ngIf="estudiantesFiltrados.length === 0">
+                    <td colspan="9" class="text-center text-muted py-4">
+                      No se encontraron estudiantes con los filtros aplicados
+                    </td>
+                  </tr>
+                </tbody>
+
+                <!-- AGREGAR ESTA SECCIÓN DE TFOOT -->
+                <tfoot class="table-light" *ngIf="estudiantesFiltrados.length > 0">
+                  <tr class="fw-bold">
+                    <td colspan="3">
+                      TOTALES
+                      <span class="badge bg-secondary ms-2">{{ estudiantesFiltrados.length }} estudiantes</span>
+                    </td>
+                    <td class="text-end">{{ getTotalEstudiantes('totalCobrado') | currency:'':'symbol':'1.0-0' }}</td>
+                    <td class="text-end">{{ getTotalEstudiantes('totalPagado') | currency:'':'symbol':'1.0-0' }}</td>
+                    <td class="text-end" [ngClass]="{'text-danger': getTotalEstudiantes('saldoTotal') > 0}">
+                      {{ getTotalEstudiantes('saldoTotal') | currency:'':'symbol':'1.0-0' }}
+                    </td>
+                    <td class="text-end" [ngClass]="{'text-danger': getTotalEstudiantes('saldoVencido') > 0}">
+                      {{ getTotalEstudiantes('saldoVencido') | currency:'':'symbol':'1.0-0' }}
+                    </td>
+                    <td class="text-center">
+                      <span class="badge bg-info">
+                        {{ getPorcentajeRecaudoEstudiantes() }}% recaudado
+                      </span>
+                    </td>
+                    <td></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+
+            <!-- Paginación -->
+            <nav aria-label="Paginación estudiantes" *ngIf="estudiantesFiltrados.length > 0">
+              <ul class="pagination justify-content-center">
+                <li class="page-item" [class.disabled]="paginaActual === 1">
+                  <a class="page-link" (click)="cambiarPagina(paginaActual - 1)" href="javascript:void(0)">
+                    <i class="fas fa-chevron-left"></i>
+                  </a>
+                </li>
+                <li class="page-item" *ngFor="let pagina of getPaginas()" [class.active]="pagina === paginaActual">
+                  <a class="page-link" (click)="cambiarPagina(pagina)" href="javascript:void(0)">{{ pagina }}</a>
+                </li>
+                <li class="page-item" [class.disabled]="paginaActual === totalPaginas">
+                  <a class="page-link" (click)="cambiarPagina(paginaActual + 1)" href="javascript:void(0)">
+                    <i class="fas fa-chevron-right"></i>
+                  </a>
+                </li>
+              </ul>
+            </nav>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Por Colaborador -->
+      <div class="tab-pane fade" id="colaboradores-cartera" role="tabpanel" aria-labelledby="colaboradores-tab">
+        <div class="card">
+          <div class="card-body">
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label class="form-label me-2">Estado:</label>
+                <select class="form-select form-select-sm d-inline-block w-auto"
+                  [(ngModel)]="filtroActivoColaboradores" (change)="aplicarFiltrosColaboradores()">
+                  <option value="todos">Todos</option>
+                  <option value="activos">Solo activos</option>
+                  <option value="inactivos">Solo inactivos</option>
+                </select>
+              </div>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-hover table-striped">
+                <thead class="table-light">
+                  <tr>
+                    <th class="sortable" (click)="ordenarPorColaboradores('nombre_estudiante')">
+                      Colaborador
+                      <i class="fas fa-sort float-end" [ngClass]="{
+                          'fa-sort': columnaOrdenamientoColaboradores !== 'nombre_estudiante',
+                          'fa-sort-up': columnaOrdenamientoColaboradores === 'nombre_estudiante' && ordenAscendenteColaboradores,
+                          'fa-sort-down': columnaOrdenamientoColaboradores === 'nombre_estudiante' && !ordenAscendenteColaboradores
+                        }"></i>
+                    </th>
+                    <th class="sortable" (click)="ordenarPorColaboradores('numero_identificacion')">
+                      Identificación
+                      <i class="fas fa-sort float-end" [ngClass]="{
+                        'fa-sort': columnaOrdenamientoColaboradores !== 'numero_identificacion',
+                        'fa-sort-up': columnaOrdenamientoColaboradores === 'numero_identificacion' && ordenAscendenteColaboradores,
+                        'fa-sort-down': columnaOrdenamientoColaboradores === 'numero_identificacion' && !ordenAscendenteColaboradores
+                      }"></i>
+                    </th>
+                    <th class="sortable" (click)="ordenarPorColaboradores('grupo_estudiante')">
+                      Cargo
+                      <i class="fas fa-sort float-end" [ngClass]="{
+                        'fa-sort': columnaOrdenamientoColaboradores !== 'grupo_estudiante',
+                        'fa-sort-up': columnaOrdenamientoColaboradores === 'grupo_estudiante' && ordenAscendenteColaboradores,
+                        'fa-sort-down': columnaOrdenamientoColaboradores === 'grupo_estudiante' && !ordenAscendenteColaboradores
+                      }"></i>
+                    </th>
+                    <th class="text-end sortable" (click)="ordenarPorColaboradores('totalCobrado')">
+                      Total Cobrado
+                      <i class="fas fa-sort float-end" [ngClass]="{
+                        'fa-sort': columnaOrdenamientoColaboradores !== 'totalCobrado',
+                        'fa-sort-up': columnaOrdenamientoColaboradores === 'totalCobrado' && ordenAscendenteColaboradores,
+                        'fa-sort-down': columnaOrdenamientoColaboradores !== 'totalCobrado' && !ordenAscendenteColaboradores
+                      }"></i>
+                    </th>
+                    <th class="text-end sortable" (click)="ordenarPorColaboradores('totalPagado')">
+                      Total Pagado
+                      <i class="fas fa-sort float-end" [ngClass]="{
+                        'fa-sort': columnaOrdenamientoColaboradores !== 'totalPagado',
+                        'fa-sort-up': columnaOrdenamientoColaboradores === 'totalPagado' && ordenAscendenteColaboradores,
+                        'fa-sort-down': columnaOrdenamientoColaboradores === 'totalPagado' && !ordenAscendenteColaboradores
+                      }"></i>
+                    </th>
+                    <th class="text-end sortable" (click)="ordenarPorColaboradores('saldoTotal')">
+                      Saldo Total
+                      <i class="fas fa-sort float-end" [ngClass]="{
+                        'fa-sort': columnaOrdenamientoColaboradores !== 'saldoTotal',
+                        'fa-sort-up': columnaOrdenamientoColaboradores === 'saldoTotal' && ordenAscendenteColaboradores,
+                        'fa-sort-down': columnaOrdenamientoColaboradores === 'saldoTotal' && !ordenAscendenteColaboradores
+                      }"></i>
+                    </th>
+                    <th class="text-end sortable" (click)="ordenarPorColaboradores('saldoVencido')">
+                      Saldo Vencido
+                      <i class="fas fa-sort float-end" [ngClass]="{
+                        'fa-sort': columnaOrdenamientoColaboradores !== 'saldoVencido',
+                        'fa-sort-up': columnaOrdenamientoColaboradores === 'saldoVencido' && ordenAscendenteColaboradores,
+                        'fa-sort-down': columnaOrdenamientoColaboradores === 'saldoVencido' && !ordenAscendenteColaboradores
+                      }"></i>
+                    </th>
+                    <th class="text-center">Estado</th>
+                    <th class="text-center">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let colaborador of getColaboradoresPaginados()">
+                    <td>{{ colaborador.nombre_estudiante }}</td>
+                    <td>{{ colaborador.numero_identificacion }}</td>
+                    <td>{{ colaborador.grupo_estudiante }}</td>
+                    <td class="text-end">{{ colaborador.totalCobrado | currency:'':'symbol':'1.0-0' }}</td>
+                    <td class="text-end">{{ colaborador.totalPagado | currency:'':'symbol':'1.0-0' }}</td>
+                    <td class="text-end" [ngClass]="{'text-danger': colaborador.saldoTotal > 0}">
+                      {{ colaborador.saldoTotal | currency:'':'symbol':'1.0-0' }}
+                    </td>
+                    <td class="text-end" [ngClass]="{'text-danger': colaborador.saldoVencido > 0}">
+                      {{ colaborador.saldoVencido | currency:'':'symbol':'1.0-0' }}
+                    </td>
+                    <td class="text-center">
+                      <span class="badge" [ngClass]="getEstadoBadgeClass(colaborador)">
+                        {{ getEstadoTexto(colaborador) }}
+                      </span>
+                    </td>
+                    <td class="text-center">
+                      <button class="btn btn-sm btn-info" (click)="verDetalleColaborador(colaborador)" title="Ver detalle">
+                        <i class="fas fa-eye"></i>
+                      </button>
+                    </td>
+                  </tr>
+                  <tr *ngIf="colaboradoresFiltrados.length === 0">
+                    <td colspan="9" class="text-center text-muted py-4">
+                      No se encontraron colaboradores con los filtros aplicados
+                    </td>
+                  </tr>
+                </tbody>
+                <tfoot class="table-light" *ngIf="colaboradoresFiltrados.length > 0">
+                  <tr class="fw-bold">
+                    <td colspan="3">
+                      TOTALES
+                      <span class="badge bg-secondary ms-2">{{ colaboradoresFiltrados.length }} colaboradores</span>
+                    </td>
+                    <td class="text-end">{{ getTotalColaboradores('totalCobrado') | currency:'':'symbol':'1.0-0' }}</td>
+                    <td class="text-end">{{ getTotalColaboradores('totalPagado') | currency:'':'symbol':'1.0-0' }}</td>
+                    <td class="text-end" [ngClass]="{'text-danger': getTotalColaboradores('saldoTotal') > 0}">
+                      {{ getTotalColaboradores('saldoTotal') | currency:'':'symbol':'1.0-0' }}
+                    </td>
+                    <td class="text-end" [ngClass]="{'text-danger': getTotalColaboradores('saldoVencido') > 0}">
+                      {{ getTotalColaboradores('saldoVencido') | currency:'':'symbol':'1.0-0' }}
+                    </td>
+                    <td class="text-center">
+                      <span class="badge bg-info">
+                        {{ getPorcentajeRecaudoColaboradores() }}% recaudado
+                      </span>
+                    </td>
+                    <td></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+
+            <!-- Paginación colaboradores -->
+            <nav aria-label="Paginación colaboradores" *ngIf="colaboradoresFiltrados.length > 0">
+              <ul class="pagination justify-content-center">
+                <li class="page-item" [class.disabled]="paginaActualColaboradores === 1">
+                  <a class="page-link" (click)="cambiarPaginaColaboradores(paginaActualColaboradores - 1)" href="javascript:void(0)">
+                    <i class="fas fa-chevron-left"></i>
+                  </a>
+                </li>
+                <li class="page-item" *ngFor="let pagina of getPaginasColaboradores()" [class.active]="pagina === paginaActualColaboradores">
+                  <a class="page-link" (click)="cambiarPaginaColaboradores(pagina)" href="javascript:void(0)">{{ pagina }}</a>
+                </li>
+                <li class="page-item" [class.disabled]="paginaActualColaboradores === totalPaginasColaboradores">
+                  <a class="page-link" (click)="cambiarPaginaColaboradores(paginaActualColaboradores + 1)" href="javascript:void(0)">
+                    <i class="fas fa-chevron-right"></i>
+                  </a>
+                </li>
+              </ul>
+            </nav>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Por Clasificación -->
+      <div class="tab-pane fade" id="clasificaciones" role="tabpanel" aria-labelledby="clasificaciones-tab">
+        <div class="card">
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead class="table-light">
+                  <tr>
+                    <th>Clasificación</th>
+                    <th class="text-end">Total Cobrado</th>
+                    <th class="text-end">Cobrado a Este Mes</th>
+                    <th class="text-end">Cobrado Futuro</th>
+                    <th class="text-end">Total Pagado</th>
+                    <th class="text-end">Saldo Total</th>
+                    <th class="text-end">Saldo Vencido</th>
+                    <th class="text-end">% Recaudo</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let clasificacion of datosClasificacionesFiltradas">
+                    <td>{{ clasificacion.nombre_clasificacion }}</td>
+                    <td class="text-end">{{ clasificacion.total_cobrado | currency:'':'symbol':'1.0-0' }}</td>
+                    <td class="text-end">{{ clasificacion.total_cobrado_a_este_mes | currency:'':'symbol':'1.0-0' }}
+                    </td>
+                    <td class="text-end">{{ clasificacion.total_cobrado_futuro | currency:'':'symbol':'1.0-0' }}</td>
+                    <td class="text-end">{{ clasificacion.total_pagado | currency:'':'symbol':'1.0-0' }}</td>
+                    <td class="text-end">{{ clasificacion.saldo_total | currency:'':'symbol':'1.0-0' }}</td>
+                    <td class="text-end" [ngClass]="{'text-danger': clasificacion.saldo_vencido > 0}">
+                      {{ clasificacion.saldo_vencido | currency:'':'symbol':'1.0-0' }}
+                    </td>
+                    <td class="text-end">{{ calcularPorcentajeRecaudo(clasificacion) }}%</td>
+                  </tr>
+                </tbody>
+                <tfoot class="table-light">
+                  <tr>
+                    <th>TOTAL</th>
+                    <th class="text-end">{{ getTotalClasificaciones('total_cobrado') | currency:'':'symbol':'1.0-0' }}
+                    </th>
+                    <th class="text-end">{{ getTotalClasificaciones('total_cobrado_a_este_mes') |
+                      currency:'':'symbol':'1.0-0' }}</th>
+                    <th class="text-end">{{ getTotalClasificaciones('total_cobrado_futuro') |
+                      currency:'':'symbol':'1.0-0' }}</th>
+                    <th class="text-end">{{ getTotalClasificaciones('total_pagado') | currency:'':'symbol':'1.0-0' }}
+                    </th>
+                    <th class="text-end">{{ getTotalClasificaciones('saldo_total') | currency:'':'symbol':'1.0-0' }}
+                    </th>
+                    <th class="text-end text-danger">{{ getTotalClasificaciones('saldo_vencido') |
+                      currency:'':'symbol':'1.0-0' }}</th>
+                    <th class="text-end">{{ calcularPorcentajeRecaudoTotal() }}%</th>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Tab: Por Prodcuto -->
+      <div class="tab-pane fade" id="productos" role="tabpanel" aria-labelledby="productos-tab">
+        <div class="card">
+          <div class="card-body">
+            <!-- Filtros específicos del tab -->
+            <div class="row mb-3">
+              <div class="col-md-4">
+                <label for="clasificacionProductoSelector" class="form-label">Filtrar por Clasificación:</label>
+                <select id="clasificacionProductoSelector" class="form-select"
+                  [(ngModel)]="clasificacionSeleccionadaProductos" (change)="filtrarProductos()">
+                  <option value="">Todas las clasificaciones</option>
+                  <option *ngFor="let clasif of clasificacionesUnicasProductos" [value]="clasif.id">{{ clasif.nombre }}
+                  </option>
+                </select>
+              </div>
+
+
+              <div class="col-md-4">
+                <label for="productoSelector" class="form-label">Filtrar por Producto:</label>
+                <div class="dropdown">
+                  <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start" type="button"
+                    (click)="toggleDropdownProductos()">
+                    {{ productosSeleccionados.length > 0 ?
+                    productosSeleccionados.length + ' productos seleccionados' :
+                    'Seleccionar productos' }}
+                  </button>
+                  <ul class="dropdown-menu w-100" [class.show]="dropdownProductosAbierto"
+                    style="max-height: 300px; overflow-y: auto;">
+                    <li class="px-2 py-1">
+                      <input type="text" class="form-control form-control-sm" placeholder="Buscar..."
+                        [(ngModel)]="busquedaProducto" (click)="$event.stopPropagation()">
+                    </li>
+                    <li>
+                      <hr class="dropdown-divider">
+                    </li>
+                    <li class="px-2">
+                      <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="selectAllProducts"
+                          (change)="toggleTodosProductos($event)" (click)="$event.stopPropagation()"
+                          [checked]="productosSeleccionados.length === productosUnicos.length">
+                        <label class="form-check-label" for="selectAllProducts" (click)="$event.stopPropagation()">
+                          Seleccionar todos
+                        </label>
+                      </div>
+                    </li>
+                    <li>
+                      <hr class="dropdown-divider">
+                    </li>
+                    <li *ngFor="let prod of productosUnicosFiltrados()" class="px-2">
+                      <div class="form-check">
+                        <input class="form-check-input" type="checkbox" [id]="'prod_' + prod.id" [value]="prod.id"
+                          [checked]="productosSeleccionados.includes(prod.id)" (change)="toggleProducto(prod.id)"
+                          (click)="$event.stopPropagation()">
+                        <label class="form-check-label" [for]="'prod_' + prod.id" (click)="$event.stopPropagation()">
+                          {{ prod.nombre }}
+                        </label>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              <div class="col-md-4">
+                <label class="form-label">&nbsp;</label>
+                <div class="d-grid gap-2">
+                  <button class="btn btn-secondary" (click)="resetearFiltrosProductos()">
+                    <i class="fas fa-eraser"></i> Limpiar filtros
+                  </button>
+                  <button class="btn btn-success" (click)="exportarProductosExcel()">
+                    <i class="fas fa-file-excel"></i> Exportar Productos
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tabla de productos agrupados por clasificación -->
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead class="table-light">
+                  <tr>
+                    <th>Producto</th>
+                    <th>Clasificación</th>
+                    <th class="text-end">Total Cobrado</th>
+                    <th class="text-end">Cobrado a Este Mes</th>
+                    <th class="text-end">Cobrado Futuro</th>
+                    <th class="text-end">Total Pagado</th>
+                    <th class="text-end">Saldo Total</th>
+                    <th class="text-end">Saldo Vencido</th>
+                    <th class="text-end">% Recaudo</th>
+                    <th class="text-center">Estudiantes</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <ng-container *ngFor="let clasificacion of datosProductosAgrupados | keyvalue">
+                    <!-- Header de clasificación -->
+                    <tr class="table-secondary fw-bold">
+                      <td colspan="10">
+                        <i class="fas fa-folder-open me-2"></i>
+                        CLASIFICACIÓN: {{ clasificacion.key | uppercase }}
+                      </td>
+                    </tr>
+
+                    <!-- Productos de la clasificación -->
+                    <tr *ngFor="let producto of clasificacion.value">
+                      <td class="ps-4">
+                        {{ producto.nombre_producto }}
+                      </td>
+                      <td>
+                        <span class="badge bg-info">{{ producto.nombre_clasificacion }}</span>
+                      </td>
+                      <td class="text-end">{{ producto.total_cobrado | currency:'':'symbol':'1.0-0' }}</td>
+                      <td class="text-end">{{ producto.total_cobrado_a_este_mes | currency:'':'symbol':'1.0-0' }}</td>
+                      <td class="text-end">{{ producto.total_cobrado_futuro | currency:'':'symbol':'1.0-0' }}</td>
+                      <td class="text-end">{{ producto.total_pagado | currency:'':'symbol':'1.0-0' }}</td>
+                      <td class="text-end" [ngClass]="{'text-danger': producto.saldo_total > 0}">
+                        {{ producto.saldo_total | currency:'':'symbol':'1.0-0' }}
+                      </td>
+                      <td class="text-end" [ngClass]="{'text-danger': producto.saldo_vencido > 0}">
+                        {{ producto.saldo_vencido | currency:'':'symbol':'1.0-0' }}
+                      </td>
+                      <td class="text-end">
+                        <span class="badge" [ngClass]="{
+                          'bg-success': producto.porcentaje_recaudo >= 80,
+                          'bg-warning': producto.porcentaje_recaudo >= 50 && producto.porcentaje_recaudo < 80,
+                          'bg-danger': producto.porcentaje_recaudo < 50
+                        }">
+                          {{ producto.porcentaje_recaudo }}%
+                        </span>
+                      </td>
+                      <td class="text-center">
+                        <span class="badge bg-secondary">{{ producto.cantidad_estudiantes }}</span>
+                      </td>
+                    </tr>
+
+                    <!-- Subtotal de la clasificación -->
+                    <tr class="table-warning fw-bold">
+                      <td colspan="2" class="text-end">Subtotal {{ clasificacion.key }}:</td>
+                      <td class="text-end">
+                        {{ getSubtotalClasificacionProductos(clasificacion.key, 'total_cobrado') |
+                        currency:'':'symbol':'1.0-0' }}
+                      </td>
+                      <td class="text-end">
+                        {{ getSubtotalClasificacionProductos(clasificacion.key, 'total_cobrado_a_este_mes') |
+                        currency:'':'symbol':'1.0-0' }}
+                      </td>
+                      <td class="text-end">
+                        {{ getSubtotalClasificacionProductos(clasificacion.key, 'total_cobrado_futuro') |
+                        currency:'':'symbol':'1.0-0' }}
+                      </td>
+                      <td class="text-end">
+                        {{ getSubtotalClasificacionProductos(clasificacion.key, 'total_pagado') |
+                        currency:'':'symbol':'1.0-0' }}
+                      </td>
+                      <td class="text-end"
+                        [ngClass]="{'text-danger': getSubtotalClasificacionProductos(clasificacion.key, 'saldo_total') > 0}">
+                        {{ getSubtotalClasificacionProductos(clasificacion.key, 'saldo_total') |
+                        currency:'':'symbol':'1.0-0' }}
+                      </td>
+                      <td class="text-end"
+                        [ngClass]="{'text-danger': getSubtotalClasificacionProductos(clasificacion.key, 'saldo_vencido') > 0}">
+                        {{ getSubtotalClasificacionProductos(clasificacion.key, 'saldo_vencido') |
+                        currency:'':'symbol':'1.0-0' }}
+                      </td>
+                      <td class="text-end">
+                        {{ getSubtotalClasificacionProductos(clasificacion.key, 'porcentaje_recaudo') }}%
+                      </td>
+                      <td class="text-center">
+                        <span class="badge bg-primary">
+                          {{ getSubtotalClasificacionProductos(clasificacion.key, 'cantidad_estudiantes') }}
+                        </span>
+                      </td>
+                    </tr>
+
+                    <!-- Espaciador entre clasificaciones -->
+                    <tr class="spacer-row">
+                      <td colspan="10" style="height: 10px; background-color: transparent;"></td>
+                    </tr>
+                  </ng-container>
+
+                  <!-- Mensaje cuando no hay datos -->
+                  <tr *ngIf="datosProductosFiltrados.length === 0">
+                    <td colspan="10" class="text-center text-muted py-4">
+                      No se encontraron productos con los filtros aplicados
+                    </td>
+                  </tr>
+                </tbody>
+
+                <!-- Total general -->
+                <tfoot class="table-light" *ngIf="datosProductosFiltrados.length > 0">
+                  <tr class="fw-bold">
+                    <th colspan="2">TOTAL GENERAL</th>
+                    <th class="text-end">{{ getTotalProductos('total_cobrado') | currency:'':'symbol':'1.0-0' }}</th>
+                    <th class="text-end">{{ getTotalProductos('total_cobrado_a_este_mes') | currency:'':'symbol':'1.0-0'
+                      }}</th>
+                    <th class="text-end">{{ getTotalProductos('total_cobrado_futuro') | currency:'':'symbol':'1.0-0' }}
+                    </th>
+                    <th class="text-end">{{ getTotalProductos('total_pagado') | currency:'':'symbol':'1.0-0' }}</th>
+                    <th class="text-end" [ngClass]="{'text-danger': getTotalProductos('saldo_total') > 0}">
+                      {{ getTotalProductos('saldo_total') | currency:'':'symbol':'1.0-0' }}
+                    </th>
+                    <th class="text-end text-danger">
+                      {{ getTotalProductos('saldo_vencido') | currency:'':'symbol':'1.0-0' }}
+                    </th>
+                    <th class="text-end">
+                      <span class="badge bg-info">
+                        {{ getTotalProductos('porcentaje_recaudo') }}%
+                      </span>
+                    </th>
+                    <th class="text-center">
+                      <span class="badge bg-dark">
+                        {{ getTotalProductos('cantidad_estudiantes') }}
+                      </span>
+                    </th>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+
+            <!-- Resumen del tab -->
+            <div class="alert alert-info mt-3" *ngIf="datosProductosFiltrados.length > 0">
+              <h6 class="alert-heading">
+                <i class="fas fa-info-circle"></i> Resumen de Productos
+              </h6>
+              <div class="row">
+                <div class="col-md-3">
+                  <strong>Total productos:</strong> {{ datosProductosFiltrados.length }}
+                </div>
+                <div class="col-md-3">
+                  <strong>Clasificaciones:</strong> {{ datosProductosAgrupados.size }}
+                </div>
+                <div class="col-md-3">
+                  <strong>Producto con mayor cobro:</strong>
+                  {{ getProductoConMayorCobro() }}
+                </div>
+                <div class="col-md-3">
+                  <strong>Producto con mayor morosidad:</strong>
+                  {{ getProductoConMayorMorosidad() }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Tab: Vista Mensual -->
+      <div class="tab-pane fade" id="mensual" role="tabpanel" aria-labelledby="mensual-tab">
+        <div class="card">
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead class="table-light">
+                  <tr>
+                    <th>Mes</th>
+                    <th class="text-end">Cobrado</th>
+                    <th class="text-end">Pagado</th>
+                    <th class="text-end">Saldo</th>
+                    <th class="text-end">% Recaudo</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let mes of datosMensualesFiltrados">
+                    <td>{{ mes.nombreMes }}</td>
+                    <td class="text-end">{{ mes.cobrado | currency:'':'symbol':'1.0-0' }}</td>
+                    <td class="text-end">{{ mes.pagado | currency:'':'symbol':'1.0-0' }}</td>
+                    <td class="text-end">{{ mes.saldo | currency:'':'symbol':'1.0-0' }}</td>
+                    <td class="text-end">{{ mes.porcentajeRecaudo }}%</td>
+                  </tr>
+                </tbody>
+                <tfoot class="table-light">
+                  <tr>
+                    <th>TOTAL AÑO</th>
+                    <th class="text-end">{{ getTotalMensual('cobrado') | currency:'':'symbol':'1.0-0' }}</th>
+                    <th class="text-end">{{ getTotalMensual('pagado') | currency:'':'symbol':'1.0-0' }}</th>
+                    <th class="text-end">{{ getTotalMensual('saldo') | currency:'':'symbol':'1.0-0' }}</th>
+                    <th class="text-end">{{ calcularPorcentajeRecaudoAnual() }}%</th>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Tab: Movimiento Diario -->
+      <div class="tab-pane fade" id="diario" role="tabpanel" aria-labelledby="diario-tab">
+        <div class="card">
+          <div class="card-body">
+            <!-- Filtros de fecha para movimiento diario -->
+            <div class="row mb-3">
+              <div class="col-md-4">
+                <label class="form-label">Fecha Inicio:</label>
+                <input type="date" class="form-control" [(ngModel)]="fechaInicioSeleccionada"
+                  (change)="filtrarMovimientoDiario()">
+              </div>
+
+              <div class="col-md-4">
+                <label class="form-label">Fecha Fin:</label>
+                <input type="date" class="form-control" [(ngModel)]="fechaFinSeleccionada"
+                  (change)="filtrarMovimientoDiario()">
+              </div>
+
+              <div class="col-md-4">
+                <label class="form-label">&nbsp;</label>
+                <button class="btn btn-secondary d-block w-100"
+                  (click)="fechaInicioSeleccionada = ''; fechaFinSeleccionada = ''; filtrarMovimientoDiario()">
+                  <i class="fas fa-eraser"></i> Limpiar filtros
+                </button>
+              </div>
+            </div>
+
+            <!-- Tabs internos para Cobros y Pagos -->
+            <ul class="nav nav-pills mb-3" role="tablist">
+              <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="cobros-diario-tab" data-bs-toggle="tab"
+                  data-bs-target="#cobros-diario" type="button" role="tab">
+                  <i class="fas fa-file-invoice-dollar"></i> Cobros
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="pagos-diario-tab" data-bs-toggle="tab" data-bs-target="#pagos-diario"
+                  type="button" role="tab">
+                  <i class="fas fa-hand-holding-usd"></i> Pagos
+                </button>
+              </li>
+            </ul>
+
+            <!-- Contenido de los tabs internos -->
+            <div class="tab-content">
+              <!-- Tab de Cobros -->
+              <div class="tab-pane fade show active" id="cobros-diario" role="tabpanel">
+                <div class="row">
+                  <div class="col-12">
+                    <div class="card border-success">
+                      <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                        <span>
+                          <i class="fas fa-file-invoice-dollar"></i> Cobros Totales
+                          <span class="badge bg-light text-dark ms-2">
+                            {{ getTotalCantidadCobros() }} registros
+                          </span>
+                        </span>
+                        <div>
+                          <button class="btn btn-sm btn-light me-1" (click)="exportarCobrosExcel()" title="Exportar a Excel">
+                            <i class="fas fa-file-excel"></i>
+                          </button>
+                          <button class="btn btn-sm btn-light" (click)="toggleExpansion('cobros')"
+                            title="{{paginacionMovimientoDiario.cobros.expandido ? 'Contraer' : 'Expandir'}}">
+                            <i class="fas"
+                              [ngClass]="paginacionMovimientoDiario.cobros.expandido ? 'fa-compress' : 'fa-expand'"></i>
+                          </button>
+                        </div>
+                      </div>
+
+                      <div class="card-body p-0" *ngIf="paginacionMovimientoDiario.cobros.expandido">
+                        <!-- Control de registros por página -->
+                        <div class="p-2 bg-light border-bottom">
+                          <div class="row g-2">
+                            <div class="col-12 col-lg-6">
+                              <label class="form-label mb-0 me-2">Mostrar:</label>
+                              <select class="form-select form-select-sm w-auto d-inline-block"
+                                [(ngModel)]="paginacionMovimientoDiario.cobros.registrosPorPagina"
+                                (change)="cambiarRegistrosPorPagina('cobros', paginacionMovimientoDiario.cobros.registrosPorPagina)">
+                                <option [value]="5">5</option>
+                                <option [value]="10">10</option>
+                                <option [value]="20">20</option>
+                                <option [value]="50">50</option>
+                              </select>
+                              <span class="ms-2 text-muted">registros</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="table-responsive">
+                          <table class="table table-sm mb-0">
+                            <thead class="table-light">
+                              <tr>
+                                <th>Fecha</th>
+                                <th>Estudiante</th>
+                                <th class="text-end">Monto</th>
+                                <th class="text-end">Cantidad</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr *ngFor="let movimiento of getCobrosPaginados()">
+                                <td>{{ formatearFecha(movimiento.fecha) }}</td>
+                                <td>
+                                  <small>{{ movimiento.nombre_estudiante || '-' }}</small>
+                                </td>
+                                <td class="text-end">
+                                  {{ movimiento.total_cobrado | currency:'':'symbol':'1.0-0' }}
+                                </td>
+                                <td class="text-end">
+                                  <span class="badge bg-secondary">{{ movimiento.cantidad_cobros }}</span>
+                                </td>
+                              </tr>
+                              <tr *ngIf="getCobrosPaginados().length === 0">
+                                <td colspan="4" class="text-center text-muted py-3">
+                                  No hay cobros registrados en el período seleccionado
+                                </td>
+                              </tr>
+                            </tbody>
+                            <tfoot class="table-light">
+                              <tr class="fw-bold">
+                                <td colspan="2">TOTAL COBRADO</td>
+                                <td class="text-end text-primary">
+                                  {{ getTotalCobrado() | currency:'':'symbol':'1.0-0' }}
+                                </td>
+                                <td class="text-end">
+                                  <span class="badge bg-primary">{{ getTotalCantidadCobros() }}</span>
+                                </td>
+                              </tr>
+                            </tfoot>
+                          </table>
+                        </div>
+
+                        <!-- Paginación para Cobros -->
+                        <div class="card-footer p-2" *ngIf="paginacionMovimientoDiario.cobros.totalPaginas > 1">
+                          <nav aria-label="Paginación cobros">
+                            <ul class="pagination pagination-sm justify-content-center mb-0">
+                              <li class="page-item"
+                                [class.disabled]="paginacionMovimientoDiario.cobros.paginaActual === 1">
+                                <a class="page-link"
+                                  (click)="cambiarPaginaMovimiento('cobros', paginacionMovimientoDiario.cobros.paginaActual - 1)"
+                                  href="javascript:void(0)">‹</a>
+                              </li>
+                              <li class="page-item active">
+                                <span class="page-link">
+                                  {{ paginacionMovimientoDiario.cobros.paginaActual }}/{{
+                                  paginacionMovimientoDiario.cobros.totalPaginas }}
+                                </span>
+                              </li>
+                              <li class="page-item"
+                                [class.disabled]="paginacionMovimientoDiario.cobros.paginaActual === paginacionMovimientoDiario.cobros.totalPaginas">
+                                <a class="page-link"
+                                  (click)="cambiarPaginaMovimiento('cobros', paginacionMovimientoDiario.cobros.paginaActual + 1)"
+                                  href="javascript:void(0)">›</a>
+                              </li>
+                            </ul>
+                          </nav>
+                        </div>
+                      </div>
+
+                      <!-- Vista colapsada -->
+                      <div class="card-body text-center py-3" *ngIf="!paginacionMovimientoDiario.cobros.expandido">
+                        <strong>Total Cobrado: {{ getTotalCobrado() | currency:'':'symbol':'1.0-0' }}</strong>
+                        <span class="badge bg-secondary ms-2">{{ getTotalCantidadCobros() }} cobros</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- Tab de Pagos -->
+              <div class="tab-pane fade" id="pagos-diario" role="tabpanel">
+                <!-- Controles generales de pagos -->
+                <div class="row mb-3">
+                  <div class="col-12">
+                    <div class="btn-group btn-group-sm" role="group">
+                      <button type="button" class="btn btn-outline-primary"
+                        (click)="toggleExpansion('ingresos'); toggleExpansion('descuentos'); toggleExpansion('extracurricular')">
+                        <i class="fas fa-expand-alt"></i> Expandir/Contraer Todo
+                      </button>
+                      <button type="button" class="btn btn-outline-secondary"
+                        (click)="cambiarRegistrosPorPagina('ingresos', 10); cambiarRegistrosPorPagina('descuentos', 10); cambiarRegistrosPorPagina('extracurricular', 10)">
+                        <i class="fas fa-list"></i> Ver más registros
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Tres secciones de pagos -->
+                <div class="row">
+
+
+                  <!-- Ingresos -->
+                  <div class="col-md-4">
+                    <div class="card border-success">
+                      <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                        <span>
+                          <i class="fas fa-money-bill-wave"></i> Ingresos
+                          <span class="badge bg-warning text-dark ms-2"
+                            *ngIf="getCantidadConDiferencia('ingresos') > 0">
+                            {{ getCantidadConDiferencia('ingresos') }} con diferencia
+                          </span>
+                        </span>
+                        <div>
+                          <button class="btn btn-sm btn-light me-1" (click)="exportarIngresosExcel()" title="Exportar a Excel">
+                            <i class="fas fa-file-excel"></i>
+                          </button>
+                          <button class="btn btn-sm btn-light" (click)="toggleExpansion('ingresos')"
+                            title="{{paginacionMovimientoDiario.ingresos.expandido ? 'Contraer' : 'Expandir'}}">
+                            <i class="fas"
+                              [ngClass]="paginacionMovimientoDiario.ingresos.expandido ? 'fa-compress' : 'fa-expand'"></i>
+                          </button>
+                        </div>
+                      </div>
+                      <div class="card-body p-0" *ngIf="paginacionMovimientoDiario.ingresos.expandido">
+                        <!-- Controles de filtro -->
+                        <div class="p-2 bg-light border-bottom">
+                          <div class="row g-2">
+                            <div class="col-12 col-lg-6">
+                              <select class="form-select form-select-sm" [(ngModel)]="filtroTipoIngresos"
+                                (change)="cambiarFiltroTipo('ingresos')">
+                                <option value="">Todos los tipos</option>
+                                <option *ngFor="let tipo of tiposIngresos" [value]="tipo.id">
+                                  {{ tipo.nombre }}
+                                </option>
+                              </select>
+                            </div>
+                            <div class="col-12 col-lg-6">
+                              <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" id="filtroIngresoDiferencia"
+                                  [checked]="paginacionMovimientoDiario.ingresos.soloConDiferencia"
+                                  (change)="toggleFiltroDiferencia('ingresos')">
+                                <label class="form-check-label" for="filtroIngresoDiferencia">
+                                  Solo con diferencia
+                                </label>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="table-responsive">
+                          <!-- Tabla existente sin cambios -->
+                          <table class="table table-sm mb-0">
+                            <thead class="table-light">
+                              <tr>
+                                <th>Fecha</th>
+                                <th>Estudiante</th>
+                                <th>Tipo</th>
+                                <th class="text-end">Recibido</th>
+                                <th class="text-end">Aplicado</th>
+                                <th class="text-end">Diferencia</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr *ngFor="let movimiento of getIngresosPaginados()"
+                                [ngClass]="{'table-warning': tieneDiferenciaRecibidoAplicado(movimiento)}">
+                                <td>{{ formatearFecha(movimiento.fecha) }}</td>
+                                <td>
+                                  <small>{{ movimiento.nombre_estudiante || '-' }}</small>
+                                </td>
+                                <td>
+                                  <span class="badge bg-success">
+                                    {{ obtenerNombreTipoPago(movimiento.id_tipo_pago) }}
+                                  </span>
+                                </td>
+                                <td class="text-end">
+                                  {{ (movimiento.total_recibido || 0) | currency:'':'symbol':'1.0-0' }}
+                                </td>
+                                <td class="text-end">
+                                  {{ movimiento.total_pagado | currency:'':'symbol':'1.0-0' }}
+                                </td>
+                                <td class="text-end" [ngClass]="{'text-danger fw-bold': getDiferenciaRecibidoAplicado(movimiento) > 0,
+                          'text-success': getDiferenciaRecibidoAplicado(movimiento) < 0}">
+                                  <span *ngIf="getDiferenciaRecibidoAplicado(movimiento) !== 0">
+                                    {{ getDiferenciaRecibidoAplicado(movimiento) | currency:'':'symbol':'1.0-0' }}
+                                  </span>
+                                  <span *ngIf="getDiferenciaRecibidoAplicado(movimiento) === 0" class="text-muted">
+                                    -
+                                  </span>
+                                </td>
+                              </tr>
+                              <tr *ngIf="getIngresosPaginados().length === 0">
+                                <td colspan="6" class="text-center text-muted py-2">
+                                  {{ paginacionMovimientoDiario.ingresos.soloConDiferencia ?
+                                  'No hay ingresos con diferencias' :
+                                  'Sin ingresos registrados' }}
+                                </td>
+                              </tr>
+                            </tbody>
+                            <tfoot class="table-light">
+                              <tr class="fw-bold">
+                                <td colspan="3">TOTAL</td>
+                                <td class="text-end text-info">
+                                  {{ getTotalRecibidoIngresos() | currency:'':'symbol':'1.0-0' }}
+                                </td>
+                                <td class="text-end text-success">
+                                  {{ getTotalIngresos() | currency:'':'symbol':'1.0-0' }}
+                                </td>
+                                <td class="text-end" [ngClass]="{'text-danger': getTotalDiferencia('ingresos') > 0}">
+                                  {{ getTotalDiferencia('ingresos') | currency:'':'symbol':'1.0-0' }}
+                                </td>
+                              </tr>
+                            </tfoot>
+                          </table>
+                        </div>
+                        <!-- Paginación para Ingresos -->
+                        <div class="card-footer p-2" *ngIf="paginacionMovimientoDiario.ingresos.totalPaginas > 1">
+                          <nav aria-label="Paginación ingresos">
+                            <ul class="pagination pagination-sm justify-content-center mb-0">
+                              <li class="page-item"
+                                [class.disabled]="paginacionMovimientoDiario.ingresos.paginaActual === 1">
+                                <a class="page-link"
+                                  (click)="cambiarPaginaMovimiento('ingresos', paginacionMovimientoDiario.ingresos.paginaActual - 1)"
+                                  href="javascript:void(0)">‹</a>
+                              </li>
+                              <li class="page-item active">
+                                <span class="page-link">
+                                  {{ paginacionMovimientoDiario.ingresos.paginaActual }}/{{
+                                  paginacionMovimientoDiario.ingresos.totalPaginas }}
+                                </span>
+                              </li>
+                              <li class="page-item"
+                                [class.disabled]="paginacionMovimientoDiario.ingresos.paginaActual === paginacionMovimientoDiario.ingresos.totalPaginas">
+                                <a class="page-link"
+                                  (click)="cambiarPaginaMovimiento('ingresos', paginacionMovimientoDiario.ingresos.paginaActual + 1)"
+                                  href="javascript:void(0)">›</a>
+                              </li>
+                            </ul>
+                          </nav>
+                        </div>
+                      </div>
+                      <div class="card-body text-center py-3" *ngIf="!paginacionMovimientoDiario.ingresos.expandido">
+                        <strong>Total: {{ getTotalIngresos() | currency:'':'symbol':'1.0-0' }}</strong>
+                        <span class="text-danger ms-2" *ngIf="getTotalDiferencia('ingresos') > 0">
+                          (Pendiente: {{ getTotalDiferencia('ingresos') | currency:'':'symbol':'1.0-0' }})
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+
+                  <!-- Descuentos y Castigos -->
+                  <div class="col-md-4">
+                    <div class="card border-warning">
+                      <div class="card-header bg-warning d-flex justify-content-between align-items-center">
+                        <span>
+                          <i class="fas fa-percentage"></i> Descuentos y Castigos
+                          <span class="badge bg-danger text-white ms-2"
+                            *ngIf="getCantidadConDiferencia('descuentos') > 0">
+                            {{ getCantidadConDiferencia('descuentos') }} con diferencia
+                          </span>
+                        </span>
+                        <div>
+                          <button class="btn btn-sm btn-light me-1" (click)="exportarDescuentosExcel()" title="Exportar a Excel">
+                            <i class="fas fa-file-excel"></i>
+                          </button>
+                          <button class="btn btn-sm btn-light" (click)="toggleExpansion('descuentos')"
+                            title="{{paginacionMovimientoDiario.descuentos.expandido ? 'Contraer' : 'Expandir'}}">
+                            <i class="fas"
+                              [ngClass]="paginacionMovimientoDiario.descuentos.expandido ? 'fa-compress' : 'fa-expand'"></i>
+                          </button>
+                        </div>
+                      </div>
+                      <div class="card-body p-0" *ngIf="paginacionMovimientoDiario.descuentos.expandido">
+                        <!-- Controles de filtro -->
+                        <div class="p-2 bg-light border-bottom">
+                          <div class="row g-2">
+                            <div class="col-12 col-lg-6">
+                              <select class="form-select form-select-sm" [(ngModel)]="filtroTipoDescuentos"
+                                (change)="cambiarFiltroTipo('descuentos')">
+                                <option value="">Todos los tipos</option>
+                                <option *ngFor="let tipo of tiposDescuentos" [value]="tipo.id">
+                                  {{ tipo.nombre }}
+                                </option>
+                              </select>
+                            </div>
+                            <div class="col-12 col-lg-6">
+                              <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" id="filtroDescuentoDiferencia"
+                                  [checked]="paginacionMovimientoDiario.descuentos.soloConDiferencia"
+                                  (change)="toggleFiltroDiferencia('descuentos')">
+                                <label class="form-check-label" for="filtroDescuentoDiferencia">
+                                  Solo con diferencia
+                                </label>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="table-responsive">
+                          <!-- Tabla con la nueva columna Diferencia -->
+                          <table class="table table-sm mb-0">
+                            <thead class="table-light">
+                              <tr>
+                                <th>Fecha</th>
+                                <th>Estudiante</th>
+                                <th>Tipo</th>
+                                <th class="text-end">Recibido</th>
+                                <th class="text-end">Aplicado</th>
+                                <th class="text-end">Diferencia</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr *ngFor="let movimiento of getDescuentosPaginados()"
+                                [ngClass]="{'table-warning': tieneDiferenciaRecibidoAplicado(movimiento)}">
+                                <td>{{ formatearFecha(movimiento.fecha) }}</td>
+                                <td>
+                                  <small>{{ movimiento.nombre_estudiante || '-' }}</small>
+                                </td>
+                                <td>
+                                  <span class="badge bg-warning text-dark">
+                                    {{ obtenerNombreTipoPago(movimiento.id_tipo_pago) }}
+                                  </span>
+                                </td>
+                                <td class="text-end">
+                                  {{ (movimiento.total_recibido || 0) | currency:'':'symbol':'1.0-0' }}
+                                </td>
+                                <td class="text-end">
+                                  {{ movimiento.total_pagado | currency:'':'symbol':'1.0-0' }}
+                                </td>
+                                <td class="text-end" [ngClass]="{'text-danger fw-bold': getDiferenciaRecibidoAplicado(movimiento) > 0,
+                          'text-success': getDiferenciaRecibidoAplicado(movimiento) < 0}">
+                                  <span *ngIf="getDiferenciaRecibidoAplicado(movimiento) !== 0">
+                                    {{ getDiferenciaRecibidoAplicado(movimiento) | currency:'':'symbol':'1.0-0' }}
+                                  </span>
+                                  <span *ngIf="getDiferenciaRecibidoAplicado(movimiento) === 0" class="text-muted">
+                                    -
+                                  </span>
+                                </td>
+                              </tr>
+                              <tr *ngIf="getDescuentosPaginados().length === 0">
+                                <td colspan="6" class="text-center text-muted py-2">
+                                  {{ paginacionMovimientoDiario.descuentos.soloConDiferencia ?
+                                  'No hay descuentos con diferencias' :
+                                  'Sin descuentos registrados' }}
+                                </td>
+                              </tr>
+                            </tbody>
+                            <tfoot class="table-light">
+                              <tr class="fw-bold">
+                                <td colspan="3">TOTAL</td>
+                                <td class="text-end text-info">
+                                  {{ getTotalRecibidoDescuentos() | currency:'':'symbol':'1.0-0' }}
+                                </td>
+                                <td class="text-end text-warning">
+                                  {{ getTotalDescuentosCastigos() | currency:'':'symbol':'1.0-0' }}
+                                </td>
+                                <td class="text-end" [ngClass]="{'text-danger': getTotalDiferencia('descuentos') > 0}">
+                                  {{ getTotalDiferencia('descuentos') | currency:'':'symbol':'1.0-0' }}
+                                </td>
+                              </tr>
+                            </tfoot>
+                          </table>
+                        </div>
+                        <!-- Paginación para Descuentos -->
+                        <div class="card-footer p-2" *ngIf="paginacionMovimientoDiario.descuentos.totalPaginas > 1">
+                          <nav aria-label="Paginación descuentos">
+                            <ul class="pagination pagination-sm justify-content-center mb-0">
+                              <li class="page-item"
+                                [class.disabled]="paginacionMovimientoDiario.descuentos.paginaActual === 1">
+                                <a class="page-link"
+                                  (click)="cambiarPaginaMovimiento('descuentos', paginacionMovimientoDiario.descuentos.paginaActual - 1)"
+                                  href="javascript:void(0)">‹</a>
+                              </li>
+                              <li class="page-item active">
+                                <span class="page-link">
+                                  {{ paginacionMovimientoDiario.descuentos.paginaActual }}/{{
+                                  paginacionMovimientoDiario.descuentos.totalPaginas }}
+                                </span>
+                              </li>
+                              <li class="page-item"
+                                [class.disabled]="paginacionMovimientoDiario.descuentos.paginaActual === paginacionMovimientoDiario.descuentos.totalPaginas">
+                                <a class="page-link"
+                                  (click)="cambiarPaginaMovimiento('descuentos', paginacionMovimientoDiario.descuentos.paginaActual + 1)"
+                                  href="javascript:void(0)">›</a>
+                              </li>
+                            </ul>
+                          </nav>
+                        </div>
+                      </div>
+                      <div class="card-body text-center py-3" *ngIf="!paginacionMovimientoDiario.descuentos.expandido">
+                        <strong>Total: {{ getTotalDescuentosCastigos() | currency:'':'symbol':'1.0-0' }}</strong>
+                        <span class="text-danger ms-2" *ngIf="getTotalDiferencia('descuentos') > 0">
+                          (Pendiente: {{ getTotalDiferencia('descuentos') | currency:'':'symbol':'1.0-0' }})
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+
+                  <!-- Ingresos Extracurriculares -->
+                  <div class="col-md-4">
+                    <div class="card border-info">
+                      <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                        <span>
+                          <i class="fas fa-graduation-cap"></i> Ingresos Extracurriculares
+                          <span class="badge bg-danger ms-2" *ngIf="getCantidadConDiferencia('extracurricular') > 0">
+                            {{ getCantidadConDiferencia('extracurricular') }} con diferencia
+                          </span>
+                        </span>
+                        <div>
+                          <button class="btn btn-sm btn-light me-1" (click)="exportarExtracurricularExcel()" title="Exportar a Excel">
+                            <i class="fas fa-file-excel"></i>
+                          </button>
+                          <button class="btn btn-sm btn-light" (click)="toggleExpansion('extracurricular')"
+                            title="{{paginacionMovimientoDiario.extracurricular.expandido ? 'Contraer' : 'Expandir'}}">
+                            <i class="fas"
+                              [ngClass]="paginacionMovimientoDiario.extracurricular.expandido ? 'fa-compress' : 'fa-expand'"></i>
+                          </button>
+                        </div>
+                      </div>
+                      <div class="card-body p-0" *ngIf="paginacionMovimientoDiario.extracurricular.expandido">
+                        <!-- Control de filtro CON SELECTOR DE TIPO -->
+                        <div class="p-2 bg-light border-bottom">
+                          <div class="row g-2">
+                            <div class="col-12 col-lg-6">
+                              <select class="form-select form-select-sm" [(ngModel)]="filtroTipoExtracurricular"
+                                (change)="cambiarFiltroTipo('extracurricular')">
+                                <option value="">Todos los tipos</option>
+                                <option *ngFor="let tipo of tiposExtracurricular" [value]="tipo.id">
+                                  {{ tipo.nombre }}
+                                </option>
+                              </select>
+                            </div>
+                            <div class="col-12 col-lg-6">
+                              <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" id="filtroExtracurricularDiferencia"
+                                  [checked]="paginacionMovimientoDiario.extracurricular.soloConDiferencia"
+                                  (change)="toggleFiltroDiferencia('extracurricular')">
+                                <label class="form-check-label" for="filtroExtracurricularDiferencia">
+                                  Solo con diferencia
+                                </label>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="table-responsive">
+                          <table class="table table-sm mb-0">
+                            <thead class="table-light">
+                              <tr>
+                                <th>Fecha</th>
+                                <th>Estudiante</th>
+                                <th>Tipo</th>
+                                <th class="text-end">Recibido</th>
+                                <th class="text-end">Aplicado</th>
+                                <th class="text-end">Diferencia</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr *ngFor="let movimiento of getExtracurricularPaginados()"
+                                [ngClass]="{'table-warning': tieneDiferenciaRecibidoAplicado(movimiento)}">
+                                <td>{{ formatearFecha(movimiento.fecha) }}</td>
+                                <td>
+                                  <small>{{ movimiento.nombre_estudiante || '-' }}</small>
+                                </td>
+                                <td>
+                                  <span class="badge bg-info">
+                                    {{ obtenerNombreTipoPago(movimiento.id_tipo_pago) }}
+                                  </span>
+                                </td>
+                                <td class="text-end">
+                                  {{ (movimiento.total_recibido || 0) | currency:'':'symbol':'1.0-0' }}
+                                </td>
+                                <td class="text-end">
+                                  {{ movimiento.total_pagado | currency:'':'symbol':'1.0-0' }}
+                                </td>
+                                <td class="text-end" [ngClass]="{'text-danger fw-bold': getDiferenciaRecibidoAplicado(movimiento) > 0,
+                          'text-success': getDiferenciaRecibidoAplicado(movimiento) < 0}">
+                                  <span *ngIf="getDiferenciaRecibidoAplicado(movimiento) !== 0">
+                                    {{ getDiferenciaRecibidoAplicado(movimiento) | currency:'':'symbol':'1.0-0' }}
+                                  </span>
+                                  <span *ngIf="getDiferenciaRecibidoAplicado(movimiento) === 0" class="text-muted">
+                                    -
+                                  </span>
+                                </td>
+                              </tr>
+                              <tr *ngIf="getExtracurricularPaginados().length === 0">
+                                <td colspan="6" class="text-center text-muted py-2">
+                                  {{ paginacionMovimientoDiario.extracurricular.soloConDiferencia ?
+                                  'No hay ingresos extracurriculares con diferencias' :
+                                  'Sin ingresos extracurriculares' }}
+                                </td>
+                              </tr>
+                            </tbody>
+                            <tfoot class="table-light">
+                              <tr class="fw-bold">
+                                <td colspan="3">TOTAL</td>
+                                <td class="text-end text-info">
+                                  {{ getTotalRecibidoExtracurricular() | currency:'':'symbol':'1.0-0' }}
+                                </td>
+                                <td class="text-end text-info">
+                                  {{ getTotalExtracurricular() | currency:'':'symbol':'1.0-0' }}
+                                </td>
+                                <td class="text-end"
+                                  [ngClass]="{'text-danger': getTotalDiferencia('extracurricular') > 0}">
+                                  {{ getTotalDiferencia('extracurricular') | currency:'':'symbol':'1.0-0' }}
+                                </td>
+                              </tr>
+                            </tfoot>
+                          </table>
+                        </div>
+                        <!-- Paginación para Extracurricular -->
+                        <div class="card-footer p-2"
+                          *ngIf="paginacionMovimientoDiario.extracurricular.totalPaginas > 1">
+                          <nav aria-label="Paginación extracurricular">
+                            <ul class="pagination pagination-sm justify-content-center mb-0">
+                              <li class="page-item"
+                                [class.disabled]="paginacionMovimientoDiario.extracurricular.paginaActual === 1">
+                                <a class="page-link"
+                                  (click)="cambiarPaginaMovimiento('extracurricular', paginacionMovimientoDiario.extracurricular.paginaActual - 1)"
+                                  href="javascript:void(0)">‹</a>
+                              </li>
+                              <li class="page-item active">
+                                <span class="page-link">
+                                  {{ paginacionMovimientoDiario.extracurricular.paginaActual }}/{{
+                                  paginacionMovimientoDiario.extracurricular.totalPaginas }}
+                                </span>
+                              </li>
+                              <li class="page-item"
+                                [class.disabled]="paginacionMovimientoDiario.extracurricular.paginaActual === paginacionMovimientoDiario.extracurricular.totalPaginas">
+                                <a class="page-link"
+                                  (click)="cambiarPaginaMovimiento('extracurricular', paginacionMovimientoDiario.extracurricular.paginaActual + 1)"
+                                  href="javascript:void(0)">›</a>
+                              </li>
+                            </ul>
+                          </nav>
+                        </div>
+                      </div>
+                      <div class="card-body text-center py-3"
+                        *ngIf="!paginacionMovimientoDiario.extracurricular.expandido">
+                        <strong>Total: {{ getTotalExtracurricular() | currency:'':'symbol':'1.0-0' }}</strong>
+                        <span class="text-danger ms-2" *ngIf="getTotalDiferencia('extracurricular') > 0">
+                          (Pendiente: {{ getTotalDiferencia('extracurricular') | currency:'':'symbol':'1.0-0' }})
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+
+            <!-- Resumen general -->
+            <div class="row mt-4">
+              <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                  <div class="card-header bg-primary text-white">
+                    <h6 class="mb-0">
+                      <i class="fas fa-chart-line"></i> Resumen General del Período
+                    </h6>
+                  </div>
+                  <div class="card-body">
+                    <div class="row">
+                      <!-- Columna Izquierda: Desglose -->
+                      <div class="col-md-6 border-end">
+                        <h6 class="text-muted mb-3">Desglose de Movimientos</h6>
+                        <div class="mb-2 d-flex justify-content-between align-items-center">
+                          <span>Total Cobrado:</span>
+                          <strong class="text-primary">{{ getTotalCobrado() | currency:'':'symbol':'1.0-0' }}</strong>
+                        </div>
+
+                        <hr class="my-2">
+
+                        <div class="mb-2 d-flex justify-content-between align-items-center">
+                          <span class="text-muted">Ingresos (Efectivo/Bancos):</span>
+                          <span class="text-success">{{ getTotalIngresos() | currency:'':'symbol':'1.0-0' }}</span>
+                        </div>
+
+                        <div class="mb-2 d-flex justify-content-between align-items-center">
+                          <span class="text-muted">Descuentos y Castigos:</span>
+                          <span class="text-warning">{{ getTotalDescuentosCastigos() | currency:'':'symbol':'1.0-0'
+                            }}</span>
+                        </div>
+
+                        <div class="mb-2 d-flex justify-content-between align-items-center">
+                          <span class="text-muted">Ingresos Extracurriculares:</span>
+                          <span class="text-info">{{ getTotalExtracurricular() | currency:'':'symbol':'1.0-0' }}</span>
+                        </div>
+                      </div>
+
+                      <!-- Columna Derecha: Totales -->
+                      <div class="col-md-6">
+                        <h6 class="text-muted mb-3">Totales</h6>
+
+                        <div class="mb-3 p-3 bg-light rounded">
+                          <div class="d-flex justify-content-between align-items-center">
+                            <span class="fs-6">Total Recaudado:</span>
+                            <span class="fs-4 fw-bold text-success">
+                              {{ getTotalPagado() | currency:'':'symbol':'1.0-0' }}
+                            </span>
+                          </div>
+                          <small class="text-muted">
+                            (Ingresos + Descuentos + Extracurriculares)
+                          </small>
+                        </div>
+
+                        <div class="p-3 rounded" [ngClass]="{
+                    'bg-success bg-opacity-10': getBalance() > 0,
+                    'bg-danger bg-opacity-10': getBalance() < 0,
+                    'bg-secondary bg-opacity-10': getBalance() === 0
+                  }">
+                          <div class="d-flex justify-content-between align-items-center">
+                            <span class="fs-6">Balance:</span>
+                            <span class="fs-4 fw-bold" [ngClass]="{
+                        'text-success': getBalance() > 0,
+                        'text-danger': getBalance() < 0,
+                        'text-secondary': getBalance() === 0
+                      }">
+                              {{ getBalance() | currency:'':'symbol':'1.0-0' }}
+                            </span>
+                          </div>
+                          <small class="text-muted">
+                            (Recaudado - Cobrado)
+                          </small>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Tab: Anulados -->
+      <div class="tab-pane fade" id="anulados" role="tabpanel" aria-labelledby="anulados-tab">
+        <div class="card">
+          <div class="card-body">
+            <!-- Filtros de fecha para anulados -->
+            <div class="row mb-3">
+              <div class="col-md-4">
+                <label class="form-label">Fecha Inicio Anulación:</label>
+                <input type="date" class="form-control" [(ngModel)]="fechaInicioAnulacion" (change)="filtrarAnulados()">
+              </div>
+
+              <div class="col-md-4">
+                <label class="form-label">Fecha Fin Anulación:</label>
+                <input type="date" class="form-control" [(ngModel)]="fechaFinAnulacion" (change)="filtrarAnulados()">
+              </div>
+
+              <div class="col-md-4">
+                <label class="form-label">&nbsp;</label>
+                <button class="btn btn-secondary d-block w-100"
+                  (click)="fechaInicioAnulacion = ''; fechaFinAnulacion = ''; filtrarAnulados()">
+                  <i class="fas fa-eraser"></i> Limpiar filtros
+                </button>
+              </div>
+            </div>
+
+            <!-- Tabs internos para Cobros y Pagos Anulados -->
+            <ul class="nav nav-pills mb-3" role="tablist">
+              <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="cobros-anulados-tab" data-bs-toggle="tab"
+                  data-bs-target="#cobros-anulados" type="button" role="tab">
+                  <i class="fas fa-file-invoice-dollar"></i> Cobros Anulados
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="pagos-anulados-tab" data-bs-toggle="tab" data-bs-target="#pagos-anulados"
+                  type="button" role="tab">
+                  <i class="fas fa-hand-holding-usd"></i> Pagos Anulados
+                </button>
+              </li>
+            </ul>
+
+            <!-- Contenido de los tabs internos -->
+            <div class="tab-content">
+              <!-- Tab de Cobros Anulados -->
+              <div class="tab-pane fade show active" id="cobros-anulados" role="tabpanel">
+                <div class="row">
+                  <div class="col-12">
+                    <div class="card border-danger">
+                      <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+                        <span>
+                          <i class="fas fa-ban"></i> Cobros Anulados
+                          <span class="badge bg-light text-dark ms-2">
+                            {{ getTotalCantidadCobrosAnulados() }} registros
+                          </span>
+                        </span>
+                        <button class="btn btn-sm btn-light" (click)="toggleExpansionAnulado('cobros')"
+                          title="{{paginacionAnulados.cobros.expandido ? 'Contraer' : 'Expandir'}}">
+                          <i class="fas"
+                            [ngClass]="paginacionAnulados.cobros.expandido ? 'fa-compress' : 'fa-expand'"></i>
+                        </button>
+                      </div>
+
+                      <div class="card-body p-0" *ngIf="paginacionAnulados.cobros.expandido">
+                        <!-- Control de registros por página -->
+                        <div class="p-2 bg-light border-bottom">
+                          <div class="row g-2">
+                            <div class="col-12 col-lg-6">
+                              <label class="form-label mb-0 me-2">Mostrar:</label>
+                              <select class="form-select form-select-sm w-auto d-inline-block"
+                                [(ngModel)]="paginacionAnulados.cobros.registrosPorPagina"
+                                (change)="cambiarRegistrosPorPaginaAnulado('cobros', paginacionAnulados.cobros.registrosPorPagina)">
+                                <option [value]="5">5</option>
+                                <option [value]="10">10</option>
+                                <option [value]="20">20</option>
+                                <option [value]="50">50</option>
+                              </select>
+                              <span class="ms-2 text-muted">registros</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="table-responsive">
+                          <table class="table table-sm mb-0">
+                            <thead class="table-light">
+                              <tr>
+                                <th>Fecha Anulación</th>
+                                <th>Fecha Original</th>
+                                <th>Estudiante</th>
+                                <th>Producto</th>
+                                <th>Clasificación</th>
+                                <th class="text-end">Valor Anulado</th>
+                                <th>Usuario Anuló</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr *ngFor="let anulado of getCobrosAnuladosPaginados()">
+                                <td>
+                                  <span class="text-danger">{{ formatearFecha(anulado.fecha_anulacion) }}</span>
+                                </td>
+                                <td>
+                                  <small class="text-muted">{{ formatearFecha(anulado.fecha_original) }}</small>
+                                </td>
+                                <td>
+                                  <small>{{ anulado.nombre_estudiante || '-' }}</small>
+                                </td>
+                                <td>
+                                  <small>{{ anulado.nombre_producto || '-' }}</small>
+                                </td>
+                                <td>
+                                  <span class="badge bg-secondary">{{ anulado.nombre_clasificacion || '-' }}</span>
+                                </td>
+                                <td class="text-end text-danger fw-bold">
+                                  {{ anulado.valor_anulado | currency:'':'symbol':'1.0-0' }}
+                                </td>
+                                <td>
+                                  <small class="text-muted">{{ anulado.nombre_usuario_anulacion || '-' }}</small>
+                                </td>
+                              </tr>
+                              <tr *ngIf="getCobrosAnuladosPaginados().length === 0">
+                                <td colspan="7" class="text-center text-muted py-3">
+                                  No hay cobros anulados en el período seleccionado
+                                </td>
+                              </tr>
+                            </tbody>
+                            <tfoot class="table-light">
+                              <tr class="fw-bold">
+                                <td colspan="5">TOTAL COBROS ANULADOS</td>
+                                <td class="text-end text-danger">
+                                  {{ getTotalCobrosAnulados() | currency:'':'symbol':'1.0-0' }}
+                                </td>
+                                <td class="text-end">
+                                  <span class="badge bg-danger">{{ getTotalCantidadCobrosAnulados() }}</span>
+                                </td>
+                              </tr>
+                            </tfoot>
+                          </table>
+                        </div>
+
+                        <!-- Paginación para Cobros Anulados -->
+                        <div class="card-footer p-2" *ngIf="paginacionAnulados.cobros.totalPaginas > 1">
+                          <nav aria-label="Paginación cobros anulados">
+                            <ul class="pagination pagination-sm justify-content-center mb-0">
+                              <li class="page-item" [class.disabled]="paginacionAnulados.cobros.paginaActual === 1">
+                                <a class="page-link"
+                                  (click)="cambiarPaginaAnulado('cobros', paginacionAnulados.cobros.paginaActual - 1)"
+                                  href="javascript:void(0)">‹</a>
+                              </li>
+                              <li class="page-item active">
+                                <span class="page-link">
+                                  {{ paginacionAnulados.cobros.paginaActual }}/{{
+                                  paginacionAnulados.cobros.totalPaginas }}
+                                </span>
+                              </li>
+                              <li class="page-item"
+                                [class.disabled]="paginacionAnulados.cobros.paginaActual === paginacionAnulados.cobros.totalPaginas">
+                                <a class="page-link"
+                                  (click)="cambiarPaginaAnulado('cobros', paginacionAnulados.cobros.paginaActual + 1)"
+                                  href="javascript:void(0)">›</a>
+                              </li>
+                            </ul>
+                          </nav>
+                        </div>
+                      </div>
+
+                      <!-- Vista colapsada -->
+                      <div class="card-body text-center py-3" *ngIf="!paginacionAnulados.cobros.expandido">
+                        <strong>Total Cobros Anulados: {{ getTotalCobrosAnulados() | currency:'':'symbol':'1.0-0'
+                          }}</strong>
+                        <span class="badge bg-danger ms-2">{{ getTotalCantidadCobrosAnulados() }} cobros</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Tab de Pagos Anulados -->
+              <div class="tab-pane fade" id="pagos-anulados" role="tabpanel">
+                <!-- Controles generales de pagos anulados -->
+                <div class="row mb-3">
+                  <div class="col-12">
+                    <div class="btn-group btn-group-sm" role="group">
+                      <button type="button" class="btn btn-outline-danger"
+                        (click)="toggleExpansionAnulado('ingresos'); toggleExpansionAnulado('descuentos'); toggleExpansionAnulado('extracurricular')">
+                        <i class="fas fa-expand-alt"></i> Expandir/Contraer Todo
+                      </button>
+                      <button type="button" class="btn btn-outline-secondary"
+                        (click)="cambiarRegistrosPorPaginaAnulado('ingresos', 10); cambiarRegistrosPorPaginaAnulado('descuentos', 10); cambiarRegistrosPorPaginaAnulado('extracurricular', 10)">
+                        <i class="fas fa-list"></i> Ver más registros
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Tres secciones de pagos anulados -->
+                <div class="row">
+                  <!-- Ingresos Anulados -->
+                  <div class="col-md-4">
+                    <div class="card border-danger">
+                      <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+                        <span>
+                          <i class="fas fa-money-bill-wave"></i> Ingresos Anulados
+                        </span>
+                        <button class="btn btn-sm btn-light" (click)="toggleExpansionAnulado('ingresos')"
+                          title="{{paginacionAnulados.ingresos.expandido ? 'Contraer' : 'Expandir'}}">
+                          <i class="fas"
+                            [ngClass]="paginacionAnulados.ingresos.expandido ? 'fa-compress' : 'fa-expand'"></i>
+                        </button>
+                      </div>
+                      <div class="card-body p-0" *ngIf="paginacionAnulados.ingresos.expandido">
+                        <!-- Controles de filtro -->
+                        <div class="p-2 bg-light border-bottom">
+                          <div class="row g-2">
+                            <div class="col-12">
+                              <select class="form-select form-select-sm" [(ngModel)]="filtroTipoAnuladosIngresos"
+                                (change)="cambiarFiltroTipoAnulado('ingresos')">
+                                <option value="">Todos los tipos</option>
+                                <option *ngFor="let tipo of tiposAnuladosIngresos" [value]="tipo.id">
+                                  {{ tipo.nombre }}
+                                </option>
+                              </select>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="table-responsive">
+                          <table class="table table-sm mb-0">
+                            <thead class="table-light">
+                              <tr>
+                                <th>Fecha Anul.</th>
+                                <th>Estudiante</th>
+                                <th>Tipo</th>
+                                <th class="text-end">Valor</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr *ngFor="let anulado of getIngresosAnuladosPaginados()">
+                                <td>
+                                  <small>{{ formatearFecha(anulado.fecha_anulacion) }}</small>
+                                </td>
+                                <td>
+                                  <small>{{ anulado.nombre_estudiante || '-' }}</small>
+                                </td>
+                                <td>
+                                  <span class="badge bg-danger">
+                                    {{ obtenerNombreTipoPago(anulado.id_tipo_pago) }}
+                                  </span>
+                                </td>
+                                <td class="text-end text-danger">
+                                  {{ anulado.valor_anulado | currency:'':'symbol':'1.0-0' }}
+                                </td>
+                              </tr>
+                              <tr *ngIf="getIngresosAnuladosPaginados().length === 0">
+                                <td colspan="4" class="text-center text-muted py-2">
+                                  Sin ingresos anulados
+                                </td>
+                              </tr>
+                            </tbody>
+                            <tfoot class="table-light">
+                              <tr class="fw-bold">
+                                <td colspan="3">TOTAL</td>
+                                <td class="text-end text-danger">
+                                  {{ getTotalIngresosAnulados() | currency:'':'symbol':'1.0-0' }}
+                                </td>
+                              </tr>
+                            </tfoot>
+                          </table>
+                        </div>
+                        <!-- Paginación para Ingresos Anulados -->
+                        <div class="card-footer p-2" *ngIf="paginacionAnulados.ingresos.totalPaginas > 1">
+                          <nav aria-label="Paginación ingresos anulados">
+                            <ul class="pagination pagination-sm justify-content-center mb-0">
+                              <li class="page-item" [class.disabled]="paginacionAnulados.ingresos.paginaActual === 1">
+                                <a class="page-link"
+                                  (click)="cambiarPaginaAnulado('ingresos', paginacionAnulados.ingresos.paginaActual - 1)"
+                                  href="javascript:void(0)">‹</a>
+                              </li>
+                              <li class="page-item active">
+                                <span class="page-link">
+                                  {{ paginacionAnulados.ingresos.paginaActual }}/{{
+                                  paginacionAnulados.ingresos.totalPaginas }}
+                                </span>
+                              </li>
+                              <li class="page-item"
+                                [class.disabled]="paginacionAnulados.ingresos.paginaActual === paginacionAnulados.ingresos.totalPaginas">
+                                <a class="page-link"
+                                  (click)="cambiarPaginaAnulado('ingresos', paginacionAnulados.ingresos.paginaActual + 1)"
+                                  href="javascript:void(0)">›</a>
+                              </li>
+                            </ul>
+                          </nav>
+                        </div>
+                      </div>
+                      <div class="card-body text-center py-3" *ngIf="!paginacionAnulados.ingresos.expandido">
+                        <strong>Total: {{ getTotalIngresosAnulados() | currency:'':'symbol':'1.0-0' }}</strong>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Descuentos y Castigos Anulados -->
+                  <div class="col-md-4">
+                    <div class="card border-danger">
+                      <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+                        <span>
+                          <i class="fas fa-percentage"></i> Descuentos Anulados
+                        </span>
+                        <button class="btn btn-sm btn-light" (click)="toggleExpansionAnulado('descuentos')"
+                          title="{{paginacionAnulados.descuentos.expandido ? 'Contraer' : 'Expandir'}}">
+                          <i class="fas"
+                            [ngClass]="paginacionAnulados.descuentos.expandido ? 'fa-compress' : 'fa-expand'"></i>
+                        </button>
+                      </div>
+                      <div class="card-body p-0" *ngIf="paginacionAnulados.descuentos.expandido">
+                        <!-- Controles de filtro -->
+                        <div class="p-2 bg-light border-bottom">
+                          <div class="row g-2">
+                            <div class="col-12">
+                              <select class="form-select form-select-sm" [(ngModel)]="filtroTipoAnuladosDescuentos"
+                                (change)="cambiarFiltroTipoAnulado('descuentos')">
+                                <option value="">Todos los tipos</option>
+                                <option *ngFor="let tipo of tiposAnuladosDescuentos" [value]="tipo.id">
+                                  {{ tipo.nombre }}
+                                </option>
+                              </select>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="table-responsive">
+                          <table class="table table-sm mb-0">
+                            <thead class="table-light">
+                              <tr>
+                                <th>Fecha Anul.</th>
+                                <th>Estudiante</th>
+                                <th>Tipo</th>
+                                <th class="text-end">Valor</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr *ngFor="let anulado of getDescuentosAnuladosPaginados()">
+                                <td>
+                                  <small>{{ formatearFecha(anulado.fecha_anulacion) }}</small>
+                                </td>
+                                <td>
+                                  <small>{{ anulado.nombre_estudiante || '-' }}</small>
+                                </td>
+                                <td>
+                                  <span class="badge bg-danger">
+                                    {{ obtenerNombreTipoPago(anulado.id_tipo_pago) }}
+                                  </span>
+                                </td>
+                                <td class="text-end text-danger">
+                                  {{ anulado.valor_anulado | currency:'':'symbol':'1.0-0' }}
+                                </td>
+                              </tr>
+                              <tr *ngIf="getDescuentosAnuladosPaginados().length === 0">
+                                <td colspan="4" class="text-center text-muted py-2">
+                                  Sin descuentos anulados
+                                </td>
+                              </tr>
+                            </tbody>
+                            <tfoot class="table-light">
+                              <tr class="fw-bold">
+                                <td colspan="3">TOTAL</td>
+                                <td class="text-end text-danger">
+                                  {{ getTotalDescuentosAnulados() | currency:'':'symbol':'1.0-0' }}
+                                </td>
+                              </tr>
+                            </tfoot>
+                          </table>
+                        </div>
+                        <!-- Paginación para Descuentos Anulados -->
+                        <div class="card-footer p-2" *ngIf="paginacionAnulados.descuentos.totalPaginas > 1">
+                          <nav aria-label="Paginación descuentos anulados">
+                            <ul class="pagination pagination-sm justify-content-center mb-0">
+                              <li class="page-item" [class.disabled]="paginacionAnulados.descuentos.paginaActual === 1">
+                                <a class="page-link"
+                                  (click)="cambiarPaginaAnulado('descuentos', paginacionAnulados.descuentos.paginaActual - 1)"
+                                  href="javascript:void(0)">‹</a>
+                              </li>
+                              <li class="page-item active">
+                                <span class="page-link">
+                                  {{ paginacionAnulados.descuentos.paginaActual }}/{{
+                                  paginacionAnulados.descuentos.totalPaginas }}
+                                </span>
+                              </li>
+                              <li class="page-item"
+                                [class.disabled]="paginacionAnulados.descuentos.paginaActual === paginacionAnulados.descuentos.totalPaginas">
+                                <a class="page-link"
+                                  (click)="cambiarPaginaAnulado('descuentos', paginacionAnulados.descuentos.paginaActual + 1)"
+                                  href="javascript:void(0)">›</a>
+                              </li>
+                            </ul>
+                          </nav>
+                        </div>
+                      </div>
+                      <div class="card-body text-center py-3" *ngIf="!paginacionAnulados.descuentos.expandido">
+                        <strong>Total: {{ getTotalDescuentosAnulados() | currency:'':'symbol':'1.0-0' }}</strong>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Ingresos Extracurriculares Anulados -->
+                  <div class="col-md-4">
+                    <div class="card border-danger">
+                      <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+                        <span>
+                          <i class="fas fa-graduation-cap"></i> Extracurriculares Anulados
+                        </span>
+                        <button class="btn btn-sm btn-light" (click)="toggleExpansionAnulado('extracurricular')"
+                          title="{{paginacionAnulados.extracurricular.expandido ? 'Contraer' : 'Expandir'}}">
+                          <i class="fas"
+                            [ngClass]="paginacionAnulados.extracurricular.expandido ? 'fa-compress' : 'fa-expand'"></i>
+                        </button>
+                      </div>
+                      <div class="card-body p-0" *ngIf="paginacionAnulados.extracurricular.expandido">
+                        <!-- Control de filtro -->
+                        <div class="p-2 bg-light border-bottom">
+                          <div class="row g-2">
+                            <div class="col-12">
+                              <select class="form-select form-select-sm" [(ngModel)]="filtroTipoAnuladosExtracurricular"
+                                (change)="cambiarFiltroTipoAnulado('extracurricular')">
+                                <option value="">Todos los tipos</option>
+                                <option *ngFor="let tipo of tiposAnuladosExtracurricular" [value]="tipo.id">
+                                  {{ tipo.nombre }}
+                                </option>
+                              </select>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="table-responsive">
+                          <table class="table table-sm mb-0">
+                            <thead class="table-light">
+                              <tr>
+                                <th>Fecha Anul.</th>
+                                <th>Estudiante</th>
+                                <th>Tipo</th>
+                                <th class="text-end">Valor</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr *ngFor="let anulado of getExtracurricularAnuladosPaginados()">
+                                <td>
+                                  <small>{{ formatearFecha(anulado.fecha_anulacion) }}</small>
+                                </td>
+                                <td>
+                                  <small>{{ anulado.nombre_estudiante || '-' }}</small>
+                                </td>
+                                <td>
+                                  <span class="badge bg-danger">
+                                    {{ obtenerNombreTipoPago(anulado.id_tipo_pago) }}
+                                  </span>
+                                </td>
+                                <td class="text-end text-danger">
+                                  {{ anulado.valor_anulado | currency:'':'symbol':'1.0-0' }}
+                                </td>
+                              </tr>
+                              <tr *ngIf="getExtracurricularAnuladosPaginados().length === 0">
+                                <td colspan="4" class="text-center text-muted py-2">
+                                  Sin ingresos extracurriculares anulados
+                                </td>
+                              </tr>
+                            </tbody>
+                            <tfoot class="table-light">
+                              <tr class="fw-bold">
+                                <td colspan="3">TOTAL</td>
+                                <td class="text-end text-danger">
+                                  {{ getTotalExtracurricularAnulados() | currency:'':'symbol':'1.0-0' }}
+                                </td>
+                              </tr>
+                            </tfoot>
+                          </table>
+                        </div>
+                        <!-- Paginación para Extracurricular Anulados -->
+                        <div class="card-footer p-2" *ngIf="paginacionAnulados.extracurricular.totalPaginas > 1">
+                          <nav aria-label="Paginación extracurricular anulados">
+                            <ul class="pagination pagination-sm justify-content-center mb-0">
+                              <li class="page-item"
+                                [class.disabled]="paginacionAnulados.extracurricular.paginaActual === 1">
+                                <a class="page-link"
+                                  (click)="cambiarPaginaAnulado('extracurricular', paginacionAnulados.extracurricular.paginaActual - 1)"
+                                  href="javascript:void(0)">‹</a>
+                              </li>
+                              <li class="page-item active">
+                                <span class="page-link">
+                                  {{ paginacionAnulados.extracurricular.paginaActual }}/{{
+                                  paginacionAnulados.extracurricular.totalPaginas }}
+                                </span>
+                              </li>
+                              <li class="page-item"
+                                [class.disabled]="paginacionAnulados.extracurricular.paginaActual === paginacionAnulados.extracurricular.totalPaginas">
+                                <a class="page-link"
+                                  (click)="cambiarPaginaAnulado('extracurricular', paginacionAnulados.extracurricular.paginaActual + 1)"
+                                  href="javascript:void(0)">›</a>
+                              </li>
+                            </ul>
+                          </nav>
+                        </div>
+                      </div>
+                      <div class="card-body text-center py-3" *ngIf="!paginacionAnulados.extracurricular.expandido">
+                        <strong>Total: {{ getTotalExtracurricularAnulados() | currency:'':'symbol':'1.0-0' }}</strong>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Resumen general de anulados -->
+            <div class="row mt-4">
+              <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                  <div class="card-header bg-danger text-white">
+                    <h6 class="mb-0">
+                      <i class="fas fa-ban"></i> Resumen General de Anulaciones
+                    </h6>
+                  </div>
+                  <div class="card-body">
+                    <div class="row">
+                      <!-- Columna Izquierda: Desglose -->
+                      <div class="col-md-6 border-end">
+                        <h6 class="text-muted mb-3">Desglose de Anulaciones</h6>
+                        <div class="mb-2 d-flex justify-content-between align-items-center">
+                          <span>Total Cobros Anulados:</span>
+                          <strong class="text-danger">{{ getTotalCobrosAnulados() | currency:'':'symbol':'1.0-0'
+                            }}</strong>
+                        </div>
+
+                        <hr class="my-2">
+
+                        <div class="mb-2 d-flex justify-content-between align-items-center">
+                          <span class="text-muted">Ingresos Anulados:</span>
+                          <span class="text-danger">{{ getTotalIngresosAnulados() | currency:'':'symbol':'1.0-0'
+                            }}</span>
+                        </div>
+
+                        <div class="mb-2 d-flex justify-content-between align-items-center">
+                          <span class="text-muted">Descuentos Anulados:</span>
+                          <span class="text-danger">{{ getTotalDescuentosAnulados() | currency:'':'symbol':'1.0-0'
+                            }}</span>
+                        </div>
+
+                        <div class="mb-2 d-flex justify-content-between align-items-center">
+                          <span class="text-muted">Extracurriculares Anulados:</span>
+                          <span class="text-danger">{{ getTotalExtracurricularAnulados() | currency:'':'symbol':'1.0-0'
+                            }}</span>
+                        </div>
+                      </div>
+
+                      <!-- Columna Derecha: Totales -->
+                      <div class="col-md-6">
+                        <h6 class="text-muted mb-3">Totales</h6>
+
+                        <div class="mb-3 p-3 bg-light rounded">
+                          <div class="d-flex justify-content-between align-items-center">
+                            <span class="fs-6">Total Pagos Anulados:</span>
+                            <span class="fs-4 fw-bold text-danger">
+                              {{ getTotalPagosAnulados() | currency:'':'symbol':'1.0-0' }}
+                            </span>
+                          </div>
+                          <small class="text-muted">
+                            (Ingresos + Descuentos + Extracurriculares)
+                          </small>
+                        </div>
+
+                        <div class="p-3 bg-danger bg-opacity-10 rounded">
+                          <div class="d-flex justify-content-between align-items-center">
+                            <span class="fs-6">Total General Anulado:</span>
+                            <span class="fs-4 fw-bold text-danger">
+                              {{ (getTotalCobrosAnulados() + getTotalPagosAnulados()) | currency:'':'symbol':'1.0-0' }}
+                            </span>
+                          </div>
+                          <small class="text-muted">
+                            (Cobros + Pagos Anulados)
+                          </small>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- Tab: Saldos Pendientes Mensuales -->
+      <div class="tab-pane fade" id="saldos-pendientes" role="tabpanel" aria-labelledby="saldos-pendientes-tab">
+        <div class="card">
+          <div class="card-body">
+            <!-- Controles de la tabla -->
+            <div class="row mb-3">
+              <div class="col-md-4">
+                <div class="form-check form-check-inline">
+                  <input class="form-check-input" type="checkbox" id="mostrarSoloConSaldo"
+                    [(ngModel)]="mostrarSoloConSaldoPendiente" (change)="aplicarFiltrosSaldosPendientes()">
+                  <label class="form-check-label" for="mostrarSoloConSaldo">
+                    Solo con saldo pendiente
+                  </label>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label me-2">Estado:</label>
+                <select class="form-select form-select-sm d-inline-block w-auto"
+                  [(ngModel)]="filtroActivoSaldosEstudiantes" (change)="aplicarFiltrosSaldosPendientes()">
+                  <option value="todos">Todos</option>
+                  <option value="activos">Solo activos</option>
+                  <option value="inactivos">Solo inactivos</option>
+                </select>
+              </div>
+              <div class="col-md-4 text-end">
+                <button class="btn btn-sm btn-secondary" (click)="exportarSaldosPendientesMensuales()">
+                  <i class="fas fa-file-excel"></i> Exportar tabla
+                </button>
+              </div>
+            </div>
+
+            <!-- Tabla de saldos pendientes mensuales -->
+            <div class="table-responsive tabla-saldos-mensuales">
+              <table class="table table-hover table-bordered table-sm">
+                <thead class="table-light sticky-top">
+                  <tr>
+                    <th class="columna-fija sortable" (click)="ordenarPorSaldosPendientes('nombre_estudiante')">
+                      Estudiante
+                      <i class="fas fa-sort float-end" [ngClass]="{
+                  'fa-sort': columnaOrdenamientoSaldos !== 'nombre_estudiante',
+                  'fa-sort-up': columnaOrdenamientoSaldos === 'nombre_estudiante' && ordenAscendenteSaldos,
+                  'fa-sort-down': columnaOrdenamientoSaldos === 'nombre_estudiante' && !ordenAscendenteSaldos
+                }"></i>
+                    </th>
+                    <th class="columna-grupo sortable" (click)="ordenarPorSaldosPendientes('grupo_estudiante')">
+                      Grupo
+                      <i class="fas fa-sort float-end" [ngClass]="{
+                  'fa-sort': columnaOrdenamientoSaldos !== 'grupo_estudiante',
+                  'fa-sort-up': columnaOrdenamientoSaldos === 'grupo_estudiante' && ordenAscendenteSaldos,
+                  'fa-sort-down': columnaOrdenamientoSaldos === 'grupo_estudiante' && !ordenAscendenteSaldos
+                }"></i>
+                    </th>
+                    <th class="text-center columna-mes" *ngFor="let mes of mesesDisponibles">
+                      {{ mes.nombre.substring(0, 3) }}
+                    </th>
+                    <th class="text-end columna-total sortable"
+                      (click)="ordenarPorSaldosPendientes('totalSaldoPendiente')">
+                      Total
+                      <i class="fas fa-sort float-end" [ngClass]="{
+                  'fa-sort': columnaOrdenamientoSaldos !== 'totalSaldoPendiente',
+                  'fa-sort-up': columnaOrdenamientoSaldos === 'totalSaldoPendiente' && ordenAscendenteSaldos,
+                  'fa-sort-down': columnaOrdenamientoSaldos === 'totalSaldoPendiente' && !ordenAscendenteSaldos
+                }"></i>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let estudiante of estudiantesSaldosPendientesFiltrados"
+                    [ngClass]="{'table-warning': (estudiante.totalSaldoPendiente || 0) > 0}">
+                    <td class="columna-fija">{{ estudiante.nombre_estudiante }}</td>
+                    <td class="columna-grupo">{{ estudiante.grupo_estudiante }}</td>
+                    <td class="text-end columna-mes" *ngFor="let mes of mesesDisponibles" [ngClass]="{
+                    'text-danger': getSaldoPendienteMes(estudiante, mes.valor) > 0,
+                    'table-danger': getSaldoPendienteMes(estudiante, mes.valor) > 100000
+                  }">
+                      <span *ngIf="getSaldoPendienteMes(estudiante, mes.valor) > 0">
+                        {{ getSaldoPendienteMes(estudiante, mes.valor) | currency:'':'symbol':'1.0-0' }}
+                      </span>
+                      <span *ngIf="getSaldoPendienteMes(estudiante, mes.valor) === 0" class="text-muted">
+                        -
+                      </span>
+                    </td>
+                    <td class="text-end columna-total fw-bold"
+                      [ngClass]="{'text-danger': (estudiante.totalSaldoPendiente || 0) > 0}">
+                      {{ estudiante.totalSaldoPendiente | currency:'':'symbol':'1.0-0' }}
+                    </td>
+                  </tr>
+                  <tr *ngIf="estudiantesSaldosPendientesFiltrados.length === 0">
+                    <td colspan="15" class="text-center text-muted py-4">
+                      {{ mostrarSoloConSaldoPendiente ?
+                      'No se encontraron estudiantes con saldos pendientes' :
+                      'No se encontraron estudiantes con los filtros aplicados' }}
+                    </td>
+                  </tr>
+                </tbody>
+                <tfoot class="table-light">
+                  <tr class="fw-bold">
+                    <td colspan="2">TOTALES</td>
+                    <td class="text-end" *ngFor="let mes of mesesDisponibles">
+                      {{ getTotalSaldoPendienteMes(mes.valor) | currency:'':'symbol':'1.0-0' }}
+                    </td>
+                    <td class="text-end text-danger">
+                      {{ getTotalSaldosPendientes() | currency:'':'symbol':'1.0-0' }}
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+
+            <!-- Resumen de saldos pendientes -->
+            <div class="row mt-4">
+              <div class="col-md-12">
+                <div class="alert alert-info">
+                  <h6 class="alert-heading">
+                    <i class="fas fa-info-circle"></i> Resumen de Saldos Pendientes
+                  </h6>
+                  <div class="row">
+                    <div class="col-md-4">
+                      <strong>Total estudiantes con saldo:</strong>
+                      {{ getEstudiantesConSaldoPendiente() }} de {{ estudiantesSaldosPendientesFiltrados.length }}
+                    </div>
+                    <div class="col-md-4">
+                      <strong>Mes con mayor saldo pendiente:</strong>
+                      {{ getMesConMayorSaldoPendiente() }}
+                    </div>
+                    <div class="col-md-4">
+                      <strong>Promedio saldo por estudiante:</strong>
+                      {{ getPromedioSaldoPendiente() | currency:'':'symbol':'1.0-0' }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Saldos Pendientes Colaboradores -->
+      <div class="tab-pane fade" id="saldos-colaboradores" role="tabpanel" aria-labelledby="saldos-colaboradores-tab">
+        <div class="card">
+          <div class="card-body">
+            <!-- Controles de la tabla -->
+            <div class="row mb-3">
+              <div class="col-md-4">
+                <div class="form-check form-check-inline">
+                  <input class="form-check-input" type="checkbox" id="mostrarSoloConSaldoCol"
+                    [(ngModel)]="mostrarSoloConSaldoPendienteColaboradores" (change)="aplicarFiltrosSaldosPendientesColaboradores()">
+                  <label class="form-check-label" for="mostrarSoloConSaldoCol">
+                    Solo con saldo pendiente
+                  </label>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label me-2">Estado:</label>
+                <select class="form-select form-select-sm d-inline-block w-auto"
+                  [(ngModel)]="filtroActivoSaldosColaboradores" (change)="aplicarFiltrosSaldosPendientesColaboradores()">
+                  <option value="todos">Todos</option>
+                  <option value="activos">Solo activos</option>
+                  <option value="inactivos">Solo inactivos</option>
+                </select>
+              </div>
+              <div class="col-md-4 text-end">
+                <button class="btn btn-sm btn-secondary" (click)="exportarSaldosPendientesMensualesColaboradores()">
+                  <i class="fas fa-file-excel"></i> Exportar tabla
+                </button>
+              </div>
+            </div>
+
+            <!-- Tabla de saldos pendientes mensuales colaboradores -->
+            <div class="table-responsive tabla-saldos-mensuales">
+              <table class="table table-hover table-bordered table-sm">
+                <thead class="table-light sticky-top">
+                  <tr>
+                    <th class="columna-fija sortable" (click)="ordenarPorSaldosPendientesColaboradores('nombre_estudiante')">
+                      Colaborador
+                      <i class="fas fa-sort float-end" [ngClass]="{
+                        'fa-sort': columnaOrdenamientoSaldosColaboradores !== 'nombre_estudiante',
+                        'fa-sort-up': columnaOrdenamientoSaldosColaboradores === 'nombre_estudiante' && ordenAscendenteSaldosColaboradores,
+                        'fa-sort-down': columnaOrdenamientoSaldosColaboradores === 'nombre_estudiante' && !ordenAscendenteSaldosColaboradores
+                      }"></i>
+                    </th>
+                    <th class="columna-grupo sortable" (click)="ordenarPorSaldosPendientesColaboradores('grupo_estudiante')">
+                      Cargo
+                      <i class="fas fa-sort float-end" [ngClass]="{
+                        'fa-sort': columnaOrdenamientoSaldosColaboradores !== 'grupo_estudiante',
+                        'fa-sort-up': columnaOrdenamientoSaldosColaboradores === 'grupo_estudiante' && ordenAscendenteSaldosColaboradores,
+                        'fa-sort-down': columnaOrdenamientoSaldosColaboradores === 'grupo_estudiante' && !ordenAscendenteSaldosColaboradores
+                      }"></i>
+                    </th>
+                    <th class="text-center columna-mes" *ngFor="let mes of mesesDisponibles">
+                      {{ mes.nombre.substring(0, 3) }}
+                    </th>
+                    <th class="text-end columna-total sortable"
+                      (click)="ordenarPorSaldosPendientesColaboradores('totalSaldoPendiente')">
+                      Total
+                      <i class="fas fa-sort float-end" [ngClass]="{
+                        'fa-sort': columnaOrdenamientoSaldosColaboradores !== 'totalSaldoPendiente',
+                        'fa-sort-up': columnaOrdenamientoSaldosColaboradores === 'totalSaldoPendiente' && ordenAscendenteSaldosColaboradores,
+                        'fa-sort-down': columnaOrdenamientoSaldosColaboradores === 'totalSaldoPendiente' && !ordenAscendenteSaldosColaboradores
+                      }"></i>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let colaborador of colaboradoresSaldosPendientesFiltrados"
+                    [ngClass]="{'table-warning': (colaborador.totalSaldoPendiente || 0) > 0}">
+                    <td class="columna-fija">{{ colaborador.nombre_estudiante }}</td>
+                    <td class="columna-grupo">{{ colaborador.grupo_estudiante }}</td>
+                    <td class="text-end columna-mes" *ngFor="let mes of mesesDisponibles" [ngClass]="{
+                      'text-danger': getSaldoPendienteMes(colaborador, mes.valor) > 0,
+                      'table-danger': getSaldoPendienteMes(colaborador, mes.valor) > 100000
+                    }">
+                      <span *ngIf="getSaldoPendienteMes(colaborador, mes.valor) > 0">
+                        {{ getSaldoPendienteMes(colaborador, mes.valor) | currency:'':'symbol':'1.0-0' }}
+                      </span>
+                      <span *ngIf="getSaldoPendienteMes(colaborador, mes.valor) === 0" class="text-muted">
+                        -
+                      </span>
+                    </td>
+                    <td class="text-end columna-total fw-bold"
+                      [ngClass]="{'text-danger': (colaborador.totalSaldoPendiente || 0) > 0}">
+                      {{ colaborador.totalSaldoPendiente | currency:'':'symbol':'1.0-0' }}
+                    </td>
+                  </tr>
+                  <tr *ngIf="colaboradoresSaldosPendientesFiltrados.length === 0">
+                    <td colspan="15" class="text-center text-muted py-4">
+                      {{ mostrarSoloConSaldoPendienteColaboradores ?
+                      'No se encontraron colaboradores con saldos pendientes' :
+                      'No se encontraron colaboradores con los filtros aplicados' }}
+                    </td>
+                  </tr>
+                </tbody>
+                <tfoot class="table-light">
+                  <tr class="fw-bold">
+                    <td colspan="2">TOTALES</td>
+                    <td class="text-end" *ngFor="let mes of mesesDisponibles">
+                      {{ getTotalSaldoPendienteMesColaboradores(mes.valor) | currency:'':'symbol':'1.0-0' }}
+                    </td>
+                    <td class="text-end text-danger">
+                      {{ getTotalSaldosPendientesColaboradores() | currency:'':'symbol':'1.0-0' }}
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+
+            <!-- Resumen de saldos pendientes colaboradores -->
+            <div class="row mt-4">
+              <div class="col-md-12">
+                <div class="alert alert-info">
+                  <h6 class="alert-heading">
+                    <i class="fas fa-info-circle"></i> Resumen de Saldos Pendientes Colaboradores
+                  </h6>
+                  <div class="row">
+                    <div class="col-md-4">
+                      <strong>Total colaboradores con saldo:</strong>
+                      {{ getColaboradoresConSaldoPendiente() }} de {{ colaboradoresSaldosPendientesFiltrados.length }}
+                    </div>
+                    <div class="col-md-4">
+                      <strong>Mes con mayor saldo pendiente:</strong>
+                      {{ getMesConMayorSaldoPendienteColaboradores() }}
+                    </div>
+                    <div class="col-md-4">
+                      <strong>Promedio saldo por colaborador:</strong>
+                      {{ getPromedioSaldoPendienteColaboradores() | currency:'':'symbol':'1.0-0' }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div *ngIf="!cargando && !datosDisponibles" class="alert alert-info text-center">
+    <i class="fas fa-info-circle fa-3x mb-3"></i>
+    <h4>No hay datos disponibles</h4>
+    <p>No se encontró información de cartera para el año {{ anioSeleccionado }}</p>
+  </div>
+</div>
+
+<!-- Modal para detalle de estudiante -->
+<div class="modal fade" id="modalDetalleEstudiante" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-user-graduate me-2"></i>
+          Detalle de Cartera - {{ estudianteSeleccionado?.nombre_estudiante }}
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <strong>Identificación:</strong> {{ estudianteSeleccionado?.numero_identificacion }}<br>
+            <strong>Grupo:</strong> {{ estudianteSeleccionado?.grupo_estudiante }}
+          </div>
+          <div class="col-md-6 text-end">
+            <strong>Total Cobrado:</strong> {{ estudianteSeleccionado?.totalCobrado | currency:'':'symbol':'1.0-0'
+            }}<br>
+            <strong>Total Pagado:</strong> {{ estudianteSeleccionado?.totalPagado | currency:'':'symbol':'1.0-0'
+            }}<br>
+            <strong>Saldo:</strong> <span
+              [ngClass]="{'text-danger': estudianteSeleccionado && estudianteSeleccionado.saldoTotal > 0}">
+              {{ estudianteSeleccionado?.saldoTotal | currency:'':'symbol':'1.0-0' }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Detalle mensual del estudiante -->
+        <h6 class="mb-3">Detalle por Mes</h6>
+        <div class="table-responsive">
+          <table class="table table-sm table-hover">
+            <thead class="table-light">
+              <tr>
+                <th>Mes</th>
+                <th class="text-end">Cobrado</th>
+                <th class="text-end">Pagado</th>
+                <th class="text-end">Saldo</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let detalle of detalleEstudianteMensual">
+                <td>{{ detalle.mes }}</td>
+                <td class="text-end">{{ detalle.cobrado | currency:'':'symbol':'1.0-0' }}</td>
+                <td class="text-end">{{ detalle.pagado | currency:'':'symbol':'1.0-0' }}</td>
+                <td class="text-end" [ngClass]="{'text-danger': detalle.saldo > 0}">
+                  {{ detalle.saldo | currency:'':'symbol':'1.0-0' }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Tipos de pago utilizados -->
+        <h6 class="mb-3 mt-4">Formas de Pago Utilizadas</h6>
+        <div class="row">
+          <div class="col-md-6" *ngFor="let tipoPago of detalleEstudianteTiposPago">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span>{{ tipoPago.nombre }}:</span>
+              <strong>{{ tipoPago.valor | currency:'':'symbol':'1.0-0' }}</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+        <button type="button" class="btn btn-primary" (click)="exportarDetalleEstudiante()">
+          <i class="fas fa-download"></i> Exportar Detalle
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

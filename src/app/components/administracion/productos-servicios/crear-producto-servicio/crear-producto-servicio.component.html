@@ -1,0 +1,156 @@
+<div class="modulo">
+  <app-header 
+    [tituloModulo]="titulo" 
+    [mostrarCrear]="false" 
+    [accion]="accion" 
+    [raiz]="'/administracion/productos-servicios'"
+    [regresar]="regresar" 
+    [iconoTitulo]="'/assets/images/productos_servicios.png'">
+  </app-header>
+
+  <div class="container mt-5">
+    
+    <!-- Nombre -->
+    <div class="row">
+      <div class="col-12">
+        <label for="nombre" class="form-label">Nombre <span class="text-danger">*</span></label>
+        <input 
+          class="form-control form-control-lg" 
+          type="text" 
+          id="nombre" 
+          [(ngModel)]="model.nombre"
+          [ngClass]="{'is-invalid': !model.nombre && submitted}"
+          [disabled]="!editable">
+      </div>
+    </div>
+
+    <!-- Detalles -->
+    <div class="row">
+      <div class="col-12">
+        <label for="detalles" class="form-label">Detalles</label>
+        <textarea 
+          class="form-control form-control-lg" 
+          id="detalles" 
+          rows="3"
+          [(ngModel)]="model.detalles"
+          [disabled]="!editable"></textarea>
+      </div>
+    </div>
+
+    <!-- Clasificación y Categoría -->
+    <div class="row">
+      <div class="col-sm-12 col-md-6">
+        <label for="clasificacion" class="form-label">Clasificación <span class="text-danger">*</span></label>
+        <select 
+          class="form-select form-select-lg" 
+          id="clasificacion" 
+          [(ngModel)]="model.id_clasificacion_productos_servicios"
+          [ngClass]="{'is-invalid': !model.id_clasificacion_productos_servicios && submitted}"
+          [disabled]="!editable">
+          <option value="">Seleccionar</option>
+          <ng-container *ngFor="let c of listas.clasificaciones">
+            <option [value]="c.id">{{ c.nombre }}</option>
+          </ng-container>
+        </select>
+      </div>
+      <div class="col-sm-12 col-md-6">
+        <label for="categoria" class="form-label">Categoría <span class="text-danger">*</span></label>
+        <select 
+          class="form-select form-select-lg" 
+          id="categoria" 
+          [(ngModel)]="model.id_categoria_productos_servicios"
+          [ngClass]="{'is-invalid': !model.id_categoria_productos_servicios && submitted}"
+          [disabled]="!editable">
+          <option value="">Seleccionar</option>
+          <ng-container *ngFor="let c of listas.categorias">
+            <option [value]="c.id">{{ c.nombre }}</option>
+          </ng-container>
+        </select>
+      </div>
+    </div>
+
+    <!-- Periodicidad y Valor -->
+    <div class="row">
+      <div class="col-sm-12 col-md-6">
+        <label for="periodicidad" class="form-label">Periodicidad de Cobro <span class="text-danger">*</span></label>
+        <select 
+          class="form-select form-select-lg" 
+          id="periodicidad" 
+          [(ngModel)]="model.id_periodicidad_cobro"
+          [ngClass]="{'is-invalid': !model.id_periodicidad_cobro && submitted}"
+          [disabled]="!editable">
+          <option value="">Seleccionar</option>
+          <ng-container *ngFor="let p of listas.periodicidades">
+            <option [value]="p.id">{{ p.nombre }}</option>
+          </ng-container>
+        </select>
+      </div>
+      <div class="col-sm-12 col-md-6">
+        <label for="valor" class="form-label">Valor Sugerido</label>
+        <div class="input-group input-group-lg">
+          <span class="input-group-text">$</span>
+          <input 
+            class="form-control" 
+            type="text" 
+            id="valor"
+            [value]="valorSugeridoFormateado"
+            (input)="onValorChange($event)"
+            placeholder="0"
+            [disabled]="!editable">
+        </div>
+        <small class="form-text text-muted">Valor sin IVA</small>
+      </div>
+    </div>
+
+    <!-- Horario Alimentación y Estado -->
+    <div class="row">
+      <div class="col-sm-12 col-md-6">
+        <label for="horario" class="form-label">Horario de Alimentación Sugerido</label>
+        <select 
+          class="form-select form-select-lg" 
+          id="horario" 
+          [(ngModel)]="model.id_horario_alimentacion_sugerido"
+          [disabled]="!editable">
+          <option value="">Seleccionar</option>
+          <ng-container *ngFor="let h of listas.horarios">
+            <option [value]="h.id">{{ h.nombre }}</option>
+          </ng-container>
+        </select>
+      </div>
+      <div class="col-sm-12 col-md-6" *ngIf="accion === 'editar' || accion === 'consultar'">
+        <label class="form-label d-block">&nbsp;</label>
+        <div class="form-check form-switch" style="padding-top: 12px;">
+          <input 
+            class="form-check-input" 
+            type="checkbox" 
+            id="disponible"
+            [(ngModel)]="productoServicioActivoSwitch" 
+            (change)="cambiarEstado()"
+            [disabled]="!editable">
+          <label class="form-check-label" for="disponible">
+            <strong>
+              {{ productoServicioActivoSwitch ? 'Producto/Servicio Disponible' : 'Producto/Servicio No Disponible' }}
+            </strong>
+          </label>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Botones -->
+  <div class="container mt-5">
+    <div class="row">
+      <div class="col-sm-6" *ngIf="editable">
+        <button class="btn btn-lg btn-warning w-100" (click)="guardar()">
+          Grabar
+        </button>
+      </div>
+      <div class="col-sm-6">
+        <button class="btn btn-lg btn-secondary w-100" (click)="volver()">
+          Volver
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

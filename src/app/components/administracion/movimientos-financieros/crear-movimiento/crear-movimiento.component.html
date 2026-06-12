@@ -1,0 +1,188 @@
+<div class="modulo">
+  <app-header-anidado [tituloModulo]="titulo" [mostrarCrear]="false"
+    [raiz]="'/administracion/financiero/movimientos-financieros'"
+    [regresar]="'/administracion/financiero/movimientos-financieros'">
+  </app-header-anidado>
+
+  <div class="container-fluid mt-4">
+    <div class="row justify-content-center">
+      <div class="col-lg-10 col-xl-8">
+        <div class="card">
+          <div class="card-header-custom">
+            <h5 class="mb-0">Movimiento Financiero</h5>
+          </div>
+          <div class="card-body">
+            <form [formGroup]="formulario" (ngSubmit)="guardar()">
+
+              <div class="row">
+                <!-- Fecha -->
+                <div class="col-md-6 mb-3">
+                  <label for="fecha" class="form-label">
+                    Fecha <span class="text-danger">*</span>
+                  </label>
+                  <input type="date" class="form-control" id="fecha" formControlName="fecha"
+                    [class.is-invalid]="campoNoValido('fecha')">
+                  <div class="invalid-feedback">
+                    La fecha es requerida
+                  </div>
+                </div>
+
+                <!-- Tipo de Movimiento -->
+                <div class="col-md-6 mb-3">
+                  <label for="id_tipo_movimiento" class="form-label">
+                    Tipo de Movimiento <span class="text-danger">*</span>
+                  </label>
+                  <select class="form-select" id="id_tipo_movimiento" formControlName="id_tipo_movimiento"
+                    [class.is-invalid]="campoNoValido('id_tipo_movimiento')">
+                    <option value="">Seleccione...</option>
+                    <option *ngFor="let tipo of tiposMovimiento" [value]="tipo.id">
+                      {{ tipo.icono }} {{ tipo.nombre }}
+                    </option>
+                  </select>
+                  <div class="invalid-feedback">
+                    El tipo de movimiento es requerido
+                  </div>
+                </div>
+              </div>
+
+              <div class="row">
+                <!-- Categoría -->
+                <div class="col-md-6 mb-3">
+                  <label for="id_categoria_movimiento_financiero" class="form-label">
+                    Categoría <span class="text-danger">*</span>
+                  </label>
+                  <select class="form-select" id="id_categoria_movimiento_financiero"
+                    formControlName="id_categoria_movimiento_financiero"
+                    [class.is-invalid]="campoNoValido('id_categoria_movimiento_financiero')"
+                    [disabled]="!formulario.get('id_tipo_movimiento')?.value">
+                    <option value="">Seleccione...</option>
+                    <option *ngFor="let categoria of categoriasFiltradas" [value]="categoria.id">
+                      {{ categoria.icono }} {{ categoria.nombre }}
+                    </option>
+                  </select>
+                  <div class="invalid-feedback">
+                    La categoría es requerida
+                  </div>
+                  <small class="form-text text-muted" *ngIf="!formulario.get('id_tipo_movimiento')?.value">
+                    Primero seleccione un tipo de movimiento
+                  </small>
+                </div>
+
+                <!-- Medio de Pago -->
+                <div class="col-md-6 mb-3">
+                  <label for="id_medio_pago_financiero" class="form-label">
+                    Medio de Pago <span class="text-danger">*</span>
+                  </label>
+                  <select class="form-select" id="id_medio_pago_financiero" formControlName="id_medio_pago_financiero"
+                    [class.is-invalid]="campoNoValido('id_medio_pago_financiero')">
+                    <option value="">Seleccione...</option>
+                    <option *ngFor="let medio of mediosPago" [value]="medio.id">
+                      {{ medio.icono }} {{ medio.nombre }}
+                    </option>
+                  </select>
+                  <div class="invalid-feedback">
+                    El medio de pago es requerido
+                  </div>
+                </div>
+              </div>
+
+              <div class="row">
+                <!-- Concepto -->
+                <div [ngClass]="requiereDetalle ? 'col-md-6' : 'col-md-12'" class="mb-3">
+                  <label for="id_concepto_financiero" class="form-label">
+                    Concepto <span class="text-danger">*</span>
+                  </label>
+                  <select class="form-select" id="id_concepto_financiero" formControlName="id_concepto_financiero"
+                    [class.is-invalid]="campoNoValido('id_concepto_financiero')"
+                    [disabled]="!formulario.get('id_categoria_movimiento_financiero')?.value">
+                    <option value="">Seleccione...</option>
+                    <option *ngFor="let concepto of conceptosFiltrados" [value]="concepto.id">
+                      {{ concepto.icono }} {{ concepto.nombre }}
+                    </option>
+                  </select>
+                  <div class="invalid-feedback">
+                    El concepto es requerido
+                  </div>
+                  <small class="form-text text-muted"
+                    *ngIf="!formulario.get('id_categoria_movimiento_financiero')?.value">
+                    Primero seleccione una categoría
+                  </small>
+                </div>
+
+                <!-- Detalle (condicional - al lado del concepto) -->
+                <div class="col-md-6 mb-3" *ngIf="requiereDetalle">
+                  <label for="detalle" class="form-label">
+                    Detalle <span class="text-danger">*</span>
+                  </label>
+                  <textarea class="form-control" id="detalle" formControlName="detalle" rows="3"
+                    placeholder="Describa el detalle del movimiento" [class.is-invalid]="campoNoValido('detalle')">
+                  </textarea>
+                  <div class="invalid-feedback">
+                    El detalle es requerido para este concepto
+                  </div>
+                  <small class="form-text text-muted">
+                    <i class="fas fa-info-circle"></i> Este concepto requiere un detalle
+                  </small>
+                </div>
+              </div>
+
+              <div class="row">
+                <!-- Valor con formato de miles -->
+                <div class="col-md-6 mb-3">
+                  <label for="valor" class="form-label">
+                    Valor <span class="text-danger">*</span>
+                  </label>
+                  <div class="input-group">
+                    <span class="input-group-text">$</span>
+                    <input type="text" class="form-control text-end" id="valor" [value]="valorFormateado"
+                      (input)="formatearValor($event)" placeholder="0" [class.is-invalid]="campoNoValido('valor')">
+                  </div>
+                  <div class="invalid-feedback">
+                    El valor es requerido y debe ser mayor a 0
+                  </div>
+                </div>
+
+                <!-- Referencia Externa -->
+                <div class="col-md-6 mb-3">
+                  <label for="referencia_externa" class="form-label">
+                    Referencia Externa
+                  </label>
+                  <input type="text" class="form-control" id="referencia_externa" formControlName="referencia_externa"
+                    placeholder="Ej: PAGO-123, NOMINA-202501">
+                  <small class="form-text text-muted">
+                    Referencia a otro módulo (opcional)
+                  </small>
+                </div>
+              </div>
+
+              <!-- Observaciones -->
+              <div class="row">
+                <div class="col-12 mb-3">
+                  <label for="observaciones" class="form-label">
+                    Observaciones
+                  </label>
+                  <textarea class="form-control" id="observaciones" formControlName="observaciones" rows="3"
+                    placeholder="Observaciones adicionales (opcional)">
+                  </textarea>
+                </div>
+              </div>
+
+              <!-- Botones -->
+              <div class="row mt-4">
+                <div class="col-12 d-flex justify-content-end gap-2">
+                  <button type="button" class="btn btn-secondary" (click)="cancelar()">
+                    <i class="fas fa-times"></i> Cancelar
+                  </button>
+                  <button type="submit" class="btn btn-primary" [disabled]="formulario.invalid">
+                    <i class="fas fa-save"></i> {{ accion === 'Crear' ? 'Guardar' : 'Actualizar' }}
+                  </button>
+                </div>
+              </div>
+
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

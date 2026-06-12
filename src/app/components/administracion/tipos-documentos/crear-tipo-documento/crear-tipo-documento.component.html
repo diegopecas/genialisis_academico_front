@@ -1,0 +1,289 @@
+<div class="modulo">
+    <app-header 
+        [tituloModulo]="titulo" 
+        [mostrarCrear]="false" 
+        [accion]="accion" 
+        [raiz]="'/administracion/tipos-documentos'"
+        [regresar]="regresar" 
+        [iconoTitulo]="'/assets/images/tipos-documentos.png'">
+    </app-header>
+
+    <div class="container mt-4">
+        <!-- Sección: Información básica -->
+        <div class="card card-formulario mb-4">
+            <div class="card-header-custom">
+                <i class="fas fa-info-circle"></i>
+                <span>Información Básica</span>
+            </div>
+            <div class="card-body-custom">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label for="codigo" class="form-label">Código <span class="text-danger">*</span></label>
+                        <input 
+                            class="form-control" 
+                            type="text" 
+                            id="codigo" 
+                            [(ngModel)]="model.codigo"
+                            placeholder="Ej: cedula, registro_civil..."
+                            required
+                            maxlength="50"
+                            [ngClass]="{'is-invalid': !model.codigo && submitted}"
+                            [disabled]="!editable">
+                        <small class="form-text text-muted">Identificador único del tipo de documento (sin espacios)</small>
+                    </div>
+                    <div class="col-md-8">
+                        <label for="nombre" class="form-label">Nombre <span class="text-danger">*</span></label>
+                        <input 
+                            class="form-control" 
+                            type="text" 
+                            id="nombre" 
+                            [(ngModel)]="model.nombre"
+                            placeholder="Ej: Cédula de Ciudadanía, Registro Civil..."
+                            required
+                            maxlength="150"
+                            [ngClass]="{'is-invalid': !model.nombre && submitted}"
+                            [disabled]="!editable">
+                        <small class="form-text text-muted">Nombre descriptivo del tipo de documento</small>
+                    </div>
+                    <div class="col-12">
+                        <label for="descripcion" class="form-label">Descripción</label>
+                        <textarea 
+                            class="form-control" 
+                            id="descripcion" 
+                            [(ngModel)]="model.descripcion"
+                            placeholder="Descripción detallada del tipo de documento (opcional)"
+                            rows="3"
+                            [disabled]="!editable">
+                        </textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección: Configuración de comportamiento -->
+        <div class="card card-formulario mb-4">
+            <div class="card-header-custom">
+                <i class="fas fa-cogs"></i>
+                <span>Configuración</span>
+            </div>
+            <div class="card-body-custom">
+                <div class="row g-4">
+                    <!-- Toggle: Requiere Vencimiento -->
+                    <div class="col-md-6">
+                        <div class="toggle-card" [class.active]="model.requiere_vencimiento">
+                            <div class="toggle-info">
+                                <div class="toggle-icon">
+                                    <i class="fas fa-calendar-times"></i>
+                                </div>
+                                <div class="toggle-text">
+                                    <span class="toggle-label">Requiere Vencimiento</span>
+                                    <small class="toggle-description">El documento tiene fecha de expiración</small>
+                                </div>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input 
+                                    class="form-check-input custom-switch" 
+                                    type="checkbox" 
+                                    id="requiere_vencimiento"
+                                    [(ngModel)]="model.requiere_vencimiento"
+                                    [disabled]="!editable"
+                                    (ngModelChange)="onVencimientoChange()">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Días alerta vencimiento (condicional) -->
+                    <div class="col-md-6" *ngIf="model.requiere_vencimiento">
+                        <div class="toggle-card info">
+                            <div class="toggle-info">
+                                <div class="toggle-icon alerta">
+                                    <i class="fas fa-bell"></i>
+                                </div>
+                                <div class="toggle-text w-100">
+                                    <span class="toggle-label">Días de Alerta</span>
+                                    <small class="toggle-description">Días antes del vencimiento para notificar</small>
+                                    <input 
+                                        class="form-control form-control-sm mt-2" 
+                                        type="number" 
+                                        [(ngModel)]="model.dias_alerta_vencimiento"
+                                        placeholder="Ej: 30"
+                                        min="1"
+                                        [disabled]="!editable">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Toggle: Permite Múltiples -->
+                    <div class="col-md-6">
+                        <div class="toggle-card" [class.active]="model.permite_multiples">
+                            <div class="toggle-info">
+                                <div class="toggle-icon">
+                                    <i class="fas fa-copy"></i>
+                                </div>
+                                <div class="toggle-text">
+                                    <span class="toggle-label">Permite Múltiples</span>
+                                    <small class="toggle-description">Se pueden subir varias copias de este documento</small>
+                                </div>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input 
+                                    class="form-check-input custom-switch" 
+                                    type="checkbox" 
+                                    id="permite_multiples"
+                                    [(ngModel)]="model.permite_multiples"
+                                    [disabled]="!editable">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Toggle: Requiere Firma -->
+                    <div class="col-md-6">
+                        <div class="toggle-card" [class.active]="model.requiere_firma">
+                            <div class="toggle-info">
+                                <div class="toggle-icon">
+                                    <i class="fas fa-signature"></i>
+                                </div>
+                                <div class="toggle-text">
+                                    <span class="toggle-label">Requiere Firma Digital</span>
+                                    <small class="toggle-description">El documento necesita ser firmado digitalmente</small>
+                                </div>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input 
+                                    class="form-check-input custom-switch" 
+                                    type="checkbox" 
+                                    id="requiere_firma"
+                                    [(ngModel)]="model.requiere_firma"
+                                    [disabled]="!editable">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Toggle: Modificable por Acudientes -->
+                    <div class="col-md-6">
+                        <div class="toggle-card" [class.active]="model.modificable_acudientes">
+                            <div class="toggle-info">
+                                <div class="toggle-icon">
+                                    <i class="fas fa-user-edit"></i>
+                                </div>
+                                <div class="toggle-text">
+                                    <span class="toggle-label">Modificable por Acudientes</span>
+                                    <small class="toggle-description">Los acudientes pueden subir/modificar este documento</small>
+                                </div>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input 
+                                    class="form-check-input custom-switch" 
+                                    type="checkbox" 
+                                    id="modificable_acudientes"
+                                    [(ngModel)]="model.modificable_acudientes"
+                                    [disabled]="!editable">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Toggle: Activo -->
+                    <div class="col-md-6">
+                        <div class="toggle-card" [class.active]="model.activo">
+                            <div class="toggle-info">
+                                <div class="toggle-icon">
+                                    <i class="fas fa-toggle-on"></i>
+                                </div>
+                                <div class="toggle-text">
+                                    <span class="toggle-label">Activo</span>
+                                    <small class="toggle-description">El tipo de documento está habilitado en el sistema</small>
+                                </div>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input 
+                                    class="form-check-input custom-switch" 
+                                    type="checkbox" 
+                                    id="activo"
+                                    [(ngModel)]="model.activo"
+                                    [disabled]="!editable">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección: Tipos de Persona (solo en editar/consultar) -->
+        <div class="card card-formulario mb-4" *ngIf="accion !== 'crear'">
+            <div class="card-header-custom">
+                <i class="fas fa-users"></i>
+                <span>Tipos de Persona Asociados</span>
+            </div>
+            <div class="card-body-custom">
+                <p class="text-muted mb-3">Selecciona a qué tipos de persona aplica este documento</p>
+                
+                <div class="table-responsive" *ngIf="tiposPersona.length > 0">
+                    <table class="table table-personas">
+                        <thead>
+                            <tr>
+                                <th class="th-asociado">Asociado</th>
+                                <th class="th-persona">Tipo de Persona</th>
+                                <th class="th-obligatorio">Obligatorio</th>
+                                <th class="th-orden">Orden</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let tp of tiposPersona" 
+                                [class.fila-activa]="tp.asociado">
+                                <td class="td-centrado">
+                                    <div class="form-check form-switch">
+                                        <input 
+                                            class="form-check-input custom-switch"
+                                            type="checkbox"
+                                            [(ngModel)]="tp.asociado"
+                                            [disabled]="!editable"
+                                            (ngModelChange)="onAsociacionChange(tp)">
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="persona-info">
+                                        <i class="fas fa-user-tag"></i>
+                                        <span>{{ tp.nombre }}</span>
+                                    </div>
+                                </td>
+                                <td class="td-centrado">
+                                    <div class="form-check form-switch">
+                                        <input 
+                                            class="form-check-input custom-switch-sm"
+                                            type="checkbox"
+                                            [(ngModel)]="tp.obligatorio"
+                                            [disabled]="!editable || !tp.asociado">
+                                    </div>
+                                </td>
+                                <td class="td-centrado">
+                                    <input 
+                                        class="form-control form-control-sm input-orden"
+                                        type="number"
+                                        [(ngModel)]="tp.orden"
+                                        min="1"
+                                        placeholder="0"
+                                        [disabled]="!editable || !tp.asociado">
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botones de acción -->
+        <div class="row mb-5">
+            <div class="col-sm-6" *ngIf="editable">
+                <button class="btn btn-lg btn-warning w-100" (click)="guardar()">
+                    <i class="fas fa-save me-2"></i> Grabar
+                </button>
+            </div>
+            <div class="col-sm-6">
+                <button class="btn btn-lg btn-secondary w-100" (click)="volver()">
+                    <i class="fas fa-arrow-left me-2"></i> Volver
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

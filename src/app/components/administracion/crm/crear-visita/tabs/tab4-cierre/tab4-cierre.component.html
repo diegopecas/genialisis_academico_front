@@ -1,0 +1,753 @@
+<div class="tab4-container">
+
+  <!-- 🎯 BARRA DE PROGRESO GENERAL -->
+  <div class="progress-bar-container">
+    <div class="progress-info">
+      <div class="progress-stats">
+        <span class="progress-icon">📊</span>
+        <span class="progress-text">Análisis post-visita</span>
+        <span class="progress-percentage">{{ calcularProgresoGeneral() }}%</span>
+      </div>
+      <button class="btn-toggle-all" (click)="toggleTodasLasCards()" type="button">
+        <i class="bi" [class.bi-arrows-expand]="!todasExpandidas" [class.bi-arrows-collapse]="todasExpandidas"></i>
+        {{ todasExpandidas ? 'Colapsar todo' : 'Expandir todo' }}
+      </button>
+    </div>
+    <div class="progress-bar-track">
+      <div class="progress-bar-fill" [style.width.%]="calcularProgresoGeneral()"></div>
+    </div>
+    <div class="progress-info-extra">
+      <div class="alert alert-info-custom">
+        <i class="bi bi-info-circle"></i>
+        <span>Este formulario se llena DESPUÉS de que la visita terminó. Tómate unos minutos para reflexionar.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 📦 SISTEMA DE CARDS COLAPSABLES -->
+  <div class="cards-container">
+
+    <!-- CARD 1: RESULTADO DE LA VISITA -->
+    <div class="collapsible-card" [class.expanded]="cardsExpandidas[0]" [class.completed]="esCardCompleta(0)">
+      <div class="card-header" (click)="toggleCard(0)">
+        <div class="card-header-left">
+          <span class="card-icon">🎯</span>
+          <h3 class="card-title">RESULTADO DE LA VISITA</h3>
+          <span class="card-badge" [class.badge-complete]="esCardCompleta(0)"
+            [class.badge-progress]="!esCardCompleta(0) && tieneProgreso(0)">
+            {{ esCardCompleta(0) ? '✓ Completo' : (tieneProgreso(0) ? '● En progreso' : '○ Pendiente') }}
+          </span>
+        </div>
+        <div class="card-header-right">
+          <i class="bi" [class.bi-chevron-down]="!cardsExpandidas[0]" [class.bi-chevron-up]="cardsExpandidas[0]"></i>
+        </div>
+      </div>
+
+      <!-- Resumen mini -->
+      <div class="card-summary" *ngIf="!cardsExpandidas[0] && resultadoSeleccionado">
+        <span class="summary-item">
+          <i class="bi bi-check-circle"></i> {{ obtenerNombreResultado(resultadoSeleccionado) }}
+        </span>
+      </div>
+
+      <!-- Contenido expandible -->
+      <div class="card-content" [@slideDown]="cardsExpandidas[0] ? 'expanded' : 'collapsed'">
+        <div class="form-section">
+
+          <div class="resultado-grid">
+            <div *ngFor="let resultado of tiposResultado" class="resultado-card" [class.exito]="resultado.es_exitoso"
+              [class.perdido]="resultado.codigo?.includes('perdido') || resultado.codigo === 'no_interesado'"
+              [class.selected]="resultadoSeleccionado === resultado.id"
+              (click)="resultadoSeleccionado = resultado.id; marcarCambio('resultado')">
+              <div class="resultado-icon">
+                {{ resultado.codigo === 'matriculado' ? '🎉' :
+                resultado.codigo === 'segunda_visita' ? '🔄' :
+                resultado.codigo === 'seguimiento' ? '📞' :
+                resultado.codigo?.includes('perdido') ? '🏃' : '❌' }}
+              </div>
+              <h6>{{ resultado.nombre }}</h6>
+            </div>
+          </div>
+
+          <div class="row mt-3">
+            <div class="col-md-12">
+              <label class="form-label">Notas sobre el resultado</label>
+              <textarea class="form-control" rows="2" [(ngModel)]="notasResultado" (ngModelChange)="marcarCambio('resultado')"
+                placeholder="Ej: Decidió matricular para el próximo mes, pagó matrícula hoy..."
+                [readonly]="soloLectura"></textarea>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 2: SERVICIOS QUE MÁS LES GUSTARON -->
+    <div class="collapsible-card" [class.expanded]="cardsExpandidas[1]" [class.completed]="esCardCompleta(1)">
+      <div class="card-header" (click)="toggleCard(1)">
+        <div class="card-header-left">
+          <span class="card-icon">⭐</span>
+          <h3 class="card-title">SERVICIOS/ASPECTOS QUE MÁS LES GUSTARON</h3>
+          <span class="card-badge" [class.badge-complete]="esCardCompleta(1)"
+            [class.badge-progress]="!esCardCompleta(1) && tieneProgreso(1)">
+            {{ esCardCompleta(1) ? '✓ Completo' : (tieneProgreso(1) ? '● En progreso' : '○ Pendiente') }}
+          </span>
+        </div>
+        <div class="card-header-right">
+          <i class="bi" [class.bi-chevron-down]="!cardsExpandidas[1]" [class.bi-chevron-up]="cardsExpandidas[1]"></i>
+        </div>
+      </div>
+
+      <!-- Resumen mini -->
+      <div class="card-summary" *ngIf="!cardsExpandidas[1] && serviciosGustaronSeleccionados.length > 0">
+        <span class="summary-item">
+          <i class="bi bi-star-fill"></i> {{ serviciosGustaronSeleccionados.length }} servicio{{
+          serviciosGustaronSeleccionados.length !== 1 ? 's' : '' }} destacado{{ serviciosGustaronSeleccionados.length
+          !== 1 ? 's' : '' }}
+        </span>
+        <span class="summary-item" *ngIf="factorDecisivo">
+          <i class="bi bi-trophy"></i> Factor decisivo registrado
+        </span>
+      </div>
+
+      <!-- Contenido expandible -->
+      <div class="card-content" [@slideDown]="cardsExpandidas[1] ? 'expanded' : 'collapsed'">
+        <div class="form-section">
+
+          <div class="alert alert-info">
+            <strong>📌 Objetivo:</strong> Identificar qué está funcionando bien y qué valoran los padres
+          </div>
+
+          <div class="subsection-title">Marque todo lo que mencionaron positivamente</div>
+
+          <div class="row">
+            <div *ngFor="let servicio of serviciosJardin" class="col-md-6 mb-2">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" [id]="'gusto_' + servicio.id"
+                  [checked]="isServicioGustoSeleccionado(servicio.id)" (change)="toggleServicioGusto(servicio.id)"
+                  [disabled]="soloLectura">
+                <label class="form-check-label" [for]="'gusto_' + servicio.id">
+                  <strong>{{ servicio.nombre }}</strong>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="row mt-3">
+            <div class="col-md-12">
+              <label class="form-label">Otros aspectos que destacaron positivamente</label>
+              <textarea class="form-control" rows="2" [(ngModel)]="otrosAspectosPositivos" (ngModelChange)="marcarCambio('aspectosPositivos')"
+                (ngModelChange)="emitirCambios()"
+                placeholder="Ej: Les encantó el patio, mencionaron que las profes se ven muy cariñosas..."
+                [readonly]="soloLectura"></textarea>
+            </div>
+          </div>
+
+          <div class="row mt-3">
+            <div class="col-md-12">
+              <label class="form-label"><strong>¿Qué fue lo que MÁS los convenció?</strong> (lo decisivo)</label>
+              <input type="text" class="form-control" [(ngModel)]="factorDecisivo" (ngModelChange)="marcarCambio('aspectosPositivos')"
+                placeholder="Ej: La atención personalizada, el ambiente familiar..." [readonly]="soloLectura">
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 3: DETALLE/OBSEQUIO ENTREGADO -->
+    <div class="collapsible-card" [class.expanded]="cardsExpandidas[2]" [class.completed]="esCardCompleta(2)">
+      <div class="card-header" (click)="toggleCard(2)">
+        <div class="card-header-left">
+          <span class="card-icon">🎁</span>
+          <h3 class="card-title">DETALLE/OBSEQUIO ENTREGADO</h3>
+          <span class="card-badge" [class.badge-complete]="esCardCompleta(2)"
+            [class.badge-progress]="!esCardCompleta(2) && tieneProgreso(2)">
+            {{ esCardCompleta(2) ? '✓ Completo' : (tieneProgreso(2) ? '● En progreso' : '○ Pendiente') }}
+          </span>
+        </div>
+        <div class="card-header-right">
+          <i class="bi" [class.bi-chevron-down]="!cardsExpandidas[2]" [class.bi-chevron-up]="cardsExpandidas[2]"></i>
+        </div>
+      </div>
+
+      <!-- Resumen mini -->
+      <div class="card-summary" *ngIf="!cardsExpandidas[2] && dioDetalle !== null">
+        <span class="summary-item" *ngIf="dioDetalle">
+          <i class="bi bi-gift"></i> {{ queDetalle || 'Detalle entregado' }}
+        </span>
+        <span class="summary-item" *ngIf="!dioDetalle">
+          <i class="bi bi-x-circle"></i> No se entregó detalle
+        </span>
+      </div>
+
+      <!-- Contenido expandible -->
+      <div class="card-content" [@slideDown]="cardsExpandidas[2] ? 'expanded' : 'collapsed'">
+        <div class="form-section">
+
+          <div class="detalle-section">
+            <h6 class="mb-3">📦 Control de inversión en detalles</h6>
+
+            <div class="row">
+              <div class="col-md-6">
+                <label class="form-label"><strong>¿Le dimos detalle/obsequio?</strong></label>
+                <div class="d-flex gap-3 mt-2">
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio" name="dioDetalle" [value]="true"
+                      [(ngModel)]="dioDetalle" (ngModelChange)="emitirCambios()" [disabled]="soloLectura">
+                    <label class="form-check-label">Sí</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio" name="dioDetalle" [value]="false"
+                      [(ngModel)]="dioDetalle" (ngModelChange)="emitirCambios()" [disabled]="soloLectura">
+                    <label class="form-check-label">No</label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div *ngIf="dioDetalle">
+              <div class="row mt-3">
+                <div class="col-md-12">
+                  <label class="form-label">¿Qué detalle le dimos?</label>
+                  <input type="text" class="form-control" [(ngModel)]="queDetalle" (ngModelChange)="marcarCambio('detalleObsequio')"
+                    placeholder="Ej: Kit de bienvenida, juguete, libro..." [readonly]="soloLectura">
+                </div>
+              </div>
+
+              <div class="row mt-3">
+                <div class="col-md-6">
+                  <label class="form-label"><strong>Importancia del detalle</strong></label>
+                  <select class="form-select" [(ngModel)]="importanciaDetalle" (ngModelChange)="marcarCambio('detalleObsequio')"
+                    [disabled]="soloLectura">
+                    <option [value]="null">Seleccionar...</option>
+                    <option *ngFor="let imp of tiposImportanciaDetalle" [value]="imp.id">
+                      {{ imp.nombre }}
+                    </option>
+                  </select>
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label"><strong>¿Se mostraron agradecidos?</strong></label>
+                  <select class="form-select" [(ngModel)]="nivelAgradecimiento" (ngModelChange)="marcarCambio('detalleObsequio')"
+                    [disabled]="soloLectura">
+                    <option [value]="null">Seleccionar...</option>
+                    <option *ngFor="let nivel of tiposNivelAgradecimiento" [value]="nivel.id">
+                      {{ nivel.nombre }}
+                    </option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="row mt-3">
+                <div class="col-md-12">
+                  <label class="form-label">Comentarios sobre el detalle</label>
+                  <textarea class="form-control" rows="2" [(ngModel)]="comentariosDetalle" (ngModelChange)="marcarCambio('detalleObsequio')"
+                    (ngModelChange)="emitirCambios()" placeholder="Ej: Al niño le encantó el juguete..."
+                    [readonly]="soloLectura"></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+<!-- CARD 4: SERVICIOS QUE NO TENEMOS -->
+<div class="collapsible-card" [class.expanded]="cardsExpandidas[3]" [class.completed]="esCardCompleta(3)">
+  <div class="card-header" (click)="toggleCard(3)">
+    <div class="card-header-left">
+      <span class="card-icon">⚠️</span>
+      <h3 class="card-title">SERVICIOS QUE PIDIERON Y NO TENEMOS</h3>
+      <span class="card-badge" [class.badge-complete]="esCardCompleta(3)" [class.badge-progress]="!esCardCompleta(3) && tieneProgreso(3)">
+        {{ esCardCompleta(3) ? '✓ Completo' : (tieneProgreso(3) ? '● En progreso' : '○ Pendiente') }}
+      </span>
+    </div>
+    <div class="card-header-right">
+      <i class="bi" [class.bi-chevron-down]="!cardsExpandidas[3]" [class.bi-chevron-up]="cardsExpandidas[3]"></i>
+    </div>
+  </div>
+
+  <!-- Resumen mini -->
+  <div class="card-summary" *ngIf="!cardsExpandidas[3] && serviciosNoTenemos.length > 0">
+    <span class="summary-item">
+      <i class="bi bi-exclamation-triangle"></i> {{ serviciosNoTenemos.length }} servicio{{ serviciosNoTenemos.length !== 1 ? 's' : '' }} solicitado{{ serviciosNoTenemos.length !== 1 ? 's' : '' }}
+    </span>
+  </div>
+
+  <!-- Contenido expandible -->
+  <div class="card-content" [@slideDown]="cardsExpandidas[3] ? 'expanded' : 'collapsed'">
+    <div class="form-section">
+      
+      <div class="alert alert-info">
+        <strong>📌 Importante:</strong> Marque TODOS los servicios que solicitaron y no tenemos
+      </div>
+
+      <!-- GRID DE CHECKBOXES -->
+      <div class="row">
+        <div *ngFor="let servicio of serviciosFaltantes" class="col-md-6 mb-2">
+          <div class="form-check">
+            <input 
+              class="form-check-input" 
+              type="checkbox"
+              [id]="'notenemos_' + servicio.id"
+              [checked]="isServicioNoTenemosSeleccionado(servicio.id)"
+              (change)="toggleServicioNoTenemos(servicio.id)"
+              [disabled]="soloLectura">
+            <label class="form-check-label" [for]="'notenemos_' + servicio.id">
+              {{ servicio.nombre }}
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- DETALLES DE CADA SERVICIO SELECCIONADO -->
+      <div *ngIf="serviciosNoTenemos.length > 0" class="detalles-servicios-section">
+        <h6 class="mt-4 mb-3">Detalles de cada servicio</h6>
+
+        <div *ngFor="let servicio of serviciosNoTenemos; let i = index" class="detalle-servicio-card mb-3">
+          <div class="detalle-header">
+            <h6>{{ obtenerNombreServicioFaltante(servicio.id_servicio_faltante) }}</h6>
+          </div>
+
+          <div class="row">
+            <div class="col-md-12 mb-3">
+              <label class="form-label">
+                <i class="bi bi-pencil"></i> Detalle específico
+              </label>
+              <input 
+                type="text" 
+                class="form-control"
+                [(ngModel)]="servicio.detalle_especifico" (ngModelChange)="marcarCambio('serviciosNoTenemos')"
+                (ngModelChange)="emitirCambios()"
+                placeholder="Ej: Pidió horario hasta las 7pm, transporte escolar en zona norte..."
+                [readonly]="soloLectura">
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label">
+                <i class="bi bi-exclamation-circle"></i> ¿Qué tan importante era?
+              </label>
+              <select 
+                class="form-select"
+                [(ngModel)]="servicio.id_importancia" (ngModelChange)="marcarCambio('serviciosNoTenemos')"
+                (ngModelChange)="emitirCambios()"
+                [disabled]="soloLectura">
+                <option [value]="null">Seleccionar...</option>
+                <option *ngFor="let imp of tiposImportanciaServicioFaltante" [value]="imp.id">
+                  {{ imp.nombre }}
+                </option>
+              </select>
+            </div>
+            
+            <div class="col-md-6 mb-3">
+              <label class="form-label">
+                <i class="bi bi-graph-down"></i> ¿Perdimos la venta por esto?
+              </label>
+              <select 
+                class="form-select"
+                [(ngModel)]="servicio.perdimos_venta_por_esto" (ngModelChange)="marcarCambio('serviciosNoTenemos')"
+                (ngModelChange)="emitirCambios()"
+                [disabled]="soloLectura">
+                <option value="">Seleccionar...</option>
+                <option value="si">Sí</option>
+                <option value="no">No</option>
+                <option value="tal_vez">Tal vez</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+    <!-- CARD 5: FEEDBACK PARA MEJORAR -->
+    <div class="collapsible-card" [class.expanded]="cardsExpandidas[4]" [class.completed]="esCardCompleta(4)">
+      <div class="card-header" (click)="toggleCard(4)">
+        <div class="card-header-left">
+          <span class="card-icon">💬</span>
+          <h3 class="card-title">FEEDBACK DEL CLIENTE - QUÉ DEBEMOS MEJORAR</h3>
+          <span class="card-badge" [class.badge-complete]="esCardCompleta(4)"
+            [class.badge-progress]="!esCardCompleta(4) && tieneProgreso(4)">
+            {{ esCardCompleta(4) ? '✓ Completo' : (tieneProgreso(4) ? '● En progreso' : '○ Pendiente') }}
+          </span>
+        </div>
+        <div class="card-header-right">
+          <i class="bi" [class.bi-chevron-down]="!cardsExpandidas[4]" [class.bi-chevron-up]="cardsExpandidas[4]"></i>
+        </div>
+      </div>
+
+      <!-- Resumen mini -->
+      <div class="card-summary" *ngIf="!cardsExpandidas[4] && aspectosMejorarSeleccionados.length > 0">
+        <span class="summary-item">
+          <i class="bi bi-chat-left-text"></i> {{ aspectosMejorarSeleccionados.length }} aspecto{{
+          aspectosMejorarSeleccionados.length !== 1 ? 's' : '' }} a mejorar
+        </span>
+      </div>
+
+      <!-- Contenido expandible -->
+      <div class="card-content" [@slideDown]="cardsExpandidas[4] ? 'expanded' : 'collapsed'">
+        <div class="form-section">
+
+          <div class="alert alert-info">
+            <strong>📌 Crítico:</strong> ¿Qué mencionaron que deberíamos mejorar? Este es feedback directo y valioso.
+          </div>
+
+          <div class="row">
+            <div *ngFor="let aspecto of aspectosMejorar" class="col-md-6 mb-2">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" [id]="'mejorar_' + aspecto.id"
+                  [checked]="isAspectoMejorarSeleccionado(aspecto.id)" (change)="toggleAspectoMejorar(aspecto.id)"
+                  [disabled]="soloLectura">
+                <label class="form-check-label" [for]="'mejorar_' + aspecto.id">
+                  {{ aspecto.nombre }}
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="row mt-3">
+            <div class="col-md-12">
+              <label class="form-label"><strong>Comentarios específicos</strong></label>
+              <textarea class="form-control" rows="3" [(ngModel)]="comentariosMejorar" (ngModelChange)="marcarCambio('feedbackMejorar')"
+                placeholder="Ej: Dijo que los baños se ven viejos..." [readonly]="soloLectura"></textarea>
+            </div>
+          </div>
+
+          <div class="row mt-3">
+            <div class="col-md-12">
+              <label class="form-label"><strong>¿Qué tan válido es este feedback?</strong></label>
+              <select class="form-select" [(ngModel)]="validezFeedback" (ngModelChange)="marcarCambio('feedbackMejorar')"
+                [disabled]="soloLectura">
+                <option [value]="null">Seleccionar...</option>
+                <option *ngFor="let validez of tiposValidezFeedback" [value]="validez.id">
+                  {{ validez.nombre }}
+                </option>
+              </select>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 6: PERFIL DEL PROSPECTO -->
+    <div class="collapsible-card" [class.expanded]="cardsExpandidas[5]" [class.completed]="esCardCompleta(5)">
+      <div class="card-header" (click)="toggleCard(5)">
+        <div class="card-header-left">
+          <span class="card-icon">🎯</span>
+          <h3 class="card-title">PERFIL Y CALIFICACIÓN DEL PROSPECTO</h3>
+          <span class="card-badge" [class.badge-complete]="esCardCompleta(5)"
+            [class.badge-progress]="!esCardCompleta(5) && tieneProgreso(5)">
+            {{ esCardCompleta(5) ? '✓ Completo' : (tieneProgreso(5) ? '● En progreso' : '○ Pendiente') }}
+          </span>
+        </div>
+        <div class="card-header-right">
+          <i class="bi" [class.bi-chevron-down]="!cardsExpandidas[5]" [class.bi-chevron-up]="cardsExpandidas[5]"></i>
+        </div>
+      </div>
+
+      <!-- Resumen mini -->
+      <div class="card-summary" *ngIf="!cardsExpandidas[5] && esClienteIdeal">
+        <span class="summary-item" [class.text-success]="esClienteIdeal === 'si'"
+          [class.text-danger]="esClienteIdeal === 'no'">
+          <i class="bi" [class.bi-check-circle]="esClienteIdeal === 'si'" [class.bi-x-circle]="esClienteIdeal === 'no'"
+            [class.bi-dash-circle]="esClienteIdeal === 'parcial'"></i>
+          {{ esClienteIdeal === 'si' ? 'Cliente ideal' : esClienteIdeal === 'no' ? 'No es cliente ideal' : 'Parcialmente
+          ideal' }}
+        </span>
+      </div>
+
+      <!-- Contenido expandible -->
+      <div class="card-content" [@slideDown]="cardsExpandidas[5] ? 'expanded' : 'collapsed'">
+        <div class="form-section">
+
+          <div class="alert alert-info">
+            <strong>📌 Importante:</strong> No todos los prospectos son nuestros clientes ideales. Califica
+            objetivamente.
+          </div>
+
+          <div class="subsection-title">Perfil económico</div>
+          <div class="row">
+            <div class="col-md-12">
+              <select class="form-select" [(ngModel)]="perfilEconomico" (ngModelChange)="marcarCambio('perfilProspecto')"
+                [disabled]="soloLectura">
+                <option [value]="null">Seleccionar...</option>
+                <option *ngFor="let perfil of tiposPerfilEconomico" [value]="perfil.id">
+                  {{ perfil.nombre }}
+                </option>
+              </select>
+            </div>
+          </div>
+
+          <div class="subsection-title mt-4">Nivel de exigencia</div>
+          <div class="row">
+            <div class="col-md-12">
+              <select class="form-select" [(ngModel)]="nivelExigencia" (ngModelChange)="marcarCambio('perfilProspecto')"
+                [disabled]="soloLectura">
+                <option [value]="null">Seleccionar...</option>
+                <option *ngFor="let nivel of tiposNivelExigencia" [value]="nivel.id">
+                  {{ nivel.nombre }}
+                </option>
+              </select>
+            </div>
+          </div>
+
+          <div class="subsection-title mt-4">Probabilidad de ser cliente problema</div>
+          <div class="row">
+            <div class="col-md-12">
+              <select class="form-select" [(ngModel)]="semaforoCliente" (ngModelChange)="marcarCambio('perfilProspecto')"
+                [disabled]="soloLectura">
+                <option [value]="null">Seleccionar...</option>
+                <option *ngFor="let semaforo of tiposSemaforoCliente" [value]="semaforo.id">
+                  {{ semaforo.nombre }}
+                </option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row mt-3">
+            <div class="col-md-12">
+              <label class="form-label"><strong>Señales o comportamientos</strong></label>
+              <textarea class="form-control" rows="2" [(ngModel)]="senalesComportamiento" (ngModelChange)="marcarCambio('perfilProspecto')"
+                (ngModelChange)="emitirCambios()" placeholder="Ej: Desde el inicio fue muy cortante..."
+                [readonly]="soloLectura"></textarea>
+            </div>
+          </div>
+
+          <div class="subsection-title mt-4">¿Es nuestro cliente ideal?</div>
+          <div class="row">
+            <div class="col-md-12">
+              <select class="form-select" [(ngModel)]="esClienteIdeal" (ngModelChange)="marcarCambio('perfilProspecto')"
+                [disabled]="soloLectura">
+                <option value="">Seleccionar...</option>
+                <option value="si">✅ Sí - Perfil perfecto</option>
+                <option value="parcial">⚠️ Parcialmente</option>
+                <option value="no">❌ No - No es nuestro target</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row mt-3">
+            <div class="col-md-12">
+              <label class="form-label"><strong>¿Por qué sí o por qué no?</strong></label>
+              <textarea class="form-control" rows="2" [(ngModel)]="justificacionClienteIdeal" (ngModelChange)="marcarCambio('perfilProspecto')"
+                (ngModelChange)="emitirCambios()" placeholder="Ej: Sí, porque valora la atención personalizada..."
+                [readonly]="soloLectura"></textarea>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 7: COMPETENCIA MENCIONADA -->
+    <div class="collapsible-card" [class.expanded]="cardsExpandidas[6]" [class.completed]="esCardCompleta(6)">
+      <div class="card-header" (click)="toggleCard(6)">
+        <div class="card-header-left">
+          <span class="card-icon">🏆</span>
+          <h3 class="card-title">COMPETENCIA MENCIONADA</h3>
+          <span class="card-badge" [class.badge-complete]="esCardCompleta(6)"
+            [class.badge-progress]="!esCardCompleta(6) && tieneProgreso(6)">
+            {{ esCardCompleta(6) ? '✓ Completo' : (tieneProgreso(6) ? '● En progreso' : '○ Pendiente') }}
+          </span>
+        </div>
+        <div class="card-header-right">
+          <i class="bi" [class.bi-chevron-down]="!cardsExpandidas[6]" [class.bi-chevron-up]="cardsExpandidas[6]"></i>
+        </div>
+      </div>
+
+      <!-- Resumen mini -->
+      <div class="card-summary" *ngIf="!cardsExpandidas[6] && mencionoCompetencia !== null">
+        <span class="summary-item" *ngIf="mencionoCompetencia">
+          <i class="bi bi-building"></i> {{ principalCompetidor || 'Competencia mencionada' }}
+        </span>
+        <span class="summary-item" *ngIf="!mencionoCompetencia">
+          <i class="bi bi-check-circle"></i> No mencionaron competencia
+        </span>
+      </div>
+
+      <!-- Contenido expandible -->
+      <div class="card-content" [@slideDown]="cardsExpandidas[6] ? 'expanded' : 'collapsed'">
+        <div class="form-section">
+
+          <div class="row">
+            <div class="col-md-6">
+              <label class="form-label"><strong>¿Mencionaron otros jardines?</strong></label>
+              <div class="d-flex gap-3 mt-2">
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" name="mencionoCompetencia" [value]="true"
+                    [(ngModel)]="mencionoCompetencia" (ngModelChange)="emitirCambios()" [disabled]="soloLectura">
+                  <label class="form-check-label">Sí</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" name="mencionoCompetencia" [value]="false"
+                    [(ngModel)]="mencionoCompetencia" (ngModelChange)="emitirCambios()" [disabled]="soloLectura">
+                  <label class="form-check-label">No</label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="mencionoCompetencia">
+            <div class="row mt-3">
+              <div class="col-md-12">
+                <label class="form-label">¿Qué jardines mencionaron?</label>
+                <input type="text" class="form-control" [(ngModel)]="jardinesMencionados" (ngModelChange)="marcarCambio('competencia')"
+                  (ngModelChange)="emitirCambios()" placeholder="Ej: Jardín ABC, Jardín XYZ..."
+                  [readonly]="soloLectura">
+              </div>
+            </div>
+
+            <div class="row mt-3">
+              <div class="col-md-6">
+                <label class="form-label">Principal competidor</label>
+                <input type="text" class="form-control" [(ngModel)]="principalCompetidor" (ngModelChange)="marcarCambio('competencia')"
+                  (ngModelChange)="emitirCambios()" placeholder="Nombre del jardín" [readonly]="soloLectura">
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label">¿Hacia dónde se inclinan?</label>
+                <select class="form-select" [(ngModel)]="inclinacionDecision" (ngModelChange)="marcarCambio('competencia')"
+                  [disabled]="soloLectura">
+                  <option [value]="null">Seleccionar...</option>
+                  <option *ngFor="let inclinacion of tiposInclinacionDecision" [value]="inclinacion.id">
+                    {{ inclinacion.nombre }}
+                  </option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 8: APRENDIZAJES Y REFLEXIONES -->
+    <div class="collapsible-card" [class.expanded]="cardsExpandidas[7]" [class.completed]="esCardCompleta(7)">
+      <div class="card-header" (click)="toggleCard(7)">
+        <div class="card-header-left">
+          <span class="card-icon">💡</span>
+          <h3 class="card-title">APRENDIZAJES Y REFLEXIONES</h3>
+          <span class="card-badge" [class.badge-complete]="esCardCompleta(7)"
+            [class.badge-progress]="!esCardCompleta(7) && tieneProgreso(7)">
+            {{ esCardCompleta(7) ? '✓ Completo' : (tieneProgreso(7) ? '● En progreso' : '○ Pendiente') }}
+          </span>
+        </div>
+        <div class="card-header-right">
+          <i class="bi" [class.bi-chevron-down]="!cardsExpandidas[7]" [class.bi-chevron-up]="cardsExpandidas[7]"></i>
+        </div>
+      </div>
+
+      <!-- Resumen mini -->
+      <div class="card-summary" *ngIf="!cardsExpandidas[7] && (queSalioBien || queMejorarProximo)">
+        <span class="summary-item" *ngIf="queSalioBien">
+          <i class="bi bi-check-circle"></i> Reflexión positiva registrada
+        </span>
+        <span class="summary-item" *ngIf="queMejorarProximo">
+          <i class="bi bi-arrow-up-circle"></i> Áreas de mejora identificadas
+        </span>
+      </div>
+
+      <!-- Contenido expandible -->
+      <div class="card-content" [@slideDown]="cardsExpandidas[7] ? 'expanded' : 'collapsed'">
+        <div class="form-section">
+
+          <div class="aprendizaje-box">
+            <h6 class="mb-3">📚 Momento de reflexión</h6>
+            <p class="text-muted">Esta es la sección más valiosa. Tómate unos minutos para reflexionar.</p>
+          </div>
+
+          <div class="row">
+            <div class="col-md-12">
+              <label class="form-label"><strong>¿Qué salió bien?</strong></label>
+              <textarea class="form-control" rows="3" [(ngModel)]="queSalioBien" (ngModelChange)="marcarCambio('aprendizajes')"
+                placeholder="Ej: Logré conectar bien, respondí todas las objeciones..."
+                [readonly]="soloLectura"></textarea>
+            </div>
+          </div>
+
+          <div class="row mt-3">
+            <div class="col-md-12">
+              <label class="form-label"><strong>¿Qué mejorar para la próxima?</strong></label>
+              <textarea class="form-control" rows="3" [(ngModel)]="queMejorarProximo" (ngModelChange)="marcarCambio('aprendizajes')"
+                placeholder="Ej: Debí profundizar más en sus necesidades..." [readonly]="soloLectura"></textarea>
+            </div>
+          </div>
+
+          <div class="row mt-3">
+            <div class="col-md-12">
+              <label class="form-label"><strong>¿Algo que me sorprendió?</strong></label>
+              <textarea class="form-control" rows="3" [(ngModel)]="queSorprendio" (ngModelChange)="marcarCambio('aprendizajes')"
+                placeholder="Ej: Descubrí que muchos padres buscan horario extendido..."
+                [readonly]="soloLectura"></textarea>
+            </div>
+          </div>
+
+          <div class="row mt-3">
+            <div class="col-md-12">
+              <label class="form-label"><strong>Recomendaciones para el equipo</strong></label>
+              <textarea class="form-control" rows="3" [(ngModel)]="recomendacionesEquipo" (ngModelChange)="marcarCambio('aprendizajes')"
+                (ngModelChange)="emitirCambios()" placeholder="Ej: Deberíamos considerar cámaras en vivo..."
+                [readonly]="soloLectura"></textarea>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 9: RESUMEN EJECUTIVO -->
+    <div class="collapsible-card card-especial" [class.expanded]="cardsExpandidas[8]"
+      [class.completed]="esCardCompleta(8)">
+      <div class="card-header" (click)="toggleCard(8)">
+        <div class="card-header-left">
+          <span class="card-icon">📋</span>
+          <h3 class="card-title">RESUMEN EJECUTIVO</h3>
+          <span class="card-badge" [class.badge-complete]="esCardCompleta(8)"
+            [class.badge-progress]="!esCardCompleta(8) && tieneProgreso(8)">
+            {{ esCardCompleta(8) ? '✓ Completo' : (tieneProgreso(8) ? '● En progreso' : '○ Pendiente') }}
+          </span>
+        </div>
+        <div class="card-header-right">
+          <i class="bi" [class.bi-chevron-down]="!cardsExpandidas[8]" [class.bi-chevron-up]="cardsExpandidas[8]"></i>
+        </div>
+      </div>
+
+      <!-- Resumen mini -->
+      <div class="card-summary" *ngIf="!cardsExpandidas[8] && resumenEjecutivo">
+        <span class="summary-item">
+          <i class="bi bi-file-text"></i> {{ resumenEjecutivo.substring(0, 80) }}{{ resumenEjecutivo.length > 80 ? '...'
+          : '' }}
+        </span>
+      </div>
+
+      <!-- Contenido expandible -->
+      <div class="card-content" [@slideDown]="cardsExpandidas[8] ? 'expanded' : 'collapsed'">
+        <div class="form-section">
+
+          <div class="alert alert-info">
+            <strong>📊 Vista rápida:</strong> Completa este resumen de una frase
+          </div>
+
+          <div class="row">
+            <div class="col-md-12">
+              <label class="form-label"><strong>En una frase: ¿Por qué SÍ o NO cerramos?</strong></label>
+              <input type="text" class="form-control form-control-lg" [(ngModel)]="resumenEjecutivo" (ngModelChange)="marcarCambio('aprendizajes')"
+                (ngModelChange)="emitirCambios()" placeholder="Ej: Cerramos porque conectamos bien con su necesidad..."
+                [readonly]="soloLectura">
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>

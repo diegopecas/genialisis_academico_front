@@ -1,0 +1,375 @@
+<div class="modulo">
+    <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [accion]="accion"
+        [raiz]="'/administracion/productos-mobiliario'" [regresar]="regresar"
+        [iconoTitulo]="'/assets/images/productos-mobiliario.png'">
+    </app-header>
+
+    <div class="container mt-5">
+        <!-- Sistema de Tabs -->
+        <ul class="nav nav-tabs mb-4" id="productoMobiliarioTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="datos-generales-tab" data-bs-toggle="tab"
+                    data-bs-target="#datos-generales" type="button" role="tab" aria-controls="datos-generales"
+                    aria-selected="true" (click)="tabActivo = 'datos-generales'">
+                    <i class="fas fa-info-circle"></i> Datos Generales
+                </button>
+            </li>
+            <li class="nav-item" role="presentation" *ngIf="accion !== 'crear'">
+                <button class="nav-link" id="productos-limpieza-tab" data-bs-toggle="tab"
+                    data-bs-target="#productos-limpieza" type="button" role="tab" aria-controls="productos-limpieza"
+                    aria-selected="false" (click)="tabActivo = 'productos-limpieza'">
+                    <i class="fas fa-spray-can"></i> Productos Compatibles
+                    <span class="badge bg-primary ms-2" *ngIf="productosLimpiezaAsignados.length > 0">
+                        {{ productosLimpiezaAsignados.length }}
+                    </span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation" *ngIf="accion !== 'crear'">
+                <button class="nav-link" id="procesos-limpieza-tab" data-bs-toggle="tab"
+                    data-bs-target="#procesos-limpieza" type="button" role="tab" aria-controls="procesos-limpieza"
+                    aria-selected="false" (click)="tabActivo = 'procesos-limpieza'">
+                    <i class="fas fa-tasks"></i> Procesos de Limpieza
+                    <span class="badge bg-success ms-2" *ngIf="procesosLimpiezaAsignados.length > 0">
+                        {{ procesosLimpiezaAsignados.length }}
+                    </span>
+                </button>
+            </li>
+        </ul>
+
+        <!-- Contenido de los Tabs -->
+        <div class="tab-content" id="productoMobiliarioTabsContent">
+
+            <!-- Tab 1: Datos Generales (sin cambios) -->
+            <div class="tab-pane fade show active" id="datos-generales" role="tabpanel"
+                aria-labelledby="datos-generales-tab">
+                <!-- Contenido existente del Tab 1 -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-couch"></i> Información del Producto Mobiliario</h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Campos existentes -->
+                        <div class="row">
+                            <div class="col-sm-12 col-md-6">
+                                <label for="producto" class="form-label">Producto <span
+                                        class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control form-control-lg"
+                                        [(ngModel)]="model.nombreProducto"
+                                        [ngClass]="{'is-invalid': !model.idProducto && submitted}"
+                                        [disabled]="!editable" placeholder="Seleccionar producto..." readonly>
+                                    <button class="btn btn-outline-secondary" type="button"
+                                        (click)="abrirModalBuscarProducto()" [disabled]="!editable">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                </div>
+                                <div class="invalid-feedback">
+                                    El producto es requerido
+                                </div>
+                            </div>
+                            <div class="col-sm-12 col-md-6">
+                                <label for="tipoProductoMobiliario" class="form-label">Tipo de Mobiliario <span
+                                        class="text-danger">*</span></label>
+                                <select class="form-select form-select-lg" id="tipoProductoMobiliario"
+                                    [(ngModel)]="model.idTipoProductoMobiliario" required
+                                    [ngClass]="{'is-invalid': !model.idTipoProductoMobiliario && submitted}"
+                                    [disabled]="!editable">
+                                    <option value="">Seleccionar</option>
+                                    <ng-container *ngFor="let tipo of listas.tiposProductoMobiliario">
+                                        <option [value]="tipo.value">{{ tipo.label }}</option>
+                                    </ng-container>
+                                </select>
+                                <div class="invalid-feedback">
+                                    El tipo de mobiliario es requerido
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-3">
+                            <div class="col-sm-12 col-md-6">
+                                <label for="numeroSerie" class="form-label">Número de Serie <span
+                                        class="text-danger">*</span></label>
+                                <input class="form-control form-control-lg" type="text" id="numeroSerie"
+                                    [(ngModel)]="model.numeroSerie" required
+                                    [ngClass]="{'is-invalid': !model.numeroSerie && submitted}" [disabled]="!editable"
+                                    placeholder="Ej: SN-2024-001">
+                                <div class="invalid-feedback">
+                                    El número de serie es requerido
+                                </div>
+                            </div>
+                            <div class="col-sm-12 col-md-6">
+                                <label for="fechaAdquisicion" class="form-label">Fecha de Adquisición</label>
+                                <input class="form-control form-control-lg" type="date" id="fechaAdquisicion"
+                                    [(ngModel)]="model.fechaAdquisicion" [disabled]="!editable">
+                            </div>
+                        </div>
+
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <h6 class="mb-3">Requerimientos de Mantenimiento</h6>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="requiereLimpieza"
+                                        [(ngModel)]="model.requiereLimpieza" [disabled]="!editable">
+                                    <label class="form-check-label" for="requiereLimpieza">
+                                        Requiere limpieza periódica
+                                    </label>
+                                </div>
+                                <div class="form-check mt-2">
+                                    <input class="form-check-input" type="checkbox" id="requiereDesinfeccion"
+                                        [(ngModel)]="model.requiereDesinfeccion" [disabled]="!editable">
+                                    <label class="form-check-label" for="requiereDesinfeccion">
+                                        Requiere desinfección periódica
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <div class="alert alert-info" *ngIf="accion === 'crear'">
+                                    <i class="fas fa-info-circle"></i>
+                                    Una vez creado el producto mobiliario, podrá asignar productos de limpieza y
+                                    configurar procesos.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 2: Productos de Limpieza Compatibles (simplificado) -->
+            <div class="tab-pane fade" id="productos-limpieza" role="tabpanel" aria-labelledby="productos-limpieza-tab"
+                *ngIf="accion !== 'crear'">
+
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fas fa-spray-can"></i> Productos de Limpieza Compatibles
+                            </h5>
+                            <button class="btn btn-primary btn-sm" (click)="abrirModalAsignarProductosLimpieza()"
+                                [disabled]="!editable">
+                                <i class="fas fa-plus"></i> Asociar Productos
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info" *ngIf="productosLimpiezaAsignados.length === 0">
+                            <i class="fas fa-info-circle"></i> No hay productos de limpieza asociados a este mobiliario
+                        </div>
+
+                        <div class="table-responsive" *ngIf="productosLimpiezaAsignados.length > 0">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Producto</th>
+                                        <th>Tipo</th>
+                                        <th>Concentración</th>
+                                        <th>Modo de Uso</th>
+                                        <th class="text-center" *ngIf="editable">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr *ngFor="let item of productosLimpiezaAsignados">
+                                        <td>
+                                            <strong>{{ item.nombre_producto }}</strong>
+                                            <span class="badge bg-warning ms-2" *ngIf="productoEstaEnProcesos(item.id)">
+                                                <i class="fas fa-lock"></i> En uso
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-secondary">{{ item.tipo_limpieza || 'Sin tipo'
+                                                }}</span>
+                                        </td>
+                                        <td>{{ item.concentracion || '-' }}</td>
+                                        <td>
+                                            <small class="text-muted">{{ truncarTexto(item.modo_uso, 100) }}</small>
+                                        </td>
+                                        <td class="text-center" *ngIf="editable">
+                                            <button class="btn btn-sm btn-outline-danger"
+                                                (click)="eliminarAsignacionLimpieza(item)"
+                                                [title]="productoEstaEnProcesos(item.id) ? 'Este producto está siendo usado en procesos' : 'Eliminar'">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="row mt-4" *ngIf="productosLimpiezaAsignados.length > 0">
+                            <div class="col-md-12">
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-info-circle"></i>
+                                    Los productos aquí listados están disponibles para ser usados en los procesos de
+                                    limpieza.
+                                    Configure las cantidades e instrucciones específicas en la pestaña "Procesos de
+                                    Limpieza".
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reemplazar el Tab 3: Procesos de Limpieza con este código actualizado -->
+            <div class="tab-pane fade" id="procesos-limpieza" role="tabpanel" aria-labelledby="procesos-limpieza-tab"
+                *ngIf="accion !== 'crear'">
+
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fas fa-tasks"></i> Procesos de Limpieza
+                            </h5>
+                            <button class="btn btn-success btn-sm" (click)="abrirModalAsignarProcesoLimpieza()"
+                                [disabled]="!editable || productosLimpiezaAsignados.length === 0">
+                                <i class="fas fa-plus"></i> Nuevo Proceso
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info" *ngIf="productosLimpiezaAsignados.length === 0">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Primero debe asociar productos de limpieza en la pestaña anterior para poder crear procesos.
+                        </div>
+
+                        <div class="alert alert-info"
+                            *ngIf="productosLimpiezaAsignados.length > 0 && procesosLimpiezaAsignados.length === 0">
+                            <i class="fas fa-info-circle"></i> No hay procesos de limpieza configurados para este
+                            mobiliario
+                        </div>
+
+                        <!-- Acordeón para procesos con múltiples productos -->
+                        <div class="accordion" id="accordionProcesos" *ngIf="procesosLimpiezaAsignados.length > 0">
+                            <div class="accordion-item"
+                                *ngFor="let proceso of procesosLimpiezaAsignados; let i = index">
+                                <h2 class="accordion-header" [id]="'heading' + i">
+                                    <button class="accordion-button collapsed" type="button"
+                                        [attr.data-bs-toggle]="'collapse'" [attr.data-bs-target]="'#collapse' + i"
+                                        [attr.aria-expanded]="'false'" [attr.aria-controls]="'collapse' + i">
+                                        <div class="d-flex justify-content-between w-100 me-3">
+                                            <div>
+                                                <strong>{{ proceso.nombre_proceso }}</strong>
+                                                <span class="ms-2 badge bg-secondary">
+                                                    {{ proceso.productos?.length || 0 }} producto(s)
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </button>
+                                </h2>
+                                <div [id]="'collapse' + i" class="accordion-collapse collapse"
+                                    [attr.aria-labelledby]="'heading' + i" data-bs-parent="#accordionProcesos">
+                                    <div class="accordion-body">
+                                        <!-- Descripción del proceso -->
+                                        <div class="mb-3" *ngIf="proceso.descripcion_proceso">
+                                            <small class="text-muted">{{ proceso.descripcion_proceso }}</small>
+                                        </div>
+
+                                        <!-- Tabla de productos del proceso -->
+                                        <div class="table-responsive"
+                                            *ngIf="proceso.productos && proceso.productos.length > 0">
+                                            <table class="table table-sm">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Producto</th>
+                                                        <th>Concentración</th>
+                                                        <th class="text-center">Cantidad</th>
+                                                        <th>Instrucciones</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr *ngFor="let prod of proceso.productos">
+                                                        <td>
+                                                            <strong>{{ prod.nombre_producto }}</strong>
+                                                        </td>
+                                                        <td>{{ prod.concentracion || '-' }}</td>
+                                                        <td class="text-center">
+                                                            <span class="badge bg-primary">
+                                                                {{ prod.cantidad_sugerida || '-' }} {{
+                                                                prod.unidad_medida || '' }}
+                                                            </span>
+                                                        </td>
+                                                        <td>
+                                                            <small>{{ truncarTexto(prod.instrucciones, 100) }}</small>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+
+                                        <!-- Mensaje si no hay productos -->
+                                        <div class="alert alert-warning"
+                                            *ngIf="!proceso.productos || proceso.productos.length === 0">
+                                            <i class="fas fa-exclamation-triangle"></i>
+                                            Este proceso no tiene productos específicos asignados.
+                                        </div>
+
+                                        <!-- Botones de acción -->
+                                        <div class="mt-3 text-end" *ngIf="editable">
+                                            <button class="btn btn-sm btn-outline-secondary me-2"
+                                                (click)="editarProcesoLimpieza(proceso)">
+                                                <i class="fas fa-edit"></i> Editar
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger"
+                                                (click)="eliminarProcesoLimpieza(proceso)">
+                                                <i class="fas fa-trash"></i> Eliminar
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Resumen de procesos -->
+                        <div class="row mt-4" *ngIf="procesosLimpiezaAsignados.length > 0">
+                            <div class="col-md-12">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6 class="card-title">
+                                            <i class="fas fa-chart-bar"></i> Resumen de Procesos
+                                        </h6>
+                                        <div class="row">
+                                            <div class="col-md-3">
+                                                <small class="text-muted">Total de Procesos</small>
+                                                <h5 class="text-primary">{{ procesosLimpiezaAsignados.length }}</h5>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <small class="text-muted">Total Productos en Procesos</small>
+                                                <h5 class="text-success">{{ contarTotalProductosEnProcesos() }}</h5>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <small class="text-muted">Procesos con Productos</small>
+                                                <h5 class="text-info">{{ contarProcesosConProducto() }}</h5>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <small class="text-muted">Productos Únicos</small>
+                                                <h5 class="text-warning">{{ contarProductosDiferentes() }}</h5>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botones de acción -->
+    <div class="container mt-4 mb-5">
+        <div class="row">
+            <div class="col-sm-6" *ngIf="editable">
+                <button class="btn btn-lg btn-warning w-100" (click)="guardarProductoMobiliario()">
+                    <i class="fas fa-save"></i> Guardar
+                </button>
+            </div>
+            <div class="col-sm-6">
+                <button class="btn btn-lg btn-secondary w-100" (click)="volver()">
+                    <i class="fas fa-arrow-left"></i> Volver
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

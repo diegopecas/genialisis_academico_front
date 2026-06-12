@@ -1,0 +1,22 @@
+<div class="transcribir-audio-container my-2">
+  <button
+    class="btn btn-sm w-100"
+    [class.btn-outline-warning]="!grabando && !procesando"
+    [class.btn-outline-danger]="grabando"
+    [class.btn-outline-secondary]="procesando"
+    [disabled]="procesando"
+    (click)="toggleGrabacion()">
+    <ng-container *ngIf="!grabando && !procesando">
+      <span class="govco-microphone-alt-slash"></span>
+      Iniciar transcripción
+    </ng-container>
+    <ng-container *ngIf="grabando">
+      <span class="grabando-indicador"></span>
+      Detener ({{ formatearTiempo(tiempoGrabacion) }})
+    </ng-container>
+    <ng-container *ngIf="procesando">
+      <i class="bi bi-hourglass-split"></i>
+      Transcribiendo...
+    </ng-container>
+  </button>
+</div>

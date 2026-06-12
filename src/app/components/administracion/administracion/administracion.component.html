@@ -1,0 +1,79 @@
+<div class="modulo">
+    <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [raiz]="'/'" [regresar]="'/menu'"></app-header>
+
+    <div class="container-fluid mt-5">
+        <!-- Título descriptivo -->
+        <div class="text-center mb-5">
+            <h2 class="titulo-seccion">¿Qué deseas administrar hoy?</h2>
+            <p class="subtitulo-seccion">Selecciona una opción para comenzar</p>
+        </div>
+
+        <!-- Tarjetas de opciones -->
+        <div class="row justify-content-center">
+            <!-- Registro de Datos Maestros -->
+            <div class="col-lg-4 col-md-6 mb-4" *ngIf="permisosService.tienePermiso('administracion.datos_maestros')">
+                <div class="card-opcion" (click)="seleccionarOpcion('datos-maestros')">
+                    <div class="card-opcion-content">
+                        <div class="icono-container datos-maestros">
+                            <img [src]="'/assets/images/datos-maestros.png'" alt="Datos Maestros" />
+                        </div>
+                        <h3 class="card-titulo">Registro de Datos Maestros</h3>
+                        <p class="card-descripcion">Gestiona proveedores y productos del sistema</p>
+                        <div class="card-footer-custom">
+                            <span class="link-accion">Administrar <i class="fas fa-arrow-right"></i></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CRM - Gestión de Visitas -->
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card-opcion" (click)="seleccionarOpcion('crm')">
+                    <div class="card-opcion-content">
+                        <div class="icono-container crm">
+                            <img [src]="'/assets/images/crm.png'" alt="CRM" />
+                        </div>
+                        <h3 class="card-titulo">CRM - Gestión de Visitas</h3>
+                        <p class="card-descripcion">Administra visitas de prospectos y seguimiento</p>
+                        <div class="card-footer-custom">
+                            <span class="link-accion">Gestionar <i class="fas fa-arrow-right"></i></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Módulo Financiero -->
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card-opcion" (click)="seleccionarOpcion('financiero')">
+                    <div class="card-opcion-content">
+                        <div class="icono-container financiero">
+                            <img [src]="'/assets/images/finanzas.png'" alt="Módulo Financiero" />
+                        </div>
+                        <h3 class="card-titulo">Módulo Financiero</h3>
+                        <p class="card-descripcion">Gestiona ingresos, egresos y reportes financieros</p>
+                        <div class="card-footer-custom">
+                            <span class="link-accion">Administrar <i class="fas fa-arrow-right"></i></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Auditoría de Registros -->
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card-opcion" (click)="seleccionarOpcion('auditoria-registros')">
+                    <div class="card-opcion-content">
+                        <div class="icono-container auditoria">
+                            <img [src]="'/assets/images/auditoria.png'" alt="Auditoría" />
+                        </div>
+                        <h3 class="card-titulo">Auditoría de Registros</h3>
+                        <p class="card-descripcion">Analiza el cumplimiento de registros por grupo</p>
+                        <div class="card-footer-custom">
+                            <span class="link-accion">Analizar <i class="fas fa-arrow-right"></i></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>

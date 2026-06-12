@@ -1,0 +1,20 @@
+<div class="daily-message-overlay" 
+     *ngIf="mensaje && mostrar" 
+     (click)="cerrar()">
+  <div class="daily-message" 
+       [attr.data-theme]="currentTheme.name"
+       (click)="$event.stopPropagation()">
+    <div class="message-glow"></div>
+    <div class="message-content">
+      <button class="close-btn" (click)="cerrar()">✕</button>
+      <div class="message-icon">{{ getIconoPorTipo() }}</div>
+      <p class="message-text">{{ mensaje.mensaje }}</p>
+      <div class="message-footer">
+        <span class="message-type">{{ getTipoTexto() }}</span>
+        <span class="message-stats" *ngIf="mensaje.stats">
+          {{ mensaje.stats.disponibles }} disponibles hoy
+        </span>
+      </div>
+    </div>
+  </div>
+</div>

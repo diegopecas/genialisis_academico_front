@@ -1,0 +1,180 @@
+<div class="menu-container">
+  
+  <!-- Fondo con imagen difuminada (dinámico por tenant con fallback) -->
+  <div class="background-image" [style.background-image]="'url(' + fondoUrl + ')'"></div>
+  <div class="background-overlay"></div>
+
+  <!-- Header con 3 secciones -->
+  <header class="menu-header">
+    <div class="header-content">
+      
+      <!-- Logos (izquierda) -->
+      <div class="header-logos">
+        <img [src]="logoGenialisis" alt="Genialisis" class="genialisis-logo" />
+        <div class="logo-divider"></div>
+        <img [src]="logoBasicoUrl" [alt]="nombreInstitucion" class="institution-logo" />
+      </div>
+
+      <!-- Nombre institución (centro) -->
+      <div class="header-title">
+        <h1>{{ nombreInstitucion }}</h1>
+        <p>Sistema de Gestión Educativa</p>
+      </div>
+
+      <!-- Usuario y botón salir (derecha) -->
+      <div class="header-user">
+        <span class="user-greeting" *ngIf="nombreUsuario">Hola, {{ nombreUsuario }}</span>
+        <button class="profile-button" (click)="irAMiPerfil()">
+          <img src="/assets/images/colaboradores.png" alt="Mi Perfil" />
+          <span>Mi Perfil</span>
+        </button>
+        <button class="help-button" (click)="abrirAyuda()">
+          <span>?</span>
+        </button>
+        <button class="logout-button" (click)="salir()">
+          <img src="/assets/images/salir.png" alt="Salir" />
+          <span>Salir</span>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ====== BANNER DE CUMPLEAÑOS ====== -->
+  <div class="birthday-banner-wrapper" *ngIf="mostrarBannerCumple">
+    
+    <!-- Confetti animado -->
+    <div class="confetti-container">
+      <div 
+        *ngFor="let piece of confettiPieces" 
+        class="confetti-piece"
+        [style.left.%]="piece * 2"
+        [style.animation-delay.s]="piece * 0.08"
+        [style.animation-duration.s]="2.5 + (piece % 5) * 0.5"
+      ></div>
+    </div>
+
+    <div class="birthday-banner">
+      
+      <!-- Botón cerrar -->
+      <button class="birthday-close" (click)="cerrarBannerCumple()">✕</button>
+
+      <div class="birthday-content">
+        
+        <!-- Imagen de cumpleaños -->
+        <div class="birthday-image-container">
+          <img src="/assets/images/cumpleanos.png" alt="Feliz Cumpleaños" class="birthday-image" />
+        </div>
+        
+        <!-- Mensaje -->
+        <div class="birthday-text">
+          <h2 class="birthday-title">¡Feliz Cumpleaños!</h2>
+          <p class="birthday-message">{{ mensajeCumple }}</p>
+          <p class="birthday-from">Con cariño, {{ nombreInstitucion }} 💛</p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+  <!-- ====== FIN BANNER DE CUMPLEAÑOS ====== -->
+
+  <!-- ====== ACCESOS RÁPIDOS ====== -->
+  <section class="accesos-rapidos-section" *ngIf="accesosRapidos.length > 0">
+    <div class="accesos-rapidos-container">
+      <div class="accesos-rapidos-header">
+        <span class="accesos-rapidos-titulo">⚡ Accesos Rápidos</span>
+      </div>
+      <div class="accesos-rapidos-list">
+        <div 
+          *ngFor="let acceso of accesosRapidos" 
+          class="acceso-rapido-chip"
+          (click)="irAccesoRapido(acceso)"
+        >
+          <span class="acceso-icono">{{ acceso.icono }}</span>
+          <span class="acceso-label">{{ acceso.label }}</span>
+          <button 
+            class="acceso-pin-btn"
+            [class.fijado]="acceso.es_fijo === 1"
+            (click)="toggleFijoAcceso($event, acceso)"
+            [title]="acceso.es_fijo === 1 ? 'Desfijar' : 'Fijar'"
+          >
+            {{ acceso.es_fijo === 1 ? '📌' : '○' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- ====== FIN ACCESOS RÁPIDOS ====== -->
+
+  <!-- Grid de círculos ordenados -->
+  <main class="menu-circles">
+
+    <!-- Estudiantes -->
+    <div class="circle-option circle-1" (click)="selectOption('/estudiantes')" *ngIf="permisosService.tienePermiso('estudiantes.listado')">
+      <div class="circle-content">
+        <img src="/assets/images/estudiantes.png" alt="Estudiantes" />
+        <span>Estudiantes</span>
+      </div>
+    </div>
+
+    <!-- Calificaciones -->
+    <div class="circle-option circle-2" (click)="selectOption('/calificacion')">
+      <div class="circle-content">
+        <img src="/assets/images/reporte.png" alt="Calificaciones" />
+        <span>Calificaciones</span>
+      </div>
+    </div>
+
+    <!-- Colaboradores -->
+    <div class="circle-option circle-3" (click)="selectOption('/gestion-colaboradores')">
+      <div class="circle-content">
+        <img src="/assets/images/colaboradores.png" alt="Colaboradores" />
+        <span>Colaboradores</span>
+      </div>
+    </div>
+
+    <!-- Reportes -->
+    <div class="circle-option circle-4" (click)="selectOption('/reportes')" *ngIf="permisosService.tienePermiso('reportes.ver')">
+      <div class="circle-content">
+        <img src="/assets/images/detalle.png" alt="Reportes" />
+        <span>Reportes</span>
+      </div>
+    </div>
+
+    <!-- Asistencia -->
+    <div class="circle-option circle-5" (click)="selectOption('/asistencia')">
+      <div class="circle-content">
+        <img src="/assets/images/asistencia.png" alt="Asistencia" />
+        <span>Asistencia</span>
+      </div>
+    </div>
+
+    <!-- Operaciones -->
+    <div class="circle-option circle-6" (click)="selectOption('/operaciones')">
+      <div class="circle-content">
+        <img src="/assets/images/operaciones.png" alt="Operaciones" />
+        <span>Operaciones</span>
+      </div>
+    </div>
+
+    <!-- Administración -->
+    <div class="circle-option circle-7" (click)="selectOption('/administracion')" *ngIf="permisosService.tienePermiso('administracion.ver')">
+      <div class="circle-content">
+        <img src="/assets/images/administracion.png" alt="Administración" />
+        <span>Administración</span>
+      </div>
+    </div>
+
+    <!-- Académico -->
+    <div class="circle-option circle-8" (click)="selectOption('/academico')">
+      <div class="circle-content">
+        <img src="/assets/images/academico.png" alt="Académico" />
+        <span>Académico</span>
+      </div>
+    </div>
+
+  </main>
+
+  <app-daily-message></app-daily-message>
+
+</div>

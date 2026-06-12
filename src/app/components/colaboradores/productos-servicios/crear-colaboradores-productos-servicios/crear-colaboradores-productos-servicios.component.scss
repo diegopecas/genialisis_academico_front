@@ -1,0 +1,84 @@
+.disabled-container {
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+.input-group-text {
+    background-color: #f8f9fa;
+    color: #495057;
+    font-weight: 500;
+}
+
+input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-outer-spin-button { 
+    -webkit-appearance: none; 
+    margin: 0; 
+}
+
+input[type=number] {
+    -moz-appearance: textfield;
+}
+
+input[disabled], 
+select[disabled], 
+textarea[disabled], 
+.form-control[disabled] {
+    cursor: not-allowed;
+    opacity: 0.7;
+    background-color: #f8f9fa;
+}
+
+.saldo-completado {
+    color: #27ae60;
+    font-weight: bold;
+}
+
+.saldo-pendiente {
+    color: #e74c3c;
+    font-weight: bold;
+}
+
+h4 {
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid #e9ecef;
+    padding-bottom: 0.5rem;
+    color: #2c3e50;
+}
+
+.alert.alert-info {
+    background-color: #d1f2eb;
+    border-left: 4px solid #1abc9c;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    border-radius: 0.25rem;
+}
+
+.badge {
+    font-size: 0.8rem;
+    padding: 0.35em 0.65em;
+}
+
+.badge.bg-success {
+    background-color: #27ae60 !important;
+}
+
+.badge.bg-danger {
+    background-color: #e74c3c !important;
+}
+
+.table {
+    font-size: 0.95rem;
+}
+
+.table-dark th {
+    background-color: #34495e;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+.text-end {
+    text-align: right !important;
+}

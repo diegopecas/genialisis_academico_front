@@ -1,0 +1,80 @@
+<div class="modulo">
+  <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [raiz]="'/administracion'" [regresar]="'/administracion'" [iconoTitulo]="'/assets/images/geofence.png'"></app-header>
+
+  <div class="container-fluid mt-4 px-4">
+
+    <div *ngIf="cargando" class="text-center py-5">
+      <div class="spinner-border text-warning" role="status"></div>
+      <p class="mt-3 text-muted">Cargando configuración...</p>
+    </div>
+
+    <div *ngIf="!cargando">
+
+      <div class="info-card mb-3">
+        <h5><i class="fas fa-map-marked-alt me-2"></i>Zona de Asistencia</h5>
+        <p class="mb-0">Haz clic en <strong>"Dibujar zona"</strong>, luego haz clic en el mapa para agregar puntos. <strong>Doble clic</strong> para cerrar el polígono. Mínimo 3 puntos.</p>
+      </div>
+
+      <!-- Acciones -->
+      <div class="acciones-mapa mb-3">
+        <!-- Botones cuando NO está dibujando -->
+        <ng-container *ngIf="!dibujando">
+          <button class="btn-accion-mapa btn-dibujar" (click)="iniciarDibujo()">
+            <i class="fas fa-draw-polygon me-1"></i> Dibujar zona
+          </button>
+          <button class="btn-accion-mapa" (click)="centrarEnMiUbicacion()">
+            <i class="fas fa-crosshairs me-1"></i> Mi ubicación
+          </button>
+          <button class="btn-accion-mapa btn-limpiar" (click)="limpiarPoligono()" *ngIf="poligono.length > 0">
+            <i class="fas fa-eraser me-1"></i> Limpiar zona
+          </button>
+        </ng-container>
+
+        <!-- Botones cuando SÍ está dibujando -->
+        <ng-container *ngIf="dibujando">
+          <button class="btn-accion-mapa btn-cerrar" (click)="cerrarPoligono()" [disabled]="puntosTemporales.length < 3">
+            <i class="fas fa-check-circle me-1"></i> Cerrar polígono ({{ puntosTemporales.length }} puntos)
+          </button>
+          <button class="btn-accion-mapa" (click)="deshacerUltimoPunto()" [disabled]="puntosTemporales.length === 0">
+            <i class="fas fa-undo me-1"></i> Deshacer
+          </button>
+          <button class="btn-accion-mapa btn-limpiar" (click)="cancelarDibujo()">
+            <i class="fas fa-times me-1"></i> Cancelar
+          </button>
+        </ng-container>
+
+        <div class="estado-poligono" *ngIf="!dibujando && poligono.length > 0">
+          <i class="fas fa-check-circle text-success me-1"></i>
+          <span>Zona definida con {{ poligono.length }} puntos</span>
+        </div>
+        <div class="estado-poligono" *ngIf="!dibujando && poligono.length === 0">
+          <i class="fas fa-exclamation-circle text-warning me-1"></i>
+          <span>Sin zona definida</span>
+        </div>
+      </div>
+
+      <!-- Banner modo dibujo -->
+      <div class="dibujo-activo-banner" *ngIf="dibujando">
+        <i class="fas fa-pencil-alt me-2"></i> Modo dibujo activo — Haz clic en el mapa para agregar puntos. Doble clic para cerrar.
+      </div>
+
+      <!-- Mapa -->
+      <div class="mapa-container">
+        <div id="mapa-geofence" class="mapa-leaflet" [ngClass]="{'mapa-dibujando': dibujando}"></div>
+      </div>
+
+      <!-- Botón guardar -->
+      <div class="row mt-4" *ngIf="!dibujando">
+        <div class="col-12 d-flex gap-2">
+          <button class="btn-save" (click)="guardar()" [disabled]="guardando || poligono.length < 3">
+            <i class="fas fa-save me-1"></i>
+            <span *ngIf="!guardando">Guardar Zona</span>
+            <span *ngIf="guardando"><span class="spinner-border spinner-border-sm me-1"></span> Guardando...</span>
+          </button>
+          <button class="btn-cancel" [routerLink]="['/administracion']"><i class="fas fa-times-circle me-1"></i> Volver</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

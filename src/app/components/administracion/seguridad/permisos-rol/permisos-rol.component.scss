@@ -1,0 +1,418 @@
+// Paleta gold/negro
+$gold-primary: #FFC107;
+$gold-dark: #C49000;
+$gold-light: #FFD54F;
+$gold-bg: #FFF8E1;
+$negro: #1A1A1A;
+$negro-suave: #2D2D2D;
+$gris-claro: #F5F5F5;
+$gris-medio: #E0E0E0;
+$gris-texto: #757575;
+$blanco: #FFFFFF;
+
+// Card selector de rol
+.card-selector {
+    border: none;
+    border-radius: 16px;
+    background: rgba($blanco, 0.85);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+
+    .selector-label {
+        font-weight: 600;
+        color: $negro-suave;
+        font-size: 14px;
+        margin-bottom: 8px;
+
+        i {
+            color: $gold-primary;
+            margin-right: 6px;
+        }
+    }
+
+    .selector-rol {
+        border: 2px solid $gris-medio;
+        border-radius: 12px;
+        font-size: 16px;
+        padding: 10px 16px;
+        transition: all 0.3s ease;
+
+        &:focus {
+            border-color: $gold-primary;
+            box-shadow: 0 0 0 3px rgba($gold-primary, 0.15);
+        }
+    }
+
+    .contador-permisos {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 4px;
+
+        .badge-total {
+            background: linear-gradient(135deg, $gold-primary, $gold-dark);
+            color: $negro;
+            font-size: 20px;
+            font-weight: 700;
+            padding: 8px 20px;
+            border-radius: 12px;
+        }
+
+        .contador-texto {
+            font-size: 13px;
+            color: $gris-texto;
+        }
+    }
+}
+
+// Card acciones + buscador
+.card-acciones {
+    border: none;
+    border-radius: 12px;
+    background: rgba($blanco, 0.9);
+    backdrop-filter: blur(8px);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+
+    .buscador-input {
+        border-radius: 0;
+        border-color: $gris-medio;
+
+        &:focus {
+            border-color: $gold-primary;
+            box-shadow: none;
+        }
+    }
+
+    .input-group-text {
+        background: $gris-claro;
+        border-color: $gris-medio;
+        color: $gris-texto;
+    }
+
+    .btn-outline-gold {
+        color: $gold-dark;
+        border-color: $gold-primary;
+
+        &:hover {
+            background: $gold-primary;
+            color: $negro;
+            border-color: $gold-primary;
+        }
+    }
+}
+
+// Card árbol
+.card-arbol {
+    border: none;
+    border-radius: 16px;
+    background: rgba($blanco, 0.9);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+    max-height: 60vh;
+    overflow-y: auto;
+
+    &::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: $gris-medio;
+        border-radius: 3px;
+    }
+}
+
+// Nodo del árbol
+.nodo-arbol {
+    .nodo-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 8px;
+        border-radius: 8px;
+        transition: background 0.15s ease;
+        cursor: default;
+
+        &:hover {
+            background: rgba($gold-primary, 0.06);
+        }
+
+        &.nodo-con-hijos {
+            cursor: pointer;
+        }
+    }
+
+    .btn-expandir {
+        width: 24px;
+        height: 24px;
+        border: none;
+        background: none;
+        color: $gris-texto;
+        font-size: 11px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 4px;
+        transition: all 0.2s ease;
+        flex-shrink: 0;
+
+        &:hover {
+            background: $gris-claro;
+            color: $negro-suave;
+        }
+
+        i {
+            transition: transform 0.2s ease;
+        }
+    }
+
+    .btn-expandir-placeholder {
+        width: 24px;
+        flex-shrink: 0;
+    }
+
+    .nodo-checkbox-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        flex-shrink: 0;
+
+        .nodo-checkbox {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid $gris-medio;
+            border-radius: 4px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s ease;
+
+            &:checked {
+                background: $gold-primary;
+                border-color: $gold-primary;
+
+                &::after {
+                    content: '✓';
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    color: $negro;
+                    font-size: 13px;
+                    font-weight: 700;
+                }
+            }
+
+            &:indeterminate {
+                background: $gold-light;
+                border-color: $gold-primary;
+
+                &::after {
+                    content: '—';
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    color: $negro;
+                    font-size: 13px;
+                    font-weight: 700;
+                }
+            }
+
+            &:hover {
+                border-color: $gold-primary;
+            }
+        }
+    }
+
+    .nodo-nombre {
+        font-weight: 600;
+        font-size: 14px;
+        color: $negro-suave;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex: 1;
+        user-select: none;
+    }
+
+    .nodo-icono {
+        width: 20px;
+        height: 20px;
+        object-fit: contain;
+    }
+
+    .permiso-codigo-nodo {
+        font-size: 11px;
+        color: $gris-texto;
+        background: rgba($gold-primary, 0.1);
+        padding: 1px 8px;
+        border-radius: 4px;
+        font-family: 'Courier New', monospace;
+        flex-shrink: 0;
+    }
+
+    .badge-nodo {
+        background: $gris-claro;
+        color: $gris-texto;
+        font-size: 11px;
+        font-weight: 500;
+        padding: 2px 8px;
+        border-radius: 10px;
+        flex-shrink: 0;
+    }
+}
+
+// Lista de permisos de acción
+.permisos-lista {
+    padding: 4px 0 8px 0;
+
+    .permiso-item {
+        padding: 3px 0;
+    }
+
+    .permiso-checkbox-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        padding: 4px 8px;
+        border-radius: 6px;
+        transition: background 0.15s ease;
+
+        &:hover {
+            background: rgba($gold-primary, 0.06);
+        }
+
+        .permiso-checkbox {
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border: 2px solid $gris-medio;
+            border-radius: 3px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+
+            &:checked {
+                background: $gold-primary;
+                border-color: $gold-primary;
+
+                &::after {
+                    content: '✓';
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    color: $negro;
+                    font-size: 10px;
+                    font-weight: 700;
+                }
+            }
+
+            &:hover {
+                border-color: $gold-primary;
+            }
+        }
+
+        .permiso-nombre {
+            font-size: 13px;
+            color: $negro-suave;
+            flex: 1;
+        }
+
+        .permiso-codigo {
+            font-size: 11px;
+            color: $gris-texto;
+            background: $gris-claro;
+            padding: 1px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+        }
+    }
+}
+
+// Botón guardar gold
+.btn-gold {
+    background: linear-gradient(135deg, $gold-primary, $gold-dark);
+    color: $negro;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 16px;
+    padding: 12px 32px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 16px rgba($gold-primary, 0.3);
+
+    &:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 24px rgba($gold-primary, 0.4);
+        background: linear-gradient(135deg, $gold-light, $gold-primary);
+        color: $negro;
+    }
+
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+}
+
+// Estado vacío
+.estado-vacio {
+    color: $gris-texto;
+    padding: 40px 0;
+
+    i {
+        font-size: 64px;
+        color: $gris-medio;
+        margin-bottom: 16px;
+        display: block;
+    }
+
+    h4 {
+        color: $negro-suave;
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+
+    p {
+        font-size: 14px;
+    }
+}
+
+// Responsive
+@media (max-width: 768px) {
+    .card-selector .contador-permisos {
+        align-items: flex-start;
+        margin-top: 16px;
+    }
+
+    .card-arbol {
+        max-height: 50vh;
+    }
+
+    .nodo-arbol {
+        .nodo-header {
+            padding: 8px 4px;
+        }
+
+        .permiso-codigo-nodo {
+            display: none;
+        }
+    }
+
+    .permisos-lista {
+        .permiso-checkbox-wrapper {
+            .permiso-codigo {
+                display: none;
+            }
+        }
+    }
+}

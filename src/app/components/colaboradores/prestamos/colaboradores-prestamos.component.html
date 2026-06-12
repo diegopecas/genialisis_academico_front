@@ -1,0 +1,25 @@
+<div class="modulo">
+  @if (!modoEmbebido) {
+  <app-header-anidado 
+    [tituloModulo]="titulo" 
+    [path]="path"
+    [mostrarCrear]="true"
+    [accion]="'crear'"
+    [raiz]="'/colaboradores-prestamos'"
+    [regresar]="'/colaboradores'"
+    [iconoTitulo]="'/assets/images/prestamos.png'">
+  </app-header-anidado>
+  }
+
+  <app-tablas 
+    [titulos]="titulos" 
+    [datos]="datos" 
+    [raiz]="'/colaboradores-prestamos'"
+    [accionVer]="true"
+    [accionEditar]="true" 
+    [accionEliminar]="true"
+    [acciones]="acciones"
+    [columnasFiltro]="columnasFiltro"
+    (clicAccion)="accionTabla($event)">
+  </app-tablas>
+</div>

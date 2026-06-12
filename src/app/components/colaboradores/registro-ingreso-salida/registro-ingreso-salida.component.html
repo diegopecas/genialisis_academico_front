@@ -1,0 +1,124 @@
+<div class="modulo">
+  @if (!modoEmbebido) {
+  <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [raiz]="'/'" [regresar]="'/gestion-colaboradores'" [iconoTitulo]="'/assets/images/colaboradores.png'"></app-header>
+  }
+
+  <div class="container mt-4">
+
+    <!-- Loader -->
+    <div *ngIf="cargando" class="text-center py-5">
+      <div class="spinner-border text-warning" role="status"></div>
+      <p class="mt-3 text-muted">Cargando información...</p>
+    </div>
+
+    <div *ngIf="!cargando">
+
+      <!-- Reloj y fecha -->
+      <div class="reloj-card">
+        <div class="reloj-hora">{{ horaActual }}</div>
+        <div class="reloj-fecha">{{ fechaActual }}</div>
+        <div class="reloj-nombre">{{ nombreColaborador }}</div>
+      </div>
+
+      <!-- Estado de ubicación -->
+      <div class="ubicacion-card" [ngClass]="{'ubicacion-ok': dentroRango, 'ubicacion-fuera': !dentroRango && latitudActual !== null, 'ubicacion-error': errorUbicacion}">
+        <div *ngIf="obteniendoUbicacion" class="d-flex align-items-center gap-2">
+          <div class="spinner-border spinner-border-sm"></div>
+          <span>Obteniendo ubicación...</span>
+        </div>
+        <div *ngIf="!obteniendoUbicacion && errorUbicacion">
+          <i class="fas fa-exclamation-triangle me-2"></i>{{ errorUbicacion }}
+          <button class="btn-reintentar" (click)="obtenerUbicacion()"><i class="fas fa-redo"></i> Reintentar</button>
+        </div>
+        <div *ngIf="!obteniendoUbicacion && !errorUbicacion && latitudActual !== null">
+          <div class="d-flex align-items-center justify-content-between">
+            <div>
+              <i [class]="dentroRango ? 'fas fa-check-circle' : 'fas fa-times-circle'" class="me-2"></i>
+              <span *ngIf="dentroRango">Dentro de la zona</span>
+              <span *ngIf="!dentroRango">Fuera de la zona</span>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+              <button class="btn-ver-mapa" (click)="toggleMapa()">
+                <i [class]="mostrarMapa ? 'fas fa-chevron-up' : 'fas fa-map-marker-alt'"></i>
+              </button>
+              <button class="btn-reintentar" (click)="obtenerUbicacion()"><i class="fas fa-redo"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mini mapa -->
+      <div class="mini-mapa-container" *ngIf="mostrarMapa && latitudActual !== null">
+        <div id="mini-mapa-checkin" class="mini-mapa-leaflet"></div>
+      </div>
+
+      <!-- Horario del día -->
+      <div class="horario-card" *ngIf="horarioHoy">
+        <h6><i class="fas fa-calendar-day me-2"></i>Horario de hoy</h6>
+        <div class="horario-detalle">
+          <span><i class="fas fa-sign-in-alt me-1"></i>{{ horarioHoy.hora_entrada?.substring(0,5) }}</span>
+          <span class="separador">—</span>
+          <span><i class="fas fa-sign-out-alt me-1"></i>{{ horarioHoy.hora_salida?.substring(0,5) }}</span>
+          <span *ngIf="horarioHoy.hora_inicio_descanso" class="separador">|</span>
+          <span *ngIf="horarioHoy.hora_inicio_descanso"><i class="fas fa-coffee me-1"></i>{{ horarioHoy.hora_inicio_descanso?.substring(0,5) }} - {{ horarioHoy.hora_fin_descanso?.substring(0,5) }}</span>
+        </div>
+      </div>
+
+      <div class="alert alert-secondary" *ngIf="!horarioHoy">
+        <i class="fas fa-info-circle me-2"></i>No tienes horario configurado para hoy.
+      </div>
+
+      <!-- Botón principal: siguiente paso lógico -->
+      <div class="registro-acciones" *ngIf="obtenerSiguientePaso()">
+        <button class="btn-registrar-principal" (click)="registrar(obtenerSiguientePaso())" [disabled]="registrando || !dentroRango">
+          <i [class]="obtenerIconoTipo(obtenerSiguientePaso().codigo)" class="btn-registrar-icono-principal"></i>
+          <div class="btn-registrar-info">
+            <span class="btn-registrar-label">Siguiente registro</span>
+            <span class="btn-registrar-texto-principal">{{ obtenerSiguientePaso().nombre }}</span>
+          </div>
+          <span *ngIf="registrando" class="spinner-border spinner-border-sm ms-2"></span>
+        </button>
+
+        <!-- Link saltar descanso -->
+        <div class="saltar-descanso" *ngIf="puedesSaltarDescanso() && obtenerTipoSalidaJornada()">
+          <button class="btn-saltar" (click)="registrar(obtenerTipoSalidaJornada())" [disabled]="registrando || !dentroRango">
+            <i class="fas fa-forward me-1"></i> Saltar a Salida Jornada
+          </button>
+        </div>
+      </div>
+
+      <!-- Botón registro manual -->
+      <div class="registro-manual-container">
+        <button class="btn-registro-manual" (click)="abrirRegistroManual()" [disabled]="registrando">
+          <i class="fas fa-edit me-2"></i> Registro Manual
+        </button>
+      </div>
+
+      <!-- Registros del día -->
+      <div class="registros-hoy" *ngIf="registrosHoy.length > 0">
+        <h6 class="registros-titulo"><i class="fas fa-list-alt me-2"></i>Registros de hoy</h6>
+        <div *ngFor="let reg of registrosHoy" class="registro-item">
+          <div class="registro-item-icono">
+            <i [class]="obtenerIconoTipo(reg.codigo_tipo)"></i>
+          </div>
+          <div class="registro-item-info">
+            <span class="registro-item-tipo">
+              {{ reg.nombre_tipo }}
+              <span class="manual-tag" *ngIf="reg.registro_manual"><i class="fas fa-hand-paper"></i> Manual</span>
+            </span>
+            <span class="registro-item-hora">{{ reg.hora_registro?.substring(0,5) }}</span>
+          </div>
+          <div class="registro-item-acciones">
+            <span class="registro-item-estado" *ngIf="reg.nombre_estado" [style.background-color]="obtenerColorEstado(reg.codigo_estado)" [style.color]="'white'">
+              {{ reg.nombre_estado }}
+            </span>
+            <button class="btn-eliminar-registro" (click)="eliminarRegistro(reg)" title="Eliminar registro">
+              <i class="fas fa-trash-alt"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
