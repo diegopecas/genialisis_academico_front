@@ -108,23 +108,6 @@
 
   <!-- Grid de círculos ordenados -->
   <main class="menu-circles">
-
-    <!-- Estudiantes -->
-    <div class="circle-option circle-1" (click)="selectOption('/estudiantes')" *ngIf="permisosService.tienePermiso('estudiantes.listado')">
-      <div class="circle-content">
-        <img src="/assets/images/estudiantes.png" alt="Estudiantes" />
-        <span>Estudiantes</span>
-      </div>
-    </div>
-
-    <!-- Calificaciones -->
-    <div class="circle-option circle-2" (click)="selectOption('/calificacion')">
-      <div class="circle-content">
-        <img src="/assets/images/reporte.png" alt="Calificaciones" />
-        <span>Calificaciones</span>
-      </div>
-    </div>
-
     <!-- Colaboradores -->
     <div class="circle-option circle-3" (click)="selectOption('/gestion-colaboradores')">
       <div class="circle-content">
@@ -140,15 +123,6 @@
         <span>Reportes</span>
       </div>
     </div>
-
-    <!-- Asistencia -->
-    <div class="circle-option circle-5" (click)="selectOption('/asistencia')">
-      <div class="circle-content">
-        <img src="/assets/images/asistencia.png" alt="Asistencia" />
-        <span>Asistencia</span>
-      </div>
-    </div>
-
     <!-- Operaciones -->
     <div class="circle-option circle-6" (click)="selectOption('/operaciones')">
       <div class="circle-content">
@@ -165,13 +139,15 @@
       </div>
     </div>
 
-    <!-- Académico -->
-    <div class="circle-option circle-8" (click)="selectOption('/academico')">
-      <div class="circle-content">
-        <img src="/assets/images/academico.png" alt="Académico" />
-        <span>Académico</span>
+    <!-- Círculos del dominio del producto (vacío en el núcleo) -->
+    <ng-container *ngFor="let circulo of circulosDominio">
+      <div class="circle-option" [ngClass]="circulo.clase" (click)="selectOption(circulo.ruta)" *ngIf="tienePermisoCirculo(circulo)">
+        <div class="circle-content">
+          <img [src]="circulo.imagen" [alt]="circulo.label" />
+          <span>{{ circulo.label }}</span>
+        </div>
       </div>
-    </div>
+    </ng-container>
 
   </main>
 

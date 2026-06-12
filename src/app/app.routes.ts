@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { AuthGuard } from './core/auth.guard';
 import { PermisosGuard } from './core/permisos.guard';
+import { dominioRoutes } from './dominio.routes';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -128,6 +129,9 @@ export const routes: Routes = [
 
   // Configuración Geofence
   { path: 'administracion/configuracion-geofence', loadComponent: () => import('./components/administracion/configuracion-geofence/configuracion-geofence.component').then(m => m.ConfiguracionGeofenceComponent), canActivate: [AuthGuard], data: { trackear: true, labelAcceso: 'Configuración Geofence', iconoAcceso: '📍' } },
+
+  // Rutas del dominio del producto (vacío en el núcleo; cada producto aporta las suyas)
+  ...dominioRoutes,
 
   // Ruta comodín
   { path: '**', redirectTo: 'login' }

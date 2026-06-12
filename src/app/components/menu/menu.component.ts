@@ -8,6 +8,7 @@ import { PermisosService } from '../../services/permisos.service';
 import { AyudaModalService } from '../../services/ayuda-modal.service';
 import { AccesosRapidosService, AccesoRapido } from '../../services/accesos-rapidos.service';
 import { DailyMessageComponent } from '../daily-message/daily-message.component';
+import { dominioMenuCirculos, MenuCirculo } from '../../dominio-menu';
 
 interface CumpleaneroInfo {
   nombre: string;
@@ -42,6 +43,8 @@ export class MenuComponent implements OnInit {
   public confettiPieces: number[] = [];
 
   public accesosRapidos: AccesoRapido[] = [];
+
+  public circulosDominio: MenuCirculo[] = dominioMenuCirculos;
 
   constructor(
     private router: Router,
@@ -293,6 +296,10 @@ export class MenuComponent implements OnInit {
 
   cerrarBannerCumple(): void {
     this.mostrarBannerCumple = false;
+  }
+
+  tienePermisoCirculo(circulo: MenuCirculo): boolean {
+    return !circulo.permiso || this.permisosService.tienePermiso(circulo.permiso);
   }
 
   selectOption(path: string): void {
