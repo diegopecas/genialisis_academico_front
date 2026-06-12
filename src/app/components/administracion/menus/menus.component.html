@@ -1,0 +1,54 @@
+<div class="modulo">
+    <app-header 
+        [tituloModulo]="titulo" 
+        [mostrarCrear]="false" 
+        [raiz]="'/administracion/datos-maestros'" 
+        [regresar]="'/administracion/datos-maestros'"
+        [iconoTitulo]="'/assets/images/menu-restaurante.png'">
+    </app-header>
+
+    <div class="container-fluid mt-5">
+        <!-- Título descriptivo -->
+        <div class="text-center mb-5">
+            <h2 class="titulo-seccion">Gestión de Menús</h2>
+            <p class="subtitulo-seccion">Administra los menús y recetas del restaurante</p>
+        </div>
+
+        <!-- Tarjetas de opciones -->
+        <div class="row justify-content-center">
+            
+            <!-- Items de Menú -->
+            <div class="col-lg-5 col-md-6 mb-4">
+                <div class="card-menu" (click)="seleccionarOpcion('items-menu')">
+                    <div class="card-menu-content">
+                        <div class="icono-container items-menu">
+                            <img src="/assets/images/items-menu.png" alt="Ítems de Menú" />
+                        </div>
+                        <h3 class="card-titulo">Ítems de Menú</h3>
+                        <p class="card-descripcion">Gestiona los platos individuales y sus recetas (sopas, arroces, jugos, etc.)</p>
+                        <div class="card-footer-custom">
+                            <span class="link-accion">Administrar <i class="fas fa-arrow-right"></i></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Menús -->
+            <div class="col-lg-5 col-md-6 mb-4">
+                <div class="card-menu" (click)="seleccionarOpcion('menus')">
+                    <div class="card-menu-content">
+                        <div class="icono-container menus">
+                            <img src="/assets/images/menus-completos.png" alt="Menús Completos" />
+                        </div>
+                        <h3 class="card-titulo">Menús Completos</h3>
+                        <p class="card-descripcion">Crea y administra menús completos combinando diferentes ítems</p>
+                        <div class="card-footer-custom">
+                            <span class="link-accion">Gestionar <i class="fas fa-arrow-right"></i></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>

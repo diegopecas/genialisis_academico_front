@@ -1,16 +1,18 @@
 /**
- * Círculos del menú principal aportados por el dominio del producto.
- * En el NÚCLEO este arreglo permanece vacío.
- * Cada producto derivado (GENIALISIS, Psyncronia, ...) reemplaza este archivo
- * con sus propios círculos; menu.component los renderiza automáticamente.
- * No agregar círculos del núcleo aquí.
+ * Círculos del menú del dominio EDUCATIVO (producto GENIALISIS para jardines).
+ * Las clases circle-N corresponden a las posiciones definidas en menu.component.scss.
  */
 export interface MenuCirculo {
-  ruta: string;       // ruta de navegación, ej: '/estudiantes'
-  label: string;      // texto visible, ej: 'Estudiantes'
-  imagen: string;     // src de la imagen, ej: '/assets/images/estudiantes.png'
-  clase: string;      // clase CSS de posición, ej: 'circle-1'
-  permiso?: string;   // permiso requerido; si se omite, siempre visible
+  ruta: string;
+  label: string;
+  imagen: string;
+  clase: string;
+  permiso?: string;
 }
 
-export const dominioMenuCirculos: MenuCirculo[] = [];
+export const dominioMenuCirculos: MenuCirculo[] = [
+  { ruta: '/estudiantes', label: 'Estudiantes', imagen: '/assets/images/estudiantes.png', clase: 'circle-1', permiso: 'estudiantes.listado' },
+  { ruta: '/calificacion', label: 'Calificaciones', imagen: '/assets/images/reporte.png', clase: 'circle-2' },
+  { ruta: '/asistencia', label: 'Asistencia', imagen: '/assets/images/asistencia.png', clase: 'circle-5' },
+  { ruta: '/academico', label: 'Académico', imagen: '/assets/images/academico.png', clase: 'circle-8' }
+];

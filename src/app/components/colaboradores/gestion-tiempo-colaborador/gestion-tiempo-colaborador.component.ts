@@ -13,6 +13,7 @@ import { TiposActividadesColaboradoresService } from '../../../services/tipos-ac
 import { TareasColaboradoresService } from '../../../services/tareas-colaboradores.service';
 import { EstadosTareasColaboradoresService } from '../../../services/estados-tareas-colaboradores.service';
 import { TiposTareasColaboradoresService } from '../../../services/tipos-tareas-colaboradores.service';
+import { EstudiantesService } from '../../../services/estudiantes.service';
 import { GoogleCalendarService } from '../../../services/google-calendar.service';
 import { ClasesTareasService } from '../../../services/clases-tareas.service';
 
@@ -159,6 +160,7 @@ export class GestionTiempoColaboradorComponent implements OnInit {
     private tareasColaboradoresService: TareasColaboradoresService,
     private estadosTareasColaboradoresService: EstadosTareasColaboradoresService,
     private tiposTareasColaboradoresService: TiposTareasColaboradoresService,
+    private estudiantesService: EstudiantesService,
     private googleCalendarService: GoogleCalendarService,
     private clasesTareasService: ClasesTareasService,
     private utilService: UtilService
@@ -711,10 +713,23 @@ export class GestionTiempoColaboradorComponent implements OnInit {
   // ==================== MODAL SELECTOR DE ESTUDIANTES ====================
 
   cargarEstudiantesActivos() {
-    // NÚCLEO: selector de estudiantes deshabilitado (pertenece al dominio educativo)
-    this.estudiantesActivos = [];
-    this.estudiantesFiltradosTarea = [];
-    this.gruposEstudiantes = [];
+    if (this.estudiantesActivos.length > 0) return;
+    this.estudiantesService.obtenerActivos().subscribe({
+      next: (response: any) => {
+        this.estudiantesActivos = (response.body || []).map((e: any) => ({
+          ...e,
+          nombre_completo: [e.primer_nombre, e.segundo_nombre, e.primer_apellido, e.segundo_apellido].filter(Boolean).join(' ').replace(/\s+/g, ' ').trim()
+        }));
+        const gruposMap = new Map();
+        this.estudiantesActivos.forEach(e => {
+          if (e.id_grupo && !gruposMap.has(e.id_grupo)) {
+            gruposMap.set(e.id_grupo, e.nombre_grupo);
+          }
+        });
+        this.gruposEstudiantes = Array.from(gruposMap, ([id, nombre]) => ({ id, nombre }));
+        this.estudiantesFiltradosTarea = [...this.estudiantesActivos];
+      }
+    });
   }
 
   abrirSelectorEstudiantes(paraEdicion: boolean): void {

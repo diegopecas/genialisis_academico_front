@@ -1,0 +1,42 @@
+/* Estilos para los gráficos */
+.card {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+    height: 100%;
+    
+    &:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
+    }
+  }
+  
+  canvas {
+    max-height: 400px;
+  }
+  
+  h4 {
+    color: #333;
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 0.5rem;
+  }
+  
+
+  
+  /* Estilos para las selectores */
+  select.form-control {
+    border-color: #ced4da;
+    box-shadow: none;
+    transition: border-color 0.2s ease;
+    
+    &:focus {
+      border-color: #80bdff;
+      box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+  }
+  
+  label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.5rem;
+  }

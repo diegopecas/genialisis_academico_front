@@ -1,0 +1,780 @@
+<div class="modulo">
+    <app-header 
+        [tituloModulo]="titulo" 
+        [mostrarCrear]="false" 
+        [accion]="accion" 
+        [raiz]="'/academico/grupos'"
+        [regresar]="regresar" 
+        [iconoTitulo]="'/assets/images/grupos.png'">
+    </app-header>
+
+    <!-- Barra de pestañas DESKTOP -->
+    <div class="tabs-container tabs-desktop" *ngIf="accion === 'editar' || accion === 'consultar'">
+        <div class="tabs-nav">
+            <button 
+                class="tab-item" 
+                [class.active]="pestanaActiva === 'basico'"
+                (click)="pestanaActiva = 'basico'">
+                <i class="fas fa-info-circle"></i>
+                Información Básica
+            </button>
+            <button 
+                *ngIf="accion === 'editar'"
+                class="tab-item" 
+                [class.active]="pestanaActiva === 'grados'"
+                (click)="pestanaActiva = 'grados'">
+                <i class="fas fa-graduation-cap"></i>
+                Grados
+            </button>
+            <button 
+                *ngIf="accion === 'editar'"
+                class="tab-item" 
+                [class.active]="pestanaActiva === 'areas'"
+                (click)="pestanaActiva = 'areas'">
+                <i class="fas fa-book-open"></i>
+                Áreas Académicas
+            </button>
+            <button 
+                *ngIf="accion === 'editar'"
+                class="tab-item" 
+                [class.active]="pestanaActiva === 'horarios'"
+                (click)="pestanaActiva = 'horarios'">
+                <i class="fas fa-clock"></i>
+                Horarios
+            </button>
+            <button 
+                *ngIf="accion === 'editar'"
+                class="tab-item" 
+                [class.active]="pestanaActiva === 'tarifas'"
+                (click)="pestanaActiva = 'tarifas'">
+                <i class="fas fa-dollar-sign"></i>
+                Tarifas
+            </button>
+        </div>
+    </div>
+
+    <!-- Barra de pestañas MOVIL (hamburguesa) -->
+    <div class="tabs-container tabs-movil" *ngIf="accion === 'editar' || accion === 'consultar'">
+        <div class="tabs-movil-header">
+            <button class="tabs-movil-trigger" (click)="menuMovilAbierto = !menuMovilAbierto">
+                <i class="fas" [ngClass]="menuMovilAbierto ? 'fa-times' : 'fa-bars'"></i>
+                <span class="tabs-movil-label">
+                    <ng-container [ngSwitch]="pestanaActiva">
+                        <ng-container *ngSwitchCase="'basico'"><i class="fas fa-info-circle"></i> Información Básica</ng-container>
+                        <ng-container *ngSwitchCase="'grados'"><i class="fas fa-graduation-cap"></i> Grados</ng-container>
+                        <ng-container *ngSwitchCase="'areas'"><i class="fas fa-book-open"></i> Áreas Académicas</ng-container>
+                        <ng-container *ngSwitchCase="'horarios'"><i class="fas fa-clock"></i> Horarios</ng-container>
+                        <ng-container *ngSwitchCase="'tarifas'"><i class="fas fa-dollar-sign"></i> Tarifas</ng-container>
+                    </ng-container>
+                </span>
+                <i class="fas fa-chevron-down tabs-movil-chevron" [class.rotado]="menuMovilAbierto"></i>
+            </button>
+        </div>
+        <div class="tabs-movil-dropdown" *ngIf="menuMovilAbierto">
+            <button 
+                class="tabs-movil-item" 
+                [class.active]="pestanaActiva === 'basico'"
+                (click)="seleccionarPestana('basico')">
+                <i class="fas fa-info-circle"></i>
+                Información Básica
+            </button>
+            <button 
+                *ngIf="accion === 'editar'"
+                class="tabs-movil-item" 
+                [class.active]="pestanaActiva === 'grados'"
+                (click)="seleccionarPestana('grados')">
+                <i class="fas fa-graduation-cap"></i>
+                Grados
+            </button>
+            <button 
+                *ngIf="accion === 'editar'"
+                class="tabs-movil-item" 
+                [class.active]="pestanaActiva === 'areas'"
+                (click)="seleccionarPestana('areas')">
+                <i class="fas fa-book-open"></i>
+                Áreas Académicas
+            </button>
+            <button 
+                *ngIf="accion === 'editar'"
+                class="tabs-movil-item" 
+                [class.active]="pestanaActiva === 'horarios'"
+                (click)="seleccionarPestana('horarios')">
+                <i class="fas fa-clock"></i>
+                Horarios
+            </button>
+            <button 
+                *ngIf="accion === 'editar'"
+                class="tabs-movil-item" 
+                [class.active]="pestanaActiva === 'tarifas'"
+                (click)="seleccionarPestana('tarifas')">
+                <i class="fas fa-dollar-sign"></i>
+                Tarifas
+            </button>
+        </div>
+    </div>
+
+    <!-- Contenido de Información Básica -->
+    <div class="tab-content" *ngIf="pestanaActiva === 'basico'">
+        <div class="container mt-5">
+            <div class="row position-relative">
+                <!-- Columna principal con todos los campos -->
+                <div class="col-md-8">
+                    <!-- Nombre del grupo -->
+                    <div class="row">
+                        <div class="col-12">
+                            <label for="nombre" class="form-label">Nombre del grupo <span class="text-danger">*</span></label>
+                            <input 
+                                class="form-control form-control-lg" 
+                                type="text" 
+                                id="nombre" 
+                                [(ngModel)]="model.nombre"
+                                placeholder="Ej: Primaria, Secundaria, Preescolar..."
+                                required
+                                [ngClass]="{'is-invalid': !model.nombre && submitted}"
+                                [disabled]="!editable">
+                            <small class="form-text text-muted">Ingrese el nombre del grupo académico</small>
+                        </div>
+                    </div>
+
+                    <!-- Color y Orden -->
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <label for="color" class="form-label">Color <span class="text-danger">*</span></label>
+                            <div class="d-flex align-items-center gap-3">
+                                <input 
+                                    type="color" 
+                                    class="form-control form-control-color" 
+                                    id="color" 
+                                    [(ngModel)]="model.color"
+                                    [disabled]="!editable"
+                                    style="width: 80px; height: 50px;">
+                                <input 
+                                    type="text" 
+                                    class="form-control" 
+                                    [(ngModel)]="model.color"
+                                    [disabled]="!editable"
+                                    placeholder="#000000">
+                            </div>
+                            <small class="form-text text-muted">Seleccione un color identificador para el grupo</small>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="orden" class="form-label">Orden <span class="text-danger">*</span></label>
+                            <input 
+                                class="form-control form-control-lg" 
+                                type="number" 
+                                id="orden" 
+                                [(ngModel)]="model.orden"
+                                min="1"
+                                required
+                                [ngClass]="{'is-invalid': !model.orden && submitted}"
+                                [disabled]="!editable">
+                            <small class="form-text text-muted">Orden de visualización del grupo</small>
+                        </div>
+                    </div>
+
+                    <!-- Calificable -->
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <div class="form-check form-switch">
+                                <input 
+                                    class="form-check-input" 
+                                    type="checkbox" 
+                                    id="calificable"
+                                    [(ngModel)]="model.calificable"
+                                    [disabled]="!editable">
+                                <label class="form-check-label" for="calificable">
+                                    <strong>Grupo Calificable</strong>
+                                </label>
+                                <small class="d-block mt-1 text-muted">
+                                    Indica si este grupo permite asignar calificaciones
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Columna de la imagen (superior derecha) -->
+                <div class="col-md-4">
+                    <div class="icono-section">
+                        <label class="form-label text-center d-block">Icono <span class="text-danger">*</span></label>
+                        <div class="icono-preview-large" [ngClass]="{'is-invalid-border': !model.icono && submitted}">
+                            <img *ngIf="model.icono" [src]="model.icono" alt="Icono seleccionado" class="img-preview">
+                            <div *ngIf="!model.icono" class="sin-icono">
+                                <i class="fas fa-image"></i>
+                                <span>Sin icono</span>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2 mt-3">
+                            <button 
+                                type="button" 
+                                class="btn btn-primary flex-grow-1 btn-sm" 
+                                (click)="abrirModalImagenes()"
+                                [disabled]="!editable">
+                                <i class="fas fa-folder-open"></i> Seleccionar
+                            </button>
+                            <button 
+                                *ngIf="model.icono && editable" 
+                                type="button" 
+                                class="btn btn-danger btn-sm" 
+                                (click)="model.icono = ''">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <small class="form-text text-muted d-block text-center mt-2">Icono del grupo</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenido de Grados -->
+    <div class="tab-content" *ngIf="pestanaActiva === 'grados'">
+        <div class="container mt-5">
+            <div class="grados-section">
+                <div class="row">
+                    <!-- Columna izquierda: Grados Disponibles -->
+                    <div class="col-md-6" *ngIf="accion === 'editar'">
+                        <div class="grados-card disponibles">
+                            <div class="card-header-subtle">
+                                <span class="header-icon"><i class="fas fa-list"></i></span>
+                                Grados Disponibles
+                            </div>
+                            <div class="card-body-subtle">
+                                <div *ngIf="gradosDisponibles.length > 0">
+                                    <div class="grados-list">
+                                        <div class="grado-item" *ngFor="let grado of gradosDisponibles">
+                                            <input 
+                                                class="form-check-input" 
+                                                type="checkbox" 
+                                                [id]="'grado-' + grado.id"
+                                                [(ngModel)]="gradosSeleccionados[grado.id]">
+                                            <label class="form-check-label" [for]="'grado-' + grado.id">
+                                                {{ grado.nombre }}
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="empty-state" *ngIf="gradosDisponibles.length === 0">
+                                    <i class="fas fa-inbox"></i>
+                                    <p>No hay grados disponibles</p>
+                                </div>
+                            </div>
+                        </div>
+                        <button 
+                            class="btn btn-asociar mt-3 w-100" 
+                            (click)="asociarGrados()"
+                            *ngIf="gradosDisponibles.length > 0">
+                            <i class="fas fa-arrow-right"></i> Asociar Seleccionados
+                        </button>
+                    </div>
+
+                    <!-- Columna derecha: Grados Asociados -->
+                    <div [class]="accion === 'editar' ? 'col-md-6' : 'col-12'">
+                        <div class="grados-card asociados">
+                            <div class="card-header-subtle">
+                                <span class="header-icon"><i class="fas fa-check-circle"></i></span>
+                                Grados del Grupo
+                            </div>
+                            <div class="card-body-subtle">
+                                <div *ngIf="gradosAsociados.length > 0">
+                                    <div class="grados-list">
+                                        <div class="grado-item-asociado" *ngFor="let gradoAsociado of gradosAsociados">
+                                            <span class="grado-nombre">{{ gradoAsociado.nombre_grado }}</span>
+                                            <button 
+                                                *ngIf="accion === 'editar'"
+                                                class="btn-desasociar" 
+                                                (click)="desasociarGrado(gradoAsociado)"
+                                                title="Desasociar grado">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="empty-state" *ngIf="gradosAsociados.length === 0">
+                                    <i class="fas fa-inbox"></i>
+                                    <p>Sin grados asociados</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenido de Áreas Académicas -->
+    <div class="tab-content" *ngIf="pestanaActiva === 'areas'">
+        <div class="container mt-5">
+            <div class="grados-section">
+                <div class="row">
+                    <!-- Columna izquierda: Áreas Disponibles -->
+                    <div class="col-md-6" *ngIf="accion === 'editar'">
+                        <div class="grados-card disponibles">
+                            <div class="card-header-subtle">
+                                <span class="header-icon"><i class="fas fa-list"></i></span>
+                                Áreas Académicas Disponibles
+                            </div>
+                            <div class="card-body-subtle">
+                                <div *ngIf="areasDisponibles.length > 0">
+                                    <div class="grados-list">
+                                        <div class="grado-item" *ngFor="let area of areasDisponibles">
+                                            <input 
+                                                class="form-check-input" 
+                                                type="checkbox" 
+                                                [id]="'area-' + area.id"
+                                                [(ngModel)]="areasSeleccionadas[area.id]">
+                                            <label class="form-check-label" [for]="'area-' + area.id">
+                                                {{ area.nombre }}
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="empty-state" *ngIf="areasDisponibles.length === 0">
+                                    <i class="fas fa-inbox"></i>
+                                    <p>No hay áreas académicas disponibles</p>
+                                </div>
+                            </div>
+                        </div>
+                        <button 
+                            class="btn btn-asociar mt-3 w-100" 
+                            (click)="asociarAreas()"
+                            *ngIf="areasDisponibles.length > 0">
+                            <i class="fas fa-arrow-right"></i> Asociar Seleccionadas
+                        </button>
+                    </div>
+
+                    <!-- Columna derecha: Áreas Asociadas -->
+                    <div [class]="accion === 'editar' ? 'col-md-6' : 'col-12'">
+                        <div class="grados-card asociados">
+                            <div class="card-header-subtle">
+                                <span class="header-icon"><i class="fas fa-check-circle"></i></span>
+                                Áreas Académicas del Grupo
+                            </div>
+                            <div class="card-body-subtle">
+                                <div *ngIf="areasAsociadas.length > 0">
+                                    <div class="grados-list">
+                                        <div class="grado-item-asociado" *ngFor="let areaAsociada of areasAsociadas">
+                                            <span class="grado-nombre">{{ areaAsociada.nombre_area_academica }}</span>
+                                            <button 
+                                                *ngIf="accion === 'editar'"
+                                                class="btn-desasociar" 
+                                                (click)="desasociarArea(areaAsociada)"
+                                                title="Desasociar área">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="empty-state" *ngIf="areasAsociadas.length === 0">
+                                    <i class="fas fa-inbox"></i>
+                                    <p>Sin áreas académicas asociadas</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenido de Horarios -->
+    <div class="tab-content" *ngIf="pestanaActiva === 'horarios'">
+        <div class="container-fluid mt-5">
+            <div class="horarios-section">
+                
+                <div *ngIf="areasAsociadas.length === 0" class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> 
+                    Primero debe asociar áreas académicas al grupo
+                </div>
+
+                <!-- Resumen y filtros -->
+                <div class="horarios-header-section" *ngIf="areasAsociadas.length > 0">
+                    <!-- Resumen de horarios -->
+                    <div class="horarios-resumen">
+                        <div class="resumen-badge">
+                            <i class="fas fa-calendar-day"></i>
+                            <span class="resumen-numero">{{ diasActivos }}</span>
+                            <span class="resumen-texto">días activos</span>
+                        </div>
+                        <div class="resumen-badge">
+                            <i class="fas fa-clock"></i>
+                            <span class="resumen-numero">{{ horasSemanales }}h</span>
+                            <span class="resumen-texto">semanales</span>
+                        </div>
+                    </div>
+
+                    <!-- Leyenda de áreas -->
+                    <div class="horario-leyenda">
+                        <h6>Áreas Académicas:</h6>
+                        <div class="leyenda-items">
+                            <label class="leyenda-item" *ngFor="let area of areasAsociadas">
+                                <input 
+                                    type="checkbox" 
+                                    [checked]="areasSeleccionadasFiltro[area.id_area_academica]"
+                                    (change)="toggleAreaFiltro(area.id_area_academica)"
+                                    class="leyenda-checkbox">
+                                <div class="leyenda-color" [style.background-color]="obtenerColorArea(area.id_area_academica)"></div>
+                                {{ area.nombre_area_academica }}
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VISTA DESKTOP: Calendario de horarios (grilla) -->
+                <div class="horario-scroll-container horario-vista-desktop" *ngIf="areasAsociadas.length > 0">
+                    <div class="horario-grid">
+                        <!-- Header de días -->
+                        <div class="horario-header-dias">
+                            <div class="horario-cell horario-time-header">Hora</div>
+                            <div class="horario-cell horario-day-header" *ngFor="let dia of diasSemana">
+                                {{ dia.nombre }}
+                            </div>
+                        </div>
+
+                        <!-- Filas de horarios -->
+                        <div class="horario-row" *ngFor="let hora of horasDelDia">
+                            <div class="horario-cell horario-time-cell">
+                                {{ hora }}
+                            </div>
+                            <div class="horario-cell horario-content-cell" 
+                                 *ngFor="let dia of diasSemana"
+                                 [ngClass]="getClaseHorario(dia.id, hora)"
+                                 (click)="!getHorarioInfo(dia.id, hora) && abrirModalHorario(null, dia.id, hora)">
+                                
+                                <div class="horario-block" 
+                                     *ngIf="getHorarioInfo(dia.id, hora) as horarioInfo"
+                                     [style.background-color]="obtenerColorArea(horarioInfo.id_area_academica)"
+                                     [ngClass]="[horarioInfo.esInicio ? 'es-inicio' : '',
+                                               horarioInfo.esFin ? 'es-fin' : '',
+                                               horarioInfo.esIntermedio ? 'es-intermedio' : '']"
+                                     (click)="$event.stopPropagation(); mostrarDetalleHorario(horarioInfo)"
+                                     [attr.title]="obtenerNombreArea(horarioInfo.id_area_academica) + ' - ' + horarioInfo.total_minutos + ' min'">
+                                    
+                                    <div *ngIf="horarioInfo.esInicio" class="horario-block-header">
+                                        <strong>{{ obtenerNombreArea(horarioInfo.id_area_academica) }}</strong>
+                                        <div class="horario-tiempo-small">
+                                            {{ horarioInfo.duracionCompleta }}
+                                        </div>
+                                    </div>
+                                    
+                                    <div *ngIf="horarioInfo.esInicio" class="horario-block-content">
+                                        <div class="horario-minutos">
+                                            {{ horarioInfo.total_minutos }}min
+                                        </div>
+                                    </div>
+
+                                    <button *ngIf="horarioInfo.esInicio" 
+                                            class="btn-eliminar-horario-calendar" 
+                                            (click)="$event.stopPropagation(); eliminarHorario(horarioInfo)"
+                                            title="Eliminar">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+
+                                <!-- Indicador de celda vacía -->
+                                <div *ngIf="!getHorarioInfo(dia.id, hora)" class="celda-vacia">
+                                    <i class="fas fa-plus"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VISTA MOVIL: Lista de horarios agrupados por día -->
+                <div class="horario-vista-movil" *ngIf="areasAsociadas.length > 0">
+                    <div *ngIf="horariosAgrupadosPorDia.length === 0" class="empty-state">
+                        <i class="fas fa-calendar-times"></i>
+                        <p>No hay horarios configurados</p>
+                    </div>
+
+                    <div class="horario-dia-grupo" *ngFor="let grupo of horariosAgrupadosPorDia">
+                        <div class="horario-dia-titulo">
+                            <i class="fas fa-calendar-day"></i>
+                            {{ grupo.dia.nombre }}
+                        </div>
+                        <div class="horario-dia-items">
+                            <div class="horario-dia-item" 
+                                 *ngFor="let horario of grupo.horarios"
+                                 [style.border-left-color]="obtenerColorArea(horario.id_area_academica)"
+                                 (click)="mostrarDetalleHorarioMovil(horario)">
+                                <div class="horario-dia-item-area">
+                                    <span class="horario-dia-color-dot" [style.background-color]="obtenerColorArea(horario.id_area_academica)"></span>
+                                    {{ obtenerNombreArea(horario.id_area_academica) }}
+                                </div>
+                                <div class="horario-dia-item-hora">
+                                    <i class="fas fa-clock"></i>
+                                    {{ horario.hora_inicial | slice:0:5 }} - {{ horario.hora_final | slice:0:5 }}
+                                    <span class="horario-dia-item-min">· {{ horario.total_minutos }}min</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botón para agregar horario en móvil -->
+                    <button 
+                        *ngIf="accion === 'editar'"
+                        class="btn btn-asociar mt-3 w-100" 
+                        (click)="abrirModalHorario()">
+                        <i class="fas fa-plus"></i> Agregar Horario
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenido de Tarifas -->
+    <div class="tab-content" *ngIf="pestanaActiva === 'tarifas'">
+        <div class="container mt-4">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <label class="form-label">Año <span class="text-danger">*</span></label>
+                            <select class="form-select" [(ngModel)]="anioTarifa" (change)="onAnioTarifaChange()">
+                                <option *ngFor="let anio of aniosEscolares" [value]="anio">{{ anio }}</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card mb-3">
+                                <div class="card-header bg-light">
+                                    <strong>Matrícula</strong>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label class="form-label">Producto <span class="text-danger">*</span></label>
+                                        <select class="form-select" 
+                                                [(ngModel)]="tarifaActual.id_producto_matricula"
+                                                (change)="onProductoMatriculaChange()">
+                                            <option [value]="null">Seleccionar producto</option>
+                                            <option *ngFor="let p of productosMatricula" [value]="p.id">
+                                                {{ p.nombre }}
+                                            </option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Valor <span class="text-danger">*</span></label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">$</span>
+                                            <input type="text" class="form-control text-end" 
+                                                   #inputMatricula
+                                                   [value]="formatearNumero(tarifaActual.valor_matricula)"
+                                                   (input)="onValorMatriculaInput($event)"
+                                                   placeholder="0">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="card mb-3">
+                                <div class="card-header bg-light">
+                                    <strong>Pensión Mensual</strong>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label class="form-label">Producto <span class="text-danger">*</span></label>
+                                        <select class="form-select" 
+                                                [(ngModel)]="tarifaActual.id_producto_pension"
+                                                (change)="onProductoPensionChange()">
+                                            <option [value]="null">Seleccionar producto</option>
+                                            <option *ngFor="let p of productosPension" [value]="p.id">
+                                                {{ p.nombre }}
+                                            </option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Valor <span class="text-danger">*</span></label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">$</span>
+                                            <input type="text" class="form-control text-end" 
+                                                   #inputPension
+                                                   [value]="formatearNumero(tarifaActual.valor_pension)"
+                                                   (input)="onValorPensionInput($event)"
+                                                   placeholder="0">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <button class="btn btn-primary" (click)="guardarTarifa()">
+                                <i class="fas fa-save me-2"></i>
+                                {{ tarifaActual.id ? 'Actualizar' : 'Guardar' }} Tarifa {{ anioTarifa }}
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Lista de tarifas existentes -->
+                    <div class="mt-4" *ngIf="tarifasGrupo.length > 0">
+                        <h6>Tarifas configuradas:</h6>
+                        <table class="table table-sm table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Año</th>
+                                    <th>Matrícula</th>
+                                    <th>Pensión</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let t of tarifasGrupo" 
+                                    [class.table-active]="t.anio == anioTarifa"
+                                    style="cursor: pointer"
+                                    (click)="anioTarifa = t.anio; onAnioTarifaChange()">
+                                    <td><strong>{{ t.anio }}</strong></td>
+                                    <td>{{ formatearMoneda(t.valor_matricula) }}</td>
+                                    <td>{{ formatearMoneda(t.valor_pension) }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botones de acción -->
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-sm-6" *ngIf="editable">
+                <button class="btn btn-lg btn-warning w-100" (click)="guardar()">
+                    Grabar
+                </button>
+            </div>
+            <div class="col-sm-6">
+                <button class="btn btn-lg btn-secondary w-100" (click)="volver()">
+                    Volver
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de selección de imágenes -->
+<div class="modal-overlay" *ngIf="mostrarModalImagenes" (click)="cerrarModalImagenes()">
+    <div class="modal-content-custom" (click)="$event.stopPropagation()">
+        <div class="modal-header-custom">
+            <h3>Seleccionar Icono</h3>
+            <button type="button" class="btn-close-custom" (click)="cerrarModalImagenes()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="modal-body-custom">
+            <!-- Buscador -->
+            <div class="search-box">
+                <input 
+                    type="text" 
+                    class="form-control" 
+                    placeholder="Buscar imagen..."
+                    [(ngModel)]="busquedaImagen"
+                    (input)="filtrarImagenes()">
+                <i class="fas fa-search"></i>
+            </div>
+
+            <!-- Grid de imágenes -->
+            <div class="imagenes-grid">
+                <div 
+                    *ngFor="let imagen of imagenesFiltradas" 
+                    class="imagen-item"
+                    (click)="seleccionarImagen(imagen)"
+                    [class.seleccionada]="model.icono === imagen.ruta">
+                    <img [src]="imagen.ruta" [alt]="imagen.nombre">
+                    <div class="imagen-nombre">{{ imagen.nombre }}</div>
+                    <div class="check-icon" *ngIf="model.icono === imagen.ruta">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div *ngIf="imagenesFiltradas.length === 0" class="sin-resultados">
+                <i class="fas fa-search"></i>
+                <p>No se encontraron imágenes</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de horario -->
+<div class="modal-overlay" *ngIf="mostrarModalHorario" (click)="cerrarModalHorario()">
+    <div class="modal-content-horario" (click)="$event.stopPropagation()">
+        <div class="modal-header-custom">
+            <h3>{{ horarioModal.id ? 'Editar' : 'Crear' }} Horario</h3>
+            <button type="button" class="btn-close-custom" (click)="cerrarModalHorario()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="modal-body-custom">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Área Académica <span class="text-danger">*</span></label>
+                    <select class="form-select" [(ngModel)]="horarioModal.id_area_academica" (ngModelChange)="calcularMinutos()">
+                        <option [value]="null">Seleccionar</option>
+                        <option *ngFor="let area of areasAsociadas" [value]="area.id_area_academica">
+                            {{ area.nombre_area_academica }}
+                        </option>
+                    </select>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Día <span class="text-danger">*</span></label>
+                    <select class="form-select" [(ngModel)]="horarioModal.id_dia_semana" (ngModelChange)="calcularMinutos()">
+                        <option [value]="null">Seleccionar</option>
+                        <option *ngFor="let dia of diasSemana" [value]="dia.id">
+                            {{ dia.nombre }}
+                        </option>
+                    </select>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Hora Inicial <span class="text-danger">*</span></label>
+                    <input type="time" class="form-control" [(ngModel)]="horarioModal.hora_inicial" (change)="calcularMinutos()">
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Hora Final <span class="text-danger">*</span></label>
+                    <input type="time" class="form-control" [(ngModel)]="horarioModal.hora_final" (change)="calcularMinutos()"
+                      [ngClass]="{'is-invalid': horarioModal.hora_inicial && horarioModal.hora_final && horarioModal.hora_final <= horarioModal.hora_inicial}">
+                    <div class="invalid-feedback" *ngIf="horarioModal.hora_inicial && horarioModal.hora_final && horarioModal.hora_final <= horarioModal.hora_inicial">
+                      La hora final debe ser mayor que la hora inicial
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Total Minutos</label>
+                    <input type="number" class="form-control" [(ngModel)]="horarioModal.total_minutos" readonly>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Total Clases</label>
+                    <input type="number" class="form-control" [(ngModel)]="horarioModal.total_clases" min="1">
+                </div>
+
+                <!-- Mensaje de error de solapamiento inline -->
+                <div class="col-12" *ngIf="horarioErrorSolapamiento">
+                    <div class="alert alert-danger py-2 mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Horario solapado:</strong> {{ horarioErrorSolapamiento }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer-custom">
+                <button class="btn btn-secondary" (click)="cerrarModalHorario()">Cancelar</button>
+                <button class="btn btn-primary" (click)="guardarHorario()"
+                    [disabled]="horarioErrorSolapamiento || (horarioModal.hora_inicial && horarioModal.hora_final && horarioModal.hora_final <= horarioModal.hora_inicial)">
+                    {{ horarioModal.id ? 'Actualizar' : 'Crear' }}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

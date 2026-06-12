@@ -1,0 +1,113 @@
+<div class="modulo">
+    <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [raiz]="'/operaciones'" [regresar]="'/operaciones'"
+        [iconoTitulo]="'/assets/images/cursos-extra.png'"></app-header>
+
+    <div class="container-fluid mt-4 px-4">
+        <!-- Selector de curso -->
+        <div class="row mb-4">
+            <div class="col-md-6 col-12">
+                <label class="form-label fw-bold">Curso extracurricular</label>
+                <select class="form-select form-select-lg" [(ngModel)]="idCursoSeleccionado" (change)="onCursoChange()">
+                    <option [ngValue]="null">-- Seleccione un curso --</option>
+                    <option *ngFor="let c of cursosExtra" [ngValue]="c.id">{{c.nombre}}</option>
+                </select>
+            </div>
+            <div class="col-md-6 col-12 d-flex align-items-end" *ngIf="cursoSeleccionado?.cupo_maximo">
+                <div class="cupo-info">
+                    <i class="fas fa-users"></i>
+                    <span>Cupo: <strong>{{inscritos.length}} / {{cursoSeleccionado.cupo_maximo}}</strong></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Paneles duales -->
+        <div class="dual-panel" *ngIf="idCursoSeleccionado">
+            <!-- Panel izquierdo: Disponibles -->
+            <div class="panel-dual">
+                <div class="panel-dual-header disponibles">
+                    <i class="fas fa-user-plus"></i>
+                    <span>Disponibles ({{disponiblesFiltrados.length}})</span>
+                </div>
+                <div class="panel-dual-search">
+                    <input type="text" class="form-control" placeholder="Buscar estudiante..."
+                        [(ngModel)]="busquedaDisponibles" (input)="filtrarDisponibles()">
+                </div>
+                <div class="panel-dual-actions">
+                    <button class="btn btn-sm btn-outline-secondary" (click)="seleccionarTodosDisponibles()">
+                        {{seleccionadosDisponibles.size === disponiblesFiltrados.length ? 'Deseleccionar todos' : 'Seleccionar todos'}}
+                    </button>
+                    <span class="badge bg-warning text-dark" *ngIf="seleccionadosDisponibles.size > 0">
+                        {{seleccionadosDisponibles.size}} seleccionado(s)
+                    </span>
+                </div>
+                <div class="panel-dual-body">
+                    <div class="estudiante-row" *ngFor="let e of disponiblesFiltrados"
+                        [class.seleccionado]="seleccionadosDisponibles.has(e.id)"
+                        (click)="toggleDisponible(e.id)">
+                        <div class="check-indicator">
+                            <i class="fas" [ngClass]="seleccionadosDisponibles.has(e.id) ? 'fa-check-square' : 'fa-square'"></i>
+                        </div>
+                        <span class="nombre-estudiante">{{e.nombre_completo}}</span>
+                    </div>
+                    <div class="panel-dual-empty" *ngIf="disponiblesFiltrados.length === 0">
+                        <i class="fas fa-search fa-2x"></i>
+                        <p>No hay estudiantes disponibles</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botones centrales -->
+            <div class="panel-dual-controls">
+                <button class="btn btn-warning btn-transfer" (click)="inscribirSeleccionados()"
+                    [disabled]="seleccionadosDisponibles.size === 0" title="Inscribir seleccionados">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+                <button class="btn btn-outline-danger btn-transfer" (click)="retirarSeleccionados()"
+                    [disabled]="seleccionadosInscritos.size === 0" title="Retirar seleccionados">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+            </div>
+
+            <!-- Panel derecho: Inscritos -->
+            <div class="panel-dual">
+                <div class="panel-dual-header inscritos">
+                    <i class="fas fa-user-check"></i>
+                    <span>Inscritos ({{inscritosFiltrados.length}})</span>
+                </div>
+                <div class="panel-dual-search">
+                    <input type="text" class="form-control" placeholder="Buscar inscrito..."
+                        [(ngModel)]="busquedaInscritos" (input)="filtrarInscritos()">
+                </div>
+                <div class="panel-dual-actions">
+                    <button class="btn btn-sm btn-outline-secondary" (click)="seleccionarTodosInscritos()">
+                        {{seleccionadosInscritos.size === inscritosFiltrados.length ? 'Deseleccionar todos' : 'Seleccionar todos'}}
+                    </button>
+                    <span class="badge bg-danger" *ngIf="seleccionadosInscritos.size > 0">
+                        {{seleccionadosInscritos.size}} seleccionado(s)
+                    </span>
+                </div>
+                <div class="panel-dual-body">
+                    <div class="estudiante-row" *ngFor="let e of inscritosFiltrados"
+                        [class.seleccionado-retirar]="seleccionadosInscritos.has(e.id_estudiante)"
+                        (click)="toggleInscrito(e.id_estudiante)">
+                        <div class="check-indicator">
+                            <i class="fas" [ngClass]="seleccionadosInscritos.has(e.id_estudiante) ? 'fa-check-square' : 'fa-square'"></i>
+                        </div>
+                        <span class="nombre-estudiante">{{e.nombre_completo}}</span>
+                        <span class="fecha-inscripcion">{{e.fecha_inscripcion}}</span>
+                    </div>
+                    <div class="panel-dual-empty" *ngIf="inscritosFiltrados.length === 0">
+                        <i class="fas fa-user-graduate fa-2x"></i>
+                        <p>No hay estudiantes inscritos</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mensaje cuando no hay curso seleccionado -->
+        <div class="text-center text-muted py-5" *ngIf="!idCursoSeleccionado">
+            <i class="fas fa-hand-pointer fa-3x mb-3"></i>
+            <p class="fs-5">Seleccione un curso extracurricular para gestionar inscripciones</p>
+        </div>
+    </div>
+</div>

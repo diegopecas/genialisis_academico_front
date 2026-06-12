@@ -1,0 +1,113 @@
+<div class="modulo">
+    <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [raiz]="'/'" [regresar]="'/menu'"></app-header>
+
+    <div class="container-fluid mt-5">
+
+
+        <div class="row justify-content-center">
+            
+            <!-- Planeación -->
+            <div class="col-lg-5 col-md-6 mb-4">
+                <div class="card-maestro menu-principal" [class.active]="menuActivo === 'planeacion'" (click)="toggleMenu('planeacion', $event)">
+                    <div class="card-maestro-content">
+                        <div class="icono-container planeacion">
+                            <img src="/assets/images/planeacion.png" alt="Planeación" />
+                        </div>
+                        <h3 class="card-titulo">Planeación</h3>
+                        <p class="card-descripcion">Gestiona logros, indicadores, actividades y sprints</p>
+                        <div class="card-footer-custom">
+                            <span class="link-accion">Ver opciones <i class="fas fa-chevron-down"></i></span>
+                        </div>
+                    </div>
+                    
+                    <div class="submenu-container">
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <div class="submenu-item" (click)="seleccionarOpcion('cortes-academicos')">
+                                    <img src="/assets/images/cortes-academicos.png" alt="Cortes Académicos" />
+                                    <span>Cortes Académicos</span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="submenu-item" (click)="seleccionarOpcion('logros')">
+                                    <img src="/assets/images/logros.png" alt="Logros" />
+                                    <span>Logros</span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="submenu-item" (click)="seleccionarOpcion('indicadores-logro')">
+                                    <img src="/assets/images/indicadores-logros.png" alt="Indicadores" />
+                                    <span>Indicadores de Logros</span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="submenu-item" (click)="seleccionarOpcion('actividades')">
+                                    <img src="/assets/images/actividades.png" alt="Actividades" />
+                                    <span>Actividades</span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="submenu-item" (click)="seleccionarOpcion('sprints')">
+                                    <img src="/assets/images/sprints.png" alt="Sprints" />
+                                    <span>Sprints</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Estructura Académica -->
+            <div class="col-lg-5 col-md-6 mb-4">
+                <div class="card-maestro menu-principal" [class.active]="menuActivo === 'estructura'" (click)="toggleMenu('estructura', $event)">
+                    <div class="card-maestro-content">
+                        <div class="icono-container estructura">
+                            <img src="/assets/images/estructura-academica.png" alt="Estructura Académica" />
+                        </div>
+                        <h3 class="card-titulo">Estructura Académica</h3>
+                        <p class="card-descripcion">Configura parámetros, grados, áreas y grupos</p>
+                        <div class="card-footer-custom">
+                            <span class="link-accion">Ver opciones <i class="fas fa-chevron-down"></i></span>
+                        </div>
+                    </div>
+                    
+                    <div class="submenu-container">
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <div class="submenu-item" (click)="seleccionarOpcion('parametros-calificaciones')">
+                                    <img src="/assets/images/parametros-calificaciones.png" alt="Parámetros" />
+                                    <span>Parámetros Calificaciones</span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="submenu-item" (click)="seleccionarOpcion('grados')">
+                                    <img src="/assets/images/grados.png" alt="Grados" />
+                                    <span>Grados</span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="submenu-item" (click)="seleccionarOpcion('areas-academicas')">
+                                    <img src="/assets/images/areas-academicas.png" alt="Áreas Académicas" />
+                                    <span>Áreas Académicas</span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="submenu-item" (click)="seleccionarOpcion('grupos')">
+                                    <img src="/assets/images/grupos.png" alt="Grupos" />
+                                    <span>Grupos</span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="submenu-item" (click)="seleccionarOpcion('cursos-extra')">
+                                    <img src="/assets/images/cursos-extra.png" alt="Cursos Extracurriculares" />
+                                    <span>Cursos Extracurriculares</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>

@@ -1,0 +1,561 @@
+<div class="panel panel-primary mb-4">
+    <div class="panel-heading d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">
+            <i class="fas fa-graduation-cap me-2"></i> Evaluación Académica
+        </h5>
+    </div>
+    <div class="panel-body">
+        <!-- Indicador de carga -->
+        <div *ngIf="cargando" class="text-center py-4">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+            <p class="mt-2">Cargando evaluaciones académicas...</p>
+        </div>
+
+        <!-- Contenido de evaluaciones -->
+        <div *ngIf="!cargando">
+            <!-- Sub-tabs año actual / años anteriores (solo si hay históricos) -->
+            <div class="sub-tabs-container" *ngIf="sprintsHistoricos.length > 0">
+                <div class="sub-tabs">
+                    <button class="sub-tab" [class.active]="subTabEvaluaciones === 'actual'"
+                            (click)="cambiarSubTab('actual')">
+                        <i class="fas fa-calendar-check me-1"></i>
+                        Año {{ anioAcademico }}
+                        <span class="sub-tab-contador">{{ sprintsAnioActual.length }}</span>
+                    </button>
+                    <button class="sub-tab" [class.active]="subTabEvaluaciones === 'historico'"
+                            (click)="cambiarSubTab('historico')">
+                        <i class="fas fa-history me-1"></i>
+                        Años anteriores
+                        <span class="sub-tab-contador">{{ sprintsHistoricos.length }}</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filtros -->
+            <div class="row mb-4">
+                <div class="col-md-4 mb-3">
+                    <label for="sprintSelector" class="form-label">Sprint:</label>
+                    <select id="sprintSelector" class="form-select" [(ngModel)]="sprintSeleccionado"
+                        (change)="cambiarSprint()">
+                        <option *ngFor="let sprint of sprintsFiltrados" [value]="sprint.id" [selected]="sprint.actual == 1">
+                            {{ sprint.nombre_sprint }}{{ sprint.actual == 1 ? ' (*** Actual ***)' : '' }}
+                        </option>
+                    </select>
+                </div>
+                <div class="col-md-8 mb-3 text-end no-imprimir">
+                    <button class="btn btn-success" (click)="exportarPDF()" [disabled]="!mostrarDashboard">
+                        <i class="fas fa-file-pdf me-2"></i> Exportar a PDF
+                    </button>
+                </div>
+            </div>
+
+            <!-- Dashboard del estudiante -->
+            <div *ngIf="mostrarDashboard" class="dashboard-container">
+                <!-- Resumen de estadísticas -->
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <div class="estadisticas-card">
+                            <h6 class="text-center mb-3 estadisticas-titulo">
+                                <i class="fas fa-chart-pie me-2"></i> Resumen del Desempeño
+                            </h6>
+                            <div class="row">
+                                <div class="col-12 col-md-3 mb-3">
+                                    <div class="estadistica-item promedio-general-bg">
+                                        <span class="estadistica-valor">{{ getPromedioGeneralFormateado() }}</span>
+                                        <span class="estadistica-label">Promedio general</span>
+                                        <span class="estadistica-cualitativo">{{
+                                            resumenEstudiante?.valor_cualitativo_general || 'Sin datos' }}</span>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-3 mb-3">
+                                    <div class="estadistica-item progreso-bg">
+                                        <span class="estadistica-valor">{{ resumenEstudiante?.porcentaje_completado ||
+                                            '0' }}%</span>
+                                        <span class="estadistica-label">Actividades completadas</span>
+                                        <span class="estadistica-extra">{{ resumenEstudiante?.actividades_completadas ||
+                                            '0' }}/{{ resumenEstudiante?.total_actividades || '0' }}</span>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-3 mb-3">
+                                    <div class="estadistica-item areas-fuertes-bg">
+                                        <span class="estadistica-valor">{{ getNumeroAreasFuertes() }}</span>
+                                        <span class="estadistica-label">Áreas destacadas</span>
+                                        <span class="estadistica-extra">Promedio ≥ 4.0</span>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-3 mb-3">
+                                    <div class="estadistica-item areas-mejorar-bg">
+                                        <span class="estadistica-valor">{{ getNumeroAreasMejorar() }}</span>
+                                        <span class="estadistica-label">Áreas por mejorar</span>
+                                        <span class="estadistica-extra">Promedio < 3.5</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="progress mt-2">
+                                <div class="progress-bar"
+                                    [ngClass]="getPromedioClass(resumenEstudiante?.promedio_general)"
+                                    [style.width.%]="getAnchoBarraProgreso()">
+                                    {{ getPromedioGeneralFormateado() }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Medidas Antropométricas -->
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <div class="medidas-card">
+                            <h6 class="text-center mb-3 medidas-titulo">
+                                <i class="fas fa-weight me-2"></i> Medidas Antropométricas
+                            </h6>
+                            <div class="row">
+                                <div class="col-6 col-md-6 mb-3">
+                                    <div class="medida-item peso-bg">
+                                        <div class="medida-icon">
+                                            <i class="fas fa-weight"></i>
+                                        </div>
+                                        <div class="medida-info">
+                                            <span class="medida-label">Peso</span>
+                                            <span class="medida-valor" *ngIf="ultimoPeso">
+                                                {{ ultimoPeso.valor }} {{ ultimoPeso.unidad }}
+                                            </span>
+                                            <span class="medida-valor" *ngIf="!ultimoPeso">
+                                                Sin registro
+                                            </span>
+                                            <span class="medida-fecha" *ngIf="ultimoPeso">
+                                                {{ formatearFecha(ultimoPeso.fecha) }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-6 mb-3">
+                                    <div class="medida-item talla-bg">
+                                        <div class="medida-icon">
+                                            <i class="fas fa-ruler-vertical"></i>
+                                        </div>
+                                        <div class="medida-info">
+                                            <span class="medida-label">Talla</span>
+                                            <span class="medida-valor" *ngIf="ultimaTalla">
+                                                {{ ultimaTalla.valor }} {{ ultimaTalla.unidad }}
+                                            </span>
+                                            <span class="medida-valor" *ngIf="!ultimaTalla">
+                                                Sin registro
+                                            </span>
+                                            <span class="medida-fecha" *ngIf="ultimaTalla">
+                                                {{ formatearFecha(ultimaTalla.fecha) }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gráficos -->
+                <div class="row mb-5">
+                    <div class="col-md-6 mb-3">
+                        <div class="card shadow-sm chart-card">
+                            <div class="card-body">
+                                <h6 class="text-center mb-2">
+                                    <i class="fas fa-chart-bar me-1"></i> Promedio por Área Académica
+                                </h6>
+                                <div class="chart-container">
+                                    <canvas id="graficoPromediosAreas" width="100%" height="230"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="card shadow-sm chart-card">
+                            <div class="card-body">
+                                <h6 class="text-center mb-2">
+                                    <i class="fas fa-chart-radar me-1"></i> Desempeño Global
+                                </h6>
+                                <div class="chart-container">
+                                    <canvas id="graficoRadar" width="100%" height="230"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Áreas fuertes y por mejorar -->
+                <div class="row mb-5">
+                    <div class="col-md-6 mb-3">
+                        <div class="card shadow-sm h-100">
+                            <div class="card-header bg-success text-white">
+                                <h6 class="mb-0"><i class="fas fa-star me-2"></i>Áreas Destacadas</h6>
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-group list-group-flush">
+                                    <ng-container *ngIf="resumenEstudiante?.areas_fuertes as areasFuertes">
+                                        <li *ngFor="let area of areasFuertes"
+                                            class="list-group-item d-flex justify-content-between align-items-center">
+                                            {{ area }}
+                                            <span class="badge bg-success rounded-pill">
+                                                {{ getPromedioPorArea(area) | number:'1.1-1' }}
+                                            </span>
+                                        </li>
+                                    </ng-container>
+                                    <li *ngIf="noHayAreasFuertes()" class="list-group-item text-muted">
+                                        No hay áreas destacadas (promedio ≥ 4.0)
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="card shadow-sm h-100">
+                            <div class="card-header bg-warning text-dark">
+                                <h6 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Áreas por Mejorar</h6>
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-group list-group-flush">
+                                    <ng-container *ngIf="resumenEstudiante?.areas_mejorar as areasMejorar">
+                                        <li *ngFor="let area of areasMejorar"
+                                            class="list-group-item d-flex justify-content-between align-items-center">
+                                            {{ area }}
+                                            <span class="badge bg-warning text-dark rounded-pill">
+                                                {{ getPromedioPorArea(area) | number:'1.1-1' }}
+                                            </span>
+                                        </li>
+                                    </ng-container>
+                                    <li *ngIf="noHayAreasMejorar()" class="list-group-item text-muted">
+                                        No hay áreas por mejorar (promedio < 3.5) </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabla de promedios por área académica -->
+                <div class="row mb-5">
+                    <div class="col-12">
+                        <div class="card shadow-sm">
+                            <div class="card-header bg-primary text-white">
+                                <h6 class="mb-0"><i class="fas fa-table me-2"></i>Promedios por Área Académica</h6>
+                            </div>
+                            <div class="card-body">
+                                <!-- Sistema de tarjetas para móviles -->
+                                <div class="promedios-cards-container">
+                                    <div class="promedio-area-card" *ngFor="let area of datosPromedio">
+                                        <div class="area-header">
+                                            <div class="area-nombre">{{ area.area_academica_nombre }}</div>
+                                            <div class="promedio-badge">{{ area.promedio | number:'1.1-1' }}</div>
+                                        </div>
+                                        <span class="clasificacion-area"
+                                            [ngClass]="getValorCualitativoClass(area.valor_cualitativo)">
+                                            {{ area.valor_cualitativo }}
+                                        </span>
+                                    </div>
+                                    <div *ngIf="datosPromedio.length === 0" class="text-center text-muted py-4">
+                                        No hay datos disponibles
+                                    </div>
+                                </div>
+
+                                <!-- Tabla para escritorio -->
+                                <div class="promedios-table-container">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped table-hover table-bordered">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th class="area-academica-column">Área Académica</th>
+                                                    <th class="promedio-column text-center">Promedio</th>
+                                                    <th class="clasificacion-column text-center">Clasificación</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr *ngFor="let area of datosPromedio">
+                                                    <td>{{ area.area_academica_nombre }}</td>
+                                                    <td class="text-center">{{ area.promedio | number:'1.1-1' }}</td>
+                                                    <td class="text-center">
+                                                        <span class="badge rounded-pill"
+                                                            [ngClass]="getValorCualitativoClass(area.valor_cualitativo)">
+                                                            {{ area.valor_cualitativo }}
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                                <tr *ngIf="datosPromedio.length === 0">
+                                                    <td colspan="3" class="text-center">No hay datos disponibles</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NUEVA SECCIÓN: Observaciones del Estudiante -->
+                <div class="row mb-5">
+                    <div class="col-12">
+                        <div class="card shadow-sm">
+                            <div class="card-header bg-info text-white">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-comment-alt me-2"></i>
+                                    Observaciones Académicas, Disciplinarias y Sociales
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <!-- Observaciones Académicas -->
+                                <div class="observaciones-tipo mb-4" *ngIf="getObservacionesPorTipo(1).length > 0">
+                                    <h6 class="text-primary mb-3">
+                                        <i class="fas fa-book me-2"></i>Observaciones Académicas
+                                    </h6>
+                                    <div class="observaciones-lista">
+                                        <div *ngFor="let obs of getObservacionesPorTipo(1)"
+                                            class="observacion-item mb-3">
+                                            <div class="observacion-fecha">
+                                                <small class="text-muted">{{ obs.fechaFormateada }}</small>
+                                            </div>
+                                            <div class="observacion-contenido">
+                                                {{ obs.descripcion }}
+                                            </div>
+                                            <div class="observacion-autor" *ngIf="obs.nombre_usuario">
+                                                <small class="text-muted">Registrado por: Miss {{ obs.nombre_usuario
+                                                    }}</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Observaciones Disciplinarias -->
+                                <div class="observaciones-tipo mb-4" *ngIf="getObservacionesPorTipo(2).length > 0">
+                                    <h6 class="text-orange mb-3">
+                                        <i class="fas fa-exclamation-triangle me-2"></i>Observaciones Disciplinarias
+                                    </h6>
+                                    <div class="observaciones-lista">
+                                        <div *ngFor="let obs of getObservacionesPorTipo(2)"
+                                            class="observacion-item mb-3">
+                                            <div class="observacion-fecha">
+                                                <small class="text-muted">{{ obs.fechaFormateada }}</small>
+                                            </div>
+                                            <div class="observacion-contenido">
+                                                {{ obs.descripcion }}
+                                            </div>
+                                            <div class="observacion-autor" *ngIf="obs.nombre_usuario">
+                                                <small class="text-muted">Registrado por: Miss {{ obs.nombre_usuario
+                                                    }}</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Observaciones Sociales -->
+                                <div class="observaciones-tipo mb-4" *ngIf="getObservacionesPorTipo(4).length > 0">
+                                    <h6 class="text-purple mb-3">
+                                        <i class="fas fa-users me-2"></i>Observaciones Sociales
+                                    </h6>
+                                    <div class="observaciones-lista">
+                                        <div *ngFor="let obs of getObservacionesPorTipo(4)"
+                                            class="observacion-item mb-3">
+                                            <div class="observacion-fecha">
+                                                <small class="text-muted">{{ obs.fechaFormateada }}</small>
+                                            </div>
+                                            <div class="observacion-contenido">
+                                                {{ obs.descripcion }}
+                                            </div>
+                                            <div class="observacion-autor" *ngIf="obs.nombre_usuario">
+                                                <small class="text-muted">Registrado por: Miss {{ obs.nombre_usuario
+                                                    }}</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Mensaje cuando no hay observaciones -->
+                                <div *ngIf="observaciones.length === 0" class="text-center text-muted py-4">
+                                    <i class="fas fa-comment-slash fa-2x mb-3"></i>
+                                    <p>No hay observaciones académicas, disciplinarias o sociales registradas para este
+                                        estudiante.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabla de promedios por LOGRO (con indicadores anidados) -->
+                <div class="row mt-4" *ngIf="datosLogros.length > 0">
+                    <div class="col-12">
+                        <div class="card shadow-sm">
+                            <div class="card-header bg-info text-white">
+                                <h6 class="mb-0"><i class="fas fa-list-check me-2"></i>Promedios por Logro
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <!-- Filtros para logros -->
+                                <div class="row mb-3">
+                                    <div class="col-md-4">
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-filter"></i></span>
+                                            <input type="text" class="form-control" placeholder="Filtrar logros o indicadores..."
+                                                [(ngModel)]="filtroLogros" (keyup)="aplicarFiltroLogros()">
+                                            <button class="btn btn-outline-secondary" type="button"
+                                                *ngIf="filtroLogros" (click)="limpiarFiltroLogros()">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <select class="form-select" [(ngModel)]="filtroAreaLogros"
+                                            (change)="aplicarFiltroLogros()">
+                                            <option value="">Todas las áreas</option>
+                                            <option *ngFor="let area of areasUnicas" [value]="area">{{ area }}</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <select class="form-select" [(ngModel)]="filtroClasificacionLogros"
+                                            (change)="aplicarFiltroLogros()">
+                                            <option value="">Todas las clasificaciones</option>
+                                            <option value="Excelente">Excelente</option>
+                                            <option value="Sobresaliente">Sobresaliente</option>
+                                            <option value="Bueno">Bueno</option>
+                                            <option value="Aceptable">Aceptable</option>
+                                            <option value="Insuficiente">Insuficiente</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- Contador de resultados filtrados -->
+                                <div class="row mb-2" *ngIf="logrosFiltrados.length < datosLogros.length">
+                                    <div class="col-12">
+                                        <div class="alert alert-info py-1 px-3">
+                                            <small>Mostrando {{ logrosFiltrados.length }} de {{
+                                                datosLogros.length }} logros</small>
+                                            <button class="btn btn-sm btn-link float-end py-0"
+                                                (click)="resetearFiltrosLogros()">
+                                                <i class="fas fa-undo-alt"></i> Resetear filtros
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Filtros activos -->
+                                <div class="filtros-activos mb-2" *ngIf="tieneFiltrosLogrosActivos()">
+                                    <span class="filtro-aplicado" *ngIf="filtroAreaLogros">
+                                        Área: {{ filtroAreaLogros }}
+                                        <button class="btn-clear" (click)="limpiarFiltroAreaLogros()">×</button>
+                                    </span>
+                                    <span class="filtro-aplicado" *ngIf="filtroClasificacionLogros">
+                                        Clasificación: {{ filtroClasificacionLogros }}
+                                        <button class="btn-clear" (click)="limpiarFiltroClasificacionLogros()">×</button>
+                                    </span>
+                                    <span class="filtro-aplicado" *ngIf="filtroLogros">
+                                        Texto: "{{ filtroLogros }}"
+                                        <button class="btn-clear" (click)="limpiarFiltroTextoLogros()">×</button>
+                                    </span>
+                                </div>
+
+                                <!-- Sistema de tarjetas para móviles -->
+                                <div class="logros-cards-container">
+                                    <div class="logro-card" *ngFor="let logro of logrosFiltrados">
+                                        <div class="area-nombre">
+                                            {{ logro.area_academica_nombre }}
+                                        </div>
+                                        <div class="logro-descripcion">
+                                            {{ logro.logro_nombre }}
+                                        </div>
+                                        <div class="logro-stats">
+                                            <div class="promedio-container">
+                                                <span class="promedio-label">Promedio:</span>
+                                                <span class="promedio-valor">{{ logro.promedio | number:'1.1-1'
+                                                    }}</span>
+                                            </div>
+                                            <span class="clasificacion-badge"
+                                                [ngClass]="getValorCualitativoClass(logro.valor_cualitativo)">
+                                                {{ logro.valor_cualitativo }}
+                                            </span>
+                                        </div>
+                                        <!-- Indicadores anidados (móvil) -->
+                                        <div class="indicadores-anidados-mobile" *ngIf="logro.indicadores && logro.indicadores.length > 0">
+                                            <div class="indicador-anidado-mobile" *ngFor="let ind of logro.indicadores">
+                                                <span class="indicador-anidado-texto">{{ ind.descripcion_indicador_logro }}</span>
+                                                <span class="indicador-anidado-stats">
+                                                    <span class="indicador-anidado-promedio">{{ ind.promedio | number:'1.1-1' }}</span>
+                                                    <span class="indicador-anidado-badge"
+                                                        [ngClass]="getValorCualitativoClass(ind.valor_cualitativo)">
+                                                        {{ ind.valor_cualitativo }}
+                                                    </span>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div *ngIf="logrosFiltrados.length === 0" class="text-center text-muted py-4">
+                                        No hay datos disponibles con los filtros seleccionados
+                                    </div>
+                                </div>
+
+                                <!-- Tabla para escritorio -->
+                                <div class="logros-table-container">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped table-hover table-bordered tabla-logros">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th class="area-academica-column">Área Académica</th>
+                                                    <th class="logro-column">Logro</th>
+                                                    <th class="promedio-column text-center">Promedio</th>
+                                                    <th class="clasificacion-column text-center">Clasificación</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <ng-container *ngFor="let logro of logrosFiltrados">
+                                                    <!-- Fila principal del logro -->
+                                                    <tr class="fila-logro">
+                                                        <td>{{ logro.area_academica_nombre }}</td>
+                                                        <td><strong>{{ logro.logro_nombre }}</strong></td>
+                                                        <td class="text-center"><strong>{{ logro.promedio | number:'1.1-1' }}</strong></td>
+                                                        <td class="text-center">
+                                                            <span class="badge rounded-pill"
+                                                                [ngClass]="getValorCualitativoClass(logro.valor_cualitativo)">
+                                                                {{ logro.valor_cualitativo }}
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                    <!-- Sub-filas con indicadores anidados (letra pequeña) -->
+                                                    <tr class="fila-indicador-anidado" *ngFor="let ind of logro.indicadores">
+                                                        <td></td>
+                                                        <td class="indicador-anidado-celda">
+                                                            <i class="fas fa-arrow-turn-down me-1 text-muted"></i>
+                                                            {{ ind.descripcion_indicador_logro }}
+                                                        </td>
+                                                        <td class="text-center indicador-anidado-celda">{{ ind.promedio | number:'1.1-1' }}</td>
+                                                        <td class="text-center indicador-anidado-celda">
+                                                            <span class="badge rounded-pill badge-anidado"
+                                                                [ngClass]="getValorCualitativoClass(ind.valor_cualitativo)">
+                                                                {{ ind.valor_cualitativo }}
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                </ng-container>
+                                                <tr *ngIf="logrosFiltrados.length === 0">
+                                                    <td colspan="4" class="text-center">No hay datos disponibles con los
+                                                        filtros seleccionados</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mensaje cuando no hay datos -->
+            <div *ngIf="!mostrarDashboard && !cargando" class="row">
+                <div class="col-12 text-center">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle fa-3x mb-3"></i>
+                        <h4>No hay datos disponibles</h4>
+                        <p>No se encontraron evaluaciones para este estudiante en el sprint seleccionado.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

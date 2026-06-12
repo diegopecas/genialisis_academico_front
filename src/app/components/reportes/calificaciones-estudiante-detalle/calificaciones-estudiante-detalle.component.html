@@ -1,0 +1,285 @@
+<div class="modulo">
+    <app-header-anidado [tituloModulo]="titulo" [path]="path" [mostrarCrear]="false" [accion]="'ConsultarTodos'"
+        [raiz]="'/calificaciones'" [regresar]="'/reportes'"
+        [iconoTitulo]="'/assets/images/reporte.png'"></app-header-anidado>
+
+    <div class="container-fluid">
+        <!-- Filtros de selección -->
+        <div class="row filters-section">
+            <div class="col-sm-4 col-md-3 mb-3">
+                <label for="sprint">Sprint:</label>
+                <select id="sprint" class="form-control custom-select" [(ngModel)]="sprintSeleccionado"
+                    (change)="cambioSprint()">
+                    <option *ngFor="let sprint of sprints" [value]="sprint.id" [selected]="sprint.actual == 1">
+                        {{ sprint.nombre_sprint }}{{ sprint.actual == 1 ? ' (*** Actual ***)' : '' }}
+                    </option>
+                </select>
+            </div>
+            <div class="col-sm-4 col-md-3 mb-3">
+                <label for="grupo">Grupo:</label>
+                <select id="grupo" class="form-control custom-select" [(ngModel)]="grupoSeleccionado"
+                    (change)="cambioGrupo()">
+                    <option *ngFor="let grupo of grupos" [value]="grupo.id">
+                        {{ grupo.nombre }}
+                    </option>
+                </select>
+            </div>
+            <div class="col-sm-4 col-md-4 mb-3">
+                <label for="estudiante">Estudiante:</label>
+                <select id="estudiante" class="form-control custom-select" [(ngModel)]="estudianteSeleccionado"
+                    (change)="cambioEstudiante()">
+                    <option *ngFor="let estudiante of estudiantes" [value]="estudiante.id">
+                        {{ estudiante.nombre_completo_estudiante }}
+
+                    </option>
+                </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-end mb-3">
+                <button class="btn btn-primary w-100" (click)="cargarCalificacionesEstudiante()"
+                    [disabled]="!estudianteSeleccionado || cargando">
+                    <i class="fas fa-search mr-2"></i> Consultar
+                </button>
+            </div>
+        </div>
+
+        <!-- Loader -->
+        <div *ngIf="cargando" class="row justify-content-center mt-4 mb-4">
+            <div class="col-12 text-center">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="sr-only">Cargando...</span>
+                </div>
+                <p class="mt-2">Cargando información...</p>
+            </div>
+        </div>
+
+        <!-- Dashboard del estudiante -->
+        <div *ngIf="mostrarDashboard && !cargando" class="dashboard-container">
+
+            <!-- Encabezado del dashboard -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="dashboard-header card shadow-sm">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-md-2 text-center">
+                                    <div class="avatar-container">
+                                        <i class="fas fa-user-graduate avatar-icon"></i>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <h2 class="student-name">{{ estudianteSeleccionadoNombre }}</h2>
+                                    <p class="group-name mb-0">
+                                        <i class="fas fa-users mr-2"></i>
+                                        {{ calificaciones && calificaciones.length > 0 ?
+                                        calificaciones[0]['nombre_grupo'] || 'Grupo no especificado' : 'Grupo no
+                                        especificado' }}
+                                    </p>
+                                </div>
+                                <div class="col-md-4 text-center">
+                                    <div class="overall-score" *ngIf="resumenEstudiante">
+                                        <div class="score-value"
+                                            [ngClass]="resumenEstudiante && resumenEstudiante.valor_cualitativo_general ? 'score-' + resumenEstudiante.valor_cualitativo_general.toLowerCase() : ''">
+                                            {{ resumenEstudiante.promedio_general.toFixed(1) }}
+                                        </div>
+                                        <div class="score-label">{{ resumenEstudiante.valor_cualitativo_general }}</div>
+                                        <div class="progress mt-2">
+                                            <div class="progress-bar"
+                                                [ngClass]="resumenEstudiante && resumenEstudiante.valor_cualitativo_general ? 'bg-' + resumenEstudiante.valor_cualitativo_general.toLowerCase() : ''"
+                                                [style.width.%]="resumenEstudiante.promedio_general * 20">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tarjetas de resumen -->
+            <div class="row mb-4" *ngIf="resumenEstudiante">
+                <div class="col-md-3 mb-3">
+                    <div class="card dashboard-card shadow-sm h-100">
+                        <div class="card-body text-center">
+                            <div class="card-icon">
+                                <i class="fas fa-tasks"></i>
+                            </div>
+                            <h5 class="card-title">Progreso</h5>
+                            <div class="display-4">{{ resumenEstudiante.porcentaje_completado }}%</div>
+                            <p class="card-text">{{ resumenEstudiante.actividades_completadas }} / {{
+                                resumenEstudiante.total_actividades }} actividades</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card dashboard-card shadow-sm h-100">
+                        <div class="card-body">
+                            <div class="card-icon">
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <h5 class="card-title">Áreas Fuertes</h5>
+                            <ul class="list-unstyled areas-list">
+                                <li *ngFor="let area of resumenEstudiante.areas_fuertes">
+                                    <i class="fas fa-check-circle text-success mr-2"></i> {{ area }}
+                                </li>
+                                <li *ngIf="resumenEstudiante.areas_fuertes.length === 0" class="text-muted">
+                                    No hay áreas destacadas
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card dashboard-card shadow-sm h-100">
+                        <div class="card-body">
+                            <div class="card-icon">
+                                <i class="fas fa-arrow-up"></i>
+                            </div>
+                            <h5 class="card-title">Por Mejorar</h5>
+                            <ul class="list-unstyled areas-list">
+                                <li *ngFor="let area of resumenEstudiante.areas_mejorar">
+                                    <i class="fas fa-exclamation-circle text-warning mr-2"></i> {{ area }}
+                                </li>
+                                <li *ngIf="resumenEstudiante.areas_mejorar.length === 0" class="text-muted">
+                                    No hay áreas por mejorar
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card dashboard-card shadow-sm h-100">
+                        <div class="card-body text-center">
+                            <div class="card-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <h5 class="card-title">Tendencia</h5>
+                            <div class="trend-icon">
+                                <i *ngIf="resumenEstudiante.tendencia === 'mejora'"
+                                    class="fas fa-arrow-up text-success"></i>
+                                <i *ngIf="resumenEstudiante.tendencia === 'estable'"
+                                    class="fas fa-equals text-primary"></i>
+                                <i *ngIf="resumenEstudiante.tendencia === 'descenso'"
+                                    class="fas fa-arrow-down text-danger"></i>
+                                <i *ngIf="resumenEstudiante.tendencia === 'sin datos'"
+                                    class="fas fa-question text-muted"></i>
+                            </div>
+                            <p class="card-text mt-2">
+                                {{ resumenEstudiante.tendencia === 'mejora' ? 'En mejora' :
+                                resumenEstudiante.tendencia === 'estable' ? 'Estable' :
+                                resumenEstudiante.tendencia === 'descenso' ? 'En descenso' : 'Sin datos suficientes' }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gráficos -->
+            <div class="row mb-4">
+                <div class="col-md-6 mb-4">
+                    <div class="card shadow-sm chart-card h-100">
+                        <div class="card-body">
+                            <canvas id="graficoPromediosAreas"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-4">
+                    <div class="card shadow-sm chart-card h-100">
+                        <div class="card-body">
+                            <canvas id="graficoRadar"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-md-4 mb-4">
+                    <div class="card shadow-sm chart-card h-100">
+                        <div class="card-body">
+                            <canvas id="graficoProgreso"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-8 mb-4">
+                    <div class="card shadow-sm chart-card h-100">
+                        <div class="card-body">
+                            <canvas id="graficoIndicadores"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabla de promedios por área académica -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0">Promedios por Área Académica</h5>
+                        </div>
+                        <div class="card-body">
+                            <app-tablas [titulos]="titulosPromedio" [datos]="datosPromedio" [raiz]="'/calificaciones'"
+                                [mostrarBuscar]="true" [columnasFiltro]="columnasFiltroPromedio"></app-tablas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabla de promedios por indicador de logro -->
+            <div class="row mt-4" *ngIf="datosIndicadores.length > 0">
+                <div class="col-12">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="mb-0">Promedios por Indicador de Logro</h5>
+                        </div>
+                        <div class="card-body">
+                            <app-tablas [titulos]="titulosIndicadores" [datos]="datosIndicadores"
+                                [raiz]="'/calificaciones'" [mostrarBuscar]="true"
+                                [columnasFiltro]="columnasFiltroIndicadores"></app-tablas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabla de calificaciones detalladas -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-secondary text-white">
+                            <h5 class="mb-0">Calificaciones Detalladas</h5>
+                        </div>
+                        <div class="card-body">
+                            <app-tablas [titulos]="titulos" [datos]="datos" [raiz]="'/calificaciones'"
+                                [mostrarBuscar]="true" [columnasFiltro]="columnasFiltro"></app-tablas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mensaje cuando no hay datos y se ha ejecutado la consulta -->
+        <div *ngIf="mostrarMensajeNoHayCalificaciones && !cargando && estudianteSeleccionado" class="row mt-5">
+            <div class="col-12 text-center">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle fa-3x mb-3"></i>
+                    <h4>No hay calificaciones disponibles</h4>
+                    <p>No se encontraron calificaciones para el estudiante seleccionado en este sprint.</p>
+                    <p>Intenta seleccionar otro estudiante o sprint, o verifica que existan calificaciones registradas.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mensaje cuando no hay estudiante seleccionado -->
+        <div *ngIf="!mostrarDashboard && !cargando && !estudianteSeleccionado && estudiantes.length === 0"
+            class="row mt-5">
+            <div class="col-12 text-center">
+                <div class="alert alert-warning">
+                    <i class="fas fa-user-slash fa-3x mb-3"></i>
+                    <h4>No hay estudiantes disponibles</h4>
+                    <p>No se encontraron estudiantes en el grupo seleccionado.</p>
+                    <p>Intenta seleccionar otro grupo o sprint.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

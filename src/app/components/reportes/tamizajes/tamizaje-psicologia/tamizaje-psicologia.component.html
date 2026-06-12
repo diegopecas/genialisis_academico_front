@@ -1,0 +1,180 @@
+<div class="dashboard-psicologia">
+    <!-- Header con título y botón de descarga -->
+    <div class="dashboard-header">
+        <div class="header-content">
+            <div class="header-title">
+                <i class="fas fa-brain"></i>
+                <div>
+                    <h2>Análisis Tamizajes - Psicología</h2>
+                    <p>Visión general y tendencias del desarrollo infantil</p>
+                </div>
+            </div>
+            <button class="btn-download" (click)="downloadExcel()">
+                <i class="fas fa-download"></i>
+                Descargar CSV
+            </button>
+        </div>
+    </div>
+
+    <!-- Estadísticas Generales -->
+    <div class="stats-grid">
+        <div class="stat-card total">
+            <div class="stat-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="stat-info">
+                <span class="stat-label">Total Niños</span>
+                <span class="stat-value">{{ stats.total }}</span>
+            </div>
+        </div>
+
+        <div class="stat-card critica">
+            <div class="stat-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div class="stat-info">
+                <span class="stat-label">Crítica</span>
+                <span class="stat-value">{{ stats.critica }}</span>
+            </div>
+        </div>
+
+        <div class="stat-card alta">
+            <div class="stat-icon">
+                <i class="fas fa-arrow-up"></i>
+            </div>
+            <div class="stat-info">
+                <span class="stat-label">Alta</span>
+                <span class="stat-value">{{ stats.alta }}</span>
+            </div>
+        </div>
+
+        <div class="stat-card media">
+            <div class="stat-icon">
+                <i class="fas fa-minus"></i>
+            </div>
+            <div class="stat-info">
+                <span class="stat-label">Media</span>
+                <span class="stat-value">{{ stats.media }}</span>
+            </div>
+        </div>
+
+        <div class="stat-card baja">
+            <div class="stat-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="stat-info">
+                <span class="stat-label">Baja</span>
+                <span class="stat-value">{{ stats.baja }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Análisis de Tendencias -->
+    <div class="tendencias-section">
+        <h3 class="section-title">
+            <i class="fas fa-chart-line"></i>
+            Análisis de Tendencias
+        </h3>
+        <div class="tendencias-grid">
+            <div class="tendencia-card preocupacion">
+                <h4>⚠️ Áreas de Mayor Preocupación:</h4>
+                <ul>
+                    <li><strong>Lenguaje:</strong> 8 niños con retraso significativo (21.6%)</li>
+                    <li><strong>Motricidad fina:</strong> 12 niños requieren intervención (32.4%)</li>
+                    <li><strong>5 casos críticos</strong> requieren atención inmediata</li>
+                    <li>Mayor incidencia en grupo 18-35 meses</li>
+                </ul>
+            </div>
+            <div class="tendencia-card fortalezas">
+                <h4>✅ Fortalezas Identificadas:</h4>
+                <ul>
+                    <li><strong>Socialización:</strong> 78% con desarrollo adecuado</li>
+                    <li><strong>Motricidad gruesa:</strong> Área más consolidada</li>
+                    <li>15 niños con desarrollo óptimo (40.5%)</li>
+                    <li>Mejor desempeño en grupo 46-66 meses</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="filtros-section">
+        <div class="filtros-content">
+            <i class="fas fa-filter"></i>
+            <select [(ngModel)]="filterAge" class="filtro-select">
+                <option value="all">Todas las edades</option>
+                <option value="18-30">18-30 meses</option>
+                <option value="31-45">31-45 meses</option>
+                <option value="46-66">46-66 meses</option>
+            </select>
+            <select [(ngModel)]="filterStatus" class="filtro-select">
+                <option value="all">Todas las prioridades</option>
+                <option value="Crítica">Crítica</option>
+                <option value="Alta">Alta</option>
+                <option value="Media">Media</option>
+                <option value="Baja">Baja</option>
+            </select>
+            <span class="filtro-info">
+                Mostrando {{ filteredNinos.length }} de {{ stats.total }} niños
+            </span>
+        </div>
+    </div>
+
+    <!-- Tabla de Datos -->
+    <div class="tabla-section">
+        <div class="tabla-responsive">
+            <table class="tabla-tamizajes">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Edad</th>
+                        <th>Social.</th>
+                        <th>Lenguaje</th>
+                        <th>Manip.</th>
+                        <th>Postural</th>
+                        <th>Prioridad</th>
+                        <th>Observaciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let nino of filteredNinos" class="tabla-row">
+                        <td class="td-nombre">{{ nino.nombre }}</td>
+                        <td class="td-center">{{ nino.edad }}m</td>
+                        <td class="td-center">{{ nino.socializacion }}</td>
+                        <td class="td-center">{{ nino.lenguaje }}</td>
+                        <td class="td-center">{{ nino.manipulacion }}</td>
+                        <td class="td-center">{{ nino.postural }}</td>
+                        <td class="td-center">
+                            <span class="badge-prioridad" [ngClass]="getPriorityColor(nino.prioridad)">
+                                {{ nino.prioridad }}
+                            </span>
+                        </td>
+                        <td class="td-observaciones">{{ nino.observaciones }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Recomendaciones -->
+    <div class="recomendaciones-section">
+        <h3 class="section-title">
+            <i class="fas fa-lightbulb"></i>
+            Recomendaciones para el Jardín
+        </h3>
+        <div class="recomendaciones-grid">
+            <div class="recomendacion-card accion">
+                <h4>Acción Inmediata</h4>
+                <p>Derivar 5 casos críticos a evaluación especializada urgente (neuropediatría, fonoaudiología)</p>
+            </div>
+            <div class="recomendacion-card programas">
+                <h4>Programas de Apoyo</h4>
+                <p>Implementar talleres de estimulación del lenguaje para 13 niños con prioridad alta/media</p>
+            </div>
+            <div class="recomendacion-card seguimiento">
+                <h4>Seguimiento</h4>
+                <p>Reevaluación en 3-4 meses para casos en seguimiento. Monitoreo continuo de avances</p>
+            </div>
+        </div>
+    </div>
+</div>

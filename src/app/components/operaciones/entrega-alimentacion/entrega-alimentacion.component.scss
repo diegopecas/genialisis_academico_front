@@ -1,0 +1,747 @@
+$gold: #ffbd31;
+$gold-dark: #e0a000;
+$gold-light: rgba(255, 189, 49, 0.15);
+$text-primary: #2c3e50;
+$text-secondary: #7f8c8d;
+$verde: #27ae60;
+$verde-light: rgba(39, 174, 96, 0.13);
+$rojo: #e74c3c;
+$rojo-light: rgba(231, 76, 60, 0.1);
+$azul: #3498db;
+$naranja: #e67e22;
+
+@mixin glass {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.09), 0 1px 0 rgba(255,255,255,0.6) inset;
+}
+
+.modulo {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f0f4ff 0%, #fef9ec 60%, #e8f5e9 100%);
+}
+
+.entrega-container {
+  padding: 1.5rem;
+  max-width: 1000px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+// ============================
+// FILTROS
+// ============================
+.filtros-panel {
+  @include glass;
+  border-radius: 18px;
+  padding: 1.5rem 1.75rem;
+}
+
+.filtro-label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: $text-secondary;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.4rem;
+}
+
+.filtro-input {
+  width: 100%;
+  padding: 0.55rem 0.9rem;
+  border-radius: 10px;
+  border: 1.5px solid rgba(255, 189, 49, 0.35);
+  background: rgba(255, 255, 255, 0.85);
+  font-size: 0.95rem;
+  color: $text-primary;
+  outline: none;
+  transition: border-color 0.2s;
+
+  &:focus {
+    border-color: $gold;
+    box-shadow: 0 0 0 3px rgba(255, 189, 49, 0.18);
+  }
+  &::placeholder { color: #bdc3c7; }
+}
+
+// ============================
+// TOTALES
+// ============================
+.totales-row {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  align-items: center;
+  padding-top: 1.4rem;
+}
+
+.total-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.85rem;
+  border-radius: 50px;
+  font-size: 0.85rem;
+  font-weight: 600;
+
+  .total-num { font-size: 1.1rem; font-weight: 700; }
+  .total-txt { font-size: 0.75rem; opacity: 0.85; }
+
+  &.pendiente {
+    background: rgba(52, 152, 219, 0.12);
+    color: $azul;
+    border: 1px solid rgba(52, 152, 219, 0.25);
+  }
+  &.entregado {
+    background: $verde-light;
+    color: $verde;
+    border: 1px solid rgba(39, 174, 96, 0.25);
+  }
+  &.anulado {
+    background: $rojo-light;
+    color: $rojo;
+    border: 1px solid rgba(231, 76, 60, 0.25);
+  }
+}
+
+// ============================
+// ACCIONES BATCH
+// ============================
+.acciones-batch {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.sel-count {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: white;
+  padding: 0.4rem 0.9rem;
+  background: $azul;
+  border-radius: 50px;
+}
+
+.btn-batch {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 1.1rem;
+  border-radius: 50px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  color: white;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+
+  &:disabled { opacity: 0.55; cursor: wait; }
+
+  &.btn-sel-todos {
+    background: $gold-dark;
+    &:hover:not(:disabled) { background: darken(#e0a000, 8%); transform: translateY(-1px); }
+  }
+  &.btn-entregar {
+    background: $verde;
+    &:hover:not(:disabled) { background: darken(#27ae60, 8%); transform: translateY(-1px); }
+  }
+  &.btn-anular {
+    background: $rojo;
+    &:hover:not(:disabled) { background: darken(#e74c3c, 8%); transform: translateY(-1px); }
+  }
+}
+
+// ============================
+// ESTADOS
+// ============================
+.estado-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 3rem 1rem;
+  text-align: center;
+
+  &.py-3 { padding: 1.5rem 1rem; }
+}
+.estado-icono-gold { font-size: 2rem; color: $gold; }
+.estado-texto { color: $text-secondary; font-size: 0.95rem; margin: 0; }
+
+// ============================
+// SUPER ACORDEONES
+// ============================
+.super-acordeon {
+  @include glass;
+  border-radius: 18px;
+  overflow: hidden;
+
+  &.inventario-panel {
+    border: 1px solid rgba(52, 152, 219, 0.2);
+  }
+}
+
+.super-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 1.1rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: $text-primary;
+  border-bottom: 1px solid rgba(200,200,200,0.15);
+
+  &.clickable {
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.15s;
+
+    &:hover { background: rgba(52,152,219,0.05); }
+  }
+}
+
+.super-titulo { font-size: 1rem; font-weight: 700; }
+
+.super-sub {
+  font-size: 0.78rem;
+  color: $text-secondary;
+  background: rgba(200,200,200,0.15);
+  border-radius: 50px;
+  padding: 0.15rem 0.6rem;
+
+  &.sin-sel { color: $gold-dark; background: $gold-light; }
+}
+
+// ============================
+// GRUPOS POR PRODUCTO
+// ============================
+.grupos-lista {
+  display: flex;
+  flex-direction: column;
+}
+
+.grupo-panel {
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 12px;
+  margin: 0.4rem 0.75rem;
+  border: 1px solid rgba(200,200,200,0.2) !important;
+  overflow: hidden;
+  border-bottom: 1px solid rgba(200,200,200,0.15);
+  &:last-child { border-bottom: none; }
+}
+
+.grupo-header {
+  background: rgba(255, 189, 49, 0.08);
+  border-bottom: 1px solid rgba(255,189,49,0.15);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1.5rem;
+  cursor: pointer;
+  user-select: none;
+  gap: 1rem;
+  flex-wrap: wrap;
+  transition: background 0.15s;
+
+  &:hover { background: rgba(255,189,49,0.05); }
+}
+
+.grupo-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.grupo-icono { font-size: 1rem; color: $gold-dark; flex-shrink: 0; }
+
+.grupo-info { display: flex; flex-direction: column; min-width: 0; }
+.grupo-nombre { font-size: 0.95rem; font-weight: 700; color: $text-primary; }
+.grupo-detalle { font-size: 0.75rem; color: $text-secondary; }
+
+.grupo-header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.badge-pendientes {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: $azul;
+  background: rgba(52,152,219,0.1);
+  border: 1px solid rgba(52,152,219,0.25);
+  border-radius: 50px;
+  padding: 0.15rem 0.55rem;
+}
+
+.badge-entregados {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: $verde;
+  background: $verde-light;
+  border: 1px solid rgba(39,174,96,0.25);
+  border-radius: 50px;
+  padding: 0.15rem 0.55rem;
+}
+
+.btn-sel-producto {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 50px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1px solid rgba(255,189,49,0.4);
+  background: $gold-light;
+  color: $gold-dark;
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &:hover { background: $gold; color: #1a1f2e; }
+  &.activo { background: $gold; color: #1a1f2e; border-color: $gold-dark; }
+}
+
+.chevron { font-size: 0.82rem; color: $text-secondary; }
+
+// ============================
+// FILAS DE ENTREGA
+// ============================
+.grupo-body {
+  background: rgba(255,255,255,0.3);
+}
+
+.entrega-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 1.5rem;
+  border-bottom: 1px solid rgba(200,200,200,0.1);
+  cursor: pointer;
+  transition: background 0.12s;
+
+  &:last-child { border-bottom: none; }
+  &:hover:not(.anulado) { background: rgba(255,189,49,0.06); }
+
+  &.seleccionado {
+    background: rgba(52,152,219,0.07);
+    border-left: 3px solid $azul;
+  }
+  &.entregado {
+    background: rgba(39,174,96,0.04);
+    .row-nombre { color: $text-secondary; }
+  }
+  &.anulado {
+    opacity: 0.45;
+    cursor: default;
+    text-decoration: line-through;
+  }
+  &.ausente .row-nombre { font-style: italic; }
+}
+
+.row-check {
+  font-size: 1rem;
+  color: #bdc3c7;
+  flex-shrink: 0;
+  width: 20px;
+  &.anulado-icon { color: $rojo; }
+}
+
+.row-info { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.row-nombre { font-size: 0.88rem; font-weight: 500; color: $text-primary; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row-grupo { font-size: 0.7rem; color: $text-secondary; }
+.row-asistencia { flex-shrink: 0; }
+
+.badge-presente {
+  font-size: 0.7rem; font-weight: 600; color: $verde;
+  background: $verde-light; border-radius: 50px; padding: 0.12rem 0.45rem; white-space: nowrap;
+}
+.badge-ausente {
+  font-size: 0.7rem; font-weight: 600; color: $rojo;
+  background: $rojo-light; border-radius: 50px; padding: 0.12rem 0.45rem;
+}
+
+.row-estado { display: flex; align-items: center; gap: 0.4rem; flex-shrink: 0; }
+
+.estado-chip {
+  font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+  border-radius: 50px; padding: 0.12rem 0.5rem; white-space: nowrap;
+
+  &.pendiente-chip { color: $azul; background: rgba(52,152,219,0.1); border: 1px solid rgba(52,152,219,0.25); }
+  &.entregado-chip { color: $verde; background: $verde-light; border: 1px solid rgba(39,174,96,0.25); }
+  &.anulado-chip   { color: $rojo; background: $rojo-light; border: 1px solid rgba(231,76,60,0.25); }
+}
+
+.btn-entregar-uno {
+  width: 26px; height: 26px; border-radius: 50%; border: none;
+  background: $verde-light; color: $verde; font-size: 0.75rem;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s; flex-shrink: 0;
+
+  &:hover:not(:disabled) { background: $verde; color: white; }
+  &:disabled { opacity: 0.5; cursor: wait; }
+}
+
+// ============================
+// INVENTARIO
+// ============================
+.inventario-body {
+  padding: 1.25rem 1.5rem;
+  border-top: 1px solid rgba(52,152,219,0.15);
+  background: rgba(52,152,219,0.02);
+}
+
+.inv-config { margin-bottom: 0.5rem; }
+
+.inv-tabla {
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(200,200,200,0.25);
+}
+
+.inv-tabla-header {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 0.6fr;
+  gap: 0.5rem;
+  padding: 0.6rem 1rem;
+  background: rgba(52,152,219,0.08);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: $azul;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.inv-tabla-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 0.6fr;
+  gap: 0.5rem;
+  padding: 0.6rem 1rem;
+  align-items: center;
+  border-top: 1px solid rgba(200,200,200,0.15);
+  font-size: 0.88rem;
+  transition: background 0.12s;
+
+  &:hover { background: rgba(52,152,219,0.04); }
+
+  &.stock-bajo {
+    background: rgba(231,76,60,0.04);
+  }
+}
+
+.inv-nombre { font-weight: 500; color: $text-primary; }
+.inv-stock  { color: $text-secondary; }
+.inv-teorico { color: $azul; font-weight: 600; }
+.inv-unidad { color: $text-secondary; font-size: 0.78rem; }
+
+.inv-input-real {
+  width: 80px;
+  padding: 0.3rem 0.5rem;
+  border-radius: 8px;
+  border: 1.5px solid rgba(52,152,219,0.35);
+  background: white;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: $text-primary;
+  text-align: center;
+  outline: none;
+  transition: border-color 0.2s;
+
+  &:focus { border-color: $azul; box-shadow: 0 0 0 3px rgba(52,152,219,0.15); }
+  &.over-stock { border-color: $rojo; color: $rojo; }
+}
+
+.stock-warning {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 0.85rem;
+  background: $rojo-light;
+  color: $rojo;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  border: 1px solid rgba(231,76,60,0.25);
+}
+
+.inv-acciones {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-registrar-inventario {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 1.4rem;
+  border-radius: 50px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  background: $azul;
+  color: white;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(52,152,219,0.25);
+
+  &:hover:not(:disabled) {
+    background: darken(#3498db, 8%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(52,152,219,0.35);
+  }
+  &:disabled { opacity: 0.6; cursor: wait; }
+}
+
+// ============================
+// RESPONSIVE
+// ============================
+@media (max-width: 576px) {
+  .grupo-panel { margin: 0.3rem 0.4rem; }
+  .grupo-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.75rem 0.9rem;
+  }
+  .grupo-header-right {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  .grupo-nombre { font-size: 0.9rem; }
+  .entrega-container { padding: 0.75rem; }
+  .filtros-panel { padding: 1rem; }
+  .totales-row { padding-top: 0; }
+  .grupo-header, .entrega-row { padding-left: 1rem; padding-right: 1rem; }
+  .row-asistencia { display: none; }
+  .inv-tabla-header, .inv-tabla-row {
+    grid-template-columns: 2fr 1fr 1fr;
+    .inv-stock, .inv-unidad { display: none; }
+  }
+  .inv-input-real { width: 65px; }
+}
+
+// ============================
+// AVISO MINUTA
+// ============================
+.aviso-minuta {
+  display: flex;
+  align-items: center;
+  font-size: 0.82rem;
+  color: $azul;
+  background: rgba(52,152,219,0.08);
+  border: 1px solid rgba(52,152,219,0.2);
+  border-radius: 10px;
+  padding: 0.4rem 0.85rem;
+  margin-top: 0.5rem;
+}
+
+// ============================
+// SELECTOR DE MENÚ POR GRUPO
+// ============================
+.menu-selector-grupo {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 1.5rem;
+  background: rgba(255,189,49,0.06);
+  border-bottom: 1px solid rgba(255,189,49,0.15);
+  flex-wrap: wrap;
+
+  &.sin-menu {
+    color: $rojo;
+    font-size: 0.8rem;
+    font-weight: 600;
+    background: $rojo-light;
+    border-color: rgba(231,76,60,0.15);
+  }
+}
+
+.menu-selector-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: $gold-dark;
+  white-space: nowrap;
+}
+
+.menu-selector-input {
+  padding: 0.3rem 0.6rem;
+  border-radius: 8px;
+  border: 1.5px solid rgba(255,189,49,0.4);
+  background: white;
+  font-size: 0.82rem;
+  color: $text-primary;
+  outline: none;
+  flex: 1;
+  min-width: 160px;
+
+  &:focus { border-color: $gold; }
+}
+
+.menu-programado-badge {
+  font-size: 0.72rem;
+  color: $gold-dark;
+  white-space: nowrap;
+}
+
+// ============================
+// SELECTOR DE MENÚ POR CUENTA
+// ============================
+.row-menu {
+  flex-shrink: 0;
+}
+
+.menu-input-mini {
+  padding: 0.2rem 0.4rem;
+  border-radius: 7px;
+  border: 1px solid rgba(255,189,49,0.35);
+  background: rgba(255,255,255,0.9);
+  font-size: 0.75rem;
+  color: $text-primary;
+  outline: none;
+  max-width: 130px;
+
+  &:focus { border-color: $gold; }
+}
+
+// ============================
+// TABLA INVENTARIO - COLUMNAS EXTRA
+// ============================
+.inv-tabla-header,
+.inv-tabla-row {
+  grid-template-columns: 2fr 1.5fr 0.8fr 0.8fr 0.9fr 0.5fr;
+}
+
+.inv-menu-chip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  color: $text-secondary;
+}
+
+.diferente-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: $naranja;
+  background: rgba(230,126,34,0.12);
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: help;
+}
+
+.sin-menu-text { color: #bdc3c7; }
+
+// ============================
+// INGREDIENTES EXTRA
+// ============================
+.extras-seccion { }
+
+.extras-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: $azul;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid rgba(52,152,219,0.15);
+  margin-bottom: 0.5rem;
+}
+
+.btn-quitar-extra {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: none;
+  background: $rojo-light;
+  color: $rojo;
+  font-size: 0.7rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+
+  &:hover { background: $rojo; color: white; }
+}
+
+@media (max-width: 576px) {
+  .menu-selector-grupo { padding: 0.45rem 1rem; }
+  .row-menu { display: none; } // en móvil se usa solo el selector global
+  .inv-tabla-header, .inv-tabla-row {
+    grid-template-columns: 2fr 0.8fr 0.9fr 0.5fr;
+    .inv-menu-chip, .inv-stock { display: none; }
+  }
+}
+
+.btn-agregar-extra {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.85rem;
+  border-radius: 50px;
+  border: none;
+  background: $azul;
+  color: white;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  &:hover { background: darken(#3498db, 8%); transform: translateY(-1px); }
+}
+
+.extras-vacio {
+  font-size: 0.8rem;
+  color: $text-secondary;
+  padding: 0.5rem 0;
+  font-style: italic;
+}
+
+.inv-origen {
+  font-size: 0.75rem;
+  color: $azul;
+  font-style: italic;
+}
+
+.extras-header-cols {
+  grid-template-columns: 1.8fr 1.2fr 0.7fr 0.9fr 0.5fr 0.4fr !important;
+}
+
+.aviso-inventario {
+  border-radius: 14px;
+  padding: 1rem 1.5rem;
+  font-size: 0.9rem;
+  color: $azul;
+  border: 1px solid rgba(52,152,219,0.25) !important;
+  background: rgba(52,152,219,0.06) !important;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.link-inventario {
+  color: $gold-dark;
+  font-weight: 700;
+  text-decoration: underline;
+  &:hover { color: $gold; }
+}
+
+.entrega-row.con-inventario {
+  opacity: 0.65;
+  cursor: default;
+  background: rgba(39,174,96,0.04);
+}

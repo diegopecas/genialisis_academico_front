@@ -1,0 +1,21 @@
+<div class="modulo">
+    <app-header-anidado 
+        [tituloModulo]="titulo" 
+        [path]="path"
+        [mostrarCrear]="true" 
+        [accion]="'ConsultarTodos'"
+        [raiz]="'/estudiantes-cursos-extra'" 
+        [regresar]="'/estudiantes'"
+        [iconoTitulo]="'/assets/images/cursos-extra.png'">
+    </app-header-anidado>
+    
+    <app-tablas 
+        [titulos]="titulos" 
+        [datos]="datos" 
+        [raiz]="'/estudiantes-cursos-extra'" 
+        [accionEliminar]="true"
+        [acciones]="acciones"
+        [columnasFiltro]="columnasFiltro" 
+        (clicAccion)="seleccionar($event)">
+    </app-tablas>
+</div>

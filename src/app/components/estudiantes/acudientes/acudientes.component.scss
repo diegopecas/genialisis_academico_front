@@ -1,0 +1,7 @@
+.disabled-container {
+    pointer-events: none;
+    opacity: 0.7;
+    input, select, button {
+      background-color: #f8f9fa;
+    }
+  }

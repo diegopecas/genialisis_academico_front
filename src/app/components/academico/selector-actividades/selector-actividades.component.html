@@ -1,0 +1,102 @@
+<app-header [tituloModulo]="titulo" [mostrarCrear]="false" [raiz]="'/academico'" [regresar]="'/academico'"></app-header>
+
+<div class="selector-container">
+  <div class="selector-cards">
+
+    <div class="selector-card" (click)="irGestionActividades()">
+      <div class="selector-card-icono">
+        <img src="/assets/images/actividades.png" alt="Gestión Actividades" />
+      </div>
+      <h3 class="selector-card-titulo">Gestión Actividades</h3>
+      <p class="selector-card-descripcion">
+        Consulta, edita y administra todas las actividades académicas
+        registradas en el sistema.
+      </p>
+      <div class="selector-card-features">
+        <span>📋 Listado completo</span>
+        <span>✏️ Editar y eliminar</span>
+        <span>🔎 Búsqueda avanzada</span>
+      </div>
+      <div class="selector-card-boton">
+        Comenzar →
+      </div>
+    </div>
+
+    <div class="selector-card" (click)="irMisActividades()">
+      <div class="selector-card-icono">
+        <img src="/assets/images/mis-actividades.png" alt="Mis Actividades" />
+      </div>
+      <h3 class="selector-card-titulo">Mis Actividades</h3>
+      <p class="selector-card-descripcion">
+        Crea tus actividades una por una con asistencia de IA opcional.
+        Tú decides cada detalle con sugerencias inteligentes.
+      </p>
+      <div class="selector-card-features">
+        <span>✏️ Control total</span>
+        <span>🪄 Sugerencias IA</span>
+        <span>🎯 Una por una</span>
+      </div>
+      <div class="selector-card-boton">
+        Comenzar →
+      </div>
+    </div>
+
+    <div class="selector-card" (click)="irMaquinaActividades()">
+      <div class="selector-card-icono">
+        <img src="/assets/images/maquina-actividades.png" alt="Máquina de Actividades" />
+      </div>
+      <h3 class="selector-card-titulo">Máquina de Actividades</h3>
+      <p class="selector-card-descripcion">
+        La IA genera múltiples actividades automáticamente según tus indicaciones.
+        Ideal para llenar rápidamente un sprint completo.
+      </p>
+      <div class="selector-card-features">
+        <span>🤖 Generación automática</span>
+        <span>📦 Múltiples a la vez</span>
+        <span>⚡ Rápido y eficiente</span>
+      </div>
+      <div class="selector-card-boton">
+        Comenzar →
+      </div>
+    </div>
+
+    <div class="selector-card" (click)="irActividadesEvaluacion()">
+      <div class="selector-card-icono">
+        <img src="/assets/images/evaluar.png" alt="Actividades de Evaluación" />
+      </div>
+      <h3 class="selector-card-titulo">Actividades de Evaluación</h3>
+      <p class="selector-card-descripcion">
+        Genera actividades de evaluación para los logros del corte. Modo mecánico,
+        con IA o manual, una por logro y con sus indicadores asociados.
+      </p>
+      <div class="selector-card-features">
+        <span>🎯 Por logros del corte</span>
+        <span>🔧 Mecánico, IA o manual</span>
+        <span>📋 Indicadores incluidos</span>
+      </div>
+      <div class="selector-card-boton">
+        Comenzar →
+      </div>
+    </div>
+
+    <div class="selector-card" (click)="irImportarDeSprint()">
+      <div class="selector-card-icono">
+        <img src="/assets/images/importar-actividades-sprint.png" alt="Importar de Sprint" />
+      </div>
+      <h3 class="selector-card-titulo">Importar de Sprint</h3>
+      <p class="selector-card-descripcion">
+        Reutiliza actividades de sprints anteriores. Selecciona las que necesites
+        e impórtalas a tu sprint actual o siguiente.
+      </p>
+      <div class="selector-card-features">
+        <span>📥 Desde otro sprint</span>
+        <span>🔍 Filtra por grupo y área</span>
+        <span>⚡ Importación masiva</span>
+      </div>
+      <div class="selector-card-boton">
+        Comenzar →
+      </div>
+    </div>
+
+  </div>
+</div>

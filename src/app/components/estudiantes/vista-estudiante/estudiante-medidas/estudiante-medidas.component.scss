@@ -1,0 +1,473 @@
+$gold: #d4af37;
+$gold-light: rgba(212, 175, 55, 0.1);
+$gold-dark: darken($gold, 10%);
+$black: #222;
+$secondary: #6c757d;
+$border: #e9ecef;
+$mobile-bp: 768px;
+
+// Visibilidad
+.desktop-only { display: block !important; }
+.mobile-only { display: none !important; }
+
+// ============================================
+// PANEL
+// ============================================
+
+.panel {
+  border-radius: 0.5rem;
+  border: 1px solid rgba($black, 0.125);
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+  background-color: #fff;
+
+  &:hover { box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15); }
+
+  .panel-heading {
+    background-color: $black;
+    color: #fff;
+    padding: 1rem;
+    border-bottom: 3px solid $gold;
+
+    h5 { font-weight: 600; i { color: $gold; } }
+  }
+
+  .panel-body { padding: 1.25rem; }
+}
+
+.badge-activas {
+  background: $gold;
+  color: $black;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.spinner-gold { color: $gold-dark; }
+
+// ============================================
+// LAYOUT PRINCIPAL: GRÁFICO + SELECTOR
+// ============================================
+
+.contenido-principal {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+// ============================================
+// ÁREA DEL GRÁFICO
+// ============================================
+
+.grafico-area {
+  min-width: 0;
+}
+
+.grafico-container {
+  background-color: #fff;
+  border-radius: 0.5rem;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  padding: 1rem;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-left: 3px solid $gold;
+  margin-bottom: 1rem;
+
+  .canvas-container {
+    position: relative;
+    height: 300px;
+    width: 100%;
+  }
+
+  canvas {
+    max-width: 100%;
+    max-height: 300px !important;
+  }
+}
+
+// ============================================
+// SLIDER
+// ============================================
+
+.range-slider-container {
+  background-color: #f8f9fa;
+  border-radius: 10px;
+  padding: 14px 18px;
+  border: 1px solid $border;
+  border-left: 3px solid $gold;
+}
+
+.range-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.range-label {
+  font-size: 0.82rem;
+  color: $secondary;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  i { font-size: 0.75rem; opacity: 0.7; }
+  strong { color: $black; font-weight: 600; }
+}
+
+.dual-range {
+  position: relative;
+  height: 36px;
+
+  .range-track {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 100%;
+    height: 6px;
+    background-color: #ddd;
+    border-radius: 3px;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .range-fill {
+    position: absolute;
+    height: 100%;
+    border-radius: 3px;
+    pointer-events: none;
+    background: linear-gradient(90deg, $gold-dark, $gold);
+    transition: left 0.05s, width 0.05s;
+  }
+
+  .range-input {
+    position: absolute;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    pointer-events: none;
+    z-index: 2;
+    margin: 0;
+    padding: 0;
+
+    &::-webkit-slider-runnable-track { width: 100%; height: 6px; background: transparent; border: none; }
+    &::-moz-range-track { width: 100%; height: 6px; background: transparent; border: none; }
+
+    &::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: $gold;
+      cursor: pointer;
+      pointer-events: all;
+      border: 3px solid white;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+      margin-top: -8px;
+      z-index: 3;
+      &:hover { transform: scale(1.15); box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3); }
+    }
+
+    &::-moz-range-thumb {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: $gold;
+      cursor: pointer;
+      pointer-events: all;
+      border: 3px solid white;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    }
+  }
+
+  .range-hasta { z-index: 3; }
+}
+
+.range-extremos {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+}
+
+.extremo-label {
+  font-size: 0.72rem;
+  color: #adb5bd;
+  font-weight: 500;
+}
+
+// ============================================
+// SELECTOR DE MEDIDAS
+// ============================================
+
+.selector-area {
+  background: #fafafa;
+  border-radius: 12px;
+  border: 1px solid $border;
+  padding: 1rem;
+  max-height: 450px;
+  display: flex;
+  flex-direction: column;
+}
+
+.selector-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+
+  h6 {
+    margin: 0;
+    font-weight: 700;
+    color: $black;
+    font-size: 0.9rem;
+  }
+}
+
+.btn-limpiar {
+  background: none;
+  border: none;
+  color: $secondary;
+  font-size: 0.75rem;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 6px;
+  &:hover { background: rgba(0,0,0,0.05); color: $black; }
+}
+
+.selector-busqueda {
+  margin-bottom: 0.75rem;
+
+  .form-control {
+    border-radius: 8px;
+    font-size: 0.8rem;
+    border: 1px solid $border;
+  }
+}
+
+.selector-categorias {
+  overflow-y: auto;
+  flex: 1;
+
+  &::-webkit-scrollbar { width: 4px; }
+  &::-webkit-scrollbar-thumb { background: #ccc; border-radius: 2px; }
+}
+
+.selector-categoria {
+  margin-bottom: 0.75rem;
+}
+
+.categoria-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: $secondary;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.4rem;
+  i { color: $gold-dark; font-size: 0.7rem; }
+}
+
+.chips-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.medida-chip-sm {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border: 1.5px solid $border;
+  border-radius: 14px;
+  cursor: pointer;
+  font-size: 0.72rem;
+  color: $secondary;
+  background: white;
+  transition: all 0.2s;
+
+  &:hover { border-color: $gold; background: $gold-light; }
+
+  &.activa {
+    border-color: currentColor;
+    background: rgba(0,0,0,0.03);
+    font-weight: 600;
+    color: $black;
+  }
+
+  &.no-graficable {
+    opacity: 0.5;
+    cursor: not-allowed;
+    &:hover { border-color: $border; background: white; }
+  }
+}
+
+.chip-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1.5px solid;
+  flex-shrink: 0;
+}
+
+.chip-nombre {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 120px;
+}
+
+.chip-unidad {
+  font-size: 0.62rem;
+  color: #adb5bd;
+}
+
+// ============================================
+// TABLA REGISTROS
+// ============================================
+
+.tabla-registros {
+  margin-top: 1.5rem;
+}
+
+.tabla-titulo {
+  font-weight: 700;
+  color: $black;
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.registros-count {
+  font-size: 0.72rem;
+  color: $secondary;
+  font-weight: 500;
+  padding: 2px 8px;
+  background-color: #f0f0f0;
+  border-radius: 10px;
+}
+
+.tabla-scroll {
+  max-height: 400px;
+  overflow-y: auto;
+  border-radius: 8px;
+  border: 1px solid $border;
+
+  &::-webkit-scrollbar { width: 4px; }
+  &::-webkit-scrollbar-thumb { background: #ccc; border-radius: 2px; }
+}
+
+.tabla-scroll .table {
+  margin-bottom: 0;
+  font-size: 0.82rem;
+  th { font-weight: 600; position: sticky; top: 0; background: #f8f9fa; z-index: 2; }
+}
+
+.dot-medida {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+}
+
+.valor-celda {
+  font-weight: 700;
+}
+
+// ============================================
+// CARDS MOBILE REGISTROS
+// ============================================
+
+.cards-registros {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.card-registro {
+  background: white;
+  border-radius: 10px;
+  border-left: 4px solid #ccc;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  padding: 0.75rem;
+}
+
+.card-reg-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.4rem;
+}
+
+.card-reg-medida {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: $black;
+  display: flex;
+  align-items: center;
+}
+
+.card-reg-fecha {
+  font-size: 0.75rem;
+  color: $secondary;
+}
+
+.card-reg-body {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-reg-valor {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.card-reg-usuario {
+  font-size: 0.72rem;
+  color: $secondary;
+}
+
+// ============================================
+// RESPONSIVE
+// ============================================
+
+@media (max-width: $mobile-bp) {
+  .desktop-only { display: none !important; }
+  .mobile-only { display: block !important; }
+
+  .contenido-principal {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .selector-area {
+    max-height: 250px;
+  }
+
+  .grafico-container {
+    .canvas-container { height: 200px; }
+    canvas { max-height: 200px !important; }
+  }
+
+  .range-labels {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .range-label { font-size: 0.78rem; }
+
+  .panel .panel-body { padding: 1rem; }
+}
+
+@media (max-width: 480px) {
+  .selector-area { max-height: 200px; }
+
+  .chip-nombre { max-width: 80px; }
+
+  .range-slider-container { padding: 10px 12px; }
+}

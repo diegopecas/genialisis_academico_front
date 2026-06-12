@@ -1,0 +1,279 @@
+<div class="modulo">
+  <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [raiz]="'/'" [regresar]="'/reportes'"></app-header>
+
+  <!-- Filtros principales -->
+  <div class="row mb-4">
+    <div class="col-md-3">
+      <label for="gradoSelector" class="form-label">Grado:</label>
+      <select id="gradoSelector" class="form-select" [(ngModel)]="gradoSeleccionado" (change)="aplicarFiltros()">
+        <option value="">Todos los grados</option>
+        <option *ngFor="let grado of grados" [value]="grado.id">{{ grado.nombre }}</option>
+      </select>
+    </div>
+
+    <div class="col-md-3">
+      <label for="areaSelector" class="form-label">Área Académica:</label>
+      <select id="areaSelector" class="form-select" [(ngModel)]="areaSeleccionada" (change)="aplicarFiltros()">
+        <option value="">Todas las áreas</option>
+        <option *ngFor="let area of areas" [value]="area.id">{{ area.nombre }}</option>
+      </select>
+    </div>
+
+    <div class="col-md-2">
+      <label for="corteSelector" class="form-label">Corte:</label>
+      <select id="corteSelector" class="form-select" [(ngModel)]="corteSeleccionado" (change)="aplicarFiltros()">
+        <option value="">Todos los cortes</option>
+        <option *ngFor="let corte of cortes" [value]="corte.id">{{ corte.nombre }}</option>
+      </select>
+    </div>
+
+    <div class="col-md-2">
+      <label for="esferaSelector" class="form-label">Esfera:</label>
+      <select id="esferaSelector" class="form-select" [(ngModel)]="esferaSeleccionada" (change)="aplicarFiltros()">
+        <option value="">Todas las esferas</option>
+        <option *ngFor="let esfera of esferas" [value]="esfera.id">{{ esfera.nombre }}</option>
+      </select>
+    </div>
+
+    <div class="col-md-2">
+      <label class="form-label">&nbsp;</label>
+      <div class="d-grid gap-2">
+        <button class="btn btn-secondary" (click)="resetearFiltros()">
+          <i class="fas fa-eraser"></i> Limpiar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Búsqueda y acciones -->
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <div class="input-group">
+        <span class="input-group-text"><i class="fas fa-search"></i></span>
+        <input type="text" class="form-control" placeholder="Buscar logro por nombre..."
+          [(ngModel)]="busquedaLogro" (keyup)="buscarLogro()">
+      </div>
+    </div>
+    <div class="col-md-6 text-end">
+      <button class="btn btn-outline-primary me-2" (click)="toggleTodos()" [disabled]="cargando || logrosFiltrados.length === 0">
+        <i class="fas" [ngClass]="todosExpandidos ? 'fa-compress-alt' : 'fa-expand-alt'"></i>
+        {{ todosExpandidos ? 'Colapsar todos' : 'Expandir todos' }}
+      </button>
+      <button class="btn btn-danger me-2" (click)="exportarPDF()" [disabled]="cargando || logrosFiltrados.length === 0">
+        <i class="fas fa-file-pdf"></i> Exportar PDF
+      </button>
+      <button class="btn btn-success" (click)="exportarExcelCompleto()" [disabled]="cargando || logrosFiltrados.length === 0">
+        <i class="fas fa-file-excel"></i> Exportar Excel
+      </button>
+    </div>
+  </div>
+
+  <hr />
+
+  <!-- Indicador de carga -->
+  <div *ngIf="cargando" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+    <p class="mt-2">Cargando malla curricular...</p>
+  </div>
+
+  <!-- Contenido principal -->
+  <div *ngIf="!cargando && datosDisponibles">
+
+    <!-- Resumen estadístico -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="resumen-malla-card">
+          <h5 class="mb-3">
+            <i class="fas fa-chart-bar me-2"></i>Resumen de Malla Curricular
+            <small class="text-muted ms-2">{{ getDescripcionFiltros() }}</small>
+          </h5>
+          <div class="row">
+            <div class="col-md-3 col-sm-6 mb-3">
+              <div class="estadistica-item logros-bg">
+                <span class="estadistica-valor">{{ totales.totalLogros }}</span>
+                <span class="estadistica-label">Total Logros</span>
+                <span class="estadistica-extra">registrados</span>
+              </div>
+            </div>
+            <div class="col-md-3 col-sm-6 mb-3">
+              <div class="estadistica-item indicadores-bg">
+                <span class="estadistica-valor">{{ totales.totalIndicadores }}</span>
+                <span class="estadistica-label">Indicadores</span>
+                <span class="estadistica-extra">
+                  {{ totales.totalIndicadores > 0 ? 'prom. ' + totales.promedioIndicadoresPorLogro + '/logro' : 'sin indicadores' }}
+                </span>
+              </div>
+            </div>
+            <div class="col-md-2 col-sm-4 mb-3">
+              <div class="estadistica-item grados-bg">
+                <span class="estadistica-valor">{{ totales.totalGrados }}</span>
+                <span class="estadistica-label">Grados</span>
+                <span class="estadistica-extra">cubiertos</span>
+              </div>
+            </div>
+            <div class="col-md-2 col-sm-4 mb-3">
+              <div class="estadistica-item areas-bg">
+                <span class="estadistica-valor">{{ totales.totalAreas }}</span>
+                <span class="estadistica-label">Áreas</span>
+                <span class="estadistica-extra">académicas</span>
+              </div>
+            </div>
+            <div class="col-md-2 col-sm-4 mb-3">
+              <div class="estadistica-item cortes-bg">
+                <span class="estadistica-valor">{{ totales.totalCortes }}</span>
+                <span class="estadistica-label">Cortes</span>
+                <span class="estadistica-extra">académicos</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabla de logros -->
+    <div class="card shadow-sm">
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead>
+              <tr>
+                <th class="col-expand"></th>
+                <th class="sortable" [ngClass]="getClaseOrden('nombre')" (click)="ordenarPorColumna('nombre')">
+                  Logro <i class="sort-icon" [ngClass]="getIconoOrden('nombre')"></i>
+                </th>
+                <th class="sortable" [ngClass]="getClaseOrden('grado')" (click)="ordenarPorColumna('grado')">
+                  Grado <i class="sort-icon" [ngClass]="getIconoOrden('grado')"></i>
+                </th>
+                <th class="sortable" [ngClass]="getClaseOrden('area')" (click)="ordenarPorColumna('area')">
+                  Área Académica <i class="sort-icon" [ngClass]="getIconoOrden('area')"></i>
+                </th>
+                <th class="sortable" [ngClass]="getClaseOrden('corte')" (click)="ordenarPorColumna('corte')">
+                  Corte <i class="sort-icon" [ngClass]="getIconoOrden('corte')"></i>
+                </th>
+                <th class="sortable" [ngClass]="getClaseOrden('esfera')" (click)="ordenarPorColumna('esfera')">
+                  Esfera <i class="sort-icon" [ngClass]="getIconoOrden('esfera')"></i>
+                </th>
+                <th class="sortable" [ngClass]="getClaseOrden('eje')" (click)="ordenarPorColumna('eje')">
+                  Eje Curricular <i class="sort-icon" [ngClass]="getIconoOrden('eje')"></i>
+                </th>
+                <th class="sortable" [ngClass]="getClaseOrden('competencia')" (click)="ordenarPorColumna('competencia')">
+                  Competencia <i class="sort-icon" [ngClass]="getIconoOrden('competencia')"></i>
+                </th>
+                <th class="sortable text-center" [ngClass]="getClaseOrden('indicadores')" (click)="ordenarPorColumna('indicadores')">
+                  Indicadores <i class="sort-icon" [ngClass]="getIconoOrden('indicadores')"></i>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <ng-container *ngFor="let logro of getLogrosPaginados(); let i = index">
+                <!-- Fila del logro -->
+                <tr class="fila-logro" [class.fila-expandida]="logro.expandido" (click)="toggleLogro(logro)">
+                  <td class="col-expand text-center">
+                    <i class="fas fa-chevron-right icono-expandir" [class.rotado]="logro.expandido"></i>
+                  </td>
+                  <td class="col-logro-nombre">
+                    <strong>{{ logro.nombre }}</strong>
+                  </td>
+                  <td>
+                    <span class="badge badge-grado">{{ logro.nombre_grado || '-' }}</span>
+                  </td>
+                  <td>{{ logro.nombre_area_academica || '-' }}</td>
+                  <td>
+                    <span class="badge badge-corte">{{ logro.nombre_corte_academico || '-' }}</span>
+                  </td>
+                  <td>{{ logro.nombre_esfera_desarrollo || '-' }}</td>
+                  <td>{{ logro.nombre_eje_curricular || '-' }}</td>
+                  <td>{{ logro.nombre_competencia_cognitiva || '-' }}</td>
+                  <td class="text-center">
+                    <span *ngIf="logro.indicadoresCargados" class="badge bg-info">
+                      {{ logro.indicadores?.length || 0 }}
+                    </span>
+                    <i *ngIf="!logro.indicadoresCargados" class="fas fa-ellipsis-h text-muted"></i>
+                  </td>
+                </tr>
+
+                <!-- Filas de indicadores (expandido) -->
+                <tr *ngIf="logro.expandido" class="fila-indicadores">
+                  <td colspan="9" class="p-0">
+                    <div class="indicadores-container">
+                      <!-- Cargando indicadores -->
+                      <div *ngIf="!logro.indicadoresCargados" class="text-center py-3">
+                        <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                        <span class="ms-2 text-muted">Cargando indicadores...</span>
+                      </div>
+
+                      <!-- Lista de indicadores -->
+                      <div *ngIf="logro.indicadoresCargados">
+                        <div *ngIf="logro.indicadores && logro.indicadores.length > 0">
+                          <div class="indicador-header">
+                            <i class="fas fa-list-check me-2"></i>
+                            Indicadores de Logro ({{ logro.indicadores.length }})
+                          </div>
+                          <div *ngFor="let indicador of logro.indicadores; let j = index" class="indicador-item">
+                            <span class="indicador-numero">{{ j + 1 }}</span>
+                            <span class="indicador-nombre">{{ indicador.nombre }}</span>
+                          </div>
+                        </div>
+                        <div *ngIf="!logro.indicadores || logro.indicadores.length === 0" class="text-center py-3 text-muted">
+                          <i class="fas fa-info-circle me-1"></i> Este logro no tiene indicadores registrados
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              </ng-container>
+
+              <!-- Sin resultados -->
+              <tr *ngIf="logrosFiltrados.length === 0">
+                <td colspan="9" class="text-center text-muted py-4">
+                  <i class="fas fa-search fa-2x mb-2 d-block"></i>
+                  No se encontraron logros con los filtros aplicados
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Paginación -->
+    <div *ngIf="totalPaginas > 1" class="d-flex justify-content-between align-items-center mt-3">
+      <small class="text-muted">
+        Mostrando {{ ((paginaActual - 1) * registrosPorPagina) + 1 }}
+        - {{ paginaActual * registrosPorPagina > logrosFiltrados.length ? logrosFiltrados.length : paginaActual * registrosPorPagina }}
+        de {{ logrosFiltrados.length }} logros
+      </small>
+      <nav>
+        <ul class="pagination mb-0">
+          <li class="page-item" [class.disabled]="paginaActual === 1">
+            <a class="page-link" (click)="cambiarPagina(paginaActual - 1)">
+              <i class="fas fa-chevron-left"></i>
+            </a>
+          </li>
+          <ng-container *ngFor="let pagina of getPaginasVisibles()">
+            <li *ngIf="pagina === -1" class="page-item disabled">
+              <span class="page-link">...</span>
+            </li>
+            <li *ngIf="pagina !== -1" class="page-item" [class.active]="pagina === paginaActual">
+              <a class="page-link" (click)="cambiarPagina(pagina)">{{ pagina }}</a>
+            </li>
+          </ng-container>
+          <li class="page-item" [class.disabled]="paginaActual === totalPaginas">
+            <a class="page-link" (click)="cambiarPagina(paginaActual + 1)">
+              <i class="fas fa-chevron-right"></i>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </div>
+
+  <!-- No hay datos -->
+  <div *ngIf="!cargando && !datosDisponibles" class="alert alert-info text-center">
+    <i class="fas fa-info-circle fa-3x mb-3"></i>
+    <h4>No hay datos disponibles</h4>
+    <p>No se encontraron logros registrados en la malla curricular</p>
+  </div>
+</div>

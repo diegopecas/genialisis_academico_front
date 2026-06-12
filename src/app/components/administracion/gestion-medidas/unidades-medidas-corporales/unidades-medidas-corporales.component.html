@@ -1,0 +1,10 @@
+<div class="modulo">
+    <app-header [tituloModulo]="titulo" [mostrarCrear]="puedeCrear" [accion]="'ConsultarTodos'"
+        [raiz]="'/administracion/gestion-medidas/unidades'" [regresar]="'/administracion/gestion-medidas'"
+        [iconoTitulo]="'/assets/images/medidas.png'"></app-header>
+
+    <app-tablas [titulos]="titulos" [datos]="datos" [raiz]="'/administracion/gestion-medidas/unidades'" 
+        [acciones]="acciones" [accionEditar]="puedeEditar" [accionEliminar]="puedeEliminar" 
+        [mostrarBuscar]="true" [columnasFiltro]="columnasFiltro"
+        (clicAccion)="clicAccion($event)"></app-tablas>
+</div>

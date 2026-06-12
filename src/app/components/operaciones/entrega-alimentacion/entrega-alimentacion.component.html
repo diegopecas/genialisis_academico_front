@@ -1,0 +1,230 @@
+<div class="modulo">
+  <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [raiz]="'/'" [regresar]="'/operaciones'" [iconoTitulo]="'/assets/images/onces.png'"></app-header>
+
+  <div class="entrega-container">
+
+    <!-- ============================= -->
+    <!-- FILTROS                        -->
+    <!-- ============================= -->
+    <div class="filtros-panel glass-card">
+      <div class="row align-items-end g-3">
+
+        <div class="col-md-3 col-sm-6">
+          <label class="filtro-label"><i class="fas fa-calendar-alt me-2"></i>Fecha</label>
+          <input type="date" class="filtro-input" [(ngModel)]="fechaSeleccionada" (change)="cambioFecha()" />
+        </div>
+
+        <div class="col-md-3 col-sm-6">
+          <label class="filtro-label"><i class="fas fa-clock me-2"></i>Horario</label>
+          <select class="filtro-input" [(ngModel)]="horarioSeleccionado" (change)="cambioHorario()">
+            <option value="">Seleccionar horario...</option>
+            <option *ngFor="let h of horarios" [value]="h.id">{{ h.nombre }}</option>
+          </select>
+        </div>
+
+        <div class="col-md-6" *ngIf="grupos.length > 0">
+          <div class="totales-row">
+            <div class="total-badge pendiente">
+              <i class="fas fa-clock"></i>
+              <span class="total-num">{{ totalPendientes }}</span>
+              <span class="total-txt">pendientes</span>
+            </div>
+            <div class="total-badge entregado">
+              <i class="fas fa-check-circle"></i>
+              <span class="total-num">{{ totalEntregados }}</span>
+              <span class="total-txt">entregados</span>
+            </div>
+            <div class="total-badge anulado" *ngIf="totalAnulados > 0">
+              <i class="fas fa-ban"></i>
+              <span class="total-num">{{ totalAnulados }}</span>
+              <span class="total-txt">anulados</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Aviso sin minuta -->
+      <div class="aviso-minuta mt-2" *ngIf="sinMinuta && menusDia.length > 0">
+        <i class="fas fa-info-circle me-2"></i>
+        No hay minuta programada para hoy. Se muestran todos los menús activos.
+      </div>
+
+      <!-- Barra de acciones batch -->
+      <div class="acciones-batch mt-3" *ngIf="grupos.length > 0 && !cargando">
+        <button class="btn-batch btn-sel-todos" (click)="seleccionarTodos()">
+          <i class="fas" [ngClass]="todosSeleccionados() ? 'fa-times-circle' : 'fa-check-double'"></i>
+          {{ todosSeleccionados() ? 'Deseleccionar todos' : 'Seleccionar todos' }}
+        </button>
+
+        <ng-container *ngIf="haySeleccionados">
+          <span class="sel-count">{{ totalSeleccionados }} seleccionado{{ totalSeleccionados !== 1 ? 's' : '' }}</span>
+          <button class="btn-batch btn-entregar" (click)="entregar()" [disabled]="procesando">
+            <i class="fas" [ngClass]="procesando ? 'fa-spinner fa-spin' : 'fa-check'"></i>
+            Marcar entregados
+          </button>
+          <button class="btn-batch btn-anular" (click)="anular()" [disabled]="procesando">
+            <i class="fas fa-ban"></i>Anular
+          </button>
+        </ng-container>
+      </div>
+    </div>
+
+    <!-- Estado cargando -->
+    <div class="estado-center" *ngIf="cargando">
+      <i class="fas fa-spinner fa-spin estado-icono-gold"></i>
+      <p class="estado-texto">Cargando entregas...</p>
+    </div>
+    <div class="estado-center" *ngIf="!cargando && horarioSeleccionado && grupos.length === 0">
+      <i class="fas fa-box-open estado-icono-gold"></i>
+      <p class="estado-texto">No hay onces asignadas para este horario y fecha.</p>
+    </div>
+    <div class="estado-center" *ngIf="!horarioSeleccionado">
+      <i class="fas fa-hand-point-up estado-icono-gold"></i>
+      <p class="estado-texto">Selecciona un horario para comenzar.</p>
+    </div>
+
+    <ng-container *ngIf="!cargando && grupos.length > 0">
+
+      <!-- ============================= -->
+      <!-- ACORDEÓN: PRODUCTOS           -->
+      <!-- ============================= -->
+      <div class="super-acordeon glass-card">
+
+        <div class="super-header">
+          <i class="fas fa-utensils me-2"></i>
+          <span class="super-titulo">Productos</span>
+          <span class="super-sub">{{ grupos.length }} producto{{ grupos.length !== 1 ? 's' : '' }}</span>
+        </div>
+
+        <div class="grupos-lista">
+          <div class="grupo-panel" *ngFor="let grupo of grupos; trackBy: trackByProducto">
+
+            <div class="grupo-header" (click)="grupo.abierto = !grupo.abierto">
+              <div class="grupo-header-left">
+                <i class="fas fa-utensils grupo-icono"></i>
+                <div class="grupo-info">
+                  <span class="grupo-nombre">{{ grupo.nombre_producto }}</span>
+                  <span class="grupo-detalle" *ngIf="grupo.detalle_producto">{{ grupo.detalle_producto }}</span>
+                </div>
+              </div>
+              <div class="grupo-header-right">
+                <span class="badge-pendientes" *ngIf="pendientesPorProducto(grupo) > 0">
+                  {{ pendientesPorProducto(grupo) }} pendiente{{ pendientesPorProducto(grupo) !== 1 ? 's' : '' }}
+                </span>
+                <span class="badge-entregados" *ngIf="entregadosPorProducto(grupo) > 0">
+                  <i class="fas fa-check me-1"></i>{{ entregadosPorProducto(grupo) }}
+                </span>
+                <button class="btn-sel-producto"
+                  (click)="toggleProducto(grupo); $event.stopPropagation()"
+                  [class.activo]="todosProductoSeleccionados(grupo)">
+                  <i class="fas" [ngClass]="todosProductoSeleccionados(grupo) ? 'fa-times-circle' : 'fa-check-square'"></i>
+                  {{ todosProductoSeleccionados(grupo) ? 'Deseleccionar' : 'Seleccionar todos' }}
+                </button>
+                <i class="fas chevron" [ngClass]="grupo.abierto ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+              </div>
+            </div>
+
+            <div class="grupo-body" *ngIf="grupo.abierto">
+
+              <!-- Selector de menú global para el grupo -->
+              <div class="menu-selector-grupo" *ngIf="grupo.menus.length > 0" (click)="$event.stopPropagation()">
+                <label class="menu-selector-label">
+                  <i class="fas fa-book-open me-1"></i>Menú para todos:
+                </label>
+                <select class="menu-selector-input"
+                  [(ngModel)]="grupo.id_menu_global"
+                  (change)="cambioMenuGrupo(grupo)">
+                  <option [ngValue]="null">Sin menú</option>
+                  <option *ngFor="let m of grupo.menus" [value]="m.id_menu">
+                    {{ m.nombre_menu }}{{ m.esProgramado ? ' ★' : '' }}
+                  </option>
+                </select>
+                <span class="menu-programado-badge" *ngIf="grupo.menus.length > 0">
+                  <i class="fas fa-star me-1"></i> = menú del día
+                </span>
+              </div>
+              <div class="menu-selector-grupo sin-menu" *ngIf="grupo.menus.length === 0" (click)="$event.stopPropagation()">
+                <i class="fas fa-exclamation-triangle me-1"></i>
+                No hay menús asociados a este producto — agrega ingredientes manualmente en el acordeón de inventario.
+              </div>
+
+              <!-- Filas de estudiantes -->
+              <div
+                *ngFor="let r of grupo.registros; trackBy: trackByCuenta"
+                class="entrega-row"
+                [class.entregado]="r.estado_entrega === 1"
+                [class.anulado]="r.estado_entrega === 2"
+                [class.con-inventario]="r.id_movimiento_productos"
+                [class.seleccionado]="r.seleccionado"
+                [class.ausente]="r.presente === 0"
+                (click)="toggleRegistro(r)"
+              >
+                <div class="row-check" *ngIf="r.estado_entrega !== 2">
+                  <i class="fas fa-boxes" *ngIf="r.id_movimiento_productos" style="color:#27ae60;font-size:0.85rem" title="Inventario registrado"></i>
+                  <i class="fas" *ngIf="!r.id_movimiento_productos" [ngClass]="r.seleccionado ? 'fa-check-square' : 'fa-square'"></i>
+                </div>
+                <div class="row-check anulado-icon" *ngIf="r.estado_entrega === 2">
+                  <i class="fas fa-ban"></i>
+                </div>
+
+                <div class="row-info">
+                  <span class="row-nombre">{{ r.nombre_estudiante }}</span>
+                  <span class="row-grupo">{{ r.nombre_grupo }}</span>
+                </div>
+
+                <div class="row-asistencia">
+                  <span class="badge-presente" *ngIf="r.presente === 1">
+                    <i class="fas fa-user-check me-1"></i>{{ r.hora_ingreso }}
+                  </span>
+                  <span class="badge-ausente" *ngIf="r.presente === 0">
+                    <i class="fas fa-user-times me-1"></i>ausente
+                  </span>
+                </div>
+
+                <!-- Selector de menú individual -->
+                <div class="row-menu" *ngIf="grupo.menus.length > 1 && r.estado_entrega !== 2" (click)="$event.stopPropagation()">
+                  <select class="menu-input-mini"
+                    [(ngModel)]="r.id_menu_seleccionado"
+                    (change)="cambioMenuCuenta(r, grupo)"
+                    [disabled]="!!r.id_movimiento_productos">
+                    <option [ngValue]="null">Sin menú</option>
+                    <option *ngFor="let m of grupo.menus" [value]="m.id_menu">
+                      {{ m.nombre_menu }}{{ m.esProgramado ? ' ★' : '' }}
+                    </option>
+                  </select>
+                </div>
+
+                <div class="row-estado">
+                  <span class="estado-chip pendiente-chip" *ngIf="r.estado_entrega === 0">pendiente</span>
+                  <span class="estado-chip entregado-chip" *ngIf="r.estado_entrega === 1">
+                    <i class="fas fa-check me-1"></i>entregado
+                  </span>
+                  <span class="estado-chip anulado-chip" *ngIf="r.estado_entrega === 2">anulado</span>
+
+                  <button class="btn-entregar-uno" *ngIf="r.estado_entrega === 0 && !r.id_movimiento_productos"
+                    (click)="entregarUno(r); $event.stopPropagation()"
+                    [disabled]="procesando" title="Marcar entregado">
+                    <i class="fas fa-check"></i>
+                  </button>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- Aviso ir a inventario -->
+      <div class="aviso-inventario glass-card" *ngIf="totalEntregados > 0">
+        <i class="fas fa-boxes me-2"></i>
+        Tienes <b>{{ totalEntregados }}</b> entrega{{ totalEntregados !== 1 ? 's' : '' }} marcada{{ totalEntregados !== 1 ? 's' : '' }}.
+        Para registrar la salida de inventario ve a
+        <a routerLink="/operaciones/inventario-alimentacion" class="link-inventario">Inventario Alimentación</a>.
+      </div>
+
+    </ng-container>
+
+  </div>
+</div>

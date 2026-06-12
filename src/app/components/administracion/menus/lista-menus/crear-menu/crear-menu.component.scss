@@ -1,0 +1,427 @@
+// Estilos para los tabs
+.nav-tabs {
+  border-bottom: 2px solid #dee2e6;
+  
+  .nav-item {
+    margin-bottom: -2px;
+    
+    .nav-link {
+      color: #6c757d;
+      background-color: transparent;
+      border: none;
+      border-bottom: 3px solid transparent;
+      padding: 0.75rem 1.25rem;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      
+      i {
+        margin-right: 0.5rem;
+      }
+      
+      &:hover {
+        color: #495057;
+        border-bottom-color: #dee2e6;
+        background-color: rgba(0, 0, 0, 0.02);
+      }
+      
+      &.active {
+        color: #007bff;
+        background-color: #fff;
+        border-bottom-color: #007bff;
+        font-weight: 600;
+        
+        &:hover {
+          color: #007bff;
+          border-bottom-color: #007bff;
+        }
+      }
+      
+      .badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+        vertical-align: middle;
+      }
+    }
+  }
+}
+
+// Estilos para las tablas
+.table {
+  margin-bottom: 0;
+  
+  thead {
+    th {
+      border-top: none;
+      font-weight: 600;
+      color: #495057;
+      padding: 0.75rem;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+  }
+  
+  tbody {
+    tr {
+      &:hover {
+        background-color: rgba(0, 123, 255, 0.02);
+      }
+      
+      td {
+        padding: 0.75rem;
+        vertical-align: middle;
+      }
+    }
+  }
+}
+
+// Card de resumen
+.bg-light {
+  background-color: #f8f9fa !important;
+  
+  .card-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 1rem;
+    
+    i {
+      margin-right: 0.5rem;
+      color: #6c757d;
+    }
+  }
+  
+  small.text-muted {
+    display: block;
+    font-size: 0.875rem;
+    margin-bottom: 0.25rem;
+  }
+  
+  h5 {
+    font-size: 1.5rem;
+    margin: 0;
+    font-weight: 600;
+    
+    &.text-primary {
+      color: #007bff !important;
+    }
+    
+    &.text-success {
+      color: #28a745 !important;
+    }
+    
+    &.text-warning {
+      color: #ffc107 !important;
+    }
+
+    &.text-info {
+      color: #17a2b8 !important;
+    }
+
+    &.text-secondary {
+      color: #6c757d !important;
+    }
+  }
+}
+
+// ==================== GRILLA MINUTA ====================
+
+.minuta-grilla {
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+  .th-semana {
+    background: #1565c0;
+    color: #fff;
+    font-weight: 600;
+    padding: 14px 16px;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    width: 120px;
+    min-width: 120px;
+  }
+
+  .th-dia {
+    background: #1e88e5;
+    color: #fff;
+    font-weight: 500;
+    padding: 14px 8px;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    user-select: none;
+
+    &.clickable {
+      cursor: pointer;
+      transition: background-color 0.2s;
+
+      &:hover {
+        background: #42a5f5;
+      }
+    }
+  }
+
+  .td-semana {
+    background: #e3f2fd;
+    font-weight: 600;
+    color: #1565c0;
+    padding: 12px 16px;
+    font-size: 0.9rem;
+    user-select: none;
+    border-right: 2px solid #bbdefb;
+
+    &.clickable {
+      cursor: pointer;
+      transition: background-color 0.2s;
+
+      &:hover {
+        background: #bbdefb;
+      }
+    }
+  }
+
+  .td-celda {
+    padding: 0;
+    height: 64px;
+    min-width: 110px;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    transition: all 0.2s ease;
+    user-select: none;
+    position: relative;
+
+    &.clickable {
+      cursor: pointer;
+
+      &:hover {
+        background: #f5f5f5;
+        z-index: 1;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+      }
+    }
+
+    // Celda con menú actual asignado
+    &.celda-seleccionada {
+      background: #fff;
+      border: 2px solid #43a047;
+
+      .nombre-menu-actual {
+        color: #2e7d32;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: block;
+        line-height: 1.3;
+        max-width: 100px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        margin: 0 auto;
+
+        i {
+          color: #43a047;
+          font-size: 1rem;
+          margin-bottom: 2px;
+          display: block;
+        }
+      }
+
+      &.clickable:hover {
+        background: #fff;
+        border-color: #ef5350;
+
+        .nombre-menu-actual {
+          color: #c62828;
+
+          i {
+            color: #ef5350;
+          }
+        }
+      }
+    }
+
+    // Celda con otro menú asignado (desvanecido)
+    &.celda-ocupada {
+      background: #fafafa;
+
+      &:hover {
+        background: #fff8e1;
+      }
+
+      .nombre-menu-otro {
+        color: #bdbdbd;
+        font-size: 0.7rem;
+        font-weight: 400;
+        display: block;
+        line-height: 1.2;
+        max-width: 100px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        margin: 0 auto;
+        font-style: italic;
+
+        i {
+          display: block;
+          font-size: 0.75rem;
+          color: #e0e0e0;
+          margin-bottom: 2px;
+        }
+      }
+    }
+  }
+
+  .celda-contenido {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 6px;
+  }
+}
+
+// ==================== ESTILOS SWEETALERT2 ====================
+
+::ng-deep {
+  .swal2-popup {
+    
+    .swal2-html-container {
+      overflow: visible !important;
+    }
+    
+    .search-container {
+      margin-bottom: 15px;
+      
+      .input-group {
+        .input-group-text {
+          background-color: #f8f9fa;
+          border-color: #dee2e6;
+          color: #6c757d;
+        }
+        
+        input {
+          border-left: none;
+          
+          &:focus {
+            border-color: #ffbd31;
+            box-shadow: none;
+          }
+        }
+      }
+    }
+    
+    .items-list {
+      max-height: 400px;
+      overflow-y: auto;
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      
+      &::-webkit-scrollbar {
+        width: 6px;
+      }
+      
+      &::-webkit-scrollbar-track {
+        background: #e9ecef;
+      }
+      
+      &::-webkit-scrollbar-thumb {
+        background: #95a5a6;
+        border-radius: 3px;
+        
+        &:hover {
+          background: #7f8c8d;
+        }
+      }
+      
+      .item-card {
+        padding: 12px 15px;
+        border-bottom: 1px solid #e9ecef;
+        transition: background-color 0.2s;
+        cursor: pointer;
+        
+        &:hover {
+          background-color: #f8f9fa;
+        }
+        
+        &.selected {
+          background-color: #e7f3ff;
+          border-left: 3px solid #007bff;
+        }
+        
+        &:last-child {
+          border-bottom: none;
+        }
+        
+        .item-header {
+          display: flex;
+          align-items: center;
+          margin-bottom: 5px;
+          
+          input[type="checkbox"] {
+            margin-right: 10px;
+          }
+          
+          .item-name {
+            font-weight: 500;
+            color: #2c3e50;
+            flex: 1;
+          }
+          
+          .badge {
+            font-size: 0.75rem;
+          }
+        }
+        
+        .item-details {
+          margin-left: 25px;
+          font-size: 0.85rem;
+          color: #6c757d;
+          
+          .ingredientes-text {
+            display: block;
+            margin-top: 3px;
+            font-style: italic;
+          }
+        }
+      }
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: #95a5a6;
+      
+      i {
+        font-size: 3rem;
+        margin-bottom: 15px;
+        color: #bdc3c7;
+      }
+      
+      p {
+        font-size: 1.1rem;
+        margin: 10px 0 5px;
+        color: #7f8c8d;
+      }
+    }
+    
+    .item-options {
+      margin-top: 15px;
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      
+      .form-check {
+        margin-bottom: 0;
+        
+        .form-check-label {
+          font-size: 0.9rem;
+          color: #2c3e50;
+        }
+      }
+    }
+  }
+}

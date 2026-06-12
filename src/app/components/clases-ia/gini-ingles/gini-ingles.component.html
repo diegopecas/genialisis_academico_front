@@ -1,0 +1,141 @@
+<div class="gini-world">
+  <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [regresar]="'/clases-ia'"></app-header>
+
+  <audio id="giniAudio" autoplay playsinline></audio>
+  <div class="confetti-container" id="confettiGini"></div>
+
+  <div class="sun"></div>
+  <div class="cloud cloud1"></div>
+  <div class="cloud cloud2"></div>
+  <div class="grass"></div>
+
+  <div class="gini-container">
+
+    <div class="gini-title">✨ Gini ✨</div>
+    <div class="gini-subtitle">Traductora mágica de inglés</div>
+
+    <div class="chip-grupo">
+      <i class="fa fa-users"></i> {{ nombreGrupo }}
+    </div>
+
+    <div class="mode-selector">
+      <button class="mode-btn" [class.active]="modo === 'es-en'" (click)="setModo('es-en')">
+        🇨🇴 → 🇺🇸<br>Español a Inglés
+      </button>
+      <button class="mode-btn" [class.active]="modo === 'en-es'" (click)="setModo('en-es')">
+        🇺🇸 → 🇨🇴<br>Inglés a Español
+      </button>
+    </div>
+
+    <div class="avatar-area">
+      <div class="ear-waves" [class.active]="estado === 'escuchando'">
+        <div class="ear-ring"></div>
+        <div class="ear-ring"></div>
+        <div class="ear-ring"></div>
+      </div>
+
+      <div class="face" [ngClass]="estadoFace">
+        <div class="hat">
+          <div class="hat-top">
+            <div class="hat-band"></div>
+            <div class="hat-star">⭐</div>
+          </div>
+          <div class="hat-brim"></div>
+        </div>
+        <div class="hair">
+          <div class="hair-top"></div>
+          <div class="hair-long-left"></div>
+          <div class="hair-long-right"></div>
+        </div>
+        <div class="eyebrows">
+          <div class="eyebrow left"></div>
+          <div class="eyebrow right"></div>
+        </div>
+        <div class="eyes">
+          <div class="eye"></div>
+          <div class="eye"></div>
+        </div>
+        <div class="cheeks">
+          <div class="cheek"></div>
+          <div class="cheek"></div>
+        </div>
+        <div class="nose"></div>
+        <div class="mouth-container">
+          <div class="mouth">
+            <div class="mouth-shape"></div>
+          </div>
+        </div>
+        <div class="earring earring-left">💎</div>
+        <div class="earring earring-right">💎</div>
+      </div>
+
+      <div class="sound-waves" [class.active]="estado === 'hablando'">
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+      </div>
+    </div>
+
+    <div class="status-badge" [ngClass]="estado">
+      <div class="status-dot"></div>
+      <span>{{ mensajeEstado }}</span>
+    </div>
+
+    <div class="thinking-dots" [class.visible]="estado === 'pensando'">
+      <div class="thinking-dot"></div>
+      <div class="thinking-dot"></div>
+      <div class="thinking-dot"></div>
+    </div>
+
+    <div class="transcript-area">
+      <div class="bubble es" [class.visible]="bubbleEs">{{ textoEs }}</div>
+      <div class="bubble en" [class.visible]="bubbleEn">{{ textoEn }}</div>
+    </div>
+
+    <!-- Selector de dispositivos -->
+    <div class="dispositivos-toggle" (click)="mostrarDispositivos = !mostrarDispositivos">
+      <i class="fa fa-sliders"></i>
+      {{ mostrarDispositivos ? 'Ocultar dispositivos' : '🎙️ Configurar micrófono y parlante' }}
+    </div>
+
+    <div class="dispositivos-panel" [class.visible]="mostrarDispositivos">
+      <div class="dispositivo-row">
+        <label><i class="fa fa-microphone"></i> Micrófono</label>
+        <select [(ngModel)]="microfonoSeleccionado" [disabled]="isActive">
+          <option *ngFor="let m of microfonos" [value]="m.deviceId">
+            {{ m.label || 'Micrófono ' + (microfonos.indexOf(m) + 1) }}
+          </option>
+        </select>
+      </div>
+      <div class="dispositivo-row" *ngIf="soportaSinkId">
+        <label><i class="fa fa-volume-up"></i> Parlante / Salida</label>
+        <select [(ngModel)]="parlanteSeleccionado" [disabled]="isActive">
+          <option *ngFor="let p of parlantes" [value]="p.deviceId">
+            {{ p.label || 'Parlante ' + (parlantes.indexOf(p) + 1) }}
+          </option>
+        </select>
+      </div>
+      <p class="dispositivos-nota" *ngIf="!soportaSinkId">
+        ⚠️ Este navegador no permite seleccionar parlante independiente. Usa Chrome en computador.
+      </p>
+      <p class="dispositivos-nota" *ngIf="isActive">
+        🔒 Detén la sesión para cambiar dispositivos.
+      </p>
+    </div>
+
+    <div class="volume-row">
+      <label>🔊 Volumen</label>
+      <input type="range" class="volume-slider" min="0" max="1" step="0.05" [value]="volumen"
+             (input)="cambiarVolumen($event)" />
+    </div>
+
+    <button class="main-btn" [ngClass]="estadoBtn" (click)="toggleSesion()">
+      {{ textoBtn }}
+    </button>
+
+  </div>
+
+  <div class="toast" [class.show]="toastVisible">{{ toastMsg }}</div>
+</div>

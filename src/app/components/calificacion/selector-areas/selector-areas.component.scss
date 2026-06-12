@@ -1,0 +1,545 @@
+$color-primary: #ffbd31;
+$color-text: #555555;
+
+.modulo {
+  padding-bottom: 2rem;
+}
+
+.badge-dia {
+  display: inline-block;
+  padding: 6px 14px;
+  background: linear-gradient(135deg, #FFF3D6, #FFEAB5);
+  color: #8B6914;
+  border-radius: 20px;
+  font-size: 0.85em;
+  font-weight: 600;
+  border: 1px solid rgba($color-primary, 0.3);
+}
+
+.link-ver-horario {
+  font-size: 0.85em;
+  font-weight: 600;
+  color: #1976d2;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+
+  &:hover {
+    color: #1565c0;
+    text-decoration: underline;
+  }
+}
+
+.seccion-label {
+  font-size: 0.8em;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: $color-primary;
+  padding-bottom: 4px;
+  border-bottom: 2px solid $color-primary;
+  display: inline-block;
+
+  &.seccion-otras {
+    color: #999;
+    border-bottom-color: #ddd;
+  }
+}
+
+.aviso-sin-horario {
+  text-align: center;
+  padding: 16px 20px;
+  background: #f5f5f5;
+  border-radius: 10px;
+  color: #888;
+  font-size: 0.9em;
+  font-weight: 500;
+}
+
+.btn-ver-todas {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  background: transparent;
+  border: 1px dashed #ccc;
+  border-radius: 8px;
+  color: #777;
+  font-size: 0.85em;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: $color-primary;
+    color: #333;
+    background: rgba($color-primary, 0.05);
+  }
+}
+
+.ficha {
+  cursor: pointer;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  background-color: white;
+  overflow: hidden;
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  }
+
+  &.ficha-area {
+    height: auto;
+    min-height: 160px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 20px 15px 15px;
+  }
+
+  &.ficha-area-destacada {
+    border: 2px solid $color-primary;
+    box-shadow: 0 4px 16px rgba($color-primary, 0.25);
+  }
+
+  &.ficha-area-hoy-resto {
+    opacity: 0.85;
+    &:hover { opacity: 1; }
+  }
+
+  &.ficha-area-fuera {
+    opacity: 0.55;
+    &:hover { opacity: 0.8; }
+  }
+
+  &.ficha-gini {
+    height: auto;
+    min-height: 160px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 20px 15px 15px;
+    background-image: linear-gradient(to bottom, #ffffff 80%, #c5cae9) !important;
+    position: relative;
+
+    &:hover {
+      box-shadow: 0 6px 20px rgba(57, 73, 171, 0.25);
+    }
+  }
+}
+
+.imagen-container-area {
+  height: 90px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+
+  img {
+    max-width: 80px;
+    max-height: 80px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+  }
+
+  &.gini-avatar-mini {
+    height: 80px;
+  }
+}
+
+.nombre-item {
+  margin: 10px 0 0 0;
+  font-size: 0.9em;
+  font-weight: 500;
+  color: #333;
+  text-align: center;
+  line-height: 1.2;
+}
+
+// ========== Badges de horario ==========
+
+.horario-badge {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 3px 10px;
+  background: rgba($color-primary, 0.12);
+  color: #8B6914;
+  border-radius: 12px;
+  font-size: 0.72em;
+  font-weight: 600;
+}
+
+.fuera-horario-badge {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 3px 10px;
+  background: #f0f0f0;
+  color: #999;
+  border-radius: 12px;
+  font-size: 0.7em;
+  font-weight: 500;
+  font-style: italic;
+}
+
+.badge-gini {
+  background: #3949ab;
+  color: white;
+  border-radius: 8px;
+  font-size: 0.65em;
+  padding: 2px 6px;
+  vertical-align: middle;
+  margin-left: 4px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.gini-subtitulo {
+  font-size: 0.75em;
+  color: #7986cb;
+  margin: 4px 0 0 0;
+  text-align: center;
+}
+
+// ========== Modal de horario ==========
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+}
+
+.modal-content-horario {
+  background: white;
+  border-radius: 15px;
+  width: 100%;
+  max-width: 950px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header-custom {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  h3 {
+    margin: 0;
+    color: #333;
+    font-size: 1.1rem;
+    font-weight: 700;
+  }
+
+  .btn-close-custom {
+    background: none;
+    border: none;
+    font-size: 1.3rem;
+    color: #999;
+    cursor: pointer;
+    transition: color 0.2s ease;
+    line-height: 1;
+
+    &:hover { color: #dc3545; }
+  }
+}
+
+.modal-body-custom {
+  padding: 1.25rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.horario-scroll-container {
+  overflow-x: auto;
+  overflow-y: visible;
+  max-width: 100%;
+  padding-bottom: 0.5rem;
+
+  &::-webkit-scrollbar { height: 6px; }
+  &::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 3px; }
+  &::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+}
+
+.horario-grid {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08);
+  min-width: 700px;
+}
+
+.horario-header-dias {
+  display: grid;
+  grid-template-columns: 55px repeat(7, 1fr);
+  background: linear-gradient(135deg, #F5A623 0%, #F76B1C 100%);
+  color: white;
+  font-weight: 600;
+  font-size: 0.72rem;
+
+  .dia-actual {
+    background: rgba(255, 255, 255, 0.2);
+    font-weight: 800;
+  }
+}
+
+.horario-row {
+  display: grid;
+  grid-template-columns: 55px repeat(7, 1fr);
+  border-bottom: 1px solid #e8e8e8;
+  min-height: 46px;
+  &:last-child { border-bottom: none; }
+}
+
+.horario-cell {
+  padding: 0.35rem;
+  border-right: 1px solid #e8e8e8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.68rem;
+  &:last-child { border-right: none; }
+}
+
+.horario-time-header,
+.horario-day-header {
+  text-align: center;
+  padding: 0.5rem 0.3rem;
+  font-size: 0.72rem;
+}
+
+.horario-time-cell {
+  background: #f8f9fa;
+  font-weight: 600;
+  color: #495057;
+  font-size: 0.68rem;
+  padding: 0.25rem;
+}
+
+.horario-content-cell {
+  position: relative;
+  padding: 0;
+  &.tiene-horario { cursor: default; }
+  &.columna-dia-actual { background: rgba($color-primary, 0.04); }
+}
+
+.horario-block {
+  width: 100%;
+  height: 100%;
+  padding: 0.25rem;
+  position: relative;
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  &.es-inicio {
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+  }
+  &.es-fin {
+    border-bottom-left-radius: 6px;
+    border-bottom-right-radius: 6px;
+  }
+  &.es-intermedio {
+    border-radius: 0;
+    border-top: none;
+    border-bottom: none;
+    padding: 0;
+    min-height: 46px;
+  }
+
+  .horario-block-header {
+    text-align: center;
+    margin-bottom: 0.1rem;
+
+    strong {
+      font-size: 0.6rem;
+      color: #2c3e50;
+      display: block;
+      text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
+      line-height: 1.1;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .horario-tiempo-small {
+      font-size: 0.52rem;
+      opacity: 0.8;
+      color: #2c3e50;
+      margin-top: 0.05rem;
+    }
+  }
+
+  .horario-block-content {
+    text-align: center;
+    .horario-minutos {
+      font-size: 0.55rem;
+      font-weight: 700;
+      color: #2c3e50;
+    }
+  }
+}
+
+.horario-mobile { display: none; }
+.horario-desktop { display: block; }
+
+// ========== Vista móvil del modal ==========
+
+.dia-selector {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.dia-nav-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid #ddd;
+  background: white;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #666;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+
+  &:hover:not(:disabled) { border-color: $color-primary; color: #333; }
+  &:disabled { opacity: 0.3; cursor: not-allowed; }
+}
+
+.dia-tabs {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+  justify-content: center;
+  overflow-x: auto;
+}
+
+.dia-tab {
+  padding: 6px 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 20px;
+  background: white;
+  font-size: 0.78em;
+  font-weight: 600;
+  color: #777;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+
+  &:hover { border-color: #bbb; }
+  &.dia-tab-activo {
+    background: linear-gradient(135deg, #F5A623, #F76B1C);
+    color: white;
+    border-color: transparent;
+  }
+  &.dia-tab-hoy:not(.dia-tab-activo) {
+    border-color: $color-primary;
+    color: #8B6914;
+  }
+}
+
+.dia-nombre-movil {
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 14px;
+
+  .tag-hoy {
+    display: inline-block;
+    padding: 2px 8px;
+    background: rgba($color-primary, 0.15);
+    color: #8B6914;
+    border-radius: 10px;
+    font-size: 0.7em;
+    font-weight: 600;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+}
+
+.bloques-dia {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bloque-horario-movil {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  background: white;
+  border-radius: 10px;
+  border-left: 4px solid transparent;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+
+  .bloque-color-bar {
+    width: 6px;
+    height: 36px;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+
+  .bloque-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .bloque-area { font-size: 0.88em; font-weight: 600; color: #333; }
+  .bloque-hora { font-size: 0.78em; color: #888; }
+  .bloque-duracion {
+    font-size: 0.75em;
+    font-weight: 700;
+    color: #666;
+    background: #f0f0f0;
+    padding: 3px 8px;
+    border-radius: 10px;
+    flex-shrink: 0;
+  }
+}
+
+.sin-horario-movil {
+  text-align: center;
+  padding: 24px;
+  color: #999;
+  font-size: 0.9em;
+}
+
+@media (max-width: 768px) {
+  .ficha {
+    &.ficha-area,
+    &.ficha-gini { min-height: 160px; }
+  }
+  .imagen-container-area img { max-width: 70px; max-height: 70px; }
+  .modal-content-horario { max-width: 100%; max-height: 95vh; }
+  .horario-desktop { display: none; }
+  .horario-mobile { display: block; }
+}

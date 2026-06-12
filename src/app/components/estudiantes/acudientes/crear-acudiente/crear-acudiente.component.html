@@ -1,0 +1,623 @@
+<div class="modulo">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="false"
+    [accion]="accion"
+    [raiz]="'/estudiantes-acudientes'"
+    [regresar]="regresar"
+    [iconoTitulo]="'/assets/images/familia.png'"
+  ></app-header>
+
+  <!-- Foto del acudiente - Superior derecha -->
+  <div
+    class="foto-container"
+    *ngIf="(accion === 'editar' || accion === 'consultar') && model.idPersona"
+  >
+    <app-foto-persona
+      [idPersona]="model.idPersona"
+      [nombrePersona]="obtenerNombreCompleto()"
+      [soloLectura]="accion === 'consultar'"
+    >
+    </app-foto-persona>
+  </div>
+
+  <div class="container mt-5">
+    <!-- Tabs con nuevo estilo (solo cuando NO es nuevo o ya pasó al paso 2) -->
+    <ul class="custom-tabs mb-4" *ngIf="!nuevo">
+      <li class="custom-tab-item">
+        <a
+          class="custom-tab-link"
+          [class.active]="seccionActiva === 'datos-personales'"
+          (click)="cambiarSeccion('datos-personales')"
+        >
+          <i class="fas fa-user-circle"></i> Datos Personales
+        </a>
+      </li>
+      <li class="custom-tab-item">
+        <a
+          class="custom-tab-link"
+          [class.active]="seccionActiva === 'datos-acudiente'"
+          (click)="cambiarSeccion('datos-acudiente')"
+        >
+          <i class="fas fa-user-friends"></i> Información Acudiente
+        </a>
+      </li>
+      <li class="custom-tab-item" *ngIf="model.idAcudiente > 0">
+        <a
+          class="custom-tab-link"
+          [class.active]="seccionActiva === 'documentos'"
+          (click)="cambiarSeccion('documentos')"
+        >
+          <i class="fas fa-file-alt"></i> Documentos
+        </a>
+      </li>
+      <li class="custom-tab-item" *ngIf="model.idAcudiente > 0">
+        <a
+          class="custom-tab-link"
+          [class.active]="seccionActiva === 'usuario'"
+          (click)="cambiarSeccion('usuario')"
+        >
+          <i class="fas fa-user-tag"></i> Usuario
+        </a>
+      </li>
+    </ul>
+
+    <!-- Sección Datos Personales -->
+    <div *ngIf="seccionActiva === 'datos-personales' || nuevo">
+      <!-- Documento de identidad SOLO en datos personales -->
+      <div class="row mb-4">
+        <div class="col-sm-12 col-md-6">
+          <label for="tipoDocumento" class="form-label"
+            >Tipo de documento <span class="text-danger">*</span></label
+          >
+          <select
+            class="form-select form-select-lg"
+            id="tipoDocumento"
+            [(ngModel)]="model.tipoIdentificacion"
+            required
+            [ngClass]="{ 'is-invalid': !model.tipoIdentificacion && submitted }"
+            [disabled]="documentoEncontrado || !editable"
+          >
+            <option value="">Seleccionar</option>
+            <ng-container *ngFor="let ti of listas.tiposIdentificacion">
+              <option [value]="ti.id">{{ ti.nombre }}</option>
+            </ng-container>
+          </select>
+        </div>
+        <div class="col-sm-12 col-md-6">
+          <label for="numeroDocumento" class="form-label"
+            >Número de documento <span class="text-danger">*</span></label
+          >
+          <input
+            class="form-control form-control-lg"
+            type="text"
+            id="numeroDocumento"
+            [(ngModel)]="model.numeroIdentificacion"
+            required
+            [ngClass]="{
+              'is-invalid': !model.numeroIdentificacion && submitted,
+            }"
+            [disabled]="documentoEncontrado || !editable"
+          />
+        </div>
+      </div>
+      <div class="row mt-1 mb-3" *ngIf="editable && !documentoEncontrado">
+        <div class="col-sm-12 col-md-6">
+          <button
+            class="btn btn-sm btn-warning"
+            (click)="
+              consultaPersona(
+                model.tipoIdentificacion,
+                model.numeroIdentificacion
+              )
+            "
+          >
+            <i class="fas fa-search me-1"></i> Verificar
+          </button>
+        </div>
+      </div>
+      <hr />
+
+      <!-- Resto de campos -->
+      <div [ngClass]="{ 'disabled-container': !camposHabilitados && editable }">
+        <div class="row">
+          <div class="col-sm-12 col-md-6">
+            <label for="primerNombre" class="form-label"
+              >Primer nombre <span class="text-danger">*</span></label
+            >
+            <input
+              class="form-control form-control-lg"
+              type="text"
+              id="primerNombre"
+              [(ngModel)]="model.primerNombre"
+              required
+              [ngClass]="{ 'is-invalid': !model.primerNombre && submitted }"
+              [disabled]="!camposHabilitados && editable"
+            />
+          </div>
+          <div class="col-sm-12 col-md-6">
+            <label for="segundoNombre" class="form-label">Segundo nombre</label>
+            <input
+              class="form-control form-control-lg"
+              type="text"
+              id="segundoNombre"
+              [(ngModel)]="model.segundoNombre"
+              [disabled]="!camposHabilitados && editable"
+            />
+          </div>
+        </div>
+
+        <div class="row mt-3">
+          <div class="col-sm-12 col-md-6">
+            <label for="primerApellido" class="form-label"
+              >Primer apellido <span class="text-danger">*</span></label
+            >
+            <input
+              class="form-control form-control-lg"
+              type="text"
+              id="primerApellido"
+              [(ngModel)]="model.primerApellido"
+              required
+              [ngClass]="{ 'is-invalid': !model.primerApellido && submitted }"
+              [disabled]="!camposHabilitados && editable"
+            />
+          </div>
+          <div class="col-sm-12 col-md-6">
+            <label for="segundoApellido" class="form-label"
+              >Segundo apellido</label
+            >
+            <input
+              class="form-control form-control-lg"
+              type="text"
+              id="segundoApellido"
+              [(ngModel)]="model.segundoApellido"
+              [disabled]="!camposHabilitados && editable"
+            />
+          </div>
+        </div>
+
+        <div class="row mt-3">
+          <div class="col-sm-12 col-md-6">
+            <label for="nacionalidad" class="form-label">Nacionalidad</label>
+            <input
+              class="form-control form-control-lg"
+              type="text"
+              id="nacionalidad"
+              [(ngModel)]="model.nacionalidad"
+              [disabled]="!camposHabilitados && editable"
+            />
+            <small class="form-text text-muted"
+              >Predeterminado: Colombiana</small
+            >
+          </div>
+          <div class="col-sm-12 col-md-6">
+            <label for="fechaNacimiento" class="form-label"
+              >Fecha de nacimiento</label
+            >
+            <input
+              class="form-control form-control-lg"
+              type="date"
+              id="fechaNacimiento"
+              [(ngModel)]="model.fechaNacimiento"
+              [disabled]="!camposHabilitados && editable"
+            />
+          </div>
+        </div>
+
+        <div class="row mt-3">
+          <div class="col-sm-12 col-md-6">
+            <label for="genero" class="form-label">Género</label>
+            <select
+              class="form-select form-select-lg"
+              id="genero"
+              [(ngModel)]="model.genero"
+              [disabled]="!camposHabilitados && editable"
+            >
+              <option value="">Seleccionar</option>
+              <ng-container *ngFor="let g of listas.generos">
+                <option [value]="g.id">{{ g.nombre }}</option>
+              </ng-container>
+            </select>
+          </div>
+          <div class="col-sm-12 col-md-6">
+            <label for="rh" class="form-label">Grupo Sanguíneo (RH)</label>
+            <select
+              class="form-select form-select-lg"
+              id="rh"
+              [(ngModel)]="model.rh"
+              [disabled]="!camposHabilitados && editable"
+            >
+              <option value="">Seleccionar</option>
+              <ng-container *ngFor="let rh of listas.gruposRh">
+                <option [value]="rh.id">{{ rh.nombre }}</option>
+              </ng-container>
+            </select>
+          </div>
+        </div>
+
+        <div class="row mt-3">
+          <div class="col-sm-12 col-md-6">
+            <label for="direccion" class="form-label">Dirección</label>
+            <input
+              class="form-control form-control-lg"
+              type="text"
+              id="direccion"
+              [(ngModel)]="model.direccion"
+              [disabled]="!camposHabilitados && editable"
+            />
+          </div>
+          <div class="col-sm-12 col-md-6">
+            <label for="ciudad" class="form-label">Ciudad</label>
+            <select
+              class="form-select form-select-lg"
+              id="ciudad"
+              [(ngModel)]="model.ciudad"
+              [disabled]="!camposHabilitados && editable"
+            >
+              <option value="">Seleccionar</option>
+              <ng-container *ngFor="let c of listas.ciudades">
+                <option [value]="c.id">{{ c.nombre }}</option>
+              </ng-container>
+            </select>
+          </div>
+        </div>
+
+        <div class="row mt-3">
+          <div class="col-sm-12 col-md-6">
+            <label for="correoElectronico" class="form-label"
+              >Correo electrónico</label
+            >
+            <input
+              class="form-control form-control-lg"
+              type="email"
+              id="correoElectronico"
+              [(ngModel)]="model.correoElectronico"
+              placeholder="ejemplo@correo.com"
+              pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
+              title="Ingrese un correo electrónico válido"
+              [disabled]="!camposHabilitados && editable"
+            />
+            <small class="form-text text-muted"
+              >Formato: ejemplo&#64;correo.com</small
+            >
+          </div>
+          <div class="col-sm-12 col-md-6">
+            <label for="telefono" class="form-label">Teléfono</label>
+            <input
+              class="form-control form-control-lg"
+              type="tel"
+              id="telefono"
+              [(ngModel)]="model.telefono"
+              placeholder="Ej: 3001234567"
+              pattern="[0-9]{10}"
+              title="Ingrese un número de teléfono válido de 10 dígitos"
+              [disabled]="!camposHabilitados && editable"
+            />
+            <small class="form-text text-muted"
+              >Ingrese un número de 10 dígitos sin espacios ni guiones</small
+            >
+          </div>
+        </div>
+
+        <div class="row mt-3">
+          <div class="col-sm-12 col-md-6">
+            <label for="ocupacion" class="form-label">Ocupación</label>
+            <input
+              class="form-control form-control-lg"
+              type="text"
+              id="ocupacion"
+              [(ngModel)]="model.ocupacion"
+              [disabled]="!camposHabilitados && editable"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Botón guardar datos personales (solo en edición, no en nuevo) -->
+      <div class="row mt-4" *ngIf="editable && !nuevo">
+        <div class="col-12 d-flex gap-2">
+          <button
+            class="btn-save"
+            (click)="guardarDatosPersonales()"
+            [disabled]="!camposHabilitados"
+          >
+            <i class="fas fa-save"></i> Guardar Datos Personales
+          </button>
+          <button class="btn-cancel" (click)="volver()">
+            <i class="fas fa-times-circle"></i> Cancelar
+          </button>
+        </div>
+      </div>
+
+      <!-- Botón grabar solo en modo nuevo (paso 1) -->
+      <div class="row mt-5" *ngIf="nuevo">
+        <div class="col-sm-6" *ngIf="editable">
+          <button
+            class="btn btn-lg btn-warning w-100"
+            (click)="crearPersona(model)"
+            [disabled]="!documentoEncontrado"
+          >
+            Continuar
+          </button>
+        </div>
+        <div class="col-sm-6">
+          <button class="btn btn-lg btn-secondary w-100" (click)="volver()">
+            Volver
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sección Datos de Acudiente -->
+    <div *ngIf="seccionActiva === 'datos-acudiente'">
+      <div class="row">
+        <div class="col-sm-12 col-md-6">
+          <label for="tipoAcudiente" class="form-label"
+            >Tipo de Acudiente <span class="text-danger">*</span></label
+          >
+          <select
+            class="form-select form-select-lg"
+            id="tipoAcudiente"
+            [(ngModel)]="model.tipoAcudiente"
+            required
+            [ngClass]="{ 'is-invalid': !model.tipoAcudiente && submitted }"
+            [disabled]="!editable"
+          >
+            <option value="">Seleccionar</option>
+            <ng-container *ngFor="let ta of listas.tiposAcudiente">
+              <option [value]="ta.id">{{ ta.nombre }}</option>
+            </ng-container>
+          </select>
+        </div>
+        <div class="col-sm-12 col-md-6">
+          <div class="form-check mt-4">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="activo"
+              [(ngModel)]="model.activo"
+              [disabled]="!editable"
+            />
+            <label class="form-check-label" for="activo">
+              <strong>Acudiente Activo</strong>
+            </label>
+            <small class="d-block mt-1 text-muted"
+              >Determina si el acudiente está activo en el sistema</small
+            >
+          </div>
+          <div class="form-check mt-2">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="responsablePago"
+              [(ngModel)]="model.responsablePago"
+              [disabled]="!editable"
+            />
+            <label class="form-check-label" for="responsablePago">
+              Responsable de pago
+            </label>
+          </div>
+          <div class="form-check mt-2">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="autorizadoRecoger"
+              [(ngModel)]="model.autorizadoRecoger"
+              [disabled]="!editable"
+            />
+            <label class="form-check-label" for="autorizadoRecoger">
+              Autorizado para recoger
+            </label>
+            <small class="d-block mt-1 text-muted"
+              >Esta opción determina si el acudiente puede recoger al
+              estudiante</small
+            >
+          </div>
+          <div class="form-check mt-2" *ngIf="model.idAcudiente > 0">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="autorizadoSistema"
+              [(ngModel)]="model.autorizadoSistema"
+              [disabled]="!editable"
+            />
+            <label class="form-check-label" for="autorizadoSistema">
+              Autorizado para acceder al sistema
+            </label>
+            <small class="d-block mt-1 text-muted"
+              >Permite el acceso al sistema institucional</small
+            >
+          </div>
+        </div>
+      </div>
+
+      <!-- Botón guardar información acudiente -->
+      <div class="row mt-4" *ngIf="editable">
+        <div class="col-12 d-flex gap-2">
+          <button class="btn-save" (click)="guardarInformacionAcudiente()">
+            <i class="fas fa-save"></i> Guardar Información Acudiente
+          </button>
+          <button class="btn-cancel" (click)="volver()">
+            <i class="fas fa-times-circle"></i> Cancelar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sección Usuario -->
+    <div *ngIf="seccionActiva === 'usuario' && model.idAcudiente > 0">
+      <!-- Mensaje si no tiene usuario creado -->
+      <div
+        *ngIf="!tieneUsuario() && editable"
+        class="alert alert-warning d-flex align-items-center justify-content-between mb-4"
+      >
+        <div>
+          <i class="fas fa-info-circle me-2"></i>
+          <strong>Usuario no creado.</strong> Este acudiente aún no tiene
+          credenciales de acceso al sistema.
+        </div>
+        <button class="btn-save" (click)="crearUsuario()">
+          <i class="fas fa-plus-circle"></i> Crear Usuario
+        </button>
+      </div>
+
+      <!-- Formulario de usuario -->
+      <div *ngIf="tieneUsuario()">
+        <div class="row">
+          <div class="col-sm-12 col-md-6">
+            <label class="form-label">Usuario (Número de Identificación)</label>
+            <input
+              class="form-control form-control-lg"
+              type="text"
+              [value]="model.numeroIdentificacion"
+              readonly
+              disabled
+            />
+          </div>
+          <div class="col-sm-12 col-md-6">
+            <label class="form-label"
+              >Correo Electrónico <span class="text-danger">*</span></label
+            >
+            <input
+              class="form-control form-control-lg"
+              type="email"
+              [(ngModel)]="modelUsuario.correo_electronico"
+              [ngClass]="{
+                'is-invalid':
+                  !modelUsuario.correo_electronico && submittedUsuario,
+              }"
+              [disabled]="!editable"
+            />
+          </div>
+        </div>
+
+        <div class="row mt-3">
+          <div class="col-sm-12 col-md-6">
+            <label class="form-label">Estado del Usuario</label>
+            <div class="form-check form-switch">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                [(ngModel)]="modelUsuario.activo"
+                [disabled]="!editable"
+                id="usuarioActivo2"
+              />
+              <label class="form-check-label" for="usuarioActivo2">
+                {{
+                  modelUsuario.activo ? "Usuario Activo" : "Usuario Inactivo"
+                }}
+              </label>
+            </div>
+          </div>
+          <div class="col-sm-12 col-md-6">
+            <label class="form-label">Acceso Portal de Padres</label>
+            <div class="form-check form-switch">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                [(ngModel)]="modelUsuario.acceso_portal_padres"
+                [disabled]="!editable"
+                id="accesoPortalPadres"
+              />
+              <label class="form-check-label" for="accesoPortalPadres">
+                {{
+                  modelUsuario.acceso_portal_padres
+                    ? "Con acceso al portal"
+                    : "Sin acceso al portal"
+                }}
+              </label>
+            </div>
+            <small class="text-muted d-block mt-1">
+              Permite al acudiente ingresar al Portal de Padres
+            </small>
+          </div>
+        </div>
+
+        <!-- Sección cambiar contraseña -->
+        <div
+          *ngIf="editable && modelUsuario.id > 0"
+          class="password-section mt-4"
+        >
+          <h6 class="section-title mb-3">
+            <i class="fas fa-key me-2"></i>Cambiar Contraseña
+          </h6>
+          <div class="row align-items-end">
+            <div class="col-sm-12 col-md-10">
+              <label class="form-label"
+                >Nueva Contraseña <span class="text-danger">*</span></label
+              >
+              <div class="input-group">
+                <input
+                  class="form-control form-control-lg"
+                  [type]="mostrarClaveNueva ? 'text' : 'password'"
+                  [(ngModel)]="cambiarClaveModel.claveNueva"
+                  [ngClass]="{
+                    'is-invalid':
+                      !cambiarClaveModel.claveNueva && intentoCambiarClave,
+                  }"
+                  placeholder="Mínimo 6 caracteres"
+                />
+                <button
+                  class="btn btn-outline-secondary"
+                  type="button"
+                  (click)="mostrarClaveNueva = !mostrarClaveNueva"
+                >
+                  <i
+                    [class]="
+                      mostrarClaveNueva ? 'fas fa-eye-slash' : 'fas fa-eye'
+                    "
+                  ></i>
+                </button>
+              </div>
+              <small class="text-muted"
+                >La nueva contraseña debe tener al menos 6 caracteres</small
+              >
+            </div>
+            <div class="col-sm-12 col-md-2">
+              <button
+                class="btn-change-password w-100"
+                (click)="cambiarContrasena()"
+              >
+                <i class="fas fa-key"></i> Cambiar
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Botones de acción -->
+        <div class="row mt-4" *ngIf="editable">
+          <div class="col-12 d-flex gap-2">
+            <button class="btn-save" (click)="guardarUsuario()">
+              <i class="fas fa-save"></i> Guardar Usuario
+            </button>
+            <button
+              class="btn-delete-user"
+              (click)="confirmarEliminarUsuario()"
+            >
+              <i class="fas fa-trash"></i> Eliminar Usuario
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mensaje si está en modo solo lectura y no tiene usuario -->
+      <div *ngIf="!tieneUsuario() && !editable" class="alert alert-secondary">
+        <i class="fas fa-info-circle me-2"></i>
+        Este acudiente no tiene credenciales de acceso al sistema.
+      </div>
+    </div>
+
+    <!-- Sección de Documentos -->
+    <div *ngIf="seccionActiva === 'documentos' && model.idPersona > 0">
+      <div class="container mt-4">
+        <app-documentos-persona
+          [idPersona]="model.idPersona"
+          [tipoPersona]="'acudiente'"
+          [nombrePersona]="obtenerNombreCompleto()"
+          [soloLectura]="accion === 'consultar'"
+        >
+        </app-documentos-persona>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,199 @@
+<div class="modulo">
+  <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [raiz]="'/reportes'" [regresar]="'/reportes'"
+    [iconoTitulo]="'/assets/images/asistencia.png'"></app-header>
+
+  <!-- Navegación por pestañas -->
+  <div class="container-fluid mt-4">
+    <div class="tabs-container">
+      <div class="nav nav-tabs custom-tabs" role="tablist">
+        <button class="nav-link tab-button" [class.active]="pestanaActiva === 'por-fecha'"
+          (click)="cambiarPestana('por-fecha')" type="button">
+          <i class="fas fa-calendar-day"></i>
+          Asistencia por Fecha
+        </button>
+        <button class="nav-link tab-button" [class.active]="pestanaActiva === 'indicadores'"
+          (click)="cambiarPestana('indicadores')" type="button">
+          <i class="fas fa-chart-bar"></i>
+          Indicadores de Asistencia
+        </button>
+      </div>
+    </div>
+
+    <!-- Contenido de las pestañas -->
+    <div class="tab-content">
+
+      <!-- Pestaña: Asistencia por Fecha -->
+      <div class="tab-pane fade" [class.show]="pestanaActiva === 'por-fecha'"
+        [class.active]="pestanaActiva === 'por-fecha'">
+
+        <!-- Filtros y controles -->
+        <div class="filters-container">
+          <div class="row align-items-center">
+            <div class="col-md-3">
+              <div class="form-group">
+                <label for="fechaInicio" class="form-label">
+                  <i class="fas fa-calendar"></i> Fecha inicial:
+                </label>
+                <input type="date" id="fechaInicio" class="form-control" [(ngModel)]="fechaInicio"
+                  (change)="onFiltrosChange()">
+              </div>
+            </div>
+
+            <div class="col-md-3">
+              <div class="form-group">
+                <label for="fechaFin" class="form-label">
+                  <i class="fas fa-calendar"></i> Fecha final:
+                </label>
+                <input type="date" id="fechaFin" class="form-control" [(ngModel)]="fechaFin" [min]="fechaInicio"
+                  (change)="onFiltrosChange()">
+              </div>
+            </div>
+
+            <div class="col-md-3">
+              <!-- Estadísticas del rango - SIMPLIFICADAS -->
+              <div class="estadisticas-rango" *ngIf="!cargandoPorFecha && estadisticasDiarias">
+                <div class="stat-card-small">
+                  <div class="stat-number-small">{{ estadisticasDiarias.total_registros || 0 }}</div>
+                  <div class="stat-label-small">Total Registros</div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+          <!-- Estadísticas detalladas del rango -->
+          <div class="row mt-3"
+            *ngIf="!cargandoPorFecha && estadisticasDiarias && estadisticasDiarias.total_asistencias">
+            <div class="col-sm-2">
+              <div class="stat-card">
+                <div class="stat-number">{{ estadisticasDiarias.total_asistencias || 0 }}</div>
+                <div class="stat-label">Total Asistencias</div>
+              </div>
+            </div>
+            <div class="col-sm-2">
+              <div class="stat-card">
+                <div class="stat-number">{{ estadisticasDiarias.salidas_tarde || 0 }}</div>
+                <div class="stat-label">Salidas Tarde</div>
+              </div>
+            </div>
+            <div class="col-sm-2">
+              <div class="stat-card">
+                <div class="stat-number">{{ estadisticasDiarias.total_horas_extras || 0 }}h</div>
+                <div class="stat-label">Horas Extras</div>
+              </div>
+            </div>
+            <div class="col-sm-2">
+              <div class="stat-card">
+                <div class="stat-number">{{ estadisticasDiarias.promedio_horas_estadia || 0 }}h</div>
+                <div class="stat-label">Prom. Estadía</div>
+              </div>
+            </div>
+            <div class="col-sm-2">
+              <div class="stat-card">
+                <div class="stat-number">{{ estadisticasDiarias.con_salida || 0 }}</div>
+                <div class="stat-label">Con Salida</div>
+              </div>
+            </div>
+            <div class="col-sm-2">
+              <div class="stat-card">
+                <div class="stat-number">{{ estadisticasDiarias.sin_salida || 0 }}</div>
+                <div class="stat-label">Sin Salida</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabla de asistencias por rango de fechas -->
+        <app-tablas #tablaPorFecha *ngIf="!cargandoPorFecha" [titulos]="titulosPorFecha" [datos]="datosPorFecha"
+          [raiz]="'/asistencia'" [acciones]="acciones" [accionEditar]="false" [mostrarBuscar]="true"
+          [columnasFiltro]="['Estudiante', 'Grupo', 'Día', 'Salida Tarde', 'Estado']"></app-tablas>
+
+        <!-- Mensaje de carga -->
+        <div *ngIf="cargandoPorFecha" class="loading-container">
+          <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">Cargando...</span>
+          </div>
+          <p>Cargando asistencias del {{ fechaInicio }} al {{ fechaFin }}...</p>
+        </div>
+
+      </div>
+
+      <!-- Pestaña: Indicadores de Asistencia -->
+      <div class="tab-pane fade" [class.show]="pestanaActiva === 'indicadores'"
+        [class.active]="pestanaActiva === 'indicadores'">
+
+        <!-- Filtros y controles para indicadores -->
+        <div class="filters-container">
+          <div class="row align-items-center">
+            <div class="col-md-4">
+              <div class="form-group">
+                <label for="fechaIndicadores" class="form-label">
+                  <i class="fas fa-calendar"></i> Fecha de referencia para cálculos:
+                </label>
+                <input type="date" id="fechaIndicadores" class="form-control" [(ngModel)]="fechaIndicadores"
+                  (change)="onFechaIndicadoresChange()">
+              </div>
+            </div>
+            <div class="col-md-8">
+              <div class="alert alert-info mb-0">
+                <small>
+                  <i class="fas fa-info-circle"></i>
+                  <strong>Nota:</strong> Los indicadores se calculan tomando como referencia la fecha seleccionada.
+                  La "semana actual" y "mes actual" se calculan desde esa fecha hacia atrás.
+                </small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Información de los indicadores -->
+        <div class="info-container" *ngIf="!cargandoIndicadores">
+          <div class="alert alert-info">
+            <h5><i class="fas fa-info-circle"></i> Información de Indicadores</h5>
+            <div class="row">
+              <div class="col-md-6">
+                <ul class="mb-0">
+                  <li><strong>Días Consecutivos Ausencia:</strong> Días seguidos sin asistir desde la fecha seleccionada
+                    hacia atrás</li>
+                  <li><strong>% Semana/Mes:</strong> Porcentaje de asistencia en días hábiles</li>
+                  <li><strong>Prom. Horas:</strong> Promedio de permanencia en las últimas asistencias</li>
+                </ul>
+              </div>
+              <div class="col-md-6">
+                <ul class="mb-0">
+                  <li><strong>Riesgo Alto:</strong> 5+ días ausencia o &lt;50% asistencia mensual</li>
+                  <li><strong>Riesgo Medio:</strong> 3+ días ausencia o &lt;75% asistencia mensual</li>
+                  <li><strong>Riesgo Bajo:</strong> Asistencia regular</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabla de indicadores -->
+        <app-tablas #tablaIndicadores *ngIf="!cargandoIndicadores" [titulos]="titulosIndicadores"
+          [datos]="datosIndicadores" [raiz]="'/asistencia'" [acciones]="acciones" [accionEditar]="false"
+          [mostrarBuscar]="true" [columnasFiltro]="columnasFiltroIndicadores"></app-tablas>
+
+        <!-- Mensaje de carga -->
+        <div *ngIf="cargandoIndicadores" class="loading-container">
+          <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">Cargando...</span>
+          </div>
+          <p>Cargando indicadores de asistencia para {{ fechaIndicadores }}...</p>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Botón de exportación -->
+    <div class="export-container">
+      <button class="btn btn-success" (click)="exportarExcel()"
+        [disabled]="exportando || cargandoPorFecha || cargandoIndicadores">
+        <i class="fas fa-file-excel"></i>
+        {{ exportando ? 'Exportando...' : 'Exportar a Excel' }}
+      </button>
+    </div>
+
+  </div>
+</div>

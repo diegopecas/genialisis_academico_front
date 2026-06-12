@@ -1,0 +1,19 @@
+<div class="modulo">
+    <app-header
+      [tituloModulo]="titulo"
+      [mostrarCrear]="true"
+      [accion]="'ConsultarTodos'"
+      [raiz]="'/academico/actividades-academicas'"
+      [regresar]="'/academico/selector-actividades'"
+      [iconoTitulo]="'/assets/images/actividades.png'"
+    ></app-header>
+   
+    <app-tablas
+      [titulos]="titulos"
+      [datos]="datos"
+      [columnasFiltro]="columnasFiltro" 
+      [raiz]="'/academico/actividades-academicas'"
+      [accionVer]="true" [accionEditar]="true" [accionEliminar]="true"
+      (clicAccion)="seleccionar($event)"
+    ></app-tablas>
+  </div>

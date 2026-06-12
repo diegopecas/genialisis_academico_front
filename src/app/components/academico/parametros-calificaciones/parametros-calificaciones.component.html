@@ -1,0 +1,148 @@
+<div class="modulo">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="true"
+    [accion]="'ConsultarTodos'"
+    [raiz]="'/academico/parametros-calificaciones'"
+    [regresar]="'/academico'"
+    [iconoTitulo]="'/assets/images/parametros-calificaciones.png'"
+  ></app-header>
+  
+  <app-tablas
+    [titulos]="titulos"
+    [datos]="datos"
+    [raiz]="'/academico/parametros-calificaciones'"
+    [acciones]="acciones"
+    [accionEditar]="true"
+    [accionEliminar]="true"
+    [mostrarBuscar]="true"
+    [columnasFiltro]="columnasFiltro"
+    (clicAccion)="clicAccion($event)"
+  ></app-tablas>
+</div>
+
+<!-- Modal para gestionar valores -->
+<div class="modal fade" id="modalValores" tabindex="-1" aria-labelledby="modalValoresLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalValoresLabel">
+          <i class="fas fa-list-ol me-2"></i>Valores de: {{ parametroSeleccionado?.nombre }}
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        
+        <!-- Formulario para agregar/editar valor -->
+        <div class="card mb-3">
+          <div class="card-header bg-primary text-white">
+            <i class="fas fa-plus-circle me-2"></i>{{ modoEdicionValor ? 'Editar Valor' : 'Agregar Valor' }}
+          </div>
+          <div class="card-body">
+            <form [formGroup]="formValor">
+              <div class="row">
+                <div class="col-md-3">
+                  <label class="form-label">Valor Cuantitativo</label>
+                  <input 
+                    type="number" 
+                    class="form-control" 
+                    formControlName="valor_cuantitativo"
+                    step="0.01"
+                  >
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Valor Cualitativo</label>
+                  <input 
+                    type="text" 
+                    class="form-control" 
+                    formControlName="valor_cualitativo"
+                    placeholder="Ej: Excelente, Bueno..."
+                  >
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label">Ícono (opcional)</label>
+                  <input 
+                    type="text" 
+                    class="form-control" 
+                    formControlName="icono"
+                    placeholder="fa-star"
+                  >
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                  <button 
+                    type="button" 
+                    class="btn btn-primary w-100"
+                    (click)="guardarValor()"
+                    [disabled]="!formValor.valid"
+                  >
+                    <i class="fas" [ngClass]="modoEdicionValor ? 'fa-save' : 'fa-plus'"></i>
+                  </button>
+                  <button 
+                    *ngIf="modoEdicionValor"
+                    type="button" 
+                    class="btn btn-secondary ms-2"
+                    (click)="cancelarEdicionValor()"
+                  >
+                    <i class="fas fa-times"></i>
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Tabla de valores -->
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead class="table-light">
+              <tr>
+                <th class="text-center">Valor Cuantitativo</th>
+                <th>Valor Cualitativo</th>
+                <th class="text-center">Ícono</th>
+                <th class="text-center">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let valor of valoresParametro">
+                <td class="text-center">
+                  <span class="badge bg-info">{{ valor.valor_cuantitativo }}</span>
+                </td>
+                <td>{{ valor.valor_cualitativo }}</td>
+                <td class="text-center">
+                  <i *ngIf="valor.icono" class="fas {{ valor.icono }}"></i>
+                  <span *ngIf="!valor.icono" class="text-muted">-</span>
+                </td>
+                <td class="text-center">
+                  <button 
+                    class="btn btn-sm btn-warning me-1"
+                    (click)="editarValor(valor)"
+                    title="Editar"
+                  >
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button 
+                    class="btn btn-sm btn-danger"
+                    (click)="eliminarValor(valor)"
+                    title="Eliminar"
+                  >
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </td>
+              </tr>
+              <tr *ngIf="valoresParametro.length === 0">
+                <td colspan="4" class="text-center text-muted">
+                  <i class="fas fa-info-circle me-2"></i>No hay valores registrados
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          <i class="fas fa-times me-2"></i>Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

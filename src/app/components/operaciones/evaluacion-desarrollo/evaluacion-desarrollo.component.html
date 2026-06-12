@@ -1,0 +1,42 @@
+<div class="modulo">
+    <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [raiz]="'/operaciones'"
+        [regresar]="'/operaciones'"></app-header>
+
+    <div class="container-fluid mt-4">
+
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h5 class="mb-1"><i class="fas fa-child me-2 text-success"></i>Selecciona un estudiante para
+                            evaluar</h5>
+                        <p class="text-muted mb-0 small">Escala Abreviada de Desarrollo - 3 (MinSalud / UNICEF)</p>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="d-flex align-items-center gap-2 justify-content-end">
+                            <div class="leyenda-item">
+                                <span class="badge-semaforo verde"></span>
+                                <small>Esperado</small>
+                            </div>
+                            <div class="leyenda-item">
+                                <span class="badge-semaforo amarillo"></span>
+                                <small>Riesgo</small>
+                            </div>
+                            <div class="leyenda-item">
+                                <span class="badge-semaforo rojo"></span>
+                                <small>Sospecha</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <app-tablas #tablaEstudiantes [titulos]="titulosTabla" [datos]="estudiantes" [acciones]="accionesTabla"
+            [raiz]="'/operaciones/evaluacion-desarrollo'" [accionVer]="false" [accionEditar]="false"
+            [accionEliminar]="false" [mostrarBuscar]="true" [columnasFiltro]="columnasFiltro"
+            (clicAccion)="onAccionTabla($event)">
+        </app-tablas>
+
+    </div>
+</div>

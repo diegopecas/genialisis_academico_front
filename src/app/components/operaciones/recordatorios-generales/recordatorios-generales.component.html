@@ -1,0 +1,341 @@
+<div class="modulo">
+  <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [raiz]="'/'" [regresar]="'/operaciones'"></app-header>
+
+  <app-tablas
+    [titulos]="titulos"
+    [datos]="datos"
+    [raiz]="'/operaciones/recordatorios-generales'"
+    [columnasFiltro]="columnasFiltro"
+    [acciones]="acciones"
+    [campoId]="'id'"
+    [mostrarBuscar]="true"
+    (clicAccion)="onClicAccion($event)"
+  ></app-tablas>
+</div>
+
+<!-- ==================== MODAL RECORDATORIO ==================== -->
+<div class="modal fade" id="modalRecordatorioGeneral" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header modal-header-clean">
+        <h5 class="modal-title">
+          <i class="fab fa-whatsapp me-2 text-success"></i>
+          Enviar Recordatorio - {{ estudianteSeleccionado?.nombre_completo }}
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" *ngIf="estudianteSeleccionado">
+
+        <!-- Info del estudiante -->
+        <div class="row mb-3">
+          <div class="col-md-3"><strong>Grupo:</strong> {{ estudianteSeleccionado.nombre_grupo }}</div>
+          <div class="col-md-3 text-center">
+            <strong>Contrato:</strong>
+            <span [class]="getEstadoContratoBadge(estudianteSeleccionado.estado_contrato)">{{ estudianteSeleccionado.estado_contrato }}</span>
+          </div>
+          <div class="col-md-3 text-center">
+            <strong>Saldo:</strong>
+            <span class="fw-bold" [class.text-danger]="estudianteSeleccionado.saldo_cartera > 0">{{ formatearMoneda(estudianteSeleccionado.saldo_cartera) }}</span>
+          </div>
+          <div class="col-md-3 text-end">
+            <strong>Docs:</strong>
+            <span *ngIf="estudianteSeleccionado.docs_pendientes_cantidad > 0" class="badge bg-danger">{{ estudianteSeleccionado.docs_pendientes_cantidad }} pend.</span>
+            <span *ngIf="estudianteSeleccionado.docs_pendientes_cantidad === 0" class="badge bg-success">OK</span>
+          </div>
+        </div>
+
+        <hr />
+
+        <!-- Tipo de recordatorio -->
+        <h6 class="mb-3">Tipo de recordatorio</h6>
+        <div class="row mb-3">
+          <div class="col-12">
+            <div class="btn-group w-100" role="group">
+              <input type="radio" class="btn-check" name="tipoRecordatorio" id="tipoGeneral" value="general" [(ngModel)]="tipoRecordatorioSeleccionado" (change)="regenerarMensaje()">
+              <label class="btn btn-outline-tab" for="tipoGeneral"><i class="fas fa-bullhorn me-1"></i> General</label>
+              <input type="radio" class="btn-check" name="tipoRecordatorio" id="tipoContrato" value="contrato" [(ngModel)]="tipoRecordatorioSeleccionado" (change)="regenerarMensaje()">
+              <label class="btn btn-outline-tab" for="tipoContrato"><i class="fas fa-file-signature me-1"></i> Contrato</label>
+              <input type="radio" class="btn-check" name="tipoRecordatorio" id="tipoDocumentos" value="documentos" [(ngModel)]="tipoRecordatorioSeleccionado" (change)="regenerarMensaje()">
+              <label class="btn btn-outline-tab" for="tipoDocumentos"><i class="fas fa-folder-open me-1"></i> Documentos</label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Opciones adicionales -->
+        <div class="row mb-3">
+          <div class="col-md-3">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="chkCercano"
+                [(ngModel)]="tratoCercano" (change)="regenerarMensaje()">
+              <label class="form-check-label" for="chkCercano">Trato cercano (tutear)</label>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="chkPresencial"
+                [(ngModel)]="solicitarReunionPresencial" (change)="regenerarMensaje()">
+              <label class="form-check-label" for="chkPresencial">Reunión presencial</label>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="chkVirtual"
+                [(ngModel)]="solicitarReunionVirtual" (change)="regenerarMensaje()">
+              <label class="form-check-label" for="chkVirtual">Reunión virtual</label>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="chkFechaCompromiso"
+                [(ngModel)]="solicitarFechaCompromiso" (change)="regenerarMensaje()">
+              <label class="form-check-label" for="chkFechaCompromiso">Solicitar fecha compromiso</label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mensaje editable -->
+        <h6 class="mb-2">Mensaje</h6>
+        <textarea class="form-control textarea-mensaje" rows="10" [(ngModel)]="mensajeEditable"></textarea>
+        <small class="text-muted mt-1 d-block">
+          <i class="fas fa-info-circle me-1"></i> 
+          El texto {{ '{' }}NOMBRE_DESTINATARIO{{ '}' }} se reemplazará automáticamente con el nombre del acudiente al enviar.
+        </small>
+
+        <hr />
+
+        <!-- Acudientes -->
+        <h6 class="mb-3">Acudientes registrados</h6>
+        <div *ngIf="acudientesEstudiante.length === 0" class="alert alert-warning">
+          <i class="fas fa-exclamation-triangle"></i> No hay acudientes registrados.
+        </div>
+
+        <div *ngFor="let acudiente of acudientesEstudiante; let i = index" class="acudiente-card mb-3">
+          <div class="row align-items-center">
+            <div class="col-md-4">
+              <div class="fw-bold">{{ acudiente.nombre_acudiente }}</div>
+              <small class="text-muted">{{ acudiente.nombre_tipo_acudiente }}</small>
+              <div *ngIf="acudiente.correo_electronico" class="mt-1"><i class="fas fa-envelope me-1"></i><small>{{ acudiente.correo_electronico }}</small></div>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label mb-1"><i class="fas fa-phone me-1"></i> Teléfono</label>
+              <input type="text" class="form-control form-control-sm" [(ngModel)]="telefonosEditables[i]">
+            </div>
+            <div class="col-md-5 text-end mt-2 mt-md-0">
+              <div class="btn-group">
+                <button class="btn btn-wa btn-sm" (click)="enviarWhatsApp(acudiente, i)" [disabled]="!telefonosEditables[i]"><i class="fab fa-whatsapp me-1"></i> WA</button>
+                <button class="btn btn-primary btn-sm" (click)="enviarCorreo(acudiente)" [disabled]="!acudiente.correo_electronico"><i class="fas fa-envelope me-1"></i> Email</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Contacto adicional -->
+        <div class="acudiente-card mb-3 border-dashed">
+          <div class="row align-items-center">
+            <div class="col-md-3">
+              <label class="form-label mb-1"><i class="fas fa-user me-1"></i> Nombre</label>
+              <input type="text" class="form-control form-control-sm" [(ngModel)]="nombreAdicional" placeholder="Destinatario">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label mb-1"><i class="fas fa-phone me-1"></i> Teléfono</label>
+              <input type="text" class="form-control form-control-sm" [(ngModel)]="telefonoAdicional" placeholder="3001234567">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label mb-1"><i class="fas fa-envelope me-1"></i> Correo</label>
+              <input type="email" class="form-control form-control-sm" [(ngModel)]="correoAdicional" placeholder="correo@ejemplo.com">
+            </div>
+            <div class="col-md-3 text-end mt-2 mt-md-0">
+              <label class="form-label mb-1 d-none d-md-block">&nbsp;</label>
+              <div class="btn-group">
+                <button class="btn btn-outline-success btn-sm" (click)="enviarWhatsAppAdicional()" [disabled]="!telefonoAdicional"><i class="fab fa-whatsapp me-1"></i> WA</button>
+                <button class="btn btn-outline-primary btn-sm" (click)="enviarCorreoAdicional()" [disabled]="!correoAdicional"><i class="fas fa-envelope me-1"></i> Email</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="modal-footer modal-footer-clean">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== MODAL DESGLOSE FINANCIERO ==================== -->
+<div class="modal fade" id="modalDesgloseFinanciero" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header modal-header-clean">
+        <h5 class="modal-title"><i class="fas fa-chart-bar me-2"></i> Desglose Financiero - {{ estudianteFinanciero?.nombre_completo }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" *ngIf="estudianteFinanciero">
+        <div class="row mb-4">
+          <div class="col-md-4">
+            <div class="resumen-financiero">
+              <span class="resumen-label">Saldo Cartera Total</span>
+              <span class="resumen-valor" [class.text-danger]="estudianteFinanciero.saldo_cartera > 0">{{ formatearMoneda(estudianteFinanciero.saldo_cartera) }}</span>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="resumen-financiero">
+              <span class="resumen-label">Saldo Vencido</span>
+              <span class="resumen-valor text-danger">{{ formatearMoneda(estudianteFinanciero.saldo_vencido) }}</span>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="resumen-financiero">
+              <span class="resumen-label">Contrato</span>
+              <span [class]="getEstadoContratoBadge(estudianteFinanciero.estado_contrato)">{{ estudianteFinanciero.estado_contrato }}</span>
+            </div>
+          </div>
+        </div>
+
+        <h6 class="mb-2"><i class="fas fa-calendar-alt me-1"></i> Cartera Año Actual</h6>
+        <div class="table-responsive mb-4">
+          <table class="table table-sm table-bordered table-hover">
+            <thead class="table-light">
+              <tr><th>Concepto</th><th class="text-end">Cobrado</th><th class="text-end">Pagado</th><th class="text-end">Saldo</th><th class="text-end">Vencido</th></tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let c of conceptosCartera">
+                <td>{{ c.label }}</td>
+                <td class="text-end">{{ formatearMoneda(getCarteraConcepto(estudianteFinanciero, c.campo, 'actual', 'cobrado')) }}</td>
+                <td class="text-end">{{ formatearMoneda(getCarteraConcepto(estudianteFinanciero, c.campo, 'actual', 'pagado')) }}</td>
+                <td class="text-end" [class.text-danger]="getCarteraConcepto(estudianteFinanciero, c.campo, 'actual', 'saldo') > 0">{{ formatearMoneda(getCarteraConcepto(estudianteFinanciero, c.campo, 'actual', 'saldo')) }}</td>
+                <td class="text-end" [class.text-danger]="estudianteFinanciero[c.campo + '_vencido'] > 0">{{ formatearMoneda(estudianteFinanciero[c.campo + '_vencido'] || 0) }}</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr class="table-active fw-bold">
+                <td>TOTALES</td>
+                <td class="text-end">{{ formatearMoneda(getTotalCartera(estudianteFinanciero, 'actual', 'cobrado')) }}</td>
+                <td class="text-end">{{ formatearMoneda(getTotalCartera(estudianteFinanciero, 'actual', 'pagado')) }}</td>
+                <td class="text-end" [class.text-danger]="getTotalCartera(estudianteFinanciero, 'actual', 'saldo') > 0">{{ formatearMoneda(getTotalCartera(estudianteFinanciero, 'actual', 'saldo')) }}</td>
+                <td class="text-end" [class.text-danger]="estudianteFinanciero.saldo_vencido > 0">{{ formatearMoneda(estudianteFinanciero.saldo_vencido) }}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <h6 class="mb-2"><i class="fas fa-history me-1"></i> Cartera Años Anteriores</h6>
+        <div *ngIf="getTotalCartera(estudianteFinanciero, 'anterior', 'saldo') === 0 && getTotalCartera(estudianteFinanciero, 'anterior', 'cobrado') === 0" class="text-center py-3 mb-3">
+          <i class="fas fa-check-circle text-success fa-2x mb-2"></i>
+          <p class="text-muted mb-0">Sin registros de años anteriores ✅</p>
+        </div>
+        <div *ngIf="getTotalCartera(estudianteFinanciero, 'anterior', 'saldo') !== 0 || getTotalCartera(estudianteFinanciero, 'anterior', 'cobrado') !== 0" class="table-responsive">
+          <table class="table table-sm table-bordered table-hover">
+            <thead class="table-light">
+              <tr><th>Concepto</th><th class="text-end">Cobrado</th><th class="text-end">Pagado</th><th class="text-end">Saldo</th></tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let c of conceptosCartera">
+                <td>{{ c.label }}</td>
+                <td class="text-end">{{ formatearMoneda(getCarteraConcepto(estudianteFinanciero, c.campo, 'anterior', 'cobrado')) }}</td>
+                <td class="text-end">{{ formatearMoneda(getCarteraConcepto(estudianteFinanciero, c.campo, 'anterior', 'pagado')) }}</td>
+                <td class="text-end" [class.text-danger]="getCarteraConcepto(estudianteFinanciero, c.campo, 'anterior', 'saldo') > 0">{{ formatearMoneda(getCarteraConcepto(estudianteFinanciero, c.campo, 'anterior', 'saldo')) }}</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr class="table-active fw-bold">
+                <td>TOTALES</td>
+                <td class="text-end">{{ formatearMoneda(getTotalCartera(estudianteFinanciero, 'anterior', 'cobrado')) }}</td>
+                <td class="text-end">{{ formatearMoneda(getTotalCartera(estudianteFinanciero, 'anterior', 'pagado')) }}</td>
+                <td class="text-end" [class.text-danger]="getTotalCartera(estudianteFinanciero, 'anterior', 'saldo') > 0">{{ formatearMoneda(getTotalCartera(estudianteFinanciero, 'anterior', 'saldo')) }}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer modal-footer-clean">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== MODAL HISTORIAL CON COMPROMISOS ==================== -->
+<div class="modal fade" id="modalHistorial" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header modal-header-clean">
+        <h5 class="modal-title"><i class="fas fa-history me-2"></i> Historial de Recordatorios - {{ estudianteHistorial?.nombre_completo }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" *ngIf="estudianteHistorial">
+
+        <div *ngIf="cargandoHistorial" class="text-center py-4">
+          <div class="spinner-border text-primary" role="status"></div>
+          <p class="mt-2">Cargando historial...</p>
+        </div>
+
+        <div *ngIf="!cargandoHistorial && historialEstudiante.length === 0" class="text-center py-4">
+          <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+          <p class="text-muted">Aún no se han enviado recordatorios para este estudiante.</p>
+        </div>
+
+        <div *ngIf="!cargandoHistorial && historialEstudiante.length > 0" class="table-responsive">
+          <table class="table table-sm table-bordered table-hover">
+            <thead class="table-light">
+              <tr>
+                <th>Fecha envío</th>
+                <th>Tipo</th>
+                <th>Medio</th>
+                <th>Destinatario</th>
+                <th>Contacto</th>
+                <th>Compromiso</th>
+                <th>Fecha compromiso</th>
+                <th class="text-center">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let h of historialEstudiante">
+                <td><small>{{ h.fecha_envio | date:'dd/MM/yy HH:mm' }}</small></td>
+                <td><span class="badge badge-tipo">{{ getTipoRecordatorioLabel(h.tipo_recordatorio) }}</span></td>
+                <td class="text-center">
+                  <i *ngIf="h.medio_envio === 'whatsapp'" class="fab fa-whatsapp text-success" title="WhatsApp"></i>
+                  <i *ngIf="h.medio_envio === 'correo'" class="fas fa-envelope text-primary" title="Correo"></i>
+                </td>
+                <td><small>{{ h.nombre_destinatario }}</small></td>
+                <td><small>{{ h.telefono_usado }}</small></td>
+
+                <!-- Compromiso: modo lectura -->
+                <td *ngIf="!h.editando">
+                  <small>{{ h.compromiso || '-' }}</small>
+                </td>
+                <td *ngIf="!h.editando">
+                  <small>{{ h.fecha_compromiso ? (h.fecha_compromiso | date:'dd/MM/yy') : '-' }}</small>
+                </td>
+                <td *ngIf="!h.editando" class="text-center">
+                  <button class="btn btn-sm btn-edit-compromiso" (click)="editarCompromiso(h)" title="Agregar/editar compromiso">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                </td>
+
+                <!-- Compromiso: modo edición -->
+                <td *ngIf="h.editando">
+                  <textarea class="form-control form-control-sm" rows="2" [(ngModel)]="h.compromiso_editado"
+                    placeholder="Ej: Se compromete a traer documentos el viernes..."></textarea>
+                </td>
+                <td *ngIf="h.editando">
+                  <input type="date" class="form-control form-control-sm" [(ngModel)]="h.fecha_compromiso_editada">
+                </td>
+                <td *ngIf="h.editando" class="text-center">
+                  <div class="btn-group btn-group-sm">
+                    <button class="btn btn-success" (click)="guardarCompromiso(h)" title="Guardar"><i class="fas fa-check"></i></button>
+                    <button class="btn btn-secondary" (click)="cancelarEdicion(h)" title="Cancelar"><i class="fas fa-times"></i></button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+      <div class="modal-footer modal-footer-clean">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>

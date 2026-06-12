@@ -1,0 +1,402 @@
+<div class="modulo">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="false"
+    [raiz]="'/reportes'"
+    [regresar]="'/reportes'"
+    [iconoTitulo]="'/assets/images/historial_actividades.png'"
+  >
+  </app-header>
+
+  <div class="container-fluid px-4">
+
+    <!-- ═══ FILTROS ═══ -->
+    <div class="card mt-4">
+      <div class="card-header bg-primary text-white">
+        <h6 class="mb-0"><i class="fas fa-filter me-2"></i>Filtros</h6>
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
+
+          <!-- Multi-select filters -->
+          <ng-container *ngFor="let filtro of filtrosConfig">
+            <div class="col-md-3 col-lg-2">
+              <label class="form-label">{{ filtro.label }}</label>
+              <div class="dropdown">
+                <button
+                  class="btn btn-sm btn-outline-secondary dropdown-toggle w-100 d-flex justify-content-between align-items-center"
+                  type="button"
+                  (click)="toggleFiltro(filtro.clave); cerrarOtrosDropdowns(filtro.clave)">
+                  <span>{{ filtro.label }}</span>
+                  <span
+                    *ngIf="tieneFiltroParcial(filtro.clave)"
+                    class="badge bg-warning rounded-pill ms-2">
+                    {{ contarSeleccionados(filtro.clave) }} / {{ opcionesFiltro[filtro.clave].length }}
+                  </span>
+                </button>
+                <div class="dropdown-menu filter-dropdown p-3"
+                  [ngClass]="{'show': filtroAbierto[filtro.clave]}"
+                  (click)="$event.stopPropagation()">
+
+                  <!-- Búsqueda -->
+                  <div class="search-filter mb-2">
+                    <input type="text" class="form-control form-control-sm" placeholder="Buscar..."
+                      [(ngModel)]="busquedaFiltro[filtro.clave]"
+                      (input)="filtrarOpcionesBusqueda(filtro.clave)">
+                  </div>
+
+                  <!-- Seleccionar todos -->
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox"
+                        [checked]="todosSeleccionados[filtro.clave]"
+                        (change)="toggleTodos(filtro.clave)"
+                        [id]="'check-todos-' + filtro.clave">
+                      <label class="form-check-label" [for]="'check-todos-' + filtro.clave">
+                        Seleccionar todos
+                      </label>
+                    </div>
+                    <small class="text-muted">
+                      {{ contarSeleccionados(filtro.clave) }} de {{ opcionesFiltro[filtro.clave].length }}
+                    </small>
+                  </div>
+
+                  <div class="dropdown-divider"></div>
+
+                  <!-- Opciones -->
+                  <div class="options-container">
+                    <div class="form-check mb-1"
+                      *ngFor="let opcion of opcionesFiltroFiltradas[filtro.clave]; let i = index">
+                      <input class="form-check-input" type="checkbox"
+                        [checked]="opcion.seleccionado"
+                        (change)="toggleOpcion(filtro.clave, opcion)"
+                        [id]="'check-' + filtro.clave + '-' + i">
+                      <label class="form-check-label"
+                        [for]="'check-' + filtro.clave + '-' + i">
+                        {{ opcion.label }}
+                      </label>
+                    </div>
+                    <div *ngIf="opcionesFiltroFiltradas[filtro.clave]?.length === 0"
+                      class="text-center text-muted py-2">
+                      Sin resultados
+                    </div>
+                  </div>
+
+                  <div class="dropdown-divider"></div>
+                  <div class="d-flex justify-content-end gap-2">
+                    <button class="btn btn-sm btn-secondary"
+                      (click)="toggleFiltro(filtro.clave)">Cerrar</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </ng-container>
+
+          <!-- Fechas -->
+          <div class="col-md-2">
+            <label class="form-label">Fecha Inicio</label>
+            <input type="date" class="form-control" [(ngModel)]="filtroFechaInicio" />
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">Fecha Fin</label>
+            <input type="date" class="form-control" [(ngModel)]="filtroFechaFin" />
+          </div>
+
+          <!-- Botones -->
+          <div class="col-md-2 d-flex align-items-end gap-2">
+            <button class="btn btn-dorado flex-fill" (click)="aplicarFiltros()">
+              <i class="fas fa-search me-1"></i>Buscar
+            </button>
+            <button class="btn btn-outline-secondary" (click)="limpiarTodosLosFiltros()">
+              <i class="fas fa-eraser"></i>
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Loader -->
+    <div *ngIf="cargando" class="text-center py-5">
+      <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+      <p class="mt-3">Cargando historial...</p>
+    </div>
+
+    <!-- Sin datos -->
+    <div *ngIf="!cargando && colaboradoresAgrupados.length === 0" class="alert alert-info mt-4">
+      <i class="fas fa-info-circle me-2"></i>
+      No se encontraron actividades con los filtros aplicados
+    </div>
+
+    <!-- ═══ CONTENIDO ═══ -->
+    <div *ngIf="!cargando && colaboradoresAgrupados.length > 0">
+
+      <!-- ── Cards de resumen por categoría (filtrado) ── -->
+      <div class="row mb-4 mt-4">
+        <div class="col-md-12">
+          <h6 class="text-muted mb-3">
+            <i class="fas fa-chart-bar me-2"></i>Totales por Categoría (Filtrado)
+          </h6>
+        </div>
+
+        <div *ngFor="let categoria of categoriasResumen"
+          class="col-lg-2 col-md-4 col-sm-6 mb-3">
+          <div class="card-total">
+            <div class="card-total-icon" [ngClass]="getColorCategoria(categoria.nombre)">
+              <i class="fas" [ngClass]="getIconoCategoria(categoria.nombre)"></i>
+            </div>
+            <div class="card-total-content">
+              <small class="card-total-label">{{ categoria.nombre }}</small>
+              <div class="card-total-value">{{ formatearValor(categoria) }}</div>
+              <div class="card-total-sub" *ngIf="categoria.total_valor > 0">
+                {{ formatearMoneda(categoria.total_valor) }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Min. Restantes -->
+        <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+          <div class="card-total">
+            <div class="card-total-icon bg-warning">
+              <i class="fas fa-hourglass-half"></i>
+            </div>
+            <div class="card-total-content">
+              <small class="card-total-label">Min. Restantes</small>
+              <div class="card-total-value text-warning">
+                {{ formatearMinutos(calcularTotalGeneralMinutosRestantes()) }}
+              </div>
+              <div class="card-total-sub">
+                {{ formatearMoneda(calcularTotalGeneralValorRestante()) }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Min. Cruzados -->
+        <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+          <div class="card-total card-total-destacada">
+            <div class="card-total-icon bg-success">
+              <i class="fas fa-check-double"></i>
+            </div>
+            <div class="card-total-content">
+              <small class="card-total-label">Min. Cruzados</small>
+              <div class="card-total-value text-success">
+                {{ formatearMinutos(calcularTotalGeneralMinutosCruzados()) }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Valor Total -->
+        <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+          <div class="card-total">
+            <div class="card-total-icon bg-purple">
+              <i class="fas fa-dollar-sign"></i>
+            </div>
+            <div class="card-total-content">
+              <small class="card-total-label">Valor Total</small>
+              <div class="card-total-value text-purple">
+                {{ formatearMoneda(calcularTotalGeneralValor()) }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Cards de selección (checkboxes) ── -->
+      <div class="row mb-4" *ngIf="actividadesSeleccionadas.length !== actividadesFiltradas.length">
+        <div class="col-md-12">
+          <h6 class="text-muted mb-3">
+            <i class="fas fa-check-square me-2"></i>Totales Seleccionados
+            ({{ actividadesSeleccionadas.length }} de {{ actividadesFiltradas.length }})
+          </h6>
+        </div>
+        <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+          <div class="card-total card-seleccion">
+            <div class="card-total-content">
+              <small class="card-total-label">Min. Totales</small>
+              <div class="card-total-value">{{ formatearMinutos(calcularSeleccionMinutosTotales()) }}</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+          <div class="card-total card-seleccion">
+            <div class="card-total-content">
+              <small class="card-total-label">Min. Restantes</small>
+              <div class="card-total-value text-warning">{{ formatearMinutos(calcularSeleccionMinutosRestantes()) }}</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+          <div class="card-total card-seleccion">
+            <div class="card-total-content">
+              <small class="card-total-label">Min. Cruzados</small>
+              <div class="card-total-value text-success">{{ formatearMinutos(calcularSeleccionMinutosCruzados()) }}</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+          <div class="card-total card-seleccion">
+            <div class="card-total-content">
+              <small class="card-total-label">Valor Total</small>
+              <div class="card-total-value text-purple">{{ formatearMoneda(calcularSeleccionValorTotal()) }}</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+          <div class="card-total card-seleccion">
+            <div class="card-total-content">
+              <small class="card-total-label">Valor Restante</small>
+              <div class="card-total-value text-warning">{{ formatearMoneda(calcularSeleccionValorRestante()) }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Selección global ── -->
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0">
+          <i class="fas fa-history me-2"></i>
+          {{ colaboradoresAgrupados.length }} Colaborador(es) con actividades
+        </h5>
+        <div class="d-flex align-items-center gap-2">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox"
+              [checked]="todosLosRegistrosSeleccionados"
+              (change)="toggleTodosRegistros()"
+              id="check-todos-global">
+            <label class="form-check-label" for="check-todos-global">
+              Seleccionar todos
+            </label>
+          </div>
+          <span class="badge bg-secondary">
+            {{ actividadesSeleccionadas.length }} / {{ actividadesFiltradas.length }} seleccionados
+          </span>
+        </div>
+      </div>
+
+      <!-- ═══ LISTA DE COLABORADORES ═══ -->
+      <ng-container *ngFor="let colaborador of colaboradoresAgrupados">
+
+        <!-- Header del colaborador -->
+        <div class="colaborador-header" (click)="toggleColaborador(colaborador)">
+          <i class="fas"
+            [ngClass]="colaborador.expandido ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
+          <strong>{{ colaborador.nombre }}</strong>
+          <span class="badge ms-2">Total: {{ colaborador.total_actividades }}</span>
+          <div class="ms-auto d-flex align-items-center gap-2" (click)="$event.stopPropagation()">
+            <div class="form-check mb-0">
+              <input class="form-check-input" type="checkbox"
+                [checked]="estanTodosSeleccionadosColaborador(colaborador)"
+                (change)="toggleTodosColaborador(colaborador)">
+            </div>
+          </div>
+        </div>
+
+        <!-- Detalle expandible -->
+        <div *ngIf="colaborador.expandido" class="colaborador-detalle mb-4">
+          <div *ngFor="let categoria of getCategoriasDeColaborador(colaborador)" class="mb-4">
+            <ng-container
+              *ngIf="getActividadesPorCategoria(colaborador, categoria).length > 0">
+
+              <h6 class="categoria-titulo">
+                <i class="fas" [ngClass]="getIconoCategoria(categoria)"></i>
+                {{ categoria }}
+                ({{ getActividadesPorCategoria(colaborador, categoria).length }})
+              </h6>
+
+              <div class="table-responsive">
+                <table class="table table-sm tabla-historial mb-0">
+                  <thead>
+                    <tr>
+                      <th class="text-center" style="width: 40px">
+                        <i class="fas fa-check-square"></i>
+                      </th>
+                      <th>Tipo</th>
+                      <th>Período</th>
+                      <th>Observación</th>
+                      <th>Min. Totales</th>
+                      <th>Valor/Hora</th>
+                      <th>Valor Total</th>
+                      <th>Min. Restantes</th>
+                      <th>Valor Restante</th>
+                      <th>Estado</th>
+                      <th>¿Cruzado?</th>
+                      <th>Min. Cruzados</th>
+                      <th>Tipo Cruce</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let actividad of getActividadesPorCategoria(colaborador, categoria)"
+                      [class.fila-deseleccionada]="!actividad.seleccionado">
+                      <td class="text-center">
+                        <input type="checkbox" class="form-check-input"
+                          [checked]="actividad.seleccionado"
+                          (change)="toggleSeleccionActividad(actividad)">
+                      </td>
+                      <td><small>{{ actividad.tipo_actividad }}</small></td>
+                      <td><small class="text-muted">{{ formatearPeriodo(actividad) }}</small></td>
+                      <td><small class="text-muted">{{ actividad.observacion || '-' }}</small></td>
+                      <td><small>{{ formatearMinutos(actividad.minutos_totales) }}</small></td>
+                      <td><small>{{ formatearMoneda(actividad.valor_hora) }}</small></td>
+                      <td><small class="fw-semibold">{{ formatearMoneda(calcularValorActividad(actividad)) }}</small></td>
+                      <td><small class="text-muted">{{ formatearMinutos(actividad.minutos_restantes) }}</small></td>
+                      <td><small>{{ formatearMoneda(calcularValorRestanteActividad(actividad)) }}</small></td>
+                      <td>
+                        <span class="badge badge-sm" [style.background-color]="actividad.color_estado">
+                          {{ actividad.estado }}
+                        </span>
+                      </td>
+                      <td class="text-center">
+                        <span *ngIf="tieneCruce(actividad)" class="badge bg-success badge-sm">
+                          <i class="fas fa-check"></i> Sí
+                        </span>
+                        <span *ngIf="!tieneCruce(actividad)" class="badge bg-secondary badge-sm">
+                          <i class="fas fa-times"></i> No
+                        </span>
+                      </td>
+                      <td class="text-center">
+                        <span *ngIf="tieneCruce(actividad)" class="badge badge-total">
+                          {{ formatearMinutos(actividad.minutos_aplicados || 0) }}
+                        </span>
+                        <span *ngIf="!tieneCruce(actividad)" class="text-muted">-</span>
+                      </td>
+                      <td>
+                        <small *ngIf="tieneCruce(actividad)">{{ actividad.tipo_contabilizacion || '-' }}</small>
+                        <small *ngIf="!tieneCruce(actividad)" class="text-muted">-</small>
+                      </td>
+                    </tr>
+                  </tbody>
+                  <tfoot>
+                    <tr class="fila-totales">
+                      <td colspan="4" class="text-end"><strong>Subtotal {{ categoria }}:</strong></td>
+                      <td><strong>{{ formatearMinutos(calcularSubtotalMinutos(colaborador, categoria)) }}</strong></td>
+                      <td></td>
+                      <td><strong>{{ formatearMoneda(calcularSubtotalValor(colaborador, categoria)) }}</strong></td>
+                      <td><strong>{{ formatearMinutos(calcularSubtotalMinutosRestantes(colaborador, categoria)) }}</strong></td>
+                      <td><strong>{{ formatearMoneda(calcularSubtotalValorRestante(colaborador, categoria)) }}</strong></td>
+                      <td colspan="4"></td>
+                    </tr>
+                    <tr class="fila-seleccion"
+                      *ngIf="calcularSubtotalSeleccionMinutos(colaborador, categoria) !== calcularSubtotalMinutos(colaborador, categoria)">
+                      <td colspan="4" class="text-end">
+                        <small class="text-primary"><i class="fas fa-check-square me-1"></i>Seleccionados:</small>
+                      </td>
+                      <td><small class="text-primary fw-semibold">{{ formatearMinutos(calcularSubtotalSeleccionMinutos(colaborador, categoria)) }}</small></td>
+                      <td></td>
+                      <td><small class="text-primary fw-semibold">{{ formatearMoneda(calcularSubtotalSeleccionValor(colaborador, categoria)) }}</small></td>
+                      <td colspan="6"></td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </ng-container>
+          </div>
+        </div>
+      </ng-container>
+    </div>
+  </div>
+</div>

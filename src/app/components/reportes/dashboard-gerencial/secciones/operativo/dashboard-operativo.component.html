@@ -1,0 +1,681 @@
+<div class="seccion-operativo">
+
+  <!-- ============================================ -->
+  <!-- VISTA: KPIs (principal del tab operativo) -->
+  <!-- ============================================ -->
+  <ng-container *ngIf="vista === 'kpis'">
+
+    <!-- Barra de acciones KPIs -->
+    <div class="barra-kpis">
+      <div class="auto-refresh-info" *ngIf="esFechaHoy">
+        <label class="auto-refresh-toggle" [title]="autoRefreshActivo ? 'Auto-refresh activo (cada 2 min)' : 'Auto-refresh pausado'">
+          <input type="checkbox" [checked]="autoRefreshActivo" (change)="toggleAutoRefresh()" />
+          <span class="auto-refresh-label">
+            <span class="pulso" *ngIf="autoRefreshActivo"></span>
+            Auto-refresh
+          </span>
+        </label>
+        <span class="ultima-actualizacion" *ngIf="ultimaActualizacion">
+          Actualizado {{ ultimaActualizacion | date:'HH:mm:ss' }}
+        </span>
+      </div>
+
+      <button class="btn btn-sm btn-warning" (click)="refrescarKpis()" [disabled]="cargandoResumen">
+        <span *ngIf="!cargandoResumen">🔄 Refrescar</span>
+        <span *ngIf="cargandoResumen">
+          <span class="spinner-border spinner-border-sm" role="status"></span>
+          Cargando...
+        </span>
+      </button>
+    </div>
+
+    <div class="kpis-contenedor">
+
+      <!-- KPI ASISTENCIA ESTUDIANTES -->
+      <div class="bloque-indicador" (click)="abrirDetalleAsistencia()">
+        <div class="bloque-header">
+          <div class="bloque-titulo">
+            <span class="bloque-icono">✋</span>
+            <h4>Asistencia Estudiantes</h4>
+          </div>
+          <span class="bloque-accion">Ver detalle <i class="fas fa-arrow-right"></i></span>
+        </div>
+
+        <div class="kpi-principal">
+          <div class="kpi-valor kpi-valor-simple">
+            <span class="kpi-numero">{{ resumen.asistencia.total_asistieron }}</span>
+          </div>
+          <div class="kpi-label">Asistieron hoy</div>
+        </div>
+
+        <!-- Desglose permanentes vs temporales -->
+        <div class="desglose-tipo">
+          <div class="desglose-item desglose-permanentes">
+            <div class="desglose-icono">👤</div>
+            <div class="desglose-contenido">
+              <div class="desglose-valores">
+                <span class="desglose-num">{{ resumen.asistencia.total_asistieron_permanentes }}</span>
+                <span class="desglose-sep">/</span>
+                <span class="desglose-tot">{{ resumen.asistencia.total_activos_permanentes }}</span>
+                <span class="desglose-pct">{{ resumen.asistencia.porcentaje_permanentes }}%</span>
+              </div>
+              <div class="desglose-label">Permanentes</div>
+            </div>
+            <div class="desglose-barra-contenedor">
+              <div class="desglose-barra desglose-barra-perm" [style.width.%]="resumen.asistencia.porcentaje_permanentes"></div>
+            </div>
+          </div>
+
+          <div class="desglose-item desglose-temporales" *ngIf="resumen.asistencia.total_activos_temporales > 0">
+            <div class="desglose-icono">✨</div>
+            <div class="desglose-contenido">
+              <div class="desglose-valores">
+                <span class="desglose-num">{{ resumen.asistencia.total_asistieron_temporales }}</span>
+                <span class="desglose-sep">/</span>
+                <span class="desglose-tot">{{ resumen.asistencia.total_activos_temporales }}</span>
+                <span class="desglose-pct">{{ resumen.asistencia.porcentaje_temporales }}%</span>
+              </div>
+              <div class="desglose-label">Temporales</div>
+            </div>
+            <div class="desglose-barra-contenedor">
+              <div class="desglose-barra desglose-barra-temp" [style.width.%]="resumen.asistencia.porcentaje_temporales"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sub-indicadores en vivo (solo aplican para fecha=hoy) -->
+        <div class="sub-indicadores" *ngIf="resumen.asistencia.es_hoy">
+          <div class="sub-indicador sub-presente">
+            <div class="sub-icono">🟢</div>
+            <div class="sub-contenido">
+              <div class="sub-valor">{{ resumen.asistencia.total_presentes_ahora }}</div>
+              <div class="sub-label">Presentes ahora</div>
+            </div>
+          </div>
+
+          <div class="sub-indicador sub-salieron-est" *ngIf="resumen.asistencia.total_salieron > 0">
+            <div class="sub-icono">🏁</div>
+            <div class="sub-contenido">
+              <div class="sub-valor">{{ resumen.asistencia.total_salieron }}</div>
+              <div class="sub-label">Ya salieron</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grupos-grid mt-3" *ngIf="resumen.asistencia.por_grupo?.length > 0">
+          <div
+            class="grupo-card"
+            *ngFor="let grupo of resumen.asistencia.por_grupo"
+            [style.border-left-color]="grupo.color"
+          >
+            <div class="grupo-card-header">
+              <img *ngIf="grupo.icono" [src]="grupo.icono" class="grupo-icono" />
+              <span class="grupo-nombre">{{ grupo.nombre_grupo }}</span>
+            </div>
+            <div class="grupo-card-valores">
+              <span class="grupo-numero">{{ grupo.asistieron }}</span>
+              <span class="grupo-separador">/</span>
+              <span class="grupo-total">{{ grupo.total }}</span>
+            </div>
+            <div class="grupo-porcentaje">
+              {{ grupo.porcentaje }}%
+              <span class="grupo-presentes" *ngIf="resumen.asistencia.es_hoy && grupo.presentes_ahora !== grupo.asistieron">
+                · {{ grupo.presentes_ahora }} ahora
+              </span>
+            </div>
+            <div class="grupo-detalle-tipos" *ngIf="grupo.total_temporales > 0">
+              <span class="tipo-mini">👤 {{ grupo.asistieron_permanentes }}/{{ grupo.total_permanentes }}</span>
+              <span class="tipo-mini">✨ {{ grupo.asistieron_temporales }}/{{ grupo.total_temporales }}</span>
+            </div>
+            <div class="grupo-barra-contenedor">
+              <div
+                class="grupo-barra"
+                [style.width.%]="grupo.porcentaje"
+                [style.background-color]="grupo.color"
+              ></div>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="resumen.asistencia.por_grupo?.length === 0" class="sin-datos">
+          <em>No hay grupos activos registrados.</em>
+        </div>
+      </div>
+
+      <!-- KPI COLABORADORES -->
+      <div class="bloque-indicador bloque-colaboradores" (click)="abrirDetalleColaboradores()">
+        <div class="bloque-header">
+          <div class="bloque-titulo">
+            <span class="bloque-icono">👥</span>
+            <h4>Colaboradores</h4>
+          </div>
+          <span class="bloque-accion">Ver detalle <i class="fas fa-arrow-right"></i></span>
+        </div>
+
+        <div class="kpi-principal">
+          <div class="kpi-valor">
+            <span class="kpi-numero">
+              {{ resumen.colaboradores.es_hoy ? resumen.colaboradores.presentes : resumen.colaboradores.ingresaron }}
+            </span>
+            <span class="kpi-separador">/</span>
+            <span class="kpi-total">{{ resumen.colaboradores.total_activos }}</span>
+          </div>
+          <div class="kpi-porcentaje">{{ resumen.colaboradores.porcentaje }}%</div>
+          <div class="kpi-label">
+            {{ resumen.colaboradores.es_hoy ? 'En el jardín ahora' : 'Marcaron entrada' }}
+          </div>
+        </div>
+
+        <div class="barra-progreso-contenedor">
+          <div class="barra-progreso" [style.width.%]="resumen.colaboradores.porcentaje"></div>
+        </div>
+
+        <div class="sub-indicadores">
+          <div class="sub-indicador sub-descanso" *ngIf="resumen.colaboradores.es_hoy">
+            <div class="sub-icono">☕</div>
+            <div class="sub-contenido">
+              <div class="sub-valor">{{ resumen.colaboradores.en_descanso }}</div>
+              <div class="sub-label">En descanso</div>
+            </div>
+          </div>
+
+          <div class="sub-indicador sub-tarde">
+            <div class="sub-icono">⏰</div>
+            <div class="sub-contenido">
+              <div class="sub-valor">{{ resumen.colaboradores.tarde }}</div>
+              <div class="sub-label">Llegaron tarde</div>
+            </div>
+          </div>
+
+          <div class="sub-indicador sub-salieron" *ngIf="resumen.colaboradores.salieron > 0">
+            <div class="sub-icono">🏁</div>
+            <div class="sub-contenido">
+              <div class="sub-valor">{{ resumen.colaboradores.salieron }}</div>
+              <div class="sub-label">Ya salieron</div>
+            </div>
+          </div>
+
+          <div class="sub-indicador sub-ausente" *ngIf="resumen.colaboradores.no_ingresaron > 0">
+            <div class="sub-icono">⚠️</div>
+            <div class="sub-contenido">
+              <div class="sub-valor">{{ resumen.colaboradores.no_ingresaron }}</div>
+              <div class="sub-label">No marcaron</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- KPI ALIMENTACIÓN -->
+      <div class="bloque-indicador bloque-alimentacion"
+           *ngIf="resumen.alimentacion.total_servicios > 0 || resumen.alimentacion.mensuales_contratados > 0"
+           (click)="abrirDetalleAlimentacion()">
+        <div class="bloque-header">
+          <div class="bloque-titulo">
+            <span class="bloque-icono">🍽️</span>
+            <h4>Alimentación</h4>
+          </div>
+          <span class="bloque-accion">Ver detalle <i class="fas fa-arrow-right"></i></span>
+        </div>
+
+        <!-- Resumen mensuales + diarios estilo desglose -->
+        <div class="desglose-tipo alim-desglose">
+          <div class="desglose-item desglose-mensuales" *ngIf="resumen.alimentacion.mensuales_contratados > 0">
+            <div class="desglose-icono">📅</div>
+            <div class="desglose-contenido">
+              <div class="desglose-valores">
+                <span class="desglose-num">{{ resumen.alimentacion.mensuales_servidos }}</span>
+                <span class="desglose-sep">/</span>
+                <span class="desglose-tot">{{ resumen.alimentacion.mensuales_contratados }}</span>
+                <span class="desglose-pct">{{ resumen.alimentacion.mensuales_porcentaje }}%</span>
+              </div>
+              <div class="desglose-label">Mensuales servidos</div>
+            </div>
+            <div class="desglose-barra-contenedor">
+              <div class="desglose-barra desglose-barra-mens" [style.width.%]="resumen.alimentacion.mensuales_porcentaje"></div>
+            </div>
+          </div>
+
+          <div class="desglose-item desglose-diarios" *ngIf="resumen.alimentacion.total_asistieron > 0">
+            <div class="desglose-icono">🍴</div>
+            <div class="desglose-contenido">
+              <div class="desglose-valores">
+                <span class="desglose-num">{{ resumen.alimentacion.diarios_servidos }}</span>
+                <span class="desglose-sep">/</span>
+                <span class="desglose-tot">{{ resumen.alimentacion.total_asistieron }}</span>
+                <span class="desglose-pct">{{ resumen.alimentacion.diarios_porcentaje }}%</span>
+              </div>
+              <div class="desglose-label">Diarios servidos</div>
+            </div>
+            <div class="desglose-barra-contenedor">
+              <div class="desglose-barra desglose-barra-diar" [style.width.%]="resumen.alimentacion.diarios_porcentaje"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Desglose por horario -->
+        <div class="horarios-grid" *ngIf="resumen.alimentacion.por_horario?.length > 0">
+          <div class="horario-card" *ngFor="let h of resumen.alimentacion.por_horario">
+            <div class="horario-card-header">
+              <span class="horario-nombre">{{ h.nombre_horario }}</span>
+            </div>
+            <div class="horario-mens" *ngIf="h.mensuales_contratados > 0">
+              <span class="horario-mens-icono">📅</span>
+              <span class="horario-mens-valores">
+                <strong>{{ h.mensuales_servidos }}</strong>/{{ h.mensuales_contratados }}
+              </span>
+              <span class="horario-mens-pct">{{ h.porcentaje_mensuales }}%</span>
+            </div>
+            <div class="horario-mens-barra" *ngIf="h.mensuales_contratados > 0">
+              <div class="horario-mens-barra-fill" [style.width.%]="h.porcentaje_mensuales"></div>
+            </div>
+            <div class="horario-diarios" *ngIf="h.diarios_servidos > 0 || h.total_asistieron > 0">
+              <div class="horario-diarios-linea">
+                <span class="horario-diarios-icono">🍴</span>
+                <span class="horario-diarios-valores">
+                  <strong>{{ h.diarios_servidos }}</strong>/{{ h.total_asistieron }}
+                </span>
+                <span class="horario-diarios-pct">{{ h.porcentaje_diarios }}%</span>
+              </div>
+              <div class="horario-diarios-barra">
+                <div class="horario-diarios-barra-fill" [style.width.%]="h.porcentaje_diarios"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </ng-container>
+
+  <!-- ============================================ -->
+  <!-- VISTA: DETALLE ASISTENCIA -->
+  <!-- ============================================ -->
+  <div *ngIf="vista === 'asistencia'" class="detalle-contenedor">
+    <div class="detalle-header">
+      <button class="btn-volver" (click)="volverAKpis()">
+        <i class="fas fa-arrow-left"></i> Volver
+      </button>
+      <div class="detalle-titulo">
+        <h4 class="mb-0">
+          <span class="me-2">✋</span>Asistencia estudiantes
+        </h4>
+        <small class="text-muted">{{ detalleAsistencia.total }} estudiante(s) para {{ detalleAsistencia.fecha }}</small>
+      </div>
+      <div class="detalle-spacer"></div>
+    </div>
+
+    <div *ngIf="cargandoDetalleAsistencia" class="text-center p-4">
+      <div class="spinner-border text-warning" role="status"></div>
+      <div class="mt-2">Cargando...</div>
+    </div>
+
+    <div *ngIf="!cargandoDetalleAsistencia && gruposDetalleAsistencia.length === 0" class="sin-datos">
+      <em>No hay estudiantes activos registrados.</em>
+    </div>
+
+    <div *ngIf="!cargandoDetalleAsistencia && gruposDetalleAsistencia.length > 0" class="grupos-detalle">
+      <div
+        class="grupo-detalle"
+        *ngFor="let grupo of gruposDetalleAsistencia"
+        [style.border-left-color]="grupo.color"
+      >
+        <div class="grupo-detalle-header" (click)="toggleGrupoDetalle(grupo.id_grupo)">
+          <div class="grupo-detalle-titulo">
+            <img *ngIf="grupo.icono" [src]="grupo.icono" class="grupo-icono-sm" />
+            <strong>{{ grupo.nombre_grupo }}</strong>
+            <span class="badge badge-grupo">{{ grupo.estudiantes.length }}</span>
+          </div>
+          <div class="grupo-detalle-resumen">
+            <span class="mini-badge mini-presente" *ngIf="grupo.resumen.presentes > 0">
+              🟢 {{ grupo.resumen.presentes }}
+            </span>
+            <span class="mini-badge mini-salio" *ngIf="grupo.resumen.salieron > 0">
+              🏁 {{ grupo.resumen.salieron }}
+            </span>
+            <span class="mini-badge mini-ausente" *ngIf="grupo.resumen.ausentes > 0">
+              ⚠️ {{ grupo.resumen.ausentes }}
+            </span>
+            <i class="fas ms-2" [ngClass]="gruposExpandidos[grupo.id_grupo] ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+          </div>
+        </div>
+
+        <div class="grupo-detalle-body" *ngIf="gruposExpandidos[grupo.id_grupo]">
+          <div class="tabla-wrap">
+            <table class="tabla-estudiantes">
+              <thead [style.--color-grupo]="grupo.color">
+                <tr>
+                  <th class="th-ordenable" (click)="ordenarAsistencia('nombre_completo')">
+                    Estudiante <i class="fas ms-1" [ngClass]="iconoOrdenAsistencia('nombre_completo')"></i>
+                  </th>
+                  <th class="text-center th-ordenable" (click)="ordenarAsistencia('hora_ingreso')">
+                    Ingreso <i class="fas ms-1" [ngClass]="iconoOrdenAsistencia('hora_ingreso')"></i>
+                  </th>
+                  <th class="text-center th-ordenable" (click)="ordenarAsistencia('hora_salida')">
+                    Salida <i class="fas ms-1" [ngClass]="iconoOrdenAsistencia('hora_salida')"></i>
+                  </th>
+                  <th class="text-center th-ordenable" (click)="ordenarAsistencia('estado')">
+                    Estado <i class="fas ms-1" [ngClass]="iconoOrdenAsistencia('estado')"></i>
+                  </th>
+                  <th class="text-center th-ordenable" (click)="ordenarAsistencia('ultima_asistencia')">
+                    Última asistencia <i class="fas ms-1" [ngClass]="iconoOrdenAsistencia('ultima_asistencia')"></i>
+                  </th>
+                  <th class="text-center th-ordenable" (click)="ordenarAsistencia('dias_habiles_ausente')">
+                    Días hábiles ausente <i class="fas ms-1" [ngClass]="iconoOrdenAsistencia('dias_habiles_ausente')"></i>
+                  </th>
+                  <th class="text-center th-ordenable" (click)="ordenarAsistencia('recordatorio_fecha')">
+                    Último recordatorio <i class="fas ms-1" [ngClass]="iconoOrdenAsistencia('recordatorio_fecha')"></i>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let est of grupo.estudiantes" [class.fila-ausente]="est.estado === 'No asistió'">
+                  <td>
+                    {{ est.nombre_completo }}
+                    <span class="tag-temporal" *ngIf="est.permanente == 0" title="Estudiante temporal">Temporal</span>
+                  </td>
+                  <td class="text-center hora">
+                    <span>{{ est.hora_ingreso || '—' }}</span>
+                    <span class="tag-tarde" *ngIf="est.entrada_tarde === 1" title="Ingresó después de la hora de entrada">Tarde</span>
+                  </td>
+                  <td class="text-center hora">
+                    <span>{{ est.hora_salida || '—' }}</span>
+                    <span class="tag-tarde" *ngIf="est.salida_tarde === 1" title="Salió después de la hora de salida">Tarde</span>
+                  </td>
+                  <td class="text-center">
+                    <span class="badge-estado"
+                      [class.badge-presente]="est.estado === 'En el jardín'"
+                      [class.badge-salio]="est.estado === 'Salió'"
+                      [class.badge-ausente]="est.estado === 'No asistió'">
+                      {{ est.estado }}
+                    </span>
+                  </td>
+                  <td class="text-center celda-ultima">
+                    <span *ngIf="est.estado === 'No asistió'" class="valor-ultima"
+                      [class.valor-nunca]="est.ultima_asistencia === 'Nunca'"
+                      [class.valor-ayer]="est.ultima_asistencia === 'Ayer'">
+                      {{ est.ultima_asistencia }}
+                    </span>
+                    <span *ngIf="est.estado !== 'No asistió'" class="text-muted">—</span>
+                  </td>
+                  <td class="text-center celda-dias">
+                    <span *ngIf="est.estado === 'No asistió' && est.dias_habiles_ausente !== null" class="tag-dias"
+                      [class.tag-dias-alto]="est.dias_habiles_ausente >= 3"
+                      [class.tag-dias-medio]="est.dias_habiles_ausente === 2"
+                      [class.tag-dias-bajo]="est.dias_habiles_ausente <= 1">
+                      {{ est.dias_habiles_ausente }}
+                    </span>
+                    <span *ngIf="est.estado !== 'No asistió' || est.dias_habiles_ausente === null" class="text-muted">—</span>
+                  </td>
+                  <td class="text-center celda-recordatorio">
+                    <ng-container *ngIf="est.recordatorio; else sinRecAsis">
+                      <div class="recordatorio-fecha">{{ est.recordatorio.fecha_envio | date:'dd/MM/yyyy' }}</div>
+                      <span class="recordatorio-tipo-tag"
+                        [class.rec-tipo-alto]="est.recordatorio.tipo === 'riesgo_alto'"
+                        [class.rec-tipo-medio]="est.recordatorio.tipo === 'riesgo_medio'"
+                        [class.rec-tipo-general]="est.recordatorio.tipo === 'general'">
+                        {{ est.recordatorio.tipo === 'riesgo_alto' ? 'Riesgo alto'
+                           : est.recordatorio.tipo === 'riesgo_medio' ? 'Riesgo medio'
+                           : 'General' }}
+                      </span>
+                    </ng-container>
+                    <ng-template #sinRecAsis>
+                      <span class="text-muted">—</span>
+                    </ng-template>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- VISTA: DETALLE COLABORADORES -->
+  <!-- ============================================ -->
+  <div *ngIf="vista === 'colaboradores'" class="detalle-contenedor">
+    <div class="detalle-header">
+      <button class="btn-volver" (click)="volverAKpis()">
+        <i class="fas fa-arrow-left"></i> Volver
+      </button>
+      <div class="detalle-titulo">
+        <h4 class="mb-0">
+          <span class="me-2">👥</span>Detalle de colaboradores
+        </h4>
+        <small class="text-muted">{{ detalleColaboradores.total }} colaborador(es) para {{ detalleColaboradores.fecha }}</small>
+      </div>
+      <div class="detalle-spacer"></div>
+    </div>
+
+    <div class="resumen-colab" *ngIf="!cargandoDetalleColaboradores && colaboradoresOrdenados.length > 0">
+      <span class="mini-badge mini-presente" *ngIf="resumenColaboradores.en_jornada > 0">
+        🟢 {{ resumenColaboradores.en_jornada }} en jornada
+      </span>
+      <span class="mini-badge mini-descanso" *ngIf="resumenColaboradores.en_descanso > 0">
+        ☕ {{ resumenColaboradores.en_descanso }} en descanso
+      </span>
+      <span class="mini-badge mini-salio" *ngIf="resumenColaboradores.salieron > 0">
+        🏁 {{ resumenColaboradores.salieron }} salieron
+      </span>
+      <span class="mini-badge mini-ausente" *ngIf="resumenColaboradores.no_marcaron > 0">
+        ⚠️ {{ resumenColaboradores.no_marcaron }} no marcaron
+      </span>
+    </div>
+
+    <div *ngIf="cargandoDetalleColaboradores" class="text-center p-4">
+      <div class="spinner-border text-warning" role="status"></div>
+      <div class="mt-2">Cargando...</div>
+    </div>
+
+    <div *ngIf="!cargandoDetalleColaboradores && colaboradoresOrdenados.length === 0" class="sin-datos">
+      <em>No hay colaboradores activos registrados.</em>
+    </div>
+
+    <div *ngIf="!cargandoDetalleColaboradores && colaboradoresOrdenados.length > 0" class="tabla-wrap mt-2">
+      <table class="tabla-estudiantes tabla-colaboradores">
+        <thead style="--color-grupo: #17a2b8;">
+          <tr>
+            <th class="th-ordenable" (click)="ordenarColab('nombre_completo')">
+              Colaborador <i class="fas ms-1" [ngClass]="iconoOrdenColab('nombre_completo')"></i>
+            </th>
+            <th class="th-ordenable" (click)="ordenarColab('nombre_cargo')">
+              Cargo <i class="fas ms-1" [ngClass]="iconoOrdenColab('nombre_cargo')"></i>
+            </th>
+            <th class="text-center th-ordenable" (click)="ordenarColab('hora_entrada')">
+              Entrada <i class="fas ms-1" [ngClass]="iconoOrdenColab('hora_entrada')"></i>
+            </th>
+            <th class="text-center th-ordenable" (click)="ordenarColab('hora_inicio_descanso')">
+              Inicio descanso <i class="fas ms-1" [ngClass]="iconoOrdenColab('hora_inicio_descanso')"></i>
+            </th>
+            <th class="text-center th-ordenable" (click)="ordenarColab('hora_fin_descanso')">
+              Fin descanso <i class="fas ms-1" [ngClass]="iconoOrdenColab('hora_fin_descanso')"></i>
+            </th>
+            <th class="text-center th-ordenable" (click)="ordenarColab('hora_salida')">
+              Salida <i class="fas ms-1" [ngClass]="iconoOrdenColab('hora_salida')"></i>
+            </th>
+            <th class="text-center th-ordenable" (click)="ordenarColab('estado')">
+              Estado <i class="fas ms-1" [ngClass]="iconoOrdenColab('estado')"></i>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let col of colaboradoresOrdenados"
+            [class.fila-ausente]="col.estado === 'No marcó'">
+            <td>{{ col.nombre_completo }}</td>
+            <td>{{ col.nombre_cargo }}</td>
+            <td class="text-center hora">
+              <span>{{ col.hora_entrada || '—' }}</span>
+              <span class="tag-tarde" *ngIf="col.entrada_tarde === 1" title="Registró entrada tarde">Tarde</span>
+            </td>
+            <td class="text-center hora">{{ col.hora_inicio_descanso || '—' }}</td>
+            <td class="text-center hora">{{ col.hora_fin_descanso || '—' }}</td>
+            <td class="text-center hora">{{ col.hora_salida || '—' }}</td>
+            <td class="text-center">
+              <span class="badge-estado"
+                [class.badge-en-jornada]="col.estado === 'En jornada'"
+                [class.badge-marco-entrada]="col.estado === 'Marcó entrada'"
+                [class.badge-en-descanso]="col.estado === 'En descanso'"
+                [class.badge-salio]="col.estado === 'Salió'"
+                [class.badge-ausente]="col.estado === 'No marcó'">
+                {{ col.estado }}
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- VISTA: DETALLE ALIMENTACIÓN -->
+  <!-- ============================================ -->
+  <div *ngIf="vista === 'alimentacion'" class="detalle-contenedor">
+    <div class="detalle-header">
+      <button class="btn-volver" (click)="volverAKpis()">
+        <i class="fas fa-arrow-left"></i> Volver
+      </button>
+      <div class="detalle-titulo">
+        <h4 class="mb-0">
+          <span class="me-2">🍽️</span>Detalle de alimentación
+        </h4>
+        <small class="text-muted">
+          {{ resumenProductos.length }} producto(s) ·
+          <strong>{{ resumen.asistencia.total_activos }}</strong> activos ·
+          <strong>{{ resumen.asistencia.total_asistieron }}</strong> asistieron ·
+          {{ fecha }}
+        </small>
+      </div>
+      <div class="detalle-spacer"></div>
+    </div>
+
+    <div *ngIf="cargandoDetalleAlimentacion" class="text-center p-4">
+      <div class="spinner-border text-warning" role="status"></div>
+      <div class="mt-2">Cargando...</div>
+    </div>
+
+    <div *ngIf="!cargandoDetalleAlimentacion && resumenProductos.length === 0" class="sin-datos">
+      <em>No se encontraron registros de alimentación para esta fecha.</em>
+    </div>
+
+    <div *ngIf="!cargandoDetalleAlimentacion && resumenProductos.length > 0" class="tabla-wrap mt-2">
+      <table class="tabla-estudiantes tabla-alimentacion">
+        <thead style="--color-grupo: #ff9800;">
+          <tr>
+            <th class="th-ordenable" (click)="ordenarAlim('nombre_producto')">
+              Producto <i class="fas ms-1" [ngClass]="iconoOrdenAlim('nombre_producto')"></i>
+            </th>
+            <th class="th-ordenable" (click)="ordenarAlim('detalle_producto')">
+              Descripción <i class="fas ms-1" [ngClass]="iconoOrdenAlim('detalle_producto')"></i>
+            </th>
+            <th class="text-center th-ordenable" (click)="ordenarAlim('cantidad_presentes')">
+              Total <i class="fas ms-1" [ngClass]="iconoOrdenAlim('cantidad_presentes')"></i>
+            </th>
+            <th class="text-center th-ordenable" (click)="ordenarAlim('porcentaje_vs_activos')"
+                title="Porcentaje del total de estudiantes activos del jardín">
+              % vs Activos <i class="fas ms-1" [ngClass]="iconoOrdenAlim('porcentaje_vs_activos')"></i>
+            </th>
+            <th class="text-center th-ordenable" (click)="ordenarAlim('porcentaje_vs_asistieron')"
+                title="Porcentaje de los estudiantes que asistieron hoy">
+              % vs Asistieron <i class="fas ms-1" [ngClass]="iconoOrdenAlim('porcentaje_vs_asistieron')"></i>
+            </th>
+            <th class="text-center th-ordenable" *ngIf="hayAusentesAlim()" (click)="ordenarAlim('cantidad_ausentes')"
+                title="Solo aplica a productos mensuales contratados">
+              Ausentes <i class="fas ms-1" [ngClass]="iconoOrdenAlim('cantidad_ausentes')"></i>
+            </th>
+            <th class="text-center">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <ng-container *ngFor="let prod of resumenProductos">
+            <tr [class.fila-expandida]="productoEstaExpandido(prod.nombre_producto)">
+              <td class="fw-semibold">
+                {{ prod.nombre_producto }}
+                <span class="tag-mensual" *ngIf="prod.es_mensual" title="Producto contratado mensualmente">Mensual</span>
+              </td>
+              <td class="text-muted descripcion-producto">{{ prod.detalle_producto || 'Sin descripción' }}</td>
+              <td class="text-center">
+                <span class="badge-estado badge-presente">{{ prod.cantidad_presentes }}</span>
+              </td>
+              <td class="text-center">
+                <span class="badge-pct"
+                      *ngIf="resumen.asistencia.total_activos > 0"
+                      [class.pct-alto]="prod.porcentaje_vs_activos >= 50"
+                      [class.pct-medio]="prod.porcentaje_vs_activos >= 20 && prod.porcentaje_vs_activos < 50"
+                      [class.pct-bajo]="prod.porcentaje_vs_activos < 20">
+                  {{ prod.porcentaje_vs_activos.toFixed(1) }}%
+                </span>
+                <span *ngIf="resumen.asistencia.total_activos === 0" class="text-muted">—</span>
+              </td>
+              <td class="text-center">
+                <span class="badge-pct badge-pct-neutro"
+                      *ngIf="resumen.asistencia.total_asistieron > 0">
+                  {{ prod.porcentaje_vs_asistieron.toFixed(1) }}%
+                </span>
+                <span *ngIf="resumen.asistencia.total_asistieron === 0" class="text-muted">—</span>
+              </td>
+              <td class="text-center" *ngIf="hayAusentesAlim()">
+                <span class="badge-estado badge-ausente" *ngIf="prod.cantidad_ausentes > 0">{{ prod.cantidad_ausentes }}</span>
+                <span *ngIf="prod.cantidad_ausentes === 0" class="text-muted">—</span>
+              </td>
+              <td class="text-center">
+                <button class="btn btn-sm"
+                        [ngClass]="productoEstaExpandido(prod.nombre_producto) ? 'btn-warning' : 'btn-outline-warning'"
+                        (click)="toggleProductoExpandido(prod.nombre_producto)">
+                  <i class="fas" [ngClass]="productoEstaExpandido(prod.nombre_producto) ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+                  {{ productoEstaExpandido(prod.nombre_producto) ? 'Ocultar' : 'Ver' }}
+                </button>
+              </td>
+            </tr>
+            <tr class="fila-detalle" *ngIf="productoEstaExpandido(prod.nombre_producto)">
+              <td [attr.colspan]="hayAusentesAlim() ? 7 : 6">
+                <div class="detalle-producto-wrap">
+                  <div class="detalle-producto-header">
+                    <strong>Estudiantes ({{ prod.registros_detalle.length }})</strong>
+                  </div>
+                  <table class="tabla-estudiantes tabla-anidada">
+                    <thead>
+                      <tr>
+                        <th>#</th>
+                        <th>Estudiante</th>
+                        <th>Grupo</th>
+                        <th>Horario</th>
+                        <th class="text-center">Ingreso</th>
+                        <th class="text-center">Salida</th>
+                        <th class="text-center">Estado</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let r of prod.registros_detalle; let i = index"
+                          [class.fila-ausente]="r.estado_alim === 'ausente'"
+                          [class.fila-salio]="r.estado_alim === 'salio'">
+                        <td>{{ i + 1 }}</td>
+                        <td>{{ r.nombre_estudiante }}</td>
+                        <td>{{ r.nombre_grupo }}</td>
+                        <td>{{ r.nombre_horario }}</td>
+                        <td class="text-center hora">{{ r.hora_ingreso || '—' }}</td>
+                        <td class="text-center hora">{{ r.hora_salida || '—' }}</td>
+                        <td class="text-center">
+                          <span class="badge-estado"
+                            [class.badge-presente]="r.estado_alim === 'asistio'"
+                            [class.badge-salio]="r.estado_alim === 'salio'"
+                            [class.badge-ausente]="r.estado_alim === 'ausente'">
+                            {{ r.estado_alim === 'asistio' ? 'Asistió'
+                                : r.estado_alim === 'salio' ? 'Salió'
+                                : 'Ausente' }}
+                          </span>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </td>
+            </tr>
+          </ng-container>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>

@@ -1,0 +1,27 @@
+.total-box {
+  text-align: center;
+  padding: 10px;
+
+  h6 { font-size: 0.85rem; }
+
+  .total-value {
+    font-size: 1.3rem;
+    margin-bottom: 0;
+  }
+}
+
+.estado-box {
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+
+  &.estado-pendiente {
+    background-color: #fff8e1;
+    border-color: #ffe082;
+  }
+
+  &.estado-asociado {
+    background-color: #e8f5e9;
+    border-color: #a5d6a7;
+  }
+}

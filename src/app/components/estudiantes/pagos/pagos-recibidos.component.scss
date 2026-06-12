@@ -1,0 +1,48 @@
+.tabla-container {
+    max-width: 100%;
+    /* Asegura que el contenedor tenga el mismo ancho que la tabla */
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 0;
+    padding-right: 0;
+  }
+  
+  .total-box {
+    padding: 15px;
+    border-radius: 5px;
+    background-color: #f8f9fa;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    height: 100%;
+  }
+  
+  .total-value {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-top: 10px;
+    margin-bottom: 0;
+  }
+  
+  .text-success {
+    color: #28a745 !important;
+  }
+  
+  .text-danger {
+    color: #dc3545 !important;
+  }
+  
+  .card-header.bg-info {
+    background-color: #4a91c9 !important; /* Azul pastel */
+  }
+  
+  /* Asegúrate de que el contenedor del resumen se alinee con el componente de tablas */
+  .card {
+    width: 100%;
+    margin-top: 0;
+  }
+  
+  /* Añade estilos responsivos */
+  @media (max-width: 768px) {
+    .total-value {
+      font-size: 1.2rem;
+    }
+  }

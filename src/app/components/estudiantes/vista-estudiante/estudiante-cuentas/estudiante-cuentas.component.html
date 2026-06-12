@@ -1,0 +1,651 @@
+<div class="panel panel-primary mb-4">
+    <div class="panel-heading d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">
+            <i class="fas fa-file-invoice-dollar me-2"></i> Estado de Cuenta
+        </h5>
+        <div class="actions-buttons">
+            <button class="btn-whatsapp me-2" (click)="compartirPorWhatsApp()">
+                <i class="fab fa-whatsapp me-1"></i> <span class="btn-text">Compartir por WhatsApp</span>
+            </button>
+            <button class="btn-export" (click)="exportarPDF()">
+                <i class="fas fa-file-pdf me-1"></i>
+                <span class="btn-text">
+                    {{ registrosSeleccionados.size > 0 ? 'Exportar selección (' + registrosSeleccionados.size + ')' : 'Exportar a PDF' }}
+                </span>
+            </button>
+        </div>
+    </div>
+</div>
+<div class="panel-body">
+    <div class="resumen-financiero">
+        <div class="dashboard-header">
+            <h4><i class="fas fa-chart-pie me-2"></i> Resumen Financiero</h4>
+            <div class="estado-general" [class.positivo]="totalSaldo <= 0" [class.negativo]="totalSaldo > 0">
+                <span>Estado: </span>
+                <strong *ngIf="totalSaldo <= 0">Al día</strong>
+                <strong *ngIf="totalSaldo > 0">Con saldo pendiente</strong>
+            </div>
+        </div>
+        <div class="tarjetas-container">
+            <div class="tarjeta normal">
+                <div class="tarjeta-contenido">
+                    <div class="tarjeta-icon">
+                        <i class="fas fa-file-invoice-dollar" style="color: #17a2b8;"></i>
+                    </div>
+                    <div class="tarjeta-info">
+                        <h3 class="tarjeta-titulo">Valor Total Cobrado</h3>
+                        <div class="tarjeta-doble-valor">
+                            <div class="valor-principal">
+                                <span class="valor-label-inline">Año {{ anioAcademico }}:</span>
+                                <span class="valor-monto-inline destacado">{{ totalValorCobradoAnio | currency:'COP':'symbol':'1.0-0' }}</span>
+                            </div>
+                            <div class="valor-secundario">
+                                <span class="valor-label-inline">Histórico:</span>
+                                <span class="valor-monto-inline">{{ totalValorCobrado | currency:'COP':'symbol':'1.0-0' }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tarjeta-footer">
+                    <small>Monto total facturado al estudiante</small>
+                </div>
+            </div>
+            <div class="tarjeta" [class.alerta]="totalSaldo > 0">
+                <div class="tarjeta-contenido">
+                    <div class="tarjeta-icon">
+                        <i class="fas" [class.fa-check-circle]="totalSaldo <= 0"
+                            [class.fa-exclamation-circle]="totalSaldo > 0"
+                            [style.color]="totalSaldo > 0 ? '#ffc107' : '#28a745'"></i>
+                    </div>
+                    <div class="tarjeta-info">
+                        <h3 class="tarjeta-titulo">Saldo Pendiente</h3>
+                        <p class="tarjeta-valor">{{ totalSaldo | currency:'COP':'symbol':'1.0-0' }}</p>
+                    </div>
+                </div>
+                <div class="tarjeta-footer" *ngIf="totalSaldo > 0">
+                    <small>Requiere atención</small>
+                </div>
+            </div>
+            <div class="tarjeta positivo">
+                <div class="tarjeta-contenido">
+                    <div class="tarjeta-icon">
+                        <i class="fas fa-money-bill-wave" style="color: #28a745;"></i>
+                    </div>
+                    <div class="tarjeta-info">
+                        <h3 class="tarjeta-titulo">Valor Pagado Total</h3>
+                        <p class="tarjeta-valor">{{ totalValorPagado | currency:'COP':'symbol':'1.0-0' }}</p>
+                    </div>
+                </div>
+                <div class="tarjeta-footer">
+                    <small>Total acumulado a la fecha</small>
+                </div>
+            </div>
+            <div class="tarjeta" [class.alerta-critica]="totalSaldoVencido > 0">
+                <div class="tarjeta-contenido">
+                    <div class="tarjeta-icon">
+                        <i class="fas" [class.fa-check-circle]="totalSaldoVencido <= 0"
+                            [class.fa-exclamation-triangle]="totalSaldoVencido > 0"
+                            [style.color]="totalSaldoVencido > 0 ? '#dc3545' : '#28a745'"></i>
+                    </div>
+                    <div class="tarjeta-info">
+                        <h3 class="tarjeta-titulo">Saldo Vencido</h3>
+                        <p class="tarjeta-valor">{{ totalSaldoVencido | currency:'COP':'symbol':'1.0-0' }}</p>
+                    </div>
+                </div>
+                <div class="tarjeta-footer" *ngIf="totalSaldoVencido > 0">
+                    <small>¡Pago urgente requerido!</small>
+                </div>
+            </div>
+            <div class="tarjeta" [class.normal]="!tienePendientePorAplicar()" [class.alerta]="tienePendientePorAplicar()">
+                <div class="tarjeta-contenido">
+                    <div class="tarjeta-icon">
+                        <i class="fas fa-hand-holding-usd" [style.color]="tienePendientePorAplicar() ? '#ffc107' : '#6c757d'"></i>
+                    </div>
+                    <div class="tarjeta-info">
+                        <h3 class="tarjeta-titulo">Sin por Aplicar</h3>
+                        <p class="tarjeta-valor">{{ obtenerPendientePorAplicar() | currency:'COP':'symbol':'1.0-0' }}</p>
+                    </div>
+                </div>
+                <div class="tarjeta-footer">
+                    <small>{{ obtenerMensajePendientePorAplicar() }}</small>
+                </div>
+            </div>
+            <div class="tarjeta positivo">
+                <div class="tarjeta-contenido">
+                    <div class="tarjeta-icon">
+                        <i class="fas fa-calendar-check" style="color: #28a745;"></i>
+                    </div>
+                    <div class="tarjeta-info">
+                        <h3 class="tarjeta-titulo">Último Pago</h3>
+                        <p class="tarjeta-valor">{{ obtenerUltimoPago() | currency:'COP':'symbol':'1.0-0' }}</p>
+                    </div>
+                </div>
+                <div class="tarjeta-footer">
+                    <small>{{ obtenerFechaUltimoPago() }}</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="panel-control mb-4">
+        <div class="search-bar">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Buscar" [(ngModel)]="searchTerm" (input)="filtrarDatos()">
+        </div>
+        <div class="filtros-container">
+            <!-- Filtro de Estados -->
+            <div class="filtro">
+                <div class="filtro-dropdown">
+                    <button class="filtro-button" (click)="toggleFiltroEstados()" [class.active]="filtroEstados.length > 0">
+                        <span>{{ obtenerTextoFiltroEstados() }}</span>
+                        <i class="fas fa-chevron-down ms-2"></i>
+                    </button>
+                    <div class="filtro-menu" [class.show]="mostrarFiltroEstados">
+                        <div class="filtro-header">
+                            <span>Seleccionar estados</span>
+                            <button class="btn-clear" (click)="limpiarFiltroEstados(); busquedaEstados = ''">Limpiar</button>
+                        </div>
+                        <div class="filtro-search">
+                            <input type="text" placeholder="Buscar..." [(ngModel)]="busquedaEstados">
+                        </div>
+                        <div class="filtro-options">
+                            <label class="filtro-option filtro-option-all">
+                                <input type="checkbox" [checked]="todasSeleccionadasEstados()" (change)="seleccionarTodosEstadosEvent($event)">
+                                <span class="fw-bold">Seleccionar todos</span>
+                                <span class="badge bg-secondary ms-1">{{ opcionesEstados.length }}</span>
+                            </label>
+                            <div class="filtro-separator"></div>
+                            <label *ngFor="let opcion of obtenerOpcionesEstadosFiltradas()" class="filtro-option">
+                                <input type="checkbox" [checked]="estaSeleccionado(filtroEstados, opcion.valor)" (change)="toggleEstado(opcion.valor)">
+                                <span>{{ opcion.texto }}</span>
+                            </label>
+                        </div>
+                        <div class="filtro-footer">
+                            <button class="btn-secondary" (click)="mostrarFiltroEstados = false">Cerrar</button>
+                            <button class="btn-primary" (click)="mostrarFiltroEstados = false">Aplicar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Filtro de Categorías -->
+            <div class="filtro">
+                <div class="filtro-dropdown">
+                    <button class="filtro-button" (click)="toggleFiltroCategorias()" [class.active]="filtroCategorias.length > 0">
+                        <span>{{ obtenerTextoFiltroCategorias() }}</span>
+                        <i class="fas fa-chevron-down ms-2"></i>
+                    </button>
+                    <div class="filtro-menu" [class.show]="mostrarFiltroCategorias">
+                        <div class="filtro-header">
+                            <span>Seleccionar categorías</span>
+                            <button class="btn-clear" (click)="limpiarFiltroCategorias(); busquedaCategorias = ''">Limpiar</button>
+                        </div>
+                        <div class="filtro-search">
+                            <input type="text" placeholder="Buscar..." [(ngModel)]="busquedaCategorias">
+                        </div>
+                        <div class="filtro-options">
+                            <label class="filtro-option filtro-option-all">
+                                <input type="checkbox" [checked]="todasSeleccionadasCategorias()" (change)="seleccionarTodasCategoriasEvent($event)">
+                                <span class="fw-bold">Seleccionar todas</span>
+                                <span class="badge bg-secondary ms-1">{{ opcionesCategorias.length }}</span>
+                            </label>
+                            <div class="filtro-separator"></div>
+                            <label *ngFor="let categoria of obtenerOpcionesCategoriasFiltradas()" class="filtro-option">
+                                <input type="checkbox" [checked]="estaSeleccionado(filtroCategorias, categoria)" (change)="toggleCategoria(categoria)">
+                                <span class="categoria-dot" [style.background-color]="obtenerColorCategoria(categoria)"></span>
+                                <span>{{ categoria }}</span>
+                            </label>
+                        </div>
+                        <div class="filtro-footer">
+                            <button class="btn-secondary" (click)="mostrarFiltroCategorias = false">Cerrar</button>
+                            <button class="btn-primary" (click)="mostrarFiltroCategorias = false">Aplicar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Filtro de Fechas -->
+            <div class="filtro">
+                <div class="filtro-dropdown">
+                    <button class="filtro-button" (click)="toggleFiltroFechas()" [class.active]="filtroFechas.length > 0">
+                        <span>{{ obtenerTextoFiltroFechas() }}</span>
+                        <i class="fas fa-chevron-down ms-2"></i>
+                    </button>
+                    <div class="filtro-menu" [class.show]="mostrarFiltroFechas">
+                        <div class="filtro-header">
+                            <span>Seleccionar fechas</span>
+                            <button class="btn-clear" (click)="limpiarFiltroFechas(); busquedaFechas = ''">Limpiar</button>
+                        </div>
+                        <div class="filtro-search">
+                            <input type="text" placeholder="Buscar..." [(ngModel)]="busquedaFechas">
+                        </div>
+                        <div class="filtro-options">
+                            <label class="filtro-option filtro-option-all">
+                                <input type="checkbox" [checked]="todasSeleccionadasFechas()" (change)="seleccionarTodasFechasEvent($event)">
+                                <span class="fw-bold">Seleccionar todas</span>
+                                <span class="badge bg-secondary ms-1">{{ opcionesFechas.length }}</span>
+                            </label>
+                            <div class="filtro-separator"></div>
+                            <label *ngFor="let fecha of obtenerOpcionesFechasFiltradas()" class="filtro-option">
+                                <input type="checkbox" [checked]="estaSeleccionado(filtroFechas, fecha)" (change)="toggleFecha(fecha)">
+                                <span><i class="far fa-calendar-alt me-1"></i> {{ fecha }}</span>
+                            </label>
+                        </div>
+                        <div class="filtro-footer">
+                            <button class="btn-secondary" (click)="mostrarFiltroFechas = false">Cerrar</button>
+                            <button class="btn-primary" (click)="mostrarFiltroFechas = false">Aplicar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Filtro de Productos -->
+            <div class="filtro">
+                <div class="filtro-dropdown">
+                    <button class="filtro-button" (click)="toggleFiltroProductos()" [class.active]="filtroProductos.length > 0">
+                        <span>{{ obtenerTextoFiltroProductos() }}</span>
+                        <i class="fas fa-chevron-down ms-2"></i>
+                    </button>
+                    <div class="filtro-menu" [class.show]="mostrarFiltroProductos">
+                        <div class="filtro-header">
+                            <span>Seleccionar productos</span>
+                            <button class="btn-clear" (click)="limpiarFiltroProductos(); busquedaProductos = ''">Limpiar</button>
+                        </div>
+                        <div class="filtro-search">
+                            <input type="text" placeholder="Buscar producto..." [(ngModel)]="busquedaProductos">
+                        </div>
+                        <div class="filtro-options">
+                            <label class="filtro-option filtro-option-all">
+                                <input type="checkbox" [checked]="todasSeleccionadasProductos()" (change)="seleccionarTodosProductosEvent($event)">
+                                <span class="fw-bold">Seleccionar todos</span>
+                                <span class="badge bg-secondary ms-1">{{ opcionesProductos.length }}</span>
+                            </label>
+                            <div class="filtro-separator"></div>
+                            <label *ngFor="let producto of obtenerOpcionesProductosFiltradas()" class="filtro-option">
+                                <input type="checkbox" [checked]="estaSeleccionado(filtroProductos, producto)" (change)="toggleProducto(producto)">
+                                <span><i class="fas fa-box me-1"></i> {{ producto }}</span>
+                            </label>
+                        </div>
+                        <div class="filtro-footer">
+                            <button class="btn-secondary" (click)="mostrarFiltroProductos = false">Cerrar</button>
+                            <button class="btn-primary" (click)="mostrarFiltroProductos = false">Aplicar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Barra de selección -->
+    <div class="seleccion-bar" *ngIf="registrosSeleccionados.size > 0 && tabActiva === 'movimientos'">
+        <div class="seleccion-info">
+            <i class="fas fa-check-circle"></i>
+            <span>{{ registrosSeleccionados.size }} registro(s) seleccionado(s)</span>
+        </div>
+        <div class="seleccion-totales">
+            <span>Valor: {{ calcularTotalesSeleccionados().totalValor | currency:'COP':'symbol':'1.0-0' }}</span>
+            <span class="separador">|</span>
+            <span>Pagado: {{ calcularTotalesSeleccionados().totalPagado | currency:'COP':'symbol':'1.0-0' }}</span>
+            <span class="separador">|</span>
+            <span class="saldo-seleccion">Saldo: {{ calcularTotalesSeleccionados().totalSaldo | currency:'COP':'symbol':'1.0-0' }}</span>
+        </div>
+        <button class="btn-limpiar-seleccion" (click)="limpiarSeleccion()">
+            <i class="fas fa-times me-1"></i> Limpiar
+        </button>
+    </div>
+    <div class="nav-tabs-custom mb-4">
+        <div class="tab" [class.active]="tabActiva === 'movimientos'" (click)="cambiarTab('movimientos')">
+            <i class="fas fa-list-ul me-2"></i> <span class="tab-text">Movimientos financieros</span>
+        </div>
+        <div class="tab" [class.active]="tabActiva === 'pagos'" (click)="cambiarTab('pagos')">
+            <i class="fas fa-money-bill-wave me-2"></i> <span class="tab-text">Historial de pagos</span>
+        </div>
+    </div>
+    <div class="sub-tabs-container" *ngIf="tabActiva === 'movimientos'">
+        <div class="sub-tabs">
+            <button class="sub-tab" [class.active]="subTabMovimientos === 'actual'" (click)="cambiarSubTabMovimientos('actual')">
+                <i class="fas fa-calendar-alt me-1"></i> Año {{ anioAcademico }}
+            </button>
+            <button class="sub-tab" [class.active]="subTabMovimientos === 'historico'" (click)="cambiarSubTabMovimientos('historico')">
+                <i class="fas fa-history me-1"></i> Años anteriores
+            </button>
+        </div>
+        <span class="sub-tab-contador">
+            {{ subTabMovimientos === 'actual' ? datosAnioActual.length : datosHistoricos.length }} registros
+        </span>
+    </div>
+    <div class="sub-tabs-container" *ngIf="tabActiva === 'pagos'">
+        <div class="sub-tabs">
+            <button class="sub-tab" [class.active]="subTabPagos === 'actual'" (click)="cambiarSubTabPagos('actual')">
+                <i class="fas fa-calendar-alt me-1"></i> Año {{ anioAcademico }}
+            </button>
+            <button class="sub-tab" [class.active]="subTabPagos === 'historico'" (click)="cambiarSubTabPagos('historico')">
+                <i class="fas fa-history me-1"></i> Años anteriores
+            </button>
+        </div>
+        <span class="sub-tab-contador">
+            {{ subTabPagos === 'actual' ? pagosAnioActual.length : pagosHistoricos.length }} registros
+        </span>
+    </div>
+    <!-- Tabla movimientos DESKTOP -->
+    <div class="tabla-movimientos desktop-only" *ngIf="tabActiva === 'movimientos' && !cargandoProductos">
+        <div class="tabla-responsive">
+            <table class="tabla-moderna">
+                <thead>
+                    <tr>
+                        <th class="col-checkbox">
+                            <input type="checkbox" [checked]="seleccionarTodosMovimientos" (change)="toggleSeleccionarTodosMovimientos()" title="Seleccionar todos">
+                        </th>
+                        <th>#</th>
+                        <th>Fecha</th>
+                        <th>Concepto</th>
+                        <th>Detalle</th>
+                        <th class="text-end">Valor</th>
+                        <th class="text-end">Pagado</th>
+                        <th class="text-end">Saldo</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngIf="datosFiltrados.length === 0">
+                        <td colspan="9" class="text-center">No se encontraron registros.</td>
+                    </tr>
+                    <tr *ngFor="let item of datosFiltrados; let i = index"
+                        [class.pagado]="item.saldo <= 0"
+                        [class.vencido]="esVencido(item)"
+                        [class.fila-seleccionada]="estaRegistroSeleccionado(item)">
+                        <td class="col-checkbox">
+                            <input type="checkbox" [checked]="estaRegistroSeleccionado(item)" (change)="toggleSeleccionRegistro(item)">
+                        </td>
+                        <td>{{ i + 1 }}</td>
+                        <td>{{ item.fecha | date:'dd/MM/yyyy' }}</td>
+                        <td>
+                            <div class="concepto-info">
+                                <span class="categoria-badge" [style.background-color]="obtenerColorCategoria(item.nombre_clasificacion)">
+                                    {{ obtenerIniciales(item.nombre_clasificacion) }}
+                                </span>
+                                <span>{{ item.nombre_producto_servicio }}</span>
+                            </div>
+                        </td>
+                        <td>{{ item.detalle || 'N/A' }}</td>
+                        <td class="text-end">{{ item.valor | currency:'COP':'symbol':'1.0-0' }}</td>
+                        <td class="text-end">{{ item.valor_pagado | currency:'COP':'symbol':'1.0-0' }}</td>
+                        <td class="text-end">{{ item.saldo | currency:'COP':'symbol':'1.0-0' }}</td>
+                        <td>
+                            <span class="estado-badge" [class.pagado]="item.saldo <= 0" [class.pendiente]="item.saldo > 0 && !esVencido(item)" [class.vencido]="esVencido(item)">
+                                {{ item.saldo <= 0 ? 'Pagado' : (esVencido(item) ? 'Vencido' : 'Pendiente' ) }}
+                            </span>
+                        </td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr class="totales-row">
+                        <td></td>
+                        <td colspan="4" class="text-end fw-bold">Total:</td>
+                        <td class="text-end fw-bold">{{ calcularTotalesFiltrados().totalValor | currency:'COP':'symbol':'1.0-0' }}</td>
+                        <td class="text-end fw-bold">{{ calcularTotalesFiltrados().totalPagado | currency:'COP':'symbol':'1.0-0' }}</td>
+                        <td class="text-end fw-bold">{{ calcularTotalesFiltrados().totalSaldo | currency:'COP':'symbol':'1.0-0' }}</td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        <div class="paginacion" *ngIf="datosFiltrados.length > 0">
+            <div class="registros-por-pagina">
+                <span>Mostrar:</span>
+                <select [(ngModel)]="paginacion.itemsPorPagina" (change)="cambiarPaginacion()">
+                    <option [value]="10">10</option>
+                    <option [value]="25">25</option>
+                    <option [value]="50">50</option>
+                </select>
+            </div>
+            <div class="navegacion">
+                <button [disabled]="paginacion.paginaActual === 1" (click)="cambiarPagina(paginacion.paginaActual - 1)">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <span>Página {{ paginacion.paginaActual }} de {{ totalPaginas }}</span>
+                <button [disabled]="paginacion.paginaActual === totalPaginas" (click)="cambiarPagina(paginacion.paginaActual + 1)">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- Tarjetas movimientos MOBILE -->
+    <div class="tarjetas-movimientos mobile-only" *ngIf="tabActiva === 'movimientos' && !cargandoProductos">
+        <div *ngIf="datosFiltrados.length === 0" class="no-data-message">
+            <i class="fas fa-info-circle"></i>
+            <p>No se encontraron registros.</p>
+        </div>
+        <div class="movimiento-card" *ngFor="let item of datosFiltrados; let i = index"
+             [class.pagado-card]="item.saldo <= 0" [class.vencido-card]="esVencido(item)" [class.pendiente-card]="item.saldo > 0 && !esVencido(item)"
+             [class.card-seleccionada]="estaRegistroSeleccionado(item)">
+            <div class="card-header">
+                <div class="fecha-numero">
+                    <input type="checkbox" [checked]="estaRegistroSeleccionado(item)" (change)="toggleSeleccionRegistro(item)" class="checkbox-mobile">
+                    <span class="numero">#{{ i + 1 }}</span>
+                    <span class="fecha">{{ item.fecha | date:'dd/MM/yyyy' }}</span>
+                </div>
+                <span class="estado-badge" [class.pagado]="item.saldo <= 0" [class.pendiente]="item.saldo > 0 && !esVencido(item)" [class.vencido]="esVencido(item)">
+                    {{ item.saldo <= 0 ? 'Pagado' : (esVencido(item) ? 'Vencido' : 'Pendiente' ) }}
+                </span>
+            </div>
+            <div class="card-body">
+                <div class="concepto-section">
+                    <div class="categoria-info">
+                        <span class="categoria-badge" [style.background-color]="obtenerColorCategoria(item.nombre_clasificacion)">
+                            {{ obtenerIniciales(item.nombre_clasificacion) }}
+                        </span>
+                        <span class="categoria-nombre">{{ item.nombre_clasificacion }}</span>
+                    </div>
+                    <h6 class="concepto-titulo">{{ item.nombre_producto_servicio }}</h6>
+                    <p class="concepto-detalle" *ngIf="item.detalle">{{ item.detalle }}</p>
+                </div>
+                <div class="valores-grid">
+                    <div class="valor-item">
+                        <span class="valor-label">Valor</span>
+                        <span class="valor-monto">{{ item.valor | currency:'COP':'symbol':'1.0-0' }}</span>
+                    </div>
+                    <div class="valor-item">
+                        <span class="valor-label">Pagado</span>
+                        <span class="valor-monto">{{ item.valor_pagado | currency:'COP':'symbol':'1.0-0' }}</span>
+                    </div>
+                    <div class="valor-item saldo">
+                        <span class="valor-label">Saldo</span>
+                        <span class="valor-monto" [class.text-danger]="item.saldo > 0" [class.text-success]="item.saldo <= 0">
+                            {{ item.saldo | currency:'COP':'symbol':'1.0-0' }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="totales-movil" *ngIf="datosFiltrados.length > 0">
+            <h6>Totales</h6>
+            <div class="total-item">
+                <span>Valor Total:</span>
+                <span>{{ calcularTotalesFiltrados().totalValor | currency:'COP':'symbol':'1.0-0' }}</span>
+            </div>
+            <div class="total-item">
+                <span>Total Pagado:</span>
+                <span>{{ calcularTotalesFiltrados().totalPagado | currency:'COP':'symbol':'1.0-0' }}</span>
+            </div>
+            <div class="total-item saldo-total">
+                <span>Saldo Total:</span>
+                <span>{{ calcularTotalesFiltrados().totalSaldo | currency:'COP':'symbol':'1.0-0' }}</span>
+            </div>
+        </div>
+        <div class="paginacion" *ngIf="datosFiltrados.length > 0">
+            <div class="registros-por-pagina">
+                <span>Mostrar:</span>
+                <select [(ngModel)]="paginacion.itemsPorPagina" (change)="cambiarPaginacion()">
+                    <option [value]="10">10</option>
+                    <option [value]="25">25</option>
+                    <option [value]="50">50</option>
+                </select>
+            </div>
+            <div class="navegacion">
+                <button [disabled]="paginacion.paginaActual === 1" (click)="cambiarPagina(paginacion.paginaActual - 1)">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <span class="pagina-info">Página {{ paginacion.paginaActual }} de {{ totalPaginas }}</span>
+                <button [disabled]="paginacion.paginaActual === totalPaginas" (click)="cambiarPagina(paginacion.paginaActual + 1)">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- Tabla pagos DESKTOP -->
+    <div class="tabla-pagos desktop-only" *ngIf="tabActiva === 'pagos' && !cargandoPagos">
+        <div class="tabla-responsive">
+            <table class="tabla-moderna">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Fecha</th>
+                        <th>Acudiente</th>
+                        <th>Tipo de pago</th>
+                        <th>Referencia</th>
+                        <th class="text-end">Valor recibido</th>
+                        <th class="text-end">Aplicado</th>
+                        <th class="text-end">Saldo</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngIf="pagosFiltrados.length === 0">
+                        <td colspan="9" class="text-center">No se encontraron pagos.</td>
+                    </tr>
+                    <tr *ngFor="let pago of pagosFiltrados; let i = index" [class.anulado]="pago.estado === 'Anulado'" [class.contabilizado]="pago.estado === 'Contabilizado'">
+                        <td>{{ i + 1 }}</td>
+                        <td>{{ pago.fecha | date:'dd/MM/yyyy' }}</td>
+                        <td>{{ pago.nombre_acudiente }}</td>
+                        <td>{{ pago.tipo_pago }}</td>
+                        <td>{{ pago.referencia_bancaria || 'N/A' }}</td>
+                        <td class="text-end">{{ pago.valor_recibido | currency:'COP':'symbol':'1.0-0' }}</td>
+                        <td class="text-end">{{ pago.valor_aplicado_cuentas | currency:'COP':'symbol':'1.0-0' }}</td>
+                        <td class="text-end">{{ pago.saldo | currency:'COP':'symbol':'1.0-0' }}</td>
+                        <td>
+                            <span class="estado-badge" [class.anulado]="pago.estado === 'Anulado'" [class.contabilizado]="pago.estado === 'Contabilizado'" [class.registrado]="pago.estado === 'Registrado'">
+                                {{ pago.estado }}
+                            </span>
+                        </td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr class="totales-row">
+                        <td colspan="5" class="text-end fw-bold">Total:</td>
+                        <td class="text-end fw-bold">{{ calcularTotalesFiltrados().totalRecibido | currency:'COP':'symbol':'1.0-0' }}</td>
+                        <td class="text-end fw-bold">{{ calcularTotalesFiltrados().totalAplicado | currency:'COP':'symbol':'1.0-0' }}</td>
+                        <td class="text-end fw-bold">{{ calcularTotalesFiltrados().totalSaldo | currency:'COP':'symbol':'1.0-0' }}</td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        <div class="paginacion" *ngIf="pagosFiltrados.length > 0">
+            <div class="registros-por-pagina">
+                <span>Mostrar:</span>
+                <select [(ngModel)]="paginacionPagos.itemsPorPagina" (change)="cambiarPaginacionPagos()">
+                    <option [value]="10">10</option>
+                    <option [value]="25">25</option>
+                    <option [value]="50">50</option>
+                </select>
+            </div>
+            <div class="navegacion">
+                <button [disabled]="paginacionPagos.paginaActual === 1" (click)="cambiarPaginaPagos(paginacionPagos.paginaActual - 1)">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <span>Página {{ paginacionPagos.paginaActual }} de {{ totalPaginasPagos }}</span>
+                <button [disabled]="paginacionPagos.paginaActual === totalPaginasPagos" (click)="cambiarPaginaPagos(paginacionPagos.paginaActual + 1)">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- Tarjetas pagos MOBILE -->
+    <div class="tarjetas-pagos mobile-only" *ngIf="tabActiva === 'pagos' && !cargandoPagos">
+        <div *ngIf="pagosFiltrados.length === 0" class="no-data-message">
+            <i class="fas fa-info-circle"></i>
+            <p>No se encontraron pagos.</p>
+        </div>
+        <div class="pago-card" *ngFor="let pago of pagosFiltrados; let i = index"
+             [class.anulado-card]="pago.estado === 'Anulado'" [class.contabilizado-card]="pago.estado === 'Contabilizado'">
+            <div class="card-header">
+                <div class="fecha-numero">
+                    <span class="numero">#{{ i + 1 }}</span>
+                    <span class="fecha">{{ pago.fecha | date:'dd/MM/yyyy' }}</span>
+                </div>
+                <span class="estado-badge" [class.anulado]="pago.estado === 'Anulado'" [class.contabilizado]="pago.estado === 'Contabilizado'" [class.registrado]="pago.estado === 'Registrado'">
+                    {{ pago.estado }}
+                </span>
+            </div>
+            <div class="card-body">
+                <div class="info-pago">
+                    <div class="info-item">
+                        <i class="fas fa-user"></i>
+                        <span>{{ pago.nombre_acudiente }}</span>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-credit-card"></i>
+                        <span>{{ pago.tipo_pago }}</span>
+                    </div>
+                    <div class="info-item" *ngIf="pago.referencia_bancaria">
+                        <i class="fas fa-hashtag"></i>
+                        <span>{{ pago.referencia_bancaria }}</span>
+                    </div>
+                </div>
+                <div class="valores-grid">
+                    <div class="valor-item">
+                        <span class="valor-label">Recibido</span>
+                        <span class="valor-monto">{{ pago.valor_recibido | currency:'COP':'symbol':'1.0-0' }}</span>
+                    </div>
+                    <div class="valor-item">
+                        <span class="valor-label">Aplicado</span>
+                        <span class="valor-monto">{{ pago.valor_aplicado_cuentas | currency:'COP':'symbol':'1.0-0' }}</span>
+                    </div>
+                    <div class="valor-item saldo">
+                        <span class="valor-label">Saldo</span>
+                        <span class="valor-monto">{{ pago.saldo | currency:'COP':'symbol':'1.0-0' }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="totales-movil" *ngIf="pagosFiltrados.length > 0">
+            <h6>Totales</h6>
+            <div class="total-item">
+                <span>Total Recibido:</span>
+                <span>{{ calcularTotalesFiltrados().totalRecibido | currency:'COP':'symbol':'1.0-0' }}</span>
+            </div>
+            <div class="total-item">
+                <span>Total Aplicado:</span>
+                <span>{{ calcularTotalesFiltrados().totalAplicado | currency:'COP':'symbol':'1.0-0' }}</span>
+            </div>
+            <div class="total-item saldo-total">
+                <span>Saldo Total:</span>
+                <span>{{ calcularTotalesFiltrados().totalSaldo | currency:'COP':'symbol':'1.0-0' }}</span>
+            </div>
+        </div>
+        <div class="paginacion" *ngIf="pagosFiltrados.length > 0">
+            <div class="registros-por-pagina">
+                <span>Mostrar:</span>
+                <select [(ngModel)]="paginacionPagos.itemsPorPagina" (change)="cambiarPaginacionPagos()">
+                    <option [value]="10">10</option>
+                    <option [value]="25">25</option>
+                    <option [value]="50">50</option>
+                </select>
+            </div>
+            <div class="navegacion">
+                <button [disabled]="paginacionPagos.paginaActual === 1" (click)="cambiarPaginaPagos(paginacionPagos.paginaActual - 1)">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <span class="pagina-info">Página {{ paginacionPagos.paginaActual }} de {{ totalPaginasPagos }}</span>
+                <button [disabled]="paginacionPagos.paginaActual === totalPaginasPagos" (click)="cambiarPaginaPagos(paginacionPagos.paginaActual + 1)">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    <div *ngIf="cargandoProductos || cargandoPagos" class="loading-container">
+        <div class="spinner"></div>
+        <p>Cargando información financiera...</p>
+    </div>
+    <div class="backdrop" *ngIf="mostrarFiltroEstados || mostrarFiltroCategorias || mostrarFiltroFechas || mostrarFiltroProductos"
+        (click)="mostrarFiltroEstados = mostrarFiltroCategorias = mostrarFiltroFechas = mostrarFiltroProductos = false"></div>
+    <button class="btn-scroll-top" [class.show]="mostrarBotonArriba" (click)="scrollToTop()" title="Volver arriba">
+        <i class="fas fa-chevron-up"></i>
+    </button>
+</div>

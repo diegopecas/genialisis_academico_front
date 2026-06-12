@@ -1,0 +1,156 @@
+<div class="modulo">
+  <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [raiz]="'/'" [regresar]="'/operaciones'"></app-header>
+
+  <div class="cocina-container">
+
+    <div class="filtros-panel glass-card">
+      <div class="row align-items-end g-3">
+
+        <div class="col-md-2 col-sm-6">
+          <label class="filtro-label">
+            <i class="fas fa-calendar-alt me-2"></i>Fecha
+          </label>
+          <input type="date" class="filtro-input" [(ngModel)]="fechaSeleccionada" (change)="cambioFecha()" />
+        </div>
+
+        <div class="col-md-2 col-sm-6">
+          <label class="filtro-label">
+            <i class="fas fa-clock me-2"></i>Horario
+          </label>
+          <select class="filtro-input" [(ngModel)]="horarioSeleccionado" (change)="cambioHorario()">
+            <option value="">Todos los horarios</option>
+            <option *ngFor="let h of horarios" [value]="h.id">{{ h.nombre }}</option>
+          </select>
+        </div>
+
+        <div class="col-md-2 col-sm-6">
+          <label class="filtro-label">
+            <i class="fas fa-filter me-2"></i>Estado
+          </label>
+          <select class="filtro-input" [(ngModel)]="estadoSeleccionado" (change)="cambioEstado()">
+            <option value="">Todos</option>
+            <option value="1">Disponibles</option>
+            <option value="0">No disponibles</option>
+          </select>
+        </div>
+
+        <div class="col-md-3 col-sm-6">
+          <label class="filtro-label">
+            <i class="fas fa-search me-2"></i>Buscar
+          </label>
+          <input type="text" class="filtro-input" placeholder="Nombre o descripción..." [(ngModel)]="textoBusqueda" (input)="cambioBusqueda()" />
+        </div>
+
+        <div class="col-md-3 col-sm-6">
+          <div class="totales-inline">
+            <div class="total-badge total-si">
+              <i class="fas fa-check-circle"></i>
+              <span class="total-num">{{ totalDisponibles }}</span>
+              <span class="total-txt">disponibles</span>
+            </div>
+            <div class="total-badge total-no">
+              <i class="fas fa-times-circle"></i>
+              <span class="total-num">{{ totalNoDisponibles }}</span>
+              <span class="total-txt">no disp.</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="acciones-rapidas mt-3">
+
+        <button class="btn-accion btn-todos-si" (click)="marcarTodosDisponibles()">
+          <i class="fas fa-check-double me-1"></i>Todos disponibles
+        </button>
+
+        <button class="btn-accion btn-todos-no" (click)="marcarTodosNoDisponibles()">
+          <i class="fas fa-ban me-1"></i>Ninguno disponible
+        </button>
+
+        <button class="btn-accion btn-repetir" (click)="repetirUltimaSeleccion()">
+          <i class="fas fa-history me-1"></i>Repetir última selección
+        </button>
+
+        <div class="ultima-fecha-badge" *ngIf="ultimaFecha">
+          <i class="fas fa-calendar-check me-1"></i>
+          Última vez: <strong>{{ ultimaFecha | date:'dd/MM/yyyy' }}</strong>
+        </div>
+
+      </div>
+
+      <div class="guardar-todo-bar mt-3" *ngIf="hayPendientes || guardandoTodo">
+        <div class="pendientes-info">
+          <i class="fas fa-exclamation-circle me-1"></i>
+          <span>{{ totalPendientes }} cambio{{ totalPendientes !== 1 ? 's' : '' }} sin guardar</span>
+        </div>
+        <button class="btn-guardar-todo" (click)="guardarTodo()" [disabled]="guardandoTodo">
+          <i class="fas" [ngClass]="guardandoTodo ? 'fa-spinner fa-spin' : 'fa-save'" class="me-2"></i>
+          {{ guardandoTodo ? 'Guardando...' : 'Guardar todo' }}
+        </button>
+      </div>
+
+    </div>
+
+    <div class="estado-center" *ngIf="cargando">
+      <div class="spinner-cocina">
+        <i class="fas fa-utensils fa-spin"></i>
+      </div>
+      <p class="estado-texto">Cargando productos...</p>
+    </div>
+
+    <div class="estado-center" *ngIf="errorMensaje && !cargando">
+      <i class="fas fa-exclamation-triangle estado-icono-error"></i>
+      <p class="estado-texto">{{ errorMensaje }}</p>
+      <button class="btn-accion btn-todos-si mt-2" (click)="cargarProductos()">
+        <i class="fas fa-redo me-1"></i>Reintentar
+      </button>
+    </div>
+
+    <div class="estado-center" *ngIf="!cargando && !errorMensaje && productosFiltrados.length === 0">
+      <i class="fas fa-box-open estado-icono-vacio"></i>
+      <p class="estado-texto">No se encontraron productos.</p>
+    </div>
+
+    <div class="productos-grid" *ngIf="!cargando && !errorMensaje && productosFiltrados.length > 0">
+
+      <div
+        *ngFor="let producto of productosFiltrados; trackBy: trackById"
+        class="producto-card glass-card"
+        [class.disponible]="producto.disponible_hoy === 1"
+        [class.no-disponible]="producto.disponible_hoy === 0"
+        [class.pendiente]="producto.pendiente"
+        (click)="toggleDisponibilidad(producto)"
+      >
+        <div class="badge-ultima-vez"
+             *ngIf="producto.disponible_ultima_vez === 1 && producto.disponible_hoy === 0"
+             title="Estuvo disponible la última vez">
+          <i class="fas fa-history"></i>
+        </div>
+
+        <div class="badge-pendiente" *ngIf="producto.pendiente" title="Cambio sin guardar">
+          <i class="fas fa-dot-circle"></i>
+        </div>
+
+        <div class="producto-estado-icono">
+          <i class="fas" [ngClass]="producto.disponible_hoy === 1 ? 'fa-check-circle' : 'fa-times-circle'"></i>
+        </div>
+
+        <div class="producto-info">
+          <span class="producto-nombre">{{ producto.nombre }}</span>
+          <span class="producto-detalle" *ngIf="producto.detalles">{{ producto.detalles }}</span>
+          <span class="producto-horario" *ngIf="producto.nombre_horario_sugerido">
+            <i class="fas fa-clock me-1"></i>{{ producto.nombre_horario_sugerido }}
+          </span>
+        </div>
+
+        <div class="producto-estado-label">
+          {{ producto.disponible_hoy === 1 ? 'Disponible' : 'No disponible' }}
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+</div>

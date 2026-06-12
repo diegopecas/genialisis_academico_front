@@ -1,0 +1,255 @@
+<div class="modulo">
+    <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [raiz]="'/operaciones/evaluacion-desarrollo'"
+        [regresar]="'/operaciones/evaluacion-desarrollo'"></app-header>
+
+    <div class="container-fluid mt-4 px-3 px-md-4" *ngIf="!cargando">
+
+        <!-- Stepper -->
+        <div class="stepper-container mb-4">
+            <div class="stepper">
+                <div class="step" [class.active]="pasoActual === 0" [class.completed]="evaluacionCreada"
+                    (click)="irAPaso(0)">
+                    <div class="step-circle"><i class="fas fa-user"></i></div>
+                    <span class="step-label">Datos</span>
+                </div>
+                <div class="step" *ngFor="let area of areas; let i = index" [class.active]="pasoActual === i + 1"
+                    [class.completed]="areasGuardadas[area]"
+                    [class.en-proceso]="!areasGuardadas[area] && getItemsRespondidos(area) > 0"
+                    (click)="irAPaso(i + 1)">
+                    <div class="step-circle"><i [class]="areaIconos[area]"></i></div>
+                    <span class="step-label">{{ area }}</span>
+                    <span class="step-badge" *ngIf="evaluacionCreada && !areasGuardadas[area] && getItemsRespondidos(area) > 0">
+                        {{ getItemsRespondidos(area) }}/{{ getTotalItems(area) }}
+                    </span>
+                    <span class="step-badge guardado" *ngIf="areasGuardadas[area]">
+                        <i class="fas fa-check"></i>
+                    </span>
+                </div>
+                <div class="step" [class.active]="pasoActual === 5"
+                    [class.completed]="todasLasAreasGuardadas()"
+                    (click)="irAPaso(5)">
+                    <div class="step-circle"><i class="fas fa-chart-bar"></i></div>
+                    <span class="step-label">Resultados</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- PASO 0: DATOS DEL ESTUDIANTE -->
+        <div *ngIf="pasoActual === 0" class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <h5 class="mb-4"><i class="fas fa-user-circle me-2 text-ead3"></i>Datos del Estudiante</h5>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <label>Estudiante</label>
+                        <span class="fw-bold">{{ nombreEstudiante }}</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Fecha de Nacimiento</label>
+                        <span>{{ fechaNacimiento }}</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Edad</label>
+                        <span class="badge badge-edad">{{ getEdadTexto() }}</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Rango EAD-3</label>
+                        <span class="badge badge-rango">{{ rangoEdad?.nombre }}</span>
+                    </div>
+                </div>
+
+                <div class="alert alert-ead3 mt-4 mb-0" *ngIf="!evaluacionCreada && !modoRetomar">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Se evaluarán <strong>4 áreas</strong> del desarrollo. Puede evaluar las áreas en cualquier orden.
+                    Cada área se guarda de forma independiente.
+                </div>
+
+                <div class="text-end mt-4" *ngIf="!evaluacionCreada && !modoRetomar">
+                    <button class="btn btn-ead3 btn-lg" (click)="iniciarEvaluacion()">
+                        <i class="fas fa-play me-2"></i>Iniciar Evaluación
+                    </button>
+                </div>
+                <div class="alert alert-ead3-ok mt-4 mb-0" *ngIf="evaluacionCreada">
+                    <i class="fas fa-check-circle me-2"></i>
+                    {{ modoRetomar ? 'Evaluación cargada. Continúe donde dejó o seleccione un área del stepper.' : 'Evaluación iniciada. Seleccione un área del stepper o haga clic en un área para comenzar.' }}
+                </div>
+            </div>
+        </div>
+
+        <!-- PASOS 1-4: EVALUACIÓN POR ÁREA -->
+        <div *ngIf="pasoActual >= 1 && pasoActual <= 4" class="card shadow-sm border-0">
+            <div class="card-header bg-white border-bottom-0 pt-4 px-4">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <h5 class="mb-0">
+                        <i [class]="areaIconos[getAreaActual()] + ' me-2 text-ead3'"></i>
+                        {{ areaNombres[getAreaActual()] }}
+                    </h5>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-secondary">
+                            {{ getItemsRespondidos(getAreaActual()) }} / {{ getTotalItems(getAreaActual()) }}
+                        </span>
+                        <span *ngIf="areasGuardadas[getAreaActual()]" class="badge badge-guardada">
+                            <i class="fas fa-check me-1"></i>Guardada
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-body px-4 pb-4">
+                <div class="items-list">
+                    <div *ngFor="let item of getItemsAreaActual()" class="item-evaluacion"
+                        [class.respondido]="item.cumple !== null"
+                        [class.cumple]="item.cumple === 1"
+                        [class.no-cumple]="item.cumple === 0">
+
+                        <div class="item-numero">{{ item.numero_item }}</div>
+
+                        <div class="item-contenido">
+                            <p class="item-descripcion mb-1">{{ item.descripcion }}</p>
+                            <small class="text-muted">Rango: {{ item.nombre_rango }}</small>
+                        </div>
+
+                        <div class="item-acciones">
+                            <button class="btn btn-sm btn-instrucciones" *ngIf="item.instrucciones"
+                                (click)="verInstrucciones(item); $event.stopPropagation()">
+                                <i class="fas fa-info-circle"></i>
+                            </button>
+                            <button class="btn btn-sm" [class.btn-cumple-activo]="item.cumple === 1"
+                                [class.btn-outline-cumple]="item.cumple !== 1" (click)="marcarItem(item, 1)">
+                                <i class="fas fa-check"></i><span class="d-none d-md-inline ms-1">Cumple</span>
+                            </button>
+                            <button class="btn btn-sm" [class.btn-no-cumple-activo]="item.cumple === 0"
+                                [class.btn-outline-no-cumple]="item.cumple !== 0" (click)="marcarItem(item, 0)">
+                                <i class="fas fa-times"></i><span class="d-none d-md-inline ms-1">No cumple</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botón guardar área -->
+                <div class="text-end mt-4">
+                    <button class="btn btn-ead3" (click)="guardarArea()" [disabled]="guardandoArea || getItemsRespondidos(getAreaActual()) === 0">
+                        <span *ngIf="guardandoArea" class="spinner-border spinner-border-sm me-1"></span>
+                        <i *ngIf="!guardandoArea" class="fas fa-save me-1"></i>
+                        {{ areasGuardadas[getAreaActual()] ? 'Actualizar' : 'Guardar' }} {{ areaNombres[getAreaActual()] }}
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- PASO 5: RESULTADOS -->
+        <div *ngIf="pasoActual === 5">
+            <!-- Tarjetas de resultados -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-body p-4">
+                    <h5 class="mb-4"><i class="fas fa-chart-bar me-2"></i>Resultados de la Evaluación</h5>
+
+                    <div class="resultados-grid">
+                        <div *ngFor="let area of areas" class="resultado-area"
+                            [ngClass]="getClaseSemaforo(resultados[area])">
+                            <div class="resultado-icono"><i [class]="getIconoResultado(resultados[area])"></i></div>
+                            <h6>{{ areaNombres[area] }}</h6>
+                            
+                            <!-- Mostrar PD y PT -->
+                            <div class="resultado-puntajes">
+                                <div class="puntaje-item">
+                                    <span class="puntaje-label">PD</span>
+                                    <span class="puntaje-valor">{{ puntajesDirectos[area] }}</span>
+                                </div>
+                                <div class="puntaje-flecha" *ngIf="areasGuardadas[area]">→</div>
+                                <div class="puntaje-item" *ngIf="areasGuardadas[area]">
+                                    <span class="puntaje-label">PT</span>
+                                    <span class="puntaje-valor fw-bold">{{ puntajesTipicos[area] }}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="resultado-texto">{{ getTextoResultado(resultados[area]) }}</div>
+                            <small *ngIf="!areasGuardadas[area]" class="text-warning">
+                                <i class="fas fa-exclamation-triangle"></i> Sin guardar
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="resultado-global mt-4 p-3 text-center rounded" [ngClass]="getClaseSemaforo(resultadoGlobal)">
+                        <h5 class="mb-0">
+                            <i [class]="getIconoResultado(resultadoGlobal) + ' me-2'"></i>
+                            Resultado Global: {{ getTextoResultado(resultadoGlobal) }}
+                        </h5>
+                    </div>
+
+                    <!-- Leyenda de interpretación -->
+                    <div class="interpretacion-leyenda mt-3 p-3 bg-light rounded">
+                        <h6 class="mb-2"><i class="fas fa-info-circle me-2 text-info"></i>Interpretación según EAD-3</h6>
+                        <div class="d-flex flex-wrap gap-3 justify-content-center">
+                            <span class="badge-interpretacion verde">
+                                <i class="fas fa-check-circle"></i> Verde: Desarrollo esperado
+                            </span>
+                            <span class="badge-interpretacion amarillo">
+                                <i class="fas fa-exclamation-triangle"></i> Amarillo: Riesgo de problemas
+                            </span>
+                            <span class="badge-interpretacion rojo">
+                                <i class="fas fa-times-circle"></i> Rojo: Sospecha de problemas
+                            </span>
+                        </div>
+                        <small class="text-muted d-block mt-2 text-center">
+                            PD = Puntaje Directo (ítems aprobados) | PT = Puntaje Típico (normalizado según edad)
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gráficos -->
+            <div class="row mb-4">
+                <div class="col-md-6 mb-3 mb-md-0">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-body p-2 p-md-3">
+                            <div class="chart-container"><canvas #graficoBarras></canvas></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-body p-2 p-md-3">
+                            <div class="chart-container"><canvas #graficoRadar></canvas></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Observaciones -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-body p-4">
+                    <h5><i class="fas fa-sticky-note me-2 text-warning"></i>Observaciones</h5>
+                    <div class="editor-wrapper"><div id="editor-observaciones-eval"></div></div>
+                </div>
+            </div>
+
+            <!-- Análisis Profesional -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-body p-4">
+                    <h5><i class="fas fa-user-md me-2 text-primary"></i>Análisis Profesional <small class="text-muted">(opcional)</small></h5>
+                    <div class="mb-3">
+                        <label class="fw-bold small">Análisis:</label>
+                        <div class="editor-wrapper"><div id="editor-analisis-eval"></div></div>
+                    </div>
+                    <div>
+                        <label class="fw-bold small">Recomendaciones:</label>
+                        <div class="editor-wrapper"><div id="editor-recomendaciones-eval"></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botón finalizar -->
+            <div class="text-end mb-5">
+                <button class="btn btn-ead3 btn-lg" (click)="finalizar()">
+                    <i class="fas fa-check-double me-2"></i>Finalizar Evaluación
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading -->
+    <div *ngIf="cargando" class="text-center mt-5 pt-5">
+        <div class="spinner-border text-ead3" role="status"></div>
+        <p class="mt-3 text-muted">Cargando datos del estudiante...</p>
+    </div>
+</div>

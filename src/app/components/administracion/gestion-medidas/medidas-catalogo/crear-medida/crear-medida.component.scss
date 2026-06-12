@@ -1,0 +1,22 @@
+.modulo { min-height: 100vh; background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%); }
+.disabled-container { opacity: 0.7; pointer-events: none; }
+.form-label { font-weight: 600; color: #495057; }
+.form-label-sm { font-size: 0.8rem; }
+
+.valores-card {
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.valores-header {
+  background: #222;
+  color: white;
+  border-radius: 12px 12px 0 0;
+  border-bottom: 3px solid #d4af37;
+
+  h6 {
+    font-weight: 600;
+    i { color: #d4af37; }
+  }
+}

@@ -1,0 +1,21 @@
+.modulo {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
+}
+
+.badge-semaforo {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+
+    &.verde { background-color: #27ae60; }
+    &.amarillo { background-color: #f39c12; }
+    &.rojo { background-color: #e74c3c; }
+}
+
+.leyenda-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}

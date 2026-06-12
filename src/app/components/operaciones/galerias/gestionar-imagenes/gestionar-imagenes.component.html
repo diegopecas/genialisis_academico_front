@@ -1,0 +1,221 @@
+<div class="modulo">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="false"
+    [accion]="'gestionar'"
+    [raiz]="'/operaciones/galerias'"
+    [regresar]="regresar"
+    [iconoTitulo]="'/assets/images/galeria.png'"
+  ></app-header>
+
+  <div class="container mt-4">
+
+    <!-- Zona de upload -->
+    <div class="upload-section">
+      <h5 class="mb-3">
+        <i class="fas fa-cloud-upload-alt me-2"></i>
+        Subir Imágenes
+      </h5>
+
+      <!-- Drag & Drop Zone -->
+      <div 
+        class="drop-zone" 
+        [class.dragging]="isDragging"
+        (click)="fileInput.click()"
+        (dragover)="onDragOver($event)"
+        (dragleave)="onDragLeave($event)"
+        (drop)="onDrop($event)"
+      >
+        <input
+          #fileInput
+          type="file"
+          accept="image/*"
+          multiple
+          style="display: none"
+          (change)="onFileSelected($event)"
+        />
+        
+        <div class="drop-zone-content">
+          <i class="fas fa-images drop-icon"></i>
+          <p class="drop-text">Arrastra imágenes aquí o haz clic para seleccionar</p>
+          <p class="drop-hint">Soporta: JPG, PNG, GIF, WEBP (Máx. 10MB)</p>
+        </div>
+      </div>
+
+      <!-- Preview de imágenes a subir -->
+      <div *ngIf="imagenesPreview.length > 0" class="preview-section mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h6 class="mb-0">Imágenes a subir ({{ imagenesPreview.length }})</h6>
+          <button 
+            class="btn btn-warning"
+            (click)="subirImagenes()"
+            [disabled]="isUploading"
+          >
+            <i class="fas fa-upload me-2"></i>
+            {{ isUploading ? 'Subiendo...' : 'Subir Todas' }}
+          </button>
+        </div>
+
+        <div class="preview-grid">
+          <div 
+            *ngFor="let imagen of imagenesPreview; let i = index"
+            class="preview-item"
+            [class.uploading]="imagen.uploading"
+            [class.uploaded]="imagen.uploaded"
+            [class.error]="imagen.error"
+          >
+            <img [src]="imagen.preview" [alt]="imagen.file.name" />
+            
+            <div class="preview-overlay">
+              <div class="preview-info">
+                <span class="preview-name">{{ imagen.file.name }}</span>
+                <span class="preview-size">{{ (imagen.file.size / 1024).toFixed(2) }} KB</span>
+              </div>
+              
+              <button 
+                *ngIf="!imagen.uploading && !imagen.uploaded"
+                class="btn-delete-preview"
+                (click)="eliminarPreview(i)"
+              >
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+
+            <div *ngIf="imagen.uploading" class="upload-spinner">
+              <div class="spinner-border spinner-border-sm text-light"></div>
+            </div>
+
+            <div *ngIf="imagen.uploaded" class="upload-check">
+              <i class="fas fa-check-circle"></i>
+            </div>
+
+            <div *ngIf="imagen.error" class="upload-error">
+              <i class="fas fa-exclamation-circle"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Imágenes subidas -->
+    <div class="uploaded-section mt-5">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0">
+          <i class="fas fa-image me-2"></i>
+          Imágenes de la Galería ({{ imagenesSubidas.length }})
+        </h5>
+        
+        <!-- NUEVO: Botones de selección múltiple -->
+        <div class="selection-controls" *ngIf="imagenesSubidas.length > 0">
+          <button 
+            class="btn btn-sm me-2"
+            [class.btn-outline-primary]="!modoSeleccion"
+            [class.btn-primary]="modoSeleccion"
+            (click)="toggleModoSeleccion()"
+          >
+            <i class="fas fa-check-square me-1"></i>
+            {{ modoSeleccion ? 'Cancelar Selección' : 'Seleccionar' }}
+          </button>
+          
+          <!-- Controles visibles solo en modo selección -->
+          <ng-container *ngIf="modoSeleccion">
+            <button 
+              class="btn btn-sm btn-outline-secondary me-2"
+              (click)="toggleSeleccionarTodas()"
+            >
+              <i class="fas" [class.fa-check-double]="!todasSeleccionadas" [class.fa-times]="todasSeleccionadas"></i>
+              {{ todasSeleccionadas ? 'Deseleccionar Todas' : 'Seleccionar Todas' }}
+            </button>
+            
+            <button 
+              class="btn btn-sm btn-danger"
+              (click)="eliminarSeleccionadas()"
+              [disabled]="cantidadSeleccionadas === 0 || eliminandoMultiple"
+            >
+              <i class="fas fa-trash me-1"></i>
+              Eliminar ({{ cantidadSeleccionadas }})
+              <span *ngIf="eliminandoMultiple" class="spinner-border spinner-border-sm ms-1"></span>
+            </button>
+          </ng-container>
+        </div>
+      </div>
+
+      <div *ngIf="cargandoImagenes" class="text-center py-5">
+        <div class="spinner-border text-warning"></div>
+        <p class="mt-2">Cargando imágenes...</p>
+      </div>
+
+      <div 
+        *ngIf="!cargandoImagenes && imagenesSubidas.length === 0"
+        class="alert alert-info"
+      >
+        <i class="fas fa-info-circle me-2"></i>
+        No hay imágenes en esta galería. Sube algunas para comenzar.
+      </div>
+
+      <div *ngIf="!cargandoImagenes && imagenesSubidas.length > 0" class="images-grid">
+        <div 
+          *ngFor="let imagen of imagenesSubidas"
+          class="image-card"
+          [class.is-thumbnail]="imagen.esMiniatura"
+          [class.is-selected]="imagen.seleccionada"
+          [class.selection-mode]="modoSeleccion"
+          (click)="modoSeleccion ? toggleSeleccion(imagen) : null"
+        >
+          <!-- Badge de miniatura actual -->
+          <div class="thumbnail-badge" *ngIf="imagen.esMiniatura">
+            <i class="fas fa-star"></i>
+            Miniatura
+          </div>
+
+          <!-- NUEVO: Checkbox de selección -->
+          <div class="selection-checkbox" *ngIf="modoSeleccion">
+            <i class="fas" [class.fa-check-square]="imagen.seleccionada" [class.fa-square]="!imagen.seleccionada"></i>
+          </div>
+
+          <div class="image-wrapper">
+            <img [src]="imagen.urlThumb" [alt]="imagen.alt" loading="lazy" />
+            
+            <!-- Acciones solo visibles cuando NO está en modo selección -->
+            <div class="image-actions" *ngIf="!modoSeleccion">
+              <!-- Botón establecer como miniatura -->
+              <button 
+                class="btn-action btn-thumbnail"
+                (click)="establecerComoMiniatura(imagen)"
+                title="Usar como miniatura"
+                *ngIf="!imagen.esMiniatura"
+              >
+                <i class="fas fa-star"></i>
+              </button>
+              
+              <!-- Botón eliminar -->
+              <button 
+                class="btn-action btn-delete"
+                (click)="eliminarImagen(imagen)"
+                title="Eliminar"
+              >
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="image-info">
+            <span class="image-name">{{ imagen.alt }}</span>
+            <span class="image-orden">Orden: {{ imagen.orden }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botón volver -->
+    <div class="row mt-5">
+      <div class="col-12">
+        <button class="btn btn-lg btn-secondary w-100" (click)="volver()">
+          <i class="fas fa-arrow-left me-2"></i>
+          Volver a Galerías
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>

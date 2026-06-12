@@ -1,0 +1,1404 @@
+// ===== VARIABLES =====
+$primary-color: #ffbd31;
+$success-color: #28a745;
+$info-color: #17a2b8;
+$warning-color: #ffc107;
+$border-radius: 0.375rem;
+$box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+$box-shadow-hover: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+
+// Variables minuta
+$minuta-gold: #FFC107;
+$minuta-text-dark: #2c3e50;
+$minuta-text-light: #7f8c8d;
+$minuta-transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+$minuta-color-header: #26C6DA;
+$minuta-color-header-dark: #00ACC1;
+$minuta-color-menu-bg: rgba(255, 152, 0, 0.06);
+$minuta-color-menu-border: #FF9800;
+
+// Variables estado
+$color-presente: #28a745;
+$color-ausente: #9e9e9e;
+$color-ausente-bg: #f5f5f5;
+$color-asistencia-alta: #4caf50;
+$color-asistencia-media: #ff9800;
+$color-asistencia-baja: #f44336;
+
+// ===== MIXINS =====
+@mixin card-base {
+  border: none;
+  border-radius: $border-radius;
+  box-shadow: $box-shadow;
+  transition: all 0.3s ease;
+
+  &:hover {
+    box-shadow: $box-shadow-hover;
+    transform: translateY(-2px);
+  }
+}
+
+@mixin button-variant($bg-color, $text-color: #212529) {
+  background-color: $bg-color;
+  border-color: $bg-color;
+  color: $text-color;
+
+  &:hover {
+    background-color: darken($bg-color, 10%);
+    border-color: darken($bg-color, 10%);
+  }
+}
+
+// ===== CONTENEDOR PRINCIPAL =====
+.modulo {
+  min-height: 100vh;
+  background-color: #f8f9fa;
+
+  .container-fluid {
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+}
+
+// ===== DROPDOWN PERSONALIZADO =====
+.custom-dropdown {
+  position: relative;
+  width: 100%;
+
+  &-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    background: linear-gradient(135deg, #fff, #f8f9fa);
+    border: 2px solid #e9ecef;
+    border-radius: $border-radius;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-height: 48px;
+    gap: 8px;
+
+    &:hover {
+      border-color: $primary-color;
+      box-shadow: 0 0 0 0.1rem rgba(255, 189, 49, 0.15);
+    }
+
+    &:focus-within {
+      border-color: $primary-color;
+      box-shadow: 0 0 0 0.2rem rgba(255, 189, 49, 0.25);
+    }
+
+    .placeholder-text {
+      font-weight: 500;
+      color: #495057;
+    }
+
+    i {
+      color: $primary-color;
+      transition: transform 0.3s ease;
+    }
+
+    &.open i.fa-chevron-down {
+      transform: rotate(180deg);
+    }
+  }
+
+  &-header-content {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  &-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+
+    .clear-btn {
+      color: #adb5bd;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: color 0.2s ease;
+
+      &:hover {
+        color: #dc3545;
+      }
+    }
+  }
+
+  &-options {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    max-height: 300px;
+    overflow-y: auto;
+    margin-top: 0.25rem;
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border-radius: $border-radius;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    backdrop-filter: blur(10px);
+  }
+
+  &-search {
+    padding: 0.75rem;
+    border-bottom: 1px solid #dee2e6;
+    background: #f8f9fa;
+
+    .form-control {
+      border: 1px solid #ced4da;
+      border-radius: $border-radius;
+      padding: 0.5rem 0.75rem;
+
+      &:focus {
+        border-color: $primary-color;
+        box-shadow: 0 0 0 0.2rem rgba(255, 189, 49, 0.25);
+      }
+    }
+  }
+
+  &-option {
+    padding: 0.65rem 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+
+    &:hover {
+      background-color: rgba(255, 189, 49, 0.1);
+    }
+
+    &.selected {
+      background-color: rgba(255, 189, 49, 0.08);
+
+      .option-checkbox i {
+        color: $primary-color;
+      }
+    }
+
+    .option-checkbox {
+      flex-shrink: 0;
+      padding-top: 2px;
+
+      i {
+        font-size: 1rem;
+        color: #ced4da;
+        transition: color 0.2s ease;
+      }
+    }
+
+    .option-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .product-name {
+      font-weight: 600;
+      color: #212529;
+    }
+
+    .product-details {
+      margin-top: 0.25rem;
+      font-size: 0.85rem;
+      color: #6c757d;
+      font-style: italic;
+    }
+  }
+
+  &-no-results {
+    padding: 1rem;
+    text-align: center;
+    color: #6c757d;
+    font-style: italic;
+  }
+}
+
+// ===== CHIPS DE PRODUCTOS =====
+.chips-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  background: linear-gradient(135deg, $primary-color, darken($primary-color, 5%));
+  color: #212529;
+  border-radius: 16px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  animation: chipIn 0.2s ease-out;
+
+  .chip-remove {
+    font-size: 0.6rem;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+    padding: 2px;
+    border-radius: 50%;
+
+    &:hover {
+      opacity: 1;
+      background: rgba(0, 0, 0, 0.1);
+    }
+  }
+}
+
+@keyframes chipIn {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+// ===== CARDS GENERALES =====
+.card {
+  @include card-base;
+  margin-bottom: 1.5rem;
+
+  &-header {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+    font-weight: 600;
+    padding: 1rem 1.25rem;
+
+    &.bg-primary {
+      background: linear-gradient(135deg, $primary-color, lighten($primary-color, 10%)) !important;
+      color: #212529;
+    }
+
+    h5, h6 {
+      display: flex;
+      align-items: center;
+      margin: 0;
+
+      i {
+        opacity: 0.8;
+        margin-right: 0.5rem;
+      }
+    }
+  }
+
+  &-body {
+    padding: 1.25rem;
+
+    &.p-0 {
+      padding: 0 !important;
+    }
+  }
+}
+
+.card-totales {
+  &:hover {
+    transform: translateY(-2px);
+  }
+}
+
+// ===== BADGES ESTADO =====
+.badge-presente {
+  background-color: $color-presente;
+  color: #fff;
+  font-size: 0.85rem;
+  padding: 0.35em 0.75em;
+  border-radius: 20px;
+  font-weight: 600;
+}
+
+.badge-ausente {
+  background-color: $color-ausente;
+  color: #fff;
+  font-size: 0.85rem;
+  padding: 0.35em 0.75em;
+  border-radius: 20px;
+  font-weight: 600;
+}
+
+// ===== PROGRESS BAR ASISTENCIA =====
+.bg-asistencia-alta {
+  background-color: $color-asistencia-alta !important;
+}
+
+.bg-asistencia-media {
+  background-color: $color-asistencia-media !important;
+}
+
+.bg-asistencia-baja {
+  background-color: $color-asistencia-baja !important;
+}
+
+// ===== FILA AUSENTE =====
+.fila-ausente {
+  background-color: $color-ausente-bg !important;
+  opacity: 0.75;
+
+  td {
+    color: #757575;
+  }
+
+  &:hover {
+    background-color: darken($color-ausente-bg, 3%) !important;
+  }
+}
+
+// ===== BOTONES =====
+.btn-group .btn {
+  transition: all 0.3s ease;
+  border-radius: 0;
+
+  &:first-child {
+    border-radius: $border-radius 0 0 $border-radius;
+  }
+
+  &:last-child {
+    border-radius: 0 $border-radius $border-radius 0;
+  }
+
+  &.btn-primary {
+    @include button-variant($primary-color);
+    font-weight: 600;
+  }
+
+  &.btn-outline-primary {
+    color: $primary-color;
+    border-color: $primary-color;
+
+    &:hover {
+      @include button-variant($primary-color);
+    }
+  }
+
+  i {
+    opacity: 0.8;
+  }
+}
+
+.btn:focus {
+  box-shadow: 0 0 0 0.25rem rgba(255, 189, 49, 0.25);
+}
+
+// ===== BADGES =====
+.badge {
+  &.bg-warning {
+    background-color: $warning-color !important;
+    color: #212529 !important;
+  }
+
+  &.bg-info {
+    background-color: $info-color !important;
+    color: #ffffff !important;
+  }
+}
+
+// ===== VISTA MÓVIL PARA COCINA =====
+.mobile-kitchen-header {
+  background: linear-gradient(135deg, $primary-color, lighten($primary-color, 10%));
+  padding: 1.5rem;
+  border-radius: $border-radius;
+  color: #212529;
+  margin-bottom: 1.5rem;
+  text-align: center;
+
+  h4 {
+    margin: 0;
+    font-weight: 700;
+  }
+}
+
+.kitchen-cards .kitchen-card {
+  @include card-base;
+  background: #fff;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+
+  &-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem;
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    cursor: pointer;
+    border-bottom: 3px solid $primary-color;
+
+    .product-info {
+      flex: 1;
+
+      .product-name {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #212529;
+        margin: 0 0 0.25rem 0;
+        line-height: 1.2;
+      }
+
+      .product-description {
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin: 0;
+        font-style: italic;
+      }
+    }
+
+    .quantity-badge {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: $color-presente;
+      color: #fff;
+      padding: 0.75rem 1rem;
+      border-radius: 50px;
+      min-width: 80px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+      .quantity-number {
+        font-size: 1.5rem;
+        font-weight: 900;
+        line-height: 1;
+      }
+
+      small {
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+    }
+  }
+
+  // Indicadores móvil (ausentes + % asistencia)
+  .kitchen-card-indicators {
+    display: flex;
+    justify-content: space-around;
+    padding: 0.75rem 1rem;
+    background: #fafafa;
+    border-bottom: 1px solid #eee;
+
+    .indicator-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+
+      i {
+        color: $color-ausente;
+        font-size: 0.8rem;
+      }
+
+      .indicator-value {
+        font-weight: 700;
+        color: #424242;
+      }
+
+      .indicator-label {
+        color: #9e9e9e;
+        font-size: 0.75rem;
+      }
+    }
+  }
+
+  &-detail {
+    padding: 1.25rem;
+    background: #f8f9fa;
+
+    .detail-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid $info-color;
+
+      strong {
+        color: $info-color;
+        font-size: 1rem;
+      }
+    }
+
+    .students-list {
+      max-height: 300px;
+      overflow-y: auto;
+
+      .student-item {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem;
+        margin-bottom: 0.75rem;
+        background: #fff;
+        border-radius: $border-radius;
+        border-left: 4px solid $color-presente;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+        &.student-ausente {
+          background: $color-ausente-bg;
+          border-left-color: $color-ausente;
+          opacity: 0.75;
+        }
+
+        .student-number {
+          font-weight: 700;
+          color: $info-color;
+          min-width: 30px;
+          font-size: 0.9rem;
+        }
+
+        .student-name {
+          flex: 1;
+          font-weight: 600;
+          color: #212529;
+          margin-left: 0.5rem;
+          font-size: 1rem;
+        }
+
+        .student-group {
+          background: $success-color;
+          color: #fff;
+          padding: 0.25rem 0.5rem;
+          border-radius: 20px;
+          font-size: 0.75rem;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+
+        .student-estado {
+          margin-left: 0.5rem;
+          padding: 0.2rem 0.5rem;
+          border-radius: 12px;
+          font-size: 0.7rem;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+
+          &.estado-presente {
+            background: rgba($color-presente, 0.15);
+            color: $color-presente;
+          }
+
+          &.estado-ausente {
+            background: rgba($color-ausente, 0.15);
+            color: #616161;
+          }
+        }
+
+        &:last-child {
+          margin-bottom: 0;
+        }
+      }
+
+      &::-webkit-scrollbar { width: 6px; }
+      &::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 3px; }
+      &::-webkit-scrollbar-thumb { background: $info-color; border-radius: 3px; }
+    }
+  }
+}
+
+// ===== TABLAS =====
+.table {
+  margin-bottom: 0;
+
+  th {
+    background-color: #f8f9fa;
+    border-top: none;
+    font-weight: 600;
+    padding: 1rem;
+  }
+
+  td {
+    padding: 0.875rem 1rem;
+  }
+
+  &-hover tbody tr:hover {
+    background-color: rgba(255, 189, 49, 0.1);
+  }
+
+  &-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+// ===== ALERTS =====
+.alert {
+  border: none;
+  border-radius: $border-radius;
+  margin: 1rem 0;
+
+  &.alert-info {
+    background-color: rgba(23, 162, 184, 0.1);
+    color: $info-color;
+    border-left: 4px solid $info-color;
+  }
+}
+
+// ========================================================
+// TAB MINUTA - Estilos
+// ========================================================
+
+.minuta-tab-container {
+  animation: minutaFadeInUp 0.4s ease-out;
+}
+
+// Intro (ya no se usa, reemplazado por card hoy)
+
+// ========================================
+// MINUTA - CARD MENÚ DE HOY
+// ========================================
+.minuta-hoy-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  animation: minutaFadeInUp 0.4s ease-out;
+  margin-bottom: 20px;
+}
+
+.minuta-hoy-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  background: linear-gradient(135deg, $minuta-gold, #FFB300);
+  color: #fff;
+}
+
+.minuta-hoy-header-izq {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.minuta-hoy-icono {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
+}
+
+.minuta-hoy-header-texto {
+  display: flex;
+  flex-direction: column;
+
+  .minuta-hoy-label {
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    opacity: 0.85;
+  }
+
+  .minuta-hoy-dia {
+    font-size: 1.1rem;
+    font-weight: 700;
+  }
+}
+
+.minuta-hoy-body {
+  padding: 24px;
+}
+
+.minuta-hoy-nombre {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: $minuta-text-dark;
+  margin: 0 0 12px;
+}
+
+.minuta-hoy-descripcion {
+  font-size: 1rem;
+  color: $minuta-text-dark;
+  line-height: 1.6;
+  margin: 0;
+  padding: 16px 20px;
+  background: $minuta-color-menu-bg;
+  border-left: 4px solid $minuta-color-menu-border;
+  border-radius: 0 12px 12px 0;
+}
+
+.minuta-hoy-sin-desc {
+  font-size: 0.9rem;
+  color: $minuta-text-light;
+  font-style: italic;
+  margin: 0;
+}
+
+// Estado vacío (sin menú hoy / domingo)
+.minuta-hoy-vacia {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(15px);
+  border-radius: 20px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  margin-bottom: 20px;
+  animation: minutaFadeInUp 0.4s ease-out;
+
+  i {
+    font-size: 2.5rem;
+    color: #ccc;
+    margin-bottom: 12px;
+  }
+
+  p {
+    font-size: 1rem;
+    color: $minuta-text-light;
+    font-weight: 500;
+    margin: 0;
+  }
+}
+
+// ========================================
+// MINUTA - TOGGLE GRILLA
+// ========================================
+.minuta-toggle-grilla {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.minuta-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 28px;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(0, 0, 0, 0.08);
+  border-radius: 50px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: $minuta-text-dark;
+  cursor: pointer;
+  transition: $minuta-transition;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+
+  &:hover {
+    border-color: $minuta-color-header;
+    color: $minuta-color-header;
+    box-shadow: 0 6px 20px rgba(38, 198, 218, 0.15);
+    transform: translateY(-1px);
+  }
+
+  i {
+    font-size: 0.8rem;
+    transition: transform 0.3s ease;
+  }
+}
+
+// Wrapper con animación
+.minuta-grilla-wrapper {
+  animation: minutaSlideUp 0.35s ease-out;
+}
+
+// Estados
+.minuta-loading, .minuta-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+
+  p { color: $minuta-text-dark; font-weight: 600; }
+}
+
+.minuta-spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid rgba(38, 198, 218, 0.2);
+  border-top-color: $minuta-color-header;
+  border-radius: 50%;
+  animation: minutaSpin 1s linear infinite;
+  margin-bottom: 20px;
+}
+
+.minuta-error-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(15px);
+  border-radius: 24px;
+  padding: 50px 40px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+
+  h3 { color: $minuta-text-dark; font-weight: 700; margin: 0; }
+}
+
+// ========================================
+// MINUTA - GRILLA DESKTOP
+// ========================================
+.minuta-grid {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(18px);
+  border-radius: 24px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(255, 255, 255, 0.3) inset;
+  overflow: hidden;
+}
+
+.minuta-grid-header {
+  display: grid;
+  grid-template-columns: 100px repeat(6, 1fr);
+  background: linear-gradient(135deg, $minuta-color-header, $minuta-color-header-dark);
+  box-shadow: 0 4px 20px rgba(38, 198, 218, 0.25);
+}
+
+.minuta-header-semana {
+  padding: 16px 12px;
+  text-align: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.minuta-header-dia {
+  padding: 16px 8px;
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.minuta-grid-row {
+  display: grid;
+  grid-template-columns: 100px repeat(6, 1fr);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+
+  &:last-child { border-bottom: none; }
+}
+
+.minuta-row-semana {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  background: rgba(38, 198, 218, 0.06);
+  border-right: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.minuta-semana-num {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: $minuta-color-header;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  font-weight: 800;
+  box-shadow: 0 3px 10px rgba(38, 198, 218, 0.25);
+}
+
+// Celda de menú
+.minuta-row-celda {
+  min-height: 100px;
+  padding: 10px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: $minuta-transition;
+  background: #fff;
+  border-right: 1px solid rgba(0, 0, 0, 0.03);
+  text-align: center;
+
+  &:last-child { border-right: none; }
+
+  &.tiene-menu:hover {
+    background: rgba(38, 198, 218, 0.06);
+    z-index: 2;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  }
+
+  &.vacia {
+    cursor: default;
+    background: rgba(248, 248, 248, 0.5);
+  }
+
+  &.seleccionada {
+    background: rgba(38, 198, 218, 0.1);
+    box-shadow: inset 0 0 0 2px $minuta-color-header;
+  }
+
+  &.hoy {
+    background: rgba(255, 193, 7, 0.08);
+    box-shadow: inset 0 0 0 3px $minuta-gold;
+    position: relative;
+
+    .minuta-celda-nombre {
+      color: darken($minuta-gold, 20%);
+      font-weight: 700;
+    }
+
+    &::after {
+      content: 'HOY';
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      background: linear-gradient(135deg, $minuta-gold, #FFB300);
+      color: #fff;
+      font-size: 0.52rem;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 8px;
+      letter-spacing: 0.5px;
+      box-shadow: 0 2px 8px rgba(255, 193, 7, 0.35);
+    }
+  }
+}
+
+.minuta-celda-nombre {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: $minuta-text-dark;
+  line-height: 1.3;
+  word-break: break-word;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+
+.minuta-celda-vacia {
+  font-size: 0.9rem;
+  color: #ccc;
+}
+
+// ========================================
+// MINUTA - Panel Detalle Desktop
+// ========================================
+.minuta-detalle-menu {
+  margin-top: 24px;
+  animation: minutaSlideUp 0.35s ease-out;
+}
+
+.minuta-detalle-card {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(20px);
+  border-radius: 24px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.minuta-detalle-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  background: linear-gradient(135deg, $minuta-color-header, $minuta-color-header-dark);
+  color: #fff;
+}
+
+.minuta-detalle-info {
+  display: flex;
+  flex-direction: column;
+
+  .minuta-detalle-dia {
+    font-size: 1.3rem;
+    font-weight: 800;
+  }
+
+  .minuta-detalle-semana {
+    font-size: 0.85rem;
+    opacity: 0.85;
+    font-weight: 500;
+  }
+}
+
+.minuta-detalle-cerrar {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: #fff;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: $minuta-transition;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+
+  &:hover { background: rgba(255, 255, 255, 0.35); transform: scale(1.1); }
+}
+
+.minuta-detalle-body {
+  padding: 24px;
+}
+
+.minuta-detalle-nombre-wrap {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.minuta-detalle-icono {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}
+
+.minuta-detalle-nombre {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: $minuta-text-dark;
+  margin: 0;
+}
+
+.minuta-detalle-descripcion {
+  font-size: 1rem;
+  color: $minuta-text-dark;
+  line-height: 1.6;
+  margin: 0;
+  padding: 16px 20px;
+  background: $minuta-color-menu-bg;
+  border-left: 4px solid $minuta-color-menu-border;
+  border-radius: 0 12px 12px 0;
+}
+
+.minuta-detalle-sin-desc {
+  font-size: 0.9rem;
+  color: $minuta-text-light;
+  font-style: italic;
+  margin: 0;
+}
+
+// ========================================
+// MINUTA - VISTA MÓVIL
+// ========================================
+.minuta-vista-mobile {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+// Banner HOY móvil
+.minuta-mobile-banner-hoy {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, $minuta-gold, #FFB300);
+  border-radius: 20px;
+  box-shadow: 0 8px 30px rgba(255, 193, 7, 0.3);
+  cursor: pointer;
+  transition: $minuta-transition;
+  animation: minutaFadeInUp 0.4s ease-out;
+
+  &:active { transform: scale(0.97); }
+}
+
+.minuta-banner-hoy-izq {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex-shrink: 0;
+
+  .minuta-banner-hoy-label {
+    font-size: 0.65rem;
+    font-weight: 800;
+    color: rgba(255, 255, 255, 0.8);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+  }
+
+  .minuta-banner-hoy-dia {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #fff;
+  }
+}
+
+.minuta-banner-hoy-der {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+  min-width: 0;
+
+  .minuta-banner-hoy-menu {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #fff;
+    text-align: right;
+    word-break: break-word;
+    line-height: 1.3;
+  }
+
+  .minuta-banner-hoy-tap {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.75);
+
+    i { margin-left: 4px; }
+  }
+}
+
+// Semana móvil
+.minuta-mobile-semana {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(18px);
+  border-radius: 20px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  animation: minutaFadeInUp 0.4s ease-out;
+}
+
+.minuta-mobile-semana-header {
+  padding: 14px 20px;
+  background: linear-gradient(135deg, $minuta-color-header, $minuta-color-header-dark);
+
+  .minuta-mobile-semana-num {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 0.5px;
+  }
+}
+
+// Día móvil
+.minuta-mobile-dia-card {
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+  transition: $minuta-transition;
+
+  &:last-child { border-bottom: none; }
+
+  &.vacia { opacity: 0.5; }
+
+  &.hoy {
+    background: rgba(255, 193, 7, 0.06);
+    border-left: 4px solid $minuta-gold;
+
+    .minuta-mobile-dia-badge {
+      background: linear-gradient(135deg, $minuta-gold, #FFB300);
+      box-shadow: 0 3px 10px rgba(255, 193, 7, 0.35);
+    }
+
+    .minuta-mobile-dia-nombre-dia {
+      color: darken($minuta-gold, 20%);
+
+      &::after {
+        content: ' — Hoy';
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: $minuta-gold;
+      }
+    }
+  }
+}
+
+.minuta-mobile-dia-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.minuta-mobile-dia-badge {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: $minuta-color-header;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  box-shadow: 0 3px 10px rgba(38, 198, 218, 0.2);
+  flex-shrink: 0;
+}
+
+.minuta-mobile-dia-nombre-dia {
+  font-size: 1rem;
+  font-weight: 700;
+  color: $minuta-text-dark;
+}
+
+// Menú dentro del día móvil
+.minuta-mobile-dia-menu {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  background: $minuta-color-menu-bg;
+  border-left: 4px solid $minuta-color-menu-border;
+  border-radius: 0 14px 14px 0;
+  margin-left: 54px;
+}
+
+.minuta-mobile-menu-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+
+  .minuta-mobile-menu-nombre {
+    font-size: 1rem;
+    font-weight: 700;
+    color: $minuta-text-dark;
+    word-break: break-word;
+  }
+
+  .minuta-mobile-menu-desc {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: $minuta-text-light;
+    line-height: 1.5;
+    word-break: break-word;
+  }
+}
+
+.minuta-mobile-sin-menu {
+  font-size: 0.85rem;
+  color: #ccc;
+  font-style: italic;
+  margin-left: 54px;
+}
+
+// ========================================
+// RESPONSIVE
+// ========================================
+@media (max-width: 768px) {
+  .modulo .container-fluid {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .btn-group {
+    flex-direction: column;
+
+    .btn {
+      border-radius: $border-radius !important;
+      margin-bottom: 0.5rem;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+  }
+
+  .custom-dropdown-header {
+    padding: 1rem;
+    min-height: 52px;
+  }
+
+  .mobile-kitchen-header {
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+  }
+
+  .kitchen-cards .kitchen-card {
+    margin-bottom: 1rem;
+
+    &-header { padding: 1rem; }
+    &-detail { padding: 1rem; }
+  }
+
+  .card {
+    margin-bottom: 1rem;
+
+    &-header { padding: 0.875rem 1rem; }
+    &-body { padding: 1rem; }
+  }
+
+  // Minuta mobile
+  .minuta-mobile-banner-hoy {
+    padding: 14px 16px;
+  }
+
+  .minuta-mobile-semana-header {
+    padding: 12px 16px;
+  }
+
+  .minuta-mobile-dia-card {
+    padding: 12px 14px;
+  }
+}
+
+// ========================================
+// ANIMACIONES
+// ========================================
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes minutaFadeInUp {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes minutaSlideUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes minutaSpin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes minutaPulso {
+  0% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.5); }
+  50% { box-shadow: 0 0 0 12px rgba(255, 193, 7, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0); }
+}
+
+.minuta-mobile-dia-card.pulso {
+  animation: minutaPulso 0.75s ease-out 2;
+}
+
+.kitchen-card, .card {
+  animation: fadeInUp 0.5s ease-out;
+}
+
+@media (hover: none) {
+  .minuta-row-celda.tiene-menu:active { transform: scale(0.97); }
+}
+
+// ===== UTILIDADES =====
+.text-success { color: $success-color !important; }
+.text-primary { color: $primary-color !important; }
+.text-info { color: $info-color !important; }
+.text-warning { color: $warning-color !important; }
+
+.px-2 {
+  padding-left: 0.5rem !important;
+  padding-right: 0.5rem !important;
+}
+
+.py-3 {
+  padding-top: 1rem !important;
+  padding-bottom: 1rem !important;
+}
+
+.my-4 {
+  margin-top: 1.5rem !important;
+  margin-bottom: 1.5rem !important;
+}

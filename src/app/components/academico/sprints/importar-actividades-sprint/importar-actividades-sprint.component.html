@@ -1,0 +1,205 @@
+<div class="modulo">
+  <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [raiz]="'/academico/selector-actividades'"
+    [regresar]="'/academico/selector-actividades'" [iconoTitulo]="'/assets/images/importar_actividades_sprint.png'">
+  </app-header>
+
+  <div class="container-fluid mt-4">
+
+    <!-- Sprint Destino -->
+    <div class="seccion-destino">
+      <div class="row align-items-end g-3">
+        <div class="col-md-4">
+          <label class="filtro-label">
+            <i class="fas fa-bullseye me-1"></i>Sprint Destino
+          </label>
+          <select class="filtro-select destino-select" [(ngModel)]="sprintDestinoId"
+                  (ngModelChange)="onSprintDestinoChange()"
+                  [disabled]="cargandoInicial">
+            <option [ngValue]="null">{{ cargandoInicial ? 'Cargando...' : 'Seleccionar...' }}</option>
+            <option *ngFor="let sprint of sprintsDestino" [ngValue]="sprint.id">
+              #{{ sprint.numero_sprint }} - {{ sprint.nombre_sprint }}
+              <span *ngIf="sprint.actual === 1"> (Actual)</span>
+            </option>
+          </select>
+        </div>
+        <div class="col-md-8" *ngIf="sprintDestinoId">
+          <div class="destino-info">
+            <i class="fas fa-info-circle me-1"></i>
+            Las actividades importadas se crearán en este sprint con estado Pendiente.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filtros de origen -->
+    <div class="seccion-filtros" *ngIf="sprintDestinoId">
+      <div class="seccion-titulo">
+        <i class="fas fa-search me-2"></i>Buscar actividades en sprint origen
+      </div>
+
+      <div class="row g-3">
+        <div class="col-md-3">
+          <label class="filtro-label">Año</label>
+          <select class="filtro-select" [(ngModel)]="anioSeleccionado" (ngModelChange)="onAnioChange()">
+            <option [ngValue]="null">Seleccionar...</option>
+            <option *ngFor="let anno of annos" [ngValue]="anno.id">{{ anno.nombre }}</option>
+          </select>
+        </div>
+
+        <div class="col-md-3">
+          <label class="filtro-label">Sprint Origen</label>
+          <select class="filtro-select" [(ngModel)]="sprintOrigenId" (ngModelChange)="onSprintOrigenChange()"
+                  [disabled]="!anioSeleccionado || cargandoInicial">
+            <option [ngValue]="null">Seleccionar...</option>
+            <option *ngFor="let sprint of sprintsFiltradosOrigen" [ngValue]="sprint.id">
+              #{{ sprint.numero_sprint }} - {{ sprint.nombre_sprint }}
+            </option>
+          </select>
+        </div>
+
+        <div class="col-md-3">
+          <label class="filtro-label">Grupo <span class="opcional">(opcional)</span></label>
+          <select class="filtro-select" [(ngModel)]="grupoSeleccionado" (ngModelChange)="onGrupoChange()">
+            <option value="">Todos</option>
+            <option *ngFor="let grupo of todosGrupos" [value]="grupo.id">{{ grupo.nombre }}</option>
+          </select>
+        </div>
+
+        <div class="col-md-3">
+          <label class="filtro-label">Área <span class="opcional">(opcional)</span></label>
+          <select class="filtro-select" [(ngModel)]="areaSeleccionada" (ngModelChange)="onAreaChange()"
+                  [disabled]="!grupoSeleccionado">
+            <option value="">Todas</option>
+            <option *ngFor="let area of areasFiltradas" [value]="area.id">{{ area.nombre }}</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="botones-consulta" *ngIf="sprintOrigenId">
+        <button class="btn-consulta btn-todas" (click)="consultarTodas()" [disabled]="cargandoTareas">
+          <i class="fas fa-list me-1"></i>Traer Todas
+        </button>
+        <button class="btn-consulta btn-no-ejecutadas" (click)="consultarNoEjecutadas()" [disabled]="cargandoTareas">
+          <i class="fas fa-clock me-1"></i>Traer No Ejecutadas
+        </button>
+      </div>
+    </div>
+
+    <!-- Spinner -->
+    <div class="text-center py-5" *ngIf="cargandoTareas">
+      <div class="spinner-importar"></div>
+      <p class="mt-3 text-muted">Cargando actividades...</p>
+    </div>
+
+    <!-- Resultados -->
+    <div class="seccion-resultados" *ngIf="tareasOrigen.length > 0 && !cargandoTareas">
+
+      <div class="resultados-header">
+        <div class="resultados-info">
+          <span class="badge-total">{{ tareasOrigen.length }} actividades</span>
+          <span class="badge-sel" *ngIf="tareasSeleccionadas.size > 0">
+            {{ tareasSeleccionadas.size }} seleccionada{{ tareasSeleccionadas.size > 1 ? 's' : '' }}
+          </span>
+        </div>
+        <div class="busqueda-wrapper">
+          <i class="fas fa-search busqueda-icono"></i>
+          <input type="text" class="input-busqueda" [(ngModel)]="textoBusqueda"
+                 (ngModelChange)="filtrarPorTexto()" placeholder="Buscar actividad...">
+        </div>
+      </div>
+
+      <!-- Seleccionar todas -->
+      <div class="seleccionar-todas-row" (click)="onToggleSeleccionarTodas($event)">
+        <div class="check-visual" [class.checked]="seleccionarTodas"></div>
+        <span class="check-label-text">Seleccionar todas</span>
+      </div>
+
+      <!-- Acordeón -->
+      <div class="acordeon-container">
+        <div class="acordeon-item" *ngFor="let tarea of tareasFiltradas; let i = index"
+             [class.item-seleccionado]="isTareaSeleccionada(tarea.id)">
+
+          <div class="acordeon-header" (click)="toggleExpansion(i)">
+            <div class="check-visual" [class.checked]="isTareaSeleccionada(tarea.id)"
+                 (click)="toggleSeleccion(tarea.id, $event)"></div>
+
+            <div class="acordeon-titulo-wrapper">
+              <div class="acordeon-titulo">{{ tarea.titulo_actividad }}</div>
+              <div class="acordeon-meta">
+                <span class="meta-tag">{{ tarea.nombre_grupo }}</span>
+                <span class="meta-tag">{{ tarea.nombre_area }}</span>
+                <span class="meta-tag">{{ tarea.minutos_duracion }} min</span>
+                <span class="badge-estado" [ngClass]="getClaseEstado(tarea.id_estado_tarea)">
+                  {{ tarea.nombre_estado }}
+                </span>
+              </div>
+            </div>
+
+            <i class="fas acordeon-flecha"
+               [class.fa-chevron-down]="tareaExpandida !== i"
+               [class.fa-chevron-up]="tareaExpandida === i"></i>
+          </div>
+
+          <div class="acordeon-body" *ngIf="tareaExpandida === i">
+            <div class="detalle-seccion" *ngIf="tarea.descripcion_actividad">
+              <div class="detalle-label">Descripción</div>
+              <div class="detalle-html" [innerHTML]="tarea.descripcion_actividad"></div>
+            </div>
+
+            <div class="detalle-grid">
+              <div class="detalle-item" *ngIf="tarea.nivel_uno">
+                <div class="detalle-label">Nivel 1</div>
+                <div class="detalle-valor" [innerHTML]="tarea.nivel_uno"></div>
+              </div>
+              <div class="detalle-item" *ngIf="tarea.nivel_dos">
+                <div class="detalle-label">Nivel 2</div>
+                <div class="detalle-valor" [innerHTML]="tarea.nivel_dos"></div>
+              </div>
+              <div class="detalle-item" *ngIf="tarea.nombre_tipo_actividad">
+                <div class="detalle-label">Tipo</div>
+                <div class="detalle-valor">{{ tarea.nombre_tipo_actividad }}</div>
+              </div>
+              <div class="detalle-item" *ngIf="tarea.materiales">
+                <div class="detalle-label">Materiales</div>
+                <div class="detalle-valor">{{ tarea.materiales }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sin resultados búsqueda -->
+      <div class="text-center py-3" *ngIf="tareasFiltradas.length === 0 && tareasOrigen.length > 0">
+        <i class="fas fa-search fa-2x text-muted mb-2"></i>
+        <p class="text-muted">Sin coincidencias para la búsqueda.</p>
+      </div>
+
+      <!-- Botón importar fijo abajo -->
+      <div class="barra-importar" *ngIf="tareasSeleccionadas.size > 0">
+        <div class="barra-importar-info">
+          {{ tareasSeleccionadas.size }} actividad{{ tareasSeleccionadas.size > 1 ? 'es' : '' }} seleccionada{{ tareasSeleccionadas.size > 1 ? 's' : '' }}
+          <span class="barra-destino">→ {{ getNombreSprintDestino() }}</span>
+        </div>
+        <button class="btn-importar-final" (click)="importar()" [disabled]="importando">
+          <i class="fas fa-file-import me-1"></i>
+          Importar {{ tareasSeleccionadas.size }} Actividad{{ tareasSeleccionadas.size !== 1 ? 'es' : '' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Estado vacío -->
+    <div class="estado-vacio" *ngIf="tareasOrigen.length === 0 && !cargandoTareas && sprintDestinoId">
+      <i class="fas fa-file-import"></i>
+      <h6>Seleccione los filtros para buscar actividades</h6>
+      <p>Elija un año y sprint origen, luego use los botones para cargar las actividades.</p>
+    </div>
+
+    <!-- Sin sprint destino -->
+    <div class="estado-vacio" *ngIf="!sprintDestinoId && !cargandoInicial">
+      <i class="fas fa-bullseye"></i>
+      <h6>Seleccione un sprint destino</h6>
+      <p>Primero elija a qué sprint desea importar las actividades.</p>
+    </div>
+
+  </div>
+</div>

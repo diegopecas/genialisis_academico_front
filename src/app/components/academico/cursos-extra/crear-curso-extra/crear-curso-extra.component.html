@@ -1,0 +1,463 @@
+<div class="modulo">
+    <app-header 
+        [tituloModulo]="titulo" 
+        [mostrarCrear]="false" 
+        [accion]="accion" 
+        [raiz]="'/academico/cursos-extra'"
+        [regresar]="regresar" 
+        [iconoTitulo]="'/assets/images/cursos-extra.png'">
+    </app-header>
+
+    <!-- PESTAÑAS DESKTOP -->
+    <div class="tabs-container" *ngIf="accion !== 'crear'">
+        <div class="tabs-desktop">
+            <ul class="tabs-nav">
+                <li class="tab-item" [class.active]="pestanaActiva === 'basico'" (click)="cambiarPestana('basico')">
+                    <i class="fas fa-info-circle"></i> Datos Básicos
+                </li>
+                <li class="tab-item" [class.active]="pestanaActiva === 'horarios'" (click)="cambiarPestana('horarios')">
+                    <i class="fas fa-clock"></i> Horarios
+                </li>
+                <li class="tab-item" [class.active]="pestanaActiva === 'responsables'" (click)="cambiarPestana('responsables')">
+                    <i class="fas fa-chalkboard-teacher"></i> Docentes / Proveedores
+                </li>
+                <li class="tab-item" [class.active]="pestanaActiva === 'tarifas'" (click)="cambiarPestana('tarifas')">
+                    <i class="fas fa-dollar-sign"></i> Tarifas
+                </li>
+            </ul>
+        </div>
+
+        <!-- PESTAÑAS MOVIL -->
+        <div class="tabs-movil">
+            <div class="tabs-movil-header">
+                <button class="tabs-movil-trigger" (click)="toggleMenuMovil()">
+                    <i [class]="getIconoPestana()"></i>
+                    <span class="tabs-movil-label">{{getNombrePestana()}}</span>
+                    <i class="fas fa-chevron-down tabs-movil-chevron" [class.rotado]="menuMovilAbierto"></i>
+                </button>
+            </div>
+            <div class="tabs-movil-dropdown" *ngIf="menuMovilAbierto">
+                <button class="tabs-movil-item" [class.active]="pestanaActiva === 'basico'" (click)="cambiarPestana('basico')">
+                    <i class="fas fa-info-circle"></i> Datos Básicos
+                </button>
+                <button class="tabs-movil-item" [class.active]="pestanaActiva === 'horarios'" (click)="cambiarPestana('horarios')">
+                    <i class="fas fa-clock"></i> Horarios
+                </button>
+                <button class="tabs-movil-item" [class.active]="pestanaActiva === 'responsables'" (click)="cambiarPestana('responsables')">
+                    <i class="fas fa-chalkboard-teacher"></i> Docentes / Proveedores
+                </button>
+                <button class="tabs-movil-item" [class.active]="pestanaActiva === 'tarifas'" (click)="cambiarPestana('tarifas')">
+                    <i class="fas fa-dollar-sign"></i> Tarifas
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== TAB: DATOS BASICOS ==================== -->
+    <div class="container mt-4" *ngIf="pestanaActiva === 'basico'">
+        <div class="row">
+            <div class="col-md-8 col-12">
+                <label for="nombre" class="form-label">Nombre del curso <span class="text-danger">*</span></label>
+                <input class="form-control form-control-lg" type="text" id="nombre" [(ngModel)]="model.nombre"
+                    placeholder="Ej: Música, Natación, Inglés..."
+                    [ngClass]="{'is-invalid': !model.nombre && submitted}" [disabled]="!editable">
+            </div>
+            <div class="col-md-4 col-12">
+                <label for="anio" class="form-label">Año <span class="text-danger">*</span></label>
+                <input class="form-control form-control-lg" type="number" id="anio" [(ngModel)]="model.anio"
+                    [disabled]="!editable">
+            </div>
+        </div>
+
+        <div class="row mt-3">
+            <div class="col-12">
+                <label for="descripcion" class="form-label">Descripción</label>
+                <textarea class="form-control form-control-lg" id="descripcion" [(ngModel)]="model.descripcion"
+                    placeholder="Descripción del curso extracurricular" rows="3" [disabled]="!editable"></textarea>
+            </div>
+        </div>
+
+        <div class="row mt-3">
+            <div class="col-md-6 col-12">
+                <label for="cupo_maximo" class="form-label">Cupo máximo</label>
+                <input class="form-control form-control-lg" type="number" id="cupo_maximo" [(ngModel)]="model.cupo_maximo"
+                    placeholder="Ej: 20" min="1" [disabled]="!editable">
+            </div>
+            <div class="col-md-6 col-12">
+                <label for="color" class="form-label">Color</label>
+                <input class="form-control form-control-lg" type="color" id="color" [(ngModel)]="model.color"
+                    [disabled]="!editable" style="height: 48px;">
+            </div>
+        </div>
+
+        <div class="row mt-3">
+            <div class="col-md-6 col-12">
+                <label for="fecha_inicio" class="form-label">Fecha inicio <span class="text-danger">*</span></label>
+                <input class="form-control form-control-lg" type="date" id="fecha_inicio" [(ngModel)]="model.fecha_inicio"
+                    [ngClass]="{'is-invalid': !model.fecha_inicio && submitted}" [disabled]="!editable">
+            </div>
+            <div class="col-md-6 col-12">
+                <label for="fecha_fin" class="form-label">Fecha fin <span class="text-danger">*</span></label>
+                <input class="form-control form-control-lg" type="date" id="fecha_fin" [(ngModel)]="model.fecha_fin"
+                    [ngClass]="{'is-invalid': !model.fecha_fin && submitted}" [disabled]="!editable">
+            </div>
+        </div>
+
+        <div class="row mt-3">
+            <div class="col-md-4 col-12">
+                <label class="form-label">Icono</label>
+                <div class="d-flex align-items-center gap-3">
+                    <div class="icono-preview" [class.is-invalid-border]="!model.icono && submitted">
+                        <img *ngIf="model.icono" [src]="model.icono" class="img-preview" />
+                        <div *ngIf="!model.icono" class="sin-icono">
+                            <i class="fas fa-image"></i>
+                            <span>Sin icono</span>
+                        </div>
+                    </div>
+                    <button class="btn btn-outline-secondary" (click)="abrirModalImagenes()" *ngIf="editable">
+                        <i class="fas fa-search"></i> Seleccionar
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-4 col-12" *ngIf="accion === 'editar'">
+                <label class="form-label">Estado</label>
+                <select class="form-select form-select-lg" [(ngModel)]="model.activo" [disabled]="!editable">
+                    <option [ngValue]="1">Activo</option>
+                    <option [ngValue]="0">Inactivo</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="row mt-4 mb-4">
+            <div class="col-sm-6" *ngIf="editable">
+                <button class="btn btn-lg btn-warning w-100" (click)="guardar()">Grabar</button>
+            </div>
+            <div class="col-sm-6">
+                <button class="btn btn-lg btn-secondary w-100" (click)="volver()">Volver</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== TAB: HORARIOS ==================== -->
+    <div class="container mt-4" *ngIf="pestanaActiva === 'horarios'">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0">Horarios del curso</h5>
+            <button class="btn btn-warning btn-sm" (click)="abrirModalHorario()" *ngIf="editable">
+                <i class="fas fa-plus"></i> Agregar horario
+            </button>
+        </div>
+
+        <div class="table-responsive" *ngIf="horariosCurso.length > 0">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Día</th>
+                        <th class="text-center">Hora inicio</th>
+                        <th class="text-center">Hora fin</th>
+                        <th class="text-center">Minutos</th>
+                        <th class="text-center" *ngIf="editable">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let h of horariosCurso">
+                        <td>{{h.nombre_dia}}</td>
+                        <td class="text-center">{{h.hora_inicial}}</td>
+                        <td class="text-center">{{h.hora_final}}</td>
+                        <td class="text-center">{{h.total_minutos}}</td>
+                        <td class="text-center" *ngIf="editable">
+                            <button class="btn btn-sm btn-outline-primary me-1" (click)="editarHorario(h)">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" (click)="eliminarHorario(h)">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="text-center text-muted py-4" *ngIf="horariosCurso.length === 0">
+            <i class="fas fa-clock fa-2x mb-2"></i>
+            <p>No hay horarios configurados</p>
+        </div>
+    </div>
+
+    <!-- ==================== TAB: DOCENTES Y PROVEEDORES ==================== -->
+    <div class="container mt-4" *ngIf="pestanaActiva === 'responsables'">
+
+        <!-- Card Docentes -->
+        <div class="panel-card mb-4">
+            <div class="panel-header">
+                <i class="fas fa-chalkboard-teacher"></i>
+                <span>Docentes responsables</span>
+            </div>
+            <div class="panel-body">
+                <div class="row mb-3" *ngIf="editable">
+                    <div class="col-md-6 col-12">
+                        <select class="form-select" [(ngModel)]="idDocenteSeleccionado">
+                            <option [ngValue]="null">-- Seleccione docente --</option>
+                            <option *ngFor="let d of docentesDisponibles" [ngValue]="d.id">{{d.nombre_completo}}</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 col-12 d-flex align-items-center">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="esTitular" [(ngModel)]="esTitularSeleccionado">
+                            <label class="form-check-label" for="esTitular">Es titular</label>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-12">
+                        <button class="btn btn-warning w-100" (click)="agregarDocente()">
+                            <i class="fas fa-plus"></i> Agregar
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-responsive" *ngIf="docentesCurso.length > 0">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th class="text-center">Titular</th>
+                                <th class="text-center" *ngIf="editable">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let d of docentesCurso">
+                                <td>{{d.nombre_completo}}</td>
+                                <td class="text-center">
+                                    <span class="badge" [ngClass]="d.es_titular == 1 ? 'bg-success' : 'bg-secondary'">
+                                        {{d.es_titular == 1 ? 'Sí' : 'No'}}
+                                    </span>
+                                </td>
+                                <td class="text-center" *ngIf="editable">
+                                    <button class="btn btn-sm btn-outline-danger" (click)="eliminarDocente(d)">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="text-center text-muted py-3" *ngIf="docentesCurso.length === 0">
+                    <p class="mb-0">No hay docentes asignados</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card Proveedores -->
+        <div class="panel-card mb-4">
+            <div class="panel-header">
+                <i class="fas fa-building"></i>
+                <span>Proveedores externos</span>
+            </div>
+            <div class="panel-body">
+                <div class="row mb-3" *ngIf="editable">
+                    <div class="col-md-8 col-12">
+                        <select class="form-select" [(ngModel)]="idProveedorSeleccionado">
+                            <option [ngValue]="null">-- Seleccione proveedor --</option>
+                            <option *ngFor="let p of proveedoresDisponibles" [ngValue]="p.id">{{p.nombre_completo}}</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 col-12">
+                        <button class="btn btn-warning w-100" (click)="agregarProveedor()">
+                            <i class="fas fa-plus"></i> Agregar
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-responsive" *ngIf="proveedoresCurso.length > 0">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Nombre / Razón social</th>
+                                <th class="text-center" *ngIf="editable">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let p of proveedoresCurso">
+                                <td>{{p.nombre_completo}}</td>
+                                <td class="text-center" *ngIf="editable">
+                                    <button class="btn btn-sm btn-outline-danger" (click)="eliminarProveedor(p)">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="text-center text-muted py-3" *ngIf="proveedoresCurso.length === 0">
+                    <p class="mb-0">No hay proveedores asignados</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== TAB: TARIFAS ==================== -->
+    <div class="container mt-4" *ngIf="pestanaActiva === 'tarifas'">
+        <h5 class="mb-3">Tarifas del curso</h5>
+
+        <div class="row mb-4">
+            <div class="col-md-4 col-12">
+                <label class="form-label">Año escolar</label>
+                <select class="form-select" [(ngModel)]="anioTarifa" (change)="onAnioTarifaChange()" [disabled]="!editable">
+                    <option *ngFor="let a of aniosEscolares" [ngValue]="a">{{a}}</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Card Matrícula -->
+        <div class="panel-card mb-4">
+            <div class="panel-header">
+                <i class="fas fa-file-invoice-dollar"></i>
+                <span>Matrícula</span>
+            </div>
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-md-5 col-12">
+                        <label class="form-label">Producto matrícula</label>
+                        <select class="form-select" [(ngModel)]="tarifaActual.id_producto_matricula"
+                            (change)="onProductoMatriculaChange()" [disabled]="!editable">
+                            <option [ngValue]="null">-- Seleccione --</option>
+                            <option *ngFor="let p of productosMatricula" [ngValue]="p.id">{{p.nombre}}</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 col-12">
+                        <label class="form-label">Valor matrícula</label>
+                        <input class="form-control" type="text" [value]="valorMatriculaFormateado"
+                            (input)="onValorMatriculaInput($event)" placeholder="$0" [disabled]="!editable">
+                    </div>
+                    <div class="col-md-3 col-12">
+                        <label class="form-label">Cuotas</label>
+                        <input class="form-control" type="number" [(ngModel)]="tarifaActual.cuotas_matricula"
+                            min="1" placeholder="1" [disabled]="!editable">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card Pensión -->
+        <div class="panel-card mb-4">
+            <div class="panel-header">
+                <i class="fas fa-calendar-alt"></i>
+                <span>Pensión</span>
+            </div>
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-md-6 col-12">
+                        <label class="form-label">Producto pensión</label>
+                        <select class="form-select" [(ngModel)]="tarifaActual.id_producto_pension"
+                            (change)="onProductoPensionChange()" [disabled]="!editable">
+                            <option [ngValue]="null">-- Seleccione --</option>
+                            <option *ngFor="let p of productosPension" [ngValue]="p.id">{{p.nombre}}</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 col-12">
+                        <label class="form-label">Valor pensión</label>
+                        <input class="form-control" type="text" [value]="valorPensionFormateado"
+                            (input)="onValorPensionInput($event)" placeholder="$0" [disabled]="!editable">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card Cobro único -->
+        <div class="panel-card mb-4">
+            <div class="panel-header">
+                <i class="fas fa-money-bill-wave"></i>
+                <span>Cobro único</span>
+            </div>
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-md-5 col-12">
+                        <label class="form-label">Producto cobro único</label>
+                        <select class="form-select" [(ngModel)]="tarifaActual.id_producto_unico"
+                            (change)="onProductoUnicoChange()" [disabled]="!editable">
+                            <option [ngValue]="null">-- Seleccione --</option>
+                            <option *ngFor="let p of productosUnico" [ngValue]="p.id">{{p.nombre}}</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 col-12">
+                        <label class="form-label">Valor cobro único</label>
+                        <input class="form-control" type="text" [value]="valorUnicoFormateado"
+                            (input)="onValorUnicoInput($event)" placeholder="$0" [disabled]="!editable">
+                    </div>
+                    <div class="col-md-3 col-12">
+                        <label class="form-label">Cuotas</label>
+                        <input class="form-control" type="number" [(ngModel)]="tarifaActual.cuotas_unico"
+                            min="1" placeholder="1" [disabled]="!editable">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-3 mb-4" *ngIf="editable">
+            <div class="col-md-4 col-12">
+                <button class="btn btn-warning w-100" (click)="guardarTarifa()">
+                    <i class="fas fa-save me-1"></i>
+                    {{tarifaActual.id ? 'Actualizar tarifa' : 'Guardar tarifa'}}
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL IMAGENES ==================== -->
+    <div class="modal-overlay" *ngIf="mostrarModalImagenes" (click)="cerrarModalImagenes()">
+        <div class="modal-content-custom" (click)="$event.stopPropagation()">
+            <div class="modal-header-custom">
+                <h3>Seleccionar Icono</h3>
+                <button class="btn-close-custom" (click)="cerrarModalImagenes()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body-custom">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" class="form-control" placeholder="Buscar imagen..."
+                        [(ngModel)]="busquedaImagen" (input)="filtrarImagenes()">
+                </div>
+                <div class="imagenes-grid">
+                    <div class="imagen-item" *ngFor="let img of imagenesFiltradas"
+                        [class.seleccionada]="model.icono === img.ruta" (click)="seleccionarImagen(img)">
+                        <img [src]="img.ruta" [alt]="img.nombre" />
+                        <span class="imagen-nombre">{{img.nombre}}</span>
+                        <i class="fas fa-check-circle check-icon" *ngIf="model.icono === img.ruta"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL HORARIO ==================== -->
+    <div class="modal-overlay" *ngIf="mostrarModalHorario" (click)="cerrarModalHorario()">
+        <div class="modal-content-horario" (click)="$event.stopPropagation()">
+            <div class="modal-header-custom">
+                <h3>{{horarioModal.id ? 'Editar' : 'Agregar'}} Horario</h3>
+                <button class="btn-close-custom" (click)="cerrarModalHorario()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body-custom">
+                <div class="mb-3">
+                    <label class="form-label">Día de la semana <span class="text-danger">*</span></label>
+                    <select class="form-select" [(ngModel)]="horarioModal.id_dia_semana">
+                        <option [ngValue]="null">-- Seleccione --</option>
+                        <option *ngFor="let d of diasSemana" [ngValue]="d.id">{{d.nombre}}</option>
+                    </select>
+                </div>
+                <div class="row">
+                    <div class="col-6">
+                        <label class="form-label">Hora inicio <span class="text-danger">*</span></label>
+                        <input class="form-control" type="time" [(ngModel)]="horarioModal.hora_inicial" (change)="calcularMinutos()">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">Hora fin <span class="text-danger">*</span></label>
+                        <input class="form-control" type="time" [(ngModel)]="horarioModal.hora_final" (change)="calcularMinutos()">
+                    </div>
+                </div>
+                <div class="mt-2 text-muted" *ngIf="horarioModal.total_minutos > 0">
+                    <small>Duración: {{horarioModal.total_minutos}} minutos</small>
+                </div>
+                <div class="modal-footer-custom">
+                    <button class="btn btn-secondary" (click)="cerrarModalHorario()">Cancelar</button>
+                    <button class="btn btn-warning" (click)="guardarHorario()">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

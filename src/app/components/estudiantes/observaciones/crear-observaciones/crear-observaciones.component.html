@@ -1,0 +1,230 @@
+<div class="modulo">
+    <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [accion]="accion" [raiz]="'/estudiantes'"
+        [regresar]="regresar" [iconoTitulo]="'/assets/images/observaciones.png'"></app-header>
+
+    <div class="container mt-5" [ngClass]="{ 'disabled-container': !editable }">
+        <div class="row mb-4">
+            <!-- Tipo de Observación -->
+            <div class="col-sm-12 col-md-6">
+                <label class="form-label">Tipo de Observación <span class="text-danger">*</span></label>
+                <select class="form-select form-select-lg" [(ngModel)]="model.id_tipo_observacion_estudiante" required
+                    [ngClass]="{'is-invalid': !model.id_tipo_observacion_estudiante && submitted}" [disabled]="!editable || hayFirmasGuardadas()"
+                    (ngModelChange)="onTipoObservacionChange()">
+                    <option value="">Seleccionar</option>
+                    <ng-container *ngFor="let tipo of listas.tiposObservaciones">
+                        <option [value]="tipo.id">{{ tipo.nombre }}</option>
+                    </ng-container>
+                </select>
+                <div class="invalid-feedback" *ngIf="!model.id_tipo_observacion_estudiante && submitted">
+                    Debe seleccionar un tipo de observación
+                </div>
+            </div>
+
+            <!-- Fecha -->
+            <div class="col-sm-12 col-md-6">
+                <label class="form-label">Fecha <span class="text-danger">*</span></label>
+                <input type="date" class="form-control form-control-lg" [(ngModel)]="model.fecha" required
+                    [ngClass]="{'is-invalid': !model.fecha && submitted}"
+                    (ngModelChange)="onFechaChange()">
+                <div class="invalid-feedback" *ngIf="!model.fecha && submitted">
+                    La fecha es obligatoria
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <!-- Estudiante Afectado -->
+            <div class="col-sm-12 col-md-6">
+                <label class="form-label">
+                    Estudiante Afectado
+                </label>
+                <select class="form-select form-select-lg" [(ngModel)]="model.id_estudiante_afectado"
+                    (ngModelChange)="onEstudianteAfectadoChange()" [disabled]="!editable">
+                    <option value="">Ninguno</option>
+                    <ng-container *ngFor="let estudiante of listas.estudiantes">
+                        <option [value]="estudiante.id" *ngIf="estudiante.id != model.id_estudiante">
+                            {{ estudiante.primer_nombre }} {{ estudiante.segundo_nombre || '' }}
+                            {{ estudiante.primer_apellido }} {{ estudiante.segundo_apellido || '' }}
+                        </option>
+                    </ng-container>
+                </select>
+                <small class="text-muted" *ngIf="model.id_estudiante_afectado">
+                    Estudiante seleccionado: {{ nombre_estudiante_afectado }}
+                </small>
+            </div>
+
+            <!-- Sprint asociado -->
+            <div class="col-sm-12 col-md-6">
+                <label class="form-label">Sprint <span class="text-danger">*</span></label>
+                <select class="form-select form-select-lg" [(ngModel)]="model.id_sprint" required
+                    [ngClass]="{'is-invalid': !model.id_sprint && submitted}" [disabled]="!editable">
+                    <option [ngValue]="null">Seleccionar</option>
+                    <ng-container *ngFor="let sprint of listas.sprints">
+                        <option [value]="sprint.id">
+                            Sprint {{ sprint.numero_sprint }} - {{ sprint.nombre_sprint }} ({{ formatearRangoFechas(sprint.fecha_inicial, sprint.fecha_final) }})
+                            <span *ngIf="sprint.actual === 1 || sprint.actual === '1'"> - Actual</span>
+                        </option>
+                    </ng-container>
+                </select>
+                <div class="invalid-feedback" *ngIf="!model.id_sprint && submitted">
+                    Debe seleccionar un sprint
+                </div>
+            </div>
+        </div>
+
+        <!-- Bandera: Observación para informe -->
+        <div class="row mb-4">
+            <div class="col-sm-12">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="paraInformeSwitch"
+                        [(ngModel)]="model.para_informe" [disabled]="!editable">
+                    <label class="form-check-label" for="paraInformeSwitch">
+                        <strong>Observación para informe</strong>
+                        <small class="text-muted d-block">
+                            Marque esta opción si la observación debe ser incluida en el informe académico del estudiante
+                        </small>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <!-- Descripción -->
+            <div class="col-sm-12">
+                <label class="form-label col">Descripción <span class="text-danger">*</span></label>
+
+                <textarea class="form-control" rows="5" [(ngModel)]="model.descripcion" required
+                    [ngClass]="{'is-invalid': !model.descripcion && submitted}"
+                    placeholder="Describa detalladamente la observación..."
+                    [disabled]="!editable || hayFirmasGuardadas()"></textarea>
+                <div class="invalid-feedback" *ngIf="!model.descripcion && submitted">
+                    La descripción es obligatoria
+                </div>
+
+                <div class="row mt-2">
+                    <!-- Botón de transcripción de audio (Groq Whisper) -->
+                    <div class="col-md-3" *ngIf="editable && !hayFirmasGuardadas()">
+                        <app-transcribir-audio (mensaje)="mensajeRecibido($event)"></app-transcribir-audio>
+                    </div>
+
+                    <!-- Botón para mejorar texto -->
+                    <div class="col-md-7 d-flex" *ngIf="editable && !hayFirmasGuardadas()">
+                        <app-mejorar-texto 
+                            [texto]="model.descripcion" 
+                            [contexto]="generarContextoParaMejoraTexto()"
+                            (textoMejorado)="onTextoMejorado($event)">
+                        </app-mejorar-texto>
+                    </div>
+
+                    <!-- Botón para limpiar texto -->
+                    <div class="col-md-2" *ngIf="editable && !hayFirmasGuardadas()">
+                        <button class="btn btn-sm btn-outline-warning w-100" (click)="limpiarDescripcion()">
+                            <i class="bi bi-trash"></i> Limpiar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección de Firmas - Solo visible en modo editar o consultar o si requiere firma -->
+        <div class="row mt-4" *ngIf="(accion !== 'crear' && accion !== 'editar') || requiereFirma">
+            <div class="col-12">
+                <div class="card mb-4">
+                    <div class="card-header" [ngClass]="{'bg-primary': !requiereFirma, 'bg-danger': requiereFirma}">
+                        <h5 class="mb-0 text-white">
+                            Notificación a Padres
+                            <span *ngIf="requiereFirma" class="badge bg-light text-danger ms-2">Requerida</span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Firma del Padre del Estudiante Principal -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6>Firma del Padre/Acudiente de {{ nombre_estudiante }}</h6>
+
+                                <div class="row mb-2" *ngIf="model.fecha_informe_padre">
+                                    <div class="col">
+                                        <label class="form-label">Fecha de Notificación</label>
+                                        <input type="date" class="form-control" [(ngModel)]="model.fecha_informe_padre"
+                                            [disabled]="!editable">
+                                    </div>
+                                </div>
+
+                                <div *ngIf="!mostrarFirmaPadre && editable" class="text-center mb-3">
+                                    <button class="btn" [ngClass]="{'btn-outline-primary': !requiereFirma, 'btn-outline-danger': requiereFirma}" 
+                                            (click)="activarFirmaPadre()"
+                                            [disabled]="firmasGuardadasOriginalmente.padre">
+                                        <i class="bi bi-pencil-fill"></i> Capturar Firma
+                                    </button>
+                                </div>
+
+                                <div *ngIf="mostrarFirmaPadre" class="signature-container">
+                                    <div class="d-flex flex-column">
+                                        <app-signature-pad #firmaInformePadre [disabled]="!editable"
+                                            [readOnly]="esFirmaSoloLectura('padre')"
+                                            (signatureChange)="onFirmaPadreChange($event)"></app-signature-pad>
+                                        
+                                        <button *ngIf="!firmasGuardadasOriginalmente.padre && editable" 
+                                            class="btn btn-sm btn-outline-warning mt-2" 
+                                            (click)="limpiarFirma('padre')">
+                                            <i class="bi bi-trash"></i> Limpiar firma
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                            </div>
+                        </div>
+
+                        <!-- Firma del Padre del Estudiante Afectado - solo visible si hay estudiante afectado -->
+                        <div class="row" *ngIf="model.id_estudiante_afectado">
+                            <div class="col-12">
+                                <h6>Firma del Padre/Acudiente de {{ nombre_estudiante_afectado }}</h6>
+
+                                <div class="row mb-2" *ngIf="model.fecha_informe_padre_afectado">
+                                    <div class="col">
+                                        <label class="form-label">Fecha de Notificación</label>
+                                        <input type="date" class="form-control"
+                                            [(ngModel)]="model.fecha_informe_padre_afectado" [disabled]="!editable">
+                                    </div>
+                                </div>
+
+                                <div *ngIf="!mostrarFirmaPadreAfectado && editable" class="text-center mb-3">
+                                    <button class="btn" [ngClass]="{'btn-outline-primary': !requiereFirma, 'btn-outline-danger': requiereFirma}"
+                                            (click)="activarFirmaPadreAfectado()"
+                                            [disabled]="firmasGuardadasOriginalmente.afectado">
+                                        <i class="bi bi-pencil-fill"></i> Capturar Firma
+                                    </button>
+                                </div>
+
+                                <div *ngIf="mostrarFirmaPadreAfectado" class="signature-container">
+                                    <div class="d-flex flex-column">
+                                        <app-signature-pad #firmaInformePadreAfectado [disabled]="!editable"
+                                            [readOnly]="esFirmaSoloLectura('afectado')"
+                                            (signatureChange)="onFirmaPadreAfectadoChange($event)"></app-signature-pad>
+                                        
+                                        <button *ngIf="!firmasGuardadasOriginalmente.afectado && editable" 
+                                            class="btn btn-sm btn-outline-warning mt-2" 
+                                            (click)="limpiarFirma('afectado')">
+                                            <i class="bi bi-trash"></i> Limpiar firma
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-sm-6" *ngIf="editable">
+                <button class="btn btn-lg btn-warning w-100" (click)="grabar()">Grabar</button>
+            </div>
+            <div class="col-sm-6">
+                <button class="btn btn-lg btn-secondary w-100" (click)="volver()">Volver</button>
+            </div>
+        </div>
+    </div>
+</div>

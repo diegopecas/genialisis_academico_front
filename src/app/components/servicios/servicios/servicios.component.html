@@ -1,0 +1,18 @@
+<div class="modulo">
+    <app-header
+      [tituloModulo]="titulo"
+      [mostrarCrear]="false"
+      [accion]="'ConsultarTodos'"
+      [raiz]="'/'"
+      [regresar]="'/menu'"
+    ></app-header>
+    <app-tablas
+      [titulos]="titulos"
+      [datos]="datos"
+      [raiz]="'/'"
+      (eliminar)="eliminar($event)"
+      [acciones]="acciones"
+      (clicAccion)="clicAccion($event)"
+    ></app-tablas>
+  </div>
+  

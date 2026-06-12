@@ -1,0 +1,438 @@
+.modulo {
+  min-height: 100vh;
+  background-color: #f8f9fa;
+}
+
+// ========================================
+// Upload Section
+// ========================================
+.upload-section {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.drop-zone {
+  border: 3px dashed #dee2e6;
+  border-radius: 12px;
+  padding: 3rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background-color: #fafafa;
+
+  &:hover {
+    border-color: #FFC107;
+    background-color: #fffbf0;
+  }
+
+  &.dragging {
+    border-color: #FFC107;
+    background-color: #fff8e1;
+    transform: scale(1.01);
+  }
+
+  .drop-icon {
+    font-size: 4rem;
+    color: #FFC107;
+    margin-bottom: 1rem;
+  }
+
+  .drop-text {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.5rem;
+  }
+
+  .drop-hint {
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin: 0;
+  }
+}
+
+// ========================================
+// Preview Grid
+// ========================================
+.preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 1rem;
+}
+
+.preview-item {
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  aspect-ratio: 1;
+  background: #e9ecef;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  &.uploading {
+    opacity: 0.7;
+  }
+
+  &.uploaded {
+    border: 3px solid #28a745;
+  }
+
+  &.error {
+    border: 3px solid #dc3545;
+  }
+}
+
+.preview-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+  padding: 1rem 0.75rem 0.5rem;
+
+  .preview-info {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .preview-name {
+    font-size: 0.75rem;
+    color: white;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 600;
+  }
+
+  .preview-size {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.7);
+  }
+}
+
+.btn-delete-preview {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(220, 53, 69, 0.9);
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: #dc3545;
+    transform: scale(1.1);
+  }
+}
+
+.upload-spinner,
+.upload-check,
+.upload-error {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.upload-check {
+  font-size: 2.5rem;
+  color: #28a745;
+}
+
+.upload-error {
+  font-size: 2.5rem;
+  color: #dc3545;
+}
+
+// ========================================
+// Uploaded Images Grid
+// ========================================
+.uploaded-section {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+// NUEVO: Controles de selección
+.selection-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.images-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1.25rem;
+}
+
+.image-card {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  background: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+
+    .image-actions {
+      opacity: 1;
+    }
+  }
+
+  // Estilo cuando es la miniatura actual
+  &.is-thumbnail {
+    border: 3px solid #FFC107;
+    box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3);
+
+    .image-wrapper {
+      &::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          135deg,
+          rgba(255, 193, 7, 0.1) 0%,
+          transparent 50%
+        );
+        pointer-events: none;
+      }
+    }
+  }
+
+  // NUEVO: Modo selección
+  &.selection-mode {
+    cursor: pointer;
+
+    &:hover {
+      transform: translateY(-3px);
+    }
+  }
+
+  // NUEVO: Imagen seleccionada
+  &.is-selected {
+    border: 3px solid #0d6efd;
+    box-shadow: 0 4px 15px rgba(13, 110, 253, 0.3);
+
+    .selection-checkbox {
+      color: #0d6efd;
+    }
+
+    .image-wrapper {
+      &::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: rgba(13, 110, 253, 0.15);
+        z-index: 5;
+        pointer-events: none;
+      }
+    }
+  }
+}
+
+// NUEVO: Checkbox de selección
+.selection-checkbox {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 15;
+  font-size: 1.5rem;
+  color: #6c757d;
+  background: white;
+  border-radius: 4px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+
+  &:hover {
+    transform: scale(1.1);
+  }
+}
+
+// Badge de miniatura
+.thumbnail-badge {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(135deg, #FFC107 0%, #ff9800 100%);
+  color: #000;
+  padding: 6px 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-align: center;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  i {
+    font-size: 0.8rem;
+  }
+}
+
+.image-wrapper {
+  position: relative;
+  aspect-ratio: 1;
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+  }
+
+  &:hover img {
+    transform: scale(1.1);
+  }
+}
+
+.image-actions {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.btn-action {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  font-size: 1.1rem;
+
+  &:hover {
+    transform: scale(1.15);
+  }
+}
+
+.btn-thumbnail {
+  background: linear-gradient(135deg, #FFC107 0%, #ff9800 100%);
+  color: #000;
+  box-shadow: 0 4px 12px rgba(255, 193, 7, 0.4);
+
+  &:hover {
+    box-shadow: 0 6px 20px rgba(255, 193, 7, 0.6);
+  }
+}
+
+.btn-delete {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
+
+  &:hover {
+    box-shadow: 0 6px 20px rgba(220, 53, 69, 0.6);
+  }
+}
+
+.image-info {
+  padding: 12px;
+  background: #f8f9fa;
+
+  .image-name {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #495057;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 4px;
+  }
+
+  .image-orden {
+    font-size: 0.75rem;
+    color: #6c757d;
+  }
+}
+
+// ========================================
+// Responsive
+// ========================================
+@media (max-width: 768px) {
+  .images-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 1rem;
+  }
+
+  .preview-grid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  }
+
+  .drop-zone {
+    padding: 2rem;
+
+    .drop-icon {
+      font-size: 3rem;
+    }
+
+    .drop-text {
+      font-size: 1rem;
+    }
+  }
+
+  .btn-action {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+  }
+
+  // Responsive para controles de selección
+  .selection-controls {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    margin-top: 1rem;
+
+    button {
+      width: 100%;
+      margin: 0 !important;
+      margin-bottom: 0.5rem !important;
+    }
+  }
+
+  .selection-checkbox {
+    font-size: 1.3rem;
+    width: 24px;
+    height: 24px;
+  }
+}

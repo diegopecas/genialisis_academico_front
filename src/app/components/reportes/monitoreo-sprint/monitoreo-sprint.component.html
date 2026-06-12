@@ -1,0 +1,286 @@
+<div class="modulo">
+    <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [raiz]="'/'" [regresar]="'/reportes'"></app-header>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-6 col-md-4 mt-3">
+                <label for="sprint">Seleccionar sprint:</label>
+                <select id="sprint" class="form-control" [(ngModel)]="sprintSeleccionado"
+                    (change)="consultarCalificacionesTareasSprintEstudiantes()">
+                    <option value="0">Todos</option>
+                    <!-- Mostrar el sprint actual con ngIf -->
+                    <option *ngFor="let sprint of sprints" [value]="sprint.id">
+                        {{ sprint.nombre_sprint }}
+                    </option>
+                </select>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                <div class="col">
+                    <canvas id="graficoCumplimientoParcial"></canvas>
+                </div>
+                <div class="col">
+                    <canvas id="graficoTareas"></canvas>
+                </div>
+
+            </div>
+            <div class="row">
+                <div class="col">
+                    <canvas id="graficoTareasPorGrupo"></canvas>
+                </div>
+            </div>
+        </div>
+        <hr>
+        <div class="fluid-container">
+            <label>
+                Comparación Programadas vs. Ejecutadas:
+            </label>
+            <div class="row mb-3">
+
+                <div class="col-sm-6 col-md-4 mt-3">
+                    <label for="grupo">Seleccionar grupo:</label>
+                    <select id="grupo" class="form-control" [(ngModel)]="grupoSeleccionadoComparacion"
+                        (change)="filtrarDatosComparacion()">
+                        <option value="">Todos</option>
+                        <option *ngFor="let grupo of grupos" [value]="grupo.nombre_grupo">{{ grupo.nombre_grupo }}
+                        </option>
+                    </select>
+                </div>
+
+                <div class="col-sm-6 col-md-4 mt-3">
+                    <label for="areaAcademica">Seleccionar Área Academica:</label>
+                    <select id="areaAcademica" class="form-control" [(ngModel)]="areaAcademicaSeleccionadaComparacion"
+                        (change)="filtrarDatosComparacion()">
+                        <option value="">Todos</option>
+                        <option *ngFor="let areaAcademica of areasAcademicas" [value]="areaAcademica.nombre">
+                            {{ areaAcademica.nombre }}
+                        </option>
+                    </select>
+                </div>
+
+                <div class="col-sm-6 col-md-4 mt-3">
+                    <label for="fechaEjecucion">Seleccionar Fecha:</label>
+                    <select id="fechaEjecucion" class="form-control" [(ngModel)]="fechaSeleccionadaComparacion"
+                        (change)="filtrarDatosComparacion()">
+                        <option value="">Todas</option>
+                        <option *ngFor="let fecha of fechasEjecucion" [value]="fecha.fecha_ejecucion">
+                            {{ fecha.fecha_ejecucion === '1970-01-01' ? 'Ninguna fecha' : fecha.fecha_ejecucion }}
+                        </option>
+                    </select>
+                </div>
+                <div class="col-sm-6 col-md-4 mt-3">
+                    <label for="valoracion">Seleccionar Valoración:</label>
+                    <select id="valoracion" class="form-control"
+                            [(ngModel)]="valoracionActividadesComparacion" 
+                            (change)="filtrarDatosComparacion()">
+                        <option value="">Todas</option>
+                        <option value="Positiva">Positiva</option>
+                        <option value="Alerta">Alerta</option>
+                        <option value="Negativa">Negativa</option>
+                    </select>
+                </div>
+                <!-- Botón para resetear los filtros -->
+                <div class="col-sm-6 col-md-4 mt-3">
+                    <button class="btn btn-secondary" (click)="resetearFiltrosComparacion()">Borrar filtros</button>
+                </div>
+            </div>
+            <app-tablas [titulos]="titulos_totales_por_dia" [datos]="datosComparacionFiltrados"
+                [raiz]="'/reportes'"></app-tablas>
+        </div>
+        <hr>
+        <div class="fluid-container">
+            <label>
+                Actividades ejecutadas:
+            </label>
+            <div class="row mb-3">
+
+                <div class="col-sm-6 col-md-4 mt-3">
+                    <label for="grupo">Seleccionar grupo:</label>
+                    <select id="grupo" class="form-control" [(ngModel)]="grupoSeleccionadoActividadesEjecutadas"
+                        (change)="filtrarDatosActividadesEjecutadas()">
+                        <option value="">Todos</option>
+                        <option *ngFor="let grupo of grupos" [value]="grupo.nombre_grupo">{{ grupo.nombre_grupo }}
+                        </option>
+                    </select>
+                </div>
+
+                <div class="col-sm-6 col-md-4 mt-3">
+                    <label for="areaAcademica">Seleccionar Área Academica:</label>
+                    <select id="areaAcademica" class="form-control"
+                        [(ngModel)]="areaAcademicaSeleccionadaActividadesEjecutadas"
+                        (change)="filtrarDatosActividadesEjecutadas()">
+                        <option value="">Todos</option>
+                        <option *ngFor="let areaAcademica of areasAcademicas" [value]="areaAcademica.nombre">
+                            {{ areaAcademica.nombre }}
+                        </option>
+                    </select>
+                </div>
+
+                <div class="col-sm-6 col-md-4 mt-3">
+                    <label for="fechaEjecucion">Seleccionar Fecha:</label>
+                    <select id="fechaEjecucion" class="form-control"
+                        [(ngModel)]="fechaSeleccionadaActividadesEjecutadas"
+                        (change)="filtrarDatosActividadesEjecutadas()">
+                        <option value="">Todas</option>
+                        <option *ngFor="let fecha of fechasEjecucion" [value]="fecha.fecha_ejecucion">
+                            {{ fecha.fecha_ejecucion === '1970-01-01' ? 'Ninguna fecha' : fecha.fecha_ejecucion }}
+                        </option>
+                    </select>
+                </div>
+                <div class="col-sm-6 col-md-4 mt-3">
+                    <label for="docente">Seleccionar Docente:</label>
+                    <select id="docente" class="form-control" [(ngModel)]="docenteSeleccionadoActividadesEjecutadas"
+                        (change)="filtrarDatosActividadesEjecutadas()">
+                        <option value="">Todos</option>
+                        <option *ngFor="let docente of docentes" [value]="docente.docente_nombre_completo">
+                            {{ docente.docente_nombre_completo }}
+                        </option>
+                    </select>
+                </div>
+                <div class="col-sm-6 col-md-4 mt-3">
+                    <label for="actividadAcademica">Seleccionar Actividad:</label>
+                    <select id="actividadAcademica" class="form-control"
+                        [(ngModel)]="actividadSeleccionadaActividadesEjecutadas"
+                        (change)="filtrarDatosActividadesEjecutadas()">
+                        <option value="">Todas</option>
+                        <option *ngFor="let actividad of actividadesAcademicas"
+                            [value]="actividad.actividad_academica_titulo">
+                            {{ actividad.actividad_academica_titulo }}
+                        </option>
+                    </select>
+                </div>
+                <div class="col-sm-6 col-md-4 mt-3">
+                    <label for="valoracion">Seleccionar Valoración:</label>
+                    <select id="valoracion" class="form-control"
+                            [(ngModel)]="valoracionActividadesEjecutadasSeleccionada" 
+                            (change)="filtrarDatosActividadesEjecutadas()">
+                        <option value="">Todas</option>
+                        <option value="Positiva">Positiva</option>
+                        <option value="Alerta">Alerta</option>
+                        <option value="Negativa">Negativa</option>
+                    </select>
+                </div>
+                <!-- Botón para resetear los filtros -->
+                <div class="col-sm-6 col-md-4 mt-3">
+                    <button class="btn btn-secondary" (click)="resetearFiltrosActividadesEjecutadas()">Borrar
+                        filtros</button>
+                </div>
+                <app-tablas [titulos]="titulos_actividades_ejecutadas" [datos]="datosActividadesEjecutadasFiltrados"
+                    [raiz]="'/reportes'"></app-tablas>
+            </div>
+
+        </div>
+        <hr>
+        <label>
+            Tareas por Estudiante
+        </label>
+        <div class="row mb-3">
+            <div class="col-sm-6 col-md-4 mt-3">
+                <label for="grupo">Seleccionar grupo:</label>
+                <select id="grupo" class="form-control" [(ngModel)]="grupoSeleccionado" (change)="filtrarDatosGrupos()">
+                    <option value="">Todos</option>
+                    <option *ngFor="let grupo of grupos" [value]="grupo.id_grupo">{{ grupo.nombre_grupo }}</option>
+                </select>
+            </div>
+
+            <div class="col-sm-6 col-md-4 mt-3">
+                <label for="estudiante">Seleccionar estudiante:</label>
+                <select id="estudiante" class="form-control" [(ngModel)]="estudianteSeleccionado"
+                    (change)="filtrarDatos()">
+                    <option value="">Todos</option>
+                    <option *ngFor="let estudiante of estudiantes" [value]="estudiante.id_estudiante">
+                        {{ estudiante.nombre_completo }}
+                    </option>
+                </select>
+            </div>
+            <div class="col-sm-6 col-md-4 mt-3">
+                <label for="actividadAcademica">Seleccionar Actividad:</label>
+                <select id="actividadAcademica" class="form-control" [(ngModel)]="actividadSeleccionada"
+                    (change)="filtrarDatos()">
+                    <option value="">Todas</option>
+                    <option *ngFor="let actividad of actividadesAcademicas"
+                        [value]="actividad.actividad_academica_titulo">
+                        {{ actividad.actividad_academica_titulo }}
+                    </option>
+                </select>
+            </div>
+
+
+            <div class="col-sm-6 col-md-4 mt-3">
+                <label for="estadoTarea">Seleccionar estado tarea:</label>
+                <select id="estadoTarea" class="form-control" [(ngModel)]="estadoTareaSeleccionado"
+                    (change)="filtrarDatos()">
+                    <option value="">Todos</option>
+                    <option *ngFor="let estadoTarea of estadosTarea" [value]="estadoTarea.id">
+                        {{ estadoTarea.nombre }}
+                    </option>
+                </select>
+            </div>
+            <div class="col-sm-6 col-md-4 mt-3">
+                <label for="areaAcademica">Seleccionar Área Academica:</label>
+                <select id="areaAcademica" class="form-control" [(ngModel)]="areaAcademicaSeleccionada"
+                    (change)="filtrarDatos()">
+                    <option value="">Todos</option>
+                    <option *ngFor="let areaAcademica of areasAcademicas" [value]="areaAcademica.nombre">
+                        {{ areaAcademica.nombre }}
+                    </option>
+                </select>
+            </div>
+            <div class="col-sm-6 col-md-4 mt-3">
+                <label for="esferaDesarrollo">Seleccionar Esfera de Desarrollo:</label>
+                <select id="esferaDesarrollo" class="form-control" [(ngModel)]="esferaDesarrolloSeleccionada"
+                    (change)="filtrarDatos()">
+                    <option value="">Todos</option>
+                    <option *ngFor="let esferaDesarrollo of esferasDesarrollo" [value]="esferaDesarrollo.nombre">
+                        {{ esferaDesarrollo.nombre }}
+                    </option>
+                </select>
+            </div>
+            <div class="col-sm-6 col-md-4 mt-3">
+                <label for="parametrosCalificacion">Seleccionar Parámetros:</label>
+                <select id="parametrosCalificacion" class="form-control" [(ngModel)]="parametroCalificacionSeleccionado"
+                    (change)="filtrarDatos()">
+                    <option value="">Todos</option>
+                    <option *ngFor="let parametrosCalificacion of parametrosCalificaciones"
+                        [value]="parametrosCalificacion.nombre">
+                        {{ parametrosCalificacion.nombre }}
+                    </option>
+                </select>
+            </div>
+            <div class="col-sm-6 col-md-4 mt-3">
+                <label for="fechaEjecucion">Seleccionar Fecha:</label>
+                <select id="fechaEjecucion" class="form-control" [(ngModel)]="fechaSeleccionada"
+                    (change)="filtrarDatos()">
+                    <option value="">Todas</option>
+                    <option *ngFor="let fecha of fechasEjecucion" [value]="fecha.fecha_ejecucion">
+                        {{ fecha.fecha_ejecucion === '1970-01-01' ? 'Ninguna fecha' : fecha.fecha_ejecucion }}
+                    </option>
+                </select>
+            </div>
+
+            <div class="col-sm-6 col-md-4 mt-3">
+                <label for="docente">Seleccionar Docente:</label>
+                <select id="docente" class="form-control" [(ngModel)]="docenteSeleccionado" (change)="filtrarDatos()">
+                    <option value="">Todos</option>
+                    <option *ngFor="let docente of docentes" [value]="docente.docente_nombre_completo">
+                        {{ docente.docente_nombre_completo }}
+                    </option>
+                </select>
+            </div>
+
+
+
+            <!-- Botón para resetear los filtros -->
+            <div class="col-sm-6 col-md-4 mt-3">
+                <button class="btn btn-secondary" (click)="resetearFiltros()">Borrar filtros</button>
+            </div>
+        </div>
+        <hr class="mt-3 mb-3" />
+
+    </div>
+    <div class="container-fluid">
+        <app-tablas [titulos]="titulos" [datos]="datosFiltrados" [raiz]="'/reportes'"></app-tablas>
+    </div>
+</div>

@@ -1,0 +1,120 @@
+<div class="modulo">
+  <app-header-anidado [tituloModulo]="titulo" [path]="path" [mostrarCrear]="false" [accion]="'ConsultarTodos'"
+    [raiz]="'/calificaciones'" [regresar]="'/reportes'"
+    [iconoTitulo]="'/assets/images/reporte.png'"></app-header-anidado>
+
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-sm-6 col-md-4 mt-3">
+        <label for="sprint">Seleccionar sprint:</label>
+        <select id="sprint" class="form-control" [(ngModel)]="sprintSeleccionado"
+          (change)="cargarCalificacionesPorSprint()">
+          <option *ngFor="let sprint of sprints" [value]="sprint.id" [selected]="sprint.es_sprint_actual == 1">
+            {{ sprint.nombre_sprint }}{{ sprint.actual == 1 ? ' (*** Actual ***)' : '' }}
+          </option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Gráficos de promedios -->
+    <div class="row mt-4" *ngIf="mostrarTablaPromedioGrupo">
+      <div class="col-12">
+        <h4 class="mb-3">Visualización de Promedios</h4>
+      </div>
+      <div class="col-md-6 mb-4">
+        <div class="card h-100">
+          <div class="card-body">
+            <canvas id="graficoPromedioGrupoArea"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 mb-4">
+        <div class="card h-100">
+          <div class="card-body">
+            <canvas id="graficoComparativoGrupos"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabla de promedios por grupo y área académica -->
+    <div class="row mt-4" *ngIf="mostrarTablaPromedioGrupo">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Promedios por Grupo y Área Académica</h5>
+          </div>
+          <div class="card-body">
+            <app-tablas 
+              [titulos]="titulosPromedioGrupo" 
+              [datos]="datosPromedioGrupo" 
+              [raiz]="'/calificaciones'" 
+              [mostrarBuscar]="true"
+              [columnasFiltro]="columnasFiltroPromedioGrupo"></app-tablas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabla de promedios por estudiante y área académica -->
+    <div class="row mt-4" *ngIf="mostrarTablaPromedio">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header bg-success text-white">
+            <h5 class="mb-0">Promedios por Estudiante y Área Académica</h5>
+          </div>
+          <div class="card-body">
+            <app-tablas 
+              [titulos]="titulosPromedio" 
+              [datos]="datosPromedio" 
+              [raiz]="'/calificaciones'" 
+              [mostrarBuscar]="true"
+              [columnasFiltro]="columnasFiltroPromedio"></app-tablas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Nueva tabla de indicadores de logro por estudiante y área académica -->
+    <div class="row mt-4" *ngIf="mostrarTablaIndicadoresLogro">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header bg-info text-white">
+            <h5 class="mb-0">Indicadores de Logro por Estudiante y Área Académica</h5>
+          </div>
+          <div class="card-body">
+            <app-tablas 
+              [titulos]="titulosIndicadoresLogro" 
+              [datos]="datosIndicadoresLogro" 
+              [raiz]="'/calificaciones'" 
+              [mostrarBuscar]="true"
+              [columnasFiltro]="columnasFiltroIndicadoresLogro"></app-tablas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabla de calificaciones detalladas -->
+    <div class="row mt-4">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header bg-secondary text-white">
+            <h5 class="mb-0">Calificaciones Detalladas</h5>
+          </div>
+          <div class="card-body">
+            <app-tablas *ngIf="datos.length > 0" 
+              [titulos]="titulos" 
+              [datos]="datos" 
+              [raiz]="'/calificaciones'" 
+              [mostrarBuscar]="true"
+              [columnasFiltro]="columnasFiltro"></app-tablas>
+            
+            <div *ngIf="datos.length === 0" class="alert alert-info mt-3">
+              No hay calificaciones disponibles para el sprint seleccionado.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

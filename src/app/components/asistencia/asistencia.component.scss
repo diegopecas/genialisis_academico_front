@@ -1,0 +1,248 @@
+/* Panel de cobros automáticos */
+.panel-cobros {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  border: 2px solid #ffc107;
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+}
+
+.panel-cobros-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, #fff8e1, #ffffff);
+  border-bottom: 1px solid #f0e6c8;
+}
+
+.panel-cobros-titulo {
+  font-size: 1.1rem;
+  color: #2c3e50;
+}
+
+.panel-cobros-icono {
+  font-size: 1.2rem;
+  margin-right: 0.5rem;
+}
+
+.panel-cobros-body {
+  padding: 1.5rem;
+}
+
+.panel-cobros-footer {
+  padding: 1rem 1.5rem;
+  background: #f8f9fa;
+  border-top: 1px solid #e9ecef;
+  display: flex;
+  align-items: center;
+}
+
+/* Items de cobro individual */
+.cobro-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.5rem;
+  background: #fff;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  border-left: 4px solid #ffc107;
+  transition: all 0.2s ease;
+}
+
+.cobro-item:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.cobro-deseleccionado {
+  opacity: 0.5;
+  border-left-color: #dee2e6;
+  background: #f8f9fa;
+}
+
+.cobro-valor {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #e74c3c;
+  white-space: nowrap;
+  margin-left: 1rem;
+}
+
+.cobro-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  margin-top: 0.75rem;
+  background: #fff3cd;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  border: 1px solid #ffc107;
+}
+
+/* ============================================================ */
+/* Panel de registro rápido */
+/* ============================================================ */
+.panel-registro-rapido {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  border: 2px solid #f9a825;
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+}
+
+.panel-rr-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.85rem 1.5rem;
+  background: linear-gradient(135deg, #fff8e1, #fffde7);
+  border-bottom: 1px solid #f0e6c8;
+}
+
+.panel-rr-titulo {
+  font-size: 1.05rem;
+  color: #2c3e50;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.panel-rr-body {
+  padding: 1.25rem 1.5rem;
+}
+
+.panel-rr-seccion-titulo {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #8B6914;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 2px solid #ffc107;
+}
+
+.panel-rr-footer {
+  padding: 0.85rem 1.5rem;
+  background: #f8f9fa;
+  border-top: 1px solid #e9ecef;
+  display: flex;
+  align-items: center;
+}
+
+.panel-rr-body .form-label-sm {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 0.15rem;
+}
+
+/* ============================================================ */
+/* Badges de tipo acudiente */
+/* ============================================================ */
+.badges-tipo-acudiente {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.badge-acudiente {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.35rem 0.7rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 20px;
+  background: #fafafa;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.badge-acudiente:hover {
+  border-color: #ffc107;
+  background: #fff8e1;
+  transform: scale(1.05);
+}
+
+.badge-acudiente-seleccionado {
+  border-color: #f9a825;
+  background: linear-gradient(135deg, #fff8e1, #fff3cd);
+  box-shadow: 0 2px 8px rgba(249, 168, 37, 0.3);
+}
+
+.badge-acudiente-icono {
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.badge-acudiente-nombre {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #424242;
+}
+
+.badge-acudiente-seleccionado .badge-acudiente-nombre {
+  color: #8B6914;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .panel-cobros-header {
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: center;
+  }
+
+  .panel-cobros-footer {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .panel-cobros-footer .btn {
+    width: 100%;
+    margin-left: 0 !important;
+  }
+
+  .cobro-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .cobro-valor {
+    margin-left: 0;
+    align-self: flex-end;
+  }
+
+  .panel-rr-header {
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: center;
+  }
+
+  .panel-rr-footer {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .panel-rr-footer .btn {
+    width: 100%;
+    margin-left: 0 !important;
+  }
+
+  .badges-tipo-acudiente {
+    gap: 0.3rem;
+  }
+
+  .badge-acudiente {
+    padding: 0.3rem 0.5rem;
+  }
+
+  .badge-acudiente-nombre {
+    font-size: 0.72rem;
+  }
+}

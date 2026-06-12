@@ -1,0 +1,24 @@
+<div class="modulo">
+    <app-header 
+        [tituloModulo]="titulo" 
+        [mostrarCrear]="true" 
+        [accion]="'ConsultarTodos'"
+        [raiz]="'/administracion/lista-menus'" 
+        [regresar]="'/administracion/menus'"
+        [iconoTitulo]="'/assets/images/menus-completos.png'">
+    </app-header>
+
+    <!-- Vista de tabla -->
+    <app-tablas 
+        [titulos]="titulos" 
+        [datos]="datos" 
+        [raiz]="'/administracion/lista-menus'" 
+        [acciones]="acciones" 
+        [accionVer]="true" 
+        [accionEditar]="true" 
+        [accionEliminar]="true" 
+        [mostrarBuscar]="true"
+        [columnasFiltro]="['Clasificación', 'Hoy', 'Minuta', 'Productos']"
+        (clicAccion)="clicAccion($event)">
+    </app-tablas>
+</div>

@@ -1,0 +1,446 @@
+<div class="modulo">
+    <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [accion]="accion"
+        [raiz]="'/administracion/lista-menus'" [regresar]="regresar"
+        [iconoTitulo]="'/assets/images/menus-completos.png'">
+    </app-header>
+
+    <div class="container mt-5">
+        <!-- Sistema de Tabs -->
+        <ul class="nav nav-tabs mb-4" id="menuTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="datos-generales-tab" data-bs-toggle="tab"
+                    data-bs-target="#datos-generales" type="button" role="tab" aria-controls="datos-generales"
+                    aria-selected="true" (click)="tabActivo = 'datos-generales'">
+                    <i class="fas fa-info-circle"></i> Datos Generales
+                </button>
+            </li>
+            <li class="nav-item" role="presentation" *ngIf="accion !== 'crear'">
+                <button class="nav-link" id="items-tab" data-bs-toggle="tab"
+                    data-bs-target="#items" type="button" role="tab" aria-controls="items"
+                    aria-selected="false" (click)="tabActivo = 'items'">
+                    <i class="fas fa-utensils"></i> Ítems del Menú
+                    <span class="badge bg-success ms-2" *ngIf="itemsAsignados.length > 0">
+                        {{ itemsAsignados.length }}
+                    </span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation" *ngIf="accion !== 'crear'">
+                <button class="nav-link" id="productos-servicios-tab" data-bs-toggle="tab"
+                    data-bs-target="#productos-servicios" type="button" role="tab" aria-controls="productos-servicios"
+                    aria-selected="false" (click)="tabActivo = 'productos-servicios'">
+                    <i class="fas fa-box-open"></i> Productos y Servicios
+                    <span class="badge bg-primary ms-2" *ngIf="productosAsignados.length > 0">
+                        {{ productosAsignados.length }}
+                    </span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation" *ngIf="accion !== 'crear'">
+                <button class="nav-link" id="minuta-tab" data-bs-toggle="tab"
+                    data-bs-target="#minuta" type="button" role="tab" aria-controls="minuta"
+                    aria-selected="false" (click)="tabActivo = 'minuta'">
+                    <i class="fas fa-calendar-alt"></i> Minuta
+                    <span class="badge bg-info ms-2" *ngIf="contarMinutasAsignadas() > 0">
+                        {{ contarMinutasAsignadas() }}
+                    </span>
+                </button>
+            </li>
+        </ul>
+
+        <!-- Contenido de los Tabs -->
+        <div class="tab-content" id="menuTabsContent">
+
+            <!-- Tab 1: Datos Generales -->
+            <div class="tab-pane fade show active" id="datos-generales" role="tabpanel"
+                aria-labelledby="datos-generales-tab">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-clipboard-list"></i> Información del Menú</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-sm-12 col-md-5">
+                                <label for="nombre" class="form-label">Nombre del Menú <span
+                                        class="text-danger">*</span></label>
+                                <input class="form-control form-control-lg" type="text" id="nombre"
+                                    [(ngModel)]="model.nombre" required
+                                    [ngClass]="{'is-invalid': !model.nombre && submitted}"
+                                    [disabled]="!editable"
+                                    placeholder="Ej: Menú del día, Menú especial">
+                                <div class="invalid-feedback">
+                                    El nombre es requerido
+                                </div>
+                            </div>
+                            <div class="col-sm-12 col-md-4">
+                                <label for="clasificacion" class="form-label">Clasificación <span
+                                        class="text-danger">*</span></label>
+                                <select class="form-select form-select-lg" id="clasificacion"
+                                    [(ngModel)]="model.id_clasificacion_menu"
+                                    (ngModelChange)="onClasificacionChange()"
+                                    [ngClass]="{'is-invalid': !model.id_clasificacion_menu && submitted}"
+                                    [disabled]="!editable">
+                                    <option [ngValue]="null">-- Seleccione --</option>
+                                    <option *ngFor="let clas of clasificacionesMenu" [ngValue]="clas.id">
+                                        {{ clas.nombre }}
+                                    </option>
+                                </select>
+                                <div class="invalid-feedback">
+                                    La clasificación es requerida
+                                </div>
+                            </div>
+                            <div class="col-sm-12 col-md-3 d-flex align-items-end">
+                                <div class="form-check form-switch form-switch-lg w-100 pb-2">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="activo"
+                                        [checked]="model.activo == 1"
+                                        (change)="model.activo = $any($event.target).checked ? 1 : 0"
+                                        [disabled]="!editable">
+                                    <label class="form-check-label" for="activo">
+                                        <span [ngClass]="model.activo == 1 ? 'text-success' : 'text-secondary'">
+                                            {{ model.activo == 1 ? 'Activo' : 'Inactivo' }}
+                                        </span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <label for="descripcion" class="form-label">Descripción</label>
+                                <textarea class="form-control" id="descripcion"
+                                    [(ngModel)]="model.descripcion"
+                                    [disabled]="!editable"
+                                    rows="3"
+                                    placeholder="Descripción del menú..."></textarea>
+                            </div>
+                        </div>
+
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <div class="alert alert-info" *ngIf="accion === 'crear'">
+                                    <i class="fas fa-info-circle"></i>
+                                    Una vez creado el menú, podrá agregar los ítems, productos/servicios y configurar la minuta.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 2: Ítems del Menú -->
+            <div class="tab-pane fade" id="items" role="tabpanel" aria-labelledby="items-tab"
+                *ngIf="accion !== 'crear'">
+
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fas fa-utensils"></i> Ítems del Menú
+                            </h5>
+                            <button class="btn btn-success btn-sm" (click)="abrirModalAsignarItem()"
+                                [disabled]="!editable">
+                                <i class="fas fa-plus"></i> Agregar Ítem
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info" *ngIf="itemsAsignados.length === 0">
+                            <i class="fas fa-info-circle"></i> No hay ítems configurados para este menú
+                        </div>
+
+                        <div class="table-responsive" *ngIf="itemsAsignados.length > 0">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th width="5%">#</th>
+                                        <th>Ítem</th>
+                                        <th>Porción</th>
+                                        <th>Ingredientes</th>
+                                        <th class="text-center">Opcional en Menú</th>
+                                        <th class="text-center" *ngIf="editable">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr *ngFor="let item of itemsAsignados; let i = index">
+                                        <td>{{ i + 1 }}</td>
+                                        <td>
+                                            <strong>{{ item.nombre_item }}</strong>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-secondary">
+                                                {{ item.nombre_porcion || '-' }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">
+                                                {{ truncarTexto(item.ingredientes_nombres || '', 60) }}
+                                            </small>
+                                        </td>
+                                        <td class="text-center">
+                                            <button class="btn btn-sm"
+                                                [ngClass]="item.es_opcional ? 'btn-warning' : 'btn-outline-secondary'"
+                                                (click)="toggleOpcional(item)"
+                                                [disabled]="!editable">
+                                                <i class="fas" [ngClass]="item.es_opcional ? 'fa-check' : 'fa-times'"></i>
+                                                {{ item.es_opcional ? 'Sí' : 'No' }}
+                                            </button>
+                                        </td>
+                                        <td class="text-center" *ngIf="editable">
+                                            <button class="btn btn-danger btn-sm" (click)="eliminarItem(item)">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="row mt-4" *ngIf="itemsAsignados.length > 0">
+                            <div class="col-md-12">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6 class="card-title">
+                                            <i class="fas fa-chart-pie"></i> Resumen de Ítems
+                                        </h6>
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <small class="text-muted">Total Ítems</small>
+                                                <h5 class="text-primary">{{ itemsAsignados.length }}</h5>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <small class="text-muted">Ítems Obligatorios</small>
+                                                <h5 class="text-success">{{ contarItemsObligatorios() }}</h5>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <small class="text-muted">Ítems Opcionales</small>
+                                                <h5 class="text-warning">{{ contarItemsOpcionales() }}</h5>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 3: Productos y Servicios -->
+            <div class="tab-pane fade" id="productos-servicios" role="tabpanel" aria-labelledby="productos-servicios-tab"
+                *ngIf="accion !== 'crear'">
+
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fas fa-box-open"></i> Productos y Servicios de Alimentación
+                            </h5>
+                            <button class="btn btn-success btn-sm" (click)="abrirModalAsignarProducto()"
+                                [disabled]="!editable">
+                                <i class="fas fa-plus"></i> Agregar Producto
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info" *ngIf="productosAsignados.length === 0">
+                            <i class="fas fa-info-circle"></i> No hay productos/servicios configurados para este menú
+                        </div>
+
+                        <div class="table-responsive" *ngIf="productosAsignados.length > 0">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th width="5%">#</th>
+                                        <th>Producto / Servicio</th>
+                                        <th>Categoría</th>
+                                        <th>Horario Alimentación</th>
+                                        <th class="text-end">Valor Sugerido</th>
+                                        <th class="text-center" *ngIf="editable">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr *ngFor="let prod of productosAsignados; let i = index">
+                                        <td>{{ i + 1 }}</td>
+                                        <td>
+                                            <strong>{{ prod.nombre_producto_servicio }}</strong>
+                                            <br *ngIf="prod.detalles">
+                                            <small class="text-muted" *ngIf="prod.detalles">
+                                                {{ truncarTexto(prod.detalles || '', 80) }}
+                                            </small>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-secondary" *ngIf="prod.nombre_categoria">
+                                                {{ prod.nombre_categoria }}
+                                            </span>
+                                            <span *ngIf="!prod.nombre_categoria">-</span>
+                                        </td>
+                                        <td>
+                                            <span *ngIf="prod.nombre_horario_alimentacion">
+                                                {{ prod.nombre_horario_alimentacion }}
+                                            </span>
+                                            <span *ngIf="!prod.nombre_horario_alimentacion">-</span>
+                                        </td>
+                                        <td class="text-end">
+                                            <span *ngIf="prod.valor_sugerido">
+                                                {{ prod.valor_sugerido | number:'1.0-0' }}
+                                            </span>
+                                            <span *ngIf="!prod.valor_sugerido">-</span>
+                                        </td>
+                                        <td class="text-center" *ngIf="editable">
+                                            <button class="btn btn-danger btn-sm" (click)="eliminarProducto(prod)">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="row mt-4" *ngIf="productosAsignados.length > 0">
+                            <div class="col-md-12">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6 class="card-title">
+                                            <i class="fas fa-chart-pie"></i> Resumen de Productos y Servicios
+                                        </h6>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <small class="text-muted">Total Productos Asignados</small>
+                                                <h5 class="text-primary">{{ productosAsignados.length }}</h5>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <small class="text-muted">Productos Disponibles</small>
+                                                <h5 class="text-secondary">{{ productosDisponibles.length }}</h5>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 4: Minuta -->
+            <div class="tab-pane fade" id="minuta" role="tabpanel" aria-labelledby="minuta-tab"
+                *ngIf="accion !== 'crear'">
+
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fas fa-calendar-alt"></i> Planificación de Minuta
+                            </h5>
+                            <span class="badge bg-info" *ngIf="contarMinutasAsignadas() > 0">
+                                {{ contarMinutasAsignadas() }} día(s) asignado(s)
+                            </span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+
+                        <div class="alert alert-warning border mb-4" *ngIf="!model.id_clasificacion_menu">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Debe asignar una <strong>clasificación</strong> al menú (en Datos Generales) antes de configurar la minuta.
+                        </div>
+
+                        <div class="alert alert-light border mb-4" *ngIf="model.id_clasificacion_menu">
+                            <i class="fas fa-info-circle text-info"></i>
+                            Minuta de <strong>{{ getNombreClasificacion() }}</strong> —
+                            seleccione los días de cada semana en los que se servirá este menú.
+                            Las celdas en gris indican que otro menú de {{ getNombreClasificacion() }} ya está asignado.
+                        </div>
+
+                        <div class="table-responsive" *ngIf="model.id_clasificacion_menu">
+                            <table class="table table-bordered minuta-grilla">
+                                <thead>
+                                    <tr>
+                                        <th class="th-semana">Semana</th>
+                                        <th *ngFor="let dia of diasSemana; let j = index" 
+                                            class="th-dia text-center"
+                                            [class.clickable]="editable"
+                                            (click)="seleccionarDia(j)">
+                                            {{ dia.nombre }}
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr *ngFor="let fila of grillaMinuta; let i = index">
+                                        <td class="td-semana"
+                                            [class.clickable]="editable"
+                                            (click)="seleccionarSemana(i)">
+                                            <strong>Semana {{ i + 1 }}</strong>
+                                        </td>
+                                        <td *ngFor="let celda of fila"
+                                            class="td-celda text-center"
+                                            [class.celda-seleccionada]="celda.seleccionado"
+                                            [class.celda-ocupada]="!celda.seleccionado && celda.menuExistente"
+                                            [class.clickable]="editable"
+                                            (click)="toggleMinuta(celda)">
+
+                                            <div class="celda-contenido">
+                                                <ng-container *ngIf="celda.seleccionado">
+                                                    <span class="nombre-menu-actual" [title]="model.nombre">
+                                                        <i class="fas fa-check-circle"></i>
+                                                        {{ model.nombre }}
+                                                    </span>
+                                                </ng-container>
+
+                                                <ng-container *ngIf="!celda.seleccionado && celda.menuExistente">
+                                                    <span class="nombre-menu-otro" [title]="celda.menuExistente">
+                                                        <i class="fas fa-utensils"></i>
+                                                        {{ celda.menuExistente }}
+                                                    </span>
+                                                </ng-container>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="row mt-4" *ngIf="contarMinutasAsignadas() > 0">
+                            <div class="col-md-12">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6 class="card-title">
+                                            <i class="fas fa-chart-pie"></i> Resumen de la Minuta
+                                        </h6>
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <small class="text-muted">Días Asignados</small>
+                                                <h5 class="text-info">{{ contarMinutasAsignadas() }}</h5>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <small class="text-muted">Total Posibles</small>
+                                                <h5 class="text-secondary">30</h5>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <small class="text-muted">Cobertura</small>
+                                                <h5 class="text-primary">
+                                                    {{ ((contarMinutasAsignadas() / 30) * 100).toFixed(0) }}%
+                                                </h5>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botones de acción -->
+    <div class="container mt-4 mb-5">
+        <div class="row">
+            <div class="col-sm-6" *ngIf="editable">
+                <button class="btn btn-lg btn-warning w-100" (click)="guardarMenu()">
+                    <i class="fas fa-save"></i> Guardar
+                </button>
+            </div>
+            <div class="col-sm-6">
+                <button class="btn btn-lg btn-secondary w-100" (click)="volver()">
+                    <i class="fas fa-arrow-left"></i> Volver
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

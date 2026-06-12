@@ -1,0 +1,19 @@
+<div class="modulo">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="true"
+    [accion]="'ConsultarTodos'"
+    [raiz]="'/administracion/financiero/reglas-cobro-automatico'"
+    [regresar]="'/administracion/financiero'"
+    [iconoTitulo]="'/assets/images/productos.png'"
+  ></app-header>
+
+  <app-tablas
+    [titulos]="titulos"
+    [datos]="datos"
+    [raiz]="'/administracion/financiero/reglas-cobro-automatico'"
+    [accionEditar]="true"
+    [mostrarBuscar]="true"
+    (clicAccion)="clicAccion($event)"
+  ></app-tablas>
+</div>

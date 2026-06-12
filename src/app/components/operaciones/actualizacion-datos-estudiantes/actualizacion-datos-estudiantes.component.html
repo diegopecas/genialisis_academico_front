@@ -1,0 +1,55 @@
+<div class="modulo">
+  <app-header 
+    [tituloModulo]="titulo" 
+    [mostrarCrear]="false" 
+    [raiz]="'/operaciones'" 
+    [regresar]="'/operaciones'"
+    [iconoTitulo]="'/assets/images/estudiantes.png'">
+  </app-header>
+
+  <app-tablas 
+    [titulos]="titulos" 
+    [datos]="datos" 
+    [raiz]="'/operaciones/actualizacion-datos-estudiantes'" 
+    [accionVer]="false"
+    [accionEditar]="false" 
+    [accionEliminar]="false" 
+    [columnasFiltro]="columnasFiltro"
+    [seleccionMultiple]="true"
+    [campoId]="'id_estudiante'"
+    [mostrarBuscar]="true"
+    (seleccionCambiada)="onSeleccionCambiada($event)">
+  </app-tablas>
+
+  <div class="container-fluid px-4">
+    <div class="card mt-3 shadow-sm" *ngIf="cantidadSeleccionada > 0">
+      <div class="card-header" style="background-color: transparent; border-bottom: 1px solid #ddd;">
+        <h5 class="card-title mb-0 text-dark">
+          <i class="fa fa-users me-2"></i>Resumen de Selección
+        </h5>
+      </div>
+      <div class="card-body">
+        <div class="row text-center">
+          <div class="col-12">
+            <div class="total-box">
+              <h6 class="text-muted">Estudiantes seleccionados:</h6>
+              <p class="total-value text-primary">{{ cantidadSeleccionada }}</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="row mt-4">
+          <div class="col-12 text-center">
+            <button class="btn btn-lg px-5" 
+                    [disabled]="cantidadSeleccionada === 0"
+                    (click)="actualizarSeleccionados()"
+                    style="background-color: #31f491; color: #1a1a1a; border: none;">
+              <i class="fa fa-edit me-2"></i>
+              Actualizar Datos ({{ cantidadSeleccionada }})
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

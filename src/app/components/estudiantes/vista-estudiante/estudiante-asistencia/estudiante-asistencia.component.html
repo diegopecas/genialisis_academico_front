@@ -1,0 +1,245 @@
+<div class="panel panel-primary mb-4">
+  <div class="panel-heading d-flex justify-content-between align-items-center">
+    <h5 class="mb-0">
+      <i class="fas fa-calendar-check me-2"></i> Registro de Asistencia
+    </h5>
+  </div>
+  <div class="panel-body">
+    <!-- Indicador de carga -->
+    <div *ngIf="cargando" class="text-center py-4">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+      <p class="mt-2">Cargando registros de asistencia...</p>
+    </div>
+
+    <!-- Contenido de asistencia -->
+    <div *ngIf="!cargando">
+      <!-- Filtros -->
+      <div class="filtros-container mb-4">
+        <div class="filtro-item">
+          <label for="mesSelector" class="form-label">Seleccionar Mes:</label>
+          <select id="mesSelector" class="form-select" [(ngModel)]="mesSeleccionado" (change)="cambiarMes()">
+            <option *ngFor="let mes of meses" [value]="mes.id">{{ mes.nombre }}</option>
+          </select>
+        </div>
+        <div class="filtro-item">
+          <label for="diaSemanaSelector" class="form-label">Filtrar por Día:</label>
+          <select id="diaSemanaSelector" class="form-select" [(ngModel)]="filtroDiaSemana" (change)="cambiarFiltroDiaSemana(filtroDiaSemana)">
+            <option [ngValue]="null">Todos los días</option>
+            <option [value]="1">Lunes</option>
+            <option [value]="2">Martes</option>
+            <option [value]="3">Miércoles</option>
+            <option [value]="4">Jueves</option>
+            <option [value]="5">Viernes</option>
+            <option [value]="6">Sábado</option>
+            <option [value]="0">Domingo</option>
+          </select>
+        </div>
+        <div class="filtro-item checkbox-item">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="incluirFinDeSemanaCheck" [(ngModel)]="incluirFinDeSemana" (change)="cambiarFiltroFinDeSemana()">
+            <label class="form-check-label" for="incluirFinDeSemanaCheck">
+              Incluir fines de semana
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Resumen de estadísticas -->
+      <div class="estadisticas-card mb-4">
+        <h6 class="text-center mb-3 estadisticas-titulo">
+          <i class="fas fa-chart-pie me-2"></i> Resumen del Mes
+        </h6>
+        <div class="estadisticas-grid">
+          <div class="estadistica-item asistencia-bg">
+            <span class="estadistica-valor">{{ estadisticasMes.diasAsistidos }}</span>
+            <span class="estadistica-label">Días asistidos</span>
+          </div>
+          <div class="estadistica-item ausencia-bg">
+            <span class="estadistica-valor">{{ estadisticasMes.diasAusentes }}</span>
+            <span class="estadistica-label">Días ausentes</span>
+          </div>
+          <div class="estadistica-item tarde-bg">
+            <span class="estadistica-valor">{{ estadisticasMes.diasTarde }}</span>
+            <span class="estadistica-label">Entradas tarde</span>
+          </div>
+          <div class="estadistica-item salida-tarde-bg">
+            <span class="estadistica-valor">{{ estadisticasMes.salidasTarde }}</span>
+            <span class="estadistica-label">Salidas tarde</span>
+          </div>
+        </div>
+        <div class="progress">
+          <div class="progress-bar bg-success" role="progressbar" 
+               [style.width.%]="estadisticasMes.porcentajeAsistencia" 
+               [attr.aria-valuenow]="estadisticasMes.porcentajeAsistencia" 
+               aria-valuemin="0" 
+               aria-valuemax="100">
+            {{ estadisticasMes.porcentajeAsistencia | number:'1.0-0' }}% asistencia
+          </div>
+        </div>
+      </div>
+
+      <!-- Gráficos de asistencia -->
+      <div class="graficos-container mb-4">
+        <div class="grafico-wrapper">
+          <div class="grafico-container">
+            <h6 class="text-center mb-2">
+              <i class="fas fa-chart-line me-1"></i> Asistencia Diaria
+            </h6>
+            <canvas id="asistenciaDiariaChart" width="100%" height="250"></canvas>
+          </div>
+        </div>
+        <div class="grafico-wrapper">
+          <div class="grafico-container">
+            <h6 class="text-center mb-2">
+              <i class="fas fa-chart-bar me-1"></i> Resumen Mensual
+            </h6>
+            <canvas id="asistenciaMensualChart" width="100%" height="250"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Registro detallado -->
+      <div class="registro-detallado">
+        <h6 class="text-center mb-3">
+          <i class="fas fa-calendar-day me-1"></i> Registro Detallado de Asistencia
+        </h6>
+        
+        <!-- Vista de tabla para desktop -->
+        <div class="tabla-asistencia-container desktop-only">
+          <table class="table table-striped table-bordered table-hover table-sm">
+            <thead class="thead-dark">
+              <tr>
+                <th>Fecha</th>
+                <th>Día</th>
+                <th>Asistencia</th>
+                <th>Ingreso</th>
+                <th>Salida</th>
+                <th>Observaciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let dia of diasDelMes" [ngClass]="getClaseDia(dia)">
+                <td>{{ dia.fecha | date:'dd/MM/yyyy' }}</td>
+                <td>{{ dia.diaSemana }}</td>
+                <td>
+                  <span *ngIf="dia.asistio" class="badge bg-success">Asistió</span>
+                  <span *ngIf="!dia.asistio" class="badge bg-danger">No asistió</span>
+                </td>
+                <td>
+                  <span *ngIf="dia.horaIngreso">
+                    {{ dia.horaIngreso }}
+                    <i *ngIf="dia.entroTarde" class="fas fa-exclamation-triangle text-warning ms-1" 
+                       title="Entrada tardía"></i>
+                  </span>
+                  <span *ngIf="!dia.horaIngreso">--:--</span>
+                </td>
+                <td>
+                  <span *ngIf="dia.horaSalida">
+                    {{ dia.horaSalida }}
+                    <i *ngIf="dia.salioTarde" class="fas fa-exclamation-triangle text-danger ms-1" 
+                       title="Salida tardía"></i>
+                  </span>
+                  <span *ngIf="!dia.horaSalida">--:--</span>
+                </td>
+                <td>
+                  <div *ngIf="dia.observacionIngreso" class="small texto-observacion">
+                    <strong>Ingreso:</strong> {{ dia.observacionIngreso }}
+                  </div>
+                  <div *ngIf="dia.observacionSalida" class="small texto-observacion">
+                    <strong>Salida:</strong> {{ dia.observacionSalida }}
+                  </div>
+                  <span *ngIf="!dia.observacionIngreso && !dia.observacionSalida">--</span>
+                </td>
+              </tr>
+              <tr *ngIf="diasDelMes.length === 0">
+                <td colspan="6" class="text-center">No hay días para mostrar con los filtros seleccionados</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Vista de tarjetas para móvil -->
+        <div class="tarjetas-asistencia mobile-only">
+          <div *ngFor="let dia of diasDelMes" class="asistencia-card" [ngClass]="getClaseCard(dia)">
+            <div class="card-header">
+              <div class="fecha-info">
+                <span class="fecha">{{ dia.fecha | date:'dd/MM/yyyy' }}</span>
+                <span class="dia-semana">{{ dia.diaSemana }}</span>
+              </div>
+              <div class="badge-asistencia">
+                <span *ngIf="dia.asistio" class="badge bg-success">Asistió</span>
+                <span *ngIf="!dia.asistio" class="badge bg-danger">No asistió</span>
+              </div>
+            </div>
+
+            <div class="card-body" *ngIf="dia.asistio">
+              <div class="horarios">
+                <div class="horario-item">
+                  <div class="horario-label">
+                    <i class="fas fa-sign-in-alt"></i> Ingreso
+                  </div>
+                  <div class="horario-valor">
+                    <span>{{ dia.horaIngreso || '--:--' }}</span>
+                    <i *ngIf="dia.entroTarde" class="fas fa-exclamation-triangle text-warning ms-1" 
+                       title="Entrada tardía"></i>
+                  </div>
+                </div>
+                
+                <div class="horario-item">
+                  <div class="horario-label">
+                    <i class="fas fa-sign-out-alt"></i> Salida
+                  </div>
+                  <div class="horario-valor">
+                    <span>{{ dia.horaSalida || '--:--' }}</span>
+                    <i *ngIf="dia.salioTarde" class="fas fa-exclamation-triangle text-danger ms-1" 
+                       title="Salida tardía"></i>
+                  </div>
+                </div>
+              </div>
+
+              <div class="observaciones" *ngIf="dia.observacionIngreso || dia.observacionSalida">
+                <div class="observacion-item" *ngIf="dia.observacionIngreso">
+                  <strong>Obs. Ingreso:</strong> {{ dia.observacionIngreso }}
+                </div>
+                <div class="observacion-item" *ngIf="dia.observacionSalida">
+                  <strong>Obs. Salida:</strong> {{ dia.observacionSalida }}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="diasDelMes.length === 0" class="no-data-message">
+            <i class="fas fa-info-circle"></i>
+            <p>No hay días para mostrar con los filtros seleccionados</p>
+          </div>
+        </div>
+
+        <!-- Leyenda de colores -->
+        <div class="leyenda-container mt-3">
+          <div class="leyenda-item asistio">
+            <span class="leyenda-color"></span>
+            <span class="leyenda-texto">Asistió</span>
+          </div>
+          <div class="leyenda-item no-asistio">
+            <span class="leyenda-color"></span>
+            <span class="leyenda-texto">No asistió</span>
+          </div>
+          <div class="leyenda-item entrada-tarde">
+            <span class="leyenda-color"></span>
+            <span class="leyenda-texto">Entrada tarde (después de 8:00 AM)</span>
+          </div>
+          <div class="leyenda-item salida-tarde">
+            <span class="leyenda-color"></span>
+            <span class="leyenda-texto">Salida tarde (después de 6:00 PM L-V, 3:00 PM S-D)</span>
+          </div>
+          <div class="leyenda-item fin-de-semana">
+            <span class="leyenda-color"></span>
+            <span class="leyenda-texto">Fin de semana</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

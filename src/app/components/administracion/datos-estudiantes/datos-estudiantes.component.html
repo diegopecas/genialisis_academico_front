@@ -1,0 +1,21 @@
+<div class="modulo">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="false"
+    [raiz]="'/administracion/datos-maestros'"
+    [regresar]="'/administracion/datos-maestros'"
+    [iconoTitulo]="'/assets/images/estudiantes.png'"
+  ></app-header>
+
+  <div class="container mt-4">
+    <div class="row justify-content-center">
+      <div class="col-lg-3 col-md-6 col-sm-6 mb-3" *ngFor="let op of opciones">
+        <div class="card-opcion" (click)="navegar(op.ruta)">
+          <span class="card-opcion-icono">{{ op.icono }}</span>
+          <h5 class="card-opcion-nombre">{{ op.nombre }}</h5>
+          <p class="card-opcion-descripcion">{{ op.descripcion }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

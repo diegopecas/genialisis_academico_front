@@ -1,0 +1,7 @@
+<div class="modulo">
+    <app-header-anidado [tituloModulo]="titulo" [path]="path" [mostrarCrear]="puedeAdministrar" [accion]="'ConsultarTodos'"
+      [raiz]="'/estudiantes/medidas'" [regresar]="'/estudiantes'"
+      [iconoTitulo]="'/assets/images/medidas.png'"></app-header-anidado>
+    <app-tablas [titulos]="titulos" [datos]="datos" [raiz]="'/estudiantes-medidas'" [accionVer]="puedeAdministrar"
+      [accionEditar]="puedeAdministrar" [accionEliminar]="puedeAdministrar" [columnasFiltro]="columnasFiltro" (clicAccion)="seleccionar($event)"></app-tablas>
+  </div>

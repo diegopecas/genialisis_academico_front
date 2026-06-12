@@ -1,0 +1,257 @@
+<div class="modulo">
+  <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [raiz]="'/'" [regresar]="'/operaciones'"
+    [iconoTitulo]="'/assets/images/seguimiento-asistencia.png'"></app-header>
+
+  <div class="container-fluid mt-4">
+
+    <!-- Filtro de fecha -->
+    <div class="row mb-4">
+      <div class="col-md-3">
+        <label for="fechaReferencia" class="form-label">
+          <i class="fas fa-calendar"></i> Fecha de referencia:
+        </label>
+        <input type="date" id="fechaReferencia" class="form-control" [(ngModel)]="fechaReferencia"
+          (change)="onFechaChange()">
+      </div>
+      <div class="col-md-9 d-flex align-items-end">
+        <button class="btn btn-outline-secondary btn-sm" (click)="togglePlantilla()">
+          <i class="fas" [ngClass]="mostrarPlantilla ? 'fa-chevron-up' : 'fa-envelope'"></i>
+          {{ mostrarPlantilla ? 'Ocultar plantilla' : 'Editar plantilla de mensaje' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Plantilla de mensaje editable -->
+    <div class="plantilla-container mb-4" *ngIf="mostrarPlantilla">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h6 class="mb-0"><i class="fab fa-whatsapp me-2 text-success"></i> Plantilla del mensaje de WhatsApp</h6>
+          <button class="btn btn-sm btn-outline-warning" (click)="restaurarPlantilla()" title="Restaurar plantilla por defecto">
+            <i class="fas fa-undo me-1"></i> Restaurar
+          </button>
+        </div>
+        <div class="card-body">
+          <div class="mb-3">
+            <label class="form-label fw-bold">Variables disponibles <small class="text-muted">(clic para insertar)</small></label>
+            <div class="variables-chips">
+              <span *ngFor="let v of variablesDisponibles"
+                class="chip-variable"
+                (click)="insertarVariable(v.variable)"
+                [title]="v.descripcion">
+                {{ v.variable }}
+              </span>
+            </div>
+          </div>
+          <textarea id="plantillaTextarea" class="form-control plantilla-textarea"
+            [(ngModel)]="plantillaMensaje"
+            rows="10"
+            placeholder="Escribe tu plantilla de mensaje aquí..."></textarea>
+          <small class="text-muted mt-1 d-block">
+            Las variables entre llaves se reemplazarán automáticamente con los datos de cada estudiante al enviar.
+          </small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tarjetas de resumen -->
+    <div class="row mb-4" *ngIf="!cargando && datosDisponibles">
+      <div class="col-md-3 col-sm-6 mb-3">
+        <div class="resumen-card presentes-bg">
+          <span class="resumen-valor">{{ totalPresentes }}</span>
+          <span class="resumen-label">Presentes hoy</span>
+        </div>
+      </div>
+      <div class="col-md-3 col-sm-6 mb-3">
+        <div class="resumen-card riesgo-alto-bg">
+          <span class="resumen-valor">{{ totalRiesgoAlto }}</span>
+          <span class="resumen-label">Riesgo Alto</span>
+        </div>
+      </div>
+      <div class="col-md-3 col-sm-6 mb-3">
+        <div class="resumen-card riesgo-medio-bg">
+          <span class="resumen-valor">{{ totalRiesgoMedio }}</span>
+          <span class="resumen-label">Riesgo Medio</span>
+        </div>
+      </div>
+      <div class="col-md-3 col-sm-6 mb-3">
+        <div class="resumen-card total-bg">
+          <span class="resumen-valor">{{ totalEstudiantes }}</span>
+          <span class="resumen-label">Total Estudiantes</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Indicador de carga -->
+    <div *ngIf="cargando" class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+      <p class="mt-2">Cargando seguimiento de asistencia...</p>
+    </div>
+
+    <!-- Tabla usando app-tablas -->
+    <app-tablas #tablaSeguimiento *ngIf="!cargando && datosDisponibles"
+      [titulos]="titulosTabla"
+      [datos]="datosTabla"
+      [raiz]="'/operaciones/seguimiento-asistencia'"
+      [accionEditar]="false"
+      [mostrarBuscar]="true"
+      [columnasFiltro]="columnasFiltro"
+      (clicAccion)="onClicAccion($event)">
+    </app-tablas>
+
+    <!-- Sin datos -->
+    <div *ngIf="!cargando && !datosDisponibles" class="alert alert-info text-center mt-4">
+      <i class="fas fa-info-circle fa-3x mb-3"></i>
+      <h4>No hay datos disponibles</h4>
+      <p>No se encontró información de asistencia para la fecha {{ fechaReferencia }}</p>
+    </div>
+
+  </div>
+</div>
+
+<!-- Modal detalle con acudientes -->
+<div class="modal fade" id="modalSeguimiento" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fab fa-whatsapp me-2 text-success"></i>
+          Seguimiento Asistencia - {{ estudianteSeleccionado?.nombre_completo }}
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" *ngIf="estudianteSeleccionado">
+
+        <!-- Info del estudiante -->
+        <div class="row mb-3">
+          <div class="col-md-3">
+            <strong>Grupo:</strong> {{ estudianteSeleccionado.nombre_grupo }}
+          </div>
+          <div class="col-md-3 text-center">
+            <strong>Estado:</strong>
+            <span class="badge ms-1" [ngClass]="{
+              'bg-success': estudianteSeleccionado.estado_hoy === 'Presente',
+              'bg-danger': estudianteSeleccionado.estado_hoy === 'Ausente'
+            }">
+              {{ estudianteSeleccionado.estado_hoy }}
+            </span>
+          </div>
+          <div class="col-md-3 text-center">
+            <strong>Riesgo:</strong>
+            <span class="badge ms-1" [ngClass]="{
+              'bg-danger': estudianteSeleccionado.clasificacion_riesgo === 'Alto',
+              'bg-warning text-dark': estudianteSeleccionado.clasificacion_riesgo === 'Medio',
+              'bg-success': estudianteSeleccionado.clasificacion_riesgo === 'Bajo'
+            }">
+              {{ estudianteSeleccionado.clasificacion_riesgo }}
+            </span>
+          </div>
+          <div class="col-md-3 text-end">
+            <strong>Días ausencia:</strong>
+            <span class="fw-bold" [ngClass]="{'text-danger': estudianteSeleccionado.dias_consecutivos_ausencia >= 3}">
+              {{ estudianteSeleccionado.dias_consecutivos_ausencia }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Indicadores detallados -->
+        <div class="row mb-3">
+          <div class="col-md-3">
+            <div class="indicador-mini">
+              <span class="indicador-valor">{{ estudianteSeleccionado.porcentaje_asistencia_semana }}%</span>
+              <span class="indicador-label">Asist. Semana</span>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="indicador-mini">
+              <span class="indicador-valor">{{ estudianteSeleccionado.porcentaje_asistencia_mes }}%</span>
+              <span class="indicador-label">Asist. Mes</span>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="indicador-mini">
+              <span class="indicador-valor">{{ estudianteSeleccionado.promedio_horas_permanencia }}h</span>
+              <span class="indicador-label">Prom. Horas</span>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="indicador-mini">
+              <span class="indicador-valor">{{ estudianteSeleccionado.total_asistencias }}</span>
+              <span class="indicador-label">Total Asist.</span>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="estudianteSeleccionado.ultima_asistencia && estudianteSeleccionado.ultima_asistencia !== 'Sin registro'"
+          class="mb-3">
+          <small class="text-muted">
+            <i class="fas fa-calendar-check me-1"></i>
+            Última asistencia: {{ formatearFecha(estudianteSeleccionado.ultima_asistencia) }}
+          </small>
+        </div>
+
+        <hr />
+
+        <!-- Acudientes -->
+        <h6 class="mb-3">Acudientes del estudiante</h6>
+        <div *ngIf="estudianteSeleccionado.acudientes.length === 0" class="alert alert-warning">
+          <i class="fas fa-exclamation-triangle"></i> No hay acudientes registrados para este estudiante.
+        </div>
+
+        <div *ngFor="let acudiente of estudianteSeleccionado.acudientes; let i = index" class="acudiente-card mb-3">
+          <div class="row align-items-center">
+            <div class="col-md-4">
+              <div class="fw-bold">{{ acudiente.nombre_acudiente }}</div>
+              <small class="text-muted">{{ acudiente.nombre_tipo_acudiente }}</small>
+              <div *ngIf="acudiente.correo_electronico" class="mt-1">
+                <i class="fas fa-envelope me-1"></i>
+                <small>{{ acudiente.correo_electronico }}</small>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label mb-1"><i class="fas fa-phone me-1"></i> Teléfono</label>
+              <input type="text" class="form-control form-control-sm"
+                [(ngModel)]="telefonosEditables[i]">
+            </div>
+            <div class="col-md-4 text-end mt-2 mt-md-0">
+              <button class="btn btn-success btn-sm" (click)="enviarWhatsApp(estudianteSeleccionado!, acudiente, i)"
+                [disabled]="!telefonosEditables[i]" title="Enviar por WhatsApp">
+                <i class="fab fa-whatsapp me-1"></i> Enviar WA
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Contacto adicional -->
+        <div class="acudiente-card mb-3 border-dashed">
+          <div class="row align-items-center">
+            <div class="col-md-4">
+              <label class="form-label mb-1"><i class="fas fa-user me-1"></i> Nombre</label>
+              <input type="text" class="form-control form-control-sm"
+                [(ngModel)]="nombreAdicional"
+                placeholder="Nombre del destinatario">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label mb-1"><i class="fas fa-phone me-1"></i> Teléfono</label>
+              <input type="text" class="form-control form-control-sm"
+                [(ngModel)]="telefonoAdicional"
+                placeholder="Ej: 3001234567">
+            </div>
+            <div class="col-md-4 text-end mt-2 mt-md-0">
+              <label class="form-label mb-1 d-none d-md-block">&nbsp;</label>
+              <button class="btn btn-outline-success btn-sm" (click)="enviarWhatsAppTelefonoAdicional(estudianteSeleccionado!)"
+                [disabled]="!telefonoAdicional" title="Enviar por WhatsApp">
+                <i class="fab fa-whatsapp me-1"></i> Enviar WA
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,36 @@
+<div class="modulo">
+  <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [regresar]="'/menu'"></app-header>
+
+  <div class="container-fluid mt-5">
+    <div class="text-center mb-5">
+      <h2 class="titulo-seccion">Clases con Inteligencia Artificial</h2>
+      <p class="subtitulo-seccion">Herramientas de IA para potenciar tus clases</p>
+    </div>
+
+    <div class="row justify-content-center">
+
+      <div class="col-lg-4 col-md-5 col-sm-10 mb-4">
+        <div class="card-modulo" (click)="irA('/clases-ia/gini-ingles')">
+          <div class="card-modulo-content">
+            <div class="icono-container gini">
+              <svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="40" cy="40" r="36" fill="#fff" opacity="0.9"/>
+                <circle cx="28" cy="34" r="5" fill="#5c6bc0"/>
+                <circle cx="52" cy="34" r="5" fill="#5c6bc0"/>
+                <circle cx="29" cy="33" r="2" fill="white"/>
+                <circle cx="53" cy="33" r="2" fill="white"/>
+                <path d="M28 50 Q40 60 52 50" stroke="#5c6bc0" stroke-width="3" fill="none" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <h3 class="card-titulo">Gini</h3>
+            <p class="card-descripcion">Traductora simultánea español ↔ inglés en tiempo real para tus clases</p>
+            <div class="card-badge">
+              <span class="badge-ia">🎙️ Traducción en vivo</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

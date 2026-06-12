@@ -1,0 +1,148 @@
+<div class="modulo">
+    <app-header 
+        [tituloModulo]="titulo" 
+        [mostrarCrear]="false" 
+        [accion]="accion" 
+        [raiz]="'/academico/areas-academicas'"
+        [regresar]="regresar" 
+        [iconoTitulo]="'/assets/images/areas-academicas.png'">
+    </app-header>
+
+    <div class="container mt-5">
+        <div class="row position-relative">
+            <!-- Columna principal: Nombre -->
+            <div class="col-md-8">
+                <div class="row">
+                    <div class="col-12">
+                        <label for="nombre" class="form-label">Nombre del área académica <span class="text-danger">*</span></label>
+                        <input 
+                            class="form-control form-control-lg" 
+                            type="text" 
+                            id="nombre" 
+                            [(ngModel)]="model.nombre"
+                            placeholder="Ej: Matemáticas, Ciencias, Lenguaje..."
+                            required
+                            [ngClass]="{'is-invalid': !model.nombre && submitted}"
+                            [disabled]="!editable">
+                        <small class="form-text text-muted">Ingrese el nombre del área académica</small>
+                    </div>
+                </div>
+
+                <!-- Color -->
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <label for="color" class="form-label">Color <span class="text-danger">*</span></label>
+                        <div class="d-flex align-items-center gap-3">
+                            <input 
+                                type="color" 
+                                class="form-control form-control-color" 
+                                id="color" 
+                                [(ngModel)]="model.color"
+                                [disabled]="!editable"
+                                style="width: 80px; height: 50px;">
+                            <input 
+                                type="text" 
+                                class="form-control" 
+                                [(ngModel)]="model.color"
+                                [disabled]="!editable"
+                                placeholder="#FFFFFF">
+                        </div>
+                        <small class="form-text text-muted">Seleccione un color identificador para el área académica</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Columna de la imagen (superior derecha) -->
+            <div class="col-md-4">
+                <div class="icono-section">
+                    <label class="form-label text-center d-block">Icono <span class="text-danger">*</span></label>
+                    <div class="icono-preview-large" [ngClass]="{'is-invalid-border': !model.icono && submitted}">
+                        <img *ngIf="model.icono" [src]="model.icono" alt="Icono seleccionado" class="img-preview">
+                        <div *ngIf="!model.icono" class="sin-icono">
+                            <i class="fas fa-image"></i>
+                            <span>Sin icono</span>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2 mt-3">
+                        <button 
+                            type="button" 
+                            class="btn btn-primary flex-grow-1 btn-sm" 
+                            (click)="abrirModalImagenes()"
+                            [disabled]="!editable">
+                            <i class="fas fa-folder-open"></i> Seleccionar
+                        </button>
+                        <button 
+                            *ngIf="model.icono && editable" 
+                            type="button" 
+                            class="btn btn-danger btn-sm" 
+                            (click)="model.icono = ''">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <small class="form-text text-muted d-block text-center mt-2">Icono del área académica</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botones de acción -->
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-sm-6" *ngIf="editable">
+                <button class="btn btn-lg btn-warning w-100" (click)="guardar()">
+                    Grabar
+                </button>
+            </div>
+            <div class="col-sm-6">
+                <button class="btn btn-lg btn-secondary w-100" (click)="volver()">
+                    Volver
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de selección de imágenes -->
+<div class="modal-overlay" *ngIf="mostrarModalImagenes" (click)="cerrarModalImagenes()">
+    <div class="modal-content-custom" (click)="$event.stopPropagation()">
+        <div class="modal-header-custom">
+            <h3>Seleccionar Icono</h3>
+            <button type="button" class="btn-close-custom" (click)="cerrarModalImagenes()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="modal-body-custom">
+            <!-- Buscador -->
+            <div class="search-box">
+                <input 
+                    type="text" 
+                    class="form-control" 
+                    placeholder="Buscar imagen..."
+                    [(ngModel)]="busquedaImagen"
+                    (input)="filtrarImagenes()">
+                <i class="fas fa-search"></i>
+            </div>
+
+            <!-- Grid de imágenes -->
+            <div class="imagenes-grid">
+                <div 
+                    *ngFor="let imagen of imagenesFiltradas" 
+                    class="imagen-item"
+                    (click)="seleccionarImagen(imagen)"
+                    [class.seleccionada]="model.icono === imagen.ruta">
+                    <img [src]="imagen.ruta" [alt]="imagen.nombre">
+                    <div class="imagen-nombre">{{ imagen.nombre }}</div>
+                    <div class="check-icon" *ngIf="model.icono === imagen.ruta">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div *ngIf="imagenesFiltradas.length === 0" class="sin-resultados">
+                <i class="fas fa-search"></i>
+                <p>No se encontraron imágenes</p>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,22 @@
+<div class="modulo">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="true"
+    [accion]="'ConsultarTodos'"
+    [raiz]="'/administracion/datos-estudiantes/tipos-datos-adicionales'"
+    [regresar]="'/administracion/datos-estudiantes'"
+    [iconoTitulo]="'/assets/images/estudiantes.png'"
+  ></app-header>
+
+  <app-tablas
+    [titulos]="titulos"
+    [datos]="datos"
+    [raiz]="'/administracion/datos-estudiantes/tipos-datos-adicionales'"
+    [acciones]="acciones"
+    [accionEditar]="true"
+    [accionEliminar]="true"
+    [mostrarBuscar]="true"
+    [columnasFiltro]="columnasFiltro"
+    (clicAccion)="clicAccion($event)"
+  ></app-tablas>
+</div>

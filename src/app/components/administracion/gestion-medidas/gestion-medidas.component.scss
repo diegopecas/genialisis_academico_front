@@ -1,0 +1,209 @@
+// Variables de color
+$primary-color: #ffbd31;
+$text-dark: #2c3e50;
+$text-light: #7f8c8d;
+$card-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+$hover-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+
+// Colores específicos para medidas
+$color-categorias: #e67e22;
+$color-unidades: #2980b9;
+$color-medidas: #27ae60;
+
+.modulo {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
+}
+
+// Títulos
+.titulo-seccion {
+  color: $text-dark;
+  font-weight: 600;
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.subtitulo-seccion {
+  color: $text-light;
+  font-size: 1.1rem;
+  margin-bottom: 0;
+}
+
+// Tarjetas
+.card-menu {
+  background: white;
+  border-radius: 20px;
+  box-shadow: $card-shadow;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 5px;
+    background: linear-gradient(90deg, var(--color-principal) 0%, var(--color-secundario) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  &:hover {
+    transform: translateY(-10px);
+    box-shadow: $hover-shadow;
+
+    &::before {
+      opacity: 1;
+    }
+
+    .icono-container {
+      transform: scale(1.1);
+    }
+
+    .link-accion {
+      color: var(--color-principal);
+
+      i {
+        transform: translateX(5px);
+      }
+    }
+  }
+}
+
+.card-menu-content {
+  padding: 3rem 2rem;
+  text-align: center;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+// Contenedor de iconos
+.icono-container {
+  width: 140px;
+  height: 140px;
+  margin: 0 auto 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: transform 0.3s ease;
+
+  img {
+    width: 70%;
+    height: 70%;
+    object-fit: contain;
+  }
+
+  &.categorias {
+    background: linear-gradient(135deg, #ffb347 0%, #e67e22 100%);
+    --color-principal: #{$color-categorias};
+    --color-secundario: #{lighten($color-categorias, 10%)};
+  }
+
+  &.unidades {
+    background: linear-gradient(135deg, #74b9ff 0%, #2980b9 100%);
+    --color-principal: #{$color-unidades};
+    --color-secundario: #{lighten($color-unidades, 10%)};
+  }
+
+  &.medidas {
+    background: linear-gradient(135deg, #52c234 0%, #27ae60 100%);
+    --color-principal: #{$color-medidas};
+    --color-secundario: #{lighten($color-medidas, 10%)};
+  }
+}
+
+.card-titulo {
+  color: $text-dark;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.card-descripcion {
+  color: $text-light;
+  font-size: 1rem;
+  margin-bottom: 2rem;
+  flex-grow: 1;
+  line-height: 1.6;
+}
+
+.card-footer-custom {
+  margin-top: auto;
+}
+
+.link-accion {
+  color: $text-dark;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+
+  i {
+    transition: transform 0.3s ease;
+    font-size: 0.875rem;
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .titulo-seccion {
+    font-size: 1.5rem;
+  }
+
+  .card-menu-content {
+    padding: 2rem 1.5rem;
+  }
+
+  .icono-container {
+    width: 100px;
+    height: 100px;
+    margin-bottom: 1.5rem;
+  }
+
+  .card-titulo {
+    font-size: 1.2rem;
+  }
+}
+
+// Animaciones
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.card-menu {
+  animation: fadeInUp 0.6s ease-out;
+  animation-fill-mode: both;
+
+  &:nth-child(1) {
+    animation-delay: 0.1s;
+  }
+
+  &:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+
+  &:nth-child(3) {
+    animation-delay: 0.3s;
+  }
+}
+
+@media (hover: none) {
+  .card-menu:active {
+    transform: scale(0.98);
+  }
+}

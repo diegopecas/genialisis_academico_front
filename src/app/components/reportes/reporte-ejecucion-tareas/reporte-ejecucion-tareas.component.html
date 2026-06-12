@@ -1,0 +1,183 @@
+<div class="modulo">
+  <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [raiz]="'/reportes'" [regresar]="'/reportes'" [iconoTitulo]="'/assets/images/reporte-ejecucion-tareas.png'"></app-header>
+
+  <div class="container-fluid mt-4">
+
+    <!-- Filtros -->
+    <div class="filters-container">
+      <div class="row align-items-end">
+        <div class="col-md-2">
+          <div class="form-group">
+            <label for="anio" class="form-label"><i class="fas fa-calendar-alt"></i> Año:</label>
+            <select id="anio" class="form-control" [(ngModel)]="anioSeleccionado" (change)="onAnioChange()">
+              <option value="">Todos</option>
+              <option *ngFor="let anio of aniosDisponibles" [value]="anio">{{ anio }}</option>
+            </select>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="form-group">
+            <label for="sprint" class="form-label"><i class="fas fa-running"></i> Sprint:</label>
+            <select id="sprint" class="form-control" [(ngModel)]="sprintSeleccionado" (change)="onSprintChange()">
+              <option value="">Todos</option>
+              <option *ngFor="let sprint of sprintsFiltrados" [value]="sprint.id">{{ sprint.nombre_sprint }}{{ sprint.actual == 1 ? ' (actual)' : '' }}</option>
+            </select>
+          </div>
+        </div>
+        <div class="col-md-7" *ngIf="!cargando && estadisticas">
+          <div class="stats-row">
+            <div class="stat-card stat-total"><div class="stat-number">{{ estadisticas.total || 0 }}</div><div class="stat-label">Total</div></div>
+            <div class="stat-card stat-ok"><div class="stat-number">{{ estadisticas.ejecutadas || 0 }}</div><div class="stat-label">Ejecutadas</div></div>
+            <div class="stat-card stat-pendiente"><div class="stat-number">{{ estadisticas.pendientes || 0 }}</div><div class="stat-label">Pendientes</div></div>
+            <div class="stat-card stat-adicional"><div class="stat-number">{{ estadisticas.adicionales || 0 }}</div><div class="stat-label">Adicionales</div></div>
+            <div class="stat-card stat-tarde"><div class="stat-number">{{ estadisticas.con_tardanza || 0 }}</div><div class="stat-label">Con tardanza</div></div>
+            <div class="stat-card stat-dispositivo"><div class="stat-number">{{ estadisticas.cambio_dispositivo || 0 }}</div><div class="stat-label">Cambio disp.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Resumen dinámico -->
+    <div class="resumen-container" *ngIf="!cargando && (resumenParametros.length > 0 || promedioAsistencia > 0)">
+      <div class="resumen-titulo">
+        Resumen {{ seleccionados.length > 0 ? '(Selección: ' + seleccionados.length + ' registros)' : '' }}
+      </div>
+      <div class="resumen-cards">
+        <div class="resumen-card resumen-asistencia">
+          <div class="resumen-card-titulo">Promedio Asistencia</div>
+          <div class="resumen-card-valor">{{ promedioAsistencia }}%</div>
+        </div>
+
+        <div class="resumen-card" *ngFor="let param of resumenParametros">
+          <div class="resumen-card-titulo">{{ param.nombre }}</div>
+          <div class="resumen-valores">
+            <span class="resumen-valor-item" *ngFor="let val of param.valores">
+              <i class="fa {{ val.icono }}" [title]="val.valor_cualitativo" [style.color]="obtenerColorIcono(val.valor_cuantitativo, param.valores.length)"></i>
+              <span class="resumen-promedio">{{ val.promedio }}/clase</span>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabla -->
+    <app-tablas *ngIf="!cargando"
+      [titulos]="titulos"
+      [datos]="datos"
+      [raiz]="'/reportes'"
+      [acciones]="[{ id: 'ver-detalle', label: 'Ver estudiantes', icono: '/assets/images/reporte-estudiantes.png' }]"
+      [accionEditar]="false"
+      [mostrarBuscar]="true"
+      [seleccionMultiple]="true"
+      [columnasFiltro]="['Grupo', 'Área', 'Ambiente', 'Estado', 'Docente Inicia', 'Sprint', 'Año']"
+      (seleccionCambiada)="onSeleccionCambiada($event)"
+      (datosFiltradosCambiados)="onDatosFiltradosCambiados($event)"
+      (clicAccion)="onAccionTabla($event)"
+    ></app-tablas>
+
+    <!-- Loading -->
+    <div *ngIf="cargando" class="loading-container">
+      <div class="spinner-border text-warning" role="status"></div>
+      <p>Cargando reporte de ejecución de tareas...</p>
+    </div>
+
+  </div>
+</div>
+
+<!-- Modal detalle estudiantes -->
+<div class="modal-overlay" *ngIf="mostrarModalDetalle" (click)="cerrarModalDetalle()">
+  <div class="modal-content-detalle" (click)="$event.stopPropagation()">
+    <div class="modal-header-custom">
+      <h3>👨‍🎓 {{ tareaDetalle?.titulo_actividad }}</h3>
+      <button type="button" class="btn-close-custom" (click)="cerrarModalDetalle()">✕</button>
+    </div>
+
+    <!-- Info actividad -->
+    <div class="modal-subheader">
+      <div class="detalle-actividad-modal">
+        <div class="detalle-row">
+          <span class="detalle-tag">Grupo:</span> <span>{{ tareaDetalle?.nombre_grupo }}</span>
+          <span class="detalle-separador">·</span>
+          <span class="detalle-tag">Área:</span> <span>{{ tareaDetalle?.nombre_area }}</span>
+          <span class="detalle-separador">·</span>
+          <span class="detalle-tag">Sprint:</span> <span>{{ tareaDetalle?.nombre_sprint }}</span>
+        </div>
+        <div class="detalle-row">
+          <span class="detalle-tag">Docente:</span> <span>{{ tareaDetalle?.nombre_docente_inicia }}</span>
+          <span class="detalle-separador">·</span>
+          <span class="detalle-tag">Fecha:</span> <span>{{ tareaDetalle?.fecha_ejecucion }}</span>
+          <span class="detalle-separador">·</span>
+          <span class="detalle-tag">Horario:</span> <span>{{ tareaDetalle?.horario_texto || 'Sin horario' }}</span>
+        </div>
+        <div class="detalle-row">
+          <span class="detalle-tag">Hora inicio:</span> <span>{{ tareaDetalle?.hora_inicio_real || '-' }}</span>
+          <span class="detalle-separador">·</span>
+          <span class="detalle-tag">Hora fin:</span> <span>{{ tareaDetalle?.hora_fin_real || '-' }}</span>
+          <span class="detalle-separador">·</span>
+          <span class="detalle-tag">Duración:</span> <span>{{ tareaDetalle?.duracion_real_minutos || '-' }} min</span>
+          <span class="detalle-separador">·</span>
+          <span class="detalle-tag">Estudiantes:</span> <span>{{ tareaDetalle?.estudiantes_texto }}</span>
+        </div>
+        <div class="detalle-row detalle-descripcion" *ngIf="tareaDetalle?.descripcion_actividad">
+          <span class="detalle-tag">Descripción:</span> <span [innerHTML]="tareaDetalle?.descripcion_actividad"></span>
+        </div>
+        <div class="detalle-row" *ngIf="tareaDetalle?.nombre_ambiente">
+          <span class="detalle-tag">Ambiente:</span> <span>{{ tareaDetalle?.nombre_ambiente }}</span>
+          <span class="detalle-separador" *ngIf="tareaDetalle?.materiales_actividad">·</span>
+          <span class="detalle-tag" *ngIf="tareaDetalle?.materiales_actividad">Materiales:</span>
+          <span *ngIf="tareaDetalle?.materiales_actividad">{{ tareaDetalle?.materiales_actividad }}</span>
+        </div>
+        <div class="detalle-row" *ngIf="tareaDetalle?.materiales_actividad && !tareaDetalle?.nombre_ambiente">
+          <span class="detalle-tag">Materiales:</span> <span>{{ tareaDetalle?.materiales_actividad }}</span>
+        </div>
+        <div class="detalle-row detalle-observacion" *ngIf="tareaDetalle?.observacion_general">
+          <span class="detalle-tag">Observación:</span> <span>{{ tareaDetalle?.observacion_general }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-body-custom">
+      <div *ngIf="cargandoDetalle" class="text-center py-4">
+        <div class="spinner-border text-warning"></div>
+      </div>
+
+      <div *ngIf="!cargandoDetalle && estudiantesDetalle.length === 0" class="text-center py-4 text-muted">
+        No hay calificaciones registradas
+      </div>
+
+      <!-- Vista desktop: tabla -->
+      <table class="tabla-estudiantes d-none d-md-table" *ngIf="!cargandoDetalle && estudiantesDetalle.length > 0">
+        <thead>
+          <tr>
+            <th>Estudiante</th>
+            <th *ngFor="let param of parametros" class="text-center">{{ param.nombre }}</th>
+            <th>Observación</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let est of estudiantesDetalle">
+            <td>{{ est.nombre }}</td>
+            <td *ngFor="let param of parametros" class="text-center" [innerHTML]="obtenerCalificacionEstudiante(est, param.id)"></td>
+            <td class="obs-celda">{{ est.observacion || '' }}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Vista móvil: tarjetas -->
+      <div class="tarjetas-estudiantes d-md-none" *ngIf="!cargandoDetalle && estudiantesDetalle.length > 0">
+        <div class="tarjeta-estudiante" *ngFor="let est of estudiantesDetalle">
+          <div class="tarjeta-nombre">{{ est.nombre }}</div>
+          <div class="tarjeta-calificaciones">
+            <div class="tarjeta-cal-item" *ngFor="let param of parametros">
+              <span class="tarjeta-cal-label">{{ param.nombre }}:</span>
+              <span [innerHTML]="obtenerCalificacionEstudiante(est, param.id)"></span>
+            </div>
+          </div>
+          <div class="tarjeta-observacion" *ngIf="est.observacion">
+            <i class="fas fa-comment-alt"></i> {{ est.observacion }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,594 @@
+<div class="modulo">
+  <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [raiz]="'/'" [regresar]="'/operaciones'"></app-header>
+
+  <!-- Filtros -->
+  <div class="row mb-4">
+    <div class="col-md-3">
+      <label for="anioSelector" class="form-label">Año:</label>
+      <select id="anioSelector" class="form-select" [(ngModel)]="anioSeleccionado" (change)="cambiarAnio()">
+        <option *ngFor="let anio of aniosDisponibles" [value]="anio">{{ anio }}</option>
+      </select>
+    </div>
+
+    <div class="col-md-3">
+      <label for="grupoSelector" class="form-label">Grupo:</label>
+      <select id="grupoSelector" class="form-select" [(ngModel)]="grupoSeleccionado" (change)="aplicarFiltros()">
+        <option value="">Todos los grupos</option>
+        <option *ngFor="let grupo of grupos" [value]="grupo.id">{{ grupo.nombre }}</option>
+      </select>
+    </div>
+
+    <div class="col-md-3">
+      <label class="form-label">&nbsp;</label>
+      <div class="form-check mt-2">
+        <input class="form-check-input" type="checkbox" id="soloConSaldo"
+          [(ngModel)]="mostrarSoloConSaldo" (change)="aplicarFiltros()">
+        <label class="form-check-label" for="soloConSaldo">
+          Solo con saldo pendiente
+        </label>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <label class="form-label">&nbsp;</label>
+      <div class="d-grid">
+        <button class="btn btn-outline-secondary" (click)="resetearFiltros()">
+          <i class="fas fa-eraser"></i> Limpiar filtros
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Búsqueda -->
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <div class="input-group">
+        <span class="input-group-text"><i class="fas fa-search"></i></span>
+        <input type="text" class="form-control" placeholder="Buscar estudiante por nombre..."
+          [(ngModel)]="busquedaEstudiante" (keyup)="buscarEstudiante()">
+      </div>
+    </div>
+  </div>
+
+  <hr />
+
+  <!-- Indicador de carga -->
+  <div *ngIf="cargando" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+    <p class="mt-2">Cargando información de cartera...</p>
+  </div>
+
+  <!-- Contenido principal -->
+  <div *ngIf="!cargando && datosDisponibles">
+
+    <!-- Resumen -->
+    <div class="row mb-4">
+      <div class="col-md-3 col-sm-6 mb-3">
+        <div class="resumen-card estudiantes-bg">
+          <span class="resumen-valor">{{ getEstudiantesConSaldo() }}</span>
+          <span class="resumen-label">Estudiantes con saldo</span>
+        </div>
+      </div>
+      <div class="col-md-3 col-sm-6 mb-3">
+        <div class="resumen-card saldo-bg">
+          <span class="resumen-valor">{{ getTotalSaldoPendiente() | currency:'':'symbol':'1.0-0' }}</span>
+          <span class="resumen-label">Total saldo pendiente</span>
+        </div>
+      </div>
+      <div class="col-md-3 col-sm-6 mb-3">
+        <div class="resumen-card vencido-bg">
+          <span class="resumen-valor">{{ getTotalSaldoVencido() | currency:'':'symbol':'1.0-0' }}</span>
+          <span class="resumen-label">Total saldo vencido</span>
+        </div>
+      </div>
+      <div class="col-md-3 col-sm-6 mb-3">
+        <div class="resumen-card alerta-bg">
+          <span class="resumen-valor">{{ getEstudiantesSinTelefono() }}</span>
+          <span class="resumen-label">Sin teléfono registrado</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabla principal -->
+    <div class="card">
+      <div class="card-body">
+        <div class="table-responsive tabla-saldos-mensuales">
+          <table class="table table-hover table-bordered table-sm">
+            <thead class="table-light sticky-top">
+              <tr>
+                <th class="columna-fija sortable" (click)="ordenarPor('nombre_estudiante')">
+                  Estudiante
+                  <i class="fas fa-sort float-end" [ngClass]="{
+                    'fa-sort': columnaOrdenamiento !== 'nombre_estudiante',
+                    'fa-sort-up': columnaOrdenamiento === 'nombre_estudiante' && ordenAscendente,
+                    'fa-sort-down': columnaOrdenamiento === 'nombre_estudiante' && !ordenAscendente
+                  }"></i>
+                </th>
+                <th class="columna-grupo sortable" (click)="ordenarPor('grupo_estudiante')">
+                  Grupo
+                  <i class="fas fa-sort float-end" [ngClass]="{
+                    'fa-sort': columnaOrdenamiento !== 'grupo_estudiante',
+                    'fa-sort-up': columnaOrdenamiento === 'grupo_estudiante' && ordenAscendente,
+                    'fa-sort-down': columnaOrdenamiento === 'grupo_estudiante' && !ordenAscendente
+                  }"></i>
+                </th>
+                <th class="text-center columna-mes" *ngFor="let mes of mesesDisponibles">
+                  {{ mes.nombre.substring(0, 3) }}
+                </th>
+                <th class="text-end columna-total sortable" (click)="ordenarPor('totalSaldoPendiente')">
+                  Total
+                  <i class="fas fa-sort float-end" [ngClass]="{
+                    'fa-sort': columnaOrdenamiento !== 'totalSaldoPendiente',
+                    'fa-sort-up': columnaOrdenamiento === 'totalSaldoPendiente' && ordenAscendente,
+                    'fa-sort-down': columnaOrdenamiento === 'totalSaldoPendiente' && !ordenAscendente
+                  }"></i>
+                </th>
+                <th class="text-center">Último envío</th>
+                <th class="text-center">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let estudiante of estudiantesFiltrados"
+                [ngClass]="{'table-warning': (estudiante.totalSaldoPendiente || 0) > 0}">
+                <td class="columna-fija">{{ estudiante.nombre_estudiante }}</td>
+                <td class="columna-grupo">{{ estudiante.grupo_estudiante }}</td>
+                <td class="text-end columna-mes" *ngFor="let mes of mesesDisponibles" [ngClass]="{
+                  'text-danger': getSaldoPendienteMes(estudiante, mes.valor) > 0,
+                  'table-danger': getSaldoPendienteMes(estudiante, mes.valor) > 100000
+                }">
+                  <span *ngIf="getSaldoPendienteMes(estudiante, mes.valor) > 0">
+                    {{ getSaldoPendienteMes(estudiante, mes.valor) | currency:'':'symbol':'1.0-0' }}
+                  </span>
+                  <span *ngIf="getSaldoPendienteMes(estudiante, mes.valor) === 0" class="text-muted">-</span>
+                </td>
+                <td class="text-end columna-total fw-bold"
+                  [ngClass]="{'text-danger': (estudiante.totalSaldoPendiente || 0) > 0}">
+                  {{ estudiante.totalSaldoPendiente | currency:'':'symbol':'1.0-0' }}
+                </td>
+                <td class="text-center">
+                  <small *ngIf="estudiante.ultimo_recordatorio" class="text-muted">
+                    {{ estudiante.ultimo_recordatorio | date:'dd/MM/yy HH:mm' }}
+                  </small>
+                  <small *ngIf="!estudiante.ultimo_recordatorio" class="text-muted">-</small>
+                </td>
+                <td class="text-center">
+                  <button class="btn btn-sm btn-success me-1" (click)="verDetalle(estudiante)"
+                    title="Enviar recordatorio">
+                    <i class="fab fa-whatsapp"></i>
+                  </button>
+                  <button class="btn btn-sm btn-outline-secondary" (click)="verHistorialPago(estudiante)"
+                    title="Ver historial">
+                    <i class="fas fa-history"></i>
+                  </button>
+                </td>
+              </tr>
+              <tr *ngIf="estudiantesFiltrados.length === 0">
+                <td colspan="16" class="text-center text-muted py-4">
+                  No se encontraron estudiantes con los filtros aplicados
+                </td>
+              </tr>
+            </tbody>
+            <tfoot class="table-light" *ngIf="estudiantesFiltrados.length > 0">
+              <tr class="fw-bold">
+                <td colspan="2">TOTALES</td>
+                <td class="text-end" *ngFor="let mes of mesesDisponibles">
+                  {{ getTotalSaldoPendienteMes(mes.valor) | currency:'':'symbol':'1.0-0' }}
+                </td>
+                <td class="text-end text-danger">
+                  {{ getTotalSaldoPendiente() | currency:'':'symbol':'1.0-0' }}
+                </td>
+                <td colspan="2"></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <!-- Resumen inferior -->
+        <div class="row mt-4">
+          <div class="col-md-12">
+            <div class="alert alert-info">
+              <h6 class="alert-heading">
+                <i class="fas fa-info-circle"></i> Resumen
+              </h6>
+              <div class="row">
+                <div class="col-md-4">
+                  <strong>Estudiantes con saldo:</strong>
+                  {{ getEstudiantesConSaldo() }} de {{ estudiantesFiltrados.length }}
+                </div>
+                <div class="col-md-4">
+                  <strong>Total pendiente:</strong>
+                  {{ getTotalSaldoPendiente() | currency:'':'symbol':'1.0-0' }}
+                </div>
+                <div class="col-md-4">
+                  <strong>Sin teléfono:</strong>
+                  {{ getEstudiantesSinTelefono() }} estudiantes
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sin datos -->
+  <div *ngIf="!cargando && !datosDisponibles" class="alert alert-info text-center">
+    <i class="fas fa-info-circle fa-3x mb-3"></i>
+    <h4>No hay datos disponibles</h4>
+    <p>No se encontró información de cartera para el año {{ anioSeleccionado }}</p>
+  </div>
+</div>
+
+<!-- Modal detalle con acudientes -->
+<div class="modal fade" id="modalRecordatorio" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fab fa-whatsapp me-2 text-success"></i>
+          Enviar Recordatorio - {{ estudianteSeleccionado?.nombre_estudiante }}
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" *ngIf="estudianteSeleccionado">
+
+        <!-- Info del estudiante -->
+        <div class="row mb-3">
+          <div class="col-md-4">
+            <strong>Grupo:</strong> {{ estudianteSeleccionado.grupo_estudiante }}
+          </div>
+          <div class="col-md-4 text-center">
+            <strong>Total Pendiente:</strong>
+            <span class="text-danger fw-bold">
+              {{ estudianteSeleccionado.totalSaldoPendiente | currency:'':'symbol':'1.0-0' }}
+            </span>
+          </div>
+          <div class="col-md-4 text-end">
+            <strong>Saldo Vencido:</strong>
+            <span class="text-danger fw-bold">
+              {{ estudianteSeleccionado.saldoVencido | currency:'':'symbol':'1.0-0' }}
+            </span>
+          </div>
+        </div>
+
+        <hr />
+
+        <!-- Tipo de mensaje -->
+        <h6 class="mb-3">Tipo de recordatorio</h6>
+        <div class="row mb-3">
+          <div class="col-12">
+            <div class="btn-group w-100" role="group">
+              <input type="radio" class="btn-check" name="tipoMensaje" id="tipoVencido"
+                value="vencido" [(ngModel)]="tipoMensajeSeleccionado" (change)="onTipoMensajeCambio()">
+              <label class="btn btn-outline-danger" for="tipoVencido">
+                <i class="fas fa-exclamation-circle me-1"></i> Solo saldo vencido
+              </label>
+
+              <input type="radio" class="btn-check" name="tipoMensaje" id="tipoSeleccion"
+                value="seleccion" [(ngModel)]="tipoMensajeSeleccionado" (change)="onTipoMensajeCambio()">
+              <label class="btn btn-outline-primary" for="tipoSeleccion">
+                <i class="fas fa-check-square me-1"></i> Meses específicos
+              </label>
+
+              <input type="radio" class="btn-check" name="tipoMensaje" id="tipoTodos"
+                value="todos" [(ngModel)]="tipoMensajeSeleccionado" (change)="onTipoMensajeCambio()">
+              <label class="btn btn-outline-primary" for="tipoTodos">
+                <i class="fas fa-list me-1"></i> Todos los meses
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Info saldo vencido (visible para tipo "vencido") -->
+        <div *ngIf="tipoMensajeSeleccionado === 'vencido'" class="alert alert-danger mb-4">
+          <div class="d-flex justify-content-between align-items-center">
+            <span><i class="fas fa-exclamation-triangle me-2"></i> Saldo vencido a la fecha</span>
+            <strong class="fs-5">{{ estudianteSeleccionado.saldoVencido | currency:'':'symbol':'1.0-0' }}</strong>
+          </div>
+          <small class="text-muted d-block mt-1">El mensaje solo informará el monto vencido sin desglose de meses.</small>
+        </div>
+
+        <!-- Tabla de meses específicos (visible para "seleccion") -->
+        <div *ngIf="tipoMensajeSeleccionado === 'seleccion'" class="mb-4">
+          <div class="table-responsive">
+            <table class="table table-sm">
+              <thead class="table-light">
+                <tr>
+                  <th class="text-center" style="width: 40px;">
+                    <input type="checkbox" class="form-check-input"
+                      [checked]="todosLosMesesSeleccionados()"
+                      (change)="toggleTodosLosMeses($event)">
+                  </th>
+                  <th>Mes</th>
+                  <th class="text-end">Saldo</th>
+                </tr>
+              </thead>
+              <tbody>
+                <ng-container *ngFor="let mes of mesesDisponibles">
+                  <tr *ngIf="getSaldoPendienteMes(estudianteSeleccionado, mes.valor) > 0">
+                    <td class="text-center">
+                      <input type="checkbox" class="form-check-input"
+                        [checked]="mesesSeleccionados[mes.valor]"
+                        (change)="toggleMes(mes.valor)">
+                    </td>
+                    <td>{{ mes.nombre }}</td>
+                    <td class="text-end text-danger">
+                      {{ getSaldoPendienteMes(estudianteSeleccionado, mes.valor) | currency:'':'symbol':'1.0-0' }}
+                    </td>
+                  </tr>
+                </ng-container>
+              </tbody>
+              <tfoot class="table-light">
+                <tr class="fw-bold">
+                  <td></td>
+                  <td>Total seleccionado</td>
+                  <td class="text-end text-danger">
+                    {{ getTotalMesesSeleccionados() | currency:'':'symbol':'1.0-0' }}
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+
+        <!-- Todos los meses con acordeón (visible para "todos") -->
+        <div *ngIf="tipoMensajeSeleccionado === 'todos'" class="mb-4">
+          <div class="alert alert-info d-flex justify-content-between align-items-center mb-2">
+            <span><i class="fas fa-info-circle me-2"></i> Se incluirán todos los meses con saldo pendiente en el mensaje</span>
+            <strong>{{ estudianteSeleccionado.totalSaldoPendiente | currency:'':'symbol':'1.0-0' }}</strong>
+          </div>
+          <div class="text-center">
+            <button class="btn btn-sm btn-outline-secondary" (click)="mostrarDetalleMeses = !mostrarDetalleMeses">
+              <i class="fas" [ngClass]="mostrarDetalleMeses ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+              {{ mostrarDetalleMeses ? 'Ocultar detalle' : 'Ver detalle de meses' }}
+            </button>
+          </div>
+          <div *ngIf="mostrarDetalleMeses" class="mt-3">
+            <div class="table-responsive">
+              <table class="table table-sm">
+                <thead class="table-light">
+                  <tr>
+                    <th>Mes</th>
+                    <th class="text-end">Saldo</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <ng-container *ngFor="let mes of mesesDisponibles">
+                    <tr *ngIf="getSaldoPendienteMes(estudianteSeleccionado, mes.valor) > 0">
+                      <td>{{ mes.nombre }}</td>
+                      <td class="text-end text-danger">
+                        {{ getSaldoPendienteMes(estudianteSeleccionado, mes.valor) | currency:'':'symbol':'1.0-0' }}
+                      </td>
+                    </tr>
+                  </ng-container>
+                </tbody>
+                <tfoot class="table-light">
+                  <tr class="fw-bold">
+                    <td>Total</td>
+                    <td class="text-end text-danger">
+                      {{ estudianteSeleccionado.totalSaldoPendiente | currency:'':'symbol':'1.0-0' }}
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <hr />
+
+        <!-- Opciones de mensaje -->
+        <div class="row mb-3">
+          <div class="col-md-3">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="chkCercanoPago"
+                [(ngModel)]="tratoCercano" (change)="regenerarMensajePago()">
+              <label class="form-check-label" for="chkCercanoPago">Trato cercano (tutear)</label>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="chkPresencialPago"
+                [(ngModel)]="solicitarReunionPresencial" (change)="regenerarMensajePago()">
+              <label class="form-check-label" for="chkPresencialPago">Reunión presencial</label>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="chkVirtualPago"
+                [(ngModel)]="solicitarReunionVirtual" (change)="regenerarMensajePago()">
+              <label class="form-check-label" for="chkVirtualPago">Reunión virtual</label>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="chkFechaCompromisoPago"
+                [(ngModel)]="solicitarFechaCompromiso" (change)="regenerarMensajePago()">
+              <label class="form-check-label" for="chkFechaCompromisoPago">Solicitar fecha compromiso</label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mensaje editable -->
+        <h6 class="mb-2">Mensaje</h6>
+        <textarea class="form-control" rows="10" [(ngModel)]="mensajeEditable"
+          style="font-size: 0.9rem; line-height: 1.5; resize: vertical;"></textarea>
+        <small class="text-muted mt-1 d-block">
+          <i class="fas fa-info-circle me-1"></i>
+          El texto {{ '{' }}NOMBRE_DESTINATARIO{{ '}' }} se reemplazará con el nombre del acudiente al enviar.
+        </small>
+
+        <hr />
+
+        <!-- Acudientes responsables de pago -->
+        <h6 class="mb-3">Acudientes responsables de pago</h6>
+        <div *ngIf="estudianteSeleccionado.acudientes.length === 0" class="alert alert-warning">
+          <i class="fas fa-exclamation-triangle"></i> No hay acudientes responsables de pago registrados.
+        </div>
+
+        <div *ngFor="let acudiente of estudianteSeleccionado.acudientes; let i = index" class="acudiente-card mb-3">
+          <div class="row align-items-center">
+            <div class="col-md-4">
+              <div class="fw-bold">{{ acudiente.nombre_acudiente }}</div>
+              <small class="text-muted">{{ acudiente.nombre_tipo_acudiente }}</small>
+              <div *ngIf="acudiente.correo_electronico" class="mt-1">
+                <i class="fas fa-envelope me-1"></i>
+                <small>{{ acudiente.correo_electronico }}</small>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label mb-1"><i class="fas fa-phone me-1"></i> Teléfono</label>
+              <input type="text" class="form-control form-control-sm"
+                [(ngModel)]="telefonosEditables[i]"
+                >
+            </div>
+            <div class="col-md-5 text-end mt-2 mt-md-0">
+              <div class="btn-group">
+                <button class="btn btn-success btn-sm" (click)="enviarWhatsApp(estudianteSeleccionado!, acudiente, i)"
+                  [disabled]="!telefonosEditables[i]" title="Enviar por WhatsApp">
+                  <i class="fab fa-whatsapp me-1"></i> WA
+                </button>
+                <button class="btn btn-primary btn-sm" (click)="enviarCorreo(estudianteSeleccionado!, acudiente)"
+                  [disabled]="!acudiente.correo_electronico" title="Enviar por correo">
+                  <i class="fas fa-envelope me-1"></i> Email
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Enviar a contacto adicional -->
+        <div class="acudiente-card mb-3 border-dashed">
+          <div class="row align-items-center">
+            <div class="col-md-3">
+              <label class="form-label mb-1"><i class="fas fa-user me-1"></i> Nombre</label>
+              <input type="text" class="form-control form-control-sm"
+                [(ngModel)]="nombreAdicional"
+                placeholder="Nombre del destinatario">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label mb-1"><i class="fas fa-phone me-1"></i> Teléfono</label>
+              <input type="text" class="form-control form-control-sm"
+                [(ngModel)]="telefonoAdicional"
+                placeholder="Ej: 3001234567">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label mb-1"><i class="fas fa-envelope me-1"></i> Correo</label>
+              <input type="email" class="form-control form-control-sm"
+                [(ngModel)]="correoAdicional"
+                placeholder="correo@ejemplo.com">
+            </div>
+            <div class="col-md-3 text-end mt-2 mt-md-0">
+              <label class="form-label mb-1 d-none d-md-block">&nbsp;</label>
+              <div class="btn-group">
+                <button class="btn btn-outline-success btn-sm" (click)="enviarWhatsAppTelefonoAdicional(estudianteSeleccionado!)"
+                  [disabled]="!telefonoAdicional" title="Enviar por WhatsApp">
+                  <i class="fab fa-whatsapp me-1"></i> WA
+                </button>
+                <button class="btn btn-outline-primary btn-sm" (click)="enviarCorreoAdicional(estudianteSeleccionado!)"
+                  [disabled]="!correoAdicional" title="Enviar por correo">
+                  <i class="fas fa-envelope me-1"></i> Email
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger me-auto" 
+          (click)="descargarEstadoCuenta(estudianteSeleccionado!)"
+          [disabled]="descargandoPDF || (tipoMensajeSeleccionado === 'seleccion' && getTotalMesesSeleccionados() === 0)">
+          <i class="fas fa-file-pdf me-1"></i>
+          <span *ngIf="!descargandoPDF">
+            <span *ngIf="tipoMensajeSeleccionado === 'todos'">Descargar Estado de Cuenta Completo</span>
+            <span *ngIf="tipoMensajeSeleccionado === 'seleccion'">Descargar Meses Seleccionados</span>
+            <span *ngIf="tipoMensajeSeleccionado === 'vencido'">Descargar Solo Vencidos</span>
+          </span>
+          <span *ngIf="descargandoPDF">Generando PDF...</span>
+        </button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== MODAL HISTORIAL CON COMPROMISOS ==================== -->
+<div class="modal fade" id="modalHistorialPago" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fas fa-history me-2"></i> Historial de Recordatorios - {{ estudianteHistorial?.nombre_estudiante }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" *ngIf="estudianteHistorial">
+
+        <div *ngIf="cargandoHistorial" class="text-center py-4">
+          <div class="spinner-border text-primary" role="status"></div>
+          <p class="mt-2">Cargando historial...</p>
+        </div>
+
+        <div *ngIf="!cargandoHistorial && historialPago.length === 0" class="text-center py-4">
+          <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+          <p class="text-muted">Aún no se han enviado recordatorios para este estudiante.</p>
+        </div>
+
+        <div *ngIf="!cargandoHistorial && historialPago.length > 0" class="table-responsive">
+          <table class="table table-sm table-bordered table-hover">
+            <thead class="table-light">
+              <tr>
+                <th>Fecha envío</th>
+                <th>Tipo</th>
+                <th>Destinatario</th>
+                <th>Contacto</th>
+                <th class="text-end">Monto</th>
+                <th>Compromiso</th>
+                <th>Fecha compromiso</th>
+                <th class="text-center">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let h of historialPago">
+                <td><small>{{ h.fecha_envio | date:'dd/MM/yy HH:mm' }}</small></td>
+                <td><span class="badge bg-secondary">{{ getTipoRecordatorioLabel(h.tipo_recordatorio) }}</span></td>
+                <td><small>{{ h.nombre_destinatario }}</small></td>
+                <td><small>{{ h.telefono_usado }}</small></td>
+                <td class="text-end"><small>{{ h.monto_notificado | currency:'':'symbol':'1.0-0' }}</small></td>
+
+                <!-- Modo lectura -->
+                <td *ngIf="!h.editando"><small>{{ h.compromiso || '-' }}</small></td>
+                <td *ngIf="!h.editando"><small>{{ h.fecha_compromiso ? (h.fecha_compromiso | date:'dd/MM/yy') : '-' }}</small></td>
+                <td *ngIf="!h.editando" class="text-center">
+                  <button class="btn btn-sm btn-outline-secondary" (click)="editarCompromisoPago(h)" title="Agregar/editar compromiso">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                </td>
+
+                <!-- Modo edición -->
+                <td *ngIf="h.editando">
+                  <textarea class="form-control form-control-sm" rows="2" [(ngModel)]="h.compromiso_editado"
+                    placeholder="Ej: Se compromete a pagar el viernes..."></textarea>
+                </td>
+                <td *ngIf="h.editando">
+                  <input type="date" class="form-control form-control-sm" [(ngModel)]="h.fecha_compromiso_editada">
+                </td>
+                <td *ngIf="h.editando" class="text-center">
+                  <div class="btn-group btn-group-sm">
+                    <button class="btn btn-success" (click)="guardarCompromisoPago(h)" title="Guardar"><i class="fas fa-check"></i></button>
+                    <button class="btn btn-secondary" (click)="cancelarEdicionPago(h)" title="Cancelar"><i class="fas fa-times"></i></button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,8 @@
+<div class="modulo">
+  <app-header [tituloModulo]="titulo" [mostrarCrear]="true" [accion]="'ConsultarTodos'" [raiz]="'/academico/sprints'"
+    [regresar]="'/academico'" [iconoTitulo]="'/assets/images/sprints.png'"></app-header>
+
+  <app-tablas [titulos]="titulos" [datos]="datos" [columnasFiltro]="columnasFiltro" [raiz]="'/academico/sprints'"
+    [accionVer]="true" [accionEditar]="true" [accionEliminar]="true" [acciones]="acciones"
+    (clicAccion)="seleccionar($event)"></app-tablas>
+</div>

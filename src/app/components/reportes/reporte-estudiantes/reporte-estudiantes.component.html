@@ -1,0 +1,350 @@
+<div class="modulo">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="false"
+    [raiz]="'/reportes'"
+    [regresar]="'/reportes'"
+    [iconoTitulo]="'/assets/images/estudiantes.png'"
+  ></app-header>
+
+  <app-tablas
+    [titulos]="titulos"
+    [datos]="datos"
+    [raiz]="'/estudiantes-acudientes'"
+    [columnasFiltro]="columnasFiltro"
+    [seleccionMultiple]="true"
+    [campoId]="'id'"
+    [mostrarBuscar]="true"
+    (seleccionCambiada)="onSeleccionCambiada($event)"
+  ></app-tablas>
+
+  <!-- Botones de acción -->
+  <div class="export-container">
+    <button
+      class="btn btn-help"
+      (click)="abrirAyuda()"
+      title="Ayuda sobre columnas"
+    >
+      <i class="fas fa-question-circle"></i>
+      Ayuda
+    </button>
+    <button
+      class="btn btn-success"
+      (click)="exportarExcel()"
+      [disabled]="exportando || cargando"
+    >
+      <i class="fas fa-file-excel"></i>
+      {{ exportando ? "Exportando..." : "Exportar a Excel" }}
+    </button>
+  </div>
+
+  <!-- Panel de resumen -->
+  <div class="container-fluid px-4" *ngIf="cantidadSeleccionada > 0">
+    <div class="card mt-3 shadow-sm resumen-card">
+      <div class="card-header">
+        <h5 class="card-title mb-0">
+          <i class="fa fa-chart-bar me-2"></i>Resumen de Selección
+        </h5>
+      </div>
+      <div class="card-body">
+
+        <!-- Totales generales -->
+        <div class="row text-center mb-3">
+          <div class="col-md-3 col-6">
+            <div class="resumen-box">
+              <span class="resumen-label">Total Seleccionados</span>
+              <span class="resumen-valor text-primary">{{ resumen.total }}</span>
+            </div>
+          </div>
+          <div class="col-md-3 col-6">
+            <div class="resumen-box">
+              <span class="resumen-label">Activos / Inactivos</span>
+              <span class="resumen-valor">
+                <span class="text-success">{{ resumen.activos }}</span> / 
+                <span class="text-danger">{{ resumen.inactivos }}</span>
+              </span>
+            </div>
+          </div>
+          <div class="col-md-3 col-6">
+            <div class="resumen-box">
+              <span class="resumen-label">Con Alimentación</span>
+              <span class="resumen-valor text-info">{{ resumen.conAlimentacion }}</span>
+            </div>
+          </div>
+          <div class="col-md-3 col-6">
+            <div class="resumen-box">
+              <span class="resumen-label">Sin Alimentación</span>
+              <span class="resumen-valor text-muted">{{ resumen.sinAlimentacion }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Estado contratos -->
+        <div class="row text-center mb-3">
+          <div class="col-md-4 col-4">
+            <div class="resumen-box">
+              <span class="resumen-label">Contratos Firmados</span>
+              <span class="resumen-valor text-success">{{ resumen.contratosEstado.firmados }}</span>
+            </div>
+          </div>
+          <div class="col-md-4 col-4">
+            <div class="resumen-box">
+              <span class="resumen-label">Contratos Pendientes</span>
+              <span class="resumen-valor text-warning">{{ resumen.contratosEstado.pendientes }}</span>
+            </div>
+          </div>
+          <div class="col-md-4 col-4">
+            <div class="resumen-box">
+              <span class="resumen-label">Sin Contrato</span>
+              <span class="resumen-valor text-danger">{{ resumen.contratosEstado.sinContrato }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Documentos obligatorios pendientes -->
+        <h6 class="mb-2 mt-3"><i class="fa fa-folder-open me-1"></i>Documentos Obligatorios</h6>
+        <div class="row text-center mb-3">
+          <div class="col-md-3 col-6">
+            <div class="resumen-box resumen-docs-ok">
+              <span class="resumen-label">Docs. Completos</span>
+              <span class="resumen-valor text-success">{{ resumen.docsCompletos }}</span>
+            </div>
+          </div>
+          <div class="col-md-3 col-6">
+            <div class="resumen-box resumen-docs-pendiente">
+              <span class="resumen-label">Con Docs. Pendientes</span>
+              <span class="resumen-valor text-danger">{{ resumen.docsConPendientes }}</span>
+            </div>
+          </div>
+          <div class="col-md-3 col-6">
+            <div class="resumen-box">
+              <span class="resumen-label">Total Docs. Pendientes</span>
+              <span class="resumen-valor text-warning">{{ resumen.totalDocsPendientes }}</span>
+            </div>
+          </div>
+          <div class="col-md-3 col-6">
+            <div class="resumen-box">
+              <span class="resumen-label">Promedio por Estudiante</span>
+              <span class="resumen-valor text-info">{{ resumen.promedioDocsPendientes }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Valores del contrato -->
+        <h6 class="mb-2 mt-3"><i class="fa fa-file-contract me-1"></i>Valores del Contrato</h6>
+        <div class="row text-center mb-3">
+          <div class="col-md-4 col-6">
+            <div class="resumen-box">
+              <span class="resumen-label">Total Matrícula</span>
+              <span class="resumen-valor valor-dinero">{{ formatearMoneda(resumen.sumaMatricula) }}</span>
+            </div>
+          </div>
+          <div class="col-md-4 col-6">
+            <div class="resumen-box">
+              <span class="resumen-label">Total Pensión</span>
+              <span class="resumen-valor valor-dinero">{{ formatearMoneda(resumen.sumaPension) }}</span>
+            </div>
+          </div>
+          <div class="col-md-4 col-12">
+            <div class="resumen-box resumen-total">
+              <span class="resumen-label">Total Contrato</span>
+              <span class="resumen-valor valor-dinero-total">{{ formatearMoneda(resumen.sumaTotal) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Valores mes actual -->
+        <h6 class="mb-2 mt-3"><i class="fa fa-calendar-day me-1"></i>Valores Mes Actual ({{ mesActual }})</h6>
+        <div class="row text-center mb-3">
+          <div class="col-md-4 col-6">
+            <div class="resumen-box">
+              <span class="resumen-label">Matrícula {{ mesActual }}</span>
+              <span class="resumen-valor valor-dinero">{{ formatearMoneda(resumen.sumaMatriculaMes) }}</span>
+            </div>
+          </div>
+          <div class="col-md-4 col-6">
+            <div class="resumen-box">
+              <span class="resumen-label">Pensión {{ mesActual }}</span>
+              <span class="resumen-valor valor-dinero">{{ formatearMoneda(resumen.sumaPensionMes) }}</span>
+            </div>
+          </div>
+          <div class="col-md-4 col-12">
+            <div class="resumen-box resumen-total-mes">
+              <span class="resumen-label">Total {{ mesActual }}</span>
+              <span class="resumen-valor valor-dinero-total">{{ formatearMoneda(resumen.sumaTotalMes) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cartera Año Actual -->
+        <h6 class="mb-2 mt-3"><i class="fa fa-wallet me-1"></i>Cartera Año Actual</h6>
+        <div class="table-responsive mb-3">
+          <table class="table table-sm table-bordered table-hover resumen-tabla">
+            <thead>
+              <tr>
+                <th>Concepto</th>
+                <th class="text-end">Cobrado</th>
+                <th class="text-end">Pagado</th>
+                <th class="text-end">Saldo</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let c of conceptosCartera">
+                <td>{{ c.label }}</td>
+                <td class="text-end">{{ formatearMoneda(getCarteraConcepto('actual', c.key).cobrado) }}</td>
+                <td class="text-end">{{ formatearMoneda(getCarteraConcepto('actual', c.key).pagado) }}</td>
+                <td class="text-end" [class.text-danger]="getCarteraConcepto('actual', c.key).saldo > 0">
+                  {{ formatearMoneda(getCarteraConcepto('actual', c.key).saldo) }}
+                </td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr class="table-active fw-bold">
+                <td>TOTALES</td>
+                <td class="text-end">{{ formatearMoneda(resumen.totalActual.cobrado) }}</td>
+                <td class="text-end">{{ formatearMoneda(resumen.totalActual.pagado) }}</td>
+                <td class="text-end" [class.text-danger]="resumen.totalActual.saldo > 0">
+                  {{ formatearMoneda(resumen.totalActual.saldo) }}
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <!-- Cartera Años Anteriores -->
+        <h6 class="mb-2 mt-3"><i class="fa fa-history me-1"></i>Cartera Años Anteriores</h6>
+        <div class="table-responsive mb-3">
+          <table class="table table-sm table-bordered table-hover resumen-tabla tabla-anterior">
+            <thead>
+              <tr>
+                <th>Concepto</th>
+                <th class="text-end">Cobrado</th>
+                <th class="text-end">Pagado</th>
+                <th class="text-end">Saldo</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let c of conceptosCartera">
+                <td>{{ c.label }}</td>
+                <td class="text-end">{{ formatearMoneda(getCarteraConcepto('anterior', c.key).cobrado) }}</td>
+                <td class="text-end">{{ formatearMoneda(getCarteraConcepto('anterior', c.key).pagado) }}</td>
+                <td class="text-end" [class.text-danger]="getCarteraConcepto('anterior', c.key).saldo > 0">
+                  {{ formatearMoneda(getCarteraConcepto('anterior', c.key).saldo) }}
+                </td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr class="table-active fw-bold">
+                <td>TOTALES</td>
+                <td class="text-end">{{ formatearMoneda(resumen.totalAnterior.cobrado) }}</td>
+                <td class="text-end">{{ formatearMoneda(resumen.totalAnterior.pagado) }}</td>
+                <td class="text-end" [class.text-danger]="resumen.totalAnterior.saldo > 0">
+                  {{ formatearMoneda(resumen.totalAnterior.saldo) }}
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <!-- Desglose por grupo -->
+        <div class="row mt-3" *ngIf="resumen.porGrupo.length > 0">
+          <div class="col-12">
+            <h6 class="mb-2"><i class="fa fa-layer-group me-1"></i>Desglose por Grupo</h6>
+            <div class="table-responsive">
+              <table class="table table-sm table-bordered table-hover resumen-tabla">
+                <thead>
+                  <tr>
+                    <th>Grupo</th>
+                    <th class="text-center">Cant.</th>
+                    <th class="text-center">Alim.</th>
+                    <th class="text-center">Docs OK</th>
+                    <th class="text-center">Docs Pend.</th>
+                    <th class="text-end">Matrícula</th>
+                    <th class="text-end">Pensión</th>
+                    <th class="text-end">Total Contr.</th>
+                    <th class="text-end">Matr. {{ mesActual }}</th>
+                    <th class="text-end">Pens. {{ mesActual }}</th>
+                    <th class="text-end">Total {{ mesActual }}</th>
+                    <th class="text-end">Cobrado Act.</th>
+                    <th class="text-end">Pagado Act.</th>
+                    <th class="text-end">Saldo Act.</th>
+                    <th class="text-end">Cobrado Ant.</th>
+                    <th class="text-end">Pagado Ant.</th>
+                    <th class="text-end">Saldo Ant.</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let g of resumen.porGrupo">
+                    <td>{{ g.grupo }}</td>
+                    <td class="text-center">{{ g.cantidad }}</td>
+                    <td class="text-center">{{ g.alimentacion }}</td>
+                    <td class="text-center text-success">{{ g.docsCompletos }}</td>
+                    <td class="text-center" [class.text-danger]="g.docsPendientes > 0">{{ g.docsPendientes }}</td>
+                    <td class="text-end">{{ formatearMoneda(g.matricula) }}</td>
+                    <td class="text-end">{{ formatearMoneda(g.pension) }}</td>
+                    <td class="text-end fw-bold">{{ formatearMoneda(g.total) }}</td>
+                    <td class="text-end">{{ formatearMoneda(g.matriculaMes) }}</td>
+                    <td class="text-end">{{ formatearMoneda(g.pensionMes) }}</td>
+                    <td class="text-end fw-bold">{{ formatearMoneda(g.totalMes) }}</td>
+                    <td class="text-end">{{ formatearMoneda(g.cobradoActual) }}</td>
+                    <td class="text-end">{{ formatearMoneda(g.pagadoActual) }}</td>
+                    <td class="text-end fw-bold" [class.text-danger]="g.saldoActual > 0">{{ formatearMoneda(g.saldoActual) }}</td>
+                    <td class="text-end">{{ formatearMoneda(g.cobradoAnterior) }}</td>
+                    <td class="text-end">{{ formatearMoneda(g.pagadoAnterior) }}</td>
+                    <td class="text-end fw-bold" [class.text-danger]="g.saldoAnterior > 0">{{ formatearMoneda(g.saldoAnterior) }}</td>
+                  </tr>
+                </tbody>
+                <tfoot>
+                  <tr class="table-active fw-bold">
+                    <td>TOTALES</td>
+                    <td class="text-center">{{ resumen.total }}</td>
+                    <td class="text-center">{{ resumen.conAlimentacion }}</td>
+                    <td class="text-center text-success">{{ resumen.docsCompletos }}</td>
+                    <td class="text-center" [class.text-danger]="resumen.docsConPendientes > 0">{{ resumen.docsConPendientes }}</td>
+                    <td class="text-end">{{ formatearMoneda(resumen.sumaMatricula) }}</td>
+                    <td class="text-end">{{ formatearMoneda(resumen.sumaPension) }}</td>
+                    <td class="text-end">{{ formatearMoneda(resumen.sumaTotal) }}</td>
+                    <td class="text-end">{{ formatearMoneda(resumen.sumaMatriculaMes) }}</td>
+                    <td class="text-end">{{ formatearMoneda(resumen.sumaPensionMes) }}</td>
+                    <td class="text-end">{{ formatearMoneda(resumen.sumaTotalMes) }}</td>
+                    <td class="text-end">{{ formatearMoneda(resumen.totalActual.cobrado) }}</td>
+                    <td class="text-end">{{ formatearMoneda(resumen.totalActual.pagado) }}</td>
+                    <td class="text-end" [class.text-danger]="resumen.totalActual.saldo > 0">{{ formatearMoneda(resumen.totalActual.saldo) }}</td>
+                    <td class="text-end">{{ formatearMoneda(resumen.totalAnterior.cobrado) }}</td>
+                    <td class="text-end">{{ formatearMoneda(resumen.totalAnterior.pagado) }}</td>
+                    <td class="text-end" [class.text-danger]="resumen.totalAnterior.saldo > 0">{{ formatearMoneda(resumen.totalAnterior.saldo) }}</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Ayuda -->
+<div class="modal-overlay" *ngIf="mostrarModalAyuda" (click)="cerrarAyudaBackdrop($event)">
+  <div class="modal-ayuda">
+    <div class="modal-ayuda-header">
+      <h5><i class="fa fa-question-circle me-2"></i>Ayuda - Columnas del Reporte</h5>
+      <button class="btn-cerrar" (click)="cerrarAyuda()">
+        <i class="fa fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-ayuda-body">
+      <div *ngFor="let seccion of ayudaColumnas" class="seccion-ayuda">
+        <h6 class="seccion-titulo">{{ seccion.seccion }}</h6>
+        <div *ngFor="let col of seccion.columnas" class="columna-ayuda">
+          <span class="col-nombre">{{ col.nombre }}</span>
+          <span class="col-desc">{{ col.descripcion }}</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-ayuda-footer">
+      <button class="btn btn-secondary" (click)="cerrarAyuda()">Cerrar</button>
+    </div>
+  </div>
+</div>

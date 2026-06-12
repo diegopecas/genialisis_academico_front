@@ -1,0 +1,168 @@
+$gold: #F5A623;
+$gold-dark: #d4af37;
+$dark: #2C2C2C;
+$dark-light: #3a3a3a;
+$success-color: #28a745;
+$danger-color: #dc3545;
+$warning-color: #ffc107;
+$info-color: #17a2b8;
+$light-gray: #f8f9fa;
+$border-color: #dee2e6;
+
+$mobile: 576px;
+$tablet: 768px;
+
+.modulo {
+  padding: 1rem;
+  background-color: #fff;
+  min-height: calc(100vh - 100px);
+}
+
+.resumen-card {
+  background-color: #fff;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  margin-bottom: 1.5rem;
+  border: 1px solid $border-color;
+
+  @media (max-width: $mobile) {
+    padding: 1rem;
+  }
+
+  h5 {
+    color: $dark;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+
+    i {
+      color: $gold;
+    }
+  }
+
+  .estadistica-item {
+    text-align: center;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    transition: all 0.3s ease;
+    min-height: 120px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    justify-content: center;
+
+    @media (max-width: $mobile) {
+      padding: 0.75rem;
+      min-height: 100px;
+    }
+
+    &:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+
+    .estadistica-valor {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      line-height: 1;
+
+      @media (max-width: $tablet) { font-size: 1.5rem; }
+      @media (max-width: $mobile) { font-size: 1.25rem; }
+    }
+
+    .estadistica-label {
+      font-size: 0.9rem;
+      opacity: 0.8;
+      margin-bottom: 0.25rem;
+      font-weight: 500;
+
+      @media (max-width: $mobile) { font-size: 0.8rem; }
+    }
+
+    .estadistica-extra {
+      font-size: 0.8rem;
+      opacity: 0.7;
+
+      @media (max-width: $mobile) { font-size: 0.75rem; }
+    }
+  }
+
+  .registros-bg {
+    background-color: rgba($info-color, 0.1);
+    color: darken($info-color, 10%);
+  }
+
+  .total-cobrado-bg {
+    background-color: rgba($gold, 0.15);
+    color: darken($gold-dark, 10%);
+  }
+
+  .total-pagado-bg {
+    background-color: rgba($success-color, 0.1);
+    color: darken($success-color, 10%);
+  }
+
+  .saldo-total-bg {
+    background-color: rgba($danger-color, 0.1);
+    color: darken($danger-color, 10%);
+  }
+
+  .recaudo-bg {
+    background-color: rgba($dark, 0.08);
+    color: $dark;
+  }
+}
+
+.form-select {
+  &:focus {
+    border-color: $gold;
+    box-shadow: 0 0 0 0.2rem rgba($gold, 0.25);
+  }
+}
+
+.form-label {
+  color: $dark;
+  font-weight: 500;
+}
+
+.spinner-border {
+  width: 3rem;
+  height: 3rem;
+  border-width: 0.3rem;
+  color: $gold !important;
+}
+
+.btn {
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.15);
+  }
+}
+
+.no-data {
+  padding: 3rem;
+  text-align: center;
+  color: #6c757d;
+
+  i {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+    display: block;
+    color: $gold;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.resumen-card,
+app-tablas {
+  animation: fadeIn 0.3s ease-in-out;
+}

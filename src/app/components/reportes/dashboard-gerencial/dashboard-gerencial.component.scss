@@ -1,0 +1,176 @@
+$gold: #F5A623;
+$gold-dark: #d4af37;
+$gold-light: #fff4db;
+$dark: #2C2C2C;
+$dark-light: #3a3a3a;
+$border-color: #dee2e6;
+$bg-light: #f8f9fa;
+
+$mobile: 576px;
+
+.modulo {
+  padding: 1rem;
+  overflow-x: hidden;
+}
+
+// El container-fluid de Bootstrap puede heredar paddings; los normalizamos
+:host ::ng-deep .container-fluid {
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+
+// ============================================
+// BARRA DE FECHA
+// ============================================
+.barra-fecha {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  background: $bg-light;
+  border: 1px solid $border-color;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+
+  .grupo-fecha {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
+
+  .input-fecha {
+    width: auto;
+    max-width: 180px;
+  }
+
+  .btn-outline-dark {
+    border-color: $dark;
+    color: $dark;
+    &:hover {
+      background-color: $dark;
+      color: #fff;
+    }
+  }
+}
+
+// ============================================
+// TABS
+// ============================================
+.tabs-contenedor {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 2px solid $border-color;
+  margin-bottom: 1.25rem;
+  overflow-x: auto;
+
+  .tab-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    cursor: pointer;
+    border-radius: 0.5rem 0.5rem 0 0;
+    color: $dark-light;
+    font-weight: 500;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+
+    &:hover:not(.tab-deshabilitado) {
+      background-color: $gold-light;
+      color: $dark;
+    }
+
+    .tab-icono {
+      font-size: 1.2rem;
+    }
+
+    .tab-proximamente {
+      font-size: 0.7rem;
+      color: #888;
+      font-style: italic;
+      margin-left: 0.25rem;
+    }
+  }
+
+  .tab-activo {
+    background-color: $gold-light;
+    color: $dark;
+    border-bottom: 3px solid $gold;
+    font-weight: 700;
+  }
+
+  .tab-deshabilitado {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+}
+
+// ============================================
+// CONTENIDO
+// ============================================
+.contenido-tab {
+  animation: fadeIn 0.25s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.placeholder-tab {
+  text-align: center;
+  padding: 3rem 1rem;
+  font-size: 1.2rem;
+  color: #999;
+  background: $bg-light;
+  border-radius: 0.5rem;
+}
+
+// ============================================
+// RESPONSIVE
+// ============================================
+@media (max-width: $mobile) {
+  .modulo {
+    padding: 0.5rem;
+  }
+
+  .barra-fecha {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 0.6rem 0.75rem;
+
+    .grupo-fecha {
+      justify-content: flex-start;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+    }
+
+    .input-fecha {
+      flex: 1 1 auto;
+      min-width: 0;
+      max-width: none;
+    }
+  }
+
+  .tabs-contenedor {
+    margin-bottom: 0.75rem;
+    // Permitir scroll horizontal pero esconder scrollbar visible (más limpio)
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+
+    .tab-item {
+      padding: 0.55rem 0.75rem;
+      font-size: 0.82rem;
+      flex-shrink: 0;
+
+      .tab-icono { font-size: 1rem; }
+      .tab-proximamente {
+        font-size: 0.6rem;
+      }
+    }
+  }
+}

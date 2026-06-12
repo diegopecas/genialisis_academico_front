@@ -1,0 +1,602 @@
+// ─── Paleta Materialize ─────────────────────────────────────────────
+$md-blue: #2196F3;
+$md-blue-dark: #1565C0;
+$md-blue-light: #42A5F5;
+$md-green: #4CAF50;
+$md-green-dark: #2E7D32;
+$md-red: #F44336;
+$md-red-dark: #C62828;
+$md-orange: #FF9800;
+$md-orange-dark: #E65100;
+$md-purple: #9C27B0;
+$md-purple-dark: #6A1B9A;
+$md-teal: #009688;
+$md-teal-dark: #00695C;
+$md-indigo: #3F51B5;
+$md-amber: #FFC107;
+$md-grey-50: #FAFAFA;
+$md-grey-100: #F5F5F5;
+$md-grey-200: #EEEEEE;
+$md-grey-300: #E0E0E0;
+$md-grey-400: #BDBDBD;
+$md-grey-600: #757575;
+$md-grey-700: #616161;
+$md-grey-800: #424242;
+
+// Colores temáticos malla curricular
+$color-logros: $md-blue;
+$color-indicadores: $md-green;
+$color-grados: $md-purple;
+$color-areas: $md-orange;
+$color-cortes: $md-teal;
+
+// Breakpoints
+$mobile: 576px;
+$tablet: 768px;
+$desktop: 992px;
+
+// ─── Mixins Material Design flat + elevación ────────────────────────
+
+// Sombras de elevación Material Design
+@mixin md-elevation-1 {
+  box-shadow:
+    0 2px 2px 0 rgba(0, 0, 0, 0.14),
+    0 3px 1px -2px rgba(0, 0, 0, 0.12),
+    0 1px 5px 0 rgba(0, 0, 0, 0.2);
+}
+
+@mixin md-elevation-2 {
+  box-shadow:
+    0 4px 5px 0 rgba(0, 0, 0, 0.14),
+    0 1px 10px 0 rgba(0, 0, 0, 0.12),
+    0 2px 4px -1px rgba(0, 0, 0, 0.3);
+}
+
+@mixin md-elevation-3 {
+  box-shadow:
+    0 8px 17px 2px rgba(0, 0, 0, 0.14),
+    0 3px 14px 2px rgba(0, 0, 0, 0.12),
+    0 5px 5px -3px rgba(0, 0, 0, 0.2);
+}
+
+@mixin flat-btn($base-color) {
+  background-color: $base-color;
+  border: none;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+  @include md-elevation-1;
+
+  &:hover {
+    background-color: lighten($base-color, 5%);
+    @include md-elevation-2;
+    color: #fff;
+    transform: translateY(-2px);
+  }
+
+  &:active {
+    background-color: darken($base-color, 5%);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    transform: translateY(0);
+  }
+
+  &:disabled {
+    background-color: $md-grey-300;
+    color: $md-grey-600;
+    box-shadow: none;
+    cursor: not-allowed;
+    transform: none;
+  }
+}
+
+@mixin flat-badge($base-color) {
+  background-color: lighten($base-color, 32%);
+  color: darken($base-color, 20%);
+  border: none;
+}
+
+@mixin flat-stat-card($base-color) {
+  background-color: lighten($base-color, 36%);
+  border: 1px solid rgba($base-color, 0.12);
+  color: darken($base-color, 12%);
+
+  .estadistica-valor {
+    color: $base-color;
+  }
+}
+
+// ─── Módulo ─────────────────────────────────────────────────────────
+
+.modulo {
+  padding: 1.25rem;
+  background-color: $md-grey-50;
+  min-height: calc(100vh - 100px);
+}
+
+// ─── Resumen estadístico ────────────────────────────────────────────
+
+.resumen-malla-card {
+  background-color: #fff;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid $md-grey-200;
+  @include md-elevation-1;
+
+  @media (max-width: $mobile) {
+    padding: 1rem;
+  }
+
+  h5 {
+    color: $md-grey-800;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+
+    i {
+      color: $md-blue;
+    }
+
+    small {
+      font-size: 0.75rem;
+      font-weight: 400;
+      color: $md-grey-600;
+    }
+  }
+
+  .estadistica-item {
+    text-align: center;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    min-height: 120px;
+    cursor: default;
+
+    @media (max-width: $mobile) {
+      padding: 0.75rem;
+      min-height: 100px;
+    }
+
+    &:hover {
+      transform: translateY(-4px);
+      @include md-elevation-3;
+    }
+
+    .estadistica-valor {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      line-height: 1;
+
+      @media (max-width: $tablet) {
+        font-size: 1.5rem;
+      }
+
+      @media (max-width: $mobile) {
+        font-size: 1.25rem;
+      }
+    }
+
+    .estadistica-label {
+      font-size: 0.9rem;
+      opacity: 0.85;
+      margin-bottom: 0.25rem;
+      font-weight: 600;
+
+      @media (max-width: $mobile) {
+        font-size: 0.8rem;
+      }
+    }
+
+    .estadistica-extra {
+      font-size: 0.8rem;
+      opacity: 0.7;
+
+      @media (max-width: $mobile) {
+        font-size: 0.75rem;
+      }
+    }
+  }
+
+  .logros-bg { @include flat-stat-card($color-logros); }
+  .indicadores-bg { @include flat-stat-card($color-indicadores); }
+  .grados-bg { @include flat-stat-card($color-grados); }
+  .areas-bg { @include flat-stat-card($color-areas); }
+  .cortes-bg { @include flat-stat-card($color-cortes); }
+}
+
+// ─── Tarjetas ───────────────────────────────────────────────────────
+
+.card {
+  background-color: #fff;
+  border: 1px solid $md-grey-200;
+  border-radius: 0.375rem;
+  margin-bottom: 1.5rem;
+  @include md-elevation-1;
+  transition: box-shadow 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+
+  &:hover {
+    @include md-elevation-2;
+  }
+
+  .card-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: $md-grey-800;
+    margin-bottom: 1rem;
+
+    i { color: $md-blue; }
+  }
+}
+
+// ─── Tabla de logros ────────────────────────────────────────────────
+
+.table {
+  margin-bottom: 0;
+
+  thead {
+    th {
+      background-color: $md-grey-100;
+      border-bottom: 2px solid $md-grey-300;
+      font-weight: 600;
+      color: $md-grey-700;
+      white-space: nowrap;
+      padding: 0.75rem;
+      font-size: 0.85rem;
+
+      @media (max-width: $mobile) {
+        padding: 0.5rem;
+        font-size: 0.8rem;
+      }
+    }
+
+    // Headers ordenables
+    th.sortable {
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.2s ease;
+      padding-right: 1.5rem;
+      position: relative;
+
+      &:hover {
+        background-color: $md-grey-200;
+        color: $md-blue-dark;
+      }
+
+      &.sorted-asc,
+      &.sorted-desc {
+        background-color: lighten($md-blue, 38%);
+        color: $md-blue-dark;
+        border-bottom-color: $md-blue;
+      }
+
+      .sort-icon {
+        position: absolute;
+        right: 0.4rem;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 0.65rem;
+        opacity: 0.3;
+        transition: all 0.2s ease;
+      }
+
+      &:hover .sort-icon {
+        opacity: 0.6;
+      }
+
+      &.sorted-asc .sort-icon,
+      &.sorted-desc .sort-icon {
+        opacity: 1;
+        color: $md-blue-dark;
+      }
+    }
+  }
+
+  tbody {
+    td {
+      padding: 0.75rem;
+      vertical-align: middle;
+      font-size: 0.875rem;
+
+      @media (max-width: $mobile) {
+        padding: 0.5rem;
+        font-size: 0.8rem;
+      }
+    }
+  }
+}
+
+.col-expand {
+  width: 40px;
+  min-width: 40px;
+}
+
+.col-logro-nombre {
+  max-width: 300px;
+
+  strong {
+    display: block;
+    line-height: 1.3;
+  }
+}
+
+// Fila de logro (clickable)
+.fila-logro {
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+
+  &:hover {
+    background-color: rgba($md-blue, 0.04);
+    box-shadow: inset 3px 0 0 $md-blue;
+  }
+
+  &.fila-expandida {
+    background-color: rgba($md-blue, 0.06);
+    border-bottom: none;
+    box-shadow: inset 3px 0 0 $md-blue;
+
+    td { border-bottom: none; }
+  }
+}
+
+// Icono de expandir
+.icono-expandir {
+  color: $md-grey-600;
+  font-size: 0.75rem;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+
+  &.rotado {
+    transform: rotate(90deg);
+    color: $md-blue;
+  }
+}
+
+// ─── Indicadores (zona expandida) ──────────────────────────────────
+
+.fila-indicadores {
+  &:hover {
+    background-color: transparent !important;
+  }
+
+  td {
+    background-color: rgba($color-indicadores, 0.03);
+    border-top: none;
+  }
+}
+
+.indicadores-container {
+  padding: 0.5rem 1rem 1rem 3rem;
+  animation: slideDown 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+
+  @media (max-width: $mobile) {
+    padding: 0.5rem 0.75rem 0.75rem 1.5rem;
+  }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; max-height: 0; transform: translateY(-8px); }
+  to { opacity: 1; max-height: 1000px; transform: translateY(0); }
+}
+
+.indicador-header {
+  font-weight: 600;
+  font-size: 0.8rem;
+  color: $md-green-dark;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding-bottom: 0.5rem;
+  margin-bottom: 0.5rem;
+  border-bottom: 2px solid rgba($md-green, 0.25);
+}
+
+.indicador-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.4rem 0;
+  font-size: 0.85rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+
+  &:last-child { border-bottom: none; }
+
+  .indicador-numero {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    background-color: lighten($md-green, 30%);
+    color: $md-green-dark;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 600;
+  }
+
+  .indicador-nombre {
+    color: $md-grey-700;
+    line-height: 1.4;
+    padding-top: 2px;
+  }
+}
+
+// ─── Badges ─────────────────────────────────────────────────────────
+
+.badge-grado {
+  @include flat-badge($color-grados);
+  padding: 0.3rem 0.6rem;
+  border-radius: 0.25rem;
+  font-weight: 600;
+  font-size: 0.78rem;
+}
+
+.badge-corte {
+  @include flat-badge($color-cortes);
+  padding: 0.3rem 0.6rem;
+  border-radius: 0.25rem;
+  font-weight: 600;
+  font-size: 0.78rem;
+}
+
+.badge {
+  padding: 0.35rem 0.65rem;
+  font-weight: 500;
+  font-size: 0.85rem;
+
+  @media (max-width: $mobile) {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  &.bg-info {
+    @include flat-badge($md-blue);
+  }
+}
+
+// ─── Botones Material flat + elevación ──────────────────────────────
+
+.btn {
+  border-radius: 0.25rem;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  padding: 0.45rem 1rem;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.btn-secondary { @include flat-btn($md-grey-600); }
+.btn-outline-primary { @include flat-btn($md-indigo); }
+.btn-success { @include flat-btn($md-green); }
+.btn-danger { @include flat-btn($md-red); }
+
+// ─── Paginación ─────────────────────────────────────────────────────
+
+.pagination {
+  .page-link {
+    color: $md-blue;
+    padding: 0.5rem 0.75rem;
+    margin: 0 0.125rem;
+    border: 1px solid $md-grey-300;
+    border-radius: 0.25rem;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    cursor: pointer;
+    background-color: #fff;
+
+    &:hover {
+      background-color: $md-blue-light;
+      color: #fff;
+      border-color: $md-blue-light;
+      transform: translateY(-2px);
+      @include md-elevation-1;
+    }
+  }
+
+  .page-item {
+    &.active .page-link {
+      background-color: $md-blue;
+      border-color: $md-blue;
+      color: #fff;
+      @include md-elevation-1;
+      cursor: default;
+    }
+
+    &.disabled .page-link {
+      opacity: 0.5;
+      cursor: not-allowed;
+      background-color: $md-grey-100;
+      transform: none;
+
+      &:hover {
+        transform: none;
+        box-shadow: none;
+        background-color: $md-grey-100;
+        color: $md-grey-400;
+        border-color: $md-grey-300;
+      }
+    }
+  }
+}
+
+// ─── Inputs y selects ───────────────────────────────────────────────
+
+.form-label {
+  font-weight: 500;
+  color: $md-grey-700;
+  font-size: 0.875rem;
+}
+
+.input-group {
+  .input-group-text {
+    background-color: $md-grey-100;
+    border-right: none;
+    color: $md-grey-600;
+    border-color: $md-grey-300;
+  }
+
+  .form-control {
+    border-left: none;
+    border-color: $md-grey-300;
+
+    &:focus {
+      box-shadow: 0 0 0 0.15rem rgba($md-blue, 0.25);
+      border-color: $md-blue;
+    }
+  }
+}
+
+.form-select {
+  border-color: $md-grey-300;
+  background-color: #fff;
+  transition: all 0.2s ease;
+
+  &:focus {
+    border-color: $md-blue;
+    box-shadow: 0 0 0 0.15rem rgba($md-blue, 0.25);
+  }
+
+  &:hover { border-color: $md-grey-400; }
+}
+
+// ─── Spinner ────────────────────────────────────────────────────────
+
+.spinner-border {
+  width: 3rem;
+  height: 3rem;
+  border-width: 0.3rem;
+  color: $md-blue;
+}
+
+// ─── Responsive ─────────────────────────────────────────────────────
+
+@media (max-width: $mobile) {
+  .table-responsive {
+    font-size: 0.85rem;
+    table { min-width: 900px; }
+  }
+}
+
+// ─── Animaciones ────────────────────────────────────────────────────
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.card { animation: fadeIn 0.3s ease-in-out; }
+
+// ─── Impresión ──────────────────────────────────────────────────────
+
+@media print {
+  .no-print { display: none !important; }
+
+  .card {
+    page-break-inside: avoid;
+    box-shadow: none;
+  }
+
+  .table { font-size: 0.8rem; }
+  .fila-logro { cursor: default; }
+  .indicadores-container { padding-left: 1.5rem; }
+  .btn, .pagination { display: none !important; }
+}

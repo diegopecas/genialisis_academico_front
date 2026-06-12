@@ -1,0 +1,178 @@
+<div class="modulo">
+    <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [accion]="accion"
+        [raiz]="'/administracion/productos-academico'" [regresar]="regresar"
+        [iconoTitulo]="'/assets/images/productos-academico.png'">
+    </app-header>
+
+    <div class="container mt-5">
+        <!-- Card: Información principal -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-graduation-cap"></i> Información del Producto Académico</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-sm-12 col-md-6">
+                        <label for="producto" class="form-label">Producto <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <input type="text" class="form-control form-control-lg" [(ngModel)]="model.nombreProducto"
+                                [ngClass]="{'is-invalid': !model.idProducto && submitted}" [disabled]="!editable"
+                                placeholder="Seleccionar producto..." readonly>
+                            <button class="btn btn-outline-secondary" type="button" (click)="abrirModalBuscarProducto()"
+                                [disabled]="!editable">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                        <div class="invalid-feedback" *ngIf="!model.idProducto && submitted">
+                            El producto es requerido
+                        </div>
+                    </div>
+                    <div class="col-sm-12 col-md-6">
+                        <label for="tipoProductoAcademico" class="form-label">Tipo Académico <span class="text-danger">*</span></label>
+                        <select class="form-select form-select-lg" id="tipoProductoAcademico"
+                            [(ngModel)]="model.idTipoProductoAcademico" required
+                            [ngClass]="{'is-invalid': !model.idTipoProductoAcademico && submitted}"
+                            [disabled]="!editable">
+                            <option value="">Seleccionar</option>
+                            <ng-container *ngFor="let tipo of listas.tiposProductoAcademico">
+                                <option [value]="tipo.value">{{ tipo.label }}</option>
+                            </ng-container>
+                        </select>
+                        <div class="invalid-feedback" *ngIf="!model.idTipoProductoAcademico && submitted">
+                            El tipo académico es requerido
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mt-3">
+                    <div class="col-sm-12 col-md-4">
+                        <label class="form-label">¿Es consumible?</label>
+                        <div class="form-check form-switch mt-2">
+                            <input class="form-check-input" type="checkbox" id="esConsumible"
+                                [(ngModel)]="model.esConsumible" [disabled]="!editable">
+                            <label class="form-check-label" for="esConsumible">
+                                {{ model.esConsumible ? 'Sí, se consume con el uso' : 'No, es reutilizable' }}
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-sm-12 col-md-4" *ngIf="model.esConsumible">
+                        <label for="vidaUtil" class="form-label">Vida Útil Estimada</label>
+                        <div class="input-group">
+                            <input class="form-control form-control-lg" type="number" id="vidaUtil"
+                                [(ngModel)]="model.vidaUtilEstimadaDias" [disabled]="!editable"
+                                placeholder="0" min="0">
+                            <span class="input-group-text">días</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mt-3">
+                    <div class="col-sm-12 col-md-4">
+                        <label for="edadMinima" class="form-label">Edad Mínima</label>
+                        <div class="input-group">
+                            <input class="form-control form-control-lg" type="number" id="edadMinima"
+                                [(ngModel)]="model.edadMinimaMeses" [disabled]="!editable"
+                                placeholder="0" min="0">
+                            <span class="input-group-text">meses</span>
+                        </div>
+                    </div>
+                    <div class="col-sm-12 col-md-4">
+                        <label for="edadMaxima" class="form-label">Edad Máxima</label>
+                        <div class="input-group">
+                            <input class="form-control form-control-lg" type="number" id="edadMaxima"
+                                [(ngModel)]="model.edadMaximaMeses" [disabled]="!editable"
+                                placeholder="0" min="0">
+                            <span class="input-group-text">meses</span>
+                        </div>
+                    </div>
+                    <div class="col-sm-12 col-md-4">
+                        <div class="alert alert-info mt-4" *ngIf="(model.edadMinimaMeses ?? 0) > 0 || (model.edadMaximaMeses ?? 0) > 0">
+                            <i class="fas fa-info-circle"></i>
+                            Rango de edad:
+                            <strong>
+                                {{ formatearEdad(model.edadMinimaMeses) }} - {{ formatearEdad(model.edadMaximaMeses) }}
+                            </strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card: Grados -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-users"></i> Grados Aplicables
+                    <span class="badge bg-secondary ms-2">{{ gradosSeleccionados.length }}</span>
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-12">
+                        <p class="text-muted mb-3">
+                            Seleccione los grados en los que se puede utilizar este producto:
+                        </p>
+
+                        <div class="grados-container">
+                            <div class="row" *ngIf="listas.grados.length > 0">
+                                <div class="col-sm-6 col-md-4 mb-3" *ngFor="let grado of listas.grados">
+                                    <div class="form-check grado-item"
+                                         [ngClass]="{'grado-selected': grado.selected, 'disabled': !editable}">
+                                        <input class="form-check-input"
+                                               type="checkbox"
+                                               [id]="'grado_' + grado.id"
+                                               [(ngModel)]="grado.selected"
+                                               (change)="onGradoChange(grado)"
+                                               [disabled]="!editable">
+                                        <label class="form-check-label"
+                                               [for]="'grado_' + grado.id">
+                                            {{ grado.nombre }}
+                                            <small class="text-muted d-block">{{ grado.descripcion }}</small>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="alert alert-warning" *ngIf="listas.grados.length === 0">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                No hay grados disponibles.
+                            </div>
+                        </div>
+
+                        <div class="mt-3" *ngIf="gradosSeleccionados.length > 0">
+                            <hr>
+                            <p class="mb-2"><strong>Grados seleccionados:</strong></p>
+                            <div class="d-flex flex-wrap gap-2">
+                                <span class="badge bg-primary" *ngFor="let grado of gradosSeleccionados">
+                                    {{ grado.nombre }}
+                                    <button type="button" class="btn-close btn-close-white ms-1"
+                                            aria-label="Quitar"
+                                            (click)="removerGrado(grado)"
+                                            *ngIf="editable"
+                                            style="font-size: 0.65rem;">
+                                    </button>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botones de acción -->
+    <div class="container mt-4 mb-5">
+        <div class="row">
+            <div class="col-sm-6" *ngIf="editable">
+                <button class="btn btn-lg btn-warning w-100" (click)="guardarProductoAcademico()">
+                    <i class="fas fa-save"></i> Guardar
+                </button>
+            </div>
+            <div class="col-sm-6">
+                <button class="btn btn-lg btn-secondary w-100" (click)="volver()">
+                    <i class="fas fa-arrow-left"></i> Volver
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

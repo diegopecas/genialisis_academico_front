@@ -1,0 +1,302 @@
+<!-- crear-logros.component.html -->
+<div class="modulo">
+    <app-header [tituloModulo]="tituloHeader" [mostrarCrear]="false" [accion]="accion" [id]="id" [raiz]="'/logros'"
+        [regresar]="'/academico/logros'" [iconoTitulo]="'/assets/images/logros.png'"></app-header>
+    
+    <div class="container-fluid mt-4" [ngClass]="{ 'disabled-container': !editable }">
+        <!-- Sección de Información Básica -->
+        <div class="card mb-4">
+            <div class="card-header bg-corporate-primary">
+                <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Información Básica del Logro</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <!-- Primera fila -->
+                    <div class="col-md-6">
+                        <label for="grados" class="form-label fw-semibold">Grado<span class="text-danger">*</span></label>
+                        <select class="form-select" id="grados"
+                            [(ngModel)]="model.id_grado" (ngModelChange)="formularioValido()" required
+                            [ngClass]="{'is-invalid': !model.id_grado && submitted}">
+                            <option value="">Seleccionar grado...</option>
+                            <ng-container *ngFor="let grado of listas.grados">
+                                <option [value]="grado.id">{{ grado.nombre }}</option>
+                            </ng-container>
+                        </select>
+                        <div *ngIf="!model.id_grado && submitted" class="invalid-feedback">Este campo es obligatorio</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="areasAcademicas" class="form-label fw-semibold">Área Académica<span class="text-danger">*</span></label>
+                        <select class="form-select" id="areasAcademicas"
+                            [(ngModel)]="model.id_area_academica" (ngModelChange)="formularioValido()" required
+                            [ngClass]="{'is-invalid': !model.id_area_academica && submitted}">
+                            <option value="">Seleccionar área...</option>
+                            <ng-container *ngFor="let area of listas.areasAcademicas">
+                                <option [value]="area.id">{{ area.nombre }}</option>
+                            </ng-container>
+                        </select>
+                        <div *ngIf="!model.id_area_academica && submitted" class="invalid-feedback">Este campo es obligatorio</div>
+                    </div>
+
+                    <!-- Segunda fila -->
+                    <div class="col-md-6">
+                        <label for="esferasDesarrollo" class="form-label fw-semibold">Esfera de Desarrollo<span class="text-danger">*</span></label>
+                        <select class="form-select" id="esferasDesarrollo"
+                            [(ngModel)]="model.id_esfera_desarrollo" (ngModelChange)="formularioValido()" required
+                            [ngClass]="{'is-invalid': !model.id_esfera_desarrollo && submitted}">
+                            <option value="">Seleccionar esfera...</option>
+                            <ng-container *ngFor="let esfera of listas.esferasDesarrollo">
+                                <option [value]="esfera.id">{{ esfera.nombre }}</option>
+                            </ng-container>
+                        </select>
+                        <div *ngIf="!model.id_esfera_desarrollo && submitted" class="invalid-feedback">Este campo es obligatorio</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="ejesCurriculares" class="form-label fw-semibold">Eje Curricular<span class="text-danger">*</span></label>
+                        <select class="form-select" id="ejesCurriculares"
+                            [(ngModel)]="model.id_eje_curricular" (ngModelChange)="formularioValido()" required
+                            [ngClass]="{'is-invalid': !model.id_eje_curricular && submitted}">
+                            <option value="">Seleccionar eje...</option>
+                            <ng-container *ngFor="let eje of listas.ejesCurriculares">
+                                <option [value]="eje.id">{{ eje.nombre }}</option>
+                            </ng-container>
+                        </select>
+                        <div *ngIf="!model.id_eje_curricular && submitted" class="invalid-feedback">Este campo es obligatorio</div>
+                    </div>
+
+                    <!-- Tercera fila -->
+                    <div class="col-md-4">
+                        <label for="competenciasCognitivas" class="form-label fw-semibold">Competencia Cognitiva<span class="text-danger">*</span></label>
+                        <select class="form-select" id="competenciasCognitivas"
+                            [(ngModel)]="model.id_competencia_cognitiva" (ngModelChange)="formularioValido()" required
+                            [ngClass]="{'is-invalid': !model.id_competencia_cognitiva && submitted}">
+                            <option value="">Seleccionar competencia...</option>
+                            <ng-container *ngFor="let comp of listas.competenciasCognitivas">
+                                <option [value]="comp.id">{{ comp.nombre }}</option>
+                            </ng-container>
+                        </select>
+                        <div *ngIf="!model.id_competencia_cognitiva && submitted" class="invalid-feedback">Este campo es obligatorio</div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label for="cortesAcademicos" class="form-label fw-semibold">Corte Académico<span class="text-danger">*</span></label>
+                        <select class="form-select" id="cortesAcademicos"
+                            [(ngModel)]="model.id_corte_academico" (ngModelChange)="formularioValido()" required
+                            [ngClass]="{'is-invalid': !model.id_corte_academico && submitted}">
+                            <option value="">Seleccionar corte...</option>
+                            <ng-container *ngFor="let corte of listas.cortesAcademicos">
+                                <option [value]="corte.id">{{ corte.nombre }}</option>
+                            </ng-container>
+                        </select>
+                        <div *ngIf="!model.id_corte_academico && submitted" class="invalid-feedback">Este campo es obligatorio</div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label for="estandaresBasicos" class="form-label fw-semibold">Estándar Básico<span class="text-danger">*</span></label>
+                        <select class="form-select" id="estandaresBasicos"
+                            [(ngModel)]="model.id_estandar_basico" (ngModelChange)="formularioValido()" required
+                            [ngClass]="{'is-invalid': !model.id_estandar_basico && submitted}">
+                            <option value="">Seleccionar estándar...</option>
+                            <ng-container *ngFor="let estandar of listas.estandaresBasicos">
+                                <option [value]="estandar.id">{{ estandar.nombre }}</option>
+                            </ng-container>
+                        </select>
+                        <div *ngIf="!model.id_estandar_basico && submitted" class="invalid-feedback">Este campo es obligatorio</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección de Descripción del Logro -->
+        <div class="card mb-4">
+            <div class="card-header bg-corporate-primary">
+                <h5 class="mb-0"><i class="fas fa-edit me-2"></i>Descripción del Logro</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-12">
+                        <label for="nombre-logro" class="form-label fw-semibold">Nombre del Logro<span class="text-danger">*</span></label>
+                        
+                        <!-- Textarea normal en lugar de CKEditor -->
+                        <div class="textarea-wrapper">
+                            <textarea 
+                                id="nombre-logro"
+                                class="form-control"
+                                [(ngModel)]="model.nombre"
+                                (ngModelChange)="actualizarContadorCaracteres(); formularioValido()"
+                                placeholder="Ingrese la descripción detallada del logro académico..."
+                                maxlength="3000"
+                                rows="6"
+                                [disabled]="!editable"
+                                [ngClass]="{'is-invalid': !model.nombre && submitted}">
+                            </textarea>
+                            
+                            <div class="textarea-footer">
+                                <div *ngIf="!model.nombre && submitted" class="text-danger">Este campo es obligatorio</div>
+                                <div class="character-count" [ngClass]="{'text-danger': caracteresRestantes < 100}">
+                                    <i class="fas fa-keyboard me-1"></i>
+                                    <span>{{ caracteresRestantes }}</span> caracteres restantes
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="formatting-tips mt-3">
+                            <div class="alert alert-corporate py-2">
+                                <h6 class="alert-heading mb-2">
+                                    <i class="fas fa-lightbulb me-1"></i>
+                                    Sugerencias para redactar un buen logro:
+                                </h6>
+                                <ul class="mb-0 small">
+                                    <li>Use verbos en infinitivo (identificar, comprender, analizar, etc.)</li>
+                                    <li>Sea específico y medible en la descripción</li>
+                                    <li>Alinee el logro con los estándares básicos seleccionados</li>
+                                    <li>Considere el nivel de desarrollo cognitivo del grado</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección de Indicadores (si aplica) -->
+        <div class="card mb-4" *ngIf="!nuevo && datosIndicadoresLogro.length > 0">
+            <div class="card-header bg-corporate-secondary d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-list-check me-2"></i>Indicadores de Logro Asociados</h5>
+                <button class="btn btn-sm btn-corporate-primary" (click)="abrirModalIndicador()" *ngIf="editable">
+                    <i class="fas fa-plus me-1"></i>Agregar Indicador
+                </button>
+            </div>
+            <div class="card-body">
+                <app-tablas [titulos]="titulos" [datos]="datosIndicadoresLogro" [raiz]="'/academico/logros'"
+                    (clicAccion)="seleccionarIndicador($event)" [accionEditar]="true" [accionEliminar]="true"></app-tablas>
+            </div>
+        </div>
+
+        <!-- Card vacía para agregar el primer indicador cuando no hay ninguno -->
+        <div class="card mb-4" *ngIf="!nuevo && datosIndicadoresLogro.length === 0">
+            <div class="card-header bg-corporate-secondary">
+                <h5 class="mb-0"><i class="fas fa-list-check me-2"></i>Indicadores de Logro</h5>
+            </div>
+            <div class="card-body text-center py-4">
+                <p class="text-muted mb-3">No hay indicadores de logro asociados a este logro.</p>
+                <button class="btn btn-corporate-primary" (click)="abrirModalIndicador()" *ngIf="editable">
+                    <i class="fas fa-plus me-1"></i>Agregar Primer Indicador
+                </button>
+            </div>
+        </div>
+
+        <!-- Sección de Actividades Académicas Asociadas -->
+        <div class="card mb-4" *ngIf="!nuevo && actividadesAsociadas.length > 0">
+            <div class="card-header bg-corporate-info">
+                <h5 class="mb-0">
+                    <i class="fas fa-book-open me-2"></i>Actividades Académicas Asociadas
+                    <span class="badge bg-white text-dark ms-2">{{ actividadesAsociadas.length }}</span>
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="activities-grid">
+                    <div class="activity-card" *ngFor="let actividad of actividadesAsociadas">
+                        <div class="activity-header">
+                            <h6 class="activity-title mb-1">{{ actividad.titulo }}</h6>
+                            <span class="badge bg-corporate-yellow text-dark">{{ actividad.nombre_tipo_actividad || 'Sin tipo' }}</span>
+                        </div>
+                        <div class="activity-body">
+                            <p class="activity-description">{{ actividad.descripcion }}</p>
+                            <div class="activity-meta">
+                                <div class="meta-item">
+                                    <i class="fas fa-clock text-corporate-yellow"></i>
+                                    <span>{{ actividad.minutos_duracion || 0 }} min</span>
+                                </div>
+                                <div class="meta-item" *ngIf="actividad.indicador_nombre">
+                                    <i class="fas fa-tag text-corporate-yellow"></i>
+                                    <span class="text-truncate" [title]="actividad.indicador_nombre">{{ actividad.indicador_nombre }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="activity-footer">
+                            <button class="btn btn-sm btn-outline-corporate-primary" 
+                                    (click)="verDetalleActividad(actividad.id)"
+                                    title="Ver detalle de la actividad">
+                                <i class="fas fa-eye"></i> Ver detalle
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card vacía cuando no hay actividades asociadas -->
+        <div class="card mb-4" *ngIf="!nuevo && actividadesAsociadas.length === 0 && datosIndicadoresLogro.length > 0">
+            <div class="card-header bg-corporate-info">
+                <h5 class="mb-0"><i class="fas fa-book-open me-2"></i>Actividades Académicas</h5>
+            </div>
+            <div class="card-body text-center py-4">
+                <p class="text-muted mb-3">No hay actividades académicas asociadas a los indicadores de este logro.</p>
+                <p class="text-muted small">Las actividades se asocian a través de los indicadores de logro.</p>
+            </div>
+        </div>
+
+        <!-- Botones de acción -->
+        <div class="row mt-4 mb-3">
+            <div class="col-12 d-flex justify-content-center gap-3">
+                <button *ngIf="editable" 
+                    class="btn btn-corporate-primary btn-lg px-5" 
+                    (click)="grabar()"
+                    [disabled]="!formularioValido()">
+                    <i class="fas fa-save me-2"></i>Guardar Logro
+                </button>
+                <button class="btn btn-corporate-secondary btn-lg px-5" (click)="volver()">
+                    <i class="fas fa-arrow-left me-2"></i>Volver
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para agregar/editar indicador de logro -->
+    <div class="modal fade" id="modalIndicador" tabindex="-1" aria-labelledby="modalIndicadorLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-corporate-primary">
+                    <h5 class="modal-title" id="modalIndicadorLabel">
+                        <i class="fas fa-plus-circle me-2" *ngIf="!editandoIndicador"></i>
+                        <i class="fas fa-edit me-2" *ngIf="editandoIndicador"></i>
+                        {{ editandoIndicador ? 'Editar' : 'Agregar' }} Indicador de Logro
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="nombreIndicador" class="form-label fw-semibold">
+                            Descripción del Indicador<span class="text-danger">*</span>
+                        </label>
+                        <textarea 
+                            class="form-control" 
+                            id="nombreIndicador" 
+                            [(ngModel)]="nuevoIndicador.nombre"
+                            rows="4"
+                            placeholder="Ingrese la descripción del indicador de logro..."
+                            [ngClass]="{'is-invalid': !nuevoIndicador.nombre && indicadorSubmitted}"
+                            maxlength="1000"></textarea>
+                        <div *ngIf="!nuevoIndicador.nombre && indicadorSubmitted" class="invalid-feedback">
+                            Este campo es obligatorio
+                        </div>
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Describa de manera clara y específica cómo se evidenciará el logro del estudiante.
+                        </small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" (click)="cerrarModalIndicador()">
+                        <i class="fas fa-times me-1"></i>Cancelar
+                    </button>
+                    <button type="button" class="btn btn-corporate-primary" (click)="guardarIndicador()">
+                        <i class="fas fa-save me-1"></i>{{ editandoIndicador ? 'Actualizar' : 'Guardar' }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

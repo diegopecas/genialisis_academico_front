@@ -1,0 +1,89 @@
+<div class="modulo">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="false"
+    [accion]="accion"
+    [raiz]="'/administracion/datos-estudiantes/datos-adicionales'"
+    [regresar]="regresar"
+    [iconoTitulo]="'/assets/images/estudiantes.png'"
+  ></app-header>
+
+  <div class="container mt-5">
+    <div class="row">
+      <div class="col-sm-12 col-md-6">
+        <label for="categoria" class="form-label">Categoría <span class="text-danger">*</span></label>
+        <select class="form-select form-select-lg" id="categoria"
+          [(ngModel)]="model.id_tipo_dato_adicional"
+          [ngClass]="{'is-invalid': !model.id_tipo_dato_adicional && submitted}"
+          [disabled]="!editable">
+          <option value="">Seleccionar</option>
+          <ng-container *ngFor="let t of tipos">
+            <option [value]="t.id">{{ t.icono }} {{ t.nombre }}</option>
+          </ng-container>
+        </select>
+      </div>
+      <div class="col-sm-12 col-md-6">
+        <label for="nombre" class="form-label">Nombre <span class="text-danger">*</span></label>
+        <input class="form-control form-control-lg" type="text" id="nombre"
+          [(ngModel)]="model.nombre" placeholder="Ej: Pie hábil, Color favorito..."
+          required [ngClass]="{'is-invalid': !model.nombre && submitted}"
+          [disabled]="!editable">
+      </div>
+    </div>
+
+    <div class="row mt-3">
+      <div class="col-sm-12 col-md-6">
+        <label class="form-label">Tipo de dato <span class="text-danger">*</span></label>
+        <div class="d-flex gap-3 mt-1">
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="tipoDato" id="tipoTexto"
+              value="texto" [(ngModel)]="model.tipoDato" [disabled]="!editable">
+            <label class="form-check-label" for="tipoTexto">Texto</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="tipoDato" id="tipoNumero"
+              value="numero" [(ngModel)]="model.tipoDato" [disabled]="!editable">
+            <label class="form-check-label" for="tipoNumero">Número</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="tipoDato" id="tipoParrafo"
+              value="parrafo" [(ngModel)]="model.tipoDato" [disabled]="!editable">
+            <label class="form-check-label" for="tipoParrafo">Párrafo</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="tipoDato" id="tipoFecha"
+              value="fecha" [(ngModel)]="model.tipoDato" [disabled]="!editable">
+            <label class="form-check-label" for="tipoFecha">Fecha</label>
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-12 col-md-3">
+        <label for="orden" class="form-label">Orden</label>
+        <input class="form-control form-control-lg" type="number" id="orden"
+          [(ngModel)]="model.orden" [disabled]="!editable">
+      </div>
+    </div>
+
+    <div class="row mt-3">
+      <div class="col-12">
+        <label for="opciones" class="form-label">Opciones predefinidas</label>
+        <input class="form-control form-control-lg" type="text" id="opciones"
+          [(ngModel)]="model.opciones"
+          placeholder="Separadas por coma. Ej: Derecho,Izquierdo,Ambidiestro"
+          [disabled]="!editable">
+        <small class="form-text text-muted">Si se definen opciones, el campo se mostrará como lista desplegable en el formulario del estudiante</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="container mt-5">
+    <div class="row">
+      <div class="col-sm-6" *ngIf="editable">
+        <button class="btn btn-lg btn-warning w-100" (click)="guardar()">Grabar</button>
+      </div>
+      <div class="col-sm-6">
+        <button class="btn btn-lg btn-secondary w-100" (click)="volver()">Volver</button>
+      </div>
+    </div>
+  </div>
+</div>

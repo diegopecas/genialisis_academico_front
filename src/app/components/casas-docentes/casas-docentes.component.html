@@ -1,0 +1,85 @@
+<div class="modulo">
+  <app-header
+    [tituloModulo]="titulo"
+    [accion]="'ConsultarTodos'"
+    [regresar]="'/menu'"
+    [iconoTitulo]="'/assets/images/docentes.png'"
+  ></app-header>
+  <div class="container-fluid mt-3">
+    <div class="row">
+      <ng-container *ngFor="let casa of listas.casasDocentes">
+        <div class="col-md-6 px-3 mt-1">
+          <div
+            [ngClass]="
+              model.casaSeleccionada.id == casa.id
+                ? 'text-center ficha-seleccionada'
+                : 'text-center ficha'
+            "
+            (click)="seleccionarCasa(casa)"
+            [style.background-image]="
+              'linear-gradient(to bottom, #ffffff 80%, ' + casa.color + ')'
+            "
+          >
+            <img [src]="casa.imagen" class="logo-casa" />
+            {{ casa.nombre }}<br>
+            {{ casa.puntos }} puntos
+          </div>
+        </div>
+      </ng-container>
+    </div>
+    <div class="row">
+        <ng-container *ngFor="let casa of listas.casasDocentes">
+            <div class="col-sm-12 col-md-4 px-3 mt-1" *ngIf="casa.id != usuario.id_casa_docente">
+                <div class="panel-formulario mt-3 mb-5">
+                    <p class="text-center">
+                        <strong>
+                            {{ casa.nombre }}
+                        </strong>
+                    </p>
+                    <div class="row">
+                        <div class="col">
+                            Entregar: {{ casa.puntos_entregar }}
+                        </div>
+                        <div class="col">
+                            Quitar: {{ casa.puntos_quitar }}
+                        </div>
+                    </div>
+                    <hr/>
+                    <label># Puntos</label>
+                    <input class="form-control" type="number" [(ngModel)]="model.puntosNuevos.numeroPuntos" min="0" max="2000">
+                    <label>Docente que recibe</label>
+                    <select class="form-control" [(ngModel)]="model.puntosNuevos.recibe">
+                        <option>A toda la casa</option>
+                        <ng-container *ngFor="let dr of listas.docentesReciben">
+                            <option *ngIf="dr.id_casa_docente == casa.id && dr.activo == 1" [ngValue]="dr">{{ dr.primer_nombre }} {{ dr.segundo_nombre }} {{ dr.primer_apellido }} {{ dr.segundo_apellido }}</option>
+                            </ng-container>
+                    </select>
+                    <label>Observación</label>
+                    <textarea class="form-control" [(ngModel)]="model.puntosNuevos.observacion"></textarea>
+                    <br/>
+                    <div class="row">
+                        <div class="col">
+                            <button class="btn btn-success w-100" (click)="guardarPuntosDar(casa)">Dar puntos</button>
+                        </div>
+                        <div class="col">
+                            <button class="btn btn-danger w-100" (click)="guardarPuntosQuitar(casa)">Quitar puntos</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-12 col-md-8 px-3 mt-1" *ngIf="casa.id == usuario.id_casa_docente">
+                <h4 class="text-center mt-3 mb-5">
+                    <strong *ngIf="!(model.casaSeleccionada.nombre == undefined)">
+                        Ver datos de {{ model.casaSeleccionada.nombre }}
+                    </strong>
+                    <strong *ngIf="model.casaSeleccionada.nombre == undefined">
+                        Para ver los datos de la casa, haga clic sobre el ícono correspondiente.
+                    </strong>
+                </h4>
+                <app-tablas [titulos]="titulos" [datos]="datos" [mostrarBuscar]="false"></app-tablas>
+            </div>
+        </ng-container>
+    </div>
+    <!--<app-tablas [titulos]="titulos" [datos]="datos" [raiz]="'/docentes'" [accionVer]="true" [accionEditar]="true" [accionEliminar]="true"></app-tablas>-->
+  </div>
+</div>

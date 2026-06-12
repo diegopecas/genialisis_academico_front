@@ -1,0 +1,764 @@
+// crear-actividades-academicas.component.scss
+
+// Variables de color corporativo
+$corporate-yellow: #F5A623;  // Amarillo oscuro corporativo
+$corporate-black: #2C2C2C;   // Negro suave
+$corporate-gray: #4A4A4A;    // Gris oscuro
+$light-gray: #F5F5F5;        // Gris claro para fondos
+$white: #FFFFFF;
+$danger-color: #dc3545;
+$success-color: #28a745;
+$info-color: #17a2b8;
+$warning-color: #ffc107;
+
+// Contenedor principal
+.modulo {
+  background-color: $light-gray;
+  min-height: 100vh;
+  padding-bottom: 2rem;
+}
+
+// Cards mejoradas
+.card {
+  border: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+  }
+  
+  .card-header {
+    border: none;
+    font-weight: 600;
+    
+    &.bg-corporate-primary {
+      background-color: $corporate-yellow;
+      color: $corporate-black;
+      
+      h5 {
+        color: $corporate-black;
+        font-weight: 700;
+      }
+    }
+    
+    &.bg-corporate-secondary {
+      background-color: $corporate-black;
+      color: $white;
+      
+      h5 {
+        color: $white;
+      }
+    }
+    
+    h5 {
+      margin: 0;
+      font-size: 1.1rem;
+      letter-spacing: 0.5px;
+    }
+  }
+  
+  .card-body {
+    padding: 1.5rem;
+    background-color: $white;
+  }
+}
+
+// Formularios mejorados
+.form-label {
+  color: $corporate-black;
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+  
+  &.fw-semibold {
+    font-weight: 600;
+  }
+  
+  .text-danger {
+    font-size: 0.9rem;
+    display: inline-block;
+    margin-left: 2px;
+  }
+}
+
+.form-select, .form-control {
+  border-radius: 0.375rem;
+  border: 2px solid #E0E0E0;
+  transition: all 0.3s ease;
+  background-color: $white;
+  
+  &:focus {
+    border-color: $corporate-yellow;
+    box-shadow: 0 0 0 0.2rem rgba($corporate-yellow, 0.25);
+    background-color: $white;
+  }
+  
+  &.is-invalid {
+    border-color: $danger-color;
+    
+    &:focus {
+      box-shadow: 0 0 0 0.2rem rgba($danger-color, 0.25);
+    }
+  }
+  
+  option {
+    color: $corporate-black;
+  }
+}
+
+textarea.form-control {
+  resize: vertical;
+  min-height: 60px;
+}
+
+// Editor CKEditor 5 personalizado
+.editor-wrapper {
+  position: relative;
+  
+  .editor-container {
+    min-height: 200px;
+    border-radius: 0.375rem;
+    
+    &.is-invalid {
+      .ck.ck-editor {
+        border: 2px solid $danger-color !important;
+        border-radius: 0.375rem;
+      }
+    }
+  }
+  
+  .ck-editor {
+    .ck-editor__main {
+      .ck-content {
+        min-height: 150px;
+        max-height: 350px;
+        overflow-y: auto;
+        font-size: 1rem;
+        line-height: 1.6;
+        border: 2px solid #E0E0E0;
+        
+        &:focus {
+          border-color: $corporate-yellow !important;
+          box-shadow: 0 0 0 0.2rem rgba($corporate-yellow, 0.25) !important;
+        }
+        
+        p {
+          margin-bottom: 0.75rem;
+        }
+        
+        ul, ol {
+          margin-bottom: 0.75rem;
+          padding-left: 1.5rem;
+        }
+      }
+    }
+    
+    .ck-toolbar {
+      border-top-left-radius: 0.375rem;
+      border-top-right-radius: 0.375rem;
+      background-color: $light-gray;
+      border-bottom: 2px solid $corporate-yellow;
+      border: 2px solid #E0E0E0;
+      border-bottom: none;
+    }
+    
+    &.ck-focused {
+      .ck-toolbar {
+        border-color: $corporate-yellow;
+      }
+    }
+  }
+  
+  .editor-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.5rem;
+    padding: 0 0.25rem;
+    
+    .character-count {
+      font-size: 0.875rem;
+      color: $corporate-gray;
+      font-weight: 500;
+      
+      i {
+        color: $corporate-yellow;
+      }
+      
+      &.text-danger {
+        font-weight: 600;
+        color: $danger-color;
+        
+        i {
+          color: $danger-color;
+        }
+      }
+    }
+  }
+}
+
+// Sugerencias de niveles
+.level-tips {
+  .alert {
+    &.alert-info {
+      background-color: lighten($info-color, 35%);
+      border: 1px solid $info-color;
+      border-left: 4px solid $info-color;
+      color: darken($info-color, 20%);
+      
+      .alert-heading {
+        color: darken($info-color, 20%);
+      }
+    }
+    
+    &.alert-warning {
+      background-color: lighten($warning-color, 35%);
+      border: 1px solid $warning-color;
+      border-left: 4px solid $warning-color;
+      color: darken($warning-color, 30%);
+      
+      .alert-heading {
+        color: darken($warning-color, 30%);
+      }
+    }
+    
+    .alert-heading {
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+    
+    ul {
+      margin-bottom: 0;
+      
+      li {
+        margin-bottom: 0.25rem;
+        
+        &:last-child {
+          margin-bottom: 0;
+        }
+      }
+    }
+  }
+}
+
+// Alert corporativo
+.alert-corporate {
+  background-color: lighten($corporate-yellow, 35%);
+  border: 1px solid $corporate-yellow;
+  border-left: 4px solid $corporate-yellow;
+  color: $corporate-black;
+}
+
+// Botones corporativos
+.btn {
+  font-weight: 600;
+  letter-spacing: 0.025rem;
+  transition: all 0.3s ease;
+  border: none;
+  
+  &.btn-lg {
+    padding: 0.75rem 2rem;
+    font-size: 1.1rem;
+  }
+  
+  &.btn-corporate-primary {
+    background-color: $corporate-yellow;
+    color: $corporate-black;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    
+    &:hover:not(:disabled) {
+      background-color: darken($corporate-yellow, 10%);
+      color: $corporate-black;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+    
+    &:active {
+      transform: translateY(0);
+    }
+    
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      background-color: lighten($corporate-yellow, 20%);
+    }
+  }
+  
+  &.btn-corporate-secondary {
+    background-color: $corporate-black;
+    color: $white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    
+    &:hover {
+      background-color: lighten($corporate-black, 10%);
+      color: $white;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+    
+    &:active {
+      transform: translateY(0);
+    }
+  }
+  
+  i {
+    font-size: 1rem;
+  }
+}
+
+// Contenedor deshabilitado
+.disabled-container {
+  pointer-events: none;
+  opacity: 0.7;
+  
+  .ck-editor {
+    .ck-toolbar {
+      display: none;
+    }
+    
+    .ck-content {
+      background-color: #e9ecef;
+    }
+  }
+}
+
+// Feedback de validación
+.invalid-feedback, .text-danger {
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  display: block;
+}
+
+// Texto de ayuda
+small.text-muted {
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+  display: block;
+  color: $corporate-gray;
+  
+  i {
+    color: $corporate-yellow;
+  }
+}
+
+// Modal personalizado
+.modal {
+  .modal-content {
+    border: none;
+    border-radius: 0.5rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  }
+  
+  .modal-header {
+    border-bottom: 2px solid $corporate-yellow;
+    padding: 1.25rem;
+    
+    &.bg-corporate-primary {
+      background-color: $corporate-yellow;
+      color: $corporate-black;
+      
+      .modal-title {
+        font-weight: 700;
+        font-size: 1.2rem;
+      }
+      
+      .btn-close {
+        filter: invert(1);
+        opacity: 0.8;
+        
+        &:hover {
+          opacity: 1;
+        }
+      }
+    }
+  }
+  
+  .modal-body {
+    padding: 1.5rem;
+  }
+  
+  .modal-footer {
+    border-top: 1px solid #dee2e6;
+    padding: 1rem 1.5rem;
+  }
+}
+
+// Lista de indicadores en el modal
+.indicadores-list {
+  max-height: 400px;
+  overflow-y: auto;
+  border: 2px solid #E0E0E0;
+  border-radius: 0.375rem;
+  
+  &.is-invalid {
+    border-color: $danger-color;
+  }
+  
+  .no-results-message {
+    padding: 2rem;
+    text-align: center;
+    color: $corporate-gray;
+    font-style: italic;
+  }
+  
+  .indicador-item {
+    padding: 1rem;
+    border-bottom: 1px solid #E0E0E0;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    
+    &:last-child {
+      border-bottom: none;
+    }
+    
+    &:hover {
+      background-color: lighten($corporate-yellow, 40%);
+    }
+    
+    &.selected {
+      background-color: lighten($corporate-yellow, 30%);
+      border-left: 4px solid $corporate-yellow;
+      
+      .check-icon {
+        color: $corporate-yellow;
+      }
+    }
+    
+    .indicador-info {
+      flex: 1;
+      
+      strong {
+        display: block;
+        margin-bottom: 0.25rem;
+        color: $corporate-black;
+      }
+      
+      .text-muted {
+        font-size: 0.875rem;
+        
+        i {
+          font-size: 0.75rem;
+          opacity: 0.7;
+        }
+      }
+    }
+    
+    .check-icon {
+      font-size: 1.5rem;
+      margin-left: 1rem;
+      color: $corporate-yellow;
+    }
+  }
+}
+
+// Badge personalizado
+.badge {
+  &.bg-secondary {
+    background-color: $corporate-gray !important;
+  }
+  
+  &.bg-primary {
+    background-color: $corporate-yellow !important;
+    color: $corporate-black !important;
+  }
+}
+
+// Resumen de selección
+.selected-summary {
+  .selected-list {
+    background-color: $white;
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+    border: 1px solid lighten($corporate-yellow, 20%);
+  }
+}
+
+// Botones de selección
+.btn-group {
+  .btn-outline-secondary {
+    border-color: #dee2e6;
+    
+    &:hover {
+      background-color: $light-gray;
+      border-color: $corporate-gray;
+    }
+    
+    &:disabled {
+      opacity: 0.5;
+    }
+  }
+}
+
+// Indicador seleccionado
+.selected-indicator {
+  .alert {
+    margin-bottom: 0;
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .container-fluid {
+    padding: 0 1rem;
+  }
+  
+  .card-body {
+    padding: 1rem;
+  }
+  
+  .btn-lg {
+    padding: 0.5rem 1.5rem;
+    font-size: 1rem;
+  }
+  
+  .row.g-3 {
+    --bs-gutter-y: 1rem;
+  }
+  
+  .editor-container .ck-content {
+    min-height: 120px;
+  }
+  
+  .col-md-6 {
+    margin-bottom: 2rem;
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+  
+  .indicadores-list {
+    max-height: 300px;
+  }
+}
+
+// Tabla de indicadores mejorada
+.table {
+  .btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    
+    &.btn-warning {
+      background-color: $corporate-yellow;
+      border-color: $corporate-yellow;
+      color: $corporate-black;
+      
+      &:hover {
+        background-color: darken($corporate-yellow, 10%);
+      }
+    }
+  }
+}
+
+// Modal overlay para asociar a Sprint
+.modal-overlay-custom {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1050;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-content-custom {
+  background: white;
+  border-radius: 12px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    border-radius: 12px 12px 0 0;
+    color: white;
+  }
+
+  .modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #dee2e6;
+  }
+}
+
+// ========================================================================
+// NUEVOS ESTILOS: Ambiente + Materiales como Chips
+// ========================================================================
+
+.ambiente-label-icon {
+  font-size: 16px;
+  vertical-align: middle;
+  color: $corporate-yellow;
+  margin-right: 2px;
+}
+
+// Wrapper de materiales con chips
+.materiales-chips-wrapper {
+  border: 2px solid #E0E0E0;
+  border-radius: 0.375rem;
+  padding: 8px;
+  background: $white;
+  transition: border-color 0.3s;
+  min-height: 44px;
+
+  &:focus-within {
+    border-color: $corporate-yellow;
+    box-shadow: 0 0 0 0.2rem rgba($corporate-yellow, 0.15);
+  }
+
+  &.is-invalid-border {
+    border-color: $danger-color;
+  }
+}
+
+.materiales-chips-area {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.material-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 16px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.chip-producto {
+  background-color: lighten($corporate-yellow, 30%);
+  color: $corporate-black;
+  border: 1px solid $corporate-yellow;
+}
+
+.chip-libre {
+  background-color: #E3F2FD;
+  color: #1565C0;
+  border: 1px solid #90CAF9;
+}
+
+.chip-ico {
+  font-size: 14px;
+}
+
+.chip-nombre {
+  &.clickable {
+    cursor: pointer;
+    &:hover { text-decoration: underline; }
+  }
+}
+
+.chip-close {
+  font-size: 16px;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: all 0.2s;
+
+  &:hover {
+    opacity: 1;
+    color: $danger-color;
+  }
+}
+
+.materiales-input-area {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.material-chip-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 0.85rem;
+  padding: 4px 6px;
+  background: transparent;
+
+  &::placeholder {
+    color: #BDBDBD;
+  }
+}
+
+.btn-add-material {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: $corporate-yellow;
+  color: $white;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+  flex-shrink: 0;
+
+  &:hover:not(:disabled) {
+    background: darken($corporate-yellow, 10%);
+  }
+
+  &:disabled {
+    background: #E0E0E0;
+    cursor: not-allowed;
+  }
+
+  i { font-size: 18px; }
+}
+
+// Productos del inventario como badges
+.productos-inventario {
+  .productos-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+}
+
+.producto-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 14px;
+  border: 1px dashed #E0E0E0;
+  background: $white;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  user-select: none;
+
+  &:hover {
+    border-color: $corporate-yellow;
+    background: lighten($corporate-yellow, 38%);
+  }
+
+  &.ya-agregado {
+    border-color: $corporate-yellow;
+    border-style: solid;
+    background: lighten($corporate-yellow, 30%);
+    color: $corporate-black;
+    font-weight: 600;
+  }
+}
+
+.badge-check-ico {
+  font-size: 14px;
+  color: $success-color;
+}

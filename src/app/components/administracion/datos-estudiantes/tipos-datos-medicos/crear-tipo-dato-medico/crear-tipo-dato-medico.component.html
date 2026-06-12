@@ -1,0 +1,44 @@
+<div class="modulo">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="false"
+    [accion]="accion"
+    [raiz]="'/administracion/datos-estudiantes/tipos-datos-medicos'"
+    [regresar]="regresar"
+    [iconoTitulo]="'/assets/images/estudiantes.png'"
+  ></app-header>
+
+  <div class="container mt-5">
+    <div class="row">
+      <div class="col-sm-12 col-md-6">
+        <label for="nombre" class="form-label">Nombre <span class="text-danger">*</span></label>
+        <input class="form-control form-control-lg" type="text" id="nombre"
+          [(ngModel)]="model.nombre" placeholder="Ej: Alergias, Vacunación..."
+          required [ngClass]="{'is-invalid': !model.nombre && submitted}"
+          [disabled]="!editable">
+      </div>
+      <div class="col-sm-12 col-md-3">
+        <label for="icono" class="form-label">Icono (emoji)</label>
+        <input class="form-control form-control-lg" type="text" id="icono"
+          [(ngModel)]="model.icono" placeholder="Ej: 🤧"
+          [disabled]="!editable">
+      </div>
+      <div class="col-sm-12 col-md-3">
+        <label for="orden" class="form-label">Orden</label>
+        <input class="form-control form-control-lg" type="number" id="orden"
+          [(ngModel)]="model.orden" [disabled]="!editable">
+      </div>
+    </div>
+  </div>
+
+  <div class="container mt-5">
+    <div class="row">
+      <div class="col-sm-6" *ngIf="editable">
+        <button class="btn btn-lg btn-warning w-100" (click)="guardar()">Grabar</button>
+      </div>
+      <div class="col-sm-6">
+        <button class="btn btn-lg btn-secondary w-100" (click)="volver()">Volver</button>
+      </div>
+    </div>
+  </div>
+</div>

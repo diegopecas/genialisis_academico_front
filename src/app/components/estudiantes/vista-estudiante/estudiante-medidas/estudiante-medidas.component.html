@@ -1,0 +1,168 @@
+<!-- Panel de medidas antropométricas -->
+<div class="panel panel-primary mb-4">
+  <div class="panel-heading d-flex justify-content-between align-items-center">
+    <h5 class="mb-0">
+      <i class="fas fa-weight me-2"></i> Medidas Antropométricas
+    </h5>
+    <span *ngIf="totalActivas > 0" class="badge-activas">{{ totalActivas }} activa(s)</span>
+  </div>
+  <div class="panel-body">
+
+    <!-- Cargando -->
+    <div *ngIf="cargando" class="text-center py-4">
+      <div class="spinner-border spinner-gold" role="status"></div>
+      <p class="mt-2 text-muted">Cargando medidas antropométricas...</p>
+    </div>
+
+    <!-- Sin medidas -->
+    <div *ngIf="!cargando && (!medidas || medidas.length === 0)" class="alert alert-info">
+      <i class="fas fa-info-circle me-2"></i>
+      No se encontraron medidas antropométricas registradas para este estudiante.
+    </div>
+
+    <!-- Contenido -->
+    <div *ngIf="!cargando && medidas && medidas.length > 0">
+
+      <!-- ==================== LAYOUT: GRÁFICO + SELECTOR ==================== -->
+      <div class="contenido-principal">
+
+        <!-- Gráfico -->
+        <div class="grafico-area">
+          <div class="grafico-container">
+            <div class="canvas-container">
+              <canvas id="medidasChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Slider rango de fechas -->
+          <div class="range-slider-container" *ngIf="medidas.length > 0">
+            <div class="range-labels">
+              <span class="range-label">
+                <i class="fas fa-calendar-alt"></i> Desde: <strong>{{ rango.desdeLabel }}</strong>
+              </span>
+              <span class="range-label">
+                <i class="fas fa-calendar-alt"></i> Hasta: <strong>{{ rango.hastaLabel }}</strong>
+              </span>
+            </div>
+            <div class="dual-range">
+              <div class="range-track">
+                <div class="range-fill"
+                  [style.left.%]="getPorcentajeDesde()"
+                  [style.width.%]="getPorcentajeHasta() - getPorcentajeDesde()">
+                </div>
+              </div>
+              <input type="range" class="range-input range-desde"
+                [min]="rango.min" [max]="rango.max" [value]="rango.desde"
+                (input)="onDesdeChange($event)" step="86400000">
+              <input type="range" class="range-input range-hasta"
+                [min]="rango.min" [max]="rango.max" [value]="rango.hasta"
+                (input)="onHastaChange($event)" step="86400000">
+            </div>
+            <div class="range-extremos">
+              <span class="extremo-label">{{ rango.minLabel }}</span>
+              <span class="extremo-label">{{ rango.maxLabel }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Selector de medidas -->
+        <div class="selector-area">
+          <div class="selector-header">
+            <h6><i class="fas fa-chart-line me-2"></i>Medidas</h6>
+            <button *ngIf="totalActivas > 0" class="btn-limpiar" (click)="desactivarTodas()">
+              <i class="fas fa-times me-1"></i>Limpiar
+            </button>
+          </div>
+
+          <!-- Buscador -->
+          <div class="selector-busqueda">
+            <input type="text" class="form-control form-control-sm" placeholder="Filtrar..."
+              [(ngModel)]="busquedaMedida" (input)="onBusquedaMedidaCambiada()">
+          </div>
+
+          <!-- Categorías con chips -->
+          <div class="selector-categorias">
+            <div *ngFor="let cat of categoriasFiltradas" class="selector-categoria">
+              <div class="categoria-label">
+                <i [class]="cat.icono" class="me-1"></i>{{ cat.nombre }}
+              </div>
+              <div class="chips-container">
+                <div *ngFor="let medida of cat.medidas"
+                  class="medida-chip-sm"
+                  [class.activa]="medida.activa"
+                  [class.no-graficable]="medida.tipo_valor === 'select'"
+                  (click)="toggleMedida(medida)"
+                  [title]="medida.tipo_valor === 'select' ? 'No graficable (tipo select)' : medida.nombre">
+                  <span class="chip-dot" [style.background-color]="medida.activa ? medida.color : 'transparent'"
+                    [style.border-color]="medida.color"></span>
+                  <span class="chip-nombre">{{ medida.nombre }}</span>
+                  <span *ngIf="medida.unidad_abreviatura" class="chip-unidad">{{ medida.unidad_abreviatura }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== TABLA DE REGISTROS ==================== -->
+      <div class="tabla-registros desktop-only" *ngIf="registrosTabla.length > 0">
+        <h6 class="tabla-titulo">
+          <i class="fas fa-table me-2"></i>Registros
+          <span class="registros-count">{{ registrosTabla.length }}</span>
+        </h6>
+        <div class="tabla-scroll">
+          <table class="table table-striped table-sm">
+            <thead class="table-light">
+              <tr>
+                <th>Medida</th>
+                <th>Valor</th>
+                <th>Fecha</th>
+                <th>Registrado por</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let reg of registrosTabla">
+                <td>
+                  <span class="dot-medida" [style.background-color]="obtenerColorMedida(reg.id_medida)"></span>
+                  {{ reg.nombre_medida }}
+                </td>
+                <td class="valor-celda" [style.color]="obtenerColorMedida(reg.id_medida)">
+                  {{ reg.valor }} {{ reg.unidad_abreviatura }}
+                </td>
+                <td>{{ reg.fecha | date:'dd/MM/yyyy' }}</td>
+                <td>{{ reg.nombre_usuario }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ==================== CARDS MOBILE ==================== -->
+      <div class="mobile-only" *ngIf="registrosTabla.length > 0">
+        <h6 class="tabla-titulo">
+          <i class="fas fa-list me-2"></i>Registros
+          <span class="registros-count">{{ registrosTabla.length }}</span>
+        </h6>
+        <div class="cards-registros">
+          <div *ngFor="let reg of registrosTabla" class="card-registro"
+            [style.border-left-color]="obtenerColorMedida(reg.id_medida)">
+            <div class="card-reg-header">
+              <span class="card-reg-medida">
+                <span class="dot-medida" [style.background-color]="obtenerColorMedida(reg.id_medida)"></span>
+                {{ reg.nombre_medida }}
+              </span>
+              <span class="card-reg-fecha">{{ reg.fecha | date:'dd/MM/yyyy' }}</span>
+            </div>
+            <div class="card-reg-body">
+              <span class="card-reg-valor" [style.color]="obtenerColorMedida(reg.id_medida)">
+                {{ reg.valor }} {{ reg.unidad_abreviatura }}
+              </span>
+              <span class="card-reg-usuario">{{ reg.nombre_usuario }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

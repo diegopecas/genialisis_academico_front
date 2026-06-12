@@ -1,0 +1,248 @@
+<div class="modulo">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="false"
+    [accion]="'ConsultarTodos'"
+    [regresar]="'/calificacion/grupo/' + idGrupo"
+    [iconoTitulo]="'/assets/images/reporte.png'"
+  ></app-header>
+
+  <div class="container-fluid mt-2">
+
+    <div class="row" *ngIf="grupo != null">
+      <h2>{{ grupo.nombre }}</h2>
+      <h4 *ngIf="area != null">{{ area.nombre_area_academica | titlecase }}</h4>
+      <hr/>
+    </div>
+
+    <!-- Barra de acciones -->
+    <div class="col-12 mb-3 d-flex gap-2 align-items-center" *ngIf="!modoEdicion">
+      <div class="flex-grow-1">
+        <input type="text" class="input-buscar" [(ngModel)]="buscar" placeholder="🔍 Buscar actividad...">
+      </div>
+      <button class="btn-editar" (click)="activarModoEdicion()" *ngIf="actividadesPendientes.length > 1">
+        ✏️ Editar
+      </button>
+      <button class="btn-crear-actividad" (click)="abrirFormCrear()" *ngIf="!mostrarFormCrear && sprintActual">
+        ➕ Crear actividad
+      </button>
+    </div>
+
+    <!-- Barra modo edición -->
+    <div class="col-12 mb-3" *ngIf="modoEdicion">
+      <div class="barra-edicion">
+        <span class="barra-edicion-titulo">✏️ Reordena y edita la duración</span>
+        <div class="barra-edicion-btns">
+          <button class="btn-cancelar-edicion" (click)="cancelarModoEdicion()">Cancelar</button>
+          <button class="btn-guardar-edicion" (click)="guardarOrdenYDuracion()" [disabled]="guardandoOrden">
+            {{ guardandoOrden ? '⏳ Guardando...' : '✅ Guardar' }}
+          </button>
+        </div>
+      </div>
+      <input type="text" class="input-buscar input-buscar-edicion" [(ngModel)]="buscarEdicion" placeholder="🔍 Filtrar actividades...">
+    </div>
+
+    <!-- Formulario crear actividad rápida -->
+    <div class="col-12 mb-3" *ngIf="mostrarFormCrear">
+      <div class="form-crear-rapida">
+        <div class="form-crear-header">
+          <span>✍️ Crear actividad rápida</span>
+          <span class="form-crear-cerrar" (click)="cerrarFormCrear()">✕</span>
+        </div>
+        <div class="form-crear-body">
+          <div class="form-crear-campo">
+            <label>Título *</label>
+            <input type="text" [(ngModel)]="formActividad.titulo" placeholder="Ej: El Tesoro Escondido..."
+                   [class.campo-invalido]="intentoCrear && !formActividad.titulo.trim()">
+            <small class="campo-error" *ngIf="intentoCrear && !formActividad.titulo.trim()">El título es obligatorio</small>
+          </div>
+
+          <div class="form-crear-campo">
+            <label>Descripción</label>
+            <textarea [(ngModel)]="formActividad.descripcion" rows="3" placeholder="Describe brevemente..."></textarea>
+          </div>
+
+          <div class="form-crear-row">
+            <div class="form-crear-campo form-crear-half">
+              <label>1️⃣ Nivel Básico</label>
+              <textarea [(ngModel)]="formActividad.nivel_uno" rows="3" placeholder="Nivel básico..."></textarea>
+            </div>
+            <div class="form-crear-campo form-crear-half">
+              <label>2️⃣ Nivel Avanzado</label>
+              <textarea [(ngModel)]="formActividad.nivel_dos" rows="3" placeholder="Nivel avanzado..."></textarea>
+            </div>
+          </div>
+
+          <div class="form-crear-row">
+            <div class="form-crear-campo form-crear-third">
+              <label>Tipo *</label>
+              <select [(ngModel)]="formActividad.id_tipo_actividad_academica"
+                      [class.campo-invalido]="intentoCrear && !formActividad.id_tipo_actividad_academica">
+                <option value="">Seleccione...</option>
+                <option *ngFor="let t of tiposActividad" [value]="t.id">{{ t.icono || '📌' }} {{ t.nombre }}</option>
+              </select>
+              <small class="campo-error" *ngIf="intentoCrear && !formActividad.id_tipo_actividad_academica">Selecciona un tipo</small>
+            </div>
+            <div class="form-crear-campo form-crear-third">
+              <label>Duración (min)</label>
+              <input type="number" [(ngModel)]="formActividad.minutos_duracion" min="5" max="180">
+            </div>
+            <div class="form-crear-campo form-crear-third">
+              <label>Ambiente</label>
+              <select [(ngModel)]="formActividad.id_ambiente">
+                <option [ngValue]="null">Sin ambiente</option>
+                <option *ngFor="let a of ambientes" [value]="a.id">{{ a.icono }} {{ a.nombre }}</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Indicadores -->
+          <div class="form-crear-campo">
+            <label>📋 Indicadores de Logro <span *ngIf="logrosDisponibles.length > 0" class="text-danger">*</span></label>
+            <small class="campo-error" *ngIf="intentoCrear && formRequiereIndicador()">Debes asociar al menos un indicador de logro</small>
+            <div class="form-crear-indicadores" *ngIf="formActividad.indicadores.length > 0">
+              <div *ngFor="let ind of formActividad.indicadores" class="indicador-chip-cal">
+                <span class="indicador-logro-cal">{{ ind.logro_nombre }}</span>
+                <span class="indicador-nombre-cal">{{ ind.nombre }}</span>
+                <span class="indicador-remove-cal" (click)="quitarIndicadorForm(ind.id)">✕</span>
+              </div>
+            </div>
+            <details class="agregar-indicador-panel-cal">
+              <summary>➕ Agregar indicador</summary>
+              <input type="text" [(ngModel)]="busquedaIndicadorForm" placeholder="🔍 Buscar indicador..." class="buscador-indicador-cal">
+              <div class="indicadores-disponibles-cal">
+                <ng-container *ngFor="let logro of logrosDisponibles">
+                  <div class="logro-group-cal" *ngIf="tieneIndicadoresFormFiltrados(logro)">
+                    <strong>{{ logro.nombre }}</strong>
+                    <div *ngFor="let ind of logro.indicadores" class="indicador-opcion-cal"
+                         [class.ya-agregado]="formActividad.indicadores_ids.includes(ind.id)"
+                         [hidden]="!indicadorFormCoincideBusqueda(ind)"
+                         (click)="toggleIndicadorForm(ind.id)">
+                      <span>{{ formActividad.indicadores_ids.includes(ind.id) ? '☑️' : '⬜' }}</span> {{ ind.nombre }}
+                    </div>
+                  </div>
+                </ng-container>
+              </div>
+            </details>
+          </div>
+
+          <!-- Botones -->
+          <div class="form-crear-botones">
+            <button class="btn-ia-cal" (click)="sugerirConIA()" [disabled]="!formActividad.titulo.trim() || sugiriendoIA">
+              <span *ngIf="!sugiriendoIA">🪄 Sugerir con IA</span>
+              <span *ngIf="sugiriendoIA">⏳ Sugiriendo...</span>
+            </button>
+            <button class="btn-crear-cal" (click)="crearYCalificar()">
+              ✅ Crear y Calificar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== MODO EDICIÓN: Lista con drag & drop ========== -->
+    <div class="row" *ngIf="modoEdicion">
+      <div class="col-12">
+        <div class="lista-edicion">
+          <div class="ficha-edicion"
+               *ngFor="let actividad of actividadesPendientes; let i = index"
+               [class.dragging]="dragIndex === i"
+               [hidden]="!coincideBusquedaEdicion(actividad)"
+               draggable="true"
+               (dragstart)="onDragStart($event, i)"
+               (dragover)="onDragOver($event, i)"
+               (drop)="onDrop($event)"
+               (dragend)="onDragEnd()"
+               (touchstart)="onTouchStart($event, i)"
+               (touchmove)="onTouchMove($event)"
+               (touchend)="onTouchEnd($event)">
+
+            <div class="edicion-handle">
+              <span class="handle-icon">☰</span>
+              <span class="edicion-orden">{{ i + 1 }}</span>
+            </div>
+
+            <div class="edicion-info">
+              <span class="edicion-titulo" [innerHTML]="actividad.titulo"></span>
+            </div>
+
+            <div class="edicion-duracion">
+              <input type="number" class="input-duracion" [(ngModel)]="actividad.minutos_duracion" min="5" max="180">
+              <span class="duracion-sufijo">min</span>
+            </div>
+
+            <div class="edicion-flechas">
+              <button class="btn-flecha btn-flecha-extremo" (click)="moverAlInicio(i)" [disabled]="i === 0" title="Mover al inicio">⏫</button>
+              <button class="btn-flecha" (click)="moverArriba(i)" [disabled]="i === 0" title="Subir">▲</button>
+              <button class="btn-flecha" (click)="moverAbajo(i)" [disabled]="i === actividadesPendientes.length - 1" title="Bajar">▼</button>
+              <button class="btn-flecha btn-flecha-extremo" (click)="moverAlFinal(i)" [disabled]="i === actividadesPendientes.length - 1" title="Mover al final">⏬</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== MODO NORMAL ========== -->
+    <ng-container *ngIf="!modoEdicion">
+
+      <!-- Siguiente actividad (por defecto) -->
+      <div class="row" *ngIf="!verTodas && siguienteActividad != null">
+        <div class="col-12 mb-2">
+          <label class="seccion-label">Siguiente actividad</label>
+        </div>
+        <div class="col-sm-12 col-md-6 px-3 mb-2">
+          <div class="text-center ficha ficha-actividad ficha-siguiente" (click)="seleccionarActividad(siguienteActividad)">
+            <div class="orden-badge" *ngIf="siguienteActividad.orden_ejecucion">
+              #{{ siguienteActividad.orden_ejecucion }}
+            </div>
+            <p class="texto-contenido mb-0" [innerHTML]="siguienteActividad.titulo"></p>
+            <span class="duracion-badge" *ngIf="siguienteActividad.minutos_duracion">
+              {{ siguienteActividad.minutos_duracion }}min
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Botón ver todas -->
+      <div class="row" *ngIf="actividadesPendientes.length > 1">
+        <div class="col-12 mb-3">
+          <button class="btn-ver-todas" (click)="toggleVerTodas()">
+            {{ verTodas ? '🔼 Mostrar solo la siguiente' : '🔽 Ver todas las actividades (' + actividadesPendientes.length + ')' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Todas las actividades -->
+      <div class="row" *ngIf="verTodas">
+        <div class="col-12 mb-2">
+          <label class="seccion-label">Todas las actividades pendientes</label>
+        </div>
+        <div class="col-sm-12 col-md-4 px-3 mb-2"
+             *ngFor="let actividad of actividadesPendientes | SearchPipeGeneral : buscar; let i = index">
+          <div class="text-center ficha ficha-actividad" 
+               [class.ficha-siguiente]="i === 0"
+               (click)="seleccionarActividad(actividad)">
+            <div class="orden-badge" *ngIf="actividad.orden_ejecucion">
+              #{{ actividad.orden_ejecucion }}
+            </div>
+            <p class="texto-contenido mb-0" [innerHTML]="actividad.titulo"></p>
+            <span class="duracion-badge" *ngIf="actividad.minutos_duracion">
+              {{ actividad.minutos_duracion }}min
+            </span>
+          </div>
+        </div>
+      </div>
+
+    </ng-container>
+
+    <!-- Sin actividades -->
+    <div class="row" *ngIf="actividadesPendientes.length === 0 && !mostrarFormCrear && !modoEdicion">
+      <div class="col-12">
+        <div class="aviso-vacio">
+          No hay actividades pendientes para esta área
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

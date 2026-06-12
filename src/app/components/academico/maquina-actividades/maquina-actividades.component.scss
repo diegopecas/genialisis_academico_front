@@ -1,0 +1,1154 @@
+// Variables de paleta GENIALISIS
+$primary: #F5A623;
+$primary-dark: #E09000;
+$primary-light: #FFF3D6;
+$dark: #2C2C2C;
+$dark-light: #3D3D3D;
+$white: #FFFFFF;
+$gray-light: #F5F5F5;
+$gray-mid: #E0E0E0;
+$gray-text: #757575;
+$success: #4CAF50;
+$danger: #F44336;
+$info: #2196F3;
+
+:host {
+  display: block;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
+  min-height: 100vh;
+}
+
+.maquina-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+// ===================== STEPPER =====================
+.stepper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 30px;
+  padding: 20px 0;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: default;
+  opacity: 0.4;
+  transition: opacity 0.3s;
+
+  &.active {
+    opacity: 1;
+  }
+
+  &.done {
+    cursor: pointer;
+  }
+}
+
+.step-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: $gray-mid;
+  color: $dark;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 16px;
+  transition: all 0.3s;
+
+  .active & {
+    background: $primary;
+    color: $white;
+    box-shadow: 0 2px 8px rgba($primary, 0.4);
+  }
+
+  .done & {
+    background: $success;
+    color: $white;
+  }
+}
+
+.step-label {
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: $gray-text;
+
+  .active & {
+    color: $dark;
+  }
+}
+
+.step-line {
+  width: 80px;
+  height: 3px;
+  background: $gray-mid;
+  margin: 0 10px;
+  margin-bottom: 20px;
+  transition: background 0.3s;
+
+  &.active {
+    background: $primary;
+  }
+}
+
+// ===================== SECCIONES =====================
+.seccion-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: $primary-light;
+  color: $dark;
+  padding: 10px 16px;
+  border-radius: 6px 6px 0 0;
+  font-weight: 600;
+  font-size: 14px;
+  margin-top: 20px;
+  margin-bottom: 0;
+  border: 1px solid $primary;
+  border-bottom: 2px solid $primary;
+
+  i {
+    font-size: 20px;
+    color: $primary-dark;
+  }
+}
+
+.seccion-hint {
+  font-weight: 400;
+  font-size: 12px;
+  color: $gray-text;
+  margin-left: auto;
+}
+
+// ===================== FILTROS =====================
+.filtros-row {
+  display: flex;
+  gap: 16px;
+  padding: 16px;
+  background: $white;
+  border: 1px solid $gray-mid;
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+  flex-wrap: wrap;
+}
+
+.filtro-item {
+  flex: 1;
+  min-width: 200px;
+
+  label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: $gray-text;
+    margin-bottom: 4px;
+  }
+
+  select, input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid $gray-mid;
+    border-radius: 4px;
+    font-size: 14px;
+    background: $white;
+    transition: border-color 0.2s;
+
+    &:focus {
+      outline: none;
+      border-color: $primary;
+      box-shadow: 0 0 0 2px rgba($primary, 0.15);
+    }
+
+    &:disabled {
+      background: $gray-light;
+      color: $gray-text;
+    }
+  }
+}
+
+.filtro-cantidad {
+  flex: 0 0 100px;
+  min-width: 100px;
+}
+
+// ===================== BADGES (Ambientes y Productos) =====================
+.badges-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 16px;
+  background: $white;
+  border: 1px solid $gray-mid;
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+}
+
+.badge-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 20px;
+  border: 2px solid $gray-mid;
+  background: $white;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 13px;
+  font-weight: 500;
+  user-select: none;
+
+  &:hover {
+    border-color: $primary;
+    background: $primary-light;
+  }
+
+  &.selected {
+    border-color: $primary;
+    background: $primary-light;
+    color: $dark;
+
+    .badge-icon {
+      color: $primary;
+    }
+  }
+}
+
+.badge-icon {
+  font-size: 18px;
+  color: $gray-text;
+  transition: color 0.2s;
+}
+
+.badge-emoji {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.badge-check {
+  font-size: 16px;
+  color: $success;
+}
+
+.badge-check-emoji {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.badge-producto {
+  border-style: dashed;
+
+  &.selected {
+    border-style: solid;
+  }
+}
+
+.badges-productos {
+  border-top: 1px dashed $gray-mid;
+  border-radius: 0 0 6px 6px;
+}
+
+.sin-productos {
+  padding: 12px 16px;
+  color: $gray-text;
+  font-size: 13px;
+  font-style: italic;
+  background: $white;
+  border: 1px solid $gray-mid;
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+}
+
+// Acordeón de inventario
+.acordeon-inventario {
+  background: $white;
+  border: 1px solid $gray-mid;
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+}
+
+.inventario-details {
+  summary {
+    list-style: none;
+    &::-webkit-details-marker { display: none; }
+  }
+}
+
+.inventario-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  color: $primary-dark;
+  transition: background 0.2s;
+
+  &:hover {
+    background: $primary-light;
+  }
+}
+
+.inventario-acciones {
+  margin-left: auto;
+}
+
+.btn-link-sm {
+  background: none;
+  border: none;
+  color: $primary;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 2px 6px;
+
+  &:hover { color: $primary-dark; }
+}
+
+.inventario-contenido {
+  padding: 0 16px 12px;
+}
+
+.buscador-producto {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid $gray-mid;
+  border-radius: 4px;
+  font-size: 12px;
+  margin-bottom: 8px;
+
+  &:focus {
+    outline: none;
+    border-color: $primary;
+    box-shadow: 0 0 0 2px rgba($primary, 0.15);
+  }
+}
+
+.badges-productos-acordeon {
+  border: none;
+  padding: 0;
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+.badge-ver-detalle {
+  font-size: 14px;
+  cursor: pointer;
+  opacity: 0.5;
+  transition: opacity 0.2s;
+  margin-left: 2px;
+
+  &:hover { opacity: 1; }
+}
+
+.producto-tipo {
+  font-size: 12px;
+  color: $gray-text;
+  margin-top: 8px;
+}
+
+// ===================== CHIPS (Materiales seleccionados) =====================
+.chips-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px 16px;
+  background: $white;
+  border: 1px solid $gray-mid;
+  border-top: none;
+}
+
+.chip-material {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  border-radius: 16px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.chip-producto {
+  background: $primary-light;
+  color: $dark;
+  border: 1px solid $primary;
+}
+
+.chip-libre {
+  background: #E3F2FD;
+  color: #1565C0;
+  border: 1px solid #90CAF9;
+}
+
+.chip-text {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  &.clickable {
+    cursor: pointer;
+    &:hover { text-decoration: underline; }
+  }
+}
+
+.chip-icon-small {
+  font-size: 14px;
+}
+
+.chip-remove {
+  font-size: 14px;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+  line-height: 1;
+
+  &:hover {
+    opacity: 1;
+    color: $danger;
+  }
+}
+
+.chips-sm {
+  padding: 8px 0;
+
+  .chip-material {
+    padding: 4px 8px;
+    font-size: 12px;
+  }
+}
+
+.chip-sm {
+  background: $gray-light;
+  color: $dark;
+  border: 1px solid $gray-mid;
+}
+
+// ===================== MATERIAL INPUT =====================
+.material-input-row {
+  display: flex;
+  gap: 8px;
+  padding: 0 16px 12px;
+  background: $white;
+  border: 1px solid $gray-mid;
+  border-top: none;
+}
+
+.material-input {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid $gray-mid;
+  border-radius: 4px;
+  font-size: 14px;
+
+  &:focus {
+    outline: none;
+    border-color: $primary;
+    box-shadow: 0 0 0 2px rgba($primary, 0.15);
+  }
+}
+
+.btn-agregar-material {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: $primary;
+  color: $white;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover:not(:disabled) {
+    background: $primary-dark;
+  }
+
+  &:disabled {
+    background: $gray-mid;
+    cursor: not-allowed;
+  }
+
+  i { font-size: 20px; }
+}
+
+// ===================== TEXTAREA =====================
+textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid $gray-mid;
+  border-radius: 0 0 6px 6px;
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+  margin-top: 0;
+
+  &:focus {
+    outline: none;
+    border-color: $primary;
+    box-shadow: 0 0 0 2px rgba($primary, 0.15);
+  }
+}
+
+.caracteres-info {
+  text-align: right;
+  font-size: 11px;
+  color: $gray-text;
+  padding: 4px 0;
+
+  &.warning { color: $danger; }
+}
+
+// ===================== BOTONES =====================
+.botones-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 30px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.btn-primario {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 24px;
+  background: $primary;
+  color: $white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 6px rgba($primary, 0.3);
+
+  &:hover:not(:disabled) {
+    background: $primary-dark;
+    box-shadow: 0 4px 12px rgba($primary, 0.4);
+  }
+
+  &:disabled {
+    background: $gray-mid;
+    color: $gray-text;
+    box-shadow: none;
+    cursor: not-allowed;
+  }
+
+  i { font-size: 18px; }
+}
+
+.btn-grande {
+  padding: 14px 32px;
+  font-size: 16px;
+}
+
+.btn-secundario {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 20px;
+  background: $white;
+  color: $dark;
+  border: 2px solid $dark;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background: $dark;
+    color: $white;
+  }
+
+  i { font-size: 18px; }
+}
+
+.btn-regenerar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 20px;
+  background: $white;
+  color: $info;
+  border: 2px solid $info;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background: $info;
+    color: $white;
+  }
+
+  i { font-size: 18px; }
+}
+
+.btn-link {
+  background: none;
+  border: none;
+  color: $primary;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+
+  &:hover { color: $primary-dark; }
+}
+
+// ===================== LOADING IA =====================
+.ia-loading {
+  text-align: center;
+  padding: 60px 20px;
+
+  h3 {
+    margin-top: 20px;
+    color: $dark;
+  }
+
+  p {
+    color: $gray-text;
+  }
+}
+
+.ia-loading-spinner {
+  width: 60px;
+  height: 60px;
+  border: 4px solid $gray-mid;
+  border-top: 4px solid $primary;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+// ===================== RESULTADO HEADER =====================
+.resultado-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.resultado-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.resultado-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: $primary-light;
+  color: $dark;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 14px;
+
+  i { color: $primary; font-size: 18px; }
+}
+
+.resultado-meta {
+  font-size: 12px;
+  color: $gray-text;
+}
+
+.resultado-acciones {
+  display: flex;
+  gap: 12px;
+}
+
+// ===================== TARJETAS DE ACTIVIDAD =====================
+.actividad-card {
+  background: $white;
+  border: 2px solid $gray-mid;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  transition: all 0.3s;
+  overflow: hidden;
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+
+  &.deseleccionada {
+    opacity: 0.5;
+    border-color: $gray-mid;
+
+    .actividad-card-header {
+      background: $gray-light;
+    }
+  }
+}
+
+.actividad-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: $primary-light;
+  border-bottom: 1px solid $gray-mid;
+}
+
+.check-actividad {
+  position: relative;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+
+  input {
+    opacity: 0;
+    position: absolute;
+    cursor: pointer;
+  }
+
+  .checkmark {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    border: 2px solid $primary;
+    background: $white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+
+  input:checked + .checkmark {
+    background: $primary;
+
+    &::after {
+      content: '✓';
+      color: $white;
+      font-size: 16px;
+      font-weight: 700;
+    }
+  }
+}
+
+.actividad-titulo-row {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.input-titulo {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  font-size: 16px;
+  font-weight: 600;
+  background: transparent;
+  transition: all 0.2s;
+
+  &:focus {
+    background: $white;
+    border-color: $primary;
+    outline: none;
+  }
+}
+
+.ambiente-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: $primary-light;
+  color: $dark;
+  border: 1px solid $primary;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+
+  i { font-size: 14px; }
+}
+
+.actividad-card-body {
+  padding: 16px;
+}
+
+.campo-grupo {
+  margin-bottom: 12px;
+
+  label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    color: $gray-text;
+    margin-bottom: 4px;
+  }
+
+  textarea, input, select {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid $gray-mid;
+    border-radius: 4px;
+    font-size: 13px;
+    font-family: inherit;
+
+    &:focus {
+      outline: none;
+      border-color: $primary;
+    }
+  }
+}
+
+.campos-row {
+  display: flex;
+  gap: 12px;
+}
+
+.campo-half { flex: 1; }
+.campo-third { flex: 1; }
+
+.tiny-icon {
+  font-size: 14px !important;
+  color: $primary;
+}
+
+// ===================== INDICADORES =====================
+.indicadores-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.indicador-chip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  background: #E8F5E9;
+  border: 1px solid #A5D6A7;
+  font-size: 12px;
+}
+
+.indicador-logro {
+  color: $success;
+  font-weight: 600;
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.indicador-nombre {
+  color: $dark;
+}
+
+.indicador-remove {
+  font-size: 14px;
+  color: $gray-text;
+  cursor: pointer;
+  line-height: 1;
+
+  &:hover { color: $danger; }
+}
+
+.sin-indicadores {
+  color: $gray-text;
+  font-size: 12px;
+  font-style: italic;
+  padding: 4px 0;
+}
+
+.buscador-indicador {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid $gray-mid;
+  border-radius: 4px;
+  font-size: 12px;
+  margin-bottom: 6px;
+  margin-top: 6px;
+
+  &:focus {
+    outline: none;
+    border-color: $primary;
+    box-shadow: 0 0 0 2px rgba($primary, 0.15);
+  }
+}
+
+.agregar-indicador-panel {
+  margin-top: 8px;
+
+  summary {
+    font-size: 12px;
+    color: $primary;
+    font-weight: 600;
+    cursor: pointer;
+
+    &:hover { text-decoration: underline; }
+  }
+}
+
+.indicadores-disponibles {
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 8px;
+  background: $gray-light;
+  border-radius: 4px;
+  margin-top: 6px;
+}
+
+.logro-group {
+  margin-bottom: 8px;
+
+  strong {
+    font-size: 11px;
+    color: $gray-text;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 4px;
+  }
+}
+
+.indicador-opcion {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  font-size: 12px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background 0.2s;
+
+  &:hover { background: $primary-light; }
+
+  &.ya-agregado {
+    color: $success;
+  }
+
+  i { font-size: 16px; }
+}
+
+// ===================== PASO 3: RESUMEN =====================
+.resumen-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 20px;
+  background: $white;
+  border: 1px solid $gray-mid;
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+}
+
+.resumen-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+
+  i {
+    color: $primary;
+    font-size: 20px;
+  }
+}
+
+.resumen-total {
+  background: $primary-light;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 15px;
+}
+
+.resumen-actividad {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 16px;
+  background: $white;
+  border: 1px solid $gray-mid;
+  border-top: none;
+  transition: background 0.2s;
+
+  &:last-of-type {
+    border-radius: 0 0 6px 6px;
+  }
+
+  &:hover {
+    background: $primary-light;
+  }
+}
+
+.resumen-actividad-num {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: $primary;
+  color: $white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.resumen-actividad-info {
+  display: flex;
+  flex-direction: column;
+
+  strong { font-size: 14px; color: $dark; }
+}
+
+.resumen-tipo {
+  font-size: 12px;
+  color: $gray-text;
+}
+
+.resumen-indicadores {
+  font-size: 11px;
+  color: $success;
+  font-weight: 600;
+}
+
+// ===================== SIN RESULTADOS =====================
+.sin-resultados {
+  text-align: center;
+  padding: 60px 20px;
+  color: $gray-text;
+
+  i {
+    font-size: 60px;
+    color: $gray-mid;
+  }
+
+  p {
+    margin: 16px 0;
+    font-size: 15px;
+  }
+}
+
+// ===================== MODAL PRODUCTO =====================
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-producto {
+  background: $white;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 400px;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.modal-producto-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: $primary;
+  color: $dark;
+
+  h3 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+
+    i { color: $dark; }
+  }
+}
+
+.modal-close {
+  cursor: pointer;
+  font-size: 24px;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+
+  &:hover { opacity: 1; }
+}
+
+.modal-producto-body {
+  padding: 20px;
+  text-align: center;
+}
+
+.producto-imagen {
+  max-width: 100%;
+  max-height: 250px;
+  border-radius: 8px;
+  object-fit: contain;
+  margin-bottom: 12px;
+}
+
+.producto-sin-imagen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 30px;
+  color: $gray-mid;
+
+  i { font-size: 48px; }
+}
+
+.producto-descripcion {
+  color: $gray-text;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+// ===================== RESPONSIVE =====================
+@media (max-width: 768px) {
+  .filtros-row {
+    flex-direction: column;
+  }
+
+  .filtro-item {
+    min-width: 100%;
+  }
+
+  .campos-row {
+    flex-direction: column;
+  }
+
+  .step-line {
+    width: 40px;
+  }
+
+  .step-label {
+    font-size: 10px;
+  }
+
+  .botones-row {
+    flex-direction: column;
+  }
+}

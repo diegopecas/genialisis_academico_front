@@ -1,0 +1,477 @@
+<!-- estudiante-datos.component.html -->
+<!-- Indicador de carga principal -->
+<div *ngIf="cargando.datos" class="text-center py-4">
+  <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Cargando...</span>
+  </div>
+  <p class="mt-2">Cargando datos del estudiante...</p>
+</div>
+
+<!-- Contenido principal con diseño móvil mejorado -->
+<div class="estudiante-datos-container" *ngIf="!cargando.datos && estudiante">
+
+  <!-- Foto del estudiante centrada (solo lectura) -->
+  <div class="foto-estudiante-container" *ngIf="estudiante.id_persona">
+    <app-foto-persona
+      [idPersona]="estudiante.id_persona"
+      [nombrePersona]="nombreCompleto"
+      [soloLectura]="true">
+    </app-foto-persona>
+  </div>
+  <!-- Tabs para móvil -->
+  <ul class="nav nav-tabs nav-tabs-mobile d-lg-none" role="tablist">
+    <li class="nav-item flex-fill" role="presentation">
+      <button class="nav-link active w-100" 
+              id="personal-tab" 
+              data-bs-toggle="tab" 
+              data-bs-target="#personal" 
+              type="button" 
+              role="tab">
+        <i class="fas fa-user"></i>
+        <span class="d-none d-sm-inline ms-1">Personal</span>
+      </button>
+    </li>
+    <li class="nav-item flex-fill" role="presentation">
+      <button class="nav-link w-100" 
+              id="academico-tab" 
+              data-bs-toggle="tab" 
+              data-bs-target="#academico" 
+              type="button" 
+              role="tab">
+        <i class="fas fa-school"></i>
+        <span class="d-none d-sm-inline ms-1">Académico</span>
+      </button>
+    </li>
+    <li class="nav-item flex-fill" role="presentation">
+      <button class="nav-link w-100" 
+              id="acudientes-tab" 
+              data-bs-toggle="tab" 
+              data-bs-target="#acudientes" 
+              type="button" 
+              role="tab">
+        <i class="fas fa-users"></i>
+        <span class="d-none d-sm-inline ms-1">Acudientes</span>
+      </button>
+    </li>
+  </ul>
+
+  <!-- Contenido de tabs para móvil -->
+  <div class="tab-content d-lg-none mt-3">
+    <!-- Tab Datos Personales -->
+    <div class="tab-pane fade show active" id="personal" role="tabpanel">
+      <div class="mobile-card">
+        <div class="mobile-card-header">
+          <h5><i class="fas fa-user-circle me-2"></i>Datos Personales</h5>
+        </div>
+        <div class="mobile-card-body">
+          <!-- Información destacada -->
+          <div class="info-destacada mb-3">
+            <h4 class="text-center mb-1">{{ estudiante.primer_nombre }} {{ estudiante.segundo_nombre }}</h4>
+            <h5 class="text-center text-muted">{{ estudiante.primer_apellido }} {{ estudiante.segundo_apellido }}</h5>
+          </div>
+
+          <!-- Datos en formato lista móvil -->
+          <div class="mobile-info-list">
+            <div class="info-item">
+              <span class="info-label">Identificación</span>
+              <span class="info-value">{{ obtenerTipoDocumento(estudiante.id_tipo_identificacion) }} {{ estudiante.numero_identificacion }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Fecha de Nacimiento</span>
+              <span class="info-value">{{ estudiante.fecha_nacimiento | date:'dd/MM/yyyy' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Edad</span>
+              <span class="info-value">
+                {{ obtenerAnios(estudiante.fecha_nacimiento) }} {{ obtenerAnios(estudiante.fecha_nacimiento) === 1 ? 'año' : 'años' }}
+                <span *ngIf="obtenerMeses(estudiante.fecha_nacimiento) > 0">
+                  y {{ obtenerMeses(estudiante.fecha_nacimiento) }} {{ obtenerMeses(estudiante.fecha_nacimiento) === 1 ? 'mes' : 'meses' }}
+                </span>
+              </span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Género</span>
+              <span class="info-value">{{ obtenerGenero(estudiante.id_genero) }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Grupo Sanguíneo</span>
+              <span class="info-value">{{ estudiante.rh || 'No especificado' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Ciudad</span>
+              <span class="info-value">{{ obtenerCiudad(estudiante.id_ciudad) }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Dirección</span>
+              <span class="info-value">{{ estudiante.direccion || 'No especificada' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Teléfono</span>
+              <span class="info-value">
+                <a href="tel:{{ estudiante.telefono }}" *ngIf="estudiante.telefono">{{ estudiante.telefono }}</a>
+                <span *ngIf="!estudiante.telefono">No especificado</span>
+              </span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Correo</span>
+              <span class="info-value">
+                <a href="mailto:{{ estudiante.correo_electronico }}" *ngIf="estudiante.correo_electronico">{{ estudiante.correo_electronico }}</a>
+                <span *ngIf="!estudiante.correo_electronico">No especificado</span>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab Información Académica -->
+    <div class="tab-pane fade" id="academico" role="tabpanel">
+      <div class="mobile-card">
+        <div class="mobile-card-header">
+          <h5><i class="fas fa-school me-2"></i>Información Académica</h5>
+        </div>
+        <div class="mobile-card-body">
+          <div class="mobile-info-list">
+            <div class="info-item">
+              <span class="info-label">Grupo</span>
+              <span class="info-value">{{ obtenerGrupo(grupoActual?.id_grupo) }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Grado</span>
+              <span class="info-value">{{ grupoActual?.nombre_grado || 'No asignado' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Año Escolar</span>
+              <span class="info-value">{{ estudiante.anno || 'No especificado' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Fecha de Ingreso</span>
+              <span class="info-value">{{ estudiante.fecha_ingreso | date:'dd/MM/yyyy' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Alimentación</span>
+              <span class="info-value">
+                <span class="badge rounded-pill" [ngClass]="estudiante.alimentacion ? 'bg-success' : 'bg-secondary'">
+                  {{ estudiante.alimentacion ? 'Sí' : 'No' }}
+                </span>
+              </span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">EPS</span>
+              <span class="info-value">{{ estudiante.eps || 'No especificada' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Tel. Emergencia</span>
+              <span class="info-value">
+                <a href="tel:{{ estudiante.telefono_emergencia }}" *ngIf="estudiante.telefono_emergencia">{{ estudiante.telefono_emergencia }}</a>
+                <span *ngIf="!estudiante.telefono_emergencia">No especificado</span>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab Acudientes -->
+    <div class="tab-pane fade" id="acudientes" role="tabpanel">
+      <div class="mobile-card">
+        <div class="mobile-card-header">
+          <h5><i class="fas fa-users me-2"></i>Acudientes</h5>
+        </div>
+        <div class="mobile-card-body">
+          <div *ngIf="cargando.acudientes" class="text-center py-4">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Cargando...</span>
+            </div>
+          </div>
+
+          <div *ngIf="!cargando.acudientes && acudientes && acudientes.length > 0">
+            <div class="acudiente-mobile-card" *ngFor="let acudiente of acudientes; let i = index">
+              <div class="acudiente-mobile-header">
+                <div class="acudiente-info-principal">
+                  <strong>{{ acudiente.nombre_persona }}</strong>
+                  <small class="d-block text-muted">{{ acudiente.nombre_tipo_acudiente }}</small>
+                </div>
+              </div>
+              
+              <div class="acudiente-badges-mobile">
+                <span *ngIf="acudiente.es_responsable_pago == 1" class="badge bg-success">
+                  <i class="fas fa-dollar-sign"></i> Pago
+                </span>
+                <span *ngIf="acudiente.autorizado_recoger == 1" class="badge bg-info">
+                  <i class="fas fa-child"></i> Recoger
+                </span>
+                <span *ngIf="acudiente.autorizado_sistema == 1" class="badge bg-primary">
+                  <i class="fas fa-key"></i> Sistema
+                </span>
+              </div>
+
+              <div class="acudiente-mobile-body show">
+                <div class="mobile-info-list">
+                  <div class="info-item">
+                    <span class="info-label">Documento</span>
+                    <span class="info-value">
+                      {{ obtenerTipoDocumento(acudiente.persona_data?.id_tipo_identificacion) || 'No especificado' }} 
+                      {{ acudiente.persona_data?.numero_identificacion || '' }}
+                    </span>
+                  </div>
+                  <div class="info-item">
+                    <span class="info-label">Teléfono</span>
+                    <span class="info-value">
+                      <a href="tel:{{ acudiente.persona_data?.telefono }}" *ngIf="acudiente.persona_data?.telefono">
+                        {{ acudiente.persona_data?.telefono }}
+                      </a>
+                      <span *ngIf="!acudiente.persona_data?.telefono">No especificado</span>
+                    </span>
+                  </div>
+                  <div class="info-item">
+                    <span class="info-label">Correo</span>
+                    <span class="info-value">
+                      <a href="mailto:{{ acudiente.persona_data?.correo_electronico }}" *ngIf="acudiente.persona_data?.correo_electronico">
+                        {{ acudiente.persona_data?.correo_electronico }}
+                      </a>
+                      <span *ngIf="!acudiente.persona_data?.correo_electronico">No especificado</span>
+                    </span>
+                  </div>
+                  <div class="info-item">
+                    <span class="info-label">Dirección</span>
+                    <span class="info-value">{{ acudiente.persona_data?.direccion || 'No especificada' }}</span>
+                  </div>
+                  <div class="info-item">
+                    <span class="info-label">Permisos</span>
+                    <span class="info-value">
+                      <span class="text-muted">Responsable de pago:</span> {{ acudiente.es_responsable_pago == 1 ? 'Sí' : 'No' }}<br>
+                      <span class="text-muted">Autorizado para recoger:</span> {{ acudiente.autorizado_recoger == 1 ? 'Sí' : 'No' }}<br>
+                      <span class="text-muted">Acceso al sistema:</span> {{ acudiente.autorizado_sistema == 1 ? 'Sí' : 'No' }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="!cargando.acudientes && (!acudientes || acudientes.length === 0)" class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            No hay acudientes registrados.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Vista desktop (sin cambios) -->
+  <div class="row g-4 d-none d-lg-flex">
+    <!-- Sección de datos personales -->
+    <div class="col-lg-6">
+      <div class="panel panel-primary mb-4">
+        <div class="panel-heading">
+          <h5 class="mb-0">
+            <i class="fas fa-user-circle me-2"></i> Datos Personales
+          </h5>
+        </div>
+        <div class="panel-body">
+          <div class="row mb-3">
+            <div class="col-md-4">
+              <h6 class="text-muted mb-1">Identificación:</h6>
+              <p class="mb-0 fs-6">{{ obtenerTipoDocumento(estudiante.id_tipo_identificacion) }} {{ estudiante.numero_identificacion }}</p>
+            </div>
+            <div class="col-md-8">
+              <h6 class="text-muted mb-1">Nombres:</h6>
+              <p class="mb-0 fs-6">{{ estudiante.primer_nombre }} {{ estudiante.segundo_nombre }}</p>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-4">
+              <h6 class="text-muted mb-1">Apellidos:</h6>
+              <p class="mb-0 fs-6">{{ estudiante.primer_apellido }} {{ estudiante.segundo_apellido }}</p>
+            </div>
+            <div class="col-md-4">
+              <h6 class="text-muted mb-1">Fecha de Nacimiento:</h6>
+              <p class="mb-0 fs-6">{{ estudiante.fecha_nacimiento | date:'dd/MM/yyyy' }}</p>
+            </div>
+            <div class="col-md-4">
+              <h6 class="text-muted mb-1">Edad:</h6>
+              <p class="mb-0 fs-6">
+                <span class="edad-especial">
+                  <span class="edad-valor">{{ obtenerAnios(estudiante.fecha_nacimiento) }}</span>
+                  <span class="edad-unidad">{{ obtenerAnios(estudiante.fecha_nacimiento) === 1 ? 'año' : 'años' }}</span>
+                  <span *ngIf="obtenerMeses(estudiante.fecha_nacimiento) > 0">
+                    y <span class="edad-valor">{{ obtenerMeses(estudiante.fecha_nacimiento) }}</span>
+                    <span class="edad-unidad">{{ obtenerMeses(estudiante.fecha_nacimiento) === 1 ? 'mes' : 'meses' }}</span>
+                  </span>
+                </span>
+              </p>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-4">
+              <h6 class="text-muted mb-1">Género:</h6>
+              <p class="mb-0 fs-6">{{ obtenerGenero(estudiante.id_genero) }}</p>
+            </div>
+            <div class="col-md-4">
+              <h6 class="text-muted mb-1">Grupo Sanguíneo:</h6>
+              <p class="mb-0 fs-6">{{ estudiante.rh || 'No especificado' }}</p>
+            </div>
+            <div class="col-md-4">
+              <h6 class="text-muted mb-1">Nacionalidad:</h6>
+              <p class="mb-0 fs-6">{{ estudiante.nacionalidad || 'Colombiana' }}</p>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-4">
+              <h6 class="text-muted mb-1">Ciudad:</h6>
+              <p class="mb-0 fs-6">{{ obtenerCiudad(estudiante.id_ciudad) }}</p>
+            </div>
+            <div class="col-md-8">
+              <h6 class="text-muted mb-1">Dirección:</h6>
+              <p class="mb-0 fs-6">{{ estudiante.direccion || 'No especificada' }}</p>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <h6 class="text-muted mb-1">Teléfono:</h6>
+              <p class="mb-0 fs-6">{{ estudiante.telefono || 'No especificado' }}</p>
+            </div>
+            <div class="col-md-6">
+              <h6 class="text-muted mb-1">Correo Electrónico:</h6>
+              <p class="mb-0 fs-6">{{ estudiante.correo_electronico || 'No especificado' }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel panel-primary">
+        <div class="panel-heading">
+          <h5 class="mb-0">
+            <i class="fas fa-school me-2"></i> Información Académica
+          </h5>
+        </div>
+        <div class="panel-body">
+          <div class="row mb-3">
+            <div class="col-md-4">
+              <h6 class="text-muted mb-1">Grupo:</h6>
+              <p class="mb-0 fs-6">{{ obtenerGrupo(grupoActual?.id_grupo) }}</p>
+            </div>
+            <div class="col-md-4">
+              <h6 class="text-muted mb-1">Grado:</h6>
+              <p class="mb-0 fs-6">{{ grupoActual?.nombre_grado || 'No asignado' }}</p>
+            </div>
+            <div class="col-md-4">
+              <h6 class="text-muted mb-1">Año Escolar:</h6>
+              <p class="mb-0 fs-6">{{ estudiante.anno || 'No especificado' }}</p>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <h6 class="text-muted mb-1">Fecha de Ingreso:</h6>
+              <p class="mb-0 fs-6">{{ estudiante.fecha_ingreso | date:'dd/MM/yyyy' }}</p>
+            </div>
+            <div class="col-md-6">
+              <h6 class="text-muted mb-1">Alimentación:</h6>
+              <p class="mb-0 fs-6">
+                <span class="badge rounded-pill" [ngClass]="estudiante.alimentacion ? 'bg-success' : 'bg-secondary'">
+                  {{ estudiante.alimentacion ? 'Sí' : 'No' }}
+                </span>
+              </p>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <h6 class="text-muted mb-1">EPS:</h6>
+              <p class="mb-0 fs-6">{{ estudiante.eps || 'No especificada' }}</p>
+            </div>
+            <div class="col-md-6">
+              <h6 class="text-muted mb-1">Teléfono de Emergencia:</h6>
+              <p class="mb-0 fs-6">{{ estudiante.telefono_emergencia || 'No especificado' }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sección de acudientes -->
+    <div class="col-lg-6">
+      <div class="panel panel-primary">
+        <div class="panel-heading">
+          <h5 class="mb-0">
+            <i class="fas fa-users me-2"></i> Acudientes
+          </h5>
+        </div>
+        <div class="panel-body">
+          <div *ngIf="cargando.acudientes" class="text-center py-4">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Cargando...</span>
+            </div>
+            <p class="mt-2">Cargando acudientes...</p>
+          </div>
+
+          <div *ngIf="!cargando.acudientes && acudientes && acudientes.length > 0">
+            <div class="acudiente-card mb-3" *ngFor="let acudiente of acudientes; let i = index">
+              <div class="acudiente-header">
+                <div class="acudiente-title">
+                  <strong>{{ acudiente.nombre_persona }}</strong>
+                  <span class="badge bg-secondary ms-2">{{ acudiente.nombre_tipo_acudiente }}</span>
+                </div>
+                <div class="acudiente-badges">
+                  <span *ngIf="acudiente.es_responsable_pago == 1" class="badge bg-success me-1">Responsable pago</span>
+                  <span *ngIf="acudiente.autorizado_recoger == 1" class="badge bg-info me-1">Autorizado recoger</span>
+                  <span *ngIf="acudiente.autorizado_sistema == 1" class="badge bg-primary me-1">Acceso sistema</span>
+                </div>
+              </div>
+              <div class="acudiente-body show">
+                <div class="acudiente-info">
+                  <div class="row">
+                    <div class="col-sm-6">
+                      <p class="mb-2">
+                        <i class="fas fa-id-card me-2 text-muted"></i>
+                        <span class="text-muted">Documento:</span>
+                        <span>{{ obtenerTipoDocumento(acudiente.persona_data?.id_tipo_identificacion) || 'No especificado' }} {{ acudiente.persona_data?.numero_identificacion || 'No especificado' }}</span>
+                      </p>
+                      <p class="mb-2">
+                        <i class="fas fa-phone me-2 text-muted"></i>
+                        <span class="text-muted">Teléfono:</span>
+                        <span>{{ acudiente.persona_data?.telefono || 'No especificado' }}</span>
+                      </p>
+                    </div>
+                    <div class="col-sm-6">
+                      <p class="mb-2">
+                        <i class="fas fa-envelope me-2 text-muted"></i>
+                        <span class="text-muted">Correo:</span>
+                        <span>{{ acudiente.persona_data?.correo_electronico || 'No especificado' }}</span>
+                      </p>
+                      <p class="mb-2">
+                        <i class="fas fa-map-marker-alt me-2 text-muted"></i>
+                        <span class="text-muted">Dirección:</span>
+                        <span>{{ acudiente.persona_data?.direccion || 'No especificada' }}</span>
+                      </p>
+                    </div>
+                  </div>
+                  <div class="row mt-2">
+                    <div class="col-12">
+                      <div class="permisos-resumen">
+                        <p class="mb-0">
+                          <i class="fas fa-shield-alt me-2 text-muted"></i>
+                          <span class="text-muted">Permisos:</span>
+                          <span class="small">
+                            Responsable de pago: <strong>{{ acudiente.es_responsable_pago == 1 ? 'Sí' : 'No' }}</strong> | 
+                            Autorizado para recoger: <strong>{{ acudiente.autorizado_recoger == 1 ? 'Sí' : 'No' }}</strong> | 
+                            Acceso al sistema: <strong>{{ acudiente.autorizado_sistema == 1 ? 'Sí' : 'No' }}</strong>
+                          </span>
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="!cargando.acudientes && (!acudientes || acudientes.length === 0)" class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            El estudiante no tiene acudientes registrados.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

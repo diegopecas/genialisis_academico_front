@@ -1,0 +1,44 @@
+// Variables de color corporativo
+$corporate-yellow: #F5A623;
+$corporate-black: #2C2C2C;
+$corporate-gray: #4A4A4A;
+$light-gray: #F5F5F5;
+$white: #FFFFFF;
+$success-color: #28a745;
+$info-color: #17a2b8;
+$warning-color: #ffc107;
+$danger-color: #dc3545;
+$secondary-color: #6c757d;
+
+.modulo {
+  background-color: $light-gray;
+  min-height: 100vh;
+  padding-bottom: 2rem;
+}
+
+// Estilos personalizados para badges de estado
+::ng-deep {
+  // Badge para Sprint En ejecución
+  .badge-actual {
+    background-color: #2196F3 !important;  // Azul vibrante
+    color: #ffffff !important;
+    box-shadow: 0 2px 4px rgba(33, 150, 243, 0.3);
+  }
+  
+  // Badge para Sprint de Evaluación
+  .badge-evaluacion {
+    background-color: #9C27B0 !important;  // Púrpura
+    color: #ffffff !important;
+  }
+  
+  // Sobrescribir los colores genéricos si es necesario para este módulo
+  .badge-warning {
+    background-color: #FFA726 !important;  // Naranja suave para Pendiente
+    color: #212529 !important;
+  }
+  
+  .badge-success {
+    background-color: #66BB6A !important;  // Verde suave para Ejecutado
+    color: #ffffff !important;
+  }
+}

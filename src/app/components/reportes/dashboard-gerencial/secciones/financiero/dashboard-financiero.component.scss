@@ -1,0 +1,1348 @@
+$gold: #F5A623;
+$gold-dark: #d4af37;
+$gold-light: #fff4db;
+$dark: #2C2C2C;
+$dark-light: #3a3a3a;
+$success: #28a745;
+$danger: #dc3545;
+$info: #17a2b8;
+$border-color: #dee2e6;
+$bg-light: #f8f9fa;
+
+$mobile: 576px;
+
+.seccion-financiero {
+  animation: fadeIn 0.25s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+// ============================================
+// BARRA KPIs
+// ============================================
+.barra-kpis {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+
+  .btn-warning {
+    background-color: $gold;
+    border-color: $gold;
+    color: $dark;
+    font-weight: 600;
+    &:hover {
+      background-color: $gold-dark;
+      border-color: $gold-dark;
+    }
+  }
+}
+
+.auto-refresh-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: $dark-light;
+
+  .auto-refresh-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    cursor: pointer;
+    user-select: none;
+    margin: 0;
+
+    input[type="checkbox"] { accent-color: $gold; cursor: pointer; }
+
+    .auto-refresh-label {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-weight: 500;
+    }
+
+    .pulso {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: #28a745;
+      box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.6);
+      animation: pulsar 2s infinite;
+    }
+  }
+
+  .ultima-actualizacion {
+    color: #888;
+    font-size: 0.75rem;
+    font-style: italic;
+  }
+}
+
+@keyframes pulsar {
+  0% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.6); }
+  70% { box-shadow: 0 0 0 8px rgba(40, 167, 69, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); }
+}
+
+// ============================================
+// 2 cards lado a lado
+// ============================================
+.kpis-contenedor {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 1rem;
+}
+
+.bloque-indicador {
+  background: #fff;
+  border: 1px solid $border-color;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  transition: all 0.25s ease;
+  cursor: pointer;
+
+  &.bloque-cartera {
+    border-left: 4px solid $danger;
+    &:hover {
+      box-shadow: 0 6px 18px rgba(220, 53, 69, 0.18);
+      transform: translateY(-2px);
+      border-color: $danger;
+    }
+  }
+
+  &.bloque-recaudo {
+    border-left: 4px solid $success;
+    &:hover {
+      box-shadow: 0 6px 18px rgba(40, 167, 69, 0.18);
+      transform: translateY(-2px);
+      border-color: $success;
+    }
+  }
+
+  &.bloque-movimientos {
+    border-left: 4px solid #6f42c1;
+    &:hover {
+      box-shadow: 0 6px 18px rgba(111, 66, 193, 0.18);
+      transform: translateY(-2px);
+      border-color: #6f42c1;
+    }
+  }
+
+  .bloque-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+
+    .bloque-titulo {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+
+      h4 {
+        margin: 0;
+        color: $dark;
+        font-weight: 700;
+      }
+
+      .bloque-icono { font-size: 1.6rem; }
+    }
+
+    .bloque-accion {
+      color: $gold-dark;
+      font-size: 0.9rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      i { font-size: 0.8rem; }
+    }
+  }
+}
+
+// ============================================
+// KPI dual (dos números grandes lado a lado)
+// ============================================
+.kpi-dual {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 0 1rem;
+  text-align: center;
+
+  @media (max-width: $mobile) {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+
+    .kpi-dual-sep { display: none; }
+  }
+
+  .kpi-dual-sep {
+    width: 1px;
+    height: 60px;
+    background: $border-color;
+  }
+
+  .kpi-dual-item {
+    .kpi-dual-valor {
+      font-family: 'Courier New', monospace;
+      font-size: 1.8rem;
+      font-weight: 800;
+      line-height: 1;
+      color: $dark;
+
+      @media (max-width: $mobile) { font-size: 1.4rem; }
+    }
+
+    .kpi-dual-pct {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-top: 0.25rem;
+    }
+
+    .kpi-dual-label {
+      color: #666;
+      font-size: 0.78rem;
+      margin-top: 0.35rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-weight: 600;
+    }
+
+    .kpi-dual-sub {
+      color: #888;
+      font-size: 0.72rem;
+      margin-top: 0.2rem;
+      font-style: italic;
+    }
+
+    &.kpi-vencido {
+      .kpi-dual-valor { color: $danger; }
+      .kpi-dual-pct { color: $danger; }
+    }
+
+    &.kpi-pendiente {
+      .kpi-dual-valor { color: $dark; }
+    }
+
+    &.kpi-recaudo-mes,
+    &.kpi-recaudo-anio {
+      .kpi-dual-valor { color: $success; }
+    }
+
+    &.kpi-balance-positivo {
+      .kpi-dual-valor { color: $success; }
+    }
+
+    &.kpi-balance-negativo {
+      .kpi-dual-valor { color: $danger; }
+    }
+
+    &.kpi-ingresos {
+      .kpi-dual-valor { color: $success; }
+    }
+
+    &.kpi-gastos {
+      .kpi-dual-valor { color: $danger; }
+    }
+  }
+}
+
+// ============================================
+// Delta vs ayer (flechita debajo del KPI)
+// ============================================
+.kpi-delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: 0.3rem;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  background: rgba(0, 0, 0, 0.04);
+  color: #666;
+  white-space: nowrap;
+
+  i { font-size: 0.65rem; }
+
+  .delta-ref {
+    font-weight: 400;
+    color: #888;
+    margin-left: 0.15rem;
+    font-size: 0.68rem;
+  }
+
+  // Subió y es bueno (recaudo, ingresos)
+  &.delta-sube-bueno {
+    background: rgba(40, 167, 69, 0.12);
+    color: #1e7e34;
+  }
+
+  // Subió y es malo (cartera vencida, gastos)
+  &.delta-sube-malo {
+    background: rgba(220, 53, 69, 0.12);
+    color: #721c24;
+  }
+
+  // Bajó y es bueno (cartera vencida que bajó)
+  &.delta-baja-bueno {
+    background: rgba(40, 167, 69, 0.12);
+    color: #1e7e34;
+  }
+
+  &.delta-neutro {
+    background: rgba(108, 117, 125, 0.1);
+    color: #6c757d;
+  }
+}
+
+// ============================================
+// Balance del mes como texto (entre KPIs y sub-bloques)
+// ============================================
+.balance-mes-linea {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.85rem;
+  margin: 0.5rem 0 1rem;
+  border-radius: 0.5rem;
+  background: $bg-light;
+  border: 1px dashed $border-color;
+  font-size: 0.85rem;
+
+  .balance-label {
+    color: #666;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 0.72rem;
+  }
+
+  .balance-valor {
+    font-family: 'Courier New', monospace;
+    font-size: 1rem;
+    font-weight: 800;
+  }
+
+  &.balance-positivo {
+    background: rgba(40, 167, 69, 0.06);
+    border-color: rgba(40, 167, 69, 0.3);
+    .balance-valor { color: #1e7e34; }
+  }
+
+  &.balance-negativo {
+    background: rgba(220, 53, 69, 0.06);
+    border-color: rgba(220, 53, 69, 0.3);
+    .balance-valor { color: $danger; }
+  }
+}
+
+// Variante del sub-bloque "balance del año"
+.desglose-balance-anio {
+  &.balance-anio-pos {
+    border-left-color: $success !important;
+    .desglose-num-money { color: #1e7e34 !important; }
+  }
+  &.balance-anio-neg {
+    border-left-color: $danger !important;
+    .desglose-num-money { color: $danger !important; }
+  }
+}
+
+.barra-progreso-contenedor {
+  width: 100%;
+  height: 8px;
+  background-color: #eee;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 1.25rem;
+
+  .barra-progreso {
+    height: 100%;
+    transition: width 0.5s ease;
+
+    &.barra-vencido {
+      background: linear-gradient(90deg, #a02331, $danger);
+    }
+  }
+}
+
+// ============================================
+// Antigüedad de cartera (buckets)
+// ============================================
+.antiguedad-bloque {
+  margin-bottom: 1rem;
+  padding: 0.75rem 0.85rem;
+  background: $bg-light;
+  border: 1px solid $border-color;
+  border-radius: 0.5rem;
+
+  .antiguedad-titulo {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.55rem;
+  }
+
+  .antiguedad-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0.4rem;
+
+    @media (max-width: $mobile) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  .antiguedad-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.1rem;
+    padding: 0.45rem 0.55rem;
+    background: #fff;
+    border-radius: 0.4rem;
+    border-top: 3px solid $border-color;
+
+    .antiguedad-valor {
+      font-family: 'Courier New', monospace;
+      font-size: 0.88rem;
+      font-weight: 800;
+      color: $dark;
+      line-height: 1.1;
+    }
+
+    .antiguedad-pct {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #666;
+    }
+
+    .antiguedad-label {
+      font-size: 0.68rem;
+      color: #888;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      margin-top: 0.15rem;
+    }
+
+    // Gradiente de severidad
+    &.bucket-por-vencer { border-top-color: $success; }
+    &.bucket-1-30      { border-top-color: $gold; }
+    &.bucket-31-60     { border-top-color: #ff9800; }
+    &.bucket-61-90     { border-top-color: #e65100; }
+    &.bucket-mas-90    { border-top-color: $danger; }
+  }
+}
+
+// ============================================
+// Sub-bloques (desglose)
+// ============================================
+.desglose-tipo {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.6rem;
+}
+
+.desglose-item {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.65rem 0.85rem;
+  background: $bg-light;
+  border: 1px solid $border-color;
+  border-radius: 0.5rem;
+  border-left: 4px solid $gold;
+
+  .desglose-icono {
+    font-size: 1.4rem;
+    flex-shrink: 0;
+  }
+
+  .desglose-contenido {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .desglose-valores {
+    display: flex;
+    align-items: baseline;
+    gap: 0.4rem;
+
+    .desglose-num-money {
+      font-size: 1rem;
+      font-weight: 800;
+      color: $dark;
+      font-family: 'Courier New', monospace;
+    }
+  }
+
+  .desglose-label {
+    font-size: 0.72rem;
+    color: #666;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .desglose-sub {
+    font-size: 0.7rem;
+    color: #888;
+    font-style: italic;
+  }
+
+  // Colores por tipo
+  &.desglose-mes-actual {
+    border-left-color: $gold-dark;
+    .desglose-num-money { color: $gold-dark; }
+  }
+
+  &.desglose-meses-ant {
+    border-left-color: #6c757d;
+    .desglose-num-money { color: #495057; }
+  }
+
+  &.desglose-estudiantes {
+    border-left-color: #ff9800;
+    .desglose-num-money { color: #8a4b00; }
+  }
+
+  &.desglose-colaboradores {
+    border-left-color: $info;
+    .desglose-num-money { color: #0c5460; }
+  }
+
+  &.desglose-recaudado-hoy {
+    border-left-color: $success;
+    .desglose-num-money { color: #1e7e34; }
+  }
+
+  &.desglose-registrado-hoy {
+    border-left-color: $info;
+    .desglose-num-money { color: #0c5460; }
+  }
+
+  &.desglose-mes-corriente {
+    border-left-color: #1e88e5;
+    .desglose-num-money { color: #0d47a1; }
+  }
+
+  &.desglose-mes-anteriores {
+    border-left-color: #9c27b0;
+    .desglose-num-money { color: #6a1b9a; }
+  }
+
+  &.desglose-anuladas {
+    border-left-color: #6c757d;
+    background: rgba(108, 117, 125, 0.06);
+    .desglose-num-money {
+      color: #495057;
+      text-decoration: line-through;
+      text-decoration-color: rgba(108, 117, 125, 0.5);
+    }
+  }
+
+  &.desglose-ingresos-mes,
+  &.desglose-ingresos-anio {
+    border-left-color: $success;
+    .desglose-num-money { color: #1e7e34; }
+  }
+
+  &.desglose-gastos-mes,
+  &.desglose-gastos-anio {
+    border-left-color: $danger;
+    .desglose-num-money { color: #721c24; }
+  }
+
+  &.desglose-pendientes {
+    border-left-color: #ff9800;
+    background: rgba(255, 152, 0, 0.06);
+    .desglose-num-money { color: #8a4b00; }
+  }
+
+  &.desglose-top-categoria,
+  &.desglose-top-concepto {
+    border-left-color: #6f42c1;
+    .desglose-num-money { color: #4b2b8c; }
+  }
+}
+
+// ============================================
+// Tipos de pago (mini-grid en card Recaudo)
+// ============================================
+.tipos-pago-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.4rem;
+}
+
+.tipo-pago-item {
+  padding: 0.5rem 0.65rem;
+  background: #fff;
+  border: 1px solid $border-color;
+  border-radius: 0.4rem;
+  border-top: 3px solid $success;
+
+  .tipo-pago-valor {
+    font-family: 'Courier New', monospace;
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #1e7e34;
+    line-height: 1.1;
+  }
+
+  .tipo-pago-label {
+    font-size: 0.72rem;
+    color: $dark;
+    font-weight: 600;
+    margin-top: 0.2rem;
+  }
+
+  .tipo-pago-cantidad {
+    font-size: 0.68rem;
+    color: #888;
+    font-style: italic;
+    margin-top: 0.1rem;
+  }
+}
+
+// ============================================
+// Resumen por tipos en el detalle de recaudo
+// ============================================
+.resumen-tipos-bar {
+  margin-bottom: 1rem;
+  padding: 0.75rem 0.85rem;
+  background: $bg-light;
+  border: 1px solid $border-color;
+  border-radius: 0.5rem;
+
+  .resumen-tipos-titulo {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.55rem;
+  }
+
+  .resumen-tipos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 0.4rem;
+  }
+
+  .resumen-tipo-item {
+    padding: 0.5rem 0.65rem;
+    background: #fff;
+    border-radius: 0.4rem;
+    border-top: 3px solid $success;
+
+    .resumen-tipo-valor {
+      font-family: 'Courier New', monospace;
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: #1e7e34;
+      line-height: 1.1;
+    }
+
+    .resumen-tipo-label {
+      font-size: 0.72rem;
+      color: $dark;
+      font-weight: 600;
+      margin-top: 0.2rem;
+    }
+
+    .resumen-tipo-cantidad {
+      font-size: 0.68rem;
+      color: #888;
+      font-style: italic;
+      margin-top: 0.1rem;
+    }
+  }
+}
+
+// ============================================
+// DETALLE (cartera y recaudo)
+// ============================================
+.detalle-contenedor {
+  background: #fff;
+  border: 1px solid $border-color;
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.detalle-header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid $border-color;
+
+  .btn-volver {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.85rem;
+    border: none;
+    background: linear-gradient(135deg, $dark 0%, $dark-light 100%);
+    color: #fff;
+    font-size: 0.82rem;
+    font-weight: 600;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+
+    i {
+      transition: transform 0.2s ease;
+      font-size: 0.75rem;
+    }
+
+    &:hover {
+      background: linear-gradient(135deg, $gold-dark 0%, $gold 100%);
+      color: $dark;
+      box-shadow: 0 4px 12px rgba(245, 166, 35, 0.35);
+      transform: translateY(-1px);
+
+      i { transform: translateX(-3px); }
+    }
+
+    &:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    }
+  }
+
+  .detalle-titulo {
+    flex: 1;
+    min-width: 200px;
+  }
+}
+
+.filtros-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+
+  .filtro-grupo {
+    display: flex;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+
+    .btn-warning {
+      background-color: $gold;
+      border-color: $gold;
+      color: $dark;
+      font-weight: 600;
+    }
+
+    select {
+      min-width: 180px;
+    }
+  }
+
+  .busqueda-grupo {
+    flex: 1;
+    min-width: 220px;
+    max-width: 360px;
+  }
+}
+
+.tabla-wrap {
+  overflow-x: auto;
+}
+
+// ============================================
+// Tablas
+// ============================================
+.tabla-morosos,
+.tabla-pagos,
+.tabla-movimientos {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+
+  thead th {
+    padding: 0.75rem 0.85rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-align: left;
+    color: $dark;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    white-space: nowrap;
+
+    &.th-ordenable {
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.15s ease;
+
+      i {
+        font-size: 0.75rem;
+        color: rgba(0, 0, 0, 0.35);
+        transition: color 0.15s ease;
+      }
+    }
+  }
+
+  tbody {
+    tr {
+      background: #fff;
+      transition: background-color 0.15s ease;
+
+      &:nth-child(even) { background-color: #fafafa; }
+
+      td {
+        padding: 0.55rem 0.85rem;
+        font-size: 0.88rem;
+        color: $dark;
+        border-bottom: 1px solid #f0f0f0;
+        vertical-align: middle;
+      }
+
+      &:last-child td { border-bottom: none; }
+    }
+  }
+
+  .money {
+    font-family: 'Courier New', monospace;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+}
+
+// Tabla morosos: header rojo
+.tabla-morosos {
+  thead th {
+    background: rgba(220, 53, 69, 0.05);
+    border-top: 2px solid $danger;
+
+    &:first-child { border-top-left-radius: 0.5rem; }
+    &:last-child  { border-top-right-radius: 0.5rem; }
+
+    &.th-ordenable:hover {
+      background: rgba(220, 53, 69, 0.1);
+      i { color: $danger; }
+    }
+
+    .fa-sort-up,
+    .fa-sort-down { color: $danger !important; }
+  }
+
+  tbody tr {
+    &:hover { background: $gold-light; }
+
+    &.fila-critica {
+      background-color: rgba(220, 53, 69, 0.04);
+      &:hover { background: rgba(220, 53, 69, 0.09); }
+    }
+
+    &.fila-inactivo {
+      opacity: 0.7;
+      font-style: italic;
+    }
+  }
+
+  .persona-nombre { font-weight: 600; }
+  .persona-tipo { margin-top: 0.15rem; }
+
+  .money-venc {
+    color: $dark-light;
+    &.tiene-vencido {
+      color: $danger;
+      font-weight: 700;
+    }
+  }
+}
+
+// ============================================
+// Columnas de recordatorio / compromiso (detalle cartera)
+// ============================================
+.recordatorio-col {
+  min-width: 130px;
+
+  .recordatorio-fecha {
+    font-family: 'Courier New', monospace;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: $dark;
+  }
+
+  .recordatorio-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    margin-top: 0.2rem;
+    flex-wrap: wrap;
+  }
+
+  .recordatorio-tipo {
+    font-size: 0.68rem;
+    color: #888;
+    font-style: italic;
+    text-transform: capitalize;
+  }
+
+  .sin-recordatorio {
+    font-size: 0.78rem;
+    font-style: italic;
+  }
+}
+
+.badge-recordatorio {
+  display: inline-block;
+  padding: 0.08rem 0.4rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  border-radius: 6px;
+  text-transform: uppercase;
+}
+
+.badge-rec-pago {
+  background: rgba(40, 167, 69, 0.12);
+  color: #1e7e34;
+  border: 1px solid rgba(40, 167, 69, 0.35);
+}
+
+.badge-rec-general {
+  background: rgba(23, 162, 184, 0.1);
+  color: #0c5460;
+  border: 1px solid rgba(23, 162, 184, 0.3);
+}
+
+.compromiso-col {
+  min-width: 160px;
+  max-width: 240px;
+
+  .compromiso-texto {
+    font-size: 0.8rem;
+    color: $dark;
+    line-height: 1.3;
+  }
+
+  .compromiso-fecha {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin-top: 0.25rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: $gold-dark;
+
+    i { font-size: 0.65rem; }
+  }
+}
+
+// Tabla pagos: header verde
+.tabla-pagos {
+  thead th {
+    background: rgba(40, 167, 69, 0.06);
+    border-top: 2px solid $success;
+
+    &:first-child { border-top-left-radius: 0.5rem; }
+    &:last-child  { border-top-right-radius: 0.5rem; }
+
+    &.th-ordenable:hover {
+      background: rgba(40, 167, 69, 0.12);
+      i { color: #1e7e34; }
+    }
+
+    .fa-sort-up,
+    .fa-sort-down { color: #1e7e34 !important; }
+  }
+
+  tbody tr {
+    &:hover { background: $gold-light; }
+  }
+
+  .fecha-col {
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    white-space: nowrap;
+  }
+
+  .referencia-col {
+    font-family: 'Courier New', monospace;
+    font-size: 0.82rem;
+    color: #555;
+  }
+}
+
+// Tabla movimientos: header morado
+.tabla-movimientos {
+  thead th {
+    background: rgba(111, 66, 193, 0.06);
+    border-top: 2px solid #6f42c1;
+
+    &:first-child { border-top-left-radius: 0.5rem; }
+    &:last-child  { border-top-right-radius: 0.5rem; }
+
+    &.th-ordenable:hover {
+      background: rgba(111, 66, 193, 0.12);
+      i { color: #6f42c1; }
+    }
+
+    .fa-sort-up,
+    .fa-sort-down { color: #6f42c1 !important; }
+  }
+
+  tbody tr {
+    &:hover { background: $gold-light; }
+
+    &.fila-anulado {
+      opacity: 0.55;
+      text-decoration: line-through;
+      text-decoration-color: rgba(108, 117, 125, 0.3);
+    }
+
+    &.fila-pendiente {
+      background-color: rgba(255, 152, 0, 0.05);
+      &:hover { background: rgba(255, 152, 0, 0.1); }
+    }
+  }
+
+  .fecha-col {
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    white-space: nowrap;
+  }
+
+  .cat-color {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    margin-right: 0.35rem;
+    vertical-align: middle;
+  }
+
+  .money {
+    font-family: 'Courier New', monospace;
+    font-weight: 700;
+  }
+
+  .money-ingreso { color: #1e7e34; }
+  .money-gasto   { color: $danger; }
+}
+
+// Badges adicionales para movimientos
+.badge-ingreso {
+  background: rgba(40, 167, 69, 0.12);
+  color: #1e7e34;
+  border: 1px solid rgba(40, 167, 69, 0.4);
+}
+
+.badge-gasto {
+  background: rgba(220, 53, 69, 0.12);
+  color: #721c24;
+  border: 1px solid rgba(220, 53, 69, 0.4);
+}
+
+.badge-estado-mov {
+  display: inline-block;
+  padding: 0.15rem 0.55rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  border-radius: 10px;
+  text-transform: uppercase;
+}
+
+.badge-aprobado {
+  background: rgba(40, 167, 69, 0.12);
+  color: #1e7e34;
+  border: 1px solid rgba(40, 167, 69, 0.4);
+}
+
+.badge-pendiente-mov {
+  background: rgba(255, 152, 0, 0.15);
+  color: #8a4b00;
+  border: 1px solid rgba(255, 152, 0, 0.4);
+}
+
+.badge-anulado {
+  background: rgba(108, 117, 125, 0.12);
+  color: #495057;
+  border: 1px solid rgba(108, 117, 125, 0.4);
+}
+
+// Badges
+.badge-tipo {
+  display: inline-block;
+  padding: 0.1rem 0.4rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  border-radius: 6px;
+  text-transform: uppercase;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.badge-estudiante {
+  background: rgba(245, 166, 35, 0.12);
+  color: #8a4b00;
+  border: 1px solid rgba(245, 166, 35, 0.4);
+}
+
+.badge-colaborador {
+  background: rgba(23, 162, 184, 0.1);
+  color: #0c5460;
+  border: 1px solid rgba(23, 162, 184, 0.3);
+}
+
+.badge-acudiente {
+  background: rgba(156, 39, 176, 0.1);
+  color: #6a1b9a;
+  border: 1px solid rgba(156, 39, 176, 0.4);
+}
+
+.badge-estado {
+  display: inline-block;
+  padding: 0.15rem 0.55rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  border-radius: 10px;
+  text-transform: uppercase;
+}
+
+.badge-activo {
+  background: rgba(40, 167, 69, 0.12);
+  color: #1e7e34;
+  border: 1px solid rgba(40, 167, 69, 0.4);
+}
+
+.badge-inactivo {
+  background: rgba(108, 117, 125, 0.12);
+  color: #495057;
+  border: 1px solid rgba(108, 117, 125, 0.4);
+}
+
+.badge-venc {
+  display: inline-block;
+  min-width: 24px;
+  padding: 0.15rem 0.5rem;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: rgba(220, 53, 69, 0.1);
+  color: #721c24;
+  border: 1px solid rgba(220, 53, 69, 0.3);
+}
+
+.tag-dias {
+  display: inline-block;
+  min-width: 36px;
+  padding: 0.2rem 0.5rem;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border: 1px solid transparent;
+  font-family: 'Courier New', monospace;
+}
+
+.tag-dias-bajo {
+  background-color: rgba(245, 166, 35, 0.12);
+  color: #7a5a00;
+  border-color: rgba(245, 166, 35, 0.35);
+}
+
+.tag-dias-medio {
+  background-color: rgba(255, 152, 0, 0.15);
+  color: #8a4b00;
+  border-color: rgba(255, 152, 0, 0.4);
+}
+
+.tag-dias-alto {
+  background-color: rgba(220, 53, 69, 0.12);
+  color: #721c24;
+  border-color: rgba(220, 53, 69, 0.4);
+}
+
+.sin-datos {
+  text-align: center;
+  color: #888;
+  padding: 2rem 1rem;
+}
+
+@media (max-width: $mobile) {
+  .seccion-financiero {
+    // Evitar overflow lateral global
+    overflow-x: hidden;
+  }
+
+  .barra-kpis {
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  .kpis-contenedor {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .bloque-indicador {
+    padding: 0.9rem 0.85rem;
+    border-radius: 0.6rem;
+
+    .bloque-header {
+      margin-bottom: 0.75rem;
+
+      .bloque-titulo {
+        h4 { font-size: 1.05rem; }
+        .bloque-icono { font-size: 1.3rem; }
+      }
+
+      .bloque-accion {
+        font-size: 0.78rem;
+      }
+    }
+  }
+
+  // KPI dual: 1 columna ya estaba; aseguramos sin gaps raros
+  .kpi-dual {
+    padding: 0.5rem 0 0.75rem;
+    gap: 0.6rem;
+
+    .kpi-dual-item {
+      .kpi-dual-valor { font-size: 1.35rem; }
+      .kpi-dual-pct { font-size: 0.95rem; }
+      .kpi-dual-label { font-size: 0.72rem; }
+    }
+  }
+
+  .kpi-delta {
+    font-size: 0.65rem;
+    padding: 0.1rem 0.45rem;
+    .delta-ref { font-size: 0.6rem; }
+    i { font-size: 0.58rem; }
+  }
+
+  .balance-mes-linea {
+    flex-direction: column;
+    gap: 0.2rem;
+    padding: 0.5rem;
+    margin: 0.4rem 0 0.75rem;
+
+    .balance-label { font-size: 0.65rem; }
+    .balance-valor { font-size: 0.9rem; }
+  }
+
+  // Sub-bloques: 1 columna en mobile, ocupando todo el ancho disponible
+  .desglose-tipo {
+    grid-template-columns: 1fr;
+    gap: 0.45rem;
+  }
+
+  .desglose-item {
+    padding: 0.55rem 0.65rem;
+    gap: 0.55rem;
+    min-width: 0;
+
+    .desglose-icono { font-size: 1.2rem; }
+    .desglose-contenido { min-width: 0; }
+    .desglose-valores .desglose-num-money { font-size: 0.92rem; }
+    .desglose-label { font-size: 0.68rem; }
+    .desglose-sub { font-size: 0.66rem; }
+  }
+
+  // Antigüedad: 2 columnas; minmax 0 evita desbordamiento
+  .antiguedad-bloque {
+    padding: 0.6rem 0.7rem;
+
+    .antiguedad-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.35rem;
+    }
+
+    .antiguedad-item {
+      padding: 0.4rem 0.5rem;
+      min-width: 0;
+
+      .antiguedad-valor { font-size: 0.8rem; }
+      .antiguedad-pct { font-size: 0.65rem; }
+      .antiguedad-label { font-size: 0.62rem; }
+    }
+  }
+
+  // Tipos de pago: 2 columnas
+  .tipos-pago-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.35rem;
+  }
+
+  .tipo-pago-item {
+    padding: 0.4rem 0.5rem;
+    min-width: 0;
+
+    .tipo-pago-valor { font-size: 0.85rem; }
+    .tipo-pago-label { font-size: 0.66rem; }
+    .tipo-pago-cantidad { font-size: 0.62rem; }
+  }
+
+  // Resumen tipos en detalle: 2 columnas
+  .resumen-tipos-bar .resumen-tipos-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.35rem;
+  }
+
+  // Detalle: padding compacto
+  .detalle-contenedor {
+    padding: 0.75rem;
+  }
+
+  .detalle-header {
+    gap: 0.5rem;
+
+    .detalle-titulo {
+      min-width: 0;
+      h4 { font-size: 1rem; }
+      small { font-size: 0.7rem; }
+    }
+  }
+
+  .filtros-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+
+    .filtro-grupo {
+      gap: 0.25rem;
+      .btn { font-size: 0.75rem; padding: 0.25rem 0.5rem; }
+      select { min-width: 0; width: 100%; }
+    }
+
+    .busqueda-grupo { max-width: 100%; min-width: 0; }
+  }
+
+  .tabla-morosos,
+  .tabla-pagos,
+  .tabla-movimientos {
+    thead th, tbody td {
+      padding: 0.4rem 0.45rem;
+      font-size: 0.74rem;
+    }
+  }
+}

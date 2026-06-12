@@ -1,0 +1,72 @@
+<div class="modulo">
+  <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [raiz]="'/reportes'" 
+    [regresar]="'/reportes'" [iconoTitulo]="'/assets/images/reportar-pago.png'"></app-header>
+
+  <!-- Resumen -->
+  <div class="container-fluid px-4 mt-3">
+    <div class="card shadow-sm" *ngIf="datos && datos.length > 0">
+      <div class="card-header bg-warning text-dark">
+        <h5 class="card-title mb-0">
+          <i class="fa fa-chart-bar me-2"></i>
+          {{ resumen.haySeleccion ? 'Resumen de Selección' : 'Resumen de Reportes' }}
+        </h5>
+      </div>
+      <div class="card-body">
+        <div class="row mb-3">
+          <div class="col-md-4">
+            <div class="total-box">
+              <h6 class="text-muted">Total Reportado:</h6>
+              <p class="total-value text-dark fw-bold">
+                {{ resumen.totalReportado | currency:'COP ':'symbol':'1.0-0' }}
+              </p>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="estado-box estado-pendiente">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <i class="fa fa-clock me-2"></i>
+                  <strong>Pendientes</strong>
+                </div>
+                <span class="badge bg-warning text-dark">{{ resumen.pendientes.cantidad }}</span>
+              </div>
+              <p class="mt-2 mb-0 text-end fw-bold">
+                {{ resumen.pendientes.total | currency:'COP ':'symbol':'1.0-0' }}
+              </p>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="estado-box estado-asociado">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <i class="fa fa-check-circle me-2"></i>
+                  <strong>Registrados</strong>
+                </div>
+                <span class="badge bg-success">{{ resumen.asociados.cantidad }}</span>
+              </div>
+              <p class="mt-2 mb-0 text-end fw-bold">
+                {{ resumen.asociados.total | currency:'COP ':'symbol':'1.0-0' }}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabla -->
+  <app-tablas 
+    [titulos]="titulos" 
+    [datos]="datos" 
+    [raiz]="'/reportes/reportes-pago'" 
+    [accionVer]="false"
+    [accionEditar]="false" 
+    [accionEliminar]="false" 
+    [columnasFiltro]="columnasFiltro"
+    [seleccionMultiple]="true"
+    [campoId]="'id'"
+    (clicAccion)="seleccionar($event)"
+    (seleccionCambiada)="onSeleccionCambiada($event)"
+    (datosFiltradosCambiados)="onDatosFiltradosCambiados($event)">
+  </app-tablas>
+</div>

@@ -13,6 +13,10 @@ import { TiposIdentificacionService } from '../../../services/tipos-identificaci
 import { GenerosService } from '../../../services/generos.service';
 import { CiudadesService } from '../../../services/ciudades.service';
 import { NivelesEscolaridadService } from '../../../services/niveles-escolaridad.service';
+import { DocentesService } from '../../../services/docentes.service';
+import { GruposService } from '../../../services/grupos.service';
+import { AreasAcademicasService } from '../../../services/areas-academicas.service';
+import { AreaAcademicaXGrupoService } from '../../../services/area-academica-x-grupo.service';
 import { UsuariosService } from '../../../services/usuarios.service';
 import { HorariosColaboradoresService } from '../../../services/horarios-colaboradores.service';
 import Swal from 'sweetalert2';
@@ -98,6 +102,8 @@ export class CrearColaboradoresComponent implements OnInit {
     private casasService: CasasColaboradoresService, private personasService: PersonasService,
     private tiposIdentificacionService: TiposIdentificacionService, private generosService: GenerosService,
     private ciudadesService: CiudadesService, private nivelesEscolaridadService: NivelesEscolaridadService,
+    private docentesService: DocentesService, private gruposService: GruposService,
+    private areasAcademicasService: AreasAcademicasService, private areaAcademicaXGrupoService: AreaAcademicaXGrupoService,
     private cargosService: CargosService, private motivosRetiroService: MotivosRetiroService,
     private tiposContratoService: TiposContratoService, private usuariosService: UsuariosService,
     private horariosService: HorariosColaboradoresService
@@ -192,6 +198,8 @@ export class CrearColaboradoresComponent implements OnInit {
     this.nivelesEscolaridadService.obtenerTodos().subscribe({ next: (r: any) => (this.listas.nivelesEscolaridad = r.body || []), error: (e: any) => console.error('Error', e) });
     this.casasService.obtenerTodos().subscribe({ next: (r: any) => (this.listas.casas = r.body || []), error: (e: any) => console.error('Error', e) });
     this.ciudadesService.obtenerTodos().subscribe({ next: (r: any) => (this.listas.ciudades = r.body || []), error: (e: any) => console.error('Error', e) });
+    this.gruposService.obtenerTodos().subscribe({ next: (r: any) => (this.listas.grupos = r.body || []), error: (e: any) => console.error('Error', e) });
+    this.areasAcademicasService.obtenerTodos().subscribe({ next: (r: any) => (this.listas.areasAcademicas = r.body || []), error: (e: any) => console.error('Error', e) });
     this.cargosService.obtenerTodos().subscribe({ next: (r: any) => (this.listas.cargos = r.body || []), error: (e: any) => console.error('Error', e) });
     this.motivosRetiroService.obtenerTodos().subscribe({ next: (r: any) => (this.listas.motivosRetiro = r.body || []), error: (e: any) => console.error('Error', e) });
     this.tiposContratoService.obtenerTodos().subscribe({ next: (r: any) => (this.listas.tiposContrato = r.body || []), error: (e: any) => console.error('Error', e) });
@@ -229,9 +237,8 @@ export class CrearColaboradoresComponent implements OnInit {
     this.titulo = `${this.accion === 'editar' ? 'Editar' : 'Ver'} Colaborador: ${this.nombreColaborador}`;
   }
 
-  // NÚCLEO: asignación de grupos/áreas a docentes deshabilitada (dominio educativo)
-  consultarGruposAsignados() { this.gruposAsignados = []; }
-  consultarAreasAcademicas() { this.areasAsignadas = []; }
+  consultarGruposAsignados() { this.docentesService.obtenerGruposDocente(this.model.idDocente).subscribe({ next: (r: any) => { this.gruposAsignados = r.body || []; }, error: (e: any) => console.error('Error', e) }); }
+  consultarAreasAcademicas() { this.areaAcademicaXGrupoService.obtenerPorDocente(this.model.idDocente).subscribe({ next: (r: any) => { this.areasAsignadas = r.body || []; }, error: (e: any) => console.error('Error', e) }); }
   onColaboradorActivoChange() { this.model.activo = this.colaboradorActivoSwitch ? 1 : 0; }
   cambiarEstadoColaborador() { this.model.activo = this.colaboradorActivoSwitch ? 1 : 0; }
 
@@ -272,15 +279,15 @@ export class CrearColaboradoresComponent implements OnInit {
 
   // ========== GRUPOS ==========
   grupoYaAsignado(idGrupo: any): boolean { return this.gruposAsignados.some((g) => g.id_grupo == idGrupo && g.activo == 1); }
-  asignarGrupo() { }
-  cambiarTitular(grupo: any) { }
-  toggleEstadoGrupo(grupo: any) { }
+  asignarGrupo() { if (!this.nuevoGrupo.idGrupo) return; this.docentesService.asignarGrupo({ id_docente: this.model.idDocente, id_grupo: this.nuevoGrupo.idGrupo, es_titular: this.nuevoGrupo.esTitular ? 1 : 0, fecha_asignacion: new Date().toISOString().split('T')[0] }).subscribe(() => { Swal.fire({ icon: 'success', title: 'Grupo asignado', timer: 2000, showConfirmButton: false }); this.consultarGruposAsignados(); this.nuevoGrupo = { idGrupo: '', esTitular: false }; }, (e: any) => Swal.fire({ icon: 'error', title: 'Error', text: e.error?.error || 'Error' })); }
+  cambiarTitular(grupo: any) { const n = grupo.es_titular ? 0 : 1; this.docentesService.actualizarTitular(grupo.id, n).subscribe({ next: () => { Swal.fire({ icon: 'success', title: n ? 'Titular asignado' : 'Titular removido', timer: 2000, showConfirmButton: false }); this.consultarGruposAsignados(); }, error: () => Swal.fire({ icon: 'error', title: 'Error', text: 'Error al actualizar' }) }); }
+  toggleEstadoGrupo(grupo: any) { const svc = grupo.activo ? this.docentesService.desactivarAsignacion(grupo.id) : this.docentesService.activarAsignacion(grupo.id); svc.subscribe(() => { Swal.fire({ icon: 'success', title: grupo.activo ? 'Desactivado' : 'Activado', timer: 2000, showConfirmButton: false }); this.consultarGruposAsignados(); }, (e: any) => Swal.fire({ icon: 'error', title: 'Error', text: e.error?.error || 'Error' })); }
 
   // ========== ÁREAS ==========
-  asignarArea(idGrupo: any) { }
+  asignarArea(idGrupo: any) { if (!this.nuevaArea[idGrupo]) return; this.areaAcademicaXGrupoService.crear({ id_area_academica: this.nuevaArea[idGrupo], id_grupo: idGrupo, id_docente: this.model.idDocente }).subscribe(() => { Swal.fire({ icon: 'success', title: 'Área asignada', timer: 2000, showConfirmButton: false }); this.consultarAreasAcademicas(); this.nuevaArea[idGrupo] = ''; }, (e: any) => Swal.fire({ icon: 'error', title: 'Error', text: e.error?.error || 'Error' })); }
   areaYaAsignada(idArea: any, idGrupo: any): boolean { return this.areasAsignadas.some((a: any) => a.id_area_academica == idArea && a.id_grupo == idGrupo); }
   obtenerAreasGrupo(idGrupo: any): any[] { return this.areasAsignadas.filter((a: any) => a.id_grupo == idGrupo); }
-  quitarArea(idAsignacion: any) { }
+  quitarArea(idAsignacion: any) { Swal.fire({ title: '¿Está seguro?', text: 'Eliminará la asignación del área', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Sí, eliminar', cancelButtonText: 'Cancelar' }).then((r) => { if (r.isConfirmed) { this.areaAcademicaXGrupoService.eliminar({ id: idAsignacion }).subscribe(() => { Swal.fire({ icon: 'success', title: 'Eliminada', timer: 2000, showConfirmButton: false }); this.consultarAreasAcademicas(); }, () => Swal.fire({ icon: 'error', title: 'Error', text: 'Error al eliminar' })); } }); }
 
   // ========== USUARIO ==========
   cargarUsuario() { this.usuariosService.obtenerPorPersona(this.model.idPersona).subscribe({ next: (r: any) => { const d = r.body; if (d && d.length > 0) { const u = d[0]; this.modelUsuario = { id: u.id, id_persona: u.id_persona, usuario: u.usuario, correo_electronico: u.correo_electronico, clave: '', activo: u.activo, acceso_institucional: u.acceso_institucional, acceso_portal_padres: u.acceso_portal_padres }; } else { this.resetearModeloUsuario(); } }, error: () => this.resetearModeloUsuario() }); }

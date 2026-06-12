@@ -1,0 +1,294 @@
+<div class="modulo">
+  <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [raiz]="'/'" [regresar]="'/operaciones'" [iconoTitulo]="'/assets/images/onces.png'"></app-header>
+
+  <div class="asignacion-container">
+
+    <!-- CARGANDO INICIAL -->
+    <div class="estado-center" *ngIf="cargandoInicial">
+      <i class="fas fa-spinner fa-spin estado-icono-gold"></i>
+      <p class="estado-texto">Cargando datos del día...</p>
+    </div>
+
+    <ng-container *ngIf="!cargandoInicial">
+
+      <!-- ============================= -->
+      <!-- PASO 1: FECHA Y HORARIO       -->
+      <!-- ============================= -->
+      <div class="paso-panel glass-card">
+        <div class="paso-header">
+          <span class="paso-num">1</span>
+          <span class="paso-titulo">Selecciona fecha y horario</span>
+        </div>
+        <div class="row g-3 mt-1">
+          <div class="col-md-4 col-sm-6">
+            <label class="filtro-label"><i class="fas fa-calendar-alt me-2"></i>Fecha</label>
+            <input type="date" class="filtro-input" [(ngModel)]="fechaSeleccionada" (change)="cambioFecha()" />
+          </div>
+          <div class="col-md-4 col-sm-6">
+            <label class="filtro-label"><i class="fas fa-clock me-2"></i>Horario</label>
+            <select class="filtro-input" [(ngModel)]="horarioSeleccionado" (change)="cambioHorario()">
+              <option value="">Seleccionar horario...</option>
+              <option *ngFor="let h of horarios" [value]="h.id">{{ h.nombre }}</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================= -->
+      <!-- PANEL RESUMEN DEL HORARIO     -->
+      <!-- ============================= -->
+      <div class="paso-panel glass-card resumen-panel" *ngIf="horarioSeleccionado && resumenHorario.length > 0">
+        <div class="paso-header resumen-header-clickable" (click)="resumenAbierto = !resumenAbierto">
+          <i class="fas fa-clipboard-list resumen-icono"></i>
+          <span class="paso-titulo">Resumen del horario</span>
+          <span class="paso-sub">{{ resumenHorario.length }} estudiante{{ resumenHorario.length !== 1 ? 's' : '' }} con onces</span>
+          <i class="fas ms-2" [ngClass]="resumenAbierto ? 'fa-chevron-up' : 'fa-chevron-down'" style="color: var(--gold-dark, #e0a000); font-size: 0.85rem;"></i>
+        </div>
+        <div class="resumen-grupos mt-2" *ngIf="resumenAbierto">
+          <ng-container *ngFor="let grupo of gruposResumen; trackBy: trackByGrupo">
+            <div class="resumen-grupo-label"><i class="fas fa-users me-2"></i>{{ grupo }}</div>
+            <div class="resumen-lista">
+              <div class="resumen-row" *ngFor="let est of getResumenPorGrupo(grupo)">
+                <div class="resumen-nombre">{{ est.nombre_estudiante }}</div>
+                <div class="resumen-productos">
+                  <span class="resumen-producto-chip" *ngFor="let prod of est.productos">{{ prod }}</span>
+                </div>
+              </div>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+
+      <!-- ============================= -->
+      <!-- PASO 2: PRODUCTOS             -->
+      <!-- ============================= -->
+      <div class="paso-panel glass-card" *ngIf="horarioSeleccionado">
+
+        <div class="paso-header">
+          <span class="paso-num">2</span>
+          <span class="paso-titulo">Selecciona el producto</span>
+          <span class="paso-sub" *ngIf="productosDisponibles.length > 0">{{ productosDisponibles.length }} disponibles hoy</span>
+        </div>
+
+        <div class="estado-center" *ngIf="cargandoProductos">
+          <i class="fas fa-spinner fa-spin estado-icono-gold"></i>
+          <p class="estado-texto">Cargando productos...</p>
+        </div>
+
+        <ng-container *ngIf="!cargandoProductos">
+
+          <!-- Buscador de productos -->
+          <div class="mt-3" *ngIf="productosDisponibles.length > 0 || productosNoDisponibles.length > 0">
+            <input type="text" class="filtro-input" placeholder="Buscar producto..."
+              [(ngModel)]="textoBusquedaProducto" (input)="textoBusquedaProducto = textoBusquedaProducto" />
+          </div>
+
+          <div class="estado-center" *ngIf="productosDisponibles.length === 0 && productosNoDisponibles.length === 0">
+            <i class="fas fa-box-open estado-icono-gold"></i>
+            <p class="estado-texto">No hay productos registrados para este horario.</p>
+          </div>
+
+          <div class="productos-grid mt-3" *ngIf="productosDisponiblesFiltrados.length > 0">
+            <div
+              *ngFor="let p of productosDisponiblesFiltrados; trackBy: trackByProducto"
+              class="producto-card"
+              [class.seleccionado]="productoSeleccionado === p.id"
+              (click)="seleccionarProducto(p.id)"
+            >
+              <div class="producto-disponibilidad disponible"><i class="fas fa-check-circle"></i></div>
+              <div class="producto-nombre">{{ p.nombre }}</div>
+              <div class="producto-detalle" *ngIf="p.detalles">{{ p.detalles }}</div>
+              <div class="producto-valor" *ngIf="p.valor_sugerido > 0">$ {{ p.valor_sugerido | number:'1.0-0' }}</div>
+              <div class="producto-asignados-badge" *ngIf="contarAsignadosPorProducto(p.id) > 0">
+                <i class="fas fa-user-check"></i> {{ contarAsignadosPorProducto(p.id) }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Acordeón productos no disponibles -->
+          <div class="acordeon mt-3" *ngIf="productosNoDisponiblesFiltrados.length > 0">
+            <div class="acordeon-header" (click)="acordeonProductosAbierto = !acordeonProductosAbierto">
+              <i class="fas fa-box me-2"></i>No disponibles hoy ({{ productosNoDisponiblesFiltrados.length }})
+              <i class="fas ms-auto" [ngClass]="acordeonProductosAbierto ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+            </div>
+            <div class="acordeon-body" *ngIf="acordeonProductosAbierto">
+              <div class="productos-grid mt-2">
+                <div
+                  *ngFor="let p of productosNoDisponiblesFiltrados; trackBy: trackByProducto"
+                  class="producto-card no-disponible"
+                  [class.seleccionado]="productoSeleccionado === p.id"
+                  (click)="seleccionarProducto(p.id)"
+                >
+                  <div class="producto-disponibilidad no-disponible-icon"><i class="fas fa-times-circle"></i></div>
+                  <div class="producto-nombre">{{ p.nombre }}</div>
+                  <div class="producto-detalle" *ngIf="p.detalles">{{ p.detalles }}</div>
+                  <div class="producto-valor" *ngIf="p.valor_sugerido > 0">$ {{ p.valor_sugerido | number:'1.0-0' }}</div>
+                  <div class="producto-asignados-badge" *ngIf="contarAsignadosPorProducto(p.id) > 0">
+                    <i class="fas fa-user-check"></i> {{ contarAsignadosPorProducto(p.id) }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </ng-container>
+      </div>
+
+      <!-- ============================= -->
+      <!-- PASO 3: ESTUDIANTES           -->
+      <!-- ============================= -->
+      <div class="paso-panel glass-card" *ngIf="productoSeleccionado">
+
+        <div class="paso-header">
+          <span class="paso-num">3</span>
+          <span class="paso-titulo">Selecciona estudiantes</span>
+          <span class="paso-sub">{{ totalSeleccionados }} seleccionados</span>
+        </div>
+
+        <!-- BARRA GRABAR SUPERIOR -->
+        <div class="grabar-bar mt-2" *ngIf="totalSeleccionados > 0">
+          <div class="grabar-info">
+            <i class="fas fa-info-circle me-1"></i>
+            {{ totalSeleccionados }} estudiante{{ totalSeleccionados !== 1 ? 's' : '' }} seleccionado{{ totalSeleccionados !== 1 ? 's' : '' }}
+          </div>
+          <button class="btn-grabar" (click)="grabar()" [disabled]="grabando">
+            <i class="fas me-2" [ngClass]="grabando ? 'fa-spinner fa-spin' : 'fa-save'"></i>
+            {{ grabando ? 'Guardando...' : 'Asignar onces' }}
+          </button>
+        </div>
+
+        <!-- Buscador + filtros + seleccionar todos -->
+        <div class="filtros-estudiantes mt-2">
+          <div class="row g-2 align-items-center">
+            <div class="col-md-5">
+              <input type="text" class="filtro-input" placeholder="Buscar por nombre o grupo..."
+                [(ngModel)]="textoBusqueda" (input)="cambioBusqueda()" />
+            </div>
+            <div class="col-md-4">
+              <div class="filtro-chips">
+                <button class="filtro-chip" [class.activo]="filtroAsignacion === 'todos'" (click)="cambioFiltroAsignacion('todos')">
+                  Todos
+                </button>
+                <button class="filtro-chip" [class.activo]="filtroAsignacion === 'sin_asignar'" (click)="cambioFiltroAsignacion('sin_asignar')">
+                  Sin asignar
+                </button>
+                <button class="filtro-chip" [class.activo]="filtroAsignacion === 'asignados'" (click)="cambioFiltroAsignacion('asignados')">
+                  Asignados
+                </button>
+              </div>
+            </div>
+            <div class="col-md-3 text-end">
+              <button class="btn-accion btn-todos" (click)="toggleTodosPresentes()"
+                *ngIf="presentesFiltrados.length > 0 && filtroAsignacion !== 'asignados'">
+                <i class="fas" [ngClass]="todosPresentesSeleccionados ? 'fa-times-circle' : 'fa-check-double'"></i>
+                {{ todosPresentesSeleccionados ? 'Deseleccionar' : 'Sel. presentes' }}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sin resultados -->
+        <div class="estado-center" *ngIf="presentesFiltrados.length === 0 && ausentesFiltrados.length === 0">
+          <i class="fas fa-user-check estado-icono-verde"></i>
+          <p class="estado-texto" *ngIf="filtroAsignacion === 'todos'">Todos los estudiantes ya tienen onces asignadas para este producto.</p>
+          <p class="estado-texto" *ngIf="filtroAsignacion === 'asignados'">Ningún estudiante tiene asignado este producto aún.</p>
+          <p class="estado-texto" *ngIf="filtroAsignacion === 'sin_asignar'">Todos los estudiantes ya tienen este producto asignado.</p>
+        </div>
+
+        <!-- PRESENTES -->
+        <ng-container *ngIf="presentesFiltrados.length > 0">
+          <div class="seccion-label mt-3">
+            <i class="fas fa-user-check me-2"></i>Presentes hoy ({{ presentesFiltrados.length }})
+          </div>
+          <div class="grupos-acordeon mt-1">
+            <ng-container *ngFor="let grupo of getGrupos(presentesFiltrados); trackBy: trackByGrupo">
+              <div class="grupo-acordeon-header" (click)="toggleGrupo('p_' + grupo)">
+                <i class="fas fa-users me-2"></i>{{ grupo }}
+                <span class="grupo-count ms-2">{{ getEstudiantesPorGrupo(presentesFiltrados, grupo).length }}</span>
+                <i class="fas ms-auto" [ngClass]="isGrupoAbierto('p_' + grupo) ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+              </div>
+              <div class="grupo-acordeon-body" *ngIf="isGrupoAbierto('p_' + grupo)">
+                <div
+                  *ngFor="let est of getEstudiantesPorGrupo(presentesFiltrados, grupo); trackBy: trackByPersona"
+                  class="estudiante-row"
+                  [class.seleccionado]="est.seleccionado"
+                  [class.ya-asignado]="est.ya_asignado"
+                  (click)="toggleEstudiante(est)"
+                >
+                  <div class="est-check">
+                    <i class="fas" [ngClass]="est.ya_asignado ? 'fa-check-circle est-icon-asignado' : (est.seleccionado ? 'fa-check-circle' : 'fa-circle')"></i>
+                  </div>
+                  <div class="est-info">
+                    <div class="est-nombre">{{ est.nombre_estudiante }}</div>
+                    <div class="est-otros-productos" *ngIf="obtenerOtrosProductosAsignados(est.id_persona).length > 0">
+                      <i class="fas fa-tag me-1"></i>{{ obtenerOtrosProductosAsignados(est.id_persona).join(', ') }}
+                    </div>
+                  </div>
+                  <div class="est-asignado-badge" *ngIf="est.ya_asignado">asignado</div>
+                  <div class="est-hora" *ngIf="est.hora_ingreso && !est.ya_asignado">
+                    <i class="fas fa-clock me-1"></i>{{ est.hora_ingreso }}
+                  </div>
+                </div>
+              </div>
+            </ng-container>
+          </div>
+        </ng-container>
+
+        <!-- ACORDEÓN AUSENTES -->
+        <div class="acordeon mt-3" *ngIf="ausentesFiltrados.length > 0">
+          <div class="acordeon-header ausentes" (click)="acordeonAusentesAbierto = !acordeonAusentesAbierto">
+            <i class="fas fa-user-times me-2"></i>Ausentes hoy ({{ ausentesFiltrados.length }})
+            <i class="fas ms-auto" [ngClass]="acordeonAusentesAbierto ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+          </div>
+          <div class="acordeon-body" *ngIf="acordeonAusentesAbierto">
+            <div class="grupos-acordeon mt-1">
+              <ng-container *ngFor="let grupo of getGrupos(ausentesFiltrados); trackBy: trackByGrupo">
+                <div class="grupo-acordeon-header" (click)="toggleGrupo('a_' + grupo)">
+                  <i class="fas fa-users me-2"></i>{{ grupo }}
+                  <span class="grupo-count ms-2">{{ getEstudiantesPorGrupo(ausentesFiltrados, grupo).length }}</span>
+                  <i class="fas ms-auto" [ngClass]="isGrupoAbierto('a_' + grupo) ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+                </div>
+                <div class="grupo-acordeon-body" *ngIf="isGrupoAbierto('a_' + grupo)">
+                  <div
+                    *ngFor="let est of getEstudiantesPorGrupo(ausentesFiltrados, grupo); trackBy: trackByPersona"
+                    class="estudiante-row ausente"
+                    [class.seleccionado]="est.seleccionado"
+                    [class.ya-asignado]="est.ya_asignado"
+                    (click)="toggleEstudiante(est)"
+                  >
+                    <div class="est-check">
+                      <i class="fas" [ngClass]="est.ya_asignado ? 'fa-check-circle est-icon-asignado' : (est.seleccionado ? 'fa-check-circle' : 'fa-circle')"></i>
+                    </div>
+                    <div class="est-info">
+                      <div class="est-nombre">{{ est.nombre_estudiante }}</div>
+                      <div class="est-otros-productos" *ngIf="obtenerOtrosProductosAsignados(est.id_persona).length > 0">
+                        <i class="fas fa-tag me-1"></i>{{ obtenerOtrosProductosAsignados(est.id_persona).join(', ') }}
+                      </div>
+                    </div>
+                    <div class="est-asignado-badge" *ngIf="est.ya_asignado">asignado</div>
+                    <div class="est-ausente-badge" *ngIf="!est.ya_asignado">ausente</div>
+                  </div>
+                </div>
+              </ng-container>
+            </div>
+          </div>
+        </div>
+
+        <!-- BARRA GRABAR INFERIOR -->
+        <div class="grabar-bar mt-3" *ngIf="totalSeleccionados > 0">
+          <div class="grabar-info">
+            <i class="fas fa-info-circle me-1"></i>
+            {{ totalSeleccionados }} estudiante{{ totalSeleccionados !== 1 ? 's' : '' }} seleccionado{{ totalSeleccionados !== 1 ? 's' : '' }}
+          </div>
+          <button class="btn-grabar" (click)="grabar()" [disabled]="grabando">
+            <i class="fas me-2" [ngClass]="grabando ? 'fa-spinner fa-spin' : 'fa-save'"></i>
+            {{ grabando ? 'Guardando...' : 'Asignar onces' }}
+          </button>
+        </div>
+
+      </div>
+
+    </ng-container>
+
+  </div>
+</div>

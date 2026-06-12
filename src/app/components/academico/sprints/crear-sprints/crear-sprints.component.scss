@@ -1,0 +1,1468 @@
+// Variables de color corporativo
+$corporate-yellow: #F5A623;
+$corporate-black: #2C2C2C;
+$corporate-gray: #4A4A4A;
+$light-gray: #F5F5F5;
+$white: #FFFFFF;
+$danger-color: #dc3545;
+$success-color: #28a745;
+$info-color: #17a2b8;
+$warning-color: #ffc107;
+
+// Contenedor principal
+.modulo {
+  background-color: $light-gray;
+  min-height: 100vh;
+  padding-bottom: 2rem;
+}
+
+// Cards mejoradas
+.card {
+  border: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .card-header {
+    border: none;
+    font-weight: 600;
+
+    &.bg-corporate-primary {
+      background-color: $corporate-yellow;
+      color: $corporate-black;
+
+      h5,
+      h6 {
+        color: $corporate-black;
+        font-weight: 700;
+      }
+    }
+
+    &.bg-corporate-secondary {
+      background-color: $corporate-black;
+      color: $white;
+
+      h5,
+      h6 {
+        color: $white;
+      }
+    }
+  }
+
+  .card-body {
+    padding: 1.5rem;
+    background-color: $white;
+  }
+}
+
+// Sistema de pestañas personalizado con títulos sin bold
+.nav-tabs-custom {
+  border-bottom: 3px solid $corporate-yellow;
+  background-color: $white;
+
+  .nav-item {
+    .nav-link {
+      border: none;
+      border-radius: 0;
+      padding: 1rem 1.5rem;
+      color: $corporate-gray;
+      background-color: transparent;
+      transition: all 0.3s ease;
+      position: relative;
+
+      &:hover {
+        background-color: rgba($corporate-yellow, 0.1);
+        color: $corporate-black;
+        border-color: transparent;
+      }
+
+      &.active {
+        background-color: $corporate-yellow;
+        color: $corporate-black;
+        border-color: $corporate-yellow;
+        font-weight: 600; // Reducido de 700
+
+        &::after {
+          content: '';
+          position: absolute;
+          bottom: -3px;
+          left: 0;
+          right: 0;
+          height: 3px;
+          background-color: $corporate-black;
+        }
+      }
+
+      i {
+        font-size: 1.2rem;
+        margin-bottom: 0.25rem;
+      }
+
+      // Remover strong, hacer más suave
+      span {
+        display: block;
+        font-size: 1rem;
+        margin-bottom: 0.25rem;
+        font-weight: 500; // Normal en lugar de bold
+      }
+
+      small {
+        font-size: 0.8rem;
+        opacity: 0.8;
+        display: block;
+      }
+    }
+  }
+}
+
+// Contenido de pestañas
+.tab-content {
+  background-color: $white;
+
+  .tab-pane {
+    min-height: 400px;
+
+    &.fade {
+      &.show {
+        animation: fadeIn 0.4s ease-out;
+      }
+    }
+  }
+}
+
+// Cards de información en pestaña general
+.info-card {
+  background: linear-gradient(135deg, $white 0%, rgba($corporate-yellow, 0.05) 100%);
+  border: 2px solid rgba($corporate-yellow, 0.2);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: all 0.3s ease;
+  height: 100%;
+
+  &:hover {
+    border-color: $corporate-yellow;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  }
+
+  .info-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, $corporate-yellow, darken($corporate-yellow, 10%));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: $corporate-black;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+  }
+
+  .info-content {
+    flex: 1;
+
+    .info-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: $corporate-black;
+      margin-bottom: 0.25rem;
+      line-height: 1;
+    }
+
+    .info-label {
+      font-size: 0.9rem;
+      color: $corporate-gray;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+  }
+}
+
+// Cards de progreso en pestaña de progreso
+.stat-card.progress-card {
+  background: linear-gradient(135deg, $white 0%, rgba($corporate-yellow, 0.05) 100%);
+  border: 2px solid rgba($corporate-yellow, 0.2);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: all 0.3s ease;
+  height: 100%;
+
+  &:hover {
+    border-color: $corporate-yellow;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  }
+
+  .stat-icon {
+    width: 50px;
+    height: 50px;
+    background: $corporate-yellow;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: $corporate-black;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+  }
+
+  .stat-content {
+    flex: 1;
+
+    .stat-value {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: $corporate-black;
+      margin-bottom: 0.25rem;
+      line-height: 1;
+    }
+
+    .stat-label {
+      font-size: 0.85rem;
+      color: $corporate-gray;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+  }
+}
+
+// Secciones dentro de las pestañas
+.logros-analysis,
+.capacidad-section,
+.progress-section,
+.tareas-section {
+  background: $white;
+  border: 1px solid rgba($corporate-gray, 0.1);
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+
+  h5,
+  h6 {
+    color: $corporate-black;
+    font-weight: 600;
+    margin-bottom: 1rem;
+
+    i {
+      color: $corporate-yellow;
+    }
+  }
+}
+
+// Sección de capacidad compacta
+.capacidad-section-compact {
+  background: rgba($light-gray, 0.3);
+  border: 1px solid rgba($corporate-gray, 0.1);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+
+  h6 {
+    color: $corporate-black;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+
+    i {
+      color: $corporate-yellow;
+    }
+  }
+}
+
+// Visualización de capacidad tipo tubos compacta
+.capacidad-grid-compact {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 1rem;
+  padding: 0.5rem;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.tubo-container-compact {
+  background: $white;
+  border: 1px solid #E0E0E0;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  transition: all 0.3s ease;
+  min-height: 180px;
+  position: relative;
+  overflow: visible; // Importante para que se vea el porcentaje
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-color: $corporate-yellow;
+  }
+
+  &.excedido {
+    border-color: $danger-color;
+    background-color: rgba($danger-color, 0.05);
+  }
+}
+
+.tubo-header-compact {
+  text-align: center;
+  margin-bottom: 0.75rem;
+
+  h6 {
+    margin: 0;
+    color: $corporate-black;
+    font-weight: 600;
+    font-size: 0.8rem;
+    line-height: 1.2;
+  }
+
+  small {
+    color: $corporate-gray;
+    font-size: 0.7rem;
+  }
+}
+
+.porcentaje-encima-compact {
+  position: absolute;
+  top: -25px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: $corporate-yellow;
+  color: $corporate-black;
+  padding: 0.3rem 0.5rem;
+  border-radius: 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+}
+
+.tubo-medidor-compact {
+  position: relative;
+  height: 80px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  margin-bottom: 0.75rem;
+  margin-top: 25px; // Espacio para el porcentaje
+}
+
+.tubo-glass-compact {
+  position: relative;
+  width: 40px;
+  height: 70px;
+  background: linear-gradient(to bottom,
+      rgba(255, 255, 255, 0.9),
+      rgba(240, 240, 240, 0.8));
+  border: 2px solid #ddd;
+  border-radius: 0 0 20px 20px;
+  overflow: hidden;
+  box-shadow:
+    inset 0 0 5px rgba(0, 0, 0, 0.1),
+    0 2px 8px rgba(0, 0, 0, 0.15);
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 50px;
+    height: 20px;
+    background: #ddd;
+    border-radius: 50%;
+    border: 2px solid #ddd;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 15px;
+    background: linear-gradient(to bottom, #f0f0f0, #e0e0e0);
+    border-radius: 50%;
+  }
+}
+
+.tubo-liquido-compact {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top,
+      darken($danger-color, 10%),
+      $danger-color );
+  transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 0 0 18px 18px;
+  overflow: hidden;
+
+  &.danger {
+    background: linear-gradient(to top,
+        darken($danger-color, 10%),
+        $danger-color );
+  }
+
+  &.warning {
+    background: linear-gradient(to top,
+        darken($warning-color, 10%),
+        $warning-color );
+  }
+
+  &.success {
+    background: linear-gradient(to top,
+        darken($success-color, 10%),
+        $success-color );
+  }
+
+  &.overflow {
+    background: linear-gradient(to top,
+        darken($corporate-black, 10%),
+        $corporate-black );
+    animation: pulse 2s infinite;
+  }
+}
+
+// Porcentaje en el líquido compacto
+.porcentaje-liquido-compact {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+  z-index: 2;
+  pointer-events: none;
+}
+
+// Burbujas animadas compactas
+.burbuja-compact {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 50%;
+  animation: floatCompact 3s ease-in-out infinite;
+
+  &.burbuja-compact-1 {
+    width: 4px;
+    height: 4px;
+    left: 20%;
+    animation-delay: 0s;
+  }
+
+  &.burbuja-compact-2 {
+    width: 5px;
+    height: 5px;
+    left: 50%;
+    animation-delay: 1s;
+  }
+
+  &.burbuja-compact-3 {
+    width: 3px;
+    height: 3px;
+    left: 70%;
+    animation-delay: 2s;
+  }
+}
+
+// Indicador de overflow compacto
+.overflow-indicator-compact {
+  position: absolute;
+  top: -25px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: $danger-color;
+  color: $white;
+  padding: 0.2rem 0.4rem;
+  border-radius: 0.2rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  animation: bounce 1s ease-in-out infinite;
+  white-space: nowrap;
+
+  i {
+    margin-right: 0.2rem;
+    font-size: 0.6rem;
+  }
+}
+
+// Estadísticas del tubo compactas
+.tubo-stats-compact {
+  .stat-item-compact {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+    padding: 0.2rem;
+    font-size: 0.7rem;
+    color: $corporate-gray;
+    text-align: center;
+
+    i {
+      color: $corporate-yellow;
+      font-size: 0.7rem;
+    }
+
+    span {
+      line-height: 1.2;
+    }
+
+    &.text-danger {
+      color: $danger-color;
+
+      i {
+        color: $danger-color;
+      }
+    }
+  }
+}
+
+// Vista tabla compacta
+.capacidad-tabla-compact {
+  max-height: 300px;
+  overflow-y: auto;
+
+  .table {
+    font-size: 0.85rem;
+
+    th {
+      background-color: $light-gray;
+      font-weight: 600;
+      font-size: 0.8rem;
+      color: $corporate-black;
+      padding: 0.5rem;
+    }
+
+    td {
+      padding: 0.5rem;
+    }
+  }
+}
+
+// Progreso general mejorado
+.progress-general {
+  .progress {
+    border-radius: 0.5rem;
+    overflow: hidden;
+    background-color: #e9ecef;
+
+    .progress-bar {
+      font-weight: 600;
+      font-size: 1.1rem;
+      transition: width 0.8s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      .progress-text {
+        color: $white;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        font-weight: 700;
+      }
+
+      .progress-text-small {
+        font-size: 0.85rem;
+        color: $white;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        font-weight: 600;
+      }
+    }
+  }
+}
+
+// Estadísticas por grupo/área en progreso
+.estadistica-item {
+  background: rgba($light-gray, 0.5);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  border-left: 4px solid $corporate-yellow;
+
+  .progress {
+    border-radius: 0.375rem;
+    overflow: hidden;
+
+    .progress-bar {
+      transition: width 0.6s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  }
+}
+
+// Formularios
+.form-label {
+  color: $corporate-black;
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+
+  .text-danger {
+    font-size: 0.9rem;
+  }
+}
+
+.form-select,
+.form-control {
+  border-radius: 0.375rem;
+  border: 2px solid #E0E0E0;
+  transition: all 0.3s ease;
+
+  &:focus {
+    border-color: $corporate-yellow;
+    box-shadow: 0 0 0 0.2rem rgba($corporate-yellow, 0.25);
+  }
+
+  &.is-invalid {
+    border-color: $danger-color;
+  }
+
+  &.is-valid {
+    border-color: $success-color;
+  }
+}
+
+// Días distribución
+.dias-distribucion {
+  .badge {
+    font-size: 0.9rem;
+    padding: 0.5rem 0.75rem;
+
+    &.bg-info {
+      background-color: $info-color !important;
+    }
+  }
+}
+
+// Barra de progreso
+.progress {
+  background-color: #e9ecef;
+  border-radius: 0.5rem;
+  overflow: hidden;
+
+  .progress-bar {
+    font-weight: 600;
+    font-size: 1rem;
+    transition: width 0.6s ease;
+
+    &.bg-success {
+      background-color: $success-color;
+    }
+
+    &.bg-warning {
+      background-color: $warning-color;
+      color: $corporate-black;
+    }
+
+    &.bg-danger {
+      background-color: $danger-color;
+    }
+  }
+}
+
+// Modal de actividades
+.actividades-list {
+  max-height: 400px;
+  overflow-y: auto;
+  border: 2px solid #E0E0E0;
+  border-radius: 0.375rem;
+
+  &.is-invalid {
+    border-color: $danger-color;
+  }
+
+  .no-results-message {
+    padding: 2rem;
+    text-align: center;
+    color: $corporate-gray;
+    font-style: italic;
+  }
+
+  .actividad-item {
+    padding: 1rem;
+    border-bottom: 1px solid #E0E0E0;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &:hover {
+      background-color: lighten($corporate-yellow, 40%);
+    }
+
+    &.selected {
+      background-color: lighten($corporate-yellow, 30%);
+      border-left: 4px solid $corporate-yellow;
+
+      .check-icon {
+        color: $corporate-yellow;
+      }
+    }
+
+    .actividad-info {
+      flex: 1;
+
+      strong {
+        display: block;
+        margin-bottom: 0.25rem;
+        color: $corporate-black;
+      }
+
+      .text-muted {
+        font-size: 0.875rem;
+
+        i {
+          font-size: 0.75rem;
+          opacity: 0.7;
+        }
+      }
+    }
+
+    .check-icon {
+      font-size: 1.5rem;
+      margin-left: 1rem;
+      color: $corporate-yellow;
+    }
+  }
+}
+
+// Alert corporativo
+.alert-corporate {
+  background-color: lighten($corporate-yellow, 35%);
+  border: 1px solid $corporate-yellow;
+  border-left: 4px solid $corporate-yellow;
+  color: $corporate-black;
+}
+
+// Botones corporativos
+.btn {
+  font-weight: 600;
+  letter-spacing: 0.025rem;
+  transition: all 0.3s ease;
+  border: none;
+
+  &.btn-lg {
+    padding: 0.75rem 2rem;
+    font-size: 1.1rem;
+  }
+
+  &.btn-corporate-primary {
+    background-color: $corporate-yellow;
+    color: $corporate-black;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+    &:hover:not(:disabled) {
+      background-color: darken($corporate-yellow, 10%);
+      color: $corporate-black;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      background-color: lighten($corporate-yellow, 20%);
+    }
+  }
+
+  &.btn-corporate-secondary {
+    background-color: $corporate-black;
+    color: $white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+    &:hover {
+      background-color: lighten($corporate-black, 10%);
+      color: $white;
+      transform: translateY(-2px);
+    }
+  }
+}
+
+// Contenedor deshabilitado
+.disabled-container {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+// Badge personalizado
+.badge {
+  &.bg-secondary {
+    background-color: $corporate-gray !important;
+  }
+
+  &.bg-primary {
+    background-color: $corporate-yellow !important;
+    color: $corporate-black !important;
+  }
+}
+
+// Gráfico container
+.chart-container {
+  background: $white;
+  padding: 1rem;
+  border-radius: 0.5rem;
+
+  canvas {
+    cursor: pointer;
+  }
+}
+
+// Form checks
+.form-check {
+  .form-check-input {
+    border: 2px solid #E0E0E0;
+
+    &:checked {
+      background-color: $corporate-yellow;
+      border-color: $corporate-yellow;
+    }
+
+    &:focus {
+      border-color: $corporate-yellow;
+      box-shadow: 0 0 0 0.2rem rgba($corporate-yellow, 0.25);
+    }
+  }
+
+  .form-check-label {
+    font-weight: 500;
+    color: $corporate-gray;
+  }
+}
+
+// Clases de color para estadísticas
+.text-corporate-yellow {
+  color: $corporate-yellow !important;
+}
+
+.bg-corporate-yellow {
+  background-color: $corporate-yellow !important;
+}
+
+// Cards de resumen de logros
+.card {
+  &.bg-light {
+    .card-body {
+      &.text-center {
+        h3 {
+          &.text-corporate-yellow {
+            color: $corporate-yellow;
+          }
+
+          &.text-success {
+            color: $success-color;
+          }
+
+          &.text-danger {
+            color: $danger-color;
+          }
+
+          &.text-info {
+            color: $info-color;
+          }
+        }
+      }
+    }
+  }
+}
+
+// Alertas informativas
+.alert {
+
+  &.alert-info,
+  &.alert-success,
+  &.alert-warning {
+    small {
+      display: block;
+
+      i {
+        margin-right: 0.25rem;
+      }
+
+      .d-block {
+        display: block;
+        margin-top: 0.25rem;
+      }
+    }
+  }
+}
+
+// Badges en filtros activos
+.badge {
+  &.bg-secondary {
+    background-color: $corporate-gray !important;
+    margin-left: 0.5rem;
+  }
+}
+
+// Estilos para ordenamiento
+.sortable {
+  cursor: pointer;
+  user-select: none;
+
+  &:hover {
+    background-color: rgba($corporate-yellow, 0.1);
+  }
+
+  i {
+    font-size: 0.8rem;
+    opacity: 0.6;
+  }
+}
+
+// Dropdown de ordenamiento mejorado
+.dropdown {
+  .dropdown-menu {
+    border: 1px solid rgba($corporate-gray, 0.2);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    border-radius: 0.375rem;
+    overflow: hidden;
+
+    .dropdown-item {
+      padding: 0.5rem 1rem;
+      font-size: 0.875rem;
+      transition: all 0.2s ease;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+
+      &.active {
+        background-color: $corporate-yellow;
+        color: $corporate-black;
+
+        i {
+          color: $corporate-black;
+        }
+      }
+
+      &:hover:not(.active) {
+        background-color: rgba($corporate-yellow, 0.2);
+      }
+
+      &:focus {
+        background-color: rgba($corporate-yellow, 0.1);
+        outline: none;
+      }
+    }
+
+    .dropdown-divider {
+      margin: 0.25rem 0;
+      border-color: rgba($corporate-gray, 0.2);
+    }
+  }
+
+  &.show .dropdown-menu {
+    display: block;
+  }
+}
+
+// Input de búsqueda
+.input-group {
+  .form-control {
+    &:focus {
+      border-color: $corporate-yellow;
+      box-shadow: 0 0 0 0.2rem rgba($corporate-yellow, 0.25);
+    }
+  }
+}
+
+// Animaciones
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes floatCompact {
+  0% {
+    bottom: 5%;
+    opacity: 0;
+  }
+
+  20% {
+    opacity: 1;
+  }
+
+  80% {
+    opacity: 1;
+  }
+
+  100% {
+    bottom: 85%;
+    opacity: 0;
+  }
+}
+
+@keyframes pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.8;
+  }
+}
+
+@keyframes bounce {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+// Botón outline corporativo
+.btn-outline-corporate {
+  border: 2px solid $corporate-yellow;
+  color: $corporate-yellow;
+  background: transparent;
+  font-weight: 600;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background-color: $corporate-yellow;
+    color: $corporate-black;
+    transform: translateY(-2px);
+  }
+}
+
+// Modal de horarios
+.nav-tabs-horarios {
+  background-color: $light-gray;
+  border-bottom: 2px solid $corporate-yellow;
+
+  .nav-link {
+    border: none;
+    color: $corporate-gray;
+    font-weight: 500;
+
+    &:hover {
+      background-color: rgba($corporate-yellow, 0.1);
+      color: $corporate-black;
+    }
+
+    &.active {
+      background-color: $corporate-yellow;
+      color: $corporate-black;
+      font-weight: 600;
+    }
+  }
+}
+
+.horarios-tab-content {
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.horario-grid-container {
+  background: $white;
+  padding: 1rem !important;
+}
+
+.horario-header {
+  h6 {
+    color: $corporate-black;
+    font-weight: 600;
+  }
+}
+
+.horario-stats {
+  .badge {
+    font-size: 0.8rem;
+    padding: 0.5rem 0.75rem;
+  }
+}
+
+// Grilla de horarios optimizada
+.horario-grid {
+  border: 2px solid #E0E0E0;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  font-size: 0.8rem;
+}
+
+.horario-header-dias,
+.horario-row {
+  display: grid;
+  grid-template-columns: 60px repeat(5, 1fr);
+}
+
+.horario-cell {
+  border: 1px solid #E0E0E0;
+  min-height: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &.horario-time-header,
+  &.horario-day-header {
+    background-color: $corporate-yellow;
+    color: $corporate-black;
+    font-weight: 700;
+    font-size: 0.75rem;
+  }
+
+  &.horario-time-cell {
+    background-color: $light-gray;
+    font-weight: 600;
+    font-size: 0.7rem;
+    color: $corporate-gray;
+  }
+
+  &.horario-content-cell {
+    padding: 0.1rem;
+    position: relative;
+  }
+}
+
+// Bloques de horario mejorados
+.horario-block {
+  width: 100%;
+  height: 100%;
+  border-radius: 0.25rem;
+  padding: 0.3rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  min-height: 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  &:hover {
+    transform: scale(1.02);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    border-color: $white;
+    z-index: 10;
+    position: relative;
+  }
+}
+
+// Colores específicos y contrastantes
+// Resumen de horarios por grupo
+.horarios-resumen-grupo {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+  
+  .resumen-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    font-size: 0.85rem;
+    
+    i {
+      color: #F5A623;
+      font-size: 1rem;
+    }
+    
+    .resumen-numero {
+      font-weight: 700;
+      color: #2c3e50;
+      font-size: 1rem;
+    }
+    
+    .resumen-texto {
+      color: #6c757d;
+      font-size: 0.8rem;
+    }
+  }
+}
+
+.horario-block-header {
+  font-size: 0.65rem;
+  font-weight: 700;
+  margin-bottom: 0.1rem;
+  text-align: center;
+  line-height: 1.1;
+}
+
+.horario-block-content {
+  font-size: 0.6rem;
+  text-align: center;
+}
+
+.horario-tiempo {
+  font-weight: 600;
+  margin-bottom: 0.1rem;
+}
+
+.horario-progreso {
+  small {
+    font-size: 0.55rem;
+    font-weight: 600;
+  }
+}
+
+// Barra de progreso mini optimizada
+.progress-mini {
+  height: 6px;
+  background-color: rgba(255, 255, 255, 0.4);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 0.1rem;
+}
+
+.progress-bar-mini {
+  height: 100%;
+  transition: width 0.6s ease;
+  border-radius: 3px;
+
+  &.bg-success-mini {
+    background-color: rgba(255, 255, 255, 0.9);
+  }
+
+  &.bg-warning-mini {
+    background-color: rgba(255, 235, 59, 0.9);
+  }
+
+  &.bg-danger-mini {
+    background-color: rgba(255, 82, 82, 0.9);
+  }
+}
+
+// Leyenda optimizada
+.horario-leyenda {
+  border-top: 2px solid #E0E0E0;
+  padding-top: 1rem;
+
+  h6 {
+    color: $corporate-black;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    font-size: 0.9rem;
+  }
+}
+
+.leyenda-items {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.5rem;
+}
+
+.leyenda-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+  
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+
+  .leyenda-checkbox {
+    cursor: pointer;
+    width: 16px;
+    height: 16px;
+  }
+
+  .leyenda-color {
+    width: 16px;
+    height: 16px;
+    border-radius: 0.2rem;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    flex-shrink: 0;
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+
+  .horario-header-dias,
+  .horario-row {
+    grid-template-columns: 60px repeat(5, 1fr);
+  }
+
+  .horario-cell {
+    min-height: 50px;
+    font-size: 0.75rem;
+  }
+
+  .horario-block {
+    padding: 0.25rem;
+  }
+
+  .horario-block-header {
+    font-size: 0.65rem;
+  }
+
+  .horario-block-content {
+    font-size: 0.6rem;
+  }
+
+  .leyenda-items {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .container-fluid {
+    padding: 0 1rem;
+  }
+
+  .card-body {
+    padding: 1rem;
+  }
+
+  .btn-lg {
+    padding: 0.5rem 1.5rem;
+    font-size: 1rem;
+  }
+
+  .info-card,
+  .stat-card.progress-card {
+    margin-bottom: 1rem;
+    flex-direction: column;
+    text-align: center;
+
+    .info-icon,
+    .stat-icon {
+      margin-bottom: 0.5rem;
+    }
+
+    .info-value,
+    .stat-value {
+      font-size: 1.5rem;
+    }
+  }
+
+  .actividades-list {
+    max-height: 300px;
+  }
+
+  .capacidad-grid-compact {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .tubo-medidor-compact {
+    height: 60px;
+  }
+
+  .tubo-glass-compact {
+    height: 50px;
+    width: 30px;
+  }
+
+  .nav-tabs-custom {
+    .nav-item {
+      .nav-link {
+        padding: 0.75rem 1rem;
+        font-size: 0.875rem;
+
+        span {
+          font-size: 0.9rem;
+        }
+
+        small {
+          font-size: 0.75rem;
+        }
+      }
+    }
+  }
+
+  .card {
+    &.bg-light {
+      margin-bottom: 0.5rem;
+
+      .card-body {
+        padding: 0.75rem !important;
+
+        h3 {
+          font-size: 1.5rem;
+        }
+      }
+    }
+  }
+
+  .capacidad-section-compact {
+    padding: 0.75rem;
+  }
+
+  .tubo-stats-compact {
+    .stat-item-compact {
+      font-size: 0.65rem;
+
+      span {
+        display: block;
+        text-align: center;
+      }
+    }
+  }
+}
+
+// Mejoras específicas para pestañas
+.visualization-mode {
+  .badge {
+    font-size: 0.875rem;
+    padding: 0.5rem 1rem;
+
+    &.bg-info {
+      background-color: $info-color !important;
+    }
+
+    &.bg-warning {
+      background-color: $warning-color !important;
+      color: $corporate-black !important;
+    }
+  }
+}
+
+// Estilos específicos para análisis de tiempo
+.table {
+  &.table-hover {
+    tbody tr {
+      transition: all 0.3s ease;
+
+      &:hover {
+        transform: translateX(3px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      &.table-danger {
+        background-color: rgba($danger-color, 0.1);
+
+        &:hover {
+          background-color: rgba($danger-color, 0.2);
+        }
+      }
+    }
+  }
+}

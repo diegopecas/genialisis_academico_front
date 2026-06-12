@@ -1,0 +1,104 @@
+<div class="modulo">
+  <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [accion]="accion"
+    [raiz]="'/administracion/financiero/reglas-cobro-automatico'"
+    [regresar]="regresar" [iconoTitulo]="'/assets/images/productos.png'"></app-header>
+
+  <div class="container mt-5" [ngClass]="{ 'disabled-container': !editable }">
+    <div class="row">
+      <div class="col-sm-12 col-md-6">
+        <label class="form-label">Nombre de la regla <span class="text-danger">*</span></label>
+        <input type="text" class="form-control form-control-lg" [(ngModel)]="model.nombre"
+          [ngClass]="{'is-invalid': !model.nombre && submitted}" [disabled]="!editable"
+          placeholder="Ej: Hora extra 5:30-6:30">
+      </div>
+      <div class="col-sm-12 col-md-6">
+        <label class="form-label">Tipo de evento <span class="text-danger">*</span></label>
+        <select class="form-select form-select-lg" [(ngModel)]="model.id_tipo_evento"
+          [ngClass]="{'is-invalid': !model.id_tipo_evento && submitted}" [disabled]="!editable">
+          <option value="">Seleccionar</option>
+          <ng-container *ngFor="let te of listas.tiposEvento">
+            <option [value]="te.id">{{ te.descripcion }}</option>
+          </ng-container>
+        </select>
+      </div>
+    </div>
+
+    <div class="row mt-3">
+      <div class="col-sm-12 col-md-6">
+        <label class="form-label">Producto/Servicio a cobrar <span class="text-danger">*</span></label>
+        <select class="form-select form-select-lg" [(ngModel)]="model.id_producto_servicio"
+          [ngClass]="{'is-invalid': !model.id_producto_servicio && submitted}" [disabled]="!editable">
+          <option value="">Seleccionar</option>
+          <ng-container *ngFor="let ps of listas.productosServicios">
+            <option [value]="ps.id">{{ ps.nombre }} - ${{ ps.valor_sugerido | number:'1.0-0' }}</option>
+          </ng-container>
+        </select>
+      </div>
+      <div class="col-sm-12 col-md-6">
+        <label class="form-label">Aplica al grupo <small class="text-muted">(vacío = todos)</small></label>
+        <select class="form-select form-select-lg" [(ngModel)]="model.id_grupo" [disabled]="!editable">
+          <option [ngValue]="null">Todos los grupos</option>
+          <ng-container *ngFor="let g of listas.grupos">
+            <option [value]="g.id">{{ g.nombre }}</option>
+          </ng-container>
+        </select>
+      </div>
+    </div>
+
+    <div class="row mt-3">
+      <div class="col-sm-12 col-md-3">
+        <label class="form-label">Hora desde <small class="text-muted">(opcional)</small></label>
+        <input type="time" class="form-control form-control-lg" [(ngModel)]="model.hora_desde" [disabled]="!editable">
+      </div>
+      <div class="col-sm-12 col-md-3">
+        <label class="form-label">Hora hasta <small class="text-muted">(opcional)</small></label>
+        <input type="time" class="form-control form-control-lg" [(ngModel)]="model.hora_hasta" [disabled]="!editable">
+      </div>
+      <div class="col-sm-12 col-md-3">
+        <label class="form-label">Día específico <small class="text-muted">(opcional)</small></label>
+        <select class="form-select form-select-lg" [(ngModel)]="model.id_dia_semana" [disabled]="!editable">
+          <option [ngValue]="null">Cualquier día</option>
+          <ng-container *ngFor="let d of listas.diasSemana">
+            <option [value]="d.id">{{ d.nombre }}</option>
+          </ng-container>
+        </select>
+      </div>
+      <div class="col-sm-12 col-md-3">
+        <label class="form-label">Prioridad</label>
+        <input type="number" class="form-control form-control-lg" [(ngModel)]="model.prioridad" min="1"
+          [disabled]="!editable">
+        <small class="text-muted">Menor = más prioridad</small>
+      </div>
+    </div>
+
+    <div class="row mt-3">
+      <div class="col-sm-12 col-md-6">
+        <label class="form-label">Convenio que exime <small class="text-muted">(si el estudiante tiene este convenio, la regla NO aplica)</small></label>
+        <select class="form-select form-select-lg" [(ngModel)]="model.id_convenio_exime" [disabled]="!editable">
+          <option [ngValue]="null">Ninguno</option>
+          <ng-container *ngFor="let c of listas.convenios">
+            <option [value]="c.id">{{ c.nombre }}</option>
+          </ng-container>
+        </select>
+      </div>
+      <div class="col-sm-12 col-md-6">
+        <label class="form-label">Estado</label>
+        <select class="form-select form-select-lg" [(ngModel)]="model.activo" [disabled]="!editable">
+          <option [ngValue]="1">Activo</option>
+          <option [ngValue]="0">Inactivo</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="container mt-5">
+    <div class="row">
+      <div class="col-sm-6" *ngIf="editable">
+        <button class="btn btn-lg btn-warning w-100" (click)="grabar()">Grabar</button>
+      </div>
+      <div class="col-sm-6">
+        <button class="btn btn-lg btn-secondary w-100" (click)="volver()">Volver</button>
+      </div>
+    </div>
+  </div>
+</div>

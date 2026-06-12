@@ -1,0 +1,435 @@
+// === COLORES MATERIALIZE ===
+$mat-teal: #009688;
+$mat-teal-dark: #00796B;
+$mat-teal-light: #B2DFDB;
+$mat-green: #4CAF50;
+$mat-green-light: #C8E6C9;
+$mat-orange: #FF9800;
+$mat-orange-light: #FFE0B2;
+$mat-red: #F44336;
+$mat-red-light: #FFCDD2;
+$mat-blue: #2196F3;
+$mat-blue-light: #BBDEFB;
+$mat-purple: #9C27B0;
+$mat-grey: #9E9E9E;
+$mat-grey-light: #F5F5F5;
+$text-dark: #37474F;
+
+.modulo {
+    min-height: 100vh;
+    background: linear-gradient(160deg, #f8fffe 0%, #f0f7f6 40%, #f5f5f5 100%);
+}
+
+// ===========================
+// TEXTOS Y BOTONES
+// ===========================
+.text-ead3 { color: $mat-teal-dark; }
+
+.btn-ead3 {
+    background: linear-gradient(135deg, $mat-teal 0%, $mat-teal-dark 100%);
+    border: none;
+    color: white;
+    box-shadow: 0 2px 8px rgba($mat-teal, 0.3);
+    transition: all 0.3s ease;
+
+    &:hover {
+        background: linear-gradient(135deg, darken($mat-teal, 5%) 0%, darken($mat-teal-dark, 5%) 100%);
+        box-shadow: 0 4px 15px rgba($mat-teal, 0.4);
+        transform: translateY(-1px);
+        color: white;
+    }
+    &:disabled {
+        background: $mat-grey-light;
+        color: $mat-grey;
+        box-shadow: none;
+        transform: none;
+    }
+}
+
+// ===========================
+// ALERTAS ESTILO NUBE
+// ===========================
+.alert-ead3 {
+    background-color: rgba($mat-teal, 0.06);
+    color: $mat-teal-dark;
+    border: 1px solid rgba($mat-teal, 0.2);
+    border-radius: 12px;
+    backdrop-filter: blur(4px);
+}
+
+.alert-ead3-ok {
+    background-color: rgba($mat-green, 0.08);
+    color: darken($mat-green, 15%);
+    border: 1px solid rgba($mat-green, 0.25);
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+}
+
+// ===========================
+// BADGES ESTILO NUBE BRILLANTE
+// ===========================
+.badge-edad {
+    background-color: rgba($mat-blue, 0.1);
+    color: darken($mat-blue, 12%);
+    border: 1px solid rgba($mat-blue, 0.25);
+    font-size: 0.95rem;
+    padding: 0.4em 0.8em;
+    border-radius: 20px;
+    box-shadow: 0 1px 4px rgba($mat-blue, 0.1);
+}
+
+.badge-rango {
+    background-color: rgba($mat-teal, 0.1);
+    color: $mat-teal-dark;
+    border: 1px solid rgba($mat-teal, 0.25);
+    font-size: 0.95rem;
+    padding: 0.4em 0.8em;
+    border-radius: 20px;
+    box-shadow: 0 1px 4px rgba($mat-teal, 0.1);
+}
+
+.badge-guardada {
+    background-color: rgba($mat-green, 0.1);
+    color: darken($mat-green, 12%);
+    border: 1px solid rgba($mat-green, 0.25);
+    border-radius: 20px;
+    box-shadow: 0 1px 4px rgba($mat-green, 0.1);
+}
+
+// ===========================
+// STEPPER CON GLOW
+// ===========================
+.stepper-container { overflow-x: auto; padding: 0 1rem; }
+
+.stepper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-width: 600px;
+}
+
+.step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    cursor: pointer;
+    position: relative;
+    flex: 1;
+
+    &::after {
+        content: '';
+        position: absolute;
+        top: 18px;
+        left: 55%;
+        width: calc(100% - 10px);
+        height: 2px;
+        background: #dee2e6;
+        z-index: 0;
+    }
+    &:last-child::after { display: none; }
+    &.completed::after { background: $mat-teal; }
+    &.en-proceso::after { background: $mat-orange; }
+
+    .step-circle {
+        width: 36px; height: 36px;
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        background: #e8e8e8; color: #9e9e9e;
+        font-size: 0.85rem; z-index: 1;
+        transition: all 0.4s ease;
+    }
+
+    .step-label { font-size: 0.75rem; color: #9e9e9e; font-weight: 500; transition: all 0.3s ease; }
+
+    .step-badge {
+        font-size: 0.6rem;
+        background: rgba($mat-orange, 0.15);
+        color: darken($mat-orange, 10%);
+        border: 1px solid rgba($mat-orange, 0.3);
+        padding: 1px 6px; border-radius: 10px;
+        &.guardado {
+            background: rgba($mat-green, 0.12);
+            color: darken($mat-green, 10%);
+            border: 1px solid rgba($mat-green, 0.25);
+        }
+    }
+
+    // Activo — glow teal
+    &.active .step-circle {
+        background: linear-gradient(135deg, $mat-teal, lighten($mat-teal, 8%));
+        color: white;
+        box-shadow: 0 0 0 4px rgba($mat-teal, 0.15), 0 2px 12px rgba($mat-teal, 0.35);
+    }
+    &.active .step-label { color: $mat-teal-dark; font-weight: 600; }
+
+    // Completado — glow verde
+    &.completed .step-circle {
+        background: linear-gradient(135deg, $mat-green, lighten($mat-green, 8%));
+        color: white;
+        box-shadow: 0 0 0 3px rgba($mat-green, 0.12), 0 2px 10px rgba($mat-green, 0.3);
+    }
+    &.completed .step-label { color: darken($mat-green, 10%); }
+
+    // En proceso — glow naranja
+    &.en-proceso .step-circle {
+        background: linear-gradient(135deg, $mat-orange, lighten($mat-orange, 8%));
+        color: white;
+        box-shadow: 0 0 0 3px rgba($mat-orange, 0.12), 0 2px 10px rgba($mat-orange, 0.3);
+    }
+    &.en-proceso .step-label { color: darken($mat-orange, 10%); }
+}
+
+// ===========================
+// INFO GRID (paso 0)
+// ===========================
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+}
+
+.info-item {
+    label { display: block; font-size: 0.75rem; color: $mat-grey; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.25rem; }
+    span { font-size: 1rem; font-weight: 500; color: $text-dark; }
+}
+
+// ===========================
+// ÍTEMS DE EVALUACIÓN
+// ===========================
+.items-list { display: flex; flex-direction: column; gap: 0.5rem; }
+
+.item-evaluacion {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    background: rgba(white, 0.7);
+    border: 2px solid transparent;
+    transition: all 0.25s ease;
+    backdrop-filter: blur(2px);
+
+    &:hover { background: rgba($mat-teal, 0.03); border-color: rgba($mat-teal, 0.1); }
+
+    &.cumple {
+        border-color: rgba($mat-green, 0.35);
+        background: rgba($mat-green, 0.06);
+        box-shadow: 0 1px 6px rgba($mat-green, 0.1);
+    }
+    &.no-cumple {
+        border-color: rgba($mat-red, 0.35);
+        background: rgba($mat-red, 0.06);
+        box-shadow: 0 1px 6px rgba($mat-red, 0.1);
+    }
+}
+
+.item-numero {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: rgba($mat-teal, 0.1);
+    color: $mat-teal-dark;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 0.8rem;
+    flex-shrink: 0;
+}
+
+.item-contenido { flex: 1; min-width: 0; }
+.item-descripcion { font-weight: 500; color: $text-dark; font-size: 0.9rem; }
+.item-acciones { display: flex; gap: 0.35rem; flex-shrink: 0; }
+
+// Botones cumple / no cumple — estilo nube
+.btn-cumple-activo {
+    background: rgba($mat-green, 0.12);
+    color: darken($mat-green, 12%);
+    border: 1.5px solid rgba($mat-green, 0.4);
+    box-shadow: 0 1px 6px rgba($mat-green, 0.15);
+    &:hover { background: rgba($mat-green, 0.2); color: darken($mat-green, 12%); }
+}
+.btn-outline-cumple {
+    border: 1.5px solid rgba($mat-green, 0.25);
+    color: $mat-green;
+    background: transparent;
+    &:hover { background: rgba($mat-green, 0.06); }
+}
+.btn-no-cumple-activo {
+    background: rgba($mat-red, 0.12);
+    color: darken($mat-red, 12%);
+    border: 1.5px solid rgba($mat-red, 0.4);
+    box-shadow: 0 1px 6px rgba($mat-red, 0.15);
+    &:hover { background: rgba($mat-red, 0.2); color: darken($mat-red, 12%); }
+}
+.btn-outline-no-cumple {
+    border: 1.5px solid rgba($mat-red, 0.25);
+    color: $mat-red;
+    background: transparent;
+    &:hover { background: rgba($mat-red, 0.06); }
+}
+.btn-instrucciones {
+    color: $mat-blue;
+    border: 1.5px solid rgba($mat-blue, 0.25);
+    &:hover { background: rgba($mat-blue, 0.06); }
+}
+
+// ===========================
+// RESULTADOS — TARJETAS NUBE
+// ===========================
+.resultados-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+}
+
+.resultado-area {
+    text-align: center;
+    padding: 1.25rem 0.75rem;
+    border-radius: 16px;
+    transition: all 0.3s ease;
+
+    h6 { font-size: 0.85rem; margin-bottom: 0.5rem; }
+    .resultado-texto { font-size: 0.75rem; margin-top: 0.5rem; font-weight: 500; }
+    .resultado-icono { font-size: 1.8rem; margin-bottom: 0.5rem; }
+}
+
+// ===========================
+// PUNTAJES PD y PT - NUEVO
+// ===========================
+.resultado-puntajes {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0.5rem 0;
+}
+
+.puntaje-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.puntaje-label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    opacity: 0.7;
+    letter-spacing: 0.5px;
+}
+
+.puntaje-valor {
+    font-size: 1.3rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.puntaje-flecha {
+    font-size: 1rem;
+    opacity: 0.5;
+    margin: 0 0.25rem;
+}
+
+// ===========================
+// SEMÁFOROS
+// ===========================
+.semaforo-verde {
+    background: rgba($mat-green, 0.08);
+    color: darken($mat-green, 10%);
+    border: 1.5px solid rgba($mat-green, 0.25);
+    box-shadow: 0 2px 12px rgba($mat-green, 0.12);
+}
+.semaforo-amarillo {
+    background: rgba($mat-orange, 0.08);
+    color: darken($mat-orange, 15%);
+    border: 1.5px solid rgba($mat-orange, 0.25);
+    box-shadow: 0 2px 12px rgba($mat-orange, 0.12);
+}
+.semaforo-rojo {
+    background: rgba($mat-red, 0.08);
+    color: darken($mat-red, 10%);
+    border: 1.5px solid rgba($mat-red, 0.25);
+    box-shadow: 0 2px 12px rgba($mat-red, 0.12);
+}
+
+.resultado-global {
+    border-radius: 16px;
+    &.semaforo-verde { box-shadow: 0 4px 20px rgba($mat-green, 0.15); }
+    &.semaforo-amarillo { box-shadow: 0 4px 20px rgba($mat-orange, 0.15); }
+    &.semaforo-rojo { box-shadow: 0 4px 20px rgba($mat-red, 0.15); }
+}
+
+// ===========================
+// LEYENDA DE INTERPRETACIÓN - NUEVO
+// ===========================
+.interpretacion-leyenda {
+    border: 1px solid #dee2e6;
+}
+
+.badge-interpretacion {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+
+    &.verde {
+        background-color: rgba($mat-green, 0.12);
+        color: darken($mat-green, 12%);
+        border: 1px solid rgba($mat-green, 0.25);
+    }
+    &.amarillo {
+        background-color: rgba($mat-orange, 0.12);
+        color: darken($mat-orange, 12%);
+        border: 1px solid rgba($mat-orange, 0.25);
+    }
+    &.rojo {
+        background-color: rgba($mat-red, 0.12);
+        color: darken($mat-red, 10%);
+        border: 1px solid rgba($mat-red, 0.25);
+    }
+}
+
+// ===========================
+// GRÁFICOS
+// ===========================
+.chart-container { position: relative; height: 220px; width: 100%; }
+
+// ===========================
+// CKEDITOR
+// ===========================
+.editor-wrapper {
+    .ck-editor {
+        .ck-editor__main .ck-content { min-height: 100px; max-height: 250px; overflow-y: auto; }
+        .ck-toolbar { background-color: $mat-grey-light; }
+    }
+}
+
+// ===========================
+// RESPONSIVE
+// ===========================
+@media (max-width: 767px) {
+    .resultados-grid { grid-template-columns: repeat(2, 1fr); }
+    .item-evaluacion { flex-wrap: wrap; }
+    .item-acciones { width: 100%; justify-content: flex-end; }
+    .chart-container { height: 180px; }
+    
+    .resultado-puntajes {
+        gap: 0.75rem;
+    }
+    
+    .puntaje-valor {
+        font-size: 1.1rem;
+    }
+    
+    .badge-interpretacion {
+        font-size: 0.7rem;
+        padding: 0.3rem 0.6rem;
+    }
+    
+    .interpretacion-leyenda .d-flex {
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem !important;
+    }
+}

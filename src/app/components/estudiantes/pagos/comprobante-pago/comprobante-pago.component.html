@@ -1,0 +1,129 @@
+<div class="action-buttons-top no-imprimir">
+  <button class="btn btn-primary" (click)="imprimirComprobante()">
+    <i class="bi bi-printer"></i> Imprimir
+  </button>
+  <button class="btn btn-success" (click)="exportarPDF()">
+    <i class="bi bi-file-earmark-pdf"></i> Exportar a PDF
+  </button>
+  <button class="btn btn-whatsapp" (click)="compartirPorWhatsApp()">
+    <i class="bi bi-whatsapp"></i> Compartir por WhatsApp
+  </button>
+  <button class="btn btn-secondary" (click)="volver()">
+    <i class="bi bi-arrow-left"></i> Volver
+  </button>
+</div>
+
+<div class="comprobante-container" id="comprobante-impresion">
+  <!-- Cabecera del recibo -->
+  <div class="cabecera-comprobante">
+    <div class="logo-institucion">
+      <div class="logo-circle">
+        <img [src]="logoUrl" alt="LL" class="logo-img">
+      </div>
+      <div>
+        <h1 class="titulo-institucion">{{ nombreInstitucion }}</h1>
+        <p class="datos-institucion">{{ direccionInstitucion }}</p>
+        <p class="datos-institucion">NIT: {{ nitInstitucion }}</p>
+      </div>
+    </div>
+    <div class="datos-comprobante">
+      <h2 class="titulo-comprobante">COMPROBANTE DE PAGO</h2>
+      <p class="numero-comprobante">No. {{pago.id}}</p>
+      <p class="fecha-comprobante">Fecha: {{formatearFecha(pago.fecha)}}</p>
+    </div>
+  </div>
+
+  <!-- Información del estudiante y acudiente -->
+  <div class="seccion-datos">
+    <div class="datos-box">
+      <h3 class="titulo-seccion">Datos del Estudiante</h3>
+      <p><span class="etiqueta">Nombre:</span> {{estudiante.nombre}}</p>
+      <p><span class="etiqueta">Documento:</span> {{estudiante.documento}}</p>
+      <p><span class="etiqueta">Grado:</span> {{estudiante.grado}}</p>
+    </div>
+    <div class="datos-box">
+      <h3 class="titulo-seccion">Datos del Acudiente</h3>
+      <p><span class="etiqueta">Nombre:</span> {{acudiente.nombre}}</p>
+      <p><span class="etiqueta">Documento:</span> {{acudiente.documento}}</p>
+      <p><span class="etiqueta">Tipo de Pago:</span> {{tipoPago.nombre}}</p>
+      <p *ngIf="pago.referencia_bancaria"><span class="etiqueta">Referencia:</span> {{pago.referencia_bancaria}}</p>
+    </div>
+  </div>
+
+  <!-- Detalle de cuentas aplicadas -->
+  <div class="seccion-detalle">
+    <h3 class="titulo-seccion">Detalle de Pago</h3>
+    <div class="tabla-detalle">
+      <table class="tabla-pago">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Concepto</th>
+            <th class="columna-derecha">Saldo Anterior</th>
+            <th class="columna-derecha">Valor Aplicado</th>
+            <th class="columna-derecha">Saldo Actual</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let cuenta of pago.cuentas_aplicadas">
+            <td class="columna-fecha">{{formatearFechaCorta(cuenta.fecha_cuenta || cuenta.fecha)}}</td>
+            <td>{{cuenta.nombre_producto_servicio}}</td>
+            <td class="columna-derecha">{{formatearMoneda(cuenta.saldo_antes_pago || 0)}}</td>
+            <td class="columna-derecha valor-aplicado">{{formatearMoneda(cuenta.valor_aplicado)}}</td>
+            <td class="columna-derecha">
+              {{formatearMoneda(cuenta.saldo_actual_cuenta || 0)}}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Resumen de totales -->
+  <div class="seccion-totales">
+    <div class="totales-box">
+      <div class="fila-total">
+        <span class="etiqueta">Valor Recibido:</span>
+        <span class="valor">{{formatearMoneda(pago.valor_recibido)}}</span>
+      </div>
+      <div class="fila-total">
+        <span class="etiqueta">Valor Aplicado:</span>
+        <span class="valor">{{formatearMoneda(calcularTotalAplicado())}}</span>
+      </div>
+      <div class="fila-total" *ngIf="pago.saldo > 0">
+        <span class="etiqueta">Saldo a Favor:</span>
+        <span class="valor saldo-favor">{{formatearMoneda(pago.saldo)}}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Observaciones -->
+  <div class="seccion-observaciones" *ngIf="pago.observaciones">
+    <h3 class="titulo-seccion">Observaciones</h3>
+    <p class="texto-observaciones">{{pago.observaciones}}</p>
+  </div>
+
+  <!-- Firmas -->
+  <div class="seccion-firmas">
+    <div class="firma">
+      <p class="nombre-firma">{{ pago.nombre_completo_usuario_registro }}</p>
+      <div class="linea-firma"></div>
+      <p class="texto-firma">Recibido por</p>
+      <p class="subtitulo-firma">Nombre y firma</p>
+    </div>
+    <div class="firma">
+      <p class="nombre-firma">{{ pago.nombre_completo_usuario_contable  || 'Pendiente ' }}</p>
+      <div class="linea-firma"></div>
+      <p class="texto-firma">Aprobado por</p>
+      <p class="subtitulo-firma">Nombre y firma</p>
+    </div>
+  </div>
+
+  <!-- Pie de página -->
+  <div class="pie-comprobante">
+    <p class="texto-pie">Este comprobante es válido como soporte de pago. Conserve este documento.</p>
+    <p class="fecha-generacion">
+      Generado el {{fechaGeneracion | date: 'dd/MM/yyyy'}} a las {{fechaGeneracion | date: 'HH:mm'}}
+    </p>
+  </div>
+</div>

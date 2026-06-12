@@ -1,0 +1,381 @@
+<div class="modulo">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="false"
+    [accion]="'ConsultarTodos'"
+    [raiz]="'/docentes'"
+    [regresar]="'/menu'"
+  ></app-header>
+  <div class="container-fluid mt-3">
+    <div class="row">
+      <div class="col-sm-12 col-md-4 px-3 mt-1">
+        <div
+          [ngClass]="
+            model.opcion == 'ingresos'
+              ? 'text-center ficha-seleccionada'
+              : 'text-center ficha'
+          "
+          (click)="seleccionarOpcion('ingresos')"
+        >
+          Ingresos
+        </div>
+      </div>
+      <div class="col-sm-12 col-md-4 px-3 mt-1">
+        <div
+          [ngClass]="
+            model.opcion == 'salidas'
+              ? 'text-center ficha-seleccionada'
+              : 'text-center ficha'
+          "
+          (click)="seleccionarOpcion('salidas')"
+        >
+          Salidas
+        </div>
+      </div>
+      <div class="col-sm-12 col-md-4 px-3 mt-1">
+        <div class="text-center ficha" (click)="seleccionarOpcion('actual')">
+          Actual: {{ listas.noSalidas.length }}
+        </div>
+      </div>
+    </div>
+    <hr />
+
+    <!-- PANEL DE COBROS AUTOMÁTICOS -->
+    <div class="row" *ngIf="mostrarPanelCobros && estudianteSeleccionadoCobro">
+      <div class="col-md-12">
+        <div class="panel-cobros">
+          <div class="panel-cobros-header">
+            <div class="panel-cobros-titulo">
+              <span class="panel-cobros-icono">{{ tipoEventoActual === 'ingreso' ? '🟢' : '🔴' }}</span>
+              <strong>{{ tipoEventoActual === 'ingreso' ? 'Registrar Ingreso' : 'Registrar Salida' }}</strong>
+              -
+              {{ estudianteSeleccionadoCobro.primer_nombre }}
+              {{ estudianteSeleccionadoCobro.segundo_nombre || '' }}
+              {{ estudianteSeleccionadoCobro.primer_apellido }}
+              {{ estudianteSeleccionadoCobro.segundo_apellido || '' }}
+            </div>
+            <button class="btn btn-sm btn-outline-secondary" (click)="cerrarPanelCobros()">
+              ✕ Cancelar
+            </button>
+          </div>
+
+          <div class="panel-cobros-body">
+            <div class="row">
+              <div class="col-md-5">
+                <div class="mb-3">
+                  <label class="form-label fw-bold">
+                    {{ tipoEventoActual === 'ingreso' ? 'Hora de ingreso' : 'Hora de salida' }}
+                  </label>
+                  <input
+                    *ngIf="tipoEventoActual === 'ingreso'"
+                    type="time"
+                    class="form-control form-control-lg"
+                    [(ngModel)]="horaIngresoEditable"
+                    (blur)="onHoraChange()"
+                  />
+                  <input
+                    *ngIf="tipoEventoActual === 'salida'"
+                    type="time"
+                    class="form-control form-control-lg"
+                    [(ngModel)]="horaSalidaEditable"
+                    (blur)="onHoraChange()"
+                  />
+                  <small class="text-muted">Modifique si la hora no es correcta. Los cobros se recalculan automáticamente.</small>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label fw-bold">Observaciones</label>
+                  <textarea
+                    class="form-control"
+                    rows="3"
+                    [(ngModel)]="observacionActual"
+                    placeholder="Observaciones opcionales..."
+                  ></textarea>
+                </div>
+                <div class="mb-3">
+                  <button class="btn btn-sm btn-outline-info" (click)="mostrarDetalleEstudiante(estudianteSeleccionadoCobro)">
+                    👥 Ver personas autorizadas
+                  </button>
+                </div>
+              </div>
+
+              <div class="col-md-7">
+                <label class="form-label fw-bold">Cobros automáticos detectados</label>
+                <div *ngIf="evaluandoReglas" class="text-center p-3">
+                  <div class="spinner-border spinner-border-sm text-warning" role="status"></div>
+                  <span class="ms-2">Evaluando reglas...</span>
+                </div>
+                <div *ngIf="!evaluandoReglas && cobrosDetectados.length === 0" class="alert alert-success py-2">
+                  ✅ No se detectaron cobros adicionales para este registro.
+                </div>
+                <div *ngIf="!evaluandoReglas && cobrosDetectados.length > 0">
+                  <div class="alert alert-warning py-2 mb-2">
+                    ⚠️ Se detectaron {{ cobrosDetectados.length }} cobro(s) automático(s):
+                  </div>
+                  <div *ngFor="let cobro of cobrosDetectados" class="cobro-item" [class.cobro-deseleccionado]="!cobro.seleccionado">
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" [(ngModel)]="cobro.seleccionado" [id]="'cobro_' + cobro.id_regla" />
+                      <label class="form-check-label" [for]="'cobro_' + cobro.id_regla">
+                        <strong>{{ cobro.nombre_regla }}</strong><br />
+                        <small class="text-muted">{{ cobro.nombre_producto_servicio }}</small>
+                      </label>
+                    </div>
+                    <div class="cobro-valor">{{ formatearMoneda(cobro.valor) }}</div>
+                  </div>
+                  <div class="cobro-total">
+                    <strong>Total a cobrar:</strong>
+                    <strong>{{ formatearMoneda(totalCobrosSeleccionados) }}</strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel-cobros-footer">
+            <button class="btn btn-lg btn-warning" (click)="confirmarRegistro()" [disabled]="evaluandoReglas">
+              ✓ Confirmar {{ tipoEventoActual === 'ingreso' ? 'Ingreso' : 'Salida' }}
+              <span *ngIf="cobrosDetectados.length > 0 && totalCobrosSeleccionados > 0">
+                (+ {{ formatearMoneda(totalCobrosSeleccionados) }})
+              </span>
+            </button>
+            <button class="btn btn-lg btn-secondary ms-2" (click)="cerrarPanelCobros()">Cancelar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- PANEL DE REGISTRO RÁPIDO -->
+    <!-- ============================================================ -->
+    <div class="row" *ngIf="mostrarRegistroRapido">
+      <div class="col-md-12">
+        <div class="panel-registro-rapido">
+          <div class="panel-rr-header">
+            <div class="panel-rr-titulo">
+              <span>⚡</span>
+              <strong>Registro rápido de estudiante + acudiente</strong>
+            </div>
+            <button class="btn btn-sm btn-outline-secondary" (click)="cerrarRegistroRapido()">✕ Cerrar</button>
+          </div>
+
+          <div class="panel-rr-body">
+            <div class="row">
+              <!-- COLUMNA IZQUIERDA: DATOS DEL NIÑO -->
+              <div class="col-md-6">
+                <div class="panel-rr-seccion-titulo">🧒 Datos del niño</div>
+
+                <div class="row mb-2">
+                  <div class="col-5">
+                    <label class="form-label form-label-sm">Tipo doc. *</label>
+                    <select class="form-select form-select-sm" [(ngModel)]="modelRegistroRapido.nino_id_tipo_identificacion">
+                      <option value="">Seleccione</option>
+                      <option *ngFor="let tipo of listasRegistroRapido.tiposIdentificacion" [value]="tipo.id">{{ tipo.nombre }}</option>
+                    </select>
+                  </div>
+                  <div class="col-5">
+                    <label class="form-label form-label-sm">Número doc. *</label>
+                    <input type="text" class="form-control form-control-sm" [(ngModel)]="modelRegistroRapido.nino_numero_identificacion" placeholder="Número" />
+                  </div>
+                  <div class="col-2 d-flex align-items-end">
+                    <button class="btn btn-sm btn-outline-warning w-100" (click)="buscarPersonaNino()" title="Verificar documento">🔍</button>
+                  </div>
+                </div>
+
+                <div class="row mb-2">
+                  <div class="col-6">
+                    <label class="form-label form-label-sm">Primer nombre *</label>
+                    <input type="text" class="form-control form-control-sm" [(ngModel)]="modelRegistroRapido.nino_primer_nombre" [disabled]="!ninoCamposHabilitados" />
+                  </div>
+                  <div class="col-6">
+                    <label class="form-label form-label-sm">Segundo nombre</label>
+                    <input type="text" class="form-control form-control-sm" [(ngModel)]="modelRegistroRapido.nino_segundo_nombre" [disabled]="!ninoCamposHabilitados" />
+                  </div>
+                </div>
+
+                <div class="row mb-2">
+                  <div class="col-6">
+                    <label class="form-label form-label-sm">Primer apellido *</label>
+                    <input type="text" class="form-control form-control-sm" [(ngModel)]="modelRegistroRapido.nino_primer_apellido" [disabled]="!ninoCamposHabilitados" />
+                  </div>
+                  <div class="col-6">
+                    <label class="form-label form-label-sm">Segundo apellido</label>
+                    <input type="text" class="form-control form-control-sm" [(ngModel)]="modelRegistroRapido.nino_segundo_apellido" [disabled]="!ninoCamposHabilitados" />
+                  </div>
+                </div>
+
+                <div class="row mb-2">
+                  <div class="col-12">
+                    <label class="form-label form-label-sm">Grupo *</label>
+                    <select class="form-select form-select-sm" [(ngModel)]="modelRegistroRapido.id_grupo" [disabled]="!ninoCamposHabilitados">
+                      <option value="">Seleccione</option>
+                      <option *ngFor="let grupo of listasRegistroRapido.grupos" [value]="grupo.id">{{ grupo.nombre }}</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div *ngIf="!ninoCamposHabilitados" class="text-muted text-center mt-2">
+                  <small>🔍 Verifique el documento para habilitar los campos</small>
+                </div>
+              </div>
+
+              <!-- COLUMNA DERECHA: DATOS DEL ACUDIENTE -->
+              <div class="col-md-6">
+                <div class="panel-rr-seccion-titulo">👤 Datos del acudiente</div>
+
+                <div class="row mb-2">
+                  <div class="col-5">
+                    <label class="form-label form-label-sm">Tipo doc. *</label>
+                    <select class="form-select form-select-sm" [(ngModel)]="modelRegistroRapido.acud_id_tipo_identificacion">
+                      <option value="">Seleccione</option>
+                      <option *ngFor="let tipo of listasRegistroRapido.tiposIdentificacion" [value]="tipo.id">{{ tipo.nombre }}</option>
+                    </select>
+                  </div>
+                  <div class="col-5">
+                    <label class="form-label form-label-sm">Número doc. *</label>
+                    <input type="text" class="form-control form-control-sm" [(ngModel)]="modelRegistroRapido.acud_numero_identificacion" placeholder="Número" />
+                  </div>
+                  <div class="col-2 d-flex align-items-end">
+                    <button class="btn btn-sm btn-outline-warning w-100" (click)="buscarPersonaAcudiente()" title="Verificar documento">🔍</button>
+                  </div>
+                </div>
+
+                <div class="row mb-2">
+                  <div class="col-6">
+                    <label class="form-label form-label-sm">Primer nombre *</label>
+                    <input type="text" class="form-control form-control-sm" [(ngModel)]="modelRegistroRapido.acud_primer_nombre" [disabled]="!acudCamposHabilitados" />
+                  </div>
+                  <div class="col-6">
+                    <label class="form-label form-label-sm">Segundo nombre</label>
+                    <input type="text" class="form-control form-control-sm" [(ngModel)]="modelRegistroRapido.acud_segundo_nombre" [disabled]="!acudCamposHabilitados" />
+                  </div>
+                </div>
+
+                <div class="row mb-2">
+                  <div class="col-6">
+                    <label class="form-label form-label-sm">Primer apellido *</label>
+                    <input type="text" class="form-control form-control-sm" [(ngModel)]="modelRegistroRapido.acud_primer_apellido" [disabled]="!acudCamposHabilitados" />
+                  </div>
+                  <div class="col-6">
+                    <label class="form-label form-label-sm">Segundo apellido</label>
+                    <input type="text" class="form-control form-control-sm" [(ngModel)]="modelRegistroRapido.acud_segundo_apellido" [disabled]="!acudCamposHabilitados" />
+                  </div>
+                </div>
+
+                <div class="row mb-2">
+                  <div class="col-12">
+                    <label class="form-label form-label-sm">Teléfono</label>
+                    <input type="text" class="form-control form-control-sm" [(ngModel)]="modelRegistroRapido.acud_telefono" placeholder="3001234567" [disabled]="!acudCamposHabilitados" />
+                  </div>
+                </div>
+
+                <!-- BADGES DE TIPO ACUDIENTE -->
+                <div class="mb-2" *ngIf="acudCamposHabilitados">
+                  <label class="form-label form-label-sm">Parentesco *</label>
+                  <div class="badges-tipo-acudiente">
+                    <div
+                      *ngFor="let tipo of listasRegistroRapido.tiposAcudiente"
+                      class="badge-acudiente"
+                      [class.badge-acudiente-seleccionado]="modelRegistroRapido.id_tipo_acudiente == tipo.id"
+                      (click)="seleccionarTipoAcudiente(tipo)"
+                    >
+                      <span class="badge-acudiente-icono">{{ tipo.icono || '👤' }}</span>
+                      <span class="badge-acudiente-nombre">{{ tipo.nombre }}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div *ngIf="!acudCamposHabilitados" class="text-muted text-center mt-2">
+                  <small>🔍 Verifique el documento para habilitar los campos</small>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel-rr-footer">
+            <button
+              class="btn btn-lg btn-warning"
+              (click)="ejecutarRegistroRapido()"
+              [disabled]="registroRapidoEnProceso || !formularioRegistroRapidoValido()"
+            >
+              <span *ngIf="!registroRapidoEnProceso">⚡ Crear estudiante</span>
+              <span *ngIf="registroRapidoEnProceso">
+                <span class="spinner-border spinner-border-sm" role="status"></span>
+                Procesando...
+              </span>
+            </button>
+            <button class="btn btn-lg btn-outline-secondary ms-2" (click)="limpiarRegistroRapido()">🗑️ Limpiar</button>
+            <button class="btn btn-lg btn-secondary ms-2" (click)="cerrarRegistroRapido()">Cancelar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LISTAS DE ESTUDIANTES -->
+    <div class="row" *ngIf="!mostrarPanelCobros && !mostrarRegistroRapido">
+      <div class="col-md-12" *ngIf="model.opcion == 'ingresos'">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <app-buscar (buscar)="buscar($event)"></app-buscar>
+          <button class="btn btn-sm btn-warning ms-2" (click)="abrirRegistroRapido()">⚡ Crear estudiante</button>
+        </div>
+        <ul class="lista-seleccionable">
+          <ng-container *ngFor="let estudiante of listas.noIngresos">
+            <li
+              class="item-lista"
+              (mouseover)="estudiante.over = true"
+              (mouseout)="estudiante.over = false"
+              [style.background-image]="
+                estudiante.over
+                  ? 'linear-gradient(to left, #ffffff, ' + estudiante.color + ')'
+                  : 'linear-gradient(to left, #ffffff 95%, ' + estudiante.color + ')'
+              "
+              (click)="seleccionarEstudiante(estudiante)"
+            >
+              <img [src]="estudiante.icono" width="30" />
+              {{ estudiante.primer_nombre }} {{ estudiante.segundo_nombre }}
+              {{ estudiante.primer_apellido }} {{ estudiante.segundo_apellido }}
+            </li>
+          </ng-container>
+        </ul>
+      </div>
+      <div class="col-md-12" *ngIf="model.opcion == 'salidas'">
+        <app-buscar (buscar)="buscar($event)"></app-buscar>
+        <ul class="lista-seleccionable">
+          <ng-container *ngFor="let estudiante of listas.noSalidas">
+            <li
+              class="item-lista"
+              (mouseover)="estudiante.over = true"
+              (mouseout)="estudiante.over = false"
+              [style.background-image]="
+                estudiante.over
+                  ? 'linear-gradient(to left, #ffffff, ' + estudiante.color + ')'
+                  : 'linear-gradient(to left, #ffffff 95%, ' + estudiante.color + ')'
+              "
+              (click)="seleccionarEstudiante(estudiante)"
+            >
+              <img [src]="estudiante.icono" width="30" />
+              {{ estudiante.primer_nombre }} {{ estudiante.segundo_nombre }}
+              {{ estudiante.primer_apellido }}
+              {{ estudiante.segundo_apellido }} ({{ estudiante.fecha_ingreso | date : "shortTime" }})
+            </li>
+          </ng-container>
+        </ul>
+      </div>
+      <div class="col-md-12" *ngIf="model.opcion == 'actual'">
+        <div class="row mt-1 mb-5">
+          <ng-container *ngFor="let grupo of listas.grupos">
+            <div class="col-sm-12 col-md-4 px-3 mb-5">
+              <div
+                class="text-center ficha"
+                [style.background-image]="'linear-gradient(to bottom, #ffffff 80%, ' + grupo.color + ')'"
+                (click)="verActual(grupo)"
+              >
+                <img [src]="grupo.icono" class="w-25" />
+                {{ grupo.nombre }}
+                {{ grupo.asistentes }} de {{ grupo.totalGrupo || 0 }}
+              </div>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

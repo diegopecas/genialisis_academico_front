@@ -1,0 +1,125 @@
+<div class="modulo">
+    <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [accion]="accion"
+        [raiz]="'/administracion/gestion-medidas/medidas'" [regresar]="regresar"
+        [iconoTitulo]="'/assets/images/medidas.png'"></app-header>
+
+    <div class="container mt-5" [ngClass]="{ 'disabled-container': !editable }">
+        <div class="row">
+            <div class="col-sm-12 col-md-6">
+                <label class="form-label">Nombre <span class="text-danger">*</span></label>
+                <input type="text" class="form-control form-control-lg" [(ngModel)]="model.nombre"
+                    [ngClass]="{'is-invalid': !model.nombre && submitted}" placeholder="Ej: Peso">
+            </div>
+            <div class="col-sm-12 col-md-6">
+                <label class="form-label">Categoría <span class="text-danger">*</span></label>
+                <select class="form-select form-select-lg" [(ngModel)]="model.id_categoria"
+                    [ngClass]="{'is-invalid': !model.id_categoria && submitted}">
+                    <option value="">Seleccionar</option>
+                    <option *ngFor="let cat of listas.categorias" [value]="cat.id">{{ cat.nombre }}</option>
+                </select>
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col-sm-12 col-md-4">
+                <label class="form-label">Unidad <span class="text-danger">*</span></label>
+                <select class="form-select form-select-lg" [(ngModel)]="model.id_unidad"
+                    [ngClass]="{'is-invalid': !model.id_unidad && submitted}">
+                    <option value="">Seleccionar</option>
+                    <option *ngFor="let u of listas.unidades" [value]="u.id">{{ u.nombre }} ({{ u.abreviatura }})</option>
+                </select>
+            </div>
+            <div class="col-sm-12 col-md-4">
+                <label class="form-label">Tipo de Valor <span class="text-danger">*</span></label>
+                <select class="form-select form-select-lg" [(ngModel)]="model.id_tipo_valor"
+                    (change)="onTipoValorCambiado()"
+                    [ngClass]="{'is-invalid': !model.id_tipo_valor && submitted}">
+                    <option value="">Seleccionar</option>
+                    <option *ngFor="let t of listas.tiposValor" [value]="t.id">{{ t.nombre }}</option>
+                </select>
+            </div>
+            <div class="col-sm-12 col-md-4">
+                <label class="form-label">Orden</label>
+                <input type="number" class="form-control form-control-lg" [(ngModel)]="model.orden" min="0">
+            </div>
+        </div>
+
+        <!-- Sección de valores para tipo select -->
+        <div *ngIf="esTipoSelect() && model.id" class="mt-4">
+            <div class="card valores-card">
+                <div class="card-header valores-header">
+                    <h6 class="mb-0"><i class="fas fa-list-ol me-2"></i>Opciones de valor</h6>
+                </div>
+                <div class="card-body">
+                    <!-- Lista de valores existentes -->
+                    <table class="table table-sm" *ngIf="valoresMedida.length > 0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Etiqueta</th>
+                                <th>Valor Numérico</th>
+                                <th>Orden</th>
+                                <th class="text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let val of valoresMedida">
+                                <td>{{ val.etiqueta }}</td>
+                                <td>{{ val.valor_numerico }}</td>
+                                <td>{{ val.orden }}</td>
+                                <td class="text-center">
+                                    <button class="btn btn-sm btn-outline-danger" (click)="eliminarValor(val)">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div *ngIf="valoresMedida.length === 0" class="text-muted text-center py-3">
+                        <i class="fas fa-info-circle me-2"></i>No hay opciones registradas
+                    </div>
+
+                    <!-- Formulario agregar nuevo valor -->
+                    <div class="row mt-3 g-2 align-items-end" *ngIf="editable">
+                        <div class="col-md-4">
+                            <label class="form-label form-label-sm">Etiqueta</label>
+                            <input type="text" class="form-control form-control-sm" [(ngModel)]="nuevoValor.etiqueta" placeholder="Ej: Delgado">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label form-label-sm">Valor Numérico</label>
+                            <input type="number" class="form-control form-control-sm" [(ngModel)]="nuevoValor.valor_numerico" step="1">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label form-label-sm">Orden</label>
+                            <input type="number" class="form-control form-control-sm" [(ngModel)]="nuevoValor.orden" min="0">
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-sm btn-success w-100" (click)="agregarValor()" [disabled]="!nuevoValor.etiqueta">
+                                <i class="fas fa-plus me-1"></i>Agregar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div *ngIf="esTipoSelect() && !model.id" class="alert alert-info mt-4">
+            <i class="fas fa-info-circle me-2"></i>
+            Guarde la medida primero para poder agregar las opciones de valor.
+        </div>
+    </div>
+
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-sm-6" *ngIf="editable">
+                <button class="btn btn-lg btn-warning w-100" (click)="guardar()">
+                    <i class="fas fa-save me-2"></i>Grabar
+                </button>
+            </div>
+            <div class="col-sm-6">
+                <button class="btn btn-lg btn-secondary w-100" (click)="volver()">
+                    <i class="fas fa-arrow-left me-2"></i>Volver
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

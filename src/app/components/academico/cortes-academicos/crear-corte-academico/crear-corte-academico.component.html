@@ -1,0 +1,80 @@
+<div class="modulo">
+    <app-header 
+        [tituloModulo]="titulo" 
+        [mostrarCrear]="false" 
+        [accion]="accion" 
+        [raiz]="'/academico/cortes-academicos'"
+        [regresar]="regresar" 
+        [iconoTitulo]="'/assets/images/cortes-academicos.png'">
+    </app-header>
+
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-md-8 col-12">
+                <label for="nombre" class="form-label">Nombre del corte académico <span class="text-danger">*</span></label>
+                <input 
+                    class="form-control form-control-lg" 
+                    type="text" 
+                    id="nombre" 
+                    [(ngModel)]="model.nombre"
+                    placeholder="Ej: Primer Corte, Segundo Corte..."
+                    required
+                    [ngClass]="{'is-invalid': !model.nombre && submitted}"
+                    [disabled]="!editable">
+                <small class="form-text text-muted">Ingrese el nombre del corte académico</small>
+            </div>
+            <div class="col-md-4 col-12">
+                <label for="orden" class="form-label">Orden <span class="text-danger">*</span></label>
+                <input 
+                    class="form-control form-control-lg" 
+                    type="number" 
+                    id="orden" 
+                    [(ngModel)]="model.orden"
+                    placeholder="Ej: 1, 2, 3..."
+                    required
+                    min="1"
+                    [ngClass]="{'is-invalid': !model.orden && submitted}"
+                    [disabled]="!editable">
+                <small class="form-text text-muted">Posición en el listado</small>
+            </div>
+        </div>
+
+        <div class="row mt-3">
+            <div class="col-md-6 col-12">
+                <label for="fecha_inicio" class="form-label">Fecha de inicio</label>
+                <input 
+                    class="form-control form-control-lg" 
+                    type="date" 
+                    id="fecha_inicio" 
+                    [(ngModel)]="model.fecha_inicio"
+                    [disabled]="!editable">
+                <small class="form-text text-muted">Fecha en que inicia el corte académico</small>
+            </div>
+            <div class="col-md-6 col-12">
+                <label for="fecha_fin" class="form-label">Fecha de fin</label>
+                <input 
+                    class="form-control form-control-lg" 
+                    type="date" 
+                    id="fecha_fin" 
+                    [(ngModel)]="model.fecha_fin"
+                    [disabled]="!editable">
+                <small class="form-text text-muted">Fecha en que finaliza el corte académico</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-sm-6" *ngIf="editable">
+                <button class="btn btn-lg btn-warning w-100" (click)="guardar()">
+                    Grabar
+                </button>
+            </div>
+            <div class="col-sm-6">
+                <button class="btn btn-lg btn-secondary w-100" (click)="volver()">
+                    Volver
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

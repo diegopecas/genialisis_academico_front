@@ -1,0 +1,448 @@
+// editar-indicadores-logros.component.scss
+
+// Variables de color corporativo
+$corporate-yellow: #F5A623;  // Amarillo oscuro corporativo
+$corporate-black: #2C2C2C;   // Negro suave
+$corporate-gray: #4A4A4A;    // Gris oscuro
+$light-gray: #F5F5F5;        // Gris claro para fondos
+$white: #FFFFFF;
+$danger-color: #dc3545;
+$success-color: #28a745;
+$info-color: #17a2b8;
+$warning-color: #ffc107;
+
+// Contenedor principal
+.modulo {
+  background-color: $light-gray;
+  min-height: 100vh;
+  padding-bottom: 2rem;
+}
+
+// Cards mejoradas
+.card {
+  border: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+  }
+  
+  .card-header {
+    border: none;
+    font-weight: 600;
+    
+    &.bg-corporate-primary {
+      background-color: $corporate-yellow;
+      color: $corporate-black;
+      
+      h5 {
+        color: $corporate-black;
+        font-weight: 700;
+      }
+    }
+    
+    &.bg-corporate-secondary {
+      background-color: $corporate-black;
+      color: $white;
+      
+      h5 {
+        color: $white;
+      }
+    }
+    
+    h5 {
+      margin: 0;
+      font-size: 1.1rem;
+      letter-spacing: 0.5px;
+    }
+  }
+  
+  .card-body {
+    padding: 1.5rem;
+    background-color: $white;
+  }
+}
+
+// Formularios mejorados
+.form-label {
+  color: $corporate-black;
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+  
+  &.fw-semibold {
+    font-weight: 600;
+  }
+  
+  .text-danger {
+    font-size: 0.9rem;
+    display: inline-block;
+    margin-left: 2px;
+  }
+}
+
+.form-select, .form-control {
+  border-radius: 0.375rem;
+  border: 2px solid #E0E0E0;
+  transition: all 0.3s ease;
+  background-color: $white;
+  
+  &:focus {
+    border-color: $corporate-yellow;
+    box-shadow: 0 0 0 0.2rem rgba($corporate-yellow, 0.25);
+    background-color: $white;
+  }
+  
+  &.is-invalid {
+    border-color: $danger-color;
+    
+    &:focus {
+      box-shadow: 0 0 0 0.2rem rgba($danger-color, 0.25);
+    }
+  }
+  
+  option {
+    color: $corporate-black;
+  }
+}
+
+// Alerta de información mejorada
+.alert {
+  &.alert-info {
+    background-color: lighten($info-color, 35%);
+    border: 1px solid $info-color;
+    border-left: 4px solid $info-color;
+    color: darken($info-color, 20%);
+    
+    .alert-heading {
+      color: darken($info-color, 20%);
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+    
+    h6 {
+      color: darken($info-color, 25%);
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+      
+      i {
+        color: $info-color;
+      }
+    }
+    
+    strong {
+      font-weight: 600;
+      color: darken($info-color, 30%);
+      font-size: 0.9rem;
+    }
+    
+    .text-muted {
+      color: darken($info-color, 15%) !important;
+      font-size: 0.95rem;
+    }
+    
+    .text-primary {
+      color: darken($info-color, 25%) !important;
+      font-size: 1rem;
+      font-weight: 500;
+    }
+    
+    hr {
+      border-color: $info-color;
+      opacity: 0.3;
+      margin: 1rem 0;
+    }
+  }
+}
+
+// Alert corporativo
+.alert-corporate {
+  background-color: lighten($corporate-yellow, 35%);
+  border: 1px solid $corporate-yellow;
+  border-left: 4px solid $corporate-yellow;
+  color: $corporate-black;
+}
+
+// Botones corporativos
+.btn {
+  font-weight: 600;
+  letter-spacing: 0.025rem;
+  transition: all 0.3s ease;
+  border: none;
+  
+  &.btn-lg {
+    padding: 0.75rem 2rem;
+    font-size: 1.1rem;
+  }
+  
+  &.btn-corporate-primary {
+    background-color: $corporate-yellow;
+    color: $corporate-black;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    
+    &:hover:not(:disabled) {
+      background-color: darken($corporate-yellow, 10%);
+      color: $corporate-black;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+    
+    &:active {
+      transform: translateY(0);
+    }
+    
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      background-color: lighten($corporate-yellow, 20%);
+    }
+  }
+  
+  &.btn-corporate-secondary {
+    background-color: $corporate-black;
+    color: $white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    
+    &:hover {
+      background-color: lighten($corporate-black, 10%);
+      color: $white;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+    
+    &:active {
+      transform: translateY(0);
+    }
+  }
+  
+  i {
+    font-size: 1rem;
+  }
+}
+
+// Contenedor deshabilitado
+.disabled-container {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+// Feedback de validación
+.invalid-feedback, .text-danger {
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  display: block;
+}
+
+// Modal personalizado
+.modal {
+  .modal-content {
+    border: none;
+    border-radius: 0.5rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  }
+  
+  .modal-header {
+    border-bottom: 2px solid $corporate-yellow;
+    padding: 1.25rem;
+    
+    &.bg-corporate-primary {
+      background-color: $corporate-yellow;
+      color: $corporate-black;
+      
+      .modal-title {
+        font-weight: 700;
+        font-size: 1.2rem;
+      }
+      
+      .btn-close {
+        filter: invert(1);
+        opacity: 0.8;
+        
+        &:hover {
+          opacity: 1;
+        }
+      }
+    }
+  }
+  
+  .modal-body {
+    padding: 1.5rem;
+  }
+  
+  .modal-footer {
+    border-top: 1px solid #dee2e6;
+    padding: 1rem 1.5rem;
+  }
+}
+
+// Lista de actividades en el modal
+.actividades-list {
+  max-height: 400px;
+  overflow-y: auto;
+  border: 2px solid #E0E0E0;
+  border-radius: 0.375rem;
+  
+  &.is-invalid {
+    border-color: $danger-color;
+  }
+  
+  .no-results-message {
+    padding: 2rem;
+    text-align: center;
+    color: $corporate-gray;
+    font-style: italic;
+  }
+  
+  .actividad-item {
+    padding: 1rem;
+    border-bottom: 1px solid #E0E0E0;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    
+    &:last-child {
+      border-bottom: none;
+    }
+    
+    &:hover {
+      background-color: lighten($corporate-yellow, 40%);
+    }
+    
+    &.selected {
+      background-color: lighten($corporate-yellow, 30%);
+      border-left: 4px solid $corporate-yellow;
+      
+      .check-icon {
+        color: $corporate-yellow;
+      }
+    }
+    
+    .actividad-info {
+      flex: 1;
+      
+      strong {
+        display: block;
+        margin-bottom: 0.25rem;
+        color: $corporate-black;
+      }
+      
+      .text-muted {
+        font-size: 0.875rem;
+        
+        i {
+          font-size: 0.75rem;
+          opacity: 0.7;
+        }
+      }
+    }
+    
+    .check-icon {
+      font-size: 1.5rem;
+      margin-left: 1rem;
+      color: $corporate-yellow;
+    }
+  }
+}
+
+// Badge personalizado
+.badge {
+  &.bg-secondary {
+    background-color: $corporate-gray !important;
+  }
+  
+  &.bg-primary {
+    background-color: $corporate-yellow !important;
+    color: $corporate-black !important;
+  }
+}
+
+// Resumen de selección
+.selected-summary {
+  .selected-list {
+    background-color: $white;
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+    border: 1px solid lighten($corporate-yellow, 20%);
+  }
+}
+
+// Botones de selección
+.btn-group {
+  .btn-outline-secondary {
+    border-color: #dee2e6;
+    
+    &:hover {
+      background-color: $light-gray;
+      border-color: $corporate-gray;
+    }
+    
+    &:disabled {
+      opacity: 0.5;
+    }
+  }
+}
+
+// Tabla de actividades asociadas
+.table {
+  .btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    
+    &.btn-info {
+      background-color: $info-color;
+      border-color: $info-color;
+      color: $white;
+      
+      &:hover {
+        background-color: darken($info-color, 10%);
+      }
+    }
+    
+    &.btn-danger {
+      background-color: $danger-color;
+      border-color: $danger-color;
+      color: $white;
+      
+      &:hover {
+        background-color: darken($danger-color, 10%);
+      }
+    }
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .container-fluid {
+    padding: 0 1rem;
+  }
+  
+  .card-body {
+    padding: 1rem;
+  }
+  
+  .btn-lg {
+    padding: 0.5rem 1.5rem;
+    font-size: 1rem;
+  }
+  
+  .row.g-3 {
+    --bs-gutter-y: 1rem;
+  }
+  
+  .actividades-list {
+    max-height: 300px;
+  }
+  
+  .alert .row {
+    margin-bottom: 0.5rem;
+    
+    .col-md-6, .col-md-3 {
+      margin-bottom: 0.5rem;
+    }
+  }
+}

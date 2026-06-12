@@ -1,0 +1,103 @@
+<div class="modulo">
+    <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [raiz]="'/'" [regresar]="'/menu'" [iconoTitulo]="'/assets/images/docentes.png'"></app-header>
+
+    <div class="container-fluid mt-5">
+        <!-- Título descriptivo -->
+        <div class="text-center mb-5">
+            <h2 class="titulo-seccion">Gestión Académica - Docentes</h2>
+            <p class="subtitulo-seccion">Selecciona una opción para continuar</p>
+        </div>
+
+        <!-- Tarjetas de opciones -->
+        <div class="row justify-content-center">
+            <!-- Gestión de Docentes -->
+            <div class="col-lg-5 col-md-6 mb-4">
+                <div class="card-opcion" (click)="seleccionarOpcion('docentes')">
+                    <div class="card-opcion-content">
+                        <div class="icono-container docentes">
+                            <img [src]="'/assets/images/docentes.png'" alt="Docentes" />
+                        </div>
+                        <h3 class="card-titulo">Docentes</h3>
+                        <p class="card-descripcion">Administra la información de los docentes, asigna grupos y áreas académicas</p>
+                        <div class="card-badges mb-3">
+                            <span class="badge bg-info me-2">Registro</span>
+                            <span class="badge bg-success me-2">Grupos</span>
+                            <span class="badge bg-warning">Áreas</span>
+                        </div>
+                        <div class="card-footer-custom">
+                            <span class="link-accion">Gestionar Docentes <i class="fas fa-arrow-right"></i></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Casas Docentes -->
+            <div class="col-lg-5 col-md-6 mb-4">
+                <div class="card-opcion" (click)="seleccionarOpcion('casas-docentes')">
+                    <div class="card-opcion-content">
+                        <div class="icono-container casas">
+                            <img [src]="'/assets/images/casasdocentes.png'" alt="Casas Docentes" />
+                        </div>
+                        <h3 class="card-titulo">Casas Docentes</h3>
+                        <p class="card-descripcion">Gestiona las casas docentes y administra el sistema de puntos por actividades</p>
+                        <div class="card-badges mb-3">
+                            <span class="badge bg-primary me-2">Puntos</span>
+                            <span class="badge bg-danger me-2">Competencias</span>
+                            <span class="badge bg-success">Rankings</span>
+                        </div>
+                        <div class="card-footer-custom">
+                            <span class="link-accion">Administrar Casas <i class="fas fa-arrow-right"></i></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección de estadísticas rápidas -->
+        <div class="row mt-5">
+            <div class="col-12">
+                <div class="stats-container">
+                    <div class="stat-item">
+                        <div class="stat-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-number">{{ estadisticas.totalDocentes }}</div>
+                            <p class="stat-label">Docentes Activos</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-item">
+                        <div class="stat-icon">
+                            <i class="fas fa-home"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-number">{{ estadisticas.totalCasas }}</div>
+                            <p class="stat-label">Casas Docentes</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-item">
+                        <div class="stat-icon">
+                            <i class="fas fa-layer-group"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-number">{{ estadisticas.totalGrupos }}</div>
+                            <p class="stat-label">Grupos Asignados</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-item">
+                        <div class="stat-icon">
+                            <i class="fas fa-trophy"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-number">{{ estadisticas.puntosAcumulados }}</div>
+                            <p class="stat-label">Puntos Totales</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

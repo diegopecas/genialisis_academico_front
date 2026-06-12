@@ -1,0 +1,462 @@
+<app-header [tituloModulo]="titulo" [mostrarCrear]="false" [raiz]="'/academico'" [regresar]="'/academico/selector-actividades'"></app-header>
+
+<div class="evaluacion-container">
+
+  <!-- STEPPER (4 pasos) -->
+  <div class="stepper">
+    <div class="step" [class.active]="pasoActual >= 1" [class.done]="pasoActual > 1" [class.clickable]="pasoActual !== 1" (click)="pasoActual !== 1 ? volverAPaso(1) : null">
+      <div class="step-circle">1</div>
+      <span class="step-label">Configuración</span>
+    </div>
+    <div class="step-line" [class.active]="pasoActual >= 2"></div>
+    <div class="step" [class.active]="pasoActual >= 2" [class.done]="pasoActual > 2" [class.clickable]="pasoActual !== 2 && paso1Valido()" (click)="pasoActual !== 2 && paso1Valido() ? irAPaso2() : null">
+      <div class="step-circle">2</div>
+      <span class="step-label">Logros</span>
+    </div>
+    <div class="step-line" [class.active]="pasoActual >= 3"></div>
+    <div class="step" [class.active]="pasoActual >= 3" [class.done]="pasoActual > 3" [class.clickable]="pasoActual !== 3 && paso1Valido() && cantidadLogrosSeleccionados() > 0" (click)="pasoActual !== 3 && paso1Valido() && cantidadLogrosSeleccionados() > 0 ? irAPaso3() : null">
+      <div class="step-circle">3</div>
+      <span class="step-label">Generación</span>
+    </div>
+    <div class="step-line" [class.active]="pasoActual >= 4"></div>
+    <div class="step" [class.active]="pasoActual >= 4" [class.clickable]="pasoActual !== 4 && actividadesValidasParaGrabar().length > 0" (click)="pasoActual !== 4 && actividadesValidasParaGrabar().length > 0 ? irAPaso4() : null">
+      <div class="step-circle">4</div>
+      <span class="step-label">Confirmar</span>
+    </div>
+  </div>
+
+  <!-- RESUMEN STICKY (visible en pasos 2, 3 y 4) -->
+  <div *ngIf="pasoActual > 1 && idGrupo" class="resumen-sticky">
+    <span class="resumen-chip">👥 {{ nombreGrupo }}</span>
+    <span class="resumen-sep">·</span>
+    <span class="resumen-chip">🗓️ {{ nombreCorte }}</span>
+    <span class="resumen-sep">·</span>
+    <span class="resumen-chip">📚 {{ idArea ? nombreArea : 'Todas las áreas' }}</span>
+    <span class="resumen-sep">·</span>
+    <span class="resumen-chip">🏃 {{ nombreSprint }}</span>
+  </div>
+
+  <!-- ===================== PASO 1: CONFIGURACIÓN ===================== -->
+  <div *ngIf="pasoActual === 1" class="paso-contenido">
+
+    <section class="card-seccion accent-indigo">
+      <header class="card-header">
+        <span class="card-icono">⚙️</span>
+        <h3>Configuración Básica</h3>
+      </header>
+      <div class="card-body">
+        <div class="filtros-row">
+          <div class="filtro-item">
+            <label>Grupo *</label>
+            <select [(ngModel)]="idGrupo" (ngModelChange)="onGrupoChange()">
+              <option value="">Seleccione grupo...</option>
+              <option *ngFor="let g of grupos" [value]="g.id">{{ g.nombre }}</option>
+            </select>
+          </div>
+          <div class="filtro-item">
+            <label>Corte Académico *</label>
+            <select [(ngModel)]="idCorte" (ngModelChange)="onCorteChange()">
+              <option value="">Seleccione corte...</option>
+              <option *ngFor="let c of cortes" [value]="c.id">{{ c.nombre }}</option>
+            </select>
+          </div>
+          <div class="filtro-item">
+            <label>Área Académica</label>
+            <select [(ngModel)]="idArea" (ngModelChange)="onAreaChange()" [disabled]="!idGrupo">
+              <option value="">Todas las áreas</option>
+              <option *ngFor="let a of areas" [value]="a.id">{{ a.nombre }}</option>
+            </select>
+          </div>
+          <div class="filtro-item">
+            <label>Sprint de Evaluación *</label>
+            <select [(ngModel)]="idSprint" (ngModelChange)="onSprintChange()" [disabled]="!idCorte || sprintsEvaluacion.length === 0">
+              <option value="">{{ idCorte ? (sprintsEvaluacion.length === 0 ? 'No hay sprints de evaluación' : 'Seleccione sprint...') : 'Primero selecciona corte' }}</option>
+              <option *ngFor="let s of sprintsEvaluacion" [value]="s.id">{{ s.nombre_sprint }}</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card-seccion accent-purple">
+      <header class="card-header">
+        <span class="card-icono">🎯</span>
+        <h3>Tipo de Actividad <span class="card-required">*</span></h3>
+      </header>
+      <div class="card-body">
+        <div class="badges-container">
+          <div *ngFor="let tipo of tiposActividad" class="badge-item" [class.selected]="idTipoActividad == tipo.id" (click)="onTipoActividadChange(tipo.id)">
+            <span class="badge-emoji">{{ tipo.icono || '📌' }}</span>
+            <span>{{ tipo.nombre }}</span>
+            <span *ngIf="idTipoActividad == tipo.id" class="badge-check-emoji">✅</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card-seccion accent-teal">
+      <header class="card-header">
+        <span class="card-icono">🏠</span>
+        <h3>Ambientes <span class="card-hint">Selecciona uno o varios</span></h3>
+      </header>
+      <div class="card-body">
+        <div class="badges-container">
+          <div *ngFor="let amb of ambientes" class="badge-item" [class.selected]="isAmbienteSeleccionado(amb)" (click)="toggleAmbiente(amb)">
+            <span class="badge-emoji">{{ amb.icono }}</span>
+            <span>{{ amb.nombre }}</span>
+            <span *ngIf="isAmbienteSeleccionado(amb)" class="badge-check-emoji">✅</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card-seccion accent-orange">
+      <header class="card-header">
+        <span class="card-icono">📦</span>
+        <h3>Materiales <span class="card-hint">Del inventario o escribe uno nuevo</span></h3>
+      </header>
+      <div class="card-body">
+        <div class="chips-container" *ngIf="materialesSeleccionados.length > 0">
+          <div *ngFor="let mat of materialesSeleccionados; let i = index" class="chip-material" [class.chip-producto]="mat.es_producto" [class.chip-libre]="!mat.es_producto">
+            <span class="chip-text" (click)="verProducto(mat)" [class.clickable]="mat.es_producto">
+              <span *ngIf="mat.es_producto">📦</span><span *ngIf="!mat.es_producto">✏️</span> {{ mat.nombre_material }}
+            </span>
+            <span class="chip-remove" (click)="quitarMaterial(i)">✕</span>
+          </div>
+        </div>
+        <div class="material-input-row">
+          <input type="text" [(ngModel)]="materialTextoLibre" (keydown)="agregarMaterialConEnter($event)" placeholder="Escribe un material y presiona Enter..." class="material-input">
+          <button class="btn-agregar-material" (click)="agregarMaterialLibre()" [disabled]="!materialTextoLibre.trim()">➕</button>
+        </div>
+        <div class="acordeon-inventario" *ngIf="productosDisponibles.length > 0">
+          <details class="inventario-details">
+            <summary class="inventario-summary">
+              📋 Ver inventario del grupo ({{ productosDisponibles.length }} productos)
+              <span class="inventario-acciones" (click)="$event.stopPropagation()">
+                <button class="btn-link-sm" (click)="incluirTodosProductos()">Incluir todos</button>
+              </span>
+            </summary>
+            <div class="inventario-contenido">
+              <input type="text" [(ngModel)]="busquedaProducto" placeholder="🔍 Buscar producto..." class="buscador-producto">
+              <div class="badges-container badges-productos-acordeon">
+                <ng-container *ngFor="let prod of productosDisponibles">
+                  <div class="badge-item badge-producto" [class.selected]="isMaterialSeleccionado(prod)" [hidden]="!productoCoincideBusqueda(prod)" (click)="toggleMaterial(prod)">
+                    <span>📦</span> <span>{{ prod.nombre }}</span>
+                    <span *ngIf="isMaterialSeleccionado(prod)" class="badge-check-emoji">✅</span>
+                    <span class="badge-ver-detalle" (click)="verProductoDetalle(prod); $event.stopPropagation()">👁️</span>
+                  </div>
+                </ng-container>
+              </div>
+            </div>
+          </details>
+        </div>
+        <p *ngIf="idGrupo && productosDisponibles.length === 0" class="sin-productos">No hay productos académicos registrados para este grupo.</p>
+      </div>
+    </section>
+
+    <div class="botones-row">
+      <button class="btn-secundario" (click)="volver()">← Volver</button>
+      <button class="btn-primario" (click)="irAPaso2()" [disabled]="!paso1Valido()">📋 Ver Logros del Corte</button>
+    </div>
+  </div>
+
+  <!-- ===================== PASO 2: LOGROS ===================== -->
+  <div *ngIf="pasoActual === 2" class="paso-contenido">
+
+    <div *ngIf="cargandoLogros" class="cargando-mensaje">⏳ Cargando logros del corte...</div>
+
+    <div *ngIf="!cargandoLogros && logrosDisponibles.length === 0" class="sin-logros">
+      <p>📭 No se encontraron logros para este grupo y corte{{ idArea ? ' en el área seleccionada' : '' }}.</p>
+      <button class="btn-secundario" (click)="volverAPaso(1)">← Reconfigurar</button>
+    </div>
+
+    <div *ngIf="!cargandoLogros && logrosDisponibles.length > 0">
+
+      <section class="card-seccion accent-blue">
+        <header class="card-header">
+          <span class="card-icono">📋</span>
+          <h3>
+            Logros del corte
+            <span class="card-hint">{{ cantidadLogrosSeleccionados() }} / {{ logrosDisponibles.length }} seleccionado{{ logrosDisponibles.length !== 1 ? 's' : '' }}</span>
+          </h3>
+          <div class="card-acciones">
+            <button class="btn-link-sm" (click)="seleccionarTodosLogros()">Todos</button>
+            <span class="separador-acc">·</span>
+            <button class="btn-link-sm" (click)="deseleccionarTodosLogros()">Ninguno</button>
+          </div>
+        </header>
+        <div class="card-body">
+
+          <div *ngFor="let area of getAreasConLogros()" class="grupo-area">
+            <div class="area-header">
+              <span class="area-titulo">📚 {{ area.nombre }}</span>
+              <span class="area-contador">{{ area.logros.length }} logro{{ area.logros.length !== 1 ? 's' : '' }}</span>
+            </div>
+            <div *ngFor="let logro of area.logros"
+                 class="logro-card"
+                 [class.logro-seleccionado]="isLogroSeleccionado(logro.id)"
+                 [class.logro-cubierto]="logroYaCubierto(logro.id)">
+              <div class="logro-card-header">
+                <label class="check-logro" [class.check-disabled]="logroYaCubierto(logro.id)">
+                  <input type="checkbox"
+                         [checked]="isLogroSeleccionado(logro.id)"
+                         [disabled]="logroYaCubierto(logro.id)"
+                         (change)="toggleLogro(logro.id)">
+                </label>
+                <details class="logro-acordeon">
+                  <summary class="logro-summary">
+                    <strong>{{ logro.nombre }}</strong>
+                    <span class="logro-meta">
+                      <span *ngIf="logroYaCubierto(logro.id)" class="badge-cubierto">✅ ya tiene actividad</span>
+                      <span class="logro-indicadores">{{ logro.indicadores.length }} ind.</span>
+                    </span>
+                  </summary>
+                  <ul class="indicadores-lista">
+                    <li *ngFor="let ind of logro.indicadores">{{ ind.nombre }}</li>
+                  </ul>
+                </details>
+              </div>
+
+              <!-- Actividades existentes en este sprint para este logro -->
+              <div *ngIf="logroYaCubierto(logro.id)" class="actividades-existentes">
+                <div *ngFor="let act of getActividadesExistentesDelLogro(logro.id)" class="act-existente">
+                  <strong class="act-existente-titulo">{{ act.titulo }}</strong>
+                  <span *ngIf="act.descripcion" class="act-existente-desc">{{ truncar(act.descripcion, 80) }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <div class="botones-row">
+        <button class="btn-secundario" (click)="volverAPaso(1)">← Reconfigurar</button>
+        <button class="btn-primario" (click)="irAPaso3()" [disabled]="cantidadLogrosSeleccionados() === 0">
+          ⚡ Generar {{ cantidadLogrosSeleccionados() }} actividad{{ cantidadLogrosSeleccionados() !== 1 ? 'es' : '' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== PASO 3: GENERACIÓN (TABS) ===================== -->
+  <div *ngIf="pasoActual === 3" class="paso-contenido">
+
+    <section class="card-seccion accent-amber">
+      <header class="card-header">
+        <span class="card-icono">⚡</span>
+        <h3>Modo de Generación <span class="card-hint">Selecciona uno y genera</span></h3>
+      </header>
+      <div class="card-body">
+
+        <div class="tabs-row">
+          <div class="tab" [class.tab-activo]="modoActivo === 'mecanico'" (click)="cambiarModo('mecanico')">
+            <span class="tab-icono">🔧</span>
+            <div class="tab-info">
+              <strong>Mecánico</strong>
+              <small>Texto estándar de evaluación</small>
+            </div>
+          </div>
+          <div class="tab tab-ia" [class.tab-activo]="modoActivo === 'ia'" (click)="cambiarModo('ia')">
+            <span class="tab-icono">🪄</span>
+            <div class="tab-info">
+              <strong>Con IA</strong>
+              <small>Contextualizadas por Gemini</small>
+            </div>
+          </div>
+          <div class="tab" [class.tab-activo]="modoActivo === 'manual'" (click)="cambiarModo('manual')">
+            <span class="tab-icono">✍️</span>
+            <div class="tab-info">
+              <strong>Manual</strong>
+              <small>Escribe cada actividad</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filtro por área compartido para los 3 tabs -->
+        <div *ngIf="actividadesGeneradas.length > 0 && getAreasDeLogrosSeleccionados().length > 1" class="filtro-area-compartido">
+          <label>🔍 Filtrar por área:</label>
+          <select [(ngModel)]="filtroArea">
+            <option value="">Todas las áreas</option>
+            <option *ngFor="let a of getAreasDeLogrosSeleccionados()" [value]="a.id">{{ a.nombre }}</option>
+          </select>
+          <span class="filtro-info">Mostrando {{ getActividadesFiltradas().length }} de {{ actividadesGeneradas.length }}</span>
+        </div>
+
+        <!-- ============ TAB MECÁNICO ============ -->
+        <div *ngIf="modoActivo === 'mecanico'" class="tab-contenido">
+          <div *ngIf="actividadesGeneradas.length === 0" class="tab-vacio">
+            <p>Genera <strong>{{ cantidadLogrosSeleccionados() }}</strong> actividad{{ cantidadLogrosSeleccionados() !== 1 ? 'es' : '' }} con texto estándar.</p>
+            <button class="btn-mecanico" (click)="generarMecanico()">🔧 Generar Mecánico</button>
+          </div>
+          <div *ngIf="actividadesGeneradas.length > 0">
+            <div class="generadas-resumen">
+              ✅ {{ actividadesGeneradas.length }} actividad{{ actividadesGeneradas.length !== 1 ? 'es' : '' }} generada{{ actividadesGeneradas.length !== 1 ? 's' : '' }}.
+              <button class="btn-link-sm" (click)="generarMecanico()">🔄 Regenerar</button>
+            </div>
+            <ng-container [ngTemplateOutlet]="tplActividades" [ngTemplateOutletContext]="{actividades: getActividadesFiltradas()}"></ng-container>
+          </div>
+        </div>
+
+        <!-- ============ TAB IA ============ -->
+        <div *ngIf="modoActivo === 'ia'" class="tab-contenido">
+          <div *ngIf="actividadesGeneradas.length === 0" class="tab-vacio">
+            <p>La IA generará <strong>{{ cantidadLogrosSeleccionados() }}</strong> actividad{{ cantidadLogrosSeleccionados() !== 1 ? 'es' : '' }} de evaluación contextualizadas.</p>
+            <button class="btn-ia" (click)="generarConIA()" [disabled]="generando">
+              {{ generando ? '⏳ Generando...' : '🪄 Generar con IA' }}
+            </button>
+          </div>
+          <div *ngIf="actividadesGeneradas.length > 0">
+            <div class="generadas-resumen generadas-ia">
+              🪄 {{ actividadesGeneradas.length }} actividad{{ actividadesGeneradas.length !== 1 ? 'es' : '' }} generada{{ actividadesGeneradas.length !== 1 ? 's' : '' }} con IA.
+              <button class="btn-link-sm" (click)="generarConIA()" [disabled]="generando">🔄 Regenerar</button>
+            </div>
+            <ng-container [ngTemplateOutlet]="tplActividades" [ngTemplateOutletContext]="{actividades: getActividadesFiltradas()}"></ng-container>
+          </div>
+        </div>
+
+        <!-- ============ TAB MANUAL ============ -->
+        <div *ngIf="modoActivo === 'manual'" class="tab-contenido">
+          <div *ngIf="actividadesGeneradas.length === 0" class="tab-vacio">
+            <p>Crea las plantillas vacías para llenar manualmente.</p>
+            <button class="btn-manual" (click)="iniciarModoManual()">✍️ Empezar manual</button>
+          </div>
+          <div *ngIf="actividadesGeneradas.length > 0">
+            <ng-container [ngTemplateOutlet]="tplActividades" [ngTemplateOutletContext]="{actividades: getActividadesFiltradas()}"></ng-container>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <div class="botones-row">
+      <button class="btn-secundario" (click)="volverAPaso(2)">← Volver a logros</button>
+      <button class="btn-primario" (click)="irAPaso4()" [disabled]="actividadesGeneradas.length === 0">
+        <ng-container *ngIf="actividadesGeneradas.length === 0">✅ Revisar 0 actividades</ng-container>
+        <ng-container *ngIf="actividadesGeneradas.length > 0">
+          ✅ Revisar {{ actividadesValidasParaGrabar().length }} de {{ actividadesGeneradas.length }} actividad{{ actividadesGeneradas.length !== 1 ? 'es' : '' }}
+          <span *ngIf="actividadesValidasParaGrabar().length < actividadesGeneradas.length" class="btn-warn">
+            ({{ actividadesGeneradas.length - actividadesValidasParaGrabar().length }} sin título)
+          </span>
+        </ng-container>
+      </button>
+    </div>
+  </div>
+
+  <!-- ===================== PASO 4: CONFIRMAR ===================== -->
+  <div *ngIf="pasoActual === 4" class="paso-contenido">
+
+    <section class="card-seccion accent-pink">
+      <header class="card-header">
+        <span class="card-icono">📋</span>
+        <h3>Resumen final</h3>
+      </header>
+      <div class="card-body">
+        <div class="resumen-info">
+          <div class="resumen-item">👥 <span><strong>Grupo:</strong> {{ nombreGrupo }}</span></div>
+          <div class="resumen-item">🗓️ <span><strong>Corte:</strong> {{ nombreCorte }}</span></div>
+          <div class="resumen-item">📚 <span><strong>Área:</strong> {{ idArea ? nombreArea : 'Todas las áreas' }}</span></div>
+          <div class="resumen-item">🏃 <span><strong>Sprint:</strong> {{ nombreSprint }}</span></div>
+          <div class="resumen-item">{{ getIconoTipoActividad(idTipoActividad) }} <span><strong>Tipo:</strong> {{ getNombreTipoActividad(idTipoActividad) }}</span></div>
+          <div class="resumen-item">⚡ <span><strong>Modo:</strong> {{ getEtiquetaModo() }}</span></div>
+          <div class="resumen-item resumen-total">✍️ <span><strong>{{ actividadesValidasParaGrabar().length }}</strong> actividad{{ actividadesValidasParaGrabar().length !== 1 ? 'es' : '' }} de evaluación a crear</span></div>
+        </div>
+
+        <div *ngFor="let act of actividadesValidasParaGrabar(); let i = index" class="resumen-actividad">
+          <div class="resumen-actividad-num">{{ i + 1 }}</div>
+          <div class="resumen-actividad-info">
+            <strong>{{ act.titulo }}</strong>
+            <span class="resumen-tipo">{{ act.area_nombre }} · {{ getNombreTipoActividad(act.id_tipo_actividad_academica) }} · {{ act.minutos_duracion }} min</span>
+            <span class="resumen-logro">📌 {{ act.logro_nombre }}</span>
+            <span class="resumen-indicadores">{{ act.indicadores?.length || 0 }} indicador{{ (act.indicadores?.length || 0) !== 1 ? 'es' : '' }}</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="botones-row">
+      <button class="btn-secundario" (click)="volverAPaso(3)">← Editar actividades</button>
+      <button class="btn-primario btn-grande" (click)="confirmarYGrabar()">🚀 Crear {{ actividadesValidasParaGrabar().length }} Actividad{{ actividadesValidasParaGrabar().length !== 1 ? 'es' : '' }}</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ TEMPLATE: ACTIVIDADES EDITABLES ============ -->
+<ng-template #tplActividades let-actividades="actividades">
+  <div *ngFor="let act of actividades; let i = index" class="actividad-editable" [class.actividad-sin-titulo]="!act.titulo || !act.titulo.trim()">
+    <div class="actividad-editable-header">
+      <span class="actividad-num">{{ i + 1 }}</span>
+      <div class="actividad-logro-info">
+        <strong class="logro-asociado">📌 {{ act.logro_nombre }}</strong>
+        <span class="area-asociada">{{ act.area_nombre }}</span>
+      </div>
+      <span *ngIf="!act.titulo || !act.titulo.trim()" class="badge-falta-titulo">⚠️ Falta título</span>
+      <span class="card-eliminar" (click)="eliminarActividadGenerada(act)">🗑️</span>
+    </div>
+
+    <div class="actividad-editable-body">
+      <div class="campo-grupo">
+        <label>Título *</label>
+        <input type="text" [(ngModel)]="act.titulo" placeholder="Título de la actividad de evaluación...">
+      </div>
+      <div class="campo-grupo">
+        <label>Descripción</label>
+        <textarea [(ngModel)]="act.descripcion" rows="3" placeholder="Descripción de la actividad..."></textarea>
+      </div>
+
+      <div class="campos-row">
+        <div class="campo-grupo campo-half">
+          <label>1️⃣ Nivel Básico</label>
+          <textarea [(ngModel)]="act.nivel_uno" rows="2"></textarea>
+        </div>
+        <div class="campo-grupo campo-half">
+          <label>2️⃣ Nivel Avanzado</label>
+          <textarea [(ngModel)]="act.nivel_dos" rows="2"></textarea>
+        </div>
+      </div>
+
+      <div class="campos-row">
+        <div class="campo-grupo campo-third">
+          <label>Tipo</label>
+          <select [(ngModel)]="act.id_tipo_actividad_academica">
+            <option [ngValue]="null">Seleccione...</option>
+            <option *ngFor="let t of tiposActividad" [value]="t.id">{{ t.icono || '📌' }} {{ t.nombre }}</option>
+          </select>
+        </div>
+        <div class="campo-grupo campo-third">
+          <label>Duración (min)</label>
+          <input type="number" [(ngModel)]="act.minutos_duracion" min="5" max="180">
+        </div>
+        <div class="campo-grupo campo-third">
+          <label>Ambiente</label>
+          <select [(ngModel)]="act.id_ambiente">
+            <option [ngValue]="null">Sin ambiente</option>
+            <option *ngFor="let a of ambientesSeleccionados" [value]="a.id">{{ a.icono }} {{ a.nombre }}</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="indicadores-asociados">
+        <label>📋 Indicadores asociados ({{ act.indicadores?.length || 0 }})</label>
+        <div class="indicadores-chips-readonly">
+          <span *ngFor="let ind of act.indicadores" class="chip-indicador-readonly">{{ ind.nombre }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</ng-template>
+
+<!-- Modal de producto -->
+<div class="modal-overlay" *ngIf="productoModal" (click)="cerrarModalProducto()">
+  <div class="modal-producto" (click)="$event.stopPropagation()">
+    <div class="modal-producto-header">
+      <h3>📦 {{ productoModal.nombre || productoModal.nombre_material }}</h3>
+      <span class="modal-close" (click)="cerrarModalProducto()">✕</span>
+    </div>
+    <div class="modal-producto-body">
+      <img *ngIf="productoModal.imagen" [src]="productoModal.imagen" [alt]="productoModal.nombre" class="producto-imagen">
+      <div *ngIf="!productoModal.imagen" class="producto-sin-imagen">📷 Sin imagen disponible</div>
+      <p *ngIf="productoModal.descripcion" class="producto-descripcion">{{ productoModal.descripcion }}</p>
+    </div>
+  </div>
+</div>

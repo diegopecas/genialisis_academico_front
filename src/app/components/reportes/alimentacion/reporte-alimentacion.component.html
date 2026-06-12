@@ -1,0 +1,569 @@
+<div class="modulo">
+  <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [raiz]="'/'" [regresar]="'/reportes'"></app-header>
+
+  <!-- Contenedor principal con márgenes -->
+  <div class="container-fluid px-4 py-3">
+    <!-- Filtros -->
+    <div class="row mb-4">
+      <div class="col-lg-3 col-md-6 mb-3">
+        <label for="fecha" class="form-label fw-semibold">
+          <i class="fas fa-calendar-alt me-2 text-primary"></i>Fecha:
+        </label>
+        <input type="date" 
+               id="fecha" 
+               class="form-control form-control-lg" 
+               [(ngModel)]="fechaSeleccionada" 
+               (change)="cambioFecha()"
+               style="border: 2px solid #e9ecef; border-radius: 0.375rem;">
+      </div>
+
+      <div class="col-lg-2 col-md-6 mb-3">
+        <label for="grupo" class="form-label fw-semibold">
+          <i class="fas fa-users me-2 text-info"></i>Grupo:
+        </label>
+        <select id="grupo" 
+                class="form-control form-control-lg" 
+                [(ngModel)]="grupoSeleccionado" 
+                (change)="filtrarPorGrupo()"
+                style="border: 2px solid #e9ecef; border-radius: 0.375rem; background: linear-gradient(135deg, #fff, #f8f9fa);">
+          <option value="">Todos los grupos</option>
+          <option *ngFor="let grupo of grupos" [value]="grupo.id">{{ grupo.nombre }}</option>
+        </select>
+      </div>
+
+      <div class="col-lg-2 col-md-6 mb-3">
+        <label for="horario" class="form-label fw-semibold">
+          <i class="fas fa-clock me-2 text-warning"></i>Horario:
+        </label>
+        <select id="horario" 
+                class="form-control form-control-lg" 
+                [(ngModel)]="horarioSeleccionado" 
+                (change)="filtrarPorHorario()"
+                style="border: 2px solid #e9ecef; border-radius: 0.375rem; background: linear-gradient(135deg, #fff, #f8f9fa);">
+          <option value="">Todos los horarios</option>
+          <option *ngFor="let horario of horarios" [value]="horario.id">{{ horario.nombre }}</option>
+        </select>
+      </div>
+
+      <!-- Filtro Estado -->
+      <div class="col-lg-2 col-md-6 mb-3">
+        <label for="estado" class="form-label fw-semibold">
+          <i class="fas fa-user-check me-2 text-success"></i>Estado:
+        </label>
+        <select id="estado" 
+                class="form-control form-control-lg" 
+                [(ngModel)]="estadoSeleccionado" 
+                (change)="filtrarPorEstado()"
+                style="border: 2px solid #e9ecef; border-radius: 0.375rem; background: linear-gradient(135deg, #fff, #f8f9fa);">
+          <option value="">Todos</option>
+          <option value="presente">Presentes</option>
+          <option value="ausente">Ausentes</option>
+        </select>
+      </div>
+
+      <!-- Dropdown personalizado para productos -->
+      <div class="col-lg-3 col-md-6 mb-3">
+        <label class="form-label fw-semibold">
+          <i class="fas fa-utensils me-2 text-success"></i>Producto:
+        </label>
+
+        <select [(ngModel)]="estadoSeleccionado" style="display: none;">
+          <option value="">Placeholder multi-select</option>
+        </select>
+
+        <div class="custom-dropdown">
+          <div class="custom-dropdown-header" 
+               [class.open]="dropdownOpen" 
+               (click)="toggleDropdown()">
+            <div class="custom-dropdown-header-content">
+              <div class="chips-container" *ngIf="productoSeleccionado.size > 0">
+                <span class="chip" *ngFor="let p of getSelectedProducts()">
+                  {{ p.nombre }}
+                  <i class="fas fa-times chip-remove" (click)="removeProduct(p.id.toString()); $event.stopPropagation()"></i>
+                </span>
+              </div>
+              <span *ngIf="productoSeleccionado.size === 0" class="placeholder-text">Todos los productos</span>
+            </div>
+            <div class="custom-dropdown-header-actions">
+              <i class="fas fa-times-circle clear-btn" 
+                 *ngIf="productoSeleccionado.size > 0" 
+                 (click)="clearProducts(); $event.stopPropagation()"
+                 title="Limpiar selección"></i>
+              <i class="fas fa-chevron-down"></i>
+            </div>
+          </div>
+
+          <div class="custom-dropdown-options" *ngIf="dropdownOpen">
+            <div class="custom-dropdown-search">
+              <input 
+                type="text" 
+                class="form-control" 
+                placeholder="🔍 Buscar producto..." 
+                [(ngModel)]="searchTerm" 
+                (input)="buscarProductos()"
+                (click)="$event.stopPropagation()"
+              >
+            </div>
+
+            <div *ngIf="productosFiltradosBusqueda.length === 0" class="custom-dropdown-no-results">
+              ❌ No se encontraron productos
+            </div>
+
+            <div *ngFor="let p of productosFiltradosBusqueda" 
+                 class="custom-dropdown-option"
+                 [class.selected]="isProductSelected(p.id.toString())"
+                 (click)="toggleProduct(p.id.toString()); $event.stopPropagation()">
+              <div class="option-checkbox">
+                <i class="fas" [ngClass]="isProductSelected(p.id.toString()) ? 'fa-check-square' : 'fa-square'"></i>
+              </div>
+              <div class="option-info">
+                <div class="product-name">{{ p.nombre }}</div>
+                <div *ngIf="p.detalles" class="product-details">{{ p.detalles }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Controles de vista -->
+    <div class="row mb-4">
+      <div class="col-md-3 mb-3">
+        <button class="btn btn-outline-secondary btn-lg w-100" 
+                (click)="resetearFiltros()"
+                style="border: 2px solid #6c757d;">
+          <i class="fas fa-eraser me-2"></i>Limpiar Filtros
+        </button>
+      </div>
+      
+      <div class="col-md-9 mb-3">
+        <div class="btn-group w-100" role="group">
+          <button type="button" 
+                  class="btn btn-lg" 
+                  [ngClass]="vistaActual === 'resumen' ? 'btn-primary' : 'btn-outline-primary'"
+                  (click)="cambiarVista('resumen')">
+            <i class="fas fa-chart-pie me-2"></i>Resumen por Producto
+          </button>
+          <button type="button" 
+                  class="btn btn-lg" 
+                  [ngClass]="vistaActual === 'detalle' ? 'btn-primary' : 'btn-outline-primary'"
+                  (click)="cambiarVista('detalle')">
+            <i class="fas fa-list me-2"></i>Detalle Completo
+          </button>
+          <button type="button" 
+                  class="btn btn-lg" 
+                  [ngClass]="vistaActual === 'minuta' ? 'btn-primary' : 'btn-outline-primary'"
+                  (click)="cambiarVista('minuta')">
+            <i class="fas fa-calendar-week me-2"></i>Minuta
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <hr class="my-4" />
+    
+    <!-- ================================================ -->
+    <!-- TAB: RESUMEN POR PRODUCTO                        -->
+    <!-- ================================================ -->
+
+    <!-- Mensaje sin datos -->
+    <div *ngIf="vistaActual !== 'minuta' && datos.length === 0" class="alert alert-info text-center mx-3">
+      <span>No se encontraron registros para la fecha seleccionada.</span>
+    </div>
+  
+    <!-- Vista de Resumen por Producto -->
+    <div *ngIf="vistaActual === 'resumen' && datosResumen.length > 0" class="px-2">
+      <!-- Vista Desktop -->
+      <div class="card mb-4 d-none d-md-block">
+        <div class="card-header bg-primary text-dark">
+          <h5 class="mb-0">
+            <i class="fas fa-chart-bar me-2"></i>Resumen por Producto
+            <span class="badge bg-warning text-dark ms-2">{{ datosResumen.length }} productos</span>
+          </h5>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead class="table-warning">
+                <tr>
+                  <th>Producto</th>
+                  <th>Descripción</th>
+                  <th class="text-center">Presentes</th>
+                  <th class="text-center" *ngIf="hayAusentes">Ausentes</th>
+                  <th class="text-center" *ngIf="hayAusentes">% Asistencia</th>
+                  <th class="text-center">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let resumen of datosResumen" [class.table-active]="resumen.expandido">
+                  <td class="fw-semibold">{{ resumen.nombre_producto }}</td>
+                  <td class="text-muted">{{ resumen.detalle_producto || 'Sin descripción' }}</td>
+                  <td class="text-center">
+                    <span class="badge badge-presente">{{ resumen.cantidad_presentes }}</span>
+                  </td>
+                  <td class="text-center" *ngIf="hayAusentes">
+                    <span class="badge badge-ausente" *ngIf="resumen.cantidad_ausentes > 0">{{ resumen.cantidad_ausentes }}</span>
+                    <span *ngIf="resumen.cantidad_ausentes === 0" class="text-muted">—</span>
+                  </td>
+                  <td class="text-center" *ngIf="hayAusentes">
+                    <div class="progress" style="height: 20px;">
+                      <div class="progress-bar" 
+                           [class.bg-asistencia-alta]="resumen.porcentaje_asistencia >= 80"
+                           [class.bg-asistencia-media]="resumen.porcentaje_asistencia >= 50 && resumen.porcentaje_asistencia < 80"
+                           [class.bg-asistencia-baja]="resumen.porcentaje_asistencia < 50"
+                           role="progressbar" 
+                           [style.width.%]="resumen.porcentaje_asistencia"
+                           [title]="resumen.porcentaje_asistencia.toFixed(1) + '%'">
+                        {{ resumen.porcentaje_asistencia.toFixed(1) }}%
+                      </div>
+                    </div>
+                  </td>
+                  <td class="text-center">
+                    <button class="btn btn-sm" 
+                            [ngClass]="resumen.expandido ? 'btn-warning' : 'btn-outline-primary'"
+                            (click)="toggleExpandirProducto(resumen.nombre_producto)"
+                            [title]="resumen.expandido ? 'Contraer detalle' : 'Ver detalle'">
+                      <i class="fas" [ngClass]="resumen.expandido ? 'fa-minus' : 'fa-plus'"></i>
+                      {{ resumen.expandido ? 'Contraer' : 'Ver detalle' }}
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Vista Móvil Optimizada para Cocina -->
+      <div class="d-block d-md-none px-2">
+        <div class="mobile-kitchen-header mb-3">
+          <h4 class="text-center mb-2">
+            <i class="fas fa-utensils me-2"></i>Resumen de Cocina
+          </h4>
+          <div class="text-center text-muted">
+            <small>{{ fechaSeleccionada | date:'dd/MM/yyyy' }} - {{ datosResumen.length }} productos</small>
+          </div>
+        </div>
+
+        <div class="kitchen-cards">
+          <div *ngFor="let resumen of datosResumen" class="kitchen-card mb-3">
+            <div class="kitchen-card-header" (click)="toggleExpandirProducto(resumen.nombre_producto)">
+              <div class="product-info">
+                <h5 class="product-name">{{ resumen.nombre_producto }}</h5>
+                <p class="product-description" *ngIf="resumen.detalle_producto">{{ resumen.detalle_producto }}</p>
+              </div>
+              <div class="quantity-badge">
+                <span class="quantity-number">{{ resumen.cantidad_presentes }}</span>
+                <small>presentes</small>
+              </div>
+            </div>
+
+            <!-- Indicadores móvil -->
+            <div class="kitchen-card-indicators" *ngIf="hayAusentes">
+              <div class="indicator-item">
+                <i class="fas fa-user-times"></i>
+                <span class="indicator-value">{{ resumen.cantidad_ausentes }}</span>
+                <span class="indicator-label">Ausentes</span>
+              </div>
+              <div class="indicator-item">
+                <i class="fas fa-percentage"></i>
+                <span class="indicator-value">{{ resumen.porcentaje_asistencia.toFixed(1) }}%</span>
+                <span class="indicator-label">Asistencia</span>
+              </div>
+            </div>
+            
+            <div *ngIf="resumen.expandido" class="kitchen-card-detail">
+              <div class="detail-header">
+                <strong>Lista de estudiantes:</strong>
+                <button class="btn btn-sm btn-outline-secondary float-end" 
+                        (click)="toggleExpandirProducto(resumen.nombre_producto)">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+              <div class="students-list">
+                <div *ngFor="let registro of obtenerDetalleExpandido(resumen.nombre_producto); let i = index" 
+                     class="student-item"
+                     [class.student-ausente]="registro.presente === 0">
+                  <span class="student-number">{{ i + 1 }}.</span>
+                  <span class="student-name">{{ registro.nombre_estudiante }}</span>
+                  <span class="student-group">{{ registro.nombre_grupo }}</span>
+                  <span class="student-estado" *ngIf="hayAusentes"
+                        [class.estado-presente]="registro.presente === 1"
+                        [class.estado-ausente]="registro.presente === 0">
+                    {{ registro.presente === 1 ? 'Presente' : 'Ausente' }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Detalle expandible por producto (solo desktop) -->
+      <div *ngFor="let resumen of datosResumen" class="mb-3 d-none d-md-block px-2">
+        <div *ngIf="resumen.expandido" class="card">
+          <div class="card-header" [style.background-color]="'rgba(255, 189, 49, 0.1)'">
+            <div class="d-flex justify-content-between align-items-center">
+              <h6 class="mb-0">
+                <i class="fas fa-box me-2"></i>
+                Detalle: {{ resumen.nombre_producto }}
+                <span class="badge badge-presente ms-2">{{ resumen.cantidad_presentes }} presentes</span>
+                <span class="badge badge-ausente ms-2" *ngIf="resumen.cantidad_ausentes > 0">{{ resumen.cantidad_ausentes }} ausentes</span>
+              </h6>
+              <button class="btn btn-sm btn-outline-secondary" 
+                      (click)="toggleExpandirProducto(resumen.nombre_producto)">
+                <i class="fas fa-times"></i> Cerrar
+              </button>
+            </div>
+          </div>
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-hover mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th>#</th>
+                    <th>Estudiante</th>
+                    <th>Grupo</th>
+                    <th class="text-center">Hora Ingreso</th>
+                    <th class="text-center" *ngIf="hayAusentes">Estado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let registro of obtenerDetalleExpandido(resumen.nombre_producto); let i = index"
+                      [class.fila-ausente]="registro.presente === 0">
+                    <td>{{ i + 1 }}</td>
+                    <td class="fw-semibold">{{ registro.nombre_estudiante }}</td>
+                    <td>{{ registro.nombre_grupo }}</td>
+                    <td class="text-center">{{ registro.hora_ingreso || '—' }}</td>
+                    <td class="text-center" *ngIf="hayAusentes">
+                      <span class="badge" 
+                            [class.badge-presente]="registro.presente === 1"
+                            [class.badge-ausente]="registro.presente === 0">
+                        {{ registro.presente === 1 ? 'Presente' : 'Ausente' }}
+                      </span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================================================ -->
+    <!-- TAB: DETALLE COMPLETO                            -->
+    <!-- ================================================ -->
+    <div class="px-2">
+      <app-tablas 
+        *ngIf="vistaActual === 'detalle' && datos.length > 0"
+        [titulos]="titulos" 
+        [datos]="datosFiltrados" 
+        [raiz]="'/reportes'" 
+        [columnasFiltro]="['Estudiante', 'Grupo', 'Horario', 'Producto', 'Estado']">
+      </app-tablas>
+    </div>
+
+    <!-- ================================================ -->
+    <!-- TAB: MINUTA SEMANAL                              -->
+    <!-- ================================================ -->
+    <div *ngIf="vistaActual === 'minuta'" class="minuta-tab-container px-2">
+
+      <!-- Loading -->
+      <div class="minuta-loading" *ngIf="minutaIsLoading">
+        <div class="minuta-spinner"></div>
+        <p>Cargando minuta...</p>
+      </div>
+
+      <!-- Error -->
+      <div class="minuta-error" *ngIf="minutaErrorMessage && !minutaIsLoading">
+        <div class="minuta-error-card">
+          <h3>{{ minutaErrorMessage }}</h3>
+        </div>
+      </div>
+
+      <!-- Contenido cargado -->
+      <ng-container *ngIf="!minutaIsLoading && !minutaErrorMessage">
+
+        <!-- ============================= -->
+        <!-- CARD: MENÚ DE HOY              -->
+        <!-- ============================= -->
+        <div class="minuta-hoy-card" *ngIf="minutaMenuHoy">
+          <div class="minuta-hoy-header">
+            <div class="minuta-hoy-header-izq">
+              <img class="minuta-hoy-icono" src="/assets/images/menu-alimentacion.png" alt="" />
+              <div class="minuta-hoy-header-texto">
+                <span class="minuta-hoy-label">Menú de hoy</span>
+                <span class="minuta-hoy-dia">{{ minutaGetNombreDia(minutaDiaHoy) }} — Semana {{ minutaSemanaHoy }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="minuta-hoy-body">
+            <h3 class="minuta-hoy-nombre">{{ minutaMenuHoy.nombre_menu }}</h3>
+            <p class="minuta-hoy-descripcion" *ngIf="minutaMenuHoy.descripcion_menu">
+              {{ minutaMenuHoy.descripcion_menu }}
+            </p>
+            <p class="minuta-hoy-sin-desc" *ngIf="!minutaMenuHoy.descripcion_menu">
+              No hay descripción disponible para este menú.
+            </p>
+          </div>
+        </div>
+
+        <!-- Sin menú hoy -->
+        <div class="minuta-hoy-vacia" *ngIf="!minutaMenuHoy && minutaDiaHoy > 0">
+          <i class="fas fa-calendar-times"></i>
+          <p>No hay menú asignado para hoy</p>
+        </div>
+
+        <!-- Domingo -->
+        <div class="minuta-hoy-vacia" *ngIf="minutaDiaHoy === 0">
+          <i class="fas fa-coffee"></i>
+          <p>Hoy es domingo, no hay menú programado</p>
+        </div>
+
+        <!-- ============================= -->
+        <!-- BOTÓN VER GRILLA COMPLETA      -->
+        <!-- ============================= -->
+        <div class="minuta-toggle-grilla">
+          <button class="minuta-toggle-btn" (click)="toggleMinutaGrilla()">
+            <i class="fas" [ngClass]="minutaGrillaExpandida ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+            {{ minutaGrillaExpandida ? 'Ocultar minuta completa' : 'Ver minuta completa' }}
+          </button>
+        </div>
+
+        <!-- ============================= -->
+        <!-- GRILLA COLAPSABLE              -->
+        <!-- ============================= -->
+        <div class="minuta-grilla-wrapper" *ngIf="minutaGrillaExpandida">
+
+          <!-- VISTA DESKTOP -->
+          <div class="minuta-vista-desktop" *ngIf="!minutaEsMobile">
+            <div class="minuta-grid">
+              <div class="minuta-grid-header">
+                <div class="minuta-header-semana">Semana</div>
+                <div *ngFor="let dia of diasSemana" class="minuta-header-dia">{{ dia.corto }}</div>
+              </div>
+              <div *ngFor="let semana of minutaSemanas; trackBy: trackBySemana" class="minuta-grid-row">
+                <div class="minuta-row-semana">
+                  <span class="minuta-semana-num">{{ semana.numero }}</span>
+                </div>
+                <div
+                  *ngFor="let celda of semana.celdas; trackBy: trackByCelda"
+                  class="minuta-row-celda"
+                  [class.tiene-menu]="minutaTieneMenu(celda)"
+                  [class.vacia]="!minutaTieneMenu(celda)"
+                  [class.seleccionada]="minutaCeldaSeleccionada === celda"
+                  [class.hoy]="esMinutaHoy(celda)"
+                  (click)="minutaSeleccionarCelda(celda)"
+                >
+                  <ng-container *ngIf="minutaTieneMenu(celda)">
+                    <span class="minuta-celda-nombre">{{ celda.nombre_menu }}</span>
+                  </ng-container>
+                  <span *ngIf="!minutaTieneMenu(celda)" class="minuta-celda-vacia">—</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Panel detalle desktop -->
+            <div class="minuta-detalle-menu" *ngIf="minutaCeldaSeleccionada">
+              <div class="minuta-detalle-card">
+                <div class="minuta-detalle-header">
+                  <div class="minuta-detalle-info">
+                    <span class="minuta-detalle-dia">{{ minutaGetNombreDia(minutaCeldaSeleccionada.dia) }}</span>
+                    <span class="minuta-detalle-semana">Semana {{ minutaCeldaSeleccionada.semana }}</span>
+                  </div>
+                  <button class="minuta-detalle-cerrar" (click)="minutaCerrarDetalle()">
+                    <i class="fas fa-times"></i>
+                  </button>
+                </div>
+                <div class="minuta-detalle-body">
+                  <div class="minuta-detalle-nombre-wrap">
+                    <img class="minuta-detalle-icono" src="/assets/images/menu-alimentacion.png" alt="" />
+                    <h3 class="minuta-detalle-nombre">{{ minutaCeldaSeleccionada.nombre_menu }}</h3>
+                  </div>
+                  <p class="minuta-detalle-descripcion" *ngIf="minutaCeldaSeleccionada.descripcion_menu">
+                    {{ minutaCeldaSeleccionada.descripcion_menu }}
+                  </p>
+                  <p class="minuta-detalle-sin-desc" *ngIf="!minutaCeldaSeleccionada.descripcion_menu">
+                    No hay descripción disponible para este menú.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- VISTA MÓVIL -->
+          <div class="minuta-vista-mobile" *ngIf="minutaEsMobile">
+            <div *ngFor="let semana of minutaSemanas; trackBy: trackBySemana" class="minuta-mobile-semana">
+              <div class="minuta-mobile-semana-header">
+                <span class="minuta-mobile-semana-num">Semana {{ semana.numero }}</span>
+              </div>
+              <div *ngFor="let celda of semana.celdas; trackBy: trackByCelda" class="minuta-mobile-dia-card"
+                   [class.vacia]="!minutaTieneMenu(celda)"
+                   [class.hoy]="esMinutaHoy(celda)"
+                   [id]="esMinutaHoy(celda) ? 'minuta-celda-hoy' : null"
+                   (click)="minutaSeleccionarCelda(celda)">
+                <div class="minuta-mobile-dia-header">
+                  <div class="minuta-mobile-dia-badge">{{ minutaGetNombreDiaCorto(celda.dia) }}</div>
+                  <span class="minuta-mobile-dia-nombre-dia">{{ minutaGetNombreDia(celda.dia) }}</span>
+                </div>
+                <ng-container *ngIf="minutaTieneMenu(celda)">
+                  <div class="minuta-mobile-dia-menu">
+                    <div class="minuta-mobile-menu-info">
+                      <span class="minuta-mobile-menu-nombre">{{ celda.nombre_menu }}</span>
+                      <span class="minuta-mobile-menu-desc" *ngIf="celda.descripcion_menu">{{ celda.descripcion_menu }}</span>
+                    </div>
+                  </div>
+                </ng-container>
+                <span *ngIf="!minutaTieneMenu(celda)" class="minuta-mobile-sin-menu">Sin menú asignado</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </ng-container>
+    </div>
+
+    <!-- Resumen de totales (solo en tabs de reporte) -->
+    <div class="row mt-4 px-2" *ngIf="vistaActual !== 'minuta' && datos.length > 0">
+      <div [ngClass]="hayAusentes ? 'col-md-4' : 'col-md-12'" class="mb-3">
+        <div class="card card-totales">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+              <h5 class="mb-0">
+                <i class="fas fa-user-check me-2 text-success"></i>Presentes
+              </h5>
+              <h4 class="mb-0 text-success">{{ totalPresentes }}</h4>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-md-4 mb-3" *ngIf="hayAusentes">
+        <div class="card card-totales">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+              <h5 class="mb-0">
+                <i class="fas fa-user-times me-2 text-muted"></i>Ausentes
+              </h5>
+              <h4 class="mb-0 text-muted">{{ totalAusentes }}</h4>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-4 mb-3" *ngIf="hayAusentes">
+        <div class="card card-totales">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+              <h5 class="mb-0">
+                <i class="fas fa-users me-2 text-primary"></i>Total
+              </h5>
+              <h4 class="mb-0 text-primary">{{ totalPresentes + totalAusentes }}</h4>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

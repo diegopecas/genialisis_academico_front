@@ -1,0 +1,341 @@
+<div class="observaciones-container">
+  <div class="panel panel-primary mb-4">
+    <div class="panel-heading d-flex justify-content-between align-items-center">
+      <h5 class="mb-0">
+        <i class="fas fa-comment-alt me-2"></i> Historial de Observaciones
+      </h5>
+      <div class="actions-buttons">
+        <button class="btn-whatsapp me-2" (click)="compartirPorWhatsApp()">
+          <i class="fab fa-whatsapp me-1"></i> <span class="btn-text">Compartir por WhatsApp</span>
+        </button>
+        <button class="btn-export" (click)="exportarPDF()">
+          <i class="fas fa-file-pdf me-1"></i> <span class="btn-text">Exportar a PDF</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel-body">
+    <!-- Sub-tabs año actual / años anteriores -->
+    <div class="sub-tabs-container">
+      <div class="sub-tabs">
+        <button class="sub-tab" [class.active]="subTabObservaciones === 'actual'"
+                (click)="cambiarSubTab('actual')">
+          <i class="fas fa-calendar-check me-1"></i>
+          Año {{ anioAcademico }}
+          <span class="sub-tab-contador">{{ observacionesAnioActual.length }}</span>
+        </button>
+        <button class="sub-tab" [class.active]="subTabObservaciones === 'historico'"
+                (click)="cambiarSubTab('historico')">
+          <i class="fas fa-history me-1"></i>
+          Años anteriores
+          <span class="sub-tab-contador">{{ observacionesHistoricas.length }}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Resumen de observaciones con tarjetas -->
+    <div class="resumen-observaciones">
+      <div class="dashboard-header">
+        <h4><i class="fas fa-chart-pie me-2"></i> Resumen de Observaciones</h4>
+      </div>
+
+      <div class="tarjetas-container">
+        <!-- Total de Observaciones -->
+        <div class="tarjeta normal">
+          <div class="tarjeta-contenido">
+            <div class="tarjeta-icon">
+              <i class="fas fa-clipboard-list" style="color: #17a2b8;"></i>
+            </div>
+            <div class="tarjeta-info">
+              <h3 class="tarjeta-titulo">Total de Observaciones</h3>
+              <p class="tarjeta-valor">
+                {{ obtenerDatosBase().length }}
+              </p>
+            </div>
+          </div>
+          <div class="tarjeta-footer">
+            <small>{{ subTabObservaciones === 'actual' ? 'Año ' + anioAcademico : 'Años anteriores' }}</small>
+          </div>
+        </div>
+
+        <!-- Observaciones Filtradas -->
+        <div class="tarjeta positivo">
+          <div class="tarjeta-contenido">
+            <div class="tarjeta-icon">
+              <i class="fas fa-filter" style="color: #28a745;"></i>
+            </div>
+            <div class="tarjeta-info">
+              <h3 class="tarjeta-titulo">Observaciones Filtradas</h3>
+              <p class="tarjeta-valor">
+                {{ observacionesFiltradas.length }}
+              </p>
+            </div>
+          </div>
+          <div class="tarjeta-footer">
+            <small>Registros con filtros aplicados</small>
+          </div>
+        </div>
+
+        <!-- Período de Observaciones -->
+        <div class="tarjeta normal">
+          <div class="tarjeta-contenido">
+            <div class="tarjeta-icon">
+              <i class="fas fa-calendar-alt" style="color: #6c757d;"></i>
+            </div>
+            <div class="tarjeta-info">
+              <h3 class="tarjeta-titulo">Período</h3>
+              <p class="tarjeta-valor-small">
+                {{ obtenerPeriodoObservaciones() }}
+              </p>
+            </div>
+          </div>
+          <div class="tarjeta-footer">
+            <small>Rango de fechas de registros</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sección de filtros y buscador -->
+    <div class="panel-control mb-4">
+      <div class="search-bar">
+        <i class="fas fa-search"></i>
+        <input type="text" placeholder="Buscar en observaciones..." [(ngModel)]="searchTerm" (input)="filtrarObservaciones()">
+      </div>
+      <div class="filtros-container">
+        <!-- Filtro de Tipos (multiselección) -->
+        <div class="filtro">
+          <div class="filtro-dropdown">
+            <button class="filtro-button" (click)="toggleFiltroTipos()" [class.active]="filtroTipos.length > 0">
+              <span>{{ obtenerTextoFiltroTipos() }}</span>
+              <i class="fas fa-chevron-down ms-2"></i>
+            </button>
+            <div class="filtro-menu" [class.show]="mostrarFiltroTipos">
+              <div class="filtro-header">
+                <span>Seleccionar tipos</span>
+                <button class="btn-clear" (click)="limpiarFiltroTipos(); busquedaTipos = ''">Limpiar</button>
+              </div>
+              <div class="filtro-search">
+                <input type="text" placeholder="Buscar..." [(ngModel)]="busquedaTipos">
+              </div>
+              <div class="filtro-options">
+                <label class="filtro-option filtro-option-all">
+                  <input type="checkbox" [checked]="todasSeleccionadasTipos()" (change)="seleccionarTodosTiposEvent($event)">
+                  <span class="fw-bold">Seleccionar todos</span>
+                  <span class="badge bg-secondary ms-1">{{ opcionesTipos.length }}</span>
+                </label>
+                <div class="filtro-separator"></div>
+                <label *ngFor="let tipo of obtenerOpcionesTiposFiltradas()" class="filtro-option">
+                  <input type="checkbox" [checked]="estaSeleccionado(filtroTipos, tipo)" (change)="toggleTipo(tipo)">
+                  <span class="categoria-dot" [style.background-color]="obtenerColorTipo(tipo)"></span>
+                  <span>{{ tipo }}</span>
+                </label>
+              </div>
+              <div class="filtro-footer">
+                <button class="btn-secondary" (click)="mostrarFiltroTipos = false">Cerrar</button>
+                <button class="btn-primary" (click)="mostrarFiltroTipos = false">Aplicar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filtro de Fechas (multiselección) -->
+        <div class="filtro">
+          <div class="filtro-dropdown">
+            <button class="filtro-button" (click)="toggleFiltroFechas()" [class.active]="filtroFechas.length > 0">
+              <span>{{ obtenerTextoFiltroFechas() }}</span>
+              <i class="fas fa-chevron-down ms-2"></i>
+            </button>
+            <div class="filtro-menu" [class.show]="mostrarFiltroFechas">
+              <div class="filtro-header">
+                <span>Seleccionar fechas</span>
+                <button class="btn-clear" (click)="limpiarFiltroFechas(); busquedaFechas = ''">Limpiar</button>
+              </div>
+              <div class="filtro-search">
+                <input type="text" placeholder="Buscar..." [(ngModel)]="busquedaFechas">
+              </div>
+              <div class="filtro-options">
+                <label class="filtro-option filtro-option-all">
+                  <input type="checkbox" [checked]="todasSeleccionadasFechas()" (change)="seleccionarTodasFechasEvent($event)">
+                  <span class="fw-bold">Seleccionar todas</span>
+                  <span class="badge bg-secondary ms-1">{{ opcionesFechas.length }}</span>
+                </label>
+                <div class="filtro-separator"></div>
+                <label *ngFor="let fecha of obtenerOpcionesFechasFiltradas()" class="filtro-option">
+                  <input type="checkbox" [checked]="estaSeleccionado(filtroFechas, fecha)" (change)="toggleFecha(fecha)">
+                  <span><i class="far fa-calendar-alt me-1"></i> {{ fecha }}</span>
+                </label>
+              </div>
+              <div class="filtro-footer">
+                <button class="btn-secondary" (click)="mostrarFiltroFechas = false">Cerrar</button>
+                <button class="btn-primary" (click)="mostrarFiltroFechas = false">Aplicar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filtro de Usuarios (multiselección) -->
+        <div class="filtro">
+          <div class="filtro-dropdown">
+            <button class="filtro-button" (click)="toggleFiltroUsuarios()" [class.active]="filtroUsuarios.length > 0">
+              <span>{{ obtenerTextoFiltroUsuarios() }}</span>
+              <i class="fas fa-chevron-down ms-2"></i>
+            </button>
+            <div class="filtro-menu" [class.show]="mostrarFiltroUsuarios">
+              <div class="filtro-header">
+                <span>Seleccionar usuarios</span>
+                <button class="btn-clear" (click)="limpiarFiltroUsuarios(); busquedaUsuarios = ''">Limpiar</button>
+              </div>
+              <div class="filtro-search">
+                <input type="text" placeholder="Buscar..." [(ngModel)]="busquedaUsuarios">
+              </div>
+              <div class="filtro-options">
+                <label class="filtro-option filtro-option-all">
+                  <input type="checkbox" [checked]="todasSeleccionadasUsuarios()" (change)="seleccionarTodosUsuariosEvent($event)">
+                  <span class="fw-bold">Seleccionar todos</span>
+                  <span class="badge bg-secondary ms-1">{{ opcionesUsuarios.length }}</span>
+                </label>
+                <div class="filtro-separator"></div>
+                <label *ngFor="let usuario of obtenerOpcionesUsuariosFiltrados()" class="filtro-option">
+                  <input type="checkbox" [checked]="estaSeleccionado(filtroUsuarios, usuario)" (change)="toggleUsuario(usuario)">
+                  <span><i class="fas fa-user me-1"></i> {{ usuario }}</span>
+                </label>
+              </div>
+              <div class="filtro-footer">
+                <button class="btn-secondary" (click)="mostrarFiltroUsuarios = false">Cerrar</button>
+                <button class="btn-primary" (click)="mostrarFiltroUsuarios = false">Aplicar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Indicador de carga -->
+    <div *ngIf="cargando" class="loading-container">
+      <div class="spinner"></div>
+      <p>Cargando observaciones...</p>
+    </div>
+
+    <!-- Contenedor de observaciones (tabla/tarjetas) -->
+    <div *ngIf="!cargando" class="observaciones-content">
+      <!-- Mensaje cuando no hay observaciones -->
+      <div *ngIf="observaciones.length === 0" class="alert alert-info text-center p-4">
+        <i class="fas fa-info-circle fa-2x mb-3"></i>
+        <p class="mb-0">No se encontraron observaciones que coincidan con los criterios de búsqueda.</p>
+      </div>
+
+      <!-- Vista de tabla para desktop -->
+      <div *ngIf="observaciones.length > 0" class="tabla-observaciones desktop-only">
+        <div class="tabla-responsive">
+          <table class="tabla-moderna">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Fecha</th>
+                <th>Tipo</th>
+                <th>Descripción</th>
+                <th>Estudiante Afectado</th>
+                <th>Registrada por</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let obs of observaciones; let i = index">
+                <td>{{ i + 1 }}</td>
+                <td>{{ obs.fechaFormateada }}</td>
+                <td>
+                  <div class="tipo-contenedor">
+                    <span class="tipo-badge" [style.background-color]="obtenerColorTipo(obs.nombre_tipo_observacion)">
+                      {{ obtenerIniciales(obs.nombre_tipo_observacion) }}
+                    </span>
+                    <span>{{ obs.nombre_tipo_observacion }}</span>
+                  </div>
+                </td>
+                <td>
+                  <div class="descripcion-contenedor">
+                    <p>{{ obs.descripcion }}</p>
+                  </div>
+                </td>
+                <td>
+                  <span *ngIf="obs.id_estudiante_afectado">
+                    <i class="fas fa-user me-1"></i> 
+                    {{ obs.nombre_estudiante_afectado || 'Otro estudiante' }}
+                  </span>
+                  <span *ngIf="!obs.id_estudiante_afectado">-</span>
+                </td>
+                <td>
+                  <div class="usuario-contenedor">
+                    <span class="usuario-badge">
+                      {{ obtenerIniciales(obs.nombre_usuario || 'US') }}
+                    </span>
+                    <span>{{ obs.nombre_usuario || 'Usuario del sistema' }}</span>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Vista de tarjetas para móvil -->
+      <div *ngIf="observaciones.length > 0" class="tarjetas-observaciones mobile-only">
+        <div class="observacion-card" *ngFor="let obs of observaciones; let i = index">
+          <div class="card-header">
+            <div class="card-number">#{{ i + 1 }}</div>
+            <div class="card-date">
+              <i class="fas fa-calendar"></i>
+              {{ obs.fechaFormateada }}
+            </div>
+          </div>
+          
+          <div class="card-tipo">
+            <span class="tipo-badge-large" [style.background-color]="obtenerColorTipo(obs.nombre_tipo_observacion)">
+              {{ obs.nombre_tipo_observacion }}
+            </span>
+          </div>
+
+          <div class="card-descripcion">
+            <p>{{ obs.descripcion }}</p>
+          </div>
+
+          <div class="card-info">
+            <div class="info-item" *ngIf="obs.id_estudiante_afectado">
+              <i class="fas fa-user-friends"></i>
+              <span>Estudiante Afectado: {{ obs.nombre_estudiante_afectado || 'Otro estudiante' }}</span>
+            </div>
+            <div class="info-item">
+              <i class="fas fa-user-edit"></i>
+              <span>Registrada por: {{ obs.nombre_usuario || 'Usuario del sistema' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Paginación -->
+      <div class="paginacion" *ngIf="observacionesFiltradas.length > 0">
+        <div class="registros-por-pagina">
+          <span>Mostrar:</span>
+          <select [(ngModel)]="paginacion.itemsPorPagina" (change)="cambiarPaginacion()">
+            <option [value]="10">10</option>
+            <option [value]="25">25</option>
+            <option [value]="50">50</option>
+          </select>
+        </div>
+        <div class="navegacion">
+          <button [disabled]="paginacion.paginaActual === 1" (click)="cambiarPagina(paginacion.paginaActual - 1)">
+            <i class="fas fa-chevron-left"></i>
+          </button>
+          <span class="pagina-info">Página {{ paginacion.paginaActual }} de {{ totalPaginas }}</span>
+          <button [disabled]="paginacion.paginaActual === totalPaginas" (click)="cambiarPagina(paginacion.paginaActual + 1)">
+            <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Capa para cerrar menús desplegables al hacer clic fuera -->
+    <div class="backdrop" *ngIf="mostrarFiltroTipos || mostrarFiltroFechas || mostrarFiltroUsuarios"
+      (click)="mostrarFiltroTipos = mostrarFiltroFechas = mostrarFiltroUsuarios = false"></div>
+  </div>
+</div>

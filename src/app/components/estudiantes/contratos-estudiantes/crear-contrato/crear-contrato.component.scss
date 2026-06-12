@@ -1,0 +1,290 @@
+.modulo {
+  min-height: 100vh;
+  background-color: #f8f9fa;
+}
+
+.container-custom {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 15px;
+}
+
+.disabled-container {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.card-simple {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: box-shadow 0.2s ease;
+
+  &:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  }
+}
+
+.card-header-simple {
+  background: transparent;
+  color: #333;
+  padding: 12px 20px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 3px solid #f0ad4e;
+
+  i {
+    color: #f0ad4e;
+  }
+
+  .btn {
+    font-size: 0.85rem;
+  }
+}
+
+.card-body-simple {
+  padding: 20px;
+}
+
+.label-simple {
+  font-size: 0.85rem;
+  color: #6c757d;
+  margin-bottom: 4px;
+  display: block;
+}
+
+.value-simple {
+  font-weight: 500;
+  color: #212529;
+}
+
+.acudiente-card {
+  border: 2px solid #dee2e6;
+  border-radius: 8px;
+  padding: 15px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: #667eea;
+    background-color: #f8f9ff;
+  }
+
+  &.selected {
+    border-color: #667eea;
+    background-color: #f0f3ff;
+  }
+}
+
+.table-valores {
+  margin-bottom: 0;
+
+  thead th {
+    border-bottom: 2px solid #dee2e6;
+    font-weight: 600;
+    color: #495057;
+    padding: 12px;
+    white-space: nowrap;
+  }
+
+  tbody td {
+    padding: 10px 12px;
+    vertical-align: middle;
+  }
+
+  tbody tr:hover {
+    background-color: #f8f9fa;
+  }
+
+  tfoot td {
+    border-top: 2px solid #dee2e6;
+    padding: 12px;
+  }
+
+  .input-group-sm {
+    .input-group-text {
+      background-color: #f8f9fa;
+      border-color: #ced4da;
+      font-size: 0.85rem;
+      padding: 0.25rem 0.5rem;
+    }
+
+    .form-control {
+      font-size: 0.9rem;
+      padding: 0.25rem 0.5rem;
+
+      &:disabled {
+        background-color: #f8f9fa;
+      }
+
+      &:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+      }
+    }
+  }
+}
+
+.resumen-box {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 8px;
+  padding: 20px;
+  border: 1px solid #dee2e6;
+}
+
+.resumen-item {
+  padding: 10px;
+
+  small {
+    font-size: 0.8rem;
+  }
+
+  strong {
+    font-size: 1.1rem;
+    display: block;
+    margin: 5px 0;
+  }
+}
+
+.resumen-total {
+  background: white;
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.alert-info {
+  background-color: #e7f3ff;
+  border-color: #b3d7ff;
+  color: #004085;
+}
+
+.alert-warning {
+  background-color: #fff8e6;
+  border-color: #ffe6b3;
+  color: #856404;
+}
+
+.alert-secondary {
+  background-color: #f8f9fa;
+  border-color: #dee2e6;
+  color: #6c757d;
+}
+
+.total-display {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #28a745;
+  padding: 8px 12px;
+  background-color: #e8f5e9;
+  border-radius: 4px;
+  text-align: right;
+}
+
+.desglose-box {
+  background-color: #f8f9fa;
+  padding: 12px 15px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  border-left: 3px solid #667eea;
+}
+
+@media (max-width: 768px) {
+  .table-valores {
+    font-size: 0.85rem;
+
+    thead th,
+    tbody td,
+    tfoot td {
+      padding: 8px;
+    }
+
+    .input-group-sm .form-control {
+      font-size: 0.8rem;
+    }
+  }
+
+  .resumen-box {
+    .col-md-1 {
+      display: none !important;
+    }
+
+    .resumen-item {
+      margin-bottom: 15px;
+      border-bottom: 1px solid #dee2e6;
+      padding-bottom: 15px;
+    }
+  }
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+.badge {
+  font-weight: 500;
+  padding: 5px 10px;
+}
+
+.btn-primary {
+  background-color: #337ab7;
+  border-color: #337ab7;
+
+  &:hover {
+    background-color: #286090;
+    border-color: #204d74;
+  }
+}
+
+.btn-warning {
+  background-color: #ffc107;
+  border-color: #ffc107;
+  color: #212529;
+
+  &:hover {
+    background-color: #e0a800;
+    border-color: #d39e00;
+  }
+}
+
+.btn-success {
+  background-color: #28a745;
+  border-color: #28a745;
+
+  &:hover {
+    background-color: #218838;
+    border-color: #1e7e34;
+  }
+}
+
+// Botón Generar Cuentas por Cobrar - Materialize Teal
+.btn-cobrar {
+  background-color: #26a69a;
+  border-color: #26a69a;
+  color: #fff;
+
+  &:hover {
+    background-color: #00897b;
+    border-color: #00796b;
+    color: #fff;
+  }
+
+  &:active,
+  &:focus {
+    background-color: #00796b;
+    border-color: #00695c;
+    box-shadow: 0 0 0 0.2rem rgba(38, 166, 154, 0.4);
+    color: #fff;
+  }
+
+  &:disabled {
+    background-color: #80cbc4;
+    border-color: #80cbc4;
+    color: #fff;
+  }
+}

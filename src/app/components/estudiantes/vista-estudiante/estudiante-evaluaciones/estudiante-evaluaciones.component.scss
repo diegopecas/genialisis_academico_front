@@ -1,0 +1,1530 @@
+// Variables de colores corporativos
+$gold: #d4af37;
+$black: #222;
+$light-gold: rgba(212, 175, 55, 0.1);
+$dark-gold: darken($gold, 10%);
+
+// Variables para breakpoints
+$mobile: 576px;
+$tablet: 768px;
+$desktop: 992px;
+$large-desktop: 1200px;
+
+/* Estilos para los paneles (consistente con otros componentes) */
+.panel {
+    border-radius: 0.5rem;
+    border: 1px solid rgba($black, 0.125);
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+    transition: box-shadow 0.3s;
+    background-color: #fff;
+
+    &:hover {
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+
+    .panel-heading {
+        background-color: $black;
+        color: #fff;
+        padding: 1rem;
+        border-bottom: 3px solid $gold;
+
+        @media (max-width: $mobile) {
+            padding: 0.75rem;
+        }
+
+        h5 {
+            font-weight: 600;
+            font-size: 1.25rem;
+
+            @media (max-width: $mobile) {
+                font-size: 1.1rem;
+            }
+
+            i {
+                color: $gold;
+            }
+        }
+    }
+
+    .panel-body {
+        padding: 1.25rem;
+
+        @media (max-width: $tablet) {
+            padding: 1rem;
+        }
+
+        @media (max-width: $mobile) {
+            padding: 0.75rem;
+        }
+    }
+}
+
+/* Estilos para gráficos */
+
+// Sub-tabs año actual / años anteriores
+.sub-tabs-container {
+    display: flex;
+    justify-content: flex-start;
+    margin-bottom: 20px;
+}
+
+.sub-tabs {
+    display: flex;
+    gap: 8px;
+}
+
+.sub-tab {
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: 1px solid #e0e0e0;
+    background-color: transparent;
+    color: #6c757d;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    i {
+        font-size: 0.8rem;
+    }
+
+    &:hover {
+        border-color: $gold;
+        background-color: rgba($gold, 0.04);
+    }
+
+    &.active {
+        background-color: $gold;
+        color: $black;
+        border-color: $gold;
+        font-weight: 600;
+        box-shadow: 0 2px 8px rgba($gold, 0.3);
+    }
+
+    .sub-tab-contador {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 22px;
+        height: 22px;
+        padding: 0 6px;
+        border-radius: 11px;
+        font-size: 0.72rem;
+        font-weight: 600;
+        background-color: rgba(0, 0, 0, 0.08);
+        color: inherit;
+    }
+
+    &.active .sub-tab-contador {
+        background-color: rgba(0, 0, 0, 0.15);
+        color: $black;
+    }
+}
+
+/* Estilos para gráficos */
+.grafico-container,
+.chart-card {
+    background-color: #fff;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    max-height: 280px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+
+    @media (max-width: $tablet) {
+        max-height: 250px;
+        padding: 0.5rem;
+    }
+
+    @media (max-width: $mobile) {
+        max-height: 220px;
+        margin-bottom: 1.5rem;
+    }
+
+    h6 {
+        margin-bottom: 0.75rem;
+        font-weight: 600;
+        color: $black;
+        font-size: 1rem;
+
+        @media (max-width: $mobile) {
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        i {
+            color: $gold;
+        }
+    }
+
+    .card-body {
+        padding: 0.75rem;
+
+        @media (max-width: $mobile) {
+            padding: 0.5rem;
+        }
+    }
+}
+
+/* Contenedor específico para los gráficos con altura fija */
+.chart-container {
+    position: relative;
+    height: 230px;
+    width: 100%;
+
+    @media (max-width: $tablet) {
+        height: 200px;
+    }
+
+    @media (max-width: $mobile) {
+        height: 180px;
+    }
+    
+    canvas {
+        max-width: 100% !important;
+        height: auto !important;
+    }
+}
+
+/* Modificar las tarjetas de gráficos para asegurar que tengan espacio suficiente */
+.chart-card {
+    height: auto;
+    min-height: 280px;
+    margin-bottom: 20px;
+
+    @media (max-width: $tablet) {
+        min-height: 250px;
+    }
+
+    @media (max-width: $mobile) {
+        min-height: 220px;
+    }
+
+    .card-body {
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+
+        @media (max-width: $mobile) {
+            padding: 0.5rem;
+        }
+    }
+}
+
+/* Estilos para las tablas */
+.table-responsive {
+    border-radius: 0.5rem;
+    overflow: hidden;
+    margin: 0 -0.75rem;
+
+    @media (min-width: $tablet) {
+        margin: 0;
+    }
+
+    table {
+        margin-bottom: 0;
+        width: 100%;
+        min-width: 100%;
+
+        @media (max-width: $tablet) {
+            font-size: 0.875rem;
+        }
+
+        @media (max-width: $mobile) {
+            font-size: 0.75rem;
+        }
+
+        th {
+            background-color: #f8f9fa;
+            color: #333;
+            font-weight: 600;
+            border-color: rgba(0, 0, 0, 0.1);
+            padding: 0.75rem;
+            white-space: nowrap;
+
+            @media (max-width: $mobile) {
+                padding: 0.5rem 0.25rem;
+                font-size: 0.7rem;
+            }
+        }
+
+        td {
+            word-wrap: break-word;
+            padding: 0.75rem;
+
+            @media (max-width: $mobile) {
+                padding: 0.5rem 0.25rem;
+            }
+        }
+    }
+}
+
+/* Especificar ancho para columnas específicas */
+.table {
+    th.area-academica-column {
+        width: 40%;
+    }
+
+    th.indicador-logro-column {
+        width: 40%;
+    }
+
+    th.promedio-column {
+        width: 10%;
+    }
+
+    th.clasificacion-column {
+        width: 10%;
+    }
+}
+
+/* Sistema de tarjetas para móviles */
+.indicadores-cards-container {
+    display: none;
+    
+    @media (max-width: $tablet) {
+        display: block;
+    }
+    
+    .indicador-card {
+        background-color: #fff;
+        border: 1px solid rgba(0, 0, 0, 0.125);
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        transition: all 0.2s ease;
+        
+        &:hover {
+            box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .area-nombre {
+            font-size: 0.75rem;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+        
+        .indicador-descripcion {
+            font-size: 0.9rem;
+            color: #333;
+            margin-bottom: 0.75rem;
+            line-height: 1.4;
+        }
+        
+        .indicador-stats {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            
+            .promedio-container {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                
+                .promedio-label {
+                    font-size: 0.75rem;
+                    color: #6c757d;
+                }
+                
+                .promedio-valor {
+                    font-size: 1.1rem;
+                    font-weight: 700;
+                    color: #333;
+                }
+            }
+            
+            .clasificacion-badge {
+                padding: 0.35rem 0.75rem;
+                font-size: 0.75rem;
+                font-weight: 600;
+                border-radius: 1rem;
+                
+                &.bg-excelente {
+                    background-color: #28a745;
+                    color: white;
+                }
+                
+                &.bg-sobresaliente {
+                    background-color: #5cb85c;
+                    color: white;
+                }
+                
+                &.bg-bueno {
+                    background-color: #ffc107;
+                    color: #212529;
+                }
+                
+                &.bg-aceptable {
+                    background-color: #fd7e14;
+                    color: white;
+                }
+                
+                &.bg-insuficiente {
+                    background-color: #dc3545;
+                    color: white;
+                }
+            }
+        }
+    }
+}
+
+/* Ocultar tabla en móviles cuando se muestran las tarjetas */
+.indicadores-table-container {
+    display: block;
+    
+    @media (max-width: $tablet) {
+        display: none;
+    }
+}
+
+/* Estilos para las tarjetas de promedios por área */
+.promedios-cards-container {
+    display: none;
+    
+    @media (max-width: $tablet) {
+        display: block;
+    }
+    
+    .promedio-area-card {
+        background-color: #fff;
+        border: 1px solid rgba(0, 0, 0, 0.125);
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        transition: all 0.2s ease;
+        
+        &:hover {
+            box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .area-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            
+            .area-nombre {
+                font-size: 1rem;
+                font-weight: 600;
+                color: #333;
+                flex: 1;
+                margin-right: 0.5rem;
+            }
+            
+            .promedio-badge {
+                background-color: #f8f9fa;
+                color: #333;
+                padding: 0.25rem 0.5rem;
+                border-radius: 0.25rem;
+                font-size: 1rem;
+                font-weight: 700;
+                min-width: 40px;
+                text-align: center;
+            }
+        }
+        
+        .clasificacion-area {
+            display: inline-block;
+            padding: 0.35rem 0.75rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border-radius: 1rem;
+            margin-top: 0.5rem;
+            
+            &.bg-excelente {
+                background-color: #28a745;
+                color: white;
+            }
+            
+            &.bg-sobresaliente {
+                background-color: #5cb85c;
+                color: white;
+            }
+            
+            &.bg-bueno {
+                background-color: #ffc107;
+                color: #212529;
+            }
+            
+            &.bg-aceptable {
+                background-color: #fd7e14;
+                color: white;
+            }
+            
+            &.bg-insuficiente {
+                background-color: #dc3545;
+                color: white;
+            }
+        }
+    }
+}
+
+/* Ocultar tabla de promedios en móviles */
+.promedios-table-container {
+    display: block;
+    
+    @media (max-width: $tablet) {
+        display: none;
+    }
+}
+
+/* Estilos para badges de calificación */
+.badge {
+    padding: 0.5rem 0.75rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+
+    @media (max-width: $mobile) {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+    }
+
+    &.bg-excelente {
+        background-color: #28a745 !important;
+    }
+
+    &.bg-sobresaliente {
+        background-color: #5cb85c !important;
+    }
+
+    &.bg-bueno {
+        background-color: #ffc107 !important;
+        color: #212529 !important;
+    }
+
+    &.bg-aceptable {
+        background-color: #fd7e14 !important;
+    }
+
+    &.bg-insuficiente {
+        background-color: #dc3545 !important;
+    }
+}
+
+/* Estilos para las estadísticas */
+.estadisticas-card {
+    background-color: #fff;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    margin-bottom: 1.5rem;
+
+    @media (max-width: $mobile) {
+        padding: 0.75rem;
+    }
+
+    .estadisticas-titulo {
+        color: $black;
+        font-weight: 600;
+        border-bottom: 1px solid $light-gold;
+        padding-bottom: 0.5rem;
+        font-size: 1rem;
+
+        @media (max-width: $mobile) {
+            font-size: 0.9rem;
+        }
+
+        i {
+            color: $gold;
+        }
+    }
+
+    .estadistica-item {
+        text-align: center;
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        transition: transform 0.2s;
+        min-height: 100px;
+
+        @media (max-width: $mobile) {
+            padding: 0.5rem;
+            min-height: 80px;
+        }
+
+        &:hover {
+            transform: translateY(-3px);
+
+            @media (max-width: $mobile) {
+                transform: none; // Desactivar en móvil
+            }
+        }
+
+        .estadistica-valor {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+
+            @media (max-width: $tablet) {
+                font-size: 1.5rem;
+            }
+
+            @media (max-width: $mobile) {
+                font-size: 1.25rem;
+            }
+        }
+
+        .estadistica-label {
+            font-size: 0.8rem;
+            opacity: 0.8;
+            margin-bottom: 0.25rem;
+
+            @media (max-width: $mobile) {
+                font-size: 0.7rem;
+            }
+        }
+
+        .estadistica-cualitativo,
+        .estadistica-extra {
+            font-size: 0.75rem;
+            font-weight: 500;
+            opacity: 0.9;
+
+            @media (max-width: $mobile) {
+                font-size: 0.65rem;
+            }
+        }
+    }
+
+    .promedio-general-bg {
+        background-color: rgba(52, 152, 219, 0.1);
+        color: #3498db;
+    }
+
+    .progreso-bg {
+        background-color: rgba(46, 204, 113, 0.1);
+        color: #2ecc71;
+    }
+
+    .areas-fuertes-bg {
+        background-color: rgba(40, 167, 69, 0.1);
+        color: #28a745;
+    }
+
+    .areas-mejorar-bg {
+        background-color: rgba(255, 193, 7, 0.1);
+        color: #ffc107;
+    }
+
+    .progress {
+        height: 0.75rem;
+        margin-top: 0.5rem;
+        border-radius: 1rem;
+
+        @media (max-width: $mobile) {
+            height: 0.5rem;
+        }
+
+        .progress-bar {
+            font-size: 0.7rem;
+            font-weight: 600;
+
+            @media (max-width: $mobile) {
+                font-size: 0;
+            }
+
+            &.bg-excelente {
+                background-color: #28a745 !important;
+            }
+
+            &.bg-sobresaliente {
+                background-color: #5cb85c !important;
+            }
+
+            &.bg-bueno {
+                background-color: #ffc107 !important;
+                color: #212529 !important;
+            }
+
+            &.bg-aceptable {
+                background-color: #fd7e14 !important;
+            }
+
+            &.bg-insuficiente {
+                background-color: #dc3545 !important;
+            }
+        }
+    }
+}
+
+/* Estilos para las medidas antropométricas */
+.medidas-card {
+    background-color: #fff;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    margin-bottom: 1.5rem;
+
+    @media (max-width: $mobile) {
+        padding: 0.75rem;
+    }
+
+    .medidas-titulo {
+        color: $black;
+        font-weight: 600;
+        border-bottom: 1px solid $light-gold;
+        padding-bottom: 0.5rem;
+        font-size: 1rem;
+
+        @media (max-width: $mobile) {
+            font-size: 0.9rem;
+        }
+
+        i {
+            color: $gold;
+        }
+    }
+
+    .medida-item {
+        display: flex;
+        align-items: center;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        transition: transform 0.2s;
+        min-height: 80px;
+
+        @media (max-width: $mobile) {
+            padding: 0.75rem;
+            min-height: 60px;
+        }
+
+        &:hover {
+            transform: translateY(-3px);
+
+            @media (max-width: $mobile) {
+                transform: none;
+            }
+        }
+
+        .medida-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+
+            @media (max-width: $mobile) {
+                width: 40px;
+                height: 40px;
+                font-size: 1.2rem;
+                margin-right: 0.75rem;
+            }
+        }
+
+        .medida-info {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+
+            .medida-label {
+                font-size: 0.8rem;
+                opacity: 0.8;
+                margin-bottom: 0.25rem;
+                font-weight: 500;
+
+                @media (max-width: $mobile) {
+                    font-size: 0.7rem;
+                }
+            }
+
+            .medida-valor {
+                font-size: 1.25rem;
+                font-weight: 700;
+                margin-bottom: 0.25rem;
+
+                @media (max-width: $mobile) {
+                    font-size: 1rem;
+                }
+            }
+
+            .medida-fecha {
+                font-size: 0.75rem;
+                opacity: 0.7;
+
+                @media (max-width: $mobile) {
+                    font-size: 0.65rem;
+                }
+            }
+        }
+    }
+
+    .peso-bg {
+        background-color: rgba(212, 175, 55, 0.1);
+        color: darken($gold, 15%);
+
+        .medida-icon {
+            background-color: rgba(212, 175, 55, 0.2);
+            color: $gold;
+        }
+    }
+
+    .talla-bg {
+        background-color: rgba(34, 34, 34, 0.05);
+        color: $black;
+
+        .medida-icon {
+            background-color: rgba(34, 34, 34, 0.1);
+            color: $black;
+        }
+    }
+}
+
+/* Animación para el dashboard */
+.dashboard-container {
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Estilos para la lista de áreas */
+.list-group-item {
+    transition: background-color 0.2s;
+    border-color: rgba(0, 0, 0, 0.05);
+    padding: 0.75rem 1.25rem;
+
+    @media (max-width: $mobile) {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+    }
+
+    &:hover {
+        background-color: $light-gold;
+
+        @media (max-width: $mobile) {
+            background-color: transparent;
+        }
+    }
+}
+
+/* Estilos para los card headers */
+.card {
+    margin-bottom: 1rem;
+
+    @media (max-width: $mobile) {
+        margin-bottom: 1.5rem;
+    }
+}
+
+.card-header {
+    padding: 0.75rem 1rem;
+    border-bottom: none;
+
+    @media (max-width: $mobile) {
+        padding: 0.5rem 0.75rem;
+    }
+
+    h6 {
+        font-weight: 600;
+        font-size: 1rem;
+        margin-bottom: 0;
+
+        @media (max-width: $mobile) {
+            font-size: 0.9rem;
+        }
+
+        i {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1rem;
+
+            @media (max-width: $mobile) {
+                font-size: 0.9rem;
+            }
+        }
+    }
+
+    &.bg-success {
+        background-color: #2ecc71 !important;
+        background-image: linear-gradient(to right, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.1)) !important;
+    }
+
+    &.bg-warning {
+        background-color: #f39c12 !important;
+        background-image: linear-gradient(to right, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.1)) !important;
+    }
+
+    &.bg-primary {
+        background-color: #3498db !important;
+        background-image: linear-gradient(to right, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.1)) !important;
+    }
+
+    &.bg-info {
+        background-color: #1abc9c !important;
+        background-image: linear-gradient(to right, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.1)) !important;
+    }
+}
+
+.card-body {
+    padding: 1.25rem;
+
+    @media (max-width: $tablet) {
+        padding: 1rem;
+    }
+
+    @media (max-width: $mobile) {
+        padding: 0.75rem;
+    }
+}
+
+/* Estilos para filtros */
+.input-group {
+    margin-bottom: 0.5rem;
+
+    @media (max-width: $mobile) {
+        font-size: 0.875rem;
+    }
+
+    .input-group-text {
+        background-color: #f8f9fa;
+        border-right: none;
+        padding: 0.375rem 0.75rem;
+
+        @media (max-width: $mobile) {
+            padding: 0.25rem 0.5rem;
+        }
+    }
+
+    .form-control {
+        border-left: none;
+
+        @media (max-width: $mobile) {
+            font-size: 0.875rem;
+            padding: 0.25rem 0.5rem;
+        }
+
+        &:focus {
+            box-shadow: none;
+            border-color: #ced4da;
+        }
+    }
+
+    .btn-outline-secondary {
+        border-color: #ced4da;
+        color: #6c757d;
+
+        @media (max-width: $mobile) {
+            padding: 0.25rem 0.5rem;
+        }
+
+        &:hover {
+            background-color: #f8f9fa;
+            color: #495057;
+        }
+    }
+}
+
+.form-select {
+    @media (max-width: $mobile) {
+        font-size: 0.875rem;
+        padding: 0.375rem 0.5rem;
+    }
+
+    &:focus {
+        box-shadow: none;
+        border-color: #ced4da;
+    }
+}
+
+/* Asegurar que las filas tengan suficiente separación */
+.dashboard-container .row {
+    margin-bottom: 30px;
+
+    @media (max-width: $mobile) {
+        margin-bottom: 20px;
+    }
+}
+
+/* Estilos para el contador de resultados filtrados */
+.alert-info {
+    background-color: rgba(52, 152, 219, 0.1);
+    border-color: rgba(52, 152, 219, 0.2);
+    color: #3498db;
+    padding: 0.75rem 1.25rem;
+
+    @media (max-width: $mobile) {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.8rem;
+    }
+
+    .btn-link {
+        color: #3498db;
+        text-decoration: none;
+        padding: 0;
+        font-size: 0.8rem;
+
+        @media (max-width: $mobile) {
+            font-size: 0.75rem;
+        }
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+}
+
+/* Filtros activos */
+.filtros-activos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 0.5rem;
+
+    @media (max-width: $mobile) {
+        gap: 5px;
+    }
+    
+    .filtro-aplicado {
+        display: inline-flex;
+        align-items: center;
+        background-color: rgba(52, 152, 219, 0.1);
+        color: #3498db;
+        padding: 3px 8px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+
+        @media (max-width: $mobile) {
+            font-size: 0.7rem;
+            padding: 2px 6px;
+        }
+        
+        .btn-clear {
+            background: none;
+            border: none;
+            color: #3498db;
+            margin-left: 5px;
+            padding: 0 2px;
+            cursor: pointer;
+            font-size: 1rem;
+            line-height: 1;
+
+            @media (max-width: $mobile) {
+                font-size: 0.9rem;
+                margin-left: 3px;
+            }
+            
+            &:hover {
+                color: #2980b9;
+            }
+        }
+    }
+}
+
+/* Estilos para la sección de observaciones */
+.observaciones-tipo {
+    border-left: 4px solid transparent;
+    padding-left: 1rem;
+    margin-bottom: 1.5rem;
+
+    @media (max-width: $mobile) {
+        padding-left: 0.75rem;
+        border-left-width: 3px;
+    }
+    
+    h6 {
+        font-weight: 600;
+        margin-bottom: 1rem;
+        font-size: 1rem;
+
+        @media (max-width: $mobile) {
+            font-size: 0.9rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        &.text-purple {
+            color: #9b59b6 !important;
+        }
+        
+        &.text-orange {
+            color: #e67e22 !important;
+        }
+    }
+}
+
+.observaciones-lista {
+    .observacion-item {
+        background-color: #f8f9fa;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        transition: all 0.2s ease;
+
+        @media (max-width: $mobile) {
+            padding: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        &:hover {
+            background-color: #e9ecef;
+            transform: translateX(5px);
+
+            @media (max-width: $mobile) {
+                transform: none;
+            }
+        }
+        
+        .observacion-fecha {
+            margin-bottom: 0.5rem;
+
+            @media (max-width: $mobile) {
+                margin-bottom: 0.25rem;
+            }
+            
+            small {
+                font-weight: 500;
+
+                @media (max-width: $mobile) {
+                    font-size: 0.7rem;
+                }
+            }
+        }
+        
+        .observacion-contenido {
+            margin-bottom: 0.5rem;
+            line-height: 1.6;
+            color: #333;
+
+            @media (max-width: $mobile) {
+                font-size: 0.875rem;
+                line-height: 1.4;
+            }
+        }
+        
+        .observacion-autor {
+            border-top: 1px solid #dee2e6;
+            padding-top: 0.5rem;
+            margin-top: 0.5rem;
+
+            @media (max-width: $mobile) {
+                padding-top: 0.25rem;
+                margin-top: 0.25rem;
+            }
+            
+            small {
+                font-style: italic;
+
+                @media (max-width: $mobile) {
+                    font-size: 0.7rem;
+                }
+            }
+        }
+    }
+}
+
+/* Colores específicos para cada tipo de observación */
+.observaciones-tipo:has(.text-primary) {
+    border-left-color: #3498db;
+}
+
+.observaciones-tipo:has(.text-orange) {
+    border-left-color: #e67e22;
+}
+
+.observaciones-tipo:has(.text-purple) {
+    border-left-color: #9b59b6;
+}
+
+/* Botones */
+.btn {
+    @media (max-width: $mobile) {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.875rem;
+    }
+
+    &.btn-success {
+        @media (max-width: $mobile) {
+            padding: 0.5rem 1rem;
+            
+            i {
+                font-size: 0.875rem;
+            }
+        }
+    }
+}
+
+/* Estilos para ocultar elementos en la exportación PDF y en impresión */
+@media print {
+    .no-imprimir {
+        display: none !important;
+    }
+    
+    .input-group,
+    .form-select,
+    .filtros-activos,
+    .alert-info,
+    .btn {
+        display: none !important;
+    }
+    
+    .panel-body {
+        padding: 0 !important;
+    }
+    
+    .table {
+        font-size: 0.8rem !important;
+    }
+    
+    .chart-container {
+        page-break-inside: avoid;
+    }
+}
+
+/* Ajustes adicionales para móviles muy pequeños */
+@media (max-width: 400px) {
+    .estadistica-item {
+        .estadistica-valor {
+            font-size: 1.1rem;
+        }
+        
+        .estadistica-label {
+            font-size: 0.65rem;
+        }
+    }
+    
+    .table {
+        font-size: 0.7rem;
+        
+        th, td {
+            padding: 0.25rem;
+        }
+    }
+    
+    .card-header h6 {
+        font-size: 0.85rem;
+    }
+}
+
+/* Utilidades responsivas para columnas */
+@media (max-width: $mobile) {
+    // Sub-tabs responsive
+    .sub-tabs-container {
+        justify-content: center;
+    }
+
+    .sub-tabs {
+        flex-direction: column;
+        width: 100%;
+        gap: 6px;
+
+        .sub-tab {
+            flex: 1;
+            justify-content: center;
+            padding: 10px 14px;
+        }
+    }
+
+    .col-md-4,
+    .col-md-6,
+    .col-md-8,
+    .col-md-12 {
+        margin-bottom: 0.75rem;
+    }
+    
+    // Asegurar que los elementos en filas se apilen correctamente
+    .row {
+        margin-left: -0.5rem;
+        margin-right: -0.5rem;
+        
+        > * {
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+        }
+    }
+}
+
+/* Mejorar la visualización del selector de sprint en móvil */
+#sprintSelector {
+    @media (max-width: $mobile) {
+        width: 100%;
+        font-size: 0.875rem;
+    }
+}
+
+/* Ajustar el botón de exportar PDF para móvil */
+.text-end {
+    @media (max-width: $mobile) {
+        text-align: center !important;
+        margin-top: 1rem;
+        
+        .btn {
+            width: 100%;
+            max-width: 200px;
+        }
+    }
+}
+/* ============================================================
+   ESTILOS PARA SECCIÓN "PROMEDIOS POR LOGRO"
+   (con indicadores anidados en letra pequeña)
+   AGREGAR AL FINAL del estudiante-evaluaciones.component.scss
+   ============================================================ */
+
+/* Ancho para nueva columna */
+.table {
+    th.logro-column {
+        width: 40%;
+    }
+}
+
+/* Tabla de escritorio: filas de logros + sub-filas de indicadores anidados */
+.tabla-logros {
+    .fila-logro {
+        background-color: #fff;
+
+        td {
+            padding: 0.75rem;
+            vertical-align: middle;
+            font-size: 0.9rem;
+        }
+
+        // Resalta la fila del logro como cabecera de su grupo
+        td:nth-child(2) strong {
+            color: #2c3e50;
+            font-size: 0.95rem;
+        }
+
+        td:nth-child(3) strong {
+            font-size: 1.05rem;
+            color: #2c3e50;
+        }
+    }
+
+    .fila-indicador-anidado {
+        background-color: #fafbfc;
+
+        td {
+            padding: 0.4rem 0.75rem;
+            border-top: 1px dashed #e0e3e7;
+        }
+
+        .indicador-anidado-celda {
+            font-size: 0.78rem;
+            color: #6c757d;
+            line-height: 1.3;
+        }
+
+        .badge-anidado {
+            padding: 0.2rem 0.55rem;
+            font-size: 0.65rem;
+            font-weight: 500;
+        }
+
+        i.fa-arrow-turn-down {
+            font-size: 0.7rem;
+            opacity: 0.6;
+            margin-right: 0.3rem;
+        }
+
+        // Hover sutil en sub-filas
+        &:hover {
+            background-color: #f1f3f5;
+        }
+    }
+}
+
+/* Sistema de tarjetas para móviles - Logros */
+.logros-cards-container {
+    display: none;
+
+    @media (max-width: $tablet) {
+        display: block;
+    }
+
+    .logro-card {
+        background-color: #fff;
+        border: 1px solid rgba(0, 0, 0, 0.125);
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        transition: all 0.2s ease;
+
+        &:hover {
+            box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .area-nombre {
+            font-size: 0.75rem;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .logro-descripcion {
+            font-size: 0.95rem;
+            color: #2c3e50;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            line-height: 1.4;
+        }
+
+        .logro-stats {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px dashed #e0e3e7;
+            margin-bottom: 0.5rem;
+
+            .promedio-container {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+
+                .promedio-label {
+                    font-size: 0.75rem;
+                    color: #6c757d;
+                }
+
+                .promedio-valor {
+                    font-size: 1.15rem;
+                    font-weight: 700;
+                    color: #2c3e50;
+                }
+            }
+
+            .clasificacion-badge {
+                padding: 0.35rem 0.75rem;
+                font-size: 0.75rem;
+                font-weight: 600;
+                border-radius: 1rem;
+
+                &.bg-excelente {
+                    background-color: #28a745;
+                    color: white;
+                }
+
+                &.bg-sobresaliente {
+                    background-color: #5cb85c;
+                    color: white;
+                }
+
+                &.bg-bueno {
+                    background-color: #ffc107;
+                    color: #212529;
+                }
+
+                &.bg-aceptable {
+                    background-color: #fd7e14;
+                    color: white;
+                }
+
+                &.bg-insuficiente {
+                    background-color: #dc3545;
+                    color: white;
+                }
+            }
+        }
+
+        /* Indicadores anidados (letra pequeña) en mobile */
+        .indicadores-anidados-mobile {
+            padding-top: 0.25rem;
+
+            .indicador-anidado-mobile {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                gap: 0.5rem;
+                padding: 0.35rem 0;
+                border-bottom: 1px dashed #f0f2f4;
+
+                &:last-child {
+                    border-bottom: none;
+                }
+
+                .indicador-anidado-texto {
+                    font-size: 0.75rem;
+                    color: #6c757d;
+                    line-height: 1.3;
+                    flex: 1;
+
+                    &::before {
+                        content: '• ';
+                        color: #adb5bd;
+                        margin-right: 0.25rem;
+                    }
+                }
+
+                .indicador-anidado-stats {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.4rem;
+                    flex-shrink: 0;
+
+                    .indicador-anidado-promedio {
+                        font-size: 0.8rem;
+                        font-weight: 600;
+                        color: #495057;
+                    }
+
+                    .indicador-anidado-badge {
+                        padding: 0.15rem 0.45rem;
+                        font-size: 0.6rem;
+                        font-weight: 500;
+                        border-radius: 0.75rem;
+
+                        &.bg-excelente {
+                            background-color: #28a745;
+                            color: white;
+                        }
+
+                        &.bg-sobresaliente {
+                            background-color: #5cb85c;
+                            color: white;
+                        }
+
+                        &.bg-bueno {
+                            background-color: #ffc107;
+                            color: #212529;
+                        }
+
+                        &.bg-aceptable {
+                            background-color: #fd7e14;
+                            color: white;
+                        }
+
+                        &.bg-insuficiente {
+                            background-color: #dc3545;
+                            color: white;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/* Ocultar tabla de logros en móviles cuando se muestran las tarjetas */
+.logros-table-container {
+    display: block;
+
+    @media (max-width: $tablet) {
+        display: none;
+    }
+}

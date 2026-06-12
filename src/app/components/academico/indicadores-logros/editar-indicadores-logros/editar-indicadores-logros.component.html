@@ -1,0 +1,248 @@
+<!-- editar-indicadores-logros.component.html -->
+<div class="modulo">
+    <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [accion]="accion" [id]="id" [raiz]="'/indicadores-logros'"
+        [regresar]="'/academico/indicadores-logros'" [iconoTitulo]="'/assets/images/indicadores-logros.png'"></app-header>
+    
+    <div class="container-fluid mt-4" [ngClass]="{ 'disabled-container': !editable }">
+        <!-- Sección de Información del Indicador -->
+        <div class="card mb-4">
+            <div class="card-header bg-corporate-primary">
+                <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Información del Indicador de Logro</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <!-- Nombre del Indicador -->
+                    <div class="col-md-12">
+                        <label for="nombre" class="form-label fw-semibold d-inline-flex align-items-center">
+                            Nombre del Indicador&nbsp;<span class="text-danger">*</span>
+                        </label>
+                        <input type="text" class="form-control" id="nombre"
+                            [(ngModel)]="model.nombre" (ngModelChange)="formularioValido()" required
+                            [ngClass]="{'is-invalid': !model.nombre && submitted}"
+                            placeholder="Ingrese el nombre del indicador de logro...">
+                        <div *ngIf="!model.nombre && submitted" class="invalid-feedback">Este campo es obligatorio</div>
+                    </div>
+
+                    <!-- Información completa del Indicador y Logro Asociado -->
+                    <div class="col-md-12">
+                        <div class="alert alert-info">
+                           
+                            
+                            <!-- Información del Logro Asociado -->
+                            <h6 class="mb-2">
+                                <i class="fas fa-trophy me-2"></i>Logro Asociado
+                            </h6>
+                            <div class="row mb-2">
+                                <div class="col-md-10">
+                                    <strong>Logro:</strong> {{ model.nombre_logro || 'No disponible' }}
+                                </div>
+                                <div class="col-md-2">
+                                    <strong>ID Logro:</strong> {{ model.id_logro || 'N/A' }}
+                                </div>
+                            </div>
+                            
+                            <!-- Información Académica -->
+                            <div class="row mb-2">
+                                <div class="col-md-4">
+                                    <strong>Grado:</strong> 
+                                    <div class="text-muted">{{ model.nombre_grado || 'No disponible' }}</div>
+                                </div>
+                                <div class="col-md-4">
+                                    <strong>Área Académica:</strong> 
+                                    <div class="text-muted">{{ model.area_academica_nombre || 'No disponible' }}</div>
+                                </div>
+                                <div class="col-md-4">
+                                    <strong>Corte Académico:</strong> 
+                                    <div class="text-muted">{{ model.corte_academico_nombre || 'No especificado' }}</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Información Curricular -->
+                            <div class="row mb-2">
+                                <div class="col-md-4">
+                                    <strong>Eje Curricular:</strong> 
+                                    <div class="text-muted">{{ model.eje_curricular_nombre || 'No especificado' }}</div>
+                                </div>
+                                <div class="col-md-4">
+                                    <strong>Esfera de Desarrollo:</strong> 
+                                    <div class="text-muted">{{ model.esfera_desarrollo_nombre || 'No especificado' }}</div>
+                                </div>
+                                <div class="col-md-4">
+                                    <strong>Competencia Cognitiva:</strong> 
+                                    <div class="text-muted">{{ model.competencia_cognitiva_nombre || 'No especificado' }}</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Estándar Básico -->
+                            <div class="row" *ngIf="model.estandar_basico_nombre && model.estandar_basico_nombre !== 'No especificado'">
+                                <div class="col-md-12">
+                                    <strong>Estándar Básico:</strong> 
+                                    <div class="text-muted">{{ model.estandar_basico_nombre }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección de Actividades Académicas Asociadas -->
+        <div class="card mb-4">
+            <div class="card-header bg-corporate-secondary d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-tasks me-2"></i>Actividades Académicas Asociadas</h5>
+                <button class="btn btn-sm btn-corporate-primary" (click)="abrirModalActividad()" *ngIf="editable">
+                    <i class="fas fa-plus me-1"></i>Asociar Actividad
+                </button>
+            </div>
+            <div class="card-body">
+                <div *ngIf="datosActividadesAcademicas.length > 0">
+                    <app-tablas [titulos]="titulosActividades" [datos]="datosActividadesAcademicas" 
+                        [raiz]="'/academico/indicadores-logros'"
+                        (clicAccion)="seleccionarActividad($event)" 
+                        [accionEditar]="false" 
+                        [accionEliminar]="editable" 
+                        [accionVer]="true"></app-tablas>
+                </div>
+                <div *ngIf="datosActividadesAcademicas.length === 0" class="text-center py-4">
+                    <p class="text-muted mb-3">No hay actividades académicas asociadas a este indicador.</p>
+                    <button class="btn btn-corporate-primary" (click)="abrirModalActividad()" *ngIf="editable">
+                        <i class="fas fa-plus me-1"></i>Asociar Primera Actividad
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botones de acción -->
+        <div class="row mt-4 mb-3">
+            <div class="col-12 d-flex justify-content-center gap-3">
+                <button *ngIf="editable" 
+                    class="btn btn-corporate-primary btn-lg px-5" 
+                    (click)="grabar()"
+                    [disabled]="!formularioValido()">
+                    <i class="fas fa-save me-2"></i>Guardar Cambios
+                </button>
+                <button class="btn btn-corporate-secondary btn-lg px-5" (click)="volver()">
+                    <i class="fas fa-arrow-left me-2"></i>Volver
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para asociar actividad académica -->
+    <div class="modal fade" id="modalActividad" tabindex="-1" aria-labelledby="modalActividadLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-corporate-primary">
+                    <h5 class="modal-title" id="modalActividadLabel">
+                        <i class="fas fa-link me-2"></i>
+                        Asociar Actividades Académicas Existentes
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Filtros -->
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label for="filtroTipo" class="form-label fw-semibold">
+                                Filtrar por Tipo
+                            </label>
+                            <select class="form-select" id="filtroTipo" [(ngModel)]="filtroTipo">
+                                <option value="">Todos los tipos</option>
+                                <option *ngFor="let tipo of tiposActividades" [value]="tipo.nombre">
+                                    {{ tipo.nombre }}
+                                </option>
+                            </select>
+                        </div>
+                        <div class="col-md-8">
+                            <label for="buscarActividad" class="form-label fw-semibold">
+                                Buscar por título
+                            </label>
+                            <input type="text" class="form-control" id="buscarActividad"
+                                [(ngModel)]="actividadesBusqueda"
+                                placeholder="Buscar actividad...">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="form-label fw-semibold mb-0">
+                                Seleccione Actividades <span class="text-danger">*</span>
+                                <span class="badge bg-secondary ms-2">{{ actividadesFiltradas.length }} disponibles</span>
+                                <span class="badge bg-primary ms-1" *ngIf="actividadesSeleccionadas.length > 0">
+                                    {{ actividadesSeleccionadas.length }} seleccionadas
+                                </span>
+                            </label>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <button type="button" class="btn btn-outline-secondary" 
+                                    (click)="seleccionarTodas()"
+                                    [disabled]="actividadesFiltradas.length === 0">
+                                    <i class="fas fa-check-square me-1"></i>Seleccionar todas
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" 
+                                    (click)="deseleccionarTodas()"
+                                    [disabled]="actividadesSeleccionadas.length === 0">
+                                    <i class="fas fa-square me-1"></i>Deseleccionar todas
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="actividades-list" [ngClass]="{'is-invalid': actividadesSeleccionadas.length === 0 && actividadSubmitted}">
+                            <div class="no-results-message" *ngIf="actividadesFiltradas.length === 0">
+                                <i class="fas fa-search me-2"></i>
+                                No se encontraron actividades con los filtros aplicados
+                            </div>
+                            <div class="actividad-item" 
+                                *ngFor="let actividad of actividadesFiltradas"
+                                [ngClass]="{'selected': isActividadSeleccionada(actividad)}"
+                                (click)="toggleActividadSeleccion(actividad)">
+                                <div class="actividad-info">
+                                    <strong>{{ actividad.titulo }}</strong>
+                                    <div class="text-muted small">
+                                        <span *ngIf="actividad.nombre_tipo_actividad">
+                                            <i class="fas fa-tag me-1"></i>Tipo: {{ actividad.nombre_tipo_actividad }}
+                                        </span>
+                                        <span *ngIf="actividad.minutos_duracion" class="ms-3">
+                                            <i class="fas fa-clock me-1"></i>Duración: {{ actividad.minutos_duracion }} min
+                                        </span>
+                                    </div>
+                                    <div class="text-muted small mt-1" *ngIf="actividad.materiales">
+                                        <i class="fas fa-box me-1"></i>Materiales: {{ actividad.materiales | slice:0:100 }}{{ actividad.materiales.length > 100 ? '...' : '' }}
+                                    </div>
+                                </div>
+                                <i class="fas fa-check-circle check-icon" *ngIf="isActividadSeleccionada(actividad)"></i>
+                            </div>
+                        </div>
+                        <div *ngIf="actividadesSeleccionadas.length === 0 && actividadSubmitted" class="invalid-feedback d-block">
+                            Debe seleccionar al menos una actividad
+                        </div>
+                    </div>
+                    
+                    <div class="selected-summary mt-3" *ngIf="actividadesSeleccionadas.length > 0">
+                        <div class="alert alert-corporate py-2">
+                            <strong>{{ actividadesSeleccionadas.length }} actividad{{ actividadesSeleccionadas.length > 1 ? 'es' : '' }} seleccionada{{ actividadesSeleccionadas.length > 1 ? 's' : '' }}:</strong>
+                            <div class="selected-list mt-2" style="max-height: 100px; overflow-y: auto;">
+                                <small>
+                                    <div *ngFor="let act of actividadesSeleccionadas; let i = index" class="mb-1">
+                                        {{ i + 1 }}. {{ act.titulo }}
+                                        <span class="text-muted">({{ act.nombre_tipo_actividad }})</span>
+                                    </div>
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" (click)="cerrarModalActividad()">
+                        <i class="fas fa-times me-1"></i>Cancelar
+                    </button>
+                    <button type="button" class="btn btn-corporate-primary" 
+                        (click)="asociarActividades()"
+                        [disabled]="!actividadesSeleccionadas || actividadesSeleccionadas.length === 0">
+                        <i class="fas fa-link me-1"></i>
+                        Asociar {{ actividadesSeleccionadas.length || '' }} Actividad{{ actividadesSeleccionadas.length !== 1 ? 'es' : '' }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

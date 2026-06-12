@@ -1,0 +1,27 @@
+.modulo {
+  padding: 20px;
+}
+
+.curso-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.info-item {
+  font-size: 0.9rem;
+  color: #555;
+  padding: 6px 12px;
+  background: rgba(212, 175, 55, 0.1);
+  border-radius: 6px;
+
+  i {
+    color: #d4af37;
+  }
+}
+
+.export-container {
+  display: flex;
+  justify-content: flex-end;
+  padding: 16px 24px;
+}

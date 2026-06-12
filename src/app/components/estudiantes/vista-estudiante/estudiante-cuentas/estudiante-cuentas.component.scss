@@ -1,0 +1,1606 @@
+// Variables de colores
+$success-color: #28a745;
+$warning-color: #ffc107;
+$danger-color: #dc3545;
+$info-color: #17a2b8;
+$primary-color: #007bff;
+$secondary-color: #6c757d;
+$light-color: #f8f9fa;
+$dark-color: #343a40;
+
+$gold: #d4af37;
+$black: #222;
+
+// Breakpoints
+$mobile-breakpoint: 768px;
+$tablet-breakpoint: 992px;
+
+// Clases de visibilidad
+.desktop-only {
+  display: block !important;
+}
+
+.mobile-only {
+  display: none !important;
+}
+
+// Estilos generales para el contenedor
+.estado-cuenta-container {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 15px rgba(0, 0, 0, 0.04), 0 1px 6px rgba(0, 0, 0, 0.04);
+  padding: 20px;
+  font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  position: relative;
+}
+
+// Dashboard header
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 10px;
+
+  h4 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: $black;
+    margin: 0;
+
+    i {
+      color: $gold;
+    }
+  }
+
+  .estado-general {
+    padding: 4px 12px;
+    border-radius: 50px;
+    font-size: 0.85rem;
+
+    &.positivo {
+      background-color: rgba($success-color, 0.1);
+      border: 1px solid rgba($success-color, 0.2);
+      color: darken($success-color, 10%);
+    }
+
+    &.negativo {
+      background-color: rgba($warning-color, 0.1);
+      border: 1px solid rgba($warning-color, 0.2);
+      color: darken($warning-color, 15%);
+    }
+
+    strong {
+      font-weight: 600;
+    }
+  }
+}
+
+// Tarjetas de resumen
+.resumen-financiero {
+  margin-bottom: 30px;
+}
+
+.tarjetas-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.tarjeta {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  background-color: white;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+  }
+
+  &.normal {
+    border-top: 4px solid $info-color;
+  }
+
+  &.alerta {
+    border-top: 4px solid $warning-color;
+  }
+
+  &.alerta-critica {
+    border-top: 4px solid $danger-color;
+  }
+
+  &.positivo {
+    border-top: 4px solid $success-color;
+  }
+
+  .tarjeta-contenido {
+    display: flex;
+    padding: 20px;
+    align-items: center;
+  }
+
+  .tarjeta-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+    font-size: 1.5rem;
+  }
+
+  .tarjeta-info {
+    flex: 1;
+  }
+
+  .tarjeta-titulo {
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin: 0 0 5px 0;
+    font-weight: 500;
+  }
+
+  .tarjeta-valor {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+    color: #343a40 !important;
+  }
+
+  .tarjeta-footer {
+    background-color: #f8f9fa;
+    padding: 10px 20px;
+    font-size: 0.8rem;
+    color: $secondary-color;
+    border-top: 1px solid #f1f1f1;
+  }
+}
+
+// Tarjeta con doble valor (Valor Total Cobrado)
+.tarjeta-doble-valor {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  .valor-principal,
+  .valor-secundario {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+
+  .valor-label-inline {
+    font-size: 0.8rem;
+    color: $secondary-color;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .valor-monto-inline {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: $black;
+
+    &.destacado {
+      font-size: 1.35rem;
+      color: $info-color;
+    }
+  }
+
+  .valor-secundario {
+    .valor-monto-inline {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: $secondary-color;
+    }
+  }
+}
+
+// Sub-tabs
+.sub-tabs-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding: 0 4px;
+
+  .sub-tabs {
+    display: flex;
+    gap: 8px;
+  }
+
+  .sub-tab {
+    padding: 8px 16px;
+    border: 1px solid #e0e0e0;
+    border-radius: 20px;
+    background-color: white;
+    color: $secondary-color;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.25s ease;
+
+    i {
+      font-size: 0.8rem;
+    }
+
+    &:hover {
+      border-color: $gold;
+      color: darken($gold, 10%);
+      background-color: rgba($gold, 0.04);
+    }
+
+    &.active {
+      background-color: $gold;
+      color: $black;
+      border-color: $gold;
+      font-weight: 600;
+      box-shadow: 0 2px 8px rgba($gold, 0.3);
+    }
+  }
+
+  .sub-tab-contador {
+    font-size: 0.8rem;
+    color: $secondary-color;
+    font-weight: 500;
+    padding: 4px 10px;
+    background-color: $light-color;
+    border-radius: 12px;
+  }
+}
+
+// Panel de control (filtros y búsqueda)
+.panel-control {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-bottom: 20px;
+
+  .search-bar {
+    position: relative;
+    flex: 1;
+    min-width: 200px;
+
+    i {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: $secondary-color;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px 10px 10px 35px;
+      border-radius: 6px;
+      border: 1px solid #e0e0e0;
+      font-size: 0.9rem;
+
+      &:focus {
+        outline: none;
+        border-color: $primary-color;
+        box-shadow: 0 0 0 3px rgba($primary-color, 0.1);
+      }
+    }
+  }
+
+  .filtros-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .filtro {
+    position: relative;
+    min-width: 180px;
+
+    .filtro-dropdown {
+      position: relative;
+      width: 100%;
+    }
+
+    .filtro-button {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 12px;
+      background-color: white;
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: left;
+
+      &:hover,
+      &:focus {
+        background-color: #f8f9fa;
+        border-color: #cbd3da;
+      }
+
+      &.active {
+        background-color: rgba($gold, 0.05);
+        border-color: $gold;
+        color: darken($gold, 15%);
+        font-weight: 500;
+      }
+
+      i {
+        font-size: 0.8rem;
+        transition: transform 0.3s;
+      }
+    }
+
+    .filtro-menu {
+      position: absolute;
+      top: calc(100% + 5px);
+      left: 0;
+      width: 100%;
+      background-color: white;
+      border-radius: 6px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      z-index: 100;
+      display: none;
+      overflow: hidden;
+      min-width: 250px;
+
+      &.show {
+        display: block;
+      }
+    }
+
+    .filtro-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 12px;
+      border-bottom: 1px solid #f1f1f1;
+
+      span {
+        font-weight: 500;
+        font-size: 0.9rem;
+      }
+
+      .btn-clear {
+        background: none;
+        border: none;
+        color: $primary-color;
+        font-size: 0.8rem;
+        cursor: pointer;
+        padding: 2px 5px;
+
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+    }
+
+    .filtro-search {
+      padding: 8px 12px;
+      border-bottom: 1px solid #f1f1f1;
+
+      input {
+        width: 100%;
+        padding: 6px 10px;
+        border-radius: 4px;
+        border: 1px solid #e0e0e0;
+        font-size: 0.85rem;
+
+        &:focus {
+          outline: none;
+          border-color: $gold;
+          box-shadow: 0 0 0 2px rgba($gold, 0.1);
+        }
+      }
+    }
+
+    .filtro-options {
+      max-height: 250px;
+      overflow-y: auto;
+      padding: 5px 0;
+
+      &::-webkit-scrollbar {
+        width: 6px;
+      }
+
+      &::-webkit-scrollbar-track {
+        background: #f1f1f1;
+      }
+
+      &::-webkit-scrollbar-thumb {
+        background: #cbd3da;
+        border-radius: 3px;
+      }
+    }
+
+    .filtro-option {
+      display: flex;
+      align-items: center;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: background-color 0.2s;
+      margin: 0;
+
+      &:hover {
+        background-color: #f8f9fa;
+      }
+
+      &.filtro-option-all {
+        background-color: rgba($light-color, 0.5);
+
+        &:hover {
+          background-color: rgba($light-color, 0.8);
+        }
+
+        .badge {
+          font-size: 0.7rem;
+          font-weight: normal;
+        }
+      }
+
+      input[type="checkbox"] {
+        margin-right: 8px;
+      }
+
+      .categoria-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        margin-right: 8px;
+        display: inline-block;
+      }
+    }
+
+    .filtro-footer {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 12px;
+      border-top: 1px solid #f1f1f1;
+      background-color: $light-color;
+
+      .btn-secondary {
+        background-color: #6c757d;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        padding: 6px 12px;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: background-color 0.2s;
+
+        &:hover {
+          background-color: darken(#6c757d, 10%);
+        }
+      }
+
+      .btn-primary {
+        background-color: $gold;
+        color: $black;
+        border: none;
+        border-radius: 4px;
+        padding: 6px 12px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.2s;
+
+        &:hover {
+          background-color: darken($gold, 10%);
+          color: white;
+        }
+      }
+    }
+  }
+}
+
+// Fondo semi-transparente para cerrar menús
+.backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: transparent;
+  z-index: 90;
+}
+
+// Tabs personalizados
+.nav-tabs-custom {
+  display: flex;
+  border-bottom: 1px solid #e0e0e0;
+  margin-bottom: 20px;
+
+  .tab {
+    padding: 12px 25px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: $secondary-color;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+
+    &:hover {
+      color: $primary-color;
+    }
+
+    &.active {
+      color: $gold;
+      font-weight: 600;
+
+      &:after {
+        content: '';
+        position: absolute;
+        bottom: -1px;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        background-color: $gold;
+      }
+    }
+  }
+}
+
+// Tablas modernas (solo desktop)
+.tabla-responsive {
+  overflow-x: auto;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.04);
+}
+
+.tabla-moderna {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  white-space: nowrap;
+
+  th,
+  td {
+    padding: 12px 15px;
+    text-align: left;
+  }
+
+  th {
+    background-color: $black;
+    color: white;
+    font-weight: 500;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+
+    &.text-end {
+      text-align: right;
+    }
+  }
+
+  tbody tr {
+    border-bottom: 1px solid #f2f2f2;
+    transition: background-color 0.2s;
+
+    &:hover {
+      background-color: rgba($primary-color, 0.02);
+    }
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &.pagado {
+      background-color: rgba($success-color, 0.05);
+    }
+
+    &.vencido {
+      background-color: rgba($danger-color, 0.05);
+    }
+
+    &.anulado {
+      background-color: #f8f9fa;
+      color: $secondary-color;
+      text-decoration: line-through;
+    }
+
+    &.contabilizado {
+      background-color: rgba($info-color, 0.05);
+    }
+  }
+
+  td {
+    &.text-end {
+      text-align: right;
+    }
+
+    &.text-center {
+      text-align: center;
+    }
+  }
+}
+
+// Tarjetas para móvil - Movimientos
+.tarjetas-movimientos {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  .movimiento-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    transition: all 0.3s ease;
+
+    &:hover {
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+      transform: translateY(-2px);
+    }
+
+    &.pagado-card {
+      border-left: 4px solid $success-color;
+    }
+
+    &.pendiente-card {
+      border-left: 4px solid $warning-color;
+    }
+
+    &.vencido-card {
+      border-left: 4px solid $danger-color;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem;
+      background-color: #f8f9fa;
+      border-bottom: 1px solid #e9ecef;
+
+      .fecha-numero {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+
+        .numero {
+          font-weight: 600;
+          color: $secondary-color;
+          font-size: 0.85rem;
+        }
+
+        .fecha {
+          color: $black;
+          font-weight: 500;
+        }
+      }
+    }
+
+    .card-body {
+      padding: 1rem;
+
+      .concepto-section {
+        margin-bottom: 1rem;
+
+        .categoria-info {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          margin-bottom: 0.5rem;
+
+          .categoria-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: white;
+          }
+
+          .categoria-nombre {
+            font-size: 0.85rem;
+            color: $secondary-color;
+          }
+        }
+
+        .concepto-titulo {
+          font-size: 1rem;
+          font-weight: 600;
+          color: $black;
+          margin: 0.5rem 0;
+        }
+
+        .concepto-detalle {
+          font-size: 0.85rem;
+          color: $secondary-color;
+          margin: 0;
+        }
+      }
+
+      .valores-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        padding-top: 0.75rem;
+        border-top: 1px solid #e9ecef;
+
+        .valor-item {
+          text-align: center;
+
+          &.saldo {
+            grid-column: 1 / -1;
+            border-top: 1px solid #e9ecef;
+            padding-top: 0.75rem;
+            margin-top: 0.5rem;
+          }
+
+          .valor-label {
+            display: block;
+            font-size: 0.75rem;
+            color: $secondary-color;
+            margin-bottom: 0.25rem;
+          }
+
+          .valor-monto {
+            display: block;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: $black;
+
+            &.text-danger {
+              color: $danger-color !important;
+            }
+
+            &.text-success {
+              color: $success-color !important;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// Tarjetas para móvil - Pagos
+.tarjetas-pagos {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  .pago-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    transition: all 0.3s ease;
+
+    &:hover {
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+      transform: translateY(-2px);
+    }
+
+    &.contabilizado-card {
+      border-left: 4px solid $info-color;
+    }
+
+    &.anulado-card {
+      border-left: 4px solid $secondary-color;
+      opacity: 0.7;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem;
+      background-color: #f8f9fa;
+      border-bottom: 1px solid #e9ecef;
+
+      .fecha-numero {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+
+        .numero {
+          font-weight: 600;
+          color: $secondary-color;
+          font-size: 0.85rem;
+        }
+
+        .fecha {
+          color: $black;
+          font-weight: 500;
+        }
+      }
+    }
+
+    .card-body {
+      padding: 1rem;
+
+      .info-pago {
+        margin-bottom: 1rem;
+
+        .info-item {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          margin-bottom: 0.5rem;
+          font-size: 0.9rem;
+
+          i {
+            color: $gold;
+            width: 16px;
+            text-align: center;
+          }
+
+          span {
+            color: $black;
+          }
+        }
+      }
+
+      .valores-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        padding-top: 0.75rem;
+        border-top: 1px solid #e9ecef;
+
+        .valor-item {
+          text-align: center;
+
+          &.saldo {
+            grid-column: 1 / -1;
+            border-top: 1px solid #e9ecef;
+            padding-top: 0.75rem;
+            margin-top: 0.5rem;
+          }
+
+          .valor-label {
+            display: block;
+            font-size: 0.75rem;
+            color: $secondary-color;
+            margin-bottom: 0.25rem;
+          }
+
+          .valor-monto {
+            display: block;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: $black;
+          }
+        }
+      }
+    }
+  }
+}
+
+// Totales móvil
+.totales-movil {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+
+  h6 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: $black;
+    margin-bottom: 0.75rem;
+  }
+
+  .total-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    font-size: 0.9rem;
+
+    &.saldo-total {
+      border-top: 2px solid $gold;
+      padding-top: 0.75rem;
+      margin-top: 0.5rem;
+      font-weight: 600;
+    }
+
+    span:first-child {
+      color: $secondary-color;
+    }
+
+    span:last-child {
+      color: $black;
+      font-weight: 500;
+    }
+  }
+}
+
+// Mensaje de no datos
+.no-data-message {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: $secondary-color;
+
+  i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    display: block;
+    opacity: 0.5;
+  }
+
+  p {
+    margin: 0;
+    font-size: 1rem;
+  }
+}
+
+// Concepto info
+.concepto-info {
+  display: flex;
+  align-items: center;
+
+  .categoria-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    margin-right: 8px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: white;
+  }
+}
+
+// Estado badges
+.estado-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+
+  &.pagado {
+    background-color: rgba($success-color, 0.1);
+    color: $success-color;
+  }
+
+  &.pendiente {
+    background-color: rgba($warning-color, 0.1);
+    color: darken($warning-color, 20%);
+  }
+
+  &.vencido {
+    background-color: rgba($danger-color, 0.1);
+    color: $danger-color;
+  }
+
+  &.anulado {
+    background-color: rgba($secondary-color, 0.1);
+    color: $secondary-color;
+  }
+
+  &.contabilizado {
+    background-color: rgba($info-color, 0.1);
+    color: $info-color;
+  }
+
+  &.registrado {
+    background-color: rgba($primary-color, 0.1);
+    color: $primary-color;
+  }
+}
+
+// Paginación
+.paginacion {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 15px;
+  background-color: $light-color;
+  border-radius: 0 0 8px 8px;
+  font-size: 0.85rem;
+  margin-top: 1rem;
+
+  .registros-por-pagina {
+    display: flex;
+    align-items: center;
+
+    span {
+      margin-right: 8px;
+      color: $secondary-color;
+    }
+
+    select {
+      border: 1px solid #e0e0e0;
+      border-radius: 4px;
+      padding: 5px;
+      background-color: white;
+    }
+  }
+
+  .navegacion {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    button {
+      background-color: white;
+      border: 1px solid #e0e0e0;
+      border-radius: 4px;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+
+      &:hover:not(:disabled) {
+        background-color: $primary-color;
+        color: white;
+      }
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+    }
+
+    span {
+      color: $secondary-color;
+    }
+
+    .pagina-info {
+      white-space: nowrap;
+    }
+  }
+}
+
+// Loading indicator
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+
+  .spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba($gold, 0.3);
+    border-radius: 50%;
+    border-top-color: $gold;
+    animation: spin 1s ease-in-out infinite;
+    margin-bottom: 15px;
+  }
+
+  p {
+    color: $secondary-color;
+    margin: 0;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// Animaciones
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.filtro-menu.show {
+  animation: fadeIn 0.2s ease-out forwards;
+}
+
+// Botones de acción
+.btn-export {
+  background-color: $black;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+
+  i {
+    color: $gold;
+    margin-right: 5px;
+  }
+
+  &:hover {
+    background-color: lighten($black, 10%);
+    transform: translateY(-2px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  }
+}
+
+.btn-whatsapp {
+  background-color: #25d366;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+
+  i {
+    color: white;
+    margin-right: 5px;
+  }
+
+  &:hover {
+    background-color: #128c7e;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  }
+}
+
+/* Contenedor para los botones de acción */
+.actions-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+// Estilos para la fila de totales
+.totales-row {
+  background-color: rgba($gold, 0.05);
+  font-weight: bold;
+
+  td {
+    border-top: 2px solid rgba($gold, 0.3);
+    color: $black;
+    padding: 12px 15px;
+  }
+
+  &:hover {
+    background-color: rgba($gold, 0.1);
+  }
+}
+
+// Media queries para responsividad
+@media (max-width: $tablet-breakpoint) {
+  .tarjetas-container {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
+}
+
+@media (max-width: $mobile-breakpoint) {
+  .desktop-only {
+    display: none !important;
+  }
+
+  .mobile-only {
+    display: block !important;
+  }
+
+  .dashboard-header {
+    flex-direction: column;
+    align-items: flex-start;
+
+    .estado-general {
+      margin-top: 0.5rem;
+    }
+  }
+
+  .tarjetas-container {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .tarjeta {
+    .tarjeta-valor {
+      font-size: 1.25rem;
+    }
+  }
+
+  // Tarjeta doble valor en móvil
+  .tarjeta-doble-valor {
+    .valor-monto-inline {
+      font-size: 1rem;
+
+      &.destacado {
+        font-size: 1.15rem;
+      }
+    }
+
+    .valor-secundario .valor-monto-inline {
+      font-size: 0.85rem;
+    }
+  }
+
+  // Sub-tabs en móvil
+  .sub-tabs-container {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+
+    .sub-tabs {
+      width: 100%;
+    }
+
+    .sub-tab {
+      flex: 1;
+      text-align: center;
+      padding: 8px 12px;
+      font-size: 0.8rem;
+    }
+
+    .sub-tab-contador {
+      align-self: flex-end;
+    }
+  }
+
+  .panel-control {
+    flex-direction: column;
+
+    .search-bar {
+      width: 100%;
+    }
+
+    .filtros-container {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.5rem;
+
+      .filtro {
+        min-width: unset;
+        width: 100%;
+      }
+    }
+  }
+
+  .filtro-menu {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    width: 90% !important;
+    max-width: 350px !important;
+    max-height: 80vh !important;
+    
+    .filtro-options {
+      max-height: 40vh !important;
+    }
+  }
+
+  .nav-tabs-custom {
+    .tab {
+      padding: 10px 15px;
+      font-size: 0.85rem;
+      flex: 1;
+      text-align: center;
+
+      .tab-text {
+        display: none;
+      }
+
+      i {
+        margin-right: 0 !important;
+      }
+    }
+  }
+
+  .paginacion {
+    flex-direction: column;
+    gap: 10px;
+    padding: 0.75rem;
+
+    .registros-por-pagina,
+    .navegacion {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  .panel-heading {
+    flex-direction: column;
+    align-items: flex-start;
+
+    h5 {
+      margin-bottom: 10px;
+      font-size: 1.1rem;
+    }
+
+    .actions-buttons {
+      width: 100%;
+      justify-content: space-between;
+      
+      button {
+        flex: 1;
+        justify-content: center;
+      }
+    }
+  }
+
+  @media (max-width: 400px) {
+    .btn-text {
+      display: none;
+    }
+    
+    .btn-whatsapp,
+    .btn-export {
+      padding: 8px;
+      
+      i {
+        margin-right: 0;
+      }
+    }
+  }
+
+  .backdrop {
+    background-color: rgba(0, 0, 0, 0.3);
+  }
+}
+
+// Media query para pantallas muy pequeñas
+@media (max-width: 480px) {
+  .dashboard-header h4 {
+    font-size: 1.1rem;
+  }
+
+  .tarjetas-container {
+    gap: 12px;
+  }
+
+  .tarjeta {
+    .tarjeta-contenido {
+      padding: 15px;
+    }
+
+    .tarjeta-icon {
+      width: 40px;
+      height: 40px;
+      font-size: 1.2rem;
+    }
+
+    .tarjeta-titulo {
+      font-size: 0.8rem;
+    }
+
+    .tarjeta-valor {
+      font-size: 1.1rem;
+    }
+  }
+
+  .movimiento-card,
+  .pago-card {
+    .card-header {
+      padding: 0.75rem;
+    }
+
+    .card-body {
+      padding: 0.75rem;
+
+      .concepto-titulo {
+        font-size: 0.9rem;
+      }
+
+      .valores-grid {
+        gap: 0.5rem;
+
+        .valor-label {
+          font-size: 0.7rem;
+        }
+
+        .valor-monto {
+          font-size: 0.85rem;
+        }
+      }
+    }
+  }
+
+  .nav-tabs-custom {
+    .tab {
+      padding: 8px 10px;
+      font-size: 0.8rem;
+    }
+  }
+}
+
+// Ajustes para tablets
+@media (min-width: $mobile-breakpoint + 1) and (max-width: $tablet-breakpoint) {
+  .tarjetas-container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .nav-tabs-custom {
+    .tab-text {
+      @media (max-width: 850px) {
+        display: none;
+      }
+    }
+  }
+}
+
+// Botón flotante para volver arriba
+.btn-scroll-top {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: $gold;
+  color: $black;
+  border: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  z-index: 999;
+
+  &.show {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  &:hover {
+    background-color: darken($gold, 10%);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+  }
+
+  &:active {
+    transform: translateY(-1px);
+  }
+
+  i {
+    font-size: 1rem;
+  }
+
+  @media (max-width: $mobile-breakpoint) {
+    width: 45px;
+    height: 45px;
+    bottom: 15px;
+    left: 15px;
+  }
+  
+  @media (max-width: 480px) {
+    bottom: 15px;
+    left: 10px;
+    width: 40px;
+    height: 40px;
+  }
+}
+
+// Barra de selección de registros
+.seleccion-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 10px 16px;
+  margin-bottom: 16px;
+  background-color: rgba($gold, 0.08);
+  border: 1px solid rgba($gold, 0.25);
+  border-radius: 8px;
+  animation: fadeIn 0.2s ease-out forwards;
+
+  .seleccion-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: darken($gold, 15%);
+
+    i {
+      color: $gold;
+      font-size: 1.1rem;
+    }
+  }
+
+  .seleccion-totales {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: $black;
+
+    .separador {
+      color: #ccc;
+    }
+
+    .saldo-seleccion {
+      font-weight: 600;
+      color: darken($gold, 15%);
+    }
+  }
+
+  .btn-limpiar-seleccion {
+    background-color: transparent;
+    border: 1px solid rgba($gold, 0.4);
+    color: darken($gold, 15%);
+    border-radius: 4px;
+    padding: 4px 12px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      background-color: rgba($gold, 0.15);
+      border-color: $gold;
+    }
+  }
+
+  @media (max-width: $mobile-breakpoint) {
+    flex-direction: column;
+    align-items: flex-start;
+
+    .seleccion-totales {
+      flex-wrap: wrap;
+      font-size: 0.8rem;
+    }
+  }
+}
+
+// Columna de checkbox en tabla
+.col-checkbox {
+  width: 40px;
+  text-align: center !important;
+  padding: 12px 8px !important;
+
+  input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: $gold;
+  }
+}
+
+// Fila seleccionada en tabla desktop
+.tabla-moderna tbody tr.fila-seleccionada {
+  background-color: rgba($gold, 0.08) !important;
+  border-left: 3px solid $gold;
+
+  &:hover {
+    background-color: rgba($gold, 0.12) !important;
+  }
+}
+
+// Card seleccionada en mobile
+.movimiento-card.card-seleccionada {
+  border-left: 4px solid $gold !important;
+  background-color: rgba($gold, 0.04);
+  box-shadow: 0 2px 8px rgba($gold, 0.15);
+}
+
+// Checkbox en card mobile
+.checkbox-mobile {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: $gold;
+  margin-right: 4px;
+}

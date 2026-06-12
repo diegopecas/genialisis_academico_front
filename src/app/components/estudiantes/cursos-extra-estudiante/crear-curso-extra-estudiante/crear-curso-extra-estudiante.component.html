@@ -1,0 +1,208 @@
+<div class="modulo">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="false"
+    [accion]="accion"
+    [raiz]="'/estudiantes-cursos-extra'"
+    [regresar]="regresar"
+    [iconoTitulo]="'/assets/images/cursos-extra.png'">
+  </app-header>
+
+  <div class="container-custom py-4">
+
+    <!-- Información del Estudiante -->
+    <div class="card-simple mb-3">
+      <div class="card-header-simple justify-content-start">
+        <i class="fas fa-user-graduate me-2"></i>
+        <span>Información del Estudiante</span>
+      </div>
+      <div class="card-body-simple">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="label-simple">Nombre Completo</label>
+            <div class="value-simple">{{ nombre_estudiante }}</div>
+          </div>
+          <div class="col-md-3">
+            <label class="label-simple">Documento</label>
+            <div class="value-simple">{{ estudiante?.numero_identificacion }}</div>
+          </div>
+          <div class="col-md-3">
+            <label class="label-simple">Grupo</label>
+            <div class="value-simple">{{ estudiante?.nombre_grupo }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Datos de la Inscripción -->
+    <div class="card-simple mb-3">
+      <div class="card-header-simple justify-content-start">
+        <i class="fas fa-book me-2"></i>
+        <span>Datos de la Inscripción</span>
+      </div>
+      <div class="card-body-simple">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Curso Extracurricular <span class="text-danger">*</span></label>
+            <select class="form-select" [(ngModel)]="model.id_curso_extra" (change)="onCursoChange()"
+              [ngClass]="{'is-invalid': !model.id_curso_extra && submitted}" [disabled]="idInscripcion">
+              <option [ngValue]="null">-- Seleccione un curso --</option>
+              <option *ngFor="let c of cursosDisponibles" [ngValue]="c.id">{{c.nombre}} ({{c.anio}})</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Fecha Inicio <span class="text-danger">*</span></label>
+            <input type="date" class="form-control" [(ngModel)]="model.fecha_inicio"
+              [ngClass]="{'is-invalid': !model.fecha_inicio && submitted}">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Fecha Fin <span class="text-danger">*</span></label>
+            <input type="date" class="form-control" [(ngModel)]="model.fecha_fin"
+              [ngClass]="{'is-invalid': !model.fecha_fin && submitted}">
+          </div>
+        </div>
+
+        <!-- Valores editables de tarifa -->
+        <div class="row g-3 mt-2" *ngIf="tarifa">
+          <div class="col-md-3" *ngIf="tarifa.id_producto_matricula">
+            <label class="form-label">Valor Matrícula</label>
+            <input type="text" class="form-control" [value]="valorMatriculaFormateado"
+              (input)="onValorMatriculaInput($event)" placeholder="$0">
+          </div>
+          <div class="col-md-2" *ngIf="tarifa.id_producto_matricula">
+            <label class="form-label">Cuotas</label>
+            <input type="number" class="form-control" [(ngModel)]="cuotasMatricula" min="1" max="12">
+          </div>
+          <div class="col-md-3" *ngIf="tarifa.id_producto_pension">
+            <label class="form-label">Valor Pensión mensual</label>
+            <input type="text" class="form-control" [value]="valorPensionFormateado"
+              (input)="onValorPensionInput($event)" placeholder="$0">
+          </div>
+          <div class="col-md-3" *ngIf="tarifa.id_producto_unico">
+            <label class="form-label">Valor Cobro Único</label>
+            <input type="text" class="form-control" [value]="valorUnicoFormateado"
+              (input)="onValorUnicoInput($event)" placeholder="$0">
+          </div>
+          <div class="col-md-1" *ngIf="tarifa.id_producto_unico">
+            <label class="form-label">Cuotas</label>
+            <input type="number" class="form-control" [(ngModel)]="cuotasUnico" min="1" max="12">
+          </div>
+        </div>
+
+        <div class="alert alert-warning mt-3" *ngIf="model.id_curso_extra && !tarifa">
+          <i class="fas fa-exclamation-triangle me-2"></i>
+          No hay tarifa configurada para este curso. Configure las tarifas en el módulo académico.
+        </div>
+      </div>
+    </div>
+
+    <!-- Valores generados -->
+    <div class="card-simple mb-3" *ngIf="tarifa">
+      <div class="card-header-simple justify-content-between">
+        <div class="d-flex align-items-center">
+          <i class="fas fa-calculator me-2"></i>
+          <span>Valores del Curso</span>
+        </div>
+        <button class="btn btn-warning btn-sm" (click)="generarValores()" *ngIf="editable">
+          <i class="fas fa-sync-alt me-1"></i>
+          {{valoresGenerados ? 'Regenerar' : 'Generar Valores'}}
+        </button>
+      </div>
+      <div class="card-body-simple">
+
+        <div *ngIf="!valoresGenerados" class="alert alert-secondary text-center py-4">
+          <i class="fas fa-calculator fa-2x mb-2 d-block"></i>
+          <p class="mb-2">Configure los valores y haga clic en "Generar Valores"</p>
+          <small class="text-muted">Se crearán las cuotas según los valores configurados</small>
+        </div>
+
+        <div *ngIf="valoresGenerados && valores.length > 0">
+          <div class="table-responsive">
+            <table class="table table-hover table-valores">
+              <thead class="table-light">
+                <tr>
+                  <th style="width: 110px;">Tipo</th>
+                  <th style="width: 180px;">Producto</th>
+                  <th class="text-center" style="width: 150px;">Fecha</th>
+                  <th class="text-end" style="width: 170px;">Valor</th>
+                  <th class="text-center" style="width: 50px;" *ngIf="editable"></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let v of valores; let i = index">
+                  <td>
+                    <span class="badge" [ngClass]="getTipoBadgeClass(v.tipo)">{{getTipoLabel(v.tipo)}}</span>
+                  </td>
+                  <td>{{v.nombre_producto}}</td>
+                  <td class="text-center">
+                    <input type="date" class="form-control form-control-sm" [(ngModel)]="v.fecha"
+                      (change)="onFechaChange(v)" [disabled]="!editable">
+                  </td>
+                  <td>
+                    <div class="input-group input-group-sm">
+                      <span class="input-group-text">$</span>
+                      <input type="text" class="form-control text-end"
+                        [value]="formatearNumero(v.valor)"
+                        (input)="onValorTablaInput($event, v)"
+                        (blur)="onBlurValorTabla($event, v)"
+                        [disabled]="!editable">
+                    </div>
+                  </td>
+                  <td class="text-center" *ngIf="editable">
+                    <button class="btn btn-sm btn-outline-danger" (click)="eliminarValor(i)" title="Quitar">
+                      <i class="fas fa-times"></i>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Resumen -->
+          <div class="resumen-valores mt-4 p-3 bg-light rounded">
+            <div class="row align-items-center text-center">
+              <div class="col-md-3" *ngIf="resumen.total_matricula > 0">
+                <small class="text-muted d-block">Matrícula</small>
+                <strong class="text-primary">{{formatearMoneda(resumen.total_matricula)}}</strong>
+              </div>
+              <div class="col-md-3" *ngIf="resumen.total_pension > 0">
+                <small class="text-muted d-block">Pensiones</small>
+                <strong class="text-primary">{{formatearMoneda(resumen.total_pension)}}</strong>
+              </div>
+              <div class="col-md-3" *ngIf="resumen.total_unico > 0">
+                <small class="text-muted d-block">Cobro Único</small>
+                <strong class="text-primary">{{formatearMoneda(resumen.total_unico)}}</strong>
+              </div>
+              <div class="col-md-3">
+                <small class="text-muted d-block">Total</small>
+                <strong class="text-success fs-4">{{formatearMoneda(resumen.total_general)}}</strong>
+                <small class="text-muted d-block">{{resumen.cuentas}} cuota(s)</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Botones de acción -->
+  <div class="container-custom pb-4">
+    <div class="row g-3">
+      <div class="col-md-3" *ngIf="editable && !idInscripcion">
+        <button class="btn btn-warning w-100" (click)="guardar()" [disabled]="guardando">
+          <i class="fas fa-save me-2"></i>{{guardando ? 'Guardando...' : 'Guardar Inscripción'}}
+        </button>
+      </div>
+      <div class="col-md-3" *ngIf="idInscripcion && valoresGenerados && valores.length > 0">
+        <button class="btn btn-cobrar w-100" (click)="generarCuentasPorCobrar()" [disabled]="generandoCuentas">
+          <i class="fas fa-file-invoice-dollar me-2"></i>{{generandoCuentas ? 'Generando...' : 'Generar Cuentas por Cobrar'}}
+        </button>
+      </div>
+      <div class="col-md-3">
+        <button class="btn btn-secondary w-100" (click)="volver()">
+          <i class="fas fa-arrow-left me-2"></i>Volver
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

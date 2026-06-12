@@ -6,6 +6,7 @@ import Swal from 'sweetalert2';
 import { HeaderComponent } from '../../../../common/header/header.component';
 import { CategoriaProductosServiciosService } from '../../../../services/categoria-productos-servicios.service';
 import { ClasificacionProductosServiciosService } from '../../../../services/clasificacion-productos-servicios.service';
+import { HorariosAlimentacionService } from '../../../../services/horarios-alimentacion.service';
 import { PeriodicidadCobroService } from '../../../../services/periodicidad-cobro.service';
 import { ProductosServiciosService } from '../../../../services/productos-servicios.service';
 
@@ -52,7 +53,8 @@ export class CrearProductoServicioComponent implements OnInit {
     private productosServiciosService: ProductosServiciosService,
     private clasificacionService: ClasificacionProductosServiciosService,
     private categoriaService: CategoriaProductosServiciosService,
-    private periodicidadService: PeriodicidadCobroService
+    private periodicidadService: PeriodicidadCobroService,
+    private horariosService: HorariosAlimentacionService
   ) { }
 
   ngOnInit(): void {
@@ -86,6 +88,10 @@ export class CrearProductoServicioComponent implements OnInit {
 
     this.periodicidadService.obtenerTodos().subscribe((response: any) => {
       this.listas.periodicidades = response.body;
+    });
+
+    this.horariosService.obtenerTodos().subscribe((response: any) => {
+      this.listas.horarios = response.body;
     });
   }
 

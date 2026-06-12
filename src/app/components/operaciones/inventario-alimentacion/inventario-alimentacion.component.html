@@ -1,0 +1,281 @@
+<div class="modulo">
+  <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [raiz]="'/'" [regresar]="'/operaciones'" [iconoTitulo]="'/assets/images/salidas_alimentacion.png'"></app-header>
+
+  <div class="inv-container">
+
+    <!-- FILTROS -->
+    <div class="filtros-panel glass-card">
+      <div class="row align-items-end g-3">
+        <div class="col-md-3 col-sm-6">
+          <label class="filtro-label"><i class="fas fa-calendar-alt me-2"></i>Fecha</label>
+          <input type="date" class="filtro-input" [(ngModel)]="fechaSeleccionada" (change)="cambioFecha()" />
+        </div>
+        <div class="col-md-3 col-sm-6">
+          <label class="filtro-label"><i class="fas fa-clock me-2"></i>Horario</label>
+          <select class="filtro-input" [(ngModel)]="horarioSeleccionado" (change)="cambioHorario()">
+            <option value="">Seleccionar horario...</option>
+            <option *ngFor="let h of horarios" [value]="h.id">{{ h.nombre }}</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="estado-center" *ngIf="!horarioSeleccionado">
+      <i class="fas fa-hand-point-up estado-icono-gold"></i>
+      <p class="estado-texto">Selecciona fecha y horario para comenzar.</p>
+    </div>
+
+    <ng-container *ngIf="horarioSeleccionado">
+
+      <!-- TABS -->
+      <div class="tabs-panel glass-card">
+        <button class="tab-btn" [class.activo]="tabActivo === 'pendientes'" (click)="cambioTab('pendientes')">
+          <i class="fas fa-clock me-2"></i>Pendientes de inventario
+        </button>
+        <button class="tab-btn" [class.activo]="tabActivo === 'registrados'" (click)="cambioTab('registrados')">
+          <i class="fas fa-check-circle me-2"></i>Movimientos registrados
+        </button>
+      </div>
+
+      <!-- TAB PENDIENTES -->
+      <ng-container *ngIf="tabActivo === 'pendientes'">
+
+        <div class="estado-center" *ngIf="cargando">
+          <i class="fas fa-spinner fa-spin estado-icono-gold"></i>
+          <p class="estado-texto">Cargando entregas...</p>
+        </div>
+
+        <div class="estado-center" *ngIf="!cargando && grupos.length === 0">
+          <i class="fas fa-box-open estado-icono-gold"></i>
+          <p class="estado-texto">No hay entregas marcadas para este horario y fecha.</p>
+        </div>
+
+        <ng-container *ngIf="!cargando && grupos.length > 0">
+
+          <div class="acciones-panel glass-card">
+            <button class="btn-batch btn-sel-todos" (click)="seleccionarPendientes()">
+              <i class="fas" [ngClass]="todosSeleccionados() ? 'fa-times-circle' : 'fa-check-double'"></i>
+              {{ todosSeleccionados() ? 'Deseleccionar' : 'Seleccionar pendientes' }}
+            </button>
+            <span class="sel-count" *ngIf="haySeleccionados">{{ totalSeleccionados }} seleccionado{{ totalSeleccionados !== 1 ? 's' : '' }}</span>
+          </div>
+
+          <div class="super-acordeon glass-card">
+            <div class="super-header">
+              <i class="fas fa-utensils me-2"></i>
+              <span class="super-titulo">Entregas del día</span>
+            </div>
+
+            <div class="grupo-panel" *ngFor="let grupo of grupos; trackBy: trackByProducto">
+              <div class="grupo-header" (click)="grupo.abierto = !grupo.abierto">
+                <div class="grupo-header-left">
+                  <i class="fas fa-utensils grupo-icono"></i>
+                  <div class="grupo-info">
+                    <span class="grupo-nombre">{{ grupo.nombre_producto }}</span>
+                    <span class="grupo-stats">
+                      <span class="stat-badge con-inv" *ngIf="grupo.con_inventario > 0">
+                        <i class="fas fa-check me-1"></i>{{ grupo.con_inventario }} con inventario
+                      </span>
+                      <span class="stat-badge sin-inv" *ngIf="grupo.sin_inventario > 0">
+                        <i class="fas fa-clock me-1"></i>{{ grupo.sin_inventario }} pendientes
+                      </span>
+                    </span>
+                  </div>
+                </div>
+                <div class="grupo-header-right">
+                  <button class="btn-sel-grupo"
+                    (click)="toggleGrupo(grupo); $event.stopPropagation()"
+                    [class.activo]="todosGrupoSeleccionados(grupo)"
+                    *ngIf="grupo.sin_inventario > 0">
+                    <i class="fas" [ngClass]="todosGrupoSeleccionados(grupo) ? 'fa-times-circle' : 'fa-check-square'"></i>
+                    {{ todosGrupoSeleccionados(grupo) ? 'Deseleccionar' : 'Seleccionar' }}
+                  </button>
+                  <i class="fas chevron" [ngClass]="grupo.abierto ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+                </div>
+              </div>
+
+              <div class="grupo-body" *ngIf="grupo.abierto">
+                <div *ngFor="let r of grupo.registros; trackBy: trackByCuenta"
+                  class="entrega-row"
+                  [class.con-inventario]="r.tiene_inventario"
+                  [class.seleccionado]="r.seleccionado"
+                  (click)="toggleRegistro(r)">
+                  <div class="row-check">
+                    <i class="fas" *ngIf="!r.tiene_inventario"
+                      [ngClass]="r.seleccionado ? 'fa-check-square' : 'fa-square'"></i>
+                    <i class="fas fa-check-circle text-success" *ngIf="r.tiene_inventario"></i>
+                  </div>
+                  <div class="row-info">
+                    <span class="row-nombre">{{ r.nombre_estudiante }}</span>
+                    <span class="row-grupo">{{ r.nombre_grupo }}</span>
+                  </div>
+                  <div class="row-menu-info" *ngIf="r.id_menu_seleccionado">
+                    <i class="fas fa-book-open me-1"></i>{{ getNombreMenu(r.id_menu_seleccionado) }}
+                  </div>
+                  <div class="row-hora">{{ r.fecha_hora_entrega | date:'HH:mm' }}</div>
+                  <div class="row-estado">
+                    <span class="estado-chip inv-chip" *ngIf="r.tiene_inventario">inventariado</span>
+                    <span class="estado-chip pend-chip" *ngIf="!r.tiene_inventario">pendiente</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Acordeón inventario -->
+          <div class="super-acordeon glass-card inventario-panel" *ngIf="haySeleccionados">
+            <div class="super-header">
+              <i class="fas fa-boxes me-2"></i>
+              <span class="super-titulo">Salida de inventario</span>
+              <span class="super-sub" *ngIf="inventario.length > 0">{{ inventario.length }} ingrediente{{ inventario.length !== 1 ? 's' : '' }}</span>
+            </div>
+
+            <div class="inventario-body">
+
+              <div class="inv-config row g-3 mb-3">
+                <div class="col-md-5">
+                  <label class="filtro-label"><i class="fas fa-tag me-2"></i>Concepto</label>
+                  <select class="filtro-input" [(ngModel)]="conceptoSeleccionado">
+                    <option [ngValue]="null">Seleccionar concepto...</option>
+                    <option *ngFor="let c of conceptos" [value]="c.id">{{ c.nombre }}</option>
+                  </select>
+                </div>
+                <div class="col-md-7">
+                  <label class="filtro-label"><i class="fas fa-comment me-2"></i>Observaciones</label>
+                  <input type="text" class="filtro-input" [(ngModel)]="observaciones" placeholder="Observaciones..." />
+                </div>
+              </div>
+
+              <div class="inv-tabla" *ngIf="inventario.length > 0">
+                <div class="inv-tabla-header">
+                  <span>Ingrediente</span>
+                  <span class="text-center">Menú servido</span>
+                  <span class="text-center">Stock</span>
+                  <span class="text-center">Teórico</span>
+                  <span class="text-center">Real</span>
+                  <span class="text-center">Ud.</span>
+                </div>
+                <div class="inv-tabla-row" *ngFor="let item of inventario; trackBy: trackByProductoInv"
+                  [class.stock-bajo]="item.cantidad_real > item.stock_actual">
+                  <span class="inv-nombre">{{ item.nombre_producto }}</span>
+                  <span class="text-center inv-menu">
+                    {{ getNombreMenu(item.id_menu_servido) }}
+                    <span class="diferente-badge"
+                      *ngIf="item.id_menu_servido && item.id_menu_programado && item.id_menu_servido !== item.id_menu_programado"
+                      title="Diferente al programado">≠</span>
+                  </span>
+                  <span class="text-center inv-stock">{{ item.stock_actual | number:'1.0-2' }}</span>
+                  <span class="text-center inv-teorico">{{ item.cantidad_teorica | number:'1.0-2' }}</span>
+                  <span class="text-center">
+                    <input type="number" class="inv-input-real" [(ngModel)]="item.cantidad_real"
+                      min="0" step="0.01" [class.over-stock]="item.cantidad_real > item.stock_actual" />
+                  </span>
+                  <span class="text-center inv-unidad">{{ item.abreviatura_unidad }}</span>
+                </div>
+              </div>
+
+              <div class="extras-seccion mt-3">
+                <div class="extras-header">
+                  <span><i class="fas fa-plus-circle me-2"></i>Ingredientes adicionales</span>
+                  <button class="btn-agregar-extra" (click)="abrirModalExtras()">
+                    <i class="fas fa-plus me-1"></i>Agregar
+                  </button>
+                </div>
+                <div class="inv-tabla" *ngIf="ingredientesExtra.length > 0">
+                  <div class="inv-tabla-header extras-cols">
+                    <span>Ingrediente</span>
+                    <span>Origen</span>
+                    <span class="text-center">Stock</span>
+                    <span class="text-center">Cantidad</span>
+                    <span class="text-center">Ud.</span>
+                    <span></span>
+                  </div>
+                  <div class="inv-tabla-row extras-cols"
+                    *ngFor="let item of ingredientesExtra; let i = index; trackBy: trackByExtra"
+                    [class.stock-bajo]="item.cantidad_real > item.stock_actual">
+                    <span class="inv-nombre">{{ item.nombre_producto }}</span>
+                    <span class="inv-origen">{{ item.origen }}</span>
+                    <span class="text-center inv-stock">{{ item.stock_actual | number:'1.0-2' }}</span>
+                    <span class="text-center">
+                      <input type="number" class="inv-input-real" [(ngModel)]="item.cantidad_real"
+                        min="0" step="0.01" [class.over-stock]="item.cantidad_real > item.stock_actual" />
+                    </span>
+                    <span class="text-center inv-unidad">{{ item.abreviatura_unidad }}</span>
+                    <span class="text-center">
+                      <button class="btn-quitar-extra" (click)="quitarIngredienteExtra(i)">
+                        <i class="fas fa-times"></i>
+                      </button>
+                    </span>
+                  </div>
+                </div>
+                <div class="extras-vacio" *ngIf="ingredientesExtra.length === 0">
+                  Haz clic en "Agregar" para incluir ingredientes adicionales.
+                </div>
+              </div>
+
+              <div class="stock-warning mt-2" *ngIf="hayStockInsuficiente">
+                <i class="fas fa-exclamation-triangle me-2"></i>Algunos productos no tienen stock suficiente.
+              </div>
+
+              <div class="inv-acciones mt-3" *ngIf="inventario.length > 0 || ingredientesExtra.length > 0">
+                <button class="btn-registrar" (click)="registrarInventario()" [disabled]="registrando">
+                  <i class="fas" [ngClass]="registrando ? 'fa-spinner fa-spin' : 'fa-save'" class="me-2"></i>
+                  {{ registrando ? 'Registrando...' : 'Registrar salida de inventario' }}
+                </button>
+              </div>
+
+            </div>
+          </div>
+
+        </ng-container>
+      </ng-container>
+
+      <!-- TAB REGISTRADOS -->
+      <ng-container *ngIf="tabActivo === 'registrados'">
+        <div class="estado-center" *ngIf="cargandoMovimientos">
+          <i class="fas fa-spinner fa-spin estado-icono-gold"></i>
+          <p class="estado-texto">Cargando movimientos...</p>
+        </div>
+        <div class="estado-center" *ngIf="!cargandoMovimientos && movimientos.length === 0">
+          <i class="fas fa-inbox estado-icono-gold"></i>
+          <p class="estado-texto">No hay movimientos de inventario registrados para esta fecha y horario.</p>
+        </div>
+        <div class="super-acordeon glass-card" *ngIf="!cargandoMovimientos && movimientos.length > 0">
+          <div class="super-header">
+            <i class="fas fa-history me-2"></i>
+            <span class="super-titulo">Movimientos registrados</span>
+            <span class="super-sub">{{ movimientos.length }}</span>
+          </div>
+          <ng-container *ngFor="let m of movimientos; trackBy: trackByMovimiento">
+            <div class="movimiento-row" (click)="m.abierto = !m.abierto" style="cursor:pointer">
+              <div class="mov-icon"><i class="fas fa-arrow-circle-down"></i></div>
+              <div class="mov-info">
+                <span class="mov-titulo">Movimiento #{{ m.id_movimiento }}</span>
+                <span class="mov-sub">{{ m.nombre_concepto }} · {{ m.fecha_movimiento | date:'dd/MM/yyyy HH:mm' }}</span>
+                <span class="mov-obs" *ngIf="m.observaciones">{{ m.observaciones }}</span>
+              </div>
+              <div class="mov-badge">{{ m.total_productos }} producto{{ m.total_productos !== 1 ? 's' : '' }}</div>
+              <i class="fas ms-2" [ngClass]="m.abierto ? 'fa-chevron-up' : 'fa-chevron-down'" style="color:#7f8c8d;font-size:0.82rem"></i>
+            </div>
+            <div class="mov-detalle" *ngIf="m.abierto && m.detalle && m.detalle.length > 0">
+              <div class="mov-detalle-header">
+                <span>Producto</span>
+                <span class="text-center">Teórico</span>
+                <span class="text-center">Real</span>
+                <span class="text-center">Ud.</span>
+              </div>
+              <div class="mov-detalle-row" *ngFor="let d of m.detalle">
+                <span>{{ d.nombre_producto }}</span>
+                <span class="text-center">{{ d.cantidad_teorica !== null ? (d.cantidad_teorica | number:'1.0-2') : '—' }}</span>
+                <span class="text-center">{{ d.cantidad | number:'1.0-2' }}</span>
+                <span class="text-center">{{ d.abreviatura_unidad }}</span>
+              </div>
+            </div>
+          </ng-container>
+        </div>
+      </ng-container>
+
+    </ng-container>
+
+  </div>
+</div>

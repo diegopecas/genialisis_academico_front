@@ -1,0 +1,63 @@
+<div class="modulo">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="false"
+    [raiz]="'/reportes'"
+    [regresar]="'/reportes'"
+  ></app-header>
+
+  <div class="container-fluid mt-3">
+
+    <!-- BARRA DE FECHA -->
+    <div class="barra-fecha">
+      <div class="grupo-fecha">
+        <label class="fw-bold me-2">Fecha:</label>
+        <input
+          type="date"
+          class="form-control form-control-sm input-fecha"
+          [(ngModel)]="fecha"
+          (change)="cambiarFecha()"
+        />
+        <button class="btn btn-sm btn-outline-dark ms-2" (click)="seleccionarHoy()">Hoy</button>
+        <button class="btn btn-sm btn-outline-dark ms-1" (click)="seleccionarAyer()">Ayer</button>
+      </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs-contenedor">
+      <ng-container *ngFor="let tab of tabs">
+        <div
+          class="tab-item"
+          [class.tab-activo]="tabActivo === tab.id && tab.disponible"
+          [class.tab-deshabilitado]="!tab.disponible"
+          (click)="seleccionarTab(tab)"
+        >
+          <span class="tab-icono">{{ tab.icono }}</span>
+          <span class="tab-label">{{ tab.label }}</span>
+          <span class="tab-proximamente" *ngIf="!tab.disponible">Próximamente</span>
+        </div>
+      </ng-container>
+    </div>
+
+    <!-- CONTENIDO DE TAB -->
+    <!-- Usamos [hidden] (en vez de *ngIf) para mantener los hijos vivos
+         al cambiar de tab. Así su data persiste y no recargan. -->
+    <div class="contenido-tab">
+      <app-dashboard-operativo
+        [hidden]="tabActivo !== 'operativo'"
+        [fecha]="fecha"
+        [esFechaHoy]="esFechaHoy()"
+      ></app-dashboard-operativo>
+
+      <div *ngIf="tabActivo === 'academico'" class="placeholder-tab">
+        📚 Sección Académica próximamente
+      </div>
+
+      <app-dashboard-financiero
+        [hidden]="tabActivo !== 'financiero'"
+        [fecha]="fecha">
+      </app-dashboard-financiero>
+    </div>
+
+  </div>
+</div>

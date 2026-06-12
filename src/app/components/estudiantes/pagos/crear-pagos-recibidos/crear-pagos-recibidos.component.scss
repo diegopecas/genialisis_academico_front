@@ -1,0 +1,323 @@
+.disabled-container {
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+.table {
+    font-size: 0.95rem;
+}
+
+// Estilo para filas seleccionadas
+.table tr.selected {
+    background-color: rgba(52, 152, 219, 0.1);
+}
+
+// Estilo para el monto a pagar resaltado
+.a-pagar-resaltado {
+    color: #27ae60;
+    font-weight: bold;
+}
+
+// Estilo para el saldo restante cuando es cero
+.saldo-completado {
+    color: #27ae60;
+    font-weight: bold;
+}
+
+// Estilo para el saldo restante cuando aún queda saldo
+.saldo-pendiente {
+    color: #e74c3c;
+    font-weight: bold;
+}
+
+// Estilos para los campos con formato de moneda
+.input-group-text {
+    background-color: #f8f9fa;
+    color: #495057;
+    font-weight: 500;
+}
+
+// Quitar flechas en inputs numéricos
+input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-outer-spin-button { 
+    -webkit-appearance: none; 
+    margin: 0; 
+}
+
+input[type=number] {
+    -moz-appearance: textfield;
+}
+
+// Estilos para los estados de las cuentas en la tabla
+.estado-vencido-sin-pago {
+    background-color: rgba(231, 76, 60, 0.2);
+}
+
+.estado-vencido-pago-parcial {
+    background-color: rgba(241, 196, 15, 0.2);
+}
+
+// Cuando una fila está seleccionada, su color debe prevalecer sobre el estado
+tr.selected.estado-vencido-sin-pago,
+tr.selected.estado-vencido-pago-parcial {
+    background-color: rgba(52, 152, 219, 0.1);
+}
+
+// Ajustar color del texto según el fondo
+.estado-vencido-sin-pago td {
+    color: #c0392b;
+}
+
+.estado-vencido-pago-parcial td {
+    color: #9a7d0a;
+}
+
+/* Estilo para cuentas ya aplicadas */
+.cuenta-ya-aplicada {
+    background-color: rgba(46, 204, 113, 0.1) !important;
+}
+
+.cuenta-ya-aplicada td {
+    color: #27ae60;
+    font-weight: 500;
+}
+
+/* Badges de estado */
+.badge {
+    font-size: 0.8rem;
+    padding: 0.35em 0.65em;
+}
+
+.badge.bg-success {
+    background-color: #27ae60 !important;
+}
+
+.badge.bg-primary {
+    background-color: #3498db !important;
+}
+
+.badge.bg-secondary {
+    background-color: #95a5a6 !important;
+}
+
+/* Campos deshabilitados */
+input[disabled], 
+select[disabled], 
+textarea[disabled], 
+.form-control[disabled] {
+    cursor: not-allowed;
+    opacity: 0.7;
+    background-color: #f8f9fa;
+}
+
+/* Saldo a favor con animación */
+.saldo-a-favor {
+    color: #2ecc71;
+    font-weight: bold;
+    animation: pulsar 2s infinite;
+}
+
+@keyframes pulsar {
+    0% { opacity: 1; }
+    50% { opacity: 0.7; }
+    100% { opacity: 1; }
+}
+
+/* Título de sección */
+h4 {
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid #e9ecef;
+    padding-bottom: 0.5rem;
+    color: #2c3e50;
+}
+
+/* Mensaje informativo sobre cuentas aplicadas */
+.info-cuentas-aplicadas {
+    background-color: #d1f2eb;
+    border-left: 4px solid #1abc9c;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    border-radius: 0.25rem;
+}
+
+// ============================================
+// SECCIÓN DE REPORTES DE PAGO PENDIENTES
+// ============================================
+.reportes-pago-section {
+    background: linear-gradient(135deg, #fff9e6 0%, #fff3cd 100%);
+    border: 1px solid #ffc107;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 24px;
+
+    .reportes-titulo {
+        color: #856404;
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+
+        i { color: #ffc107; }
+    }
+}
+
+.reportes-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.reporte-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: white;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+
+    &:hover {
+        border-color: #ffc107;
+        box-shadow: 0 2px 8px rgba(255, 193, 7, 0.2);
+    }
+
+    &.seleccionado {
+        border-color: #28a745;
+        background: rgba(40, 167, 69, 0.05);
+        box-shadow: 0 2px 8px rgba(40, 167, 69, 0.15);
+    }
+
+    .reporte-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #fff3cd;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+
+        i {
+            font-size: 18px;
+            color: #856404;
+        }
+
+        &.asociado {
+            background: #d4edda;
+            i { color: #28a745; }
+        }
+    }
+
+    .reporte-info {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+
+        .reporte-valor {
+            font-weight: 700;
+            font-size: 15px;
+            color: #2c3e50;
+        }
+
+        .reporte-detalle {
+            font-size: 13px;
+            color: #6c757d;
+        }
+
+        .reporte-meta {
+            font-size: 12px;
+            color: #adb5bd;
+        }
+
+        .reporte-tiempo {
+            font-size: 12px;
+            color: #6c757d;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+
+            i { font-size: 11px; }
+
+            &.alerta {
+                color: #dc3545;
+                font-weight: 600;
+            }
+
+            .badge-alerta {
+                background: #dc3545;
+                color: white;
+                font-size: 10px;
+                padding: 2px 6px;
+                border-radius: 10px;
+                font-weight: 600;
+            }
+        }
+
+        .reporte-obs {
+            font-size: 12px;
+            color: #6c757d;
+            font-style: italic;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            i { font-size: 11px; }
+        }
+
+        .reporte-comprobante-link {
+            font-size: 12px;
+            color: #0d6efd;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+
+            &:hover {
+                color: #0a58ca;
+                text-decoration: underline;
+            }
+
+            i { font-size: 13px; }
+        }
+    }
+
+    .reporte-check {
+        flex-shrink: 0;
+        i {
+            font-size: 22px;
+            color: #28a745;
+        }
+    }
+}
+
+// Reporte asociado (en modo consultar)
+.reporte-asociado-section {
+    background: #d4edda;
+    border: 1px solid #28a745;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 24px;
+
+    .reportes-titulo.asociado {
+        color: #155724;
+
+        i { color: #28a745; }
+    }
+
+    .reporte-item.asociado {
+        cursor: default;
+        border-color: #28a745;
+
+        &:hover {
+            transform: none;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+        }
+    }
+}

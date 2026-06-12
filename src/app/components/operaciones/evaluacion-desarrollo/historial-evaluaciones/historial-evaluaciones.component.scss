@@ -1,0 +1,216 @@
+// === PALETA CORPORATIVA EAD-3 ===
+$ead3-primary: #00695C;
+$ead3-primary-light: #E0F2F1;
+$ead3-accent: #26A69A;
+
+// Semáforo Materialize
+$mat-green: #4CAF50;
+$mat-green-light: #C8E6C9;
+$mat-orange: #FF9800;
+$mat-orange-light: #FFE0B2;
+$mat-red: #F44336;
+$mat-red-light: #FFCDD2;
+$mat-grey: #9E9E9E;
+$mat-blue: #2196F3;
+
+.modulo {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
+}
+
+// Botón corporativo EAD-3
+.btn-ead3 {
+    background-color: $ead3-primary;
+    border-color: $ead3-primary;
+    color: white;
+    &:hover { background-color: darken($ead3-primary, 5%); border-color: darken($ead3-primary, 5%); color: white; }
+}
+
+.text-ead3 { color: $ead3-primary; }
+
+// Cards de evaluación
+.evaluacion-card {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-left: 4px solid transparent !important;
+
+    &:hover { transform: translateX(4px); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important; }
+    &.card-activa { border-left: 4px solid $ead3-primary !important; background-color: $ead3-primary-light; }
+    &.card-en-proceso {
+        border-left: 4px solid $mat-blue !important;
+        background-color: rgba($mat-blue, 0.03);
+        cursor: default;
+    }
+}
+
+.resultado-mini {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.15rem;
+    small { font-size: 0.65rem; }
+}
+
+// Badges semáforo Materialize
+.badge-verde { background-color: $mat-green; color: white; }
+.badge-amarillo { background-color: $mat-orange; color: white; }
+.badge-rojo { background-color: $mat-red; color: white; }
+.badge-global { font-size: 0.75rem; padding: 0.4em 0.8em; }
+.badge-sm { font-size: 0.7rem; padding: 0.25em 0.6em; }
+
+// Badges de ESTADO
+.badge-estado-iniciado {
+    background-color: rgba($mat-blue, 0.12);
+    color: darken($mat-blue, 10%);
+    border: 1px solid rgba($mat-blue, 0.35);
+    font-size: 0.7rem;
+    padding: 0.3em 0.6em;
+}
+
+.badge-estado-proceso {
+    background-color: rgba($mat-orange, 0.12);
+    color: darken($mat-orange, 10%);
+    border: 1px solid rgba($mat-orange, 0.35);
+    font-size: 0.7rem;
+    padding: 0.3em 0.6em;
+}
+
+.badge-estado-finalizado {
+    background-color: rgba($ead3-primary, 0.1);
+    color: $ead3-primary;
+    border: 1px solid rgba($ead3-primary, 0.3);
+    font-size: 0.7rem;
+    padding: 0.3em 0.6em;
+}
+
+// Botón Continuar
+.btn-continuar {
+    background-color: $mat-blue;
+    border-color: $mat-blue;
+    color: white;
+    font-weight: 500;
+    &:hover { background-color: darken($mat-blue, 8%); border-color: darken($mat-blue, 8%); color: white; }
+}
+
+// Colores de texto para ítems
+.text-cumple { color: $mat-green; }
+.text-no-cumple { color: $mat-red; }
+
+// Botones filtro cumple
+.btn-cumple { background-color: $mat-green; color: white; border-color: $mat-green; &:hover { background-color: darken($mat-green, 8%); color: white; } }
+.btn-no-cumple { background-color: $mat-red; color: white; border-color: $mat-red; &:hover { background-color: darken($mat-red, 8%); color: white; } }
+
+// Cards observaciones y análisis
+.card-observaciones { border-left: 4px solid $mat-orange !important; }
+.card-analisis { border-left: 4px solid $mat-blue !important; }
+
+// Gráficos
+.chart-container {
+    position: relative;
+    height: 220px;
+    width: 100%;
+}
+
+// Detalle
+.detalle-completo {
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+// Acordeón
+.area-acordeon {
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.area-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.6rem 0.8rem;
+    cursor: pointer;
+    background-color: #f8f9fa;
+    transition: background-color 0.2s;
+
+    &:hover { background-color: #e9ecef; }
+    &.badge-verde { background-color: rgba($mat-green, 0.08); border-left: 4px solid $mat-green; color: inherit; }
+    &.badge-amarillo { background-color: rgba($mat-orange, 0.08); border-left: 4px solid $mat-orange; color: inherit; }
+    &.badge-rojo { background-color: rgba($mat-red, 0.08); border-left: 4px solid $mat-red; color: inherit; }
+}
+
+.area-contenido {
+    border-top: 1px solid #e9ecef;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.item-detalle {
+    border-bottom: 1px solid #f0f0f0;
+    transition: background-color 0.15s;
+    cursor: pointer;
+
+    &:last-child { border-bottom: none; }
+    &:hover {
+        background-color: #f0f7ff;
+        .item-edit-icon { opacity: 1; }
+    }
+
+    .item-toggle { font-size: 1.1rem; min-width: 20px; }
+    .item-edit-icon { opacity: 0; font-size: 0.7rem; transition: opacity 0.2s; }
+}
+
+mark { background-color: #fff3cd; padding: 0 2px; border-radius: 2px; }
+
+// Contenido HTML (observaciones, análisis)
+.contenido-html {
+    min-height: 30px;
+    word-wrap: break-word;
+    p { margin-bottom: 0.5rem; }
+    ul, ol { margin-bottom: 0.5rem; padding-left: 1.5rem; }
+}
+
+// CKEditor
+.editor-wrapper {
+    .ck-editor {
+        .ck-editor__main .ck-content {
+            min-height: 100px;
+            max-height: 250px;
+            overflow-y: auto;
+        }
+        .ck-toolbar { background-color: #f8f9fa; }
+    }
+}
+
+// RESPONSIVE
+@media (max-width: 767px) {
+    .evaluacion-card {
+        &:hover { transform: none; }
+        .card-body { padding: 0.75rem !important; }
+    }
+
+    .area-header {
+        padding: 0.5rem 0.6rem;
+        font-size: 0.85rem;
+    }
+
+    .area-contenido { max-height: 300px; }
+
+    .item-detalle {
+        padding: 0.5rem 0.6rem !important;
+        .item-edit-icon { opacity: 0.5; }
+    }
+
+    .chart-container { height: 180px; }
+
+    .btn-group-sm .btn { font-size: 0.7rem; padding: 0.2rem 0.4rem; }
+
+    .editor-wrapper .ck-editor .ck-editor__main .ck-content {
+        min-height: 80px;
+        max-height: 200px;
+    }
+}

@@ -1,0 +1,582 @@
+<div class="modulo">
+  <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [raiz]="'/'" [regresar]="'/reportes'"
+    [iconoTitulo]="'/assets/images/cobertura-curricular.png'"></app-header>
+
+  <!-- Filtros principales -->
+  <div class="filtros-card mb-4">
+    <div class="row g-3 align-items-end">
+      <div class="col-md-3">
+        <label for="grupoSelector" class="form-label">Grupo <span class="text-danger">*</span></label>
+        <select id="grupoSelector" class="form-select" [(ngModel)]="grupoSeleccionado">
+          <option value="">Seleccionar grupo...</option>
+          <option *ngFor="let grupo of grupos" [value]="grupo.id">{{ grupo.nombre }}</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label for="corteSelector" class="form-label">Corte Académico <span class="text-danger">*</span></label>
+        <select id="corteSelector" class="form-select" [(ngModel)]="corteSeleccionado">
+          <option value="">Seleccionar corte...</option>
+          <option *ngFor="let corte of cortes" [value]="corte.id">{{ corte.nombre }}</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label for="areaSelector" class="form-label">Área (opcional)</label>
+        <select id="areaSelector" class="form-select" [(ngModel)]="areaSeleccionada">
+          <option value="">Todas</option>
+          <option *ngFor="let area of areas" [value]="area.id">{{ area.nombre }}</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <button class="btn btn-primary w-100" (click)="cargarAnalisis()" [disabled]="cargando || !grupoSeleccionado || !corteSeleccionado">
+          <i class="fas fa-search me-1"></i> Analizar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Indicador de carga -->
+  <div *ngIf="cargando" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div>
+    <p class="mt-2">Analizando cobertura curricular...</p>
+  </div>
+
+  <!-- Contenido principal -->
+  <div *ngIf="!cargando && datosDisponibles && analisis">
+
+    <!-- ═══ TABS DE SECCIONES ═══ -->
+    <!-- Desktop: tabs horizontales -->
+    <ul class="nav nav-tabs seccion-tabs d-none d-md-flex mb-4">
+      <li class="nav-item">
+        <a class="nav-link" [class.active]="seccionActiva === 'resumen'" (click)="seccionActiva = 'resumen'">
+          <i class="fas fa-chart-pie me-1"></i> Resumen
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" [class.active]="seccionActiva === 'ia'" (click)="seccionActiva = 'ia'">
+          <i class="fas fa-robot me-1"></i> Análisis IA
+          <span class="badge bg-ia ms-1" *ngIf="analisisPorArea.length">{{ analisisPorArea.length }}</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" [class.active]="seccionActiva === 'logros'" (click)="seccionActiva = 'logros'">
+          <i class="fas fa-tasks me-1"></i> Logros
+          <span class="badge bg-secondary ms-1">{{ analisis.logros.length }}</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" [class.active]="seccionActiva === 'materiales'" (click)="seccionActiva = 'materiales'">
+          <i class="fas fa-boxes me-1"></i> Materiales
+          <span class="badge bg-secondary ms-1">{{ analisis.materiales_consolidados.length }}</span>
+        </a>
+      </li>
+    </ul>
+
+    <!-- Móvil: hamburguesa -->
+    <div class="d-md-none mb-3">
+      <div class="seccion-movil-nav">
+        <button class="btn btn-outline-secondary w-100 d-flex align-items-center justify-content-between"
+          (click)="menuSeccionesAbierto = !menuSeccionesAbierto">
+          <span>
+            <i class="fas me-2" [ngClass]="{'fa-chart-pie': seccionActiva==='resumen', 'fa-robot': seccionActiva==='ia', 'fa-tasks': seccionActiva==='logros', 'fa-boxes': seccionActiva==='materiales'}"></i>
+            {{ seccionActiva === 'resumen' ? 'Resumen' : seccionActiva === 'ia' ? 'Análisis IA' : seccionActiva === 'logros' ? 'Logros' : 'Materiales' }}
+          </span>
+          <i class="fas fa-bars"></i>
+        </button>
+        <div class="seccion-movil-menu" *ngIf="menuSeccionesAbierto">
+          <a (click)="seccionActiva = 'resumen'; menuSeccionesAbierto = false" [class.activo]="seccionActiva === 'resumen'">
+            <i class="fas fa-chart-pie me-2"></i> Resumen
+          </a>
+          <a (click)="seccionActiva = 'ia'; menuSeccionesAbierto = false" [class.activo]="seccionActiva === 'ia'">
+            <i class="fas fa-robot me-2"></i> Análisis IA
+            <span class="badge bg-ia ms-1" *ngIf="analisisPorArea.length">{{ analisisPorArea.length }}</span>
+          </a>
+          <a (click)="seccionActiva = 'logros'; menuSeccionesAbierto = false" [class.activo]="seccionActiva === 'logros'">
+            <i class="fas fa-tasks me-2"></i> Logros ({{ analisis.logros.length }})
+          </a>
+          <a (click)="seccionActiva = 'materiales'; menuSeccionesAbierto = false" [class.activo]="seccionActiva === 'materiales'">
+            <i class="fas fa-boxes me-2"></i> Materiales ({{ analisis.materiales_consolidados.length }})
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ SECCIÓN: RESUMEN ═══ -->
+    <div *ngIf="seccionActiva === 'resumen'">
+      <div class="resumen-card mb-4">
+        <h5 class="mb-3">
+          <i class="fas fa-chart-pie me-2"></i>Resumen de Cobertura
+          <small class="text-muted ms-2">{{ getDescripcionFiltros() }}</small>
+        </h5>
+        <div class="row">
+          <div class="col-md-2 col-sm-4 mb-3">
+            <div class="estadistica-item total-bg">
+              <span class="estadistica-valor">{{ analisis.resumen.total_logros }}</span>
+              <span class="estadistica-label">Total logros</span>
+              <span class="estadistica-extra">en la malla</span>
+            </div>
+          </div>
+          <div class="col-md-2 col-sm-4 mb-3">
+            <div class="estadistica-item cubiertos-bg">
+              <span class="estadistica-valor">{{ analisis.resumen.logros_cubiertos }}</span>
+              <span class="estadistica-label">Cubiertos</span>
+              <span class="estadistica-extra">con actividades</span>
+            </div>
+          </div>
+          <div class="col-md-2 col-sm-4 mb-3">
+            <div class="estadistica-item brechas-bg">
+              <span class="estadistica-valor">{{ analisis.resumen.logros_sin_cobertura }}</span>
+              <span class="estadistica-label">Brechas</span>
+              <span class="estadistica-extra">sin actividades</span>
+            </div>
+          </div>
+          <div class="col-md-3 col-sm-6 mb-3">
+            <div class="estadistica-item porcentaje-bg" [ngClass]="getClaseCobertura(analisis.resumen.porcentaje_cobertura)">
+              <span class="estadistica-valor">{{ analisis.resumen.porcentaje_cobertura }}%</span>
+              <span class="estadistica-label">Cobertura</span>
+              <div class="progress mt-2" style="height: 8px;">
+                <div class="progress-bar" [style.width.%]="analisis.resumen.porcentaje_cobertura"
+                  [ngClass]="{'bg-success': analisis.resumen.porcentaje_cobertura >= 80, 'bg-warning': analisis.resumen.porcentaje_cobertura >= 50 && analisis.resumen.porcentaje_cobertura < 80, 'bg-danger': analisis.resumen.porcentaje_cobertura < 50}">
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3 col-sm-6 mb-3">
+            <div class="estadistica-item actividades-bg">
+              <span class="estadistica-valor">{{ analisis.resumen.total_actividades }}</span>
+              <span class="estadistica-label">Actividades</span>
+              <span class="estadistica-extra">{{ analisis.resumen.total_minutos }} minutos</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Gráfico esferas -->
+      <div class="row mb-4">
+        <div class="col-md-6 offset-md-3">
+          <div class="card">
+            <div class="card-body" style="position: relative; height: 350px;">
+              <canvas #graficoEsferas></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ SECCIÓN: ANÁLISIS IA ═══ -->
+    <div *ngIf="seccionActiva === 'ia'">
+
+      <!-- Botón para solicitar IA -->
+      <div class="card mb-4 ia-card" *ngIf="!mostrarAnalisisIA && !cargandoIA">
+        <div class="card-body text-center py-4">
+          <i class="fas fa-robot fa-2x mb-2 text-ia"></i>
+          <h5>Análisis Inteligente</h5>
+          <p class="text-muted mb-3">Obtén insights pedagógicos, clasificación de materiales, detección de brechas y recomendaciones generadas por IA</p>
+          <button class="btn btn-ia" (click)="solicitarAnalisisIA()">
+            <i class="fas fa-magic me-2"></i> Analizar con IA
+          </button>
+        </div>
+      </div>
+
+      <div *ngIf="cargandoIA" class="text-center py-5">
+        <div class="spinner-border text-ia" role="status"></div>
+        <p class="mt-2 mb-0">Generando análisis inteligente...</p>
+        <small class="text-muted">Esto puede tomar unos segundos</small>
+      </div>
+
+      <!-- Resultado IA -->
+      <div *ngIf="mostrarAnalisisIA && analisisPorArea.length > 0" class="ia-resultado mb-4">
+        <div class="ia-header">
+          <h5><i class="fas fa-robot me-2"></i>Análisis Inteligente</h5>
+          <div class="ia-meta">
+            <button class="btn btn-sm btn-outline-secondary" (click)="solicitarAnalisisIA()" [disabled]="cargandoIA">
+              <i class="fas fa-redo me-1"></i> Regenerar
+            </button>
+          </div>
+        </div>
+
+        <!-- Estadísticas consolidadas IA -->
+        <div class="ia-estadisticas mb-4" *ngIf="estadisticasIA">
+          <div class="row g-3">
+            <div class="col-md-2 col-4">
+              <div class="mini-stat-ia"><span class="mini-stat-valor">{{ estadisticasIA.totalActividades }}</span><span class="mini-stat-label">Actividades</span></div>
+            </div>
+            <div class="col-md-2 col-4">
+              <div class="mini-stat-ia"><span class="mini-stat-valor">{{ estadisticasIA.totalAreas }}</span><span class="mini-stat-label">Áreas</span></div>
+            </div>
+            <div class="col-md-2 col-4">
+              <div class="mini-stat-ia" [style.border-left-color]="getColorPuntaje(estadisticasIA.puntajePromedio)">
+                <span class="mini-stat-valor" [style.color]="getColorPuntaje(estadisticasIA.puntajePromedio)">{{ estadisticasIA.puntajePromedio }}</span><span class="mini-stat-label">Puntaje prom.</span>
+              </div>
+            </div>
+            <div class="col-md-2 col-4">
+              <div class="mini-stat-ia"><span class="mini-stat-valor text-success">{{ estadisticasIA.bienAsignadas }}</span><span class="mini-stat-label">Bien asignadas</span></div>
+            </div>
+            <div class="col-md-2 col-4">
+              <div class="mini-stat-ia"><span class="mini-stat-valor text-warning">{{ estadisticasIA.revisar }}</span><span class="mini-stat-label">Revisar</span></div>
+            </div>
+            <div class="col-md-2 col-4">
+              <div class="mini-stat-ia"><span class="mini-stat-valor">{{ estadisticasIA.entornoAula }} / {{ estadisticasIA.entornoAireLibre }}</span><span class="mini-stat-label">Aula / Aire libre</span></div>
+            </div>
+          </div>
+          <div class="row mt-3">
+            <div class="col-md-4 col-12 mb-3"><div class="grafico-ia-container"><canvas #graficoDiversion></canvas></div></div>
+            <div class="col-md-4 col-12 mb-3"><div class="grafico-ia-container"><canvas #graficoOriginalidad></canvas></div></div>
+            <div class="col-md-4 col-12 mb-3"><div class="grafico-ia-container"><canvas #graficoEstimulacion></canvas></div></div>
+          </div>
+        </div>
+
+        <!-- Tabs áreas: desktop -->
+        <ul class="nav nav-tabs ia-tabs d-none d-md-flex" *ngIf="analisisPorArea.length > 1">
+          <li class="nav-item" *ngFor="let tab of analisisPorArea; let i = index">
+            <a class="nav-link" [class.active]="tabActivo === i" (click)="tabActivo = i">
+              {{ tab.nombre_area }}
+              <span class="badge ms-1" [ngClass]="tab.analisis?.puntaje_general >= 80 ? 'bg-success' : tab.analisis?.puntaje_general >= 50 ? 'bg-warning' : 'bg-danger'"
+                *ngIf="tab.analisis?.puntaje_general">{{ tab.analisis.puntaje_general }}</span>
+              <i class="fas fa-database ms-1 text-muted" style="font-size:0.65rem;" *ngIf="tab.desde_bd" title="Desde BD"></i>
+            </a>
+          </li>
+        </ul>
+
+        <!-- Selector área: móvil -->
+        <div class="d-md-none mb-3" *ngIf="analisisPorArea.length > 1">
+          <select class="form-select" [(ngModel)]="tabActivo">
+            <option *ngFor="let tab of analisisPorArea; let i = index" [ngValue]="i">
+              {{ tab.nombre_area }} {{ tab.analisis?.puntaje_general ? '(' + tab.analisis.puntaje_general + ')' : '' }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Contenido del tab activo -->
+        <div class="ia-tab-content" *ngIf="getAnalisisActivo() as activo">
+          <div class="ia-tab-meta mb-3">
+            <small class="text-muted">
+              <span class="badge bg-light text-dark me-1">{{ activo.proveedor }}</span>
+              <span class="badge bg-light text-dark me-1">{{ activo.tiempo_ms }}ms</span>
+              <span *ngIf="activo.fecha" class="badge bg-light text-dark">{{ activo.fecha }}</span>
+            </small>
+          </div>
+
+          <ng-container *ngIf="activo.analisis">
+            <!-- Puntaje -->
+            <div class="ia-puntaje mb-4" *ngIf="activo.analisis.puntaje_general">
+              <div class="puntaje-circulo" [style.border-color]="getColorPuntaje(activo.analisis.puntaje_general)">
+                <span class="puntaje-numero" [style.color]="getColorPuntaje(activo.analisis.puntaje_general)">{{ activo.analisis.puntaje_general }}</span>
+                <span class="puntaje-label">/ 100</span>
+              </div>
+              <p class="puntaje-texto">Puntaje de planificación</p>
+            </div>
+
+            <!-- Resumen -->
+            <div class="ia-seccion" *ngIf="activo.analisis.resumen_ejecutivo">
+              <h6><i class="fas fa-file-alt me-2"></i>Resumen ejecutivo</h6>
+              <p>{{ activo.analisis.resumen_ejecutivo }}</p>
+            </div>
+
+            <!-- Fortalezas -->
+            <div class="ia-seccion fortalezas" *ngIf="activo.analisis.fortalezas?.length">
+              <h6><i class="fas fa-check-circle me-2"></i>Fortalezas</h6>
+              <ul><li *ngFor="let f of activo.analisis.fortalezas">{{ f }}</li></ul>
+            </div>
+
+            <!-- Brechas -->
+            <div class="ia-seccion brechas" *ngIf="activo.analisis.brechas_criticas?.length">
+              <h6><i class="fas fa-exclamation-triangle me-2"></i>Brechas críticas</h6>
+              <ul><li *ngFor="let b of activo.analisis.brechas_criticas">{{ b }}</li></ul>
+            </div>
+
+            <!-- Actividades IA -->
+            <div class="ia-seccion" *ngIf="activo.analisis.analisis_actividades?.length">
+              <h6><i class="fas fa-clipboard-list me-2"></i>Análisis por actividad
+                <small class="text-muted ms-1">({{ getActividadesIAFiltradas(activo.analisis.analisis_actividades).length }} de {{ activo.analisis.analisis_actividades.length }})</small>
+              </h6>
+
+              <!-- Filtros IA -->
+              <div class="row g-2 mb-3">
+                <div class="col-md-3 col-6">
+                  <select class="form-select form-select-sm" [(ngModel)]="filtroEntornoIA" (change)="0">
+                    <option value="">Todo entorno</option>
+                    <option *ngFor="let e of getValoresUnicosIA(activo.analisis.analisis_actividades, 'entorno')" [value]="e">{{ e === 'aire_libre' ? 'Aire libre' : e }}</option>
+                  </select>
+                </div>
+                <div class="col-md-3 col-6">
+                  <select class="form-select form-select-sm" [(ngModel)]="filtroModalidadIA" (change)="0">
+                    <option value="">Toda modalidad</option>
+                    <option *ngFor="let m of getValoresUnicosIA(activo.analisis.analisis_actividades, 'modalidad')" [value]="m">{{ m }}</option>
+                  </select>
+                </div>
+                <div class="col-md-3 col-6">
+                  <select class="form-select form-select-sm" [(ngModel)]="filtroTipoIA" (change)="0">
+                    <option value="">Todos los tipos</option>
+                    <option *ngFor="let t of getValoresUnicosIA(activo.analisis.analisis_actividades, 'tipo')" [value]="t">{{ t }}</option>
+                  </select>
+                </div>
+                <div class="col-md-3 col-6">
+                  <select class="form-select form-select-sm" [(ngModel)]="filtroAsignacionIA" (change)="0">
+                    <option value="">Toda asignación</option>
+                    <option value="bien">Correcta</option>
+                    <option value="revisar">Revisar</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Desktop: tabla -->
+              <div class="d-none d-md-block table-responsive">
+                <table class="table table-sm table-hover mb-0">
+                  <thead>
+                    <tr>
+                      <th class="th-ordenable" (click)="ordenarPorIA('titulo')">Actividad <i class="fas fa-sort ms-1"></i></th>
+                      <th class="text-center th-ordenable" (click)="ordenarPorIA('entorno')">Entorno <i class="fas fa-sort ms-1"></i></th>
+                      <th class="text-center th-ordenable" (click)="ordenarPorIA('modalidad')">Modalidad <i class="fas fa-sort ms-1"></i></th>
+                      <th class="text-center th-ordenable" (click)="ordenarPorIA('tipo')">Tipo <i class="fas fa-sort ms-1"></i></th>
+                      <th class="text-center th-ordenable" (click)="ordenarPorIA('bien_asignada')">Asignación <i class="fas fa-sort ms-1"></i></th>
+                      <th class="text-center th-ordenable" (click)="ordenarPorIA('nivel_diversion')">Diversión <i class="fas fa-sort ms-1"></i></th>
+                      <th class="text-center th-ordenable" (click)="ordenarPorIA('nivel_originalidad')">Originalidad <i class="fas fa-sort ms-1"></i></th>
+                      <th class="text-center th-ordenable" (click)="ordenarPorIA('nivel_estimulacion')">Estimulación <i class="fas fa-sort ms-1"></i></th>
+                      <th>Observación</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let act of getActividadesIAFiltradas(activo.analisis.analisis_actividades)" class="fila-actividad-ia" (click)="verDetalleActividad(act)">
+                      <td><strong>{{ act.titulo }}</strong></td>
+                      <td class="text-center"><span class="badge" [ngClass]="act.entorno === 'aire_libre' ? 'badge-aire-libre' : 'badge-aula'">{{ act.entorno === 'aire_libre' ? 'Aire libre' : 'Aula' }}</span></td>
+                      <td class="text-center"><span class="badge" [ngClass]="act.modalidad === 'grupal' ? 'badge-grupal' : 'badge-individual'">{{ act.modalidad === 'grupal' ? 'Grupal' : 'Individual' }}</span></td>
+                      <td class="text-center"><span class="badge badge-tipo">{{ act.tipo }}</span></td>
+                      <td class="text-center"><i class="fas" [ngClass]="act.bien_asignada ? 'fa-check-circle text-success' : 'fa-exclamation-circle text-warning'"></i></td>
+                      <td class="text-center"><span class="badge" [ngClass]="'badge-nivel-' + act.nivel_diversion">{{ act.nivel_diversion }}</span></td>
+                      <td class="text-center"><span class="badge" [ngClass]="'badge-nivel-' + act.nivel_originalidad">{{ act.nivel_originalidad }}</span></td>
+                      <td class="text-center"><span class="badge" [ngClass]="'badge-nivel-' + act.nivel_estimulacion">{{ act.nivel_estimulacion }}</span></td>
+                      <td><small>{{ act.observacion_asignacion }}</small></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Móvil: cards -->
+              <div class="d-md-none">
+                <div *ngFor="let act of getActividadesIAFiltradas(activo.analisis.analisis_actividades)" class="card-actividad-movil" (click)="verDetalleActividad(act)">
+                  <div class="card-act-header">
+                    <strong>{{ act.titulo }}</strong>
+                    <i class="fas" [ngClass]="act.bien_asignada ? 'fa-check-circle text-success' : 'fa-exclamation-circle text-warning'"></i>
+                  </div>
+                  <div class="card-act-badges">
+                    <span class="badge" [ngClass]="act.entorno === 'aire_libre' ? 'badge-aire-libre' : 'badge-aula'">{{ act.entorno === 'aire_libre' ? 'Aire libre' : 'Aula' }}</span>
+                    <span class="badge" [ngClass]="act.modalidad === 'grupal' ? 'badge-grupal' : 'badge-individual'">{{ act.modalidad === 'grupal' ? 'Grupal' : 'Individual' }}</span>
+                    <span class="badge badge-tipo">{{ act.tipo }}</span>
+                  </div>
+                  <div class="card-act-niveles">
+                    <small><i class="fas fa-smile me-1"></i><span class="badge" [ngClass]="'badge-nivel-' + act.nivel_diversion">{{ act.nivel_diversion }}</span></small>
+                    <small><i class="fas fa-lightbulb me-1"></i><span class="badge" [ngClass]="'badge-nivel-' + act.nivel_originalidad">{{ act.nivel_originalidad }}</span></small>
+                    <small><i class="fas fa-bolt me-1"></i><span class="badge" [ngClass]="'badge-nivel-' + act.nivel_estimulacion">{{ act.nivel_estimulacion }}</span></small>
+                  </div>
+                  <small class="text-muted">{{ act.observacion_asignacion }}</small>
+                </div>
+              </div>
+            </div>
+
+            <!-- Materiales IA -->
+            <div class="ia-seccion" *ngIf="activo.analisis.analisis_materiales">
+              <h6><i class="fas fa-boxes me-2"></i>Análisis de materiales</h6>
+              <div class="row mb-2" *ngIf="activo.analisis.analisis_materiales.total_aire_libre !== undefined">
+                <div class="col-6"><div class="mini-stat"><i class="fas fa-sun"></i> <strong>{{ activo.analisis.analisis_materiales.total_aire_libre }}</strong> <span>al aire libre</span></div></div>
+                <div class="col-6"><div class="mini-stat"><i class="fas fa-school"></i> <strong>{{ activo.analisis.analisis_materiales.total_aula }}</strong> <span>en aula</span></div></div>
+              </div>
+              <div *ngIf="activo.analisis.analisis_materiales.clasificacion?.length" class="mb-2">
+                <div *ngFor="let cat of activo.analisis.analisis_materiales.clasificacion" class="clasificacion-item">
+                  <strong>{{ cat.categoria }}:</strong> <span>{{ cat.ejemplos?.join(', ') }}</span>
+                </div>
+              </div>
+              <p *ngIf="activo.analisis.analisis_materiales.observacion" class="text-muted">{{ activo.analisis.analisis_materiales.observacion }}</p>
+            </div>
+
+            <!-- Coherencia -->
+            <div class="ia-seccion" *ngIf="activo.analisis.coherencia_pedagogica">
+              <h6><i class="fas fa-puzzle-piece me-2"></i>Coherencia pedagógica</h6>
+              <p *ngIf="activo.analisis.coherencia_pedagogica.bien_asignadas"><strong>Bien asignadas:</strong> {{ activo.analisis.coherencia_pedagogica.bien_asignadas }}</p>
+              <p *ngIf="activo.analisis.coherencia_pedagogica.revision_sugerida"><strong>Revisión sugerida:</strong> {{ activo.analisis.coherencia_pedagogica.revision_sugerida }}</p>
+              <div *ngIf="activo.analisis.coherencia_pedagogica.oportunidades?.length">
+                <strong>Oportunidades:</strong>
+                <ul><li *ngFor="let s of activo.analisis.coherencia_pedagogica.oportunidades">{{ s }}</li></ul>
+              </div>
+            </div>
+
+            <!-- Recomendaciones -->
+            <div class="ia-seccion recomendaciones" *ngIf="activo.analisis.recomendaciones?.length">
+              <h6><i class="fas fa-lightbulb me-2"></i>Recomendaciones</h6>
+              <ul><li *ngFor="let r of activo.analisis.recomendaciones">{{ r }}</li></ul>
+            </div>
+          </ng-container>
+
+          <!-- Texto crudo fallback -->
+          <div *ngIf="!activo.analisis && activo.analisis_texto" class="ia-seccion">
+            <p style="white-space: pre-wrap;">{{ activo.analisis_texto }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ SECCIÓN: LOGROS ═══ -->
+    <div *ngIf="seccionActiva === 'logros'">
+      <!-- Filtros de tabla -->
+      <div class="row mb-3 g-2">
+        <div class="col-md-3">
+          <div class="input-group">
+            <span class="input-group-text"><i class="fas fa-search"></i></span>
+            <input type="text" class="form-control" placeholder="Buscar logro..." [(ngModel)]="busquedaLogro" (keyup)="buscarLogro()">
+          </div>
+        </div>
+        <div class="col-md-2">
+          <select class="form-select" [(ngModel)]="filtroEstado" (change)="aplicarFiltrosLocales()">
+            <option value="">Todos</option>
+            <option value="cubierto">Cubiertos</option>
+            <option value="sin_cobertura">Sin cobertura</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <select class="form-select" [(ngModel)]="filtroAreaLogro" (change)="aplicarFiltrosLocales()">
+            <option value="">Todas las áreas</option>
+            <option *ngFor="let area of getAreasDisponibles()" [value]="area">{{ area }}</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <select class="form-select" [(ngModel)]="filtroEsferaLogro" (change)="aplicarFiltrosLocales()">
+            <option value="">Todas las esferas</option>
+            <option *ngFor="let esfera of getEsferasDisponibles()" [value]="esfera">{{ esfera }}</option>
+          </select>
+        </div>
+        <div class="col-md-3 text-end">
+          <button class="btn btn-outline-secondary me-2" (click)="toggleTodos()" [disabled]="logrosFiltrados.length === 0">
+            <i class="fas" [ngClass]="todosExpandidos ? 'fa-compress-alt' : 'fa-expand-alt'"></i>
+            {{ todosExpandidos ? 'Colapsar' : 'Expandir' }}
+          </button>
+          <button class="btn btn-outline-secondary" (click)="resetearFiltros()">
+            <i class="fas fa-eraser me-1"></i> Limpiar
+          </button>
+        </div>
+      </div>
+
+      <!-- Tabla de logros -->
+      <div class="card">
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead>
+                <tr>
+                  <th class="col-expand"></th>
+                  <th class="th-ordenable" (click)="ordenarPor('cubierto')">Estado <i class="fas fa-sort ms-1"></i></th>
+                  <th class="th-ordenable" (click)="ordenarPor('nombre')">Logro <i class="fas fa-sort ms-1"></i></th>
+                  <th class="th-ordenable" (click)="ordenarPor('nombre_area')">Área <i class="fas fa-sort ms-1"></i></th>
+                  <th class="th-ordenable" (click)="ordenarPor('nombre_esfera')">Esfera <i class="fas fa-sort ms-1"></i></th>
+                  <th>Grado</th>
+                  <th class="text-center th-ordenable" (click)="ordenarPor('cantidad_actividades')">Actividades <i class="fas fa-sort ms-1"></i></th>
+                  <th class="text-center th-ordenable" (click)="ordenarPor('porcentaje_actividades')">% Aporte <i class="fas fa-sort ms-1"></i></th>
+                </tr>
+              </thead>
+              <tbody>
+                <ng-container *ngFor="let logro of getLogrosPaginados()">
+                  <tr class="fila-logro" [class.fila-expandida]="logro.expandido"
+                    [class.fila-cubierta]="logro.cubierto" [class.fila-sin-cobertura]="!logro.cubierto"
+                    (click)="toggleLogro(logro)">
+                    <td class="col-expand text-center"><i class="fas fa-chevron-right icono-expandir" [class.rotado]="logro.expandido"></i></td>
+                    <td><span class="badge" [ngClass]="logro.cubierto ? 'badge-cubierto' : 'badge-sin-cobertura'">{{ logro.cubierto ? 'Cubierto' : 'Sin cobertura' }}</span></td>
+                    <td class="col-logro-nombre"><strong>{{ logro.nombre }}</strong></td>
+                    <td>{{ logro.nombre_area }}</td>
+                    <td>{{ logro.nombre_esfera || '-' }}</td>
+                    <td><span class="badge badge-grado">{{ logro.nombre_grado }}</span></td>
+                    <td class="text-center"><span class="badge" [ngClass]="logro.cantidad_actividades > 0 ? 'bg-info' : 'bg-secondary'">{{ logro.cantidad_actividades }}</span></td>
+                    <td class="text-center">
+                      <div *ngIf="logro.cubierto">
+                        <small class="d-block">{{ logro.porcentaje_actividades }}% act</small>
+                        <small class="d-block text-muted">{{ logro.porcentaje_minutos }}% min</small>
+                      </div>
+                      <small *ngIf="!logro.cubierto" class="text-muted">-</small>
+                    </td>
+                  </tr>
+                  <!-- Detalle expandido -->
+                  <tr *ngIf="logro.expandido" class="fila-detalle">
+                    <td colspan="8" class="p-0">
+                      <div class="detalle-container">
+                        <div *ngIf="logro.actividades && logro.actividades.length > 0">
+                          <div class="detalle-header"><i class="fas fa-tasks me-2"></i>Actividades asociadas ({{ logro.actividades.length }})</div>
+                          <div *ngFor="let act of logro.actividades; let j = index" class="actividad-item">
+                            <div class="actividad-titulo">
+                              <span class="actividad-numero">{{ j + 1 }}</span>
+                              <strong>{{ act.titulo }}</strong>
+                              <span class="badge ms-2" [ngClass]="act.estado === 'Ejecutada' ? 'bg-success' : 'bg-warning'">{{ act.estado }}</span>
+                            </div>
+                            <div class="actividad-meta"><span *ngIf="act.minutos_duracion"><i class="fas fa-clock me-1"></i>{{ act.minutos_duracion }} min</span></div>
+                            <div *ngIf="act.descripcion" class="actividad-descripcion" [innerHTML]="act.descripcion"></div>
+                            <div *ngIf="act.nivel_uno" class="actividad-nivel"><strong>Nivel 1:</strong> <span [innerHTML]="act.nivel_uno"></span></div>
+                            <div *ngIf="act.nivel_dos" class="actividad-nivel"><strong>Nivel 2:</strong> <span [innerHTML]="act.nivel_dos"></span></div>
+                            <div *ngIf="act.materiales" class="actividad-materiales"><i class="fas fa-box-open me-1"></i>{{ act.materiales }}</div>
+                          </div>
+                        </div>
+                        <div *ngIf="!logro.actividades || logro.actividades.length === 0" class="text-center py-3 text-muted">
+                          <i class="fas fa-exclamation-circle me-1"></i>Este logro no tiene actividades programadas
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                </ng-container>
+                <tr *ngIf="logrosFiltrados.length === 0">
+                  <td colspan="8" class="text-center text-muted py-4"><i class="fas fa-search fa-2x mb-2 d-block"></i>No se encontraron logros con los filtros aplicados</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Paginación -->
+      <div *ngIf="totalPaginas > 1" class="d-flex justify-content-between align-items-center mt-3 mb-4">
+        <small class="text-muted">
+          Mostrando {{ ((paginaActual - 1) * registrosPorPagina) + 1 }}
+          - {{ paginaActual * registrosPorPagina > logrosFiltrados.length ? logrosFiltrados.length : paginaActual * registrosPorPagina }}
+          de {{ logrosFiltrados.length }} logros
+        </small>
+        <nav>
+          <ul class="pagination mb-0">
+            <li class="page-item" [class.disabled]="paginaActual === 1">
+              <a class="page-link" (click)="cambiarPagina(paginaActual - 1)"><i class="fas fa-chevron-left"></i></a>
+            </li>
+            <ng-container *ngFor="let pagina of getPaginasVisibles()">
+              <li *ngIf="pagina === -1" class="page-item disabled"><span class="page-link">...</span></li>
+              <li *ngIf="pagina !== -1" class="page-item" [class.active]="pagina === paginaActual">
+                <a class="page-link" (click)="cambiarPagina(pagina)">{{ pagina }}</a>
+              </li>
+            </ng-container>
+            <li class="page-item" [class.disabled]="paginaActual === totalPaginas">
+              <a class="page-link" (click)="cambiarPagina(paginaActual + 1)"><i class="fas fa-chevron-right"></i></a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+
+    <!-- ═══ SECCIÓN: MATERIALES ═══ -->
+    <div *ngIf="seccionActiva === 'materiales'">
+      <div class="card" *ngIf="analisis.materiales_consolidados.length > 0">
+        <div class="card-header bg-materiales">
+          <h6 class="mb-0"><i class="fas fa-boxes me-2"></i>Materiales utilizados ({{ analisis.materiales_consolidados.length }})</h6>
+        </div>
+        <div class="card-body">
+          <div class="materiales-grid">
+            <div *ngFor="let material of analisis.materiales_consolidados" class="material-badge">
+              <span class="material-nombre">{{ material.nombre }}</span>
+              <span class="material-frecuencia">{{ material.frecuencia }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div *ngIf="analisis.materiales_consolidados.length === 0" class="alert alert-info text-center">
+        No hay materiales registrados
+      </div>
+    </div>
+  </div>
+
+  <!-- Sin datos -->
+  <div *ngIf="!cargando && !datosDisponibles && grupoSeleccionado && corteSeleccionado" class="alert alert-info text-center mt-4">
+    <i class="fas fa-info-circle fa-3x mb-3"></i>
+    <h4>No hay datos disponibles</h4>
+    <p>No se encontraron logros en la malla curricular para el grupo y corte seleccionados</p>
+  </div>
+</div>

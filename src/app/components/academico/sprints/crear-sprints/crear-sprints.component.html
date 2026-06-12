@@ -1,0 +1,972 @@
+<div class="modulo">
+  <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [accion]="accion" [id]="id" [raiz]="'/sprints'"
+    [regresar]="'/academico/sprints'" [iconoTitulo]="'/assets/images/sprints.png'">
+  </app-header>
+
+  <div class="container-fluid mt-4" [ngClass]="{ 'disabled-container': !editable }">
+
+    <!-- Sección de Información Básica del Sprint -->
+    <div class="card mb-4">
+      <div class="card-header bg-corporate-primary">
+        <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Información Básica del Sprint</h5>
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
+          <!-- Primera fila -->
+          <div class="col-md-2">
+            <label for="anio" class="form-label fw-semibold">
+              Año <span class="text-danger">*</span>
+            </label>
+            <input type="number" class="form-control" id="anio" [(ngModel)]="model.anio"
+              (ngModelChange)="formularioValido()" required [ngClass]="{'is-invalid': !model.anio && submitted}"
+              placeholder="2025">
+            <div *ngIf="!model.anio && submitted" class="invalid-feedback">Campo obligatorio</div>
+          </div>
+
+          <div class="col-md-2">
+            <label for="numeroSprint" class="form-label fw-semibold">
+              Sprint # <span class="text-danger">*</span>
+            </label>
+            <input type="number" class="form-control" id="numeroSprint" [(ngModel)]="model.numero_sprint"
+              (ngModelChange)="formularioValido()" required
+              [ngClass]="{'is-invalid': !model.numero_sprint && submitted}" placeholder="1" min="1">
+            <div *ngIf="!model.numero_sprint && submitted" class="invalid-feedback">Campo obligatorio</div>
+          </div>
+
+          <div class="col-md-4">
+            <label for="nombreSprint" class="form-label fw-semibold">
+              Nombre del Sprint <span class="text-danger">*</span>
+            </label>
+            <input type="text" class="form-control" id="nombreSprint" [(ngModel)]="model.nombre_sprint"
+              (ngModelChange)="formularioValido()" required
+              [ngClass]="{'is-invalid': !model.nombre_sprint && submitted}"
+              placeholder="Ej: Sprint de Inicio - Adaptación">
+            <div *ngIf="!model.nombre_sprint && submitted" class="invalid-feedback">Campo obligatorio</div>
+          </div>
+
+          <div class="col-md-4">
+            <label for="corteAcademico" class="form-label fw-semibold">
+              Corte Académico <span class="text-danger">*</span>
+            </label>
+            <select class="form-select" id="corteAcademico" [(ngModel)]="model.id_corte_academico"
+              (ngModelChange)="formularioValido()" required
+              [ngClass]="{'is-invalid': !model.id_corte_academico && submitted}">
+              <option value="">Seleccionar corte...</option>
+              <option *ngFor="let corte of listas.cortesAcademicos" [value]="corte.id">
+                {{ corte.nombre }}
+              </option>
+            </select>
+            <div *ngIf="!model.id_corte_academico && submitted" class="invalid-feedback">Campo obligatorio</div>
+          </div>
+
+          <!-- Segunda fila -->
+          <div class="col-md-3">
+            <label for="fechaInicial" class="form-label fw-semibold">
+              Fecha Inicial <span class="text-danger">*</span>
+            </label>
+            <input type="date" class="form-control" id="fechaInicial" [(ngModel)]="model.fecha_inicial"
+              (ngModelChange)="calcularDiasHabiles()" required
+              [ngClass]="{'is-invalid': !model.fecha_inicial && submitted}">
+            <div *ngIf="!model.fecha_inicial && submitted" class="invalid-feedback">Campo obligatorio</div>
+          </div>
+
+          <div class="col-md-3">
+            <label for="fechaFinal" class="form-label fw-semibold">
+              Fecha Final <span class="text-danger">*</span>
+            </label>
+            <input type="date" class="form-control" id="fechaFinal" [(ngModel)]="model.fecha_final"
+              (ngModelChange)="calcularDiasHabiles()" required
+              [ngClass]="{'is-invalid': !model.fecha_final && submitted}" [min]="model.fecha_inicial">
+            <div *ngIf="!model.fecha_final && submitted" class="invalid-feedback">Campo obligatorio</div>
+          </div>
+
+          <div class="col-md-2">
+            <label for="diasHabiles" class="form-label fw-semibold">
+              Días Hábiles
+            </label>
+            <input type="number" class="form-control" id="diasHabiles" [(ngModel)]="model.total_dias_habiles" readonly
+              [ngClass]="{'is-valid': model.total_dias_habiles > 0}">
+          </div>
+
+          <div class="col-md-2">
+            <label class="form-label fw-semibold">Estado</label>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="actual" [(ngModel)]="model.actual">
+              <label class="form-check-label" for="actual">
+                Sprint Actual
+              </label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="evaluacion" [(ngModel)]="model.es_evaluacion">
+              <label class="form-check-label" for="evaluacion">
+                Es Evaluación
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Días por tipo de día de la semana -->
+        <div class="row mt-4" *ngIf="diasPorSprint.length > 0">
+          <div class="col-12">
+            <h6 class="text-muted mb-3">
+              <i class="fas fa-calendar-week me-2"></i>
+              Distribución de días en el sprint
+            </h6>
+            <div class="dias-distribucion">
+              <span *ngFor="let dia of diasPorSprint" class="badge bg-info me-2 mb-2">
+                {{ dia.nombre_dia }}: {{ dia.total_dias }} día{{ dia.total_dias !== 1 ? 's' : '' }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filtros Globales -->
+    <div class="card mb-4" *ngIf="!nuevo">
+      <div class="card-header bg-corporate-secondary">
+        <div class="row align-items-center">
+          <div class="col-md-6">
+            <h6 class="mb-0 text-white">
+              <i class="fas fa-filter me-2"></i>Filtros Globales
+            </h6>
+          </div>
+          <div class="col-md-6">
+            <div class="d-flex gap-2">
+              <select class="form-select form-select-sm" [(ngModel)]="filtroGrupo"
+                (ngModelChange)="aplicarFiltrosGlobales()">
+                <option value="">Todos los grupos</option>
+                <option *ngFor="let grupo of listas.grupos" [value]="grupo.id">
+                  {{ grupo.nombre }}
+                </option>
+              </select>
+              <select class="form-select form-select-sm" [(ngModel)]="filtroArea"
+                (ngModelChange)="aplicarFiltrosGlobales()">
+                <option value="">Todas las áreas</option>
+                <option *ngFor="let area of listas.areas" [value]="area.id">
+                  {{ area.nombre }}
+                </option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sistema de Pestañas -->
+    <div class="card mb-4" *ngIf="!nuevo">
+      <div class="card-header p-0">
+        <ul class="nav nav-tabs nav-tabs-custom" id="sprintTabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="informacion-tab" data-bs-toggle="tab" data-bs-target="#informacion"
+              type="button" role="tab" aria-controls="informacion" aria-selected="true">
+              <i class="fas fa-info-circle me-2"></i>
+              Información General
+              <small class="d-block">Datos y análisis de logros</small>
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="configuracion-tab" data-bs-toggle="tab" data-bs-target="#configuracion"
+              type="button" role="tab" aria-controls="configuracion" aria-selected="false">
+              <i class="fas fa-cogs me-2"></i>
+              Configuración
+              <small class="d-block">Tareas y capacidad</small>
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="progreso-tab" data-bs-toggle="tab" data-bs-target="#progreso" type="button"
+              role="tab" aria-controls="progreso" aria-selected="false">
+              <i class="fas fa-chart-line me-2"></i>
+              Progreso
+              <small class="d-block">Estadísticas y avances</small>
+            </button>
+          </li>
+        </ul>
+      </div>
+
+      <div class="card-body p-0">
+        <div class="tab-content" id="sprintTabsContent">
+
+          <!-- Pestaña 1: Información General -->
+          <div class="tab-pane fade show active" id="informacion" role="tabpanel" aria-labelledby="informacion-tab">
+            <div class="p-4">
+              <!-- Información básica resumida -->
+              <div class="row mb-4">
+                <div class="col-md-3">
+                  <div class="info-card">
+                    <div class="info-icon">
+                      <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <div class="info-content">
+                      <div class="info-value">{{ model.numero_sprint }}</div>
+                      <div class="info-label">Sprint #</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <div class="info-card">
+                    <div class="info-icon">
+                      <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="info-content">
+                      <div class="info-value">{{ model.total_dias_habiles }}</div>
+                      <div class="info-label">Días Hábiles</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <div class="info-card">
+                    <div class="info-icon">
+                      <i class="fas fa-tasks"></i>
+                    </div>
+                    <div class="info-content">
+                      <div class="info-value">{{ estadisticas.totalTareas }}</div>
+                      <div class="info-label">Total Tareas</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <div class="info-card">
+                    <div class="info-icon">
+                      <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="info-content">
+                      <div class="info-value">{{ estadisticas.porcentajeGeneral }}%</div>
+                      <div class="info-label">Completado</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Análisis de Atención de Logros -->
+              <div class="logros-analysis">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <h5 class="mb-0">
+                    <i class="fas fa-chart-bar me-2"></i>Análisis de Atención de Logros
+                  </h5>
+                  <div class="visualization-mode">
+                    <span class="badge"
+                      [ngClass]="{'bg-info': !filtroGrupo && !filtroArea, 'bg-warning': filtroGrupo || filtroArea}">
+                      <i class="fas fa-eye me-1"></i>
+                      {{ (!filtroGrupo && !filtroArea) ? 'Vista por Áreas' : 'Vista por Logros' }}
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Alert informativo -->
+                <div class="alert alert-info" *ngIf="!filtroGrupo && !filtroArea">
+                  <small>
+                    <i class="fas fa-info-circle me-1"></i>
+                    Vista general por áreas académicas. Haz clic en una barra para ver el detalle de logros de esa área.
+                  </small>
+                </div>
+
+                <!-- Resumen unificado -->
+                <div class="row mb-3">
+                  <div class="col-md-3">
+                    <div class="card bg-light">
+                      <div class="card-body text-center p-3">
+                        <h3 class="mb-0 text-corporate-yellow">{{ estadisticas.logrosTotales.length }}</h3>
+                        <small class="text-muted">Total Logros</small>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="card bg-light">
+                      <div class="card-body text-center p-3">
+                        <h3 class="mb-0 text-warning">{{ estadisticas.logrosAtendidosSprint.length }}</h3>
+                        <small class="text-muted">Atendidos Sprint</small>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="card bg-light">
+                      <div class="card-body text-center p-3">
+                        <h3 class="mb-0 text-dark">{{ estadisticas.logrosAtendidosCorte.length }}</h3>
+                        <small class="text-muted">Atendidos Corte</small>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="card bg-light">
+                      <div class="card-body text-center p-3">
+                        <h3 class="mb-0 text-danger">{{ estadisticas.logrosTotales.length -
+                          estadisticas.logrosAtendidosCorte.length }}</h3>
+                        <small class="text-muted">Sin Atender</small>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Gráfico unificado -->
+                <div class="chart-container" style="position: relative; height:400px;">
+                  <canvas #graficoLogrosUnificado></canvas>
+                </div>
+
+                <!-- Información adicional -->
+                <div class="row mt-3">
+                  <div class="col-md-6">
+                    <div class="alert alert-warning mb-0">
+                      <small>
+                        <i class="fas fa-square me-1" style="color: #F5A623;"></i>
+                        Barras amarillas: Actividades asignadas en este sprint específico
+                      </small>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="alert alert-dark mb-0">
+                      <small>
+                        <i class="fas fa-square me-1" style="color: #2C2C2C;"></i>
+                        Barras negras: Total acumulado en todo el corte académico
+                      </small>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Filtros activos -->
+                <div class="mt-3" *ngIf="filtroGrupo || filtroArea">
+                  <div class="alert alert-secondary mb-0">
+                    <small>
+                      <i class="fas fa-filter me-1"></i>
+                      Filtros activos:
+                      <span *ngIf="filtroGrupo" class="badge bg-secondary ms-2">
+                        Grupo: {{ obtenerNombreGrupo(filtroGrupo) }}
+                      </span>
+                      <span *ngIf="filtroArea" class="badge bg-secondary ms-2">
+                        Área: {{ obtenerNombreArea(filtroArea) }}
+                      </span>
+                    </small>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pestaña 2: Configuración -->
+          <div class="tab-pane fade" id="configuracion" role="tabpanel" aria-labelledby="configuracion-tab">
+            <div class="p-4">
+              <!-- Botón asociar actividades -->
+              <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="mb-0">
+                  <i class="fas fa-cogs me-2"></i>Configuración del Sprint
+                </h5>
+                <div class="d-flex gap-2">
+                  <button class="btn btn-outline-corporate" (click)="abrirModalHorarios()">
+                    <i class="fas fa-calendar-week me-2"></i>Ver Horarios
+                  </button>
+                  <button class="btn btn-corporate-primary" (click)="abrirModalActividades()" *ngIf="editable">
+                    <i class="fas fa-plus me-2"></i>Asociar Actividades
+                  </button>
+                </div>
+              </div>
+
+              <!-- Límites de configuración -->
+              <div class="alert alert-info mb-4" *ngIf="limitesConfig.mensaje">
+                <i class="fas fa-info-circle me-2"></i>
+                {{ limitesConfig.mensaje }}
+                <div class="text-danger mt-2" *ngIf="limitesConfig.alerta">
+                  <i class="fas fa-exclamation-triangle me-2"></i>
+                  {{ limitesConfig.alerta }}
+                </div>
+              </div>
+
+              <!-- Análisis de Capacidad Compacto -->
+              <div class="capacidad-section-compact mb-4" *ngIf="analisisTiempo">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <h6 class="mb-0">
+                    <i class="fas fa-flask me-2"></i>Capacidad por Grupo y Área
+                  </h6>
+                  <div class="d-flex gap-2 align-items-center">
+                    <!-- Controles de ordenamiento -->
+                    <div class="dropdown" [class.show]="dropdownOrdenAbierto">
+                      <button class="btn btn-sm btn-outline-dark dropdown-toggle" type="button"
+                        (click)="toggleDropdownOrden()">
+                        <i class="fas fa-sort me-1"></i>
+                        {{ obtenerTextoOrdenamiento() }}
+                      </button>
+                      <div class="dropdown-menu" [class.show]="dropdownOrdenAbierto">
+                        <button class="dropdown-item"
+                            [class.active]="ordenCapacidad.campo === 'porcentaje' && ordenCapacidad.direccion === 'desc'"
+                            (click)="cambiarOrdenCapacidad('porcentaje', 'desc'); dropdownOrdenAbierto = false">
+                            <i class="fas fa-sort-amount-down me-2"></i>Mayor uso primero
+                        </button>
+                        <button class="dropdown-item"
+                            [class.active]="ordenCapacidad.campo === 'porcentaje' && ordenCapacidad.direccion === 'asc'"
+                            (click)="cambiarOrdenCapacidad('porcentaje', 'asc'); dropdownOrdenAbierto = false">
+                            <i class="fas fa-sort-amount-up me-2"></i>Menor uso primero
+                        </button>
+                        <div class="dropdown-divider"></div>
+                        <button class="dropdown-item" [class.active]="ordenCapacidad.campo === 'grupo'"
+                            (click)="cambiarOrdenCapacidad('grupo', 'asc'); dropdownOrdenAbierto = false">
+                            <i class="fas fa-users me-2"></i>Por grupo (A-Z)
+                        </button>
+                        <button class="dropdown-item" [class.active]="ordenCapacidad.campo === 'area'"
+                            (click)="cambiarOrdenCapacidad('area', 'asc'); dropdownOrdenAbierto = false">
+                            <i class="fas fa-book me-2"></i>Por área (A-Z)
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- Botones de vista -->
+                    <div class="btn-group btn-group-sm" role="group">
+                      <button type="button" class="btn btn-outline-dark" [class.active]="vistaCapacidad === 'grid'"
+                        (click)="cambiarVistaCapacidad('grid')">
+                        <i class="fas fa-th"></i>
+                      </button>
+                      <button type="button" class="btn btn-outline-dark" [class.active]="vistaCapacidad === 'tabla'"
+                        (click)="cambiarVistaCapacidad('tabla')">
+                        <i class="fas fa-table"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Vista Grid de Tubos Compacta -->
+                <div class="capacidad-grid-compact" *ngIf="vistaCapacidad === 'grid'">
+                  <div class="tubo-container-compact" *ngFor="let item of itemsCapacidadFiltrados" [class.excedido]="item.excedido"
+                    (click)="verDetalleGrupoArea(item)" style="cursor: pointer;">
+
+                    <div class="tubo-header-compact">
+                      <h6>{{ item.nombre_grupo }}</h6>
+                      <small>{{ item.nombre_area }}</small>
+                    </div>
+
+                    <div class="tubo-medidor-compact">
+                      <!-- Porcentaje encima de la botella -->
+                      <div class="porcentaje-encima-compact">
+                        {{ item.porcentaje_usado }}%
+                      </div>
+                      
+                      <div class="tubo-glass-compact">
+                        <div class="tubo-liquido-compact" [style.height.%]="item.porcentaje_usado > 100 ? 100 : item.porcentaje_usado"
+                          [class.danger]="item.porcentaje_usado < 50"
+                          [class.warning]="item.porcentaje_usado >= 50 && item.porcentaje_usado < 90"
+                          [class.success]="item.porcentaje_usado >= 90 && item.porcentaje_usado <= 100"
+                          [class.overflow]="item.porcentaje_usado > 100">
+
+                          <!-- Burbujas animadas compactas -->
+                          <div class="burbuja-compact burbuja-compact-1"></div>
+                          <div class="burbuja-compact burbuja-compact-2"></div>
+                          <div class="burbuja-compact burbuja-compact-3"></div>
+                        </div>
+
+                        <!-- Indicador de overflow -->
+                        <div class="overflow-indicator-compact" *ngIf="item.porcentaje_usado > 100">
+                          <i class="fas fa-exclamation-triangle"></i>
+                          {{ item.porcentaje_usado }}%
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="tubo-stats-compact">
+                      <div class="stat-item-compact">
+                        <i class="fas fa-clock"></i>
+                        <span>{{ item.horas_usadas }}h / {{ item.horas_disponibles }}h</span>
+                      </div>
+                      <div class="stat-item-compact">
+                        <i class="fas fa-tasks"></i>
+                        <span>{{ item.cantidad_actividades }} actividades</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Vista Tabla Compacta -->
+                <div class="capacidad-tabla-compact" *ngIf="vistaCapacidad === 'tabla'">
+                  <div class="table-responsive">
+                    <table class="table table-sm table-hover">
+                      <thead>
+                        <tr>
+                          <th class="sortable"
+                            (click)="cambiarOrdenCapacidad('grupo', ordenCapacidad.campo === 'grupo' && ordenCapacidad.direccion === 'asc' ? 'desc' : 'asc')">
+                            Grupo
+                            <i class="fas fa-sort ms-1" *ngIf="ordenCapacidad.campo !== 'grupo'"></i>
+                            <i class="fas fa-sort-up ms-1"
+                              *ngIf="ordenCapacidad.campo === 'grupo' && ordenCapacidad.direccion === 'asc'"></i>
+                            <i class="fas fa-sort-down ms-1"
+                              *ngIf="ordenCapacidad.campo === 'grupo' && ordenCapacidad.direccion === 'desc'"></i>
+                          </th>
+                          <th>Área</th>
+                          <th>Capacidad</th>
+                          <th>Usado</th>
+                          <th>Progreso</th>
+                          <th>Estado</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr *ngFor="let item of itemsCapacidadFiltrados" [class.table-danger]="item.porcentaje_usado < 50"
+                          [class.table-warning]="item.porcentaje_usado >= 50 && item.porcentaje_usado < 90"
+                          [class.table-success]="item.porcentaje_usado >= 90 && item.porcentaje_usado <= 100"
+                          [class.table-dark]="item.porcentaje_usado > 100" (click)="verDetalleGrupoArea(item)"
+                          style="cursor: pointer;">
+                          <td>{{ item.nombre_grupo }}</td>
+                          <td>{{ item.nombre_area }}</td>
+                          <td>{{ item.horas_disponibles }}h</td>
+                          <td>{{ item.horas_usadas }}h</td>
+                          <td>
+                            <div class="progress" style="min-width: 80px; height: 15px;">
+                              <div class="progress-bar" [class.bg-danger]="item.porcentaje_usado < 50"
+                                [class.bg-warning]="item.porcentaje_usado >= 50 && item.porcentaje_usado < 90"
+                                [class.bg-success]="item.porcentaje_usado >= 90 && item.porcentaje_usado <= 100"
+                                [class.bg-dark]="item.porcentaje_usado > 100"
+                                [style.width.%]="item.porcentaje_usado > 100 ? 100 : item.porcentaje_usado">
+                              </div>
+                            </div>
+                            <small>{{ item.porcentaje_usado }}%</small>
+                          </td>
+                          <td>
+                            <span class="badge" [class.bg-success]="!item.excedido" [class.bg-danger]="item.excedido">
+                              {{ item.excedido ? 'Excedido' : 'OK' }}
+                            </span>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Tabla de Tareas Asociadas -->
+              <div class="tareas-section mb-4">
+                <h6 class="mb-3">
+                  <i class="fas fa-tasks me-2"></i>
+                  Tareas Asociadas al Sprint
+                  <span class="badge bg-primary ms-2">{{ tareasDelSprint.length }}</span>
+                </h6>
+                <app-tablas [titulos]="titulosTareas" [datos]="tareasDelSprint" [raiz]="'/academico/sprints'"
+                  (clicAccion)="seleccionarTarea($event)" [accionEditar]="false" [accionEliminar]="editable"
+                  [accionVer]="false" [acciones]="accionesTabla">
+                </app-tablas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pestaña 3: Progreso -->
+          <div class="tab-pane fade" id="progreso" role="tabpanel" aria-labelledby="progreso-tab">
+            <div class="p-4">
+              <h5 class="mb-4">
+                <i class="fas fa-chart-line me-2"></i>Progreso del Sprint
+              </h5>
+
+              <!-- Estadísticas del Sprint -->
+              <div class="row mb-4">
+                <div class="col-md-3">
+                  <div class="stat-card progress-card">
+                    <div class="stat-icon">
+                      <i class="fas fa-tasks"></i>
+                    </div>
+                    <div class="stat-content">
+                      <div class="stat-value">{{ estadisticas.totalTareas }}</div>
+                      <div class="stat-label">Total Tareas</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <div class="stat-card progress-card">
+                    <div class="stat-icon">
+                      <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-content">
+                      <div class="stat-value">{{ estadisticas.tareasEjecutadas }}</div>
+                      <div class="stat-label">Tareas Ejecutadas</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <div class="stat-card progress-card">
+                    <div class="stat-icon">
+                      <i class="fas fa-percentage"></i>
+                    </div>
+                    <div class="stat-content">
+                      <div class="stat-value">{{ estadisticas.porcentajeGeneral }}%</div>
+                      <div class="stat-label">Porcentaje Completado</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <div class="stat-card progress-card">
+                    <div class="stat-icon">
+                      <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-content">
+                      <div class="stat-value">{{ estadisticas.totalTareas - estadisticas.tareasEjecutadas }}</div>
+                      <div class="stat-label">Tareas Pendientes</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Progreso General -->
+              <div class="progress-general mb-4">
+                <h6 class="mb-3">Progreso General del Sprint</h6>
+                <div class="progress" style="height: 40px;">
+                  <div class="progress-bar" [ngClass]="getClasePorcentaje(estadisticas.porcentajeGeneral)" role="progressbar"
+                    [style.width.%]="estadisticas.porcentajeGeneral" [attr.aria-valuenow]="estadisticas.porcentajeGeneral"
+                    aria-valuemin="0" aria-valuemax="100">
+                    <span class="progress-text">{{ estadisticas.porcentajeGeneral }}% Completado</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Estadísticas por Grupo y Área -->
+              <div class="row">
+                <div class="col-md-6" *ngIf="estadisticas.porGrupo.length > 0">
+                  <div class="progress-section">
+                    <h6 class="mb-3"><i class="fas fa-users me-2"></i>Progreso por Grupo</h6>
+                    <div class="estadistica-item mb-3" *ngFor="let grupo of estadisticas.porGrupo">
+                      <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="fw-semibold">{{ grupo.nombre }}</span>
+                        <span class="text-muted small">{{ grupo.ejecutadas }}/{{ grupo.total }} tareas</span>
+                      </div>
+                      <div class="progress" style="height: 25px;">
+                        <div class="progress-bar" [ngClass]="getClasePorcentaje(grupo.porcentaje)" role="progressbar"
+                          [style.width.%]="grupo.porcentaje" [attr.aria-valuenow]="grupo.porcentaje" aria-valuemin="0"
+                          aria-valuemax="100">
+                          <span class="progress-text-small">{{ grupo.porcentaje }}%</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-md-6" *ngIf="estadisticas.porArea.length > 0">
+                  <div class="progress-section">
+                    <h6 class="mb-3"><i class="fas fa-book me-2"></i>Progreso por Área</h6>
+                    <div class="estadistica-item mb-3" *ngFor="let area of estadisticas.porArea">
+                      <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="fw-semibold">{{ area.nombre }}</span>
+                        <span class="text-muted small">{{ area.ejecutadas }}/{{ area.total }} tareas</span>
+                      </div>
+                      <div class="progress" style="height: 25px;">
+                        <div class="progress-bar" [ngClass]="getClasePorcentaje(area.porcentaje)" role="progressbar"
+                          [style.width.%]="area.porcentaje" [attr.aria-valuenow]="area.porcentaje" aria-valuemin="0"
+                          aria-valuemax="100">
+                          <span class="progress-text-small">{{ area.porcentaje }}%</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Mensaje cuando no hay datos filtrados -->
+              <div class="text-center py-5" *ngIf="estadisticas.porGrupo.length === 0 && estadisticas.porArea.length === 0">
+                <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">No hay datos de progreso disponibles</h5>
+                <p class="text-muted">Asocie actividades al sprint para ver las estadísticas de progreso.</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Botones de acción -->
+    <div class="row mt-4 mb-3">
+      <div class="col-12 d-flex justify-content-center gap-3">
+        <button *ngIf="editable" class="btn btn-corporate-primary btn-lg px-5" (click)="grabar()"
+          [disabled]="!formularioValido()">
+          <i class="fas fa-save me-2"></i>{{ nuevo ? 'Crear' : 'Guardar' }} Sprint
+        </button>
+        <button class="btn btn-corporate-secondary btn-lg px-5" (click)="volver()">
+          <i class="fas fa-arrow-left me-2"></i>Volver
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para asociar actividades -->
+  <div class="modal fade" id="modalActividades" tabindex="-1" aria-labelledby="modalActividadesLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header bg-corporate-primary">
+          <h5 class="modal-title" id="modalActividadesLabel">
+            <i class="fas fa-link me-2"></i>
+            Asociar Actividades al Sprint
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <!-- Selección obligatoria: Grupo y Área -->
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="filtroGrupoModal" class="form-label fw-semibold">
+                Seleccione Grupo <span class="text-danger">*</span>
+              </label>
+              <select class="form-select" id="filtroGrupoModal" [(ngModel)]="filtroGrupoModal"
+                (ngModelChange)="onGrupoAreaModalChange()">
+                <option value="">-- Seleccione un grupo --</option>
+                <option *ngFor="let grupo of listas.grupos" [value]="grupo.id">
+                  {{ grupo.nombre }}
+                </option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label for="filtroAreaModal" class="form-label fw-semibold">
+                Seleccione Área Académica <span class="text-danger">*</span>
+              </label>
+              <select class="form-select" id="filtroAreaModal" [(ngModel)]="filtroAreaModal"
+                (ngModelChange)="onGrupoAreaModalChange()">
+                <option value="">-- Seleccione un área --</option>
+                <option *ngFor="let area of listas.areas" [value]="area.id">
+                  {{ area.nombre }}
+                </option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Filtros opcionales: Esfera y Texto -->
+          <div class="row mb-3" *ngIf="filtroGrupoModal && filtroAreaModal">
+            <div class="col-md-4">
+              <label for="filtroEsferaModal" class="form-label fw-semibold">
+                Filtrar por Esfera
+              </label>
+              <select class="form-select" id="filtroEsferaModal" [(ngModel)]="filtroEsferaModal">
+                <option value="">Todas las esferas</option>
+                <option *ngFor="let esfera of listas.esferas" [value]="esfera.id">
+                  {{ esfera.nombre }}
+                </option>
+              </select>
+            </div>
+            <div class="col-md-8">
+              <label for="buscarActividad" class="form-label fw-semibold">
+                Buscar por texto
+              </label>
+              <input type="text" class="form-control" id="buscarActividad" [(ngModel)]="actividadesBusqueda"
+                placeholder="Buscar actividad...">
+            </div>
+          </div>
+
+          <!-- Mensaje cuando no se ha seleccionado grupo y área -->
+          <div *ngIf="!filtroGrupoModal || !filtroAreaModal" class="text-center py-4">
+            <i class="fas fa-hand-point-up fa-2x mb-2" style="color: #aaa;"></i>
+            <p class="text-muted">Seleccione un grupo y un área académica para ver las actividades disponibles.</p>
+          </div>
+
+          <!-- Lista de actividades -->
+          <div class="form-group" *ngIf="filtroGrupoModal && filtroAreaModal">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <label class="form-label fw-semibold mb-0">
+                Actividades Disponibles
+                <span class="badge bg-secondary ms-2">{{ actividadesFiltradas.length }} disponibles</span>
+                <span class="badge bg-primary ms-1" *ngIf="actividadesSeleccionadas.length > 0">
+                  {{ actividadesSeleccionadas.length }} seleccionadas
+                </span>
+              </label>
+            </div>
+
+            <div class="actividades-list"
+              [ngClass]="{'is-invalid': actividadesSeleccionadas.length === 0 && actividadSubmitted}">
+              <div class="no-results-message" *ngIf="actividadesFiltradas.length === 0">
+                <i class="fas fa-search me-2"></i>
+                No se encontraron actividades para el grupo y área seleccionados
+              </div>
+              <div class="actividad-item" *ngFor="let actividad of actividadesFiltradas"
+                [ngClass]="{'selected': isActividadSeleccionada(actividad)}"
+                (click)="toggleActividadSeleccion(actividad)">
+                <div class="actividad-info">
+                  <strong>{{ actividad.titulo }}</strong>
+                  <div class="text-muted small">
+                    <span *ngIf="actividad.nombre_tipo_actividad">
+                      <i class="fas fa-tag me-1"></i>Tipo: {{ actividad.nombre_tipo_actividad }}
+                    </span>
+                    <span class="ms-3">
+                      <i class="fas fa-clock me-1"></i>Duración: {{ actividad.minutos_duracion }} min
+                    </span>
+                    <span *ngIf="actividad.esferas" class="ms-3">
+                      <i class="fas fa-circle-notch me-1"></i>{{ actividad.esferas }}
+                    </span>
+                  </div>
+                </div>
+                <i class="fas fa-check-circle check-icon" *ngIf="isActividadSeleccionada(actividad)"></i>
+              </div>
+            </div>
+            <div *ngIf="actividadesSeleccionadas.length === 0 && actividadSubmitted" class="invalid-feedback d-block">
+              Debe seleccionar al menos una actividad
+            </div>
+          </div>
+
+          <div class="selected-summary mt-3" *ngIf="actividadesSeleccionadas.length > 0">
+            <div class="alert alert-corporate py-2">
+              <strong>{{ actividadesSeleccionadas.length }} actividad{{ actividadesSeleccionadas.length > 1 ? 'es' : ''
+                }} seleccionada{{ actividadesSeleccionadas.length > 1 ? 's' : '' }}</strong>
+              <p class="mb-0 mt-1 small text-muted">
+                Se crearán tareas para
+                <strong>{{ obtenerNombreGrupo(filtroGrupoModal) }}</strong> -
+                <strong>{{ obtenerNombreArea(filtroAreaModal) }}</strong>
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="cerrarModalActividades()">
+            <i class="fas fa-times me-1"></i>Cancelar
+          </button>
+          <button type="button" class="btn btn-corporate-primary" (click)="asociarActividades()"
+            [disabled]="!actividadesSeleccionadas || actividadesSeleccionadas.length === 0 || !filtroGrupoModal || !filtroAreaModal">
+            <i class="fas fa-link me-1"></i>
+            Asociar {{ actividadesSeleccionadas.length || '' }} Actividad{{ actividadesSeleccionadas.length !== 1 ? 'es'
+            : '' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para visualizar horarios -->
+  <div class="modal fade" id="modalHorarios" tabindex="-1" aria-labelledby="modalHorariosLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header bg-corporate-primary">
+          <h5 class="modal-title" id="modalHorariosLabel">
+            <i class="fas fa-calendar-week me-2"></i>
+            Horarios por Grupo - {{ model.nombre_sprint }}
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-0">
+          <!-- Tabs de grupos -->
+          <ul class="nav nav-tabs nav-tabs-horarios" id="horariosGroupTabs" role="tablist">
+            <li class="nav-item" role="presentation" *ngFor="let grupo of listas.grupos; let i = index">
+              <button class="nav-link" [class.active]="i === 0" 
+                      [id]="'grupo-tab-' + grupo.id" 
+                      data-bs-toggle="tab" 
+                      [attr.data-bs-target]="'#grupo-content-' + grupo.id"
+                      type="button" role="tab" 
+                      [attr.aria-controls]="'grupo-content-' + grupo.id" 
+                      [attr.aria-selected]="i === 0">
+                <i class="fas fa-users me-2"></i>
+                {{ grupo.nombre }}
+              </button>
+            </li>
+          </ul>
+
+          <!-- Contenido de tabs -->
+          <div class="tab-content horarios-tab-content" id="horariosGroupTabsContent">
+            <div class="tab-pane fade" [class.show]="i === 0" [class.active]="i === 0"
+                 [id]="'grupo-content-' + grupo.id" 
+                 role="tabpanel" 
+                 [attr.aria-labelledby]="'grupo-tab-' + grupo.id"
+                 *ngFor="let grupo of listas.grupos; let i = index">
+              
+              <div class="horario-grid-container p-4">
+                <!-- Header del grupo -->
+                <div class="horario-header mb-4">
+                  <h6 class="mb-2">
+                    <i class="fas fa-users me-2 text-corporate-yellow"></i>
+                    Horario de {{ grupo.nombre }}
+                  </h6>
+                  <div class="horario-stats">
+                    <span class="badge bg-info me-2">
+                      <i class="fas fa-calendar-alt me-1"></i>
+                      {{ obtenerDiasGrupo(grupo.id).length }} días activos
+                    </span>
+                    <span class="badge bg-secondary">
+                      <i class="fas fa-clock me-1"></i>
+                      {{ obtenerTotalHorasGrupo(grupo.id) }}h semanales
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Grilla de horarios -->
+                <div class="horario-grid">
+                  <!-- Header de días -->
+                  <div class="horario-header-dias">
+                    <div class="horario-cell horario-time-header">Hora</div>
+                    <div class="horario-cell horario-day-header" *ngFor="let dia of diasSemana">
+                      {{ dia.nombre }}
+                    </div>
+                  </div>
+
+                  <!-- Filas de horarios -->
+                  <div class="horario-row" *ngFor="let hora of horasDelDia">
+                    <div class="horario-cell horario-time-cell">
+                      {{ hora }}
+                    </div>
+                    <div class="horario-cell horario-content-cell" 
+                         *ngFor="let dia of diasSemana"
+                         [ngClass]="getClaseHorario(grupo.id, dia.id, hora)">
+                      
+                      <div class="horario-block" 
+                           *ngIf="getHorarioInfo(grupo.id, dia.id, hora) as horarioInfo"
+                           [style.background-color]="obtenerColorArea(horarioInfo.id_area_academica)"
+                           [ngClass]="[horarioInfo.esInicio ? 'es-inicio' : '',
+                                     horarioInfo.esFin ? 'es-fin' : '',
+                                     horarioInfo.esIntermedio ? 'es-intermedio' : '']"
+                           (click)="mostrarDetalleHorario(horarioInfo)"
+                           [attr.title]="getTooltipHorario(horarioInfo)">
+                        
+                        <!-- Solo mostrar contenido en la primera celda del horario -->
+                        <div *ngIf="horarioInfo.esInicio" class="horario-block-header">
+                          <strong>{{ obtenerNombreArea(horarioInfo.id_area_academica) }}</strong>
+                          <div style="font-size: 0.5rem; opacity: 0.8;">
+                            {{ horarioInfo.duracionCompleta }}
+                          </div>
+                        </div>
+                        
+                        <div *ngIf="horarioInfo.esInicio" class="horario-block-content">
+                          <div class="horario-tiempo">
+                            {{ horarioInfo.total_minutos }}min
+                          </div>
+                          <div class="horario-progreso">
+                            <div class="progress-mini">
+                              <div class="progress-bar-mini" 
+                                   [style.width.%]="calcularPorcentajeUsoHorario(grupo.id, horarioInfo.id_area_academica)"
+                                   [ngClass]="getClaseProgresoHorario(calcularPorcentajeUsoHorario(grupo.id, horarioInfo.id_area_academica))">
+                              </div>
+                            </div>
+                            <small>{{ calcularPorcentajeUsoHorario(grupo.id, horarioInfo.id_area_academica) }}%</small>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Resumen de horarios del grupo -->
+                <div class="horarios-resumen-grupo mb-3">
+                  <div class="resumen-badge">
+                    <i class="fas fa-calendar-day"></i>
+                    <span class="resumen-numero">{{ diasActivosGrupo(grupo.id) }}</span>
+                    <span class="resumen-texto">días activos</span>
+                  </div>
+                  <div class="resumen-badge">
+                    <i class="fas fa-clock"></i>
+                    <span class="resumen-numero">{{ horasSemanalesGrupo(grupo.id) }}h</span>
+                    <span class="resumen-texto">semanales</span>
+                  </div>
+                </div>
+
+                <!-- Leyenda -->
+                <div class="horario-leyenda mt-4">
+                  <h6>Áreas Académicas:</h6>
+                  <div class="leyenda-items">
+                    <label class="leyenda-item" *ngFor="let area of getAreasDelGrupo(grupo.id)">
+                      <input 
+                        type="checkbox" 
+                        [checked]="areasSeleccionadasFiltroHorarios[area.id]"
+                        (change)="toggleAreaFiltroHorario(area.id)"
+                        class="leyenda-checkbox">
+                      <div class="leyenda-color" [style.background-color]="obtenerColorArea(area.id)"></div>
+                      {{ area.nombre }}
+                      <small class="text-muted">
+                        ({{ obtenerUsoPorcentualArea(grupo.id, area.id) }}% usado)
+                      </small>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            <i class="fas fa-times me-1"></i>Cerrar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

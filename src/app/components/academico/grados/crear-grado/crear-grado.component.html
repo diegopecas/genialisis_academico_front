@@ -1,0 +1,74 @@
+<div class="modulo">
+    <app-header 
+        [tituloModulo]="titulo" 
+        [mostrarCrear]="false" 
+        [accion]="accion" 
+        [raiz]="'/academico/grados'"
+        [regresar]="regresar" 
+        [iconoTitulo]="'/assets/images/grados.png'">
+    </app-header>
+
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-md-8 col-12">
+                <label for="nombre" class="form-label">Nombre del grado <span class="text-danger">*</span></label>
+                <input 
+                    class="form-control form-control-lg" 
+                    type="text" 
+                    id="nombre" 
+                    [(ngModel)]="model.nombre"
+                    placeholder="Ej: Primero, Segundo, Tercero..."
+                    required
+                    [ngClass]="{'is-invalid': !model.nombre && submitted}"
+                    [disabled]="!editable">
+                <small class="form-text text-muted">Ingrese el nombre del grado académico</small>
+            </div>
+            <div class="col-md-4 col-12">
+                <label for="orden" class="form-label">Orden <span class="text-danger">*</span></label>
+                <input 
+                    class="form-control form-control-lg" 
+                    type="number" 
+                    id="orden" 
+                    [(ngModel)]="model.orden"
+                    placeholder="Ej: 1, 2, 3..."
+                    required
+                    min="1"
+                    [ngClass]="{'is-invalid': !model.orden && submitted}"
+                    [disabled]="!editable">
+                <small class="form-text text-muted">Posición en el listado</small>
+            </div>
+        </div>
+
+        <div class="row mt-3">
+            <div class="col-12">
+                <label for="descripcion" class="form-label">Descripción <span class="text-danger">*</span></label>
+                <textarea 
+                    class="form-control form-control-lg" 
+                    id="descripcion" 
+                    [(ngModel)]="model.descripcion"
+                    placeholder="Descripción del grado académico"
+                    rows="3"
+                    required
+                    [ngClass]="{'is-invalid': !model.descripcion && submitted}"
+                    [disabled]="!editable">
+                </textarea>
+                <small class="form-text text-muted">Ingrese la descripción del grado</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-sm-6" *ngIf="editable">
+                <button class="btn btn-lg btn-warning w-100" (click)="guardar()">
+                    Grabar
+                </button>
+            </div>
+            <div class="col-sm-6">
+                <button class="btn btn-lg btn-secondary w-100" (click)="volver()">
+                    Volver
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

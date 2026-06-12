@@ -1,0 +1,101 @@
+<div class="modulo">
+  <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [raiz]="'/'" [regresar]="'/reportes'"></app-header>
+
+  <!-- Filtro de año -->
+  <div class="row mb-4">
+    <div class="col-md-3">
+      <label for="anioSelector" class="form-label">Año:</label>
+      <select id="anioSelector" class="form-select" [(ngModel)]="anioSeleccionado" (change)="cambiarAnio()">
+        <option *ngFor="let anio of aniosDisponibles" [value]="anio">{{ anio }}</option>
+      </select>
+    </div>
+    <div class="col-md-9 d-flex align-items-end">
+      <p class="text-muted mb-0">
+        <i class="fas fa-info-circle me-1"></i>
+        Detalle de cada cobro generado. Seleccione filas para recalcular totales con registros específicos.
+      </p>
+    </div>
+  </div>
+
+  <hr />
+
+  <!-- Cargando -->
+  <div *ngIf="cargando" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+    <p class="mt-2">Cargando información de cobros...</p>
+  </div>
+
+  <!-- Sin datos -->
+  <div *ngIf="!cargando && !datosDisponibles" class="no-data">
+    <i class="fas fa-file-invoice"></i>
+    <p>No se encontraron cobros para el año {{ anioSeleccionado }}.</p>
+  </div>
+
+  <!-- Contenido -->
+  <div *ngIf="!cargando && datosDisponibles">
+
+    <!-- Tarjetas resumen -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="resumen-card">
+          <h5 class="mb-3">
+            <i class="fas fa-file-invoice-dollar me-2"></i>Resumen de Cobros {{ anioSeleccionado }}
+            <span *ngIf="haySeleccion" class="badge bg-warning text-dark ms-2">
+              <i class="fas fa-check-square me-1"></i>{{ totalesGenerales.cantidadRegistros }} seleccionados
+            </span>
+          </h5>
+          <div class="row">
+            <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+              <div class="estadistica-item registros-bg">
+                <span class="estadistica-valor">{{ totalesGenerales.cantidadRegistros | number }}</span>
+                <span class="estadistica-label">Cobros</span>
+                <span class="estadistica-extra">{{ totalesGenerales.cantidadConSaldo }} con saldo</span>
+              </div>
+            </div>
+            <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+              <div class="estadistica-item total-cobrado-bg">
+                <span class="estadistica-valor">{{ totalesGenerales.totalCobrado | currency:'':'symbol':'1.0-0' }}</span>
+                <span class="estadistica-label">Total Cobrado</span>
+              </div>
+            </div>
+            <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+              <div class="estadistica-item total-pagado-bg">
+                <span class="estadistica-valor">{{ totalesGenerales.totalPagado | currency:'':'symbol':'1.0-0' }}</span>
+                <span class="estadistica-label">Total Pagado</span>
+              </div>
+            </div>
+            <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+              <div class="estadistica-item saldo-total-bg">
+                <span class="estadistica-valor">{{ totalesGenerales.saldoTotal | currency:'':'symbol':'1.0-0' }}</span>
+                <span class="estadistica-label">Saldo Total</span>
+              </div>
+            </div>
+            <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+              <div class="estadistica-item recaudo-bg">
+                <span class="estadistica-valor">{{ totalesGenerales.porcentajeRecaudo }}%</span>
+                <span class="estadistica-label">Recaudo</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabla con selección múltiple -->
+    <app-tablas
+      [titulos]="titulosTabla"
+      [datos]="cobros"
+      [mostrarBuscar]="true"
+      [columnasFiltro]="columnasFiltro"
+      [exportarExcel]="true"
+      [seleccionMultiple]="true"
+      [campoId]="'id'"
+      [prefiltrosExcluir]="prefiltrosExcluir"
+      [prefiltrosFecha]="prefiltrosFecha"
+      (datosFiltradosCambiados)="onDatosFiltradosCambiados($event)"
+      (seleccionCambiada)="onSeleccionCambiada($event)"
+    ></app-tablas>
+  </div>
+</div>

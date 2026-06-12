@@ -7,6 +7,7 @@ import * as XLSX from 'xlsx';
 
 import { HeaderComponent } from '../../../common/header/header.component';
 import { CuentasPorCobrarService } from '../../../services/cuentas-por-cobrar.service';
+import { GruposService } from '../../../services/grupos.service';
 
 // Interfaces
 interface EstudianteCartera {
@@ -306,7 +307,8 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
   public clasificacionesUnicasProductos: { id: string, nombre: string }[] = [];
   public productosUnicos: { id: string, nombre: string }[] = [];
   constructor(
-    private cuentasPorCobrarService: CuentasPorCobrarService
+    private cuentasPorCobrarService: CuentasPorCobrarService,
+    private gruposService: GruposService
   ) {
     Chart.register(...registerables);
   }
@@ -367,6 +369,7 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
   };
   ngOnInit(): void {
     this.inicializarAnios();
+    this.cargarGrupos();
     this.inicializarFechasFiltro();
     this.cargarDatosCartera();
   }
@@ -395,6 +398,19 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
     }
 
     this.anioSeleccionado = anioActual;
+  }
+
+  cargarGrupos(): void {
+    const sub = this.gruposService.obtenerTodos().subscribe({
+      next: (response: any) => {
+        this.grupos = response.body || [];
+      },
+      error: (error) => {
+        console.error('Error al cargar grupos:', error);
+      }
+    });
+
+    this.subscriptions.push(sub);
   }
 
   cargarDatosCartera(): void {

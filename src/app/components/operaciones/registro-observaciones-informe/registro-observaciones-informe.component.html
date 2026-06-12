@@ -1,0 +1,473 @@
+<div class="modulo">
+    <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [raiz]="'/operaciones'" [regresar]="regresar"
+        [iconoTitulo]="'/assets/images/observaciones-informe.png'"></app-header>
+
+    <div class="container-fluid mt-4 px-4">
+
+        <!-- Selector de Corte Académico -->
+        <div class="sprint-container mb-3">
+            <div class="row g-2 align-items-center">
+                <div class="col-md-2 fw-bold">
+                    <i class="fas fa-calendar-alt me-1"></i> Corte académico:
+                </div>
+                <div class="col-md-6">
+                    <select class="form-select" [(ngModel)]="idSprintSeleccionado" (change)="onSprintChange()"
+                        [disabled]="cargando">
+                        <option [ngValue]="null">Seleccionar corte académico</option>
+                        <option *ngFor="let s of sprints" [ngValue]="s.id">
+                            {{ s.nombre_corte_academico || ('Sprint ' + s.numero_sprint) }}
+                            ({{ formatearRangoFechasSprint(s) }})
+                            <ng-container *ngIf="s.actual === 1 || (s.actual + '') === '1'"> · Actual</ng-container>
+                        </option>
+                    </select>
+                </div>
+                <div class="col-md-4 text-end" *ngIf="sprintActual">
+                    <span class="badge bg-info fs-6 me-2">
+                        {{ sprintActual.nombre_corte_academico || ('Sprint ' + sprintActual.numero_sprint) }}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading -->
+        <div *ngIf="cargando" class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+            <p class="mt-2 text-muted">Cargando datos del corte...</p>
+        </div>
+
+        <div *ngIf="!cargando && idSprintSeleccionado">
+
+            <!-- Filtros -->
+            <div class="filtros-container mb-3">
+                <div class="row g-2 align-items-center">
+                    <div class="col-md-3">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-search"></i></span>
+                            <input type="text" class="form-control" placeholder="Buscar estudiante..."
+                                [(ngModel)]="busqueda" (input)="filtrarFilas()" />
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <select class="form-select" [(ngModel)]="filtroGrupo" (change)="filtrarFilas()">
+                            <option value="">Todos los grupos</option>
+                            <option *ngFor="let g of grupos" [value]="g">{{ g }}</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" [(ngModel)]="filtroEstado" (change)="filtrarFilas()">
+                            <option value="todos">Todos los estudiantes</option>
+                            <option value="completos">Con todas las observaciones</option>
+                            <option value="incompletos">Incompletos</option>
+                            <option value="sin_iniciar">Sin iniciar</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <span class="badge bg-info fs-6">{{ filasFiltradas.length }} estudiantes</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabla -->
+            <div class="table-responsive tabla-informe-container" *ngIf="tiposInforme.length > 0">
+                <table class="table table-bordered table-hover tabla-informe">
+                    <thead class="table-light sticky-header">
+                        <tr>
+                            <th class="col-grupo">Grupo</th>
+                            <th class="col-estudiante">Estudiante</th>
+                            <th *ngFor="let tipo of tiposInforme; trackBy: trackByTipo" class="col-observacion text-center">
+                                <i *ngIf="tipo.icono" class="fas {{ tipo.icono }} me-1"></i>
+                                {{ tipo.nombre }}
+                            </th>
+                            <th class="col-acciones text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngIf="filasFiltradas.length === 0">
+                            <td [attr.colspan]="3 + tiposInforme.length" class="text-center text-muted py-4">
+                                No se encontraron estudiantes con los filtros actuales.
+                            </td>
+                        </tr>
+                        <tr *ngFor="let fila of filasFiltradas; trackBy: trackByEstudiante"
+                            [class.fila-completa]="estaCompleto(fila)">
+                            <td class="align-middle">
+                                <span class="badge-grupo">{{ fila.grupo_estudiante }}</span>
+                            </td>
+                            <td class="align-middle">
+                                <div class="nombre-estudiante">{{ fila.nombre_estudiante }}</div>
+                                <small class="text-muted">{{ contarObservaciones(fila) }} de {{ tiposInforme.length }} obs.</small>
+                            </td>
+                            <td *ngFor="let tipo of tiposInforme; trackBy: trackByTipo" class="celda-obs"
+                                [class.celda-vacia]="!tieneObservacion(fila, tipo)"
+                                [class.celda-llena]="tieneObservacion(fila, tipo)"
+                                (click)="abrirModal(fila, tipo)">
+                                <ng-container *ngIf="tieneObservacion(fila, tipo)">
+                                    <div class="preview">
+                                        <i class="fas fa-check-circle text-success me-1"></i>
+                                        <span class="preview-text">{{ obtenerPreview(fila, tipo) }}</span>
+                                    </div>
+                                    <small class="text-muted d-block mt-1">
+                                        <i class="fas fa-edit"></i> Clic para editar
+                                    </small>
+                                </ng-container>
+                                <ng-container *ngIf="!tieneObservacion(fila, tipo)">
+                                    <div class="placeholder-vacio">
+                                        <i class="fas fa-plus-circle"></i>
+                                        <span>Crear</span>
+                                    </div>
+                                </ng-container>
+                            </td>
+                            <td class="text-center align-middle celda-acciones">
+                                <div class="btn-group btn-group-sm">
+                                    <button class="btn btn-danger" title="Descargar informe"
+                                        (click)="descargarInforme(fila)" [disabled]="descargandoPDF">
+                                        <i class="fas fa-file-pdf"></i>
+                                    </button>
+                                    <button class="btn btn-wa" title="Enviar por WhatsApp"
+                                        (click)="abrirModalEnvio(fila)">
+                                        <i class="fab fa-whatsapp"></i>
+                                    </button>
+                                    <button class="btn btn-historial" title="Ver historial"
+                                        (click)="verHistorial(fila)">
+                                        <i class="fas fa-history"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div *ngIf="tiposInforme.length === 0" class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                No hay tipos de observación configurados con la bandera "aplica para informe".
+                Configure al menos uno desde el módulo de tipos de observaciones.
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ============================================ -->
+<!-- MODAL: Crear / Editar Observación             -->
+<!-- ============================================ -->
+<div class="modal fade" id="modalObservacionInforme" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i *ngIf="tipoModal?.icono" class="fas {{ tipoModal?.icono }} me-2"></i>
+                    Observación {{ tipoModal?.nombre }} - {{ filaModal?.nombre_estudiante }}
+                </h5>
+                <button type="button" class="btn-close" (click)="cerrarModal()" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" *ngIf="filaModal && tipoModal">
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Fecha <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control" [(ngModel)]="modeloModal.fecha" required
+                            [ngClass]="{'is-invalid': !modeloModal.fecha && submittedModal}" />
+                        <div class="invalid-feedback" *ngIf="!modeloModal.fecha && submittedModal">
+                            La fecha es obligatoria
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Corte académico</label>
+                        <input type="text" class="form-control" disabled
+                            [value]="sprintActual ? (sprintActual.nombre_corte_academico || ('Sprint ' + sprintActual.numero_sprint)) : ''" />
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <label class="form-label">Descripción <span class="text-danger">*</span></label>
+                        <textarea class="form-control" rows="6" [(ngModel)]="modeloModal.descripcion" required
+                            [ngClass]="{'is-invalid': !modeloModal.descripcion && submittedModal}"
+                            placeholder="Describa detalladamente la observación..."></textarea>
+                        <div class="invalid-feedback" *ngIf="!modeloModal.descripcion && submittedModal">
+                            La descripción es obligatoria
+                        </div>
+
+                        <div class="row mt-2">
+                            <div class="col-md-3">
+                                <app-transcribir-audio (mensaje)="onTranscripcionRecibida($event)"></app-transcribir-audio>
+                            </div>
+                            <div class="col-md-7 d-flex">
+                                <app-mejorar-texto [texto]="modeloModal.descripcion"
+                                    [contexto]="generarContextoMejoraTexto()"
+                                    (textoMejorado)="onTextoMejorado($event)">
+                                </app-mejorar-texto>
+                            </div>
+                            <div class="col-md-2">
+                                <button class="btn btn-sm btn-outline-warning w-100" (click)="limpiarDescripcionModal()">
+                                    <i class="bi bi-trash"></i> Limpiar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert alert-info mb-0">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Esta observación quedará marcada automáticamente como <strong>para informe</strong>.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" (click)="cerrarModal()" [disabled]="guardandoModal">
+                    Cancelar
+                </button>
+                <button type="button" class="btn btn-warning" (click)="grabarModal()" [disabled]="guardandoModal">
+                    <span *ngIf="!guardandoModal">
+                        <i class="fas fa-save me-1"></i>
+                        {{ modeloModal.id > 0 ? 'Actualizar' : 'Grabar' }}
+                    </span>
+                    <span *ngIf="guardandoModal">
+                        <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                        Guardando...
+                    </span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ============================================ -->
+<!-- MODAL: Envío por WhatsApp                     -->
+<!-- ============================================ -->
+<div class="modal fade" id="modalEnvioWAInforme" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fab fa-whatsapp me-2 text-success"></i>
+                    Enviar Informe - {{ envioFila?.nombre_estudiante }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" *ngIf="envioFila">
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>Estudiante:</strong> {{ envioFila.nombre_estudiante }}
+                    </div>
+                    <div class="col-md-6 text-end" *ngIf="sprintActual">
+                        <strong>Corte académico:</strong>
+                        {{ sprintActual.nombre_corte_academico || ('Sprint ' + sprintActual.numero_sprint) }}
+                    </div>
+                </div>
+
+                <hr />
+
+                <!-- Configuración del mensaje -->
+                <div class="config-mensaje">
+                    <h6><i class="fas fa-cog me-1"></i> Personalizar mensaje</h6>
+                    <div class="row g-2 align-items-center">
+                        <div class="col-md-4">
+                            <label class="form-label mb-1 small">Tono</label>
+                            <div class="tono-toggle d-block">
+                                <button class="btn btn-sm"
+                                    [class.btn-primary]="tutearMensaje"
+                                    [class.btn-outline-primary]="!tutearMensaje"
+                                    (click)="tutearMensaje = true; regenerarMensaje()">
+                                    Tú
+                                </button>
+                                <button class="btn btn-sm"
+                                    [class.btn-primary]="!tutearMensaje"
+                                    [class.btn-outline-primary]="tutearMensaje"
+                                    (click)="tutearMensaje = false; regenerarMensaje()">
+                                    Usted
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="chkReunionPresencial"
+                                    [(ngModel)]="solicitarReunionPresencial" (change)="regenerarMensaje()">
+                                <label class="form-check-label" for="chkReunionPresencial">
+                                    Solicitar reunión presencial
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="chkReunionVirtual"
+                                    [(ngModel)]="solicitarReunionVirtual" (change)="regenerarMensaje()">
+                                <label class="form-check-label" for="chkReunionVirtual">
+                                    Solicitar reunión virtual
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="chkFechaCompromiso"
+                                    [(ngModel)]="solicitarFechaCompromiso" (change)="regenerarMensaje()">
+                                <label class="form-check-label" for="chkFechaCompromiso">
+                                    Solicitar fecha de compromiso
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Preview del mensaje editable -->
+                <div class="mensaje-preview">
+                    <textarea class="form-control" rows="10" [(ngModel)]="mensajeEditable"></textarea>
+                    <div class="placeholder-info">
+                        <i class="fas fa-info-circle me-1"></i>
+                        <code>{{ '{NOMBRE_DESTINATARIO}' }}</code> se reemplazará automáticamente con el nombre del destinatario al enviar.
+                    </div>
+                </div>
+
+                <h6 class="mb-3">Acudientes registrados</h6>
+                <div *ngIf="envioFila.acudientes.length === 0" class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i> No hay acudientes registrados para este estudiante.
+                </div>
+
+                <div *ngFor="let acudiente of envioFila.acudientes; let i = index" class="acudiente-card mb-3">
+                    <div class="row align-items-center">
+                        <div class="col-md-5">
+                            <div class="fw-bold">{{ acudiente.nombre_acudiente }}</div>
+                            <small class="text-muted">{{ acudiente.tipo_acudiente }}</small>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label mb-1">
+                                <i class="fas fa-phone me-1"></i> Teléfono
+                            </label>
+                            <input type="text" class="form-control form-control-sm"
+                                [(ngModel)]="telefonosEditables[i]" />
+                        </div>
+                        <div class="col-md-3 text-end mt-2 mt-md-0">
+                            <button class="btn btn-wa btn-sm w-100"
+                                (click)="enviarWhatsAppAcudiente(envioFila!, acudiente, i)"
+                                [disabled]="!telefonosEditables[i]">
+                                <i class="fab fa-whatsapp me-1"></i> Enviar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="acudiente-card mb-3 border-dashed">
+                    <div class="row align-items-center">
+                        <div class="col-md-5">
+                            <label class="form-label mb-1">
+                                <i class="fas fa-user me-1"></i> Nombre
+                            </label>
+                            <input type="text" class="form-control form-control-sm" [(ngModel)]="nombreAdicional"
+                                placeholder="Nombre del destinatario" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label mb-1">
+                                <i class="fas fa-phone me-1"></i> Teléfono
+                            </label>
+                            <input type="text" class="form-control form-control-sm" [(ngModel)]="telefonoAdicional"
+                                placeholder="3001234567" />
+                        </div>
+                        <div class="col-md-3 text-end mt-2 mt-md-0">
+                            <label class="form-label mb-1 d-none d-md-block">&nbsp;</label>
+                            <button class="btn btn-wa-outline btn-sm w-100"
+                                (click)="enviarWhatsAppAdicional(envioFila!)" [disabled]="!telefonoAdicional">
+                                <i class="fab fa-whatsapp me-1"></i> Enviar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ============================================ -->
+<!-- MODAL: Historial de envíos y compromisos      -->
+<!-- ============================================ -->
+<div class="modal fade" id="modalHistorialInforme" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-history me-2"></i>
+                    Historial de Informes - {{ estudianteHistorial?.nombre_estudiante }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" *ngIf="estudianteHistorial">
+
+                <div *ngIf="cargandoHistorial" class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="mt-2">Cargando historial...</p>
+                </div>
+
+                <div *ngIf="!cargandoHistorial && historialEstudiante.length === 0" class="text-center py-4">
+                    <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">Aún no se ha enviado el informe para este estudiante.</p>
+                </div>
+
+                <div *ngIf="!cargandoHistorial && historialEstudiante.length > 0" class="table-responsive">
+                    <table class="table table-sm table-bordered table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Fecha envío</th>
+                                <th>Corte</th>
+                                <th>Medio</th>
+                                <th>Destinatario</th>
+                                <th>Contacto</th>
+                                <th>Compromiso</th>
+                                <th>Fecha compromiso</th>
+                                <th class="text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let h of historialEstudiante">
+                                <td><small>{{ h.fecha_envio | date:'dd/MM/yy HH:mm' }}</small></td>
+                                <td><small>{{ h.nombre_corte_academico || h.nombre_sprint || '-' }}</small></td>
+                                <td class="text-center">
+                                    <i *ngIf="h.medio_envio === 'whatsapp'" class="fab fa-whatsapp text-success" title="WhatsApp"></i>
+                                    <i *ngIf="h.medio_envio === 'correo'" class="fas fa-envelope text-primary" title="Correo"></i>
+                                </td>
+                                <td><small>{{ h.nombre_destinatario }}</small></td>
+                                <td><small>{{ h.contacto_usado }}</small></td>
+
+                                <td *ngIf="!h.editando">
+                                    <small>{{ h.compromiso || '-' }}</small>
+                                </td>
+                                <td *ngIf="!h.editando">
+                                    <small>{{ h.fecha_compromiso ? (h.fecha_compromiso | date:'dd/MM/yy') : '-' }}</small>
+                                </td>
+                                <td *ngIf="!h.editando" class="text-center">
+                                    <button class="btn btn-sm btn-edit-compromiso" (click)="editarCompromiso(h)" title="Agregar/editar compromiso">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                </td>
+
+                                <td *ngIf="h.editando">
+                                    <textarea class="form-control form-control-sm" rows="2" [(ngModel)]="h.compromiso_editado"
+                                        placeholder="Ej: Se compromete a apoyar la lectura los fines de semana..."></textarea>
+                                </td>
+                                <td *ngIf="h.editando">
+                                    <input type="date" class="form-control form-control-sm" [(ngModel)]="h.fecha_compromiso_editada">
+                                </td>
+                                <td *ngIf="h.editando" class="text-center">
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-success" (click)="guardarCompromiso(h)" title="Guardar">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                        <button class="btn btn-secondary" (click)="cancelarEdicionCompromiso(h)" title="Cancelar">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>

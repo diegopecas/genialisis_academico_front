@@ -1,0 +1,371 @@
+// Estilos para los tabs
+.nav-tabs {
+  border-bottom: 2px solid #dee2e6;
+  
+  .nav-item {
+    margin-bottom: -2px;
+    
+    .nav-link {
+      color: #6c757d;
+      background-color: transparent;
+      border: none;
+      border-bottom: 3px solid transparent;
+      padding: 0.75rem 1.25rem;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      
+      i {
+        margin-right: 0.5rem;
+      }
+      
+      &:hover {
+        color: #495057;
+        border-bottom-color: #dee2e6;
+        background-color: rgba(0, 0, 0, 0.02);
+      }
+      
+      &.active {
+        color: #007bff;
+        background-color: #fff;
+        border-bottom-color: #007bff;
+        font-weight: 600;
+        
+        &:hover {
+          color: #007bff;
+          border-bottom-color: #007bff;
+        }
+      }
+      
+      .badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+        vertical-align: middle;
+      }
+    }
+  }
+}
+
+// Estilos para el contenido de los tabs
+.tab-content {
+  animation: fadeIn 0.3s ease-in;
+  
+  .tab-pane {
+    padding-top: 0;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Estilos para las tablas
+.table {
+  margin-bottom: 0;
+  
+  thead {
+    th {
+      border-top: none;
+      font-weight: 600;
+      color: #495057;
+      padding: 0.75rem;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+  }
+  
+  tbody {
+    tr {
+      &:hover {
+        background-color: rgba(0, 123, 255, 0.02);
+      }
+      
+      td {
+        padding: 0.75rem;
+        vertical-align: middle;
+      }
+    }
+  }
+}
+
+// Card de resumen
+.bg-light {
+  background-color: #f8f9fa !important;
+  
+  .card-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 1rem;
+    
+    i {
+      margin-right: 0.5rem;
+      color: #6c757d;
+    }
+  }
+  
+  small.text-muted {
+    display: block;
+    font-size: 0.875rem;
+    margin-bottom: 0.25rem;
+  }
+  
+  h5 {
+    font-size: 1.5rem;
+    margin: 0;
+    font-weight: 600;
+    
+    &.text-primary {
+      color: #007bff !important;
+    }
+    
+    &.text-success {
+      color: #28a745 !important;
+    }
+    
+    &.text-warning {
+      color: #ffc107 !important;
+    }
+  }
+}
+
+// ===== ESTILOS PARA MODALES DE SWEETALERT2 =====
+
+// Estilos globales para modales
+::ng-deep {
+  
+  .swal2-popup {
+    
+    .swal2-html-container {
+      overflow: visible !important;
+    }
+    
+    // Secciones del formulario
+    .form-section {
+      margin-bottom: 25px;
+      
+      .form-section-title {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #2c3e50;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        
+        i {
+          color: #ffbd31;
+        }
+      }
+    }
+    
+    // Buscador en el modal
+    .search-container {
+      .input-group {
+        .input-group-text {
+          background-color: #f8f9fa;
+          border-color: #dee2e6;
+          color: #6c757d;
+        }
+        
+        input {
+          border-left: none;
+          
+          &:focus {
+            border-color: #ffbd31;
+            box-shadow: none;
+            
+            & + .input-group-text {
+              border-color: #ffbd31;
+            }
+          }
+        }
+      }
+    }
+    
+    // Tabla de productos en el modal
+    .productos-table {
+      width: 100%;
+      max-height: 350px;
+      overflow-y: auto;
+      
+      &::-webkit-scrollbar {
+        width: 6px;
+      }
+      
+      &::-webkit-scrollbar-track {
+        background: #e9ecef;
+        border-radius: 3px;
+      }
+      
+      &::-webkit-scrollbar-thumb {
+        background: #95a5a6;
+        border-radius: 3px;
+        
+        &:hover {
+          background: #7f8c8d;
+        }
+      }
+      
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        
+        thead {
+          position: sticky;
+          top: 0;
+          background: #f8f9fa;
+          z-index: 10;
+          
+          th {
+            padding: 12px;
+            text-align: left;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #2c3e50;
+            border-bottom: 2px solid #dee2e6;
+          }
+        }
+        
+        tbody {
+          tr {
+            border-bottom: 1px solid #e9ecef;
+            transition: background-color 0.2s;
+            
+            &:hover {
+              background-color: #f8f9fa;
+            }
+            
+            &.selected {
+              background-color: #e7f3ff;
+            }
+            
+            td {
+              padding: 10px 12px;
+              font-size: 0.9rem;
+              
+              .product-name {
+                font-weight: 500;
+                color: #2c3e50;
+              }
+              
+              .product-description {
+                font-size: 0.85rem;
+                color: #6c757d;
+                margin-top: 2px;
+              }
+              
+              .badge {
+                font-size: 0.75rem;
+                padding: 3px 8px;
+              }
+            }
+          }
+        }
+      }
+    }
+    
+    // Formulario de cantidad
+    .cantidad-form {
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 15px;
+      margin-top: 20px;
+      
+      .form-group {
+        margin-bottom: 15px;
+        
+        label {
+          font-size: 0.9rem;
+          font-weight: 500;
+          color: #2c3e50;
+          margin-bottom: 6px;
+          display: block;
+        }
+        
+        input {
+          width: 100%;
+          padding: 8px 12px;
+          border: 1px solid #dee2e6;
+          border-radius: 6px;
+          font-size: 0.95rem;
+          
+          &:focus {
+            outline: none;
+            border-color: #ffbd31;
+            box-shadow: 0 0 0 2px rgba(255,189,49,0.1);
+          }
+        }
+        
+        .form-check {
+          padding-left: 1.5rem;
+          
+          .form-check-input {
+            margin-left: -1.5rem;
+            margin-top: 0.3rem;
+            
+            &:checked {
+              background-color: #ffbd31;
+              border-color: #ffbd31;
+            }
+          }
+          
+          .form-check-label {
+            font-size: 0.9rem;
+            color: #2c3e50;
+          }
+        }
+      }
+    }
+    
+    // Estado vacío
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: #95a5a6;
+      
+      i {
+        font-size: 3rem;
+        margin-bottom: 15px;
+        color: #bdc3c7;
+      }
+      
+      p {
+        font-size: 1.1rem;
+        margin: 10px 0 5px;
+        color: #7f8c8d;
+      }
+      
+      small {
+        font-size: 0.9rem;
+        color: #95a5a6;
+      }
+    }
+    
+    // Mensaje de producto seleccionado
+    .selected-product {
+      background: #e7f3ff;
+      border-left: 4px solid #007bff;
+      padding: 12px 16px;
+      border-radius: 6px;
+      margin-top: 15px;
+      
+      strong {
+        color: #2c3e50;
+      }
+      
+      .badge {
+        margin-left: 10px;
+      }
+    }
+  }
+}

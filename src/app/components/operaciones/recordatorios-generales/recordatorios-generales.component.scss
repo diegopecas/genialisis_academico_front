@@ -1,0 +1,207 @@
+$gold: #F5A623;
+$gold-dark: #D4891A;
+$gold-light: #FFF8EE;
+$black: #2C2C2C;
+$wa-green: #25D366;
+$border-color: #e8e8e8;
+$light-gray: #fafafa;
+$text-muted: #8c8c8c;
+
+.modulo {
+  padding: 1rem;
+  background-color: #fff;
+  min-height: 100vh;
+}
+
+// Modal limpio y moderno
+.modal-header-clean {
+  background-color: #fff;
+  border-bottom: 1px solid $border-color;
+  padding: 1.25rem 1.5rem;
+
+  .modal-title {
+    font-weight: 600;
+    color: $black;
+    font-size: 1.1rem;
+  }
+}
+
+.modal-footer-clean {
+  background-color: #fff;
+  border-top: 1px solid $border-color;
+  padding: 1rem 1.5rem;
+}
+
+.modal-body {
+  padding: 1.5rem;
+
+  h6 {
+    color: $black;
+    font-weight: 600;
+    font-size: 0.9rem;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid $border-color;
+  }
+}
+
+// Tabs tipo recordatorio - estilo pill moderno
+.btn-outline-tab {
+  color: #666;
+  border: 1.5px solid $border-color;
+  background-color: #fff;
+  font-weight: 500;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: $light-gray;
+    color: $black;
+    border-color: #ccc;
+  }
+}
+
+.btn-check:checked + .btn-outline-tab {
+  background-color: $black;
+  border-color: $black;
+  color: #fff;
+  font-weight: 600;
+}
+
+// Badge gold sutil
+.badge-tipo {
+  background-color: $gold-light;
+  color: $gold-dark;
+  padding: 0.3rem 0.6rem;
+  font-weight: 500;
+  font-size: 0.75rem;
+  border-radius: 0.25rem;
+  border: 1px solid rgba($gold, 0.3);
+}
+
+// Botón WhatsApp
+.btn-wa {
+  background-color: $wa-green;
+  border-color: $wa-green;
+  color: #fff;
+  &:hover { background-color: darken($wa-green, 8%); border-color: darken($wa-green, 8%); color: #fff; }
+  &:disabled { opacity: 0.5; }
+}
+
+// Card de acudiente - limpio
+.acudiente-card {
+  padding: 1rem;
+  border: 1px solid $border-color;
+  border-radius: 0.75rem;
+  background-color: #fff;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: #ccc;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  }
+
+  &.border-dashed {
+    border-style: dashed;
+    border-color: #d0d0d0;
+    background-color: $light-gray;
+  }
+}
+
+// Resumen financiero - cards limpias
+.resumen-financiero {
+  text-align: center;
+  padding: 1.25rem 1rem;
+  border-radius: 0.75rem;
+  background-color: $light-gray;
+  border: 1px solid $border-color;
+
+  .resumen-label {
+    display: block;
+    font-size: 0.75rem;
+    color: $text-muted;
+    font-weight: 500;
+    margin-bottom: 0.4rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  .resumen-valor {
+    display: block;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: $black;
+  }
+}
+
+// Textarea mensaje general
+.textarea-mensaje {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  resize: vertical;
+  min-height: 140px;
+  border: 1px solid $border-color;
+  border-radius: 0.75rem;
+  padding: 1rem;
+
+  &:focus {
+    border-color: $black;
+    box-shadow: 0 0 0 2px rgba($black, 0.08);
+    background-color: #fff;
+  }
+
+  &::placeholder {
+    color: #bbb;
+  }
+}
+
+// Inputs focus sutil
+.form-control:focus,
+.form-select:focus {
+  border-color: $black;
+  box-shadow: 0 0 0 2px rgba($black, 0.08);
+}
+
+// Botón editar compromiso
+.btn-edit-compromiso {
+  color: $text-muted;
+  border: 1px solid $border-color;
+  background: #fff;
+  border-radius: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  transition: all 0.2s ease;
+
+  &:hover {
+    color: $black;
+    border-color: #aaa;
+    background-color: $light-gray;
+  }
+}
+
+// Tablas dentro de modales
+.modal-body {
+  .table {
+    font-size: 0.875rem;
+
+    thead th {
+      background-color: $light-gray;
+      font-weight: 600;
+      color: #555;
+      border-bottom: 1px solid $border-color;
+      padding: 0.6rem 0.75rem;
+    }
+
+    tbody td {
+      padding: 0.6rem 0.75rem;
+      vertical-align: middle;
+      border-color: $border-color;
+    }
+
+    tfoot td {
+      background-color: $light-gray;
+      border-top: 2px solid #ddd;
+    }
+  }
+}
+
+// Spinner
+.spinner-border { border-width: 0.2rem; }

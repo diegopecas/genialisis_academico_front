@@ -1,0 +1,698 @@
+// ─── Paleta Materialize ─────────────────────────────────────────────
+$gold: #F5A623;
+$md-blue: #2196F3;
+$md-blue-dark: #1565C0;
+$md-blue-light: #42A5F5;
+$md-green: #4CAF50;
+$md-green-dark: #2E7D32;
+$md-red: #F44336;
+$md-red-dark: #C62828;
+$md-orange: #FF9800;
+$md-orange-dark: #E65100;
+$md-purple: #9C27B0;
+$md-purple-dark: #6A1B9A;
+$md-teal: #009688;
+$md-teal-dark: #00695C;
+$md-indigo: #3F51B5;
+$md-amber: #FFC107;
+$md-grey-50: #FAFAFA;
+$md-grey-100: #F5F5F5;
+$md-grey-200: #EEEEEE;
+$md-grey-300: #E0E0E0;
+$md-grey-400: #BDBDBD;
+$md-grey-600: #757575;
+$md-grey-700: #616161;
+$md-grey-800: #424242;
+
+// Colores temáticos cobertura
+$color-total: $md-blue;
+$color-cubiertos: $md-green;
+$color-brechas: $md-red;
+$color-porcentaje: $md-indigo;
+$color-actividades: $md-orange;
+$color-materiales: $md-teal;
+$color-ia: $md-purple;
+
+$mobile: 576px;
+$tablet: 768px;
+
+// ─── Mixins ─────────────────────────────────────────────────────────
+
+@mixin md-elevation-1 {
+  box-shadow: 0 2px 2px 0 rgba(0,0,0,0.14), 0 3px 1px -2px rgba(0,0,0,0.12), 0 1px 5px 0 rgba(0,0,0,0.2);
+}
+
+@mixin md-elevation-2 {
+  box-shadow: 0 4px 5px 0 rgba(0,0,0,0.14), 0 1px 10px 0 rgba(0,0,0,0.12), 0 2px 4px -1px rgba(0,0,0,0.3);
+}
+
+@mixin md-elevation-3 {
+  box-shadow: 0 8px 17px 2px rgba(0,0,0,0.14), 0 3px 14px 2px rgba(0,0,0,0.12), 0 5px 5px -3px rgba(0,0,0,0.2);
+}
+
+@mixin flat-btn($base-color) {
+  background-color: $base-color;
+  border: none;
+  color: #fff;
+  @include md-elevation-1;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+
+  &:hover {
+    background-color: lighten($base-color, 5%);
+    @include md-elevation-2;
+    color: #fff;
+    transform: translateY(-2px);
+  }
+
+  &:active { background-color: darken($base-color, 5%); transform: translateY(0); }
+  &:disabled { background-color: $md-grey-300; color: $md-grey-600; box-shadow: none; cursor: not-allowed; transform: none; }
+}
+
+@mixin flat-stat-card($base-color) {
+  background-color: lighten($base-color, 36%);
+  border: 1px solid rgba($base-color, 0.12);
+  color: darken($base-color, 12%);
+
+  .estadistica-valor { color: $base-color; }
+}
+
+@mixin flat-badge($base-color) {
+  background-color: lighten($base-color, 32%);
+  color: darken($base-color, 20%);
+  border: none;
+}
+
+// ─── Módulo ─────────────────────────────────────────────────────────
+
+.modulo {
+  padding: 1.25rem;
+  background-color: $md-grey-50;
+  min-height: 100vh;
+}
+
+// ─── Filtros ────────────────────────────────────────────────────────
+
+.filtros-card {
+  background: #fff;
+  padding: 1.25rem;
+  border-radius: 0.5rem;
+  border: 1px solid $md-grey-200;
+  @include md-elevation-1;
+}
+
+// ─── Resumen ────────────────────────────────────────────────────────
+
+.resumen-card {
+  background: #fff;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  border: 1px solid $md-grey-200;
+  @include md-elevation-1;
+
+  h5 {
+    color: $md-grey-800;
+    font-weight: 600;
+    i { color: $md-blue; }
+    small { font-size: 0.75rem; font-weight: 400; color: $md-grey-600; }
+  }
+
+  .estadistica-item {
+    text-align: center;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 110px;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+
+    &:hover { transform: translateY(-4px); @include md-elevation-3; }
+
+    .estadistica-valor { font-size: 1.75rem; font-weight: 700; margin-bottom: 0.5rem; line-height: 1; }
+    .estadistica-label { font-size: 0.9rem; opacity: 0.85; font-weight: 600; margin-bottom: 0.25rem; }
+    .estadistica-extra { font-size: 0.8rem; opacity: 0.7; }
+  }
+
+  .total-bg { @include flat-stat-card($color-total); }
+  .cubiertos-bg { @include flat-stat-card($color-cubiertos); }
+  .brechas-bg { @include flat-stat-card($color-brechas); }
+  .porcentaje-bg { @include flat-stat-card($color-porcentaje); }
+  .actividades-bg { @include flat-stat-card($color-actividades); }
+}
+
+// ─── Cards ──────────────────────────────────────────────────────────
+
+.card {
+  background: #fff;
+  border: 1px solid $md-grey-200;
+  border-radius: 0.375rem;
+  margin-bottom: 1rem;
+  @include md-elevation-1;
+  transition: box-shadow 0.3s;
+
+  &:hover { @include md-elevation-2; }
+}
+
+.bg-materiales {
+  background-color: lighten($color-materiales, 42%);
+  color: darken($color-materiales, 15%);
+  border-bottom: 2px solid rgba($color-materiales, 0.2);
+}
+
+// ─── Materiales ─────────────────────────────────────────────────────
+
+.materiales-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.material-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: lighten($color-materiales, 42%);
+  padding: 0.3rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.82rem;
+  transition: transform 0.2s;
+
+  &:hover { transform: scale(1.05); }
+
+  .material-nombre { color: darken($color-materiales, 15%); font-weight: 500; }
+  .material-frecuencia {
+    background: $color-materiales;
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.1rem 0.45rem;
+    border-radius: 10px;
+    min-width: 20px;
+    text-align: center;
+  }
+}
+
+// ─── Tabla ──────────────────────────────────────────────────────────
+
+.table {
+  margin-bottom: 0;
+
+  thead th {
+    background-color: $md-grey-100;
+    border-bottom: 2px solid $md-grey-300;
+    font-weight: 600;
+    color: $md-grey-700;
+    white-space: nowrap;
+    padding: 0.75rem;
+    font-size: 0.85rem;
+
+    &.th-ordenable {
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.2s;
+      &:hover { background-color: darken($md-grey-100, 5%); }
+      i { font-size: 0.7rem; opacity: 0.5; }
+    }
+  }
+
+  tbody td {
+    padding: 0.75rem;
+    vertical-align: middle;
+    font-size: 0.875rem;
+  }
+}
+
+.actividad-descripcion {
+  font-size: 0.85rem;
+  margin-top: 0.4rem;
+  padding: 0.5rem;
+  background-color: rgba($md-grey-100, 0.5);
+  border-radius: 4px;
+  line-height: 1.4;
+}
+
+.actividad-nivel {
+  font-size: 0.85rem;
+  margin-top: 0.3rem;
+  padding-left: 0.5rem;
+  border-left: 2px solid $md-grey-200;
+  strong { font-size: 0.8rem; color: $md-grey-600; }
+}
+
+.col-expand { width: 40px; min-width: 40px; }
+.col-logro-nombre { max-width: 300px; strong { line-height: 1.3; } }
+
+.fila-logro {
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover { background-color: rgba($md-blue, 0.04); box-shadow: inset 3px 0 0 $md-blue; }
+  &.fila-expandida { background-color: rgba($md-blue, 0.06); td { border-bottom: none; } }
+  &.fila-sin-cobertura:hover { box-shadow: inset 3px 0 0 $md-red; }
+}
+
+.icono-expandir {
+  color: $md-grey-600;
+  font-size: 0.75rem;
+  transition: all 0.3s;
+  &.rotado { transform: rotate(90deg); color: $md-blue; }
+}
+
+// Badges
+.badge-cubierto { @include flat-badge($md-green); padding: 0.3rem 0.6rem; font-weight: 600; font-size: 0.78rem; }
+.badge-sin-cobertura { @include flat-badge($md-red); padding: 0.3rem 0.6rem; font-weight: 600; font-size: 0.78rem; }
+.badge-grado { @include flat-badge($md-purple); padding: 0.3rem 0.6rem; font-weight: 600; font-size: 0.78rem; }
+.badge.bg-info { @include flat-badge($md-blue); }
+
+.badge-aire-libre { @include flat-badge($md-green); padding: 0.25rem 0.5rem; font-size: 0.75rem; }
+.badge-aula { @include flat-badge($md-blue); padding: 0.25rem 0.5rem; font-size: 0.75rem; }
+.badge-grupal { @include flat-badge($md-teal); padding: 0.25rem 0.5rem; font-size: 0.75rem; }
+.badge-individual { @include flat-badge($md-orange); padding: 0.25rem 0.5rem; font-size: 0.75rem; }
+.badge-tipo { @include flat-badge($md-indigo); padding: 0.25rem 0.5rem; font-size: 0.75rem; text-transform: capitalize; }
+
+// ─── Detalle expandido ──────────────────────────────────────────────
+
+.fila-detalle {
+  &:hover { background-color: transparent !important; }
+  td { background-color: rgba($md-blue, 0.02); border-top: none; }
+}
+
+.detalle-container {
+  padding: 0.75rem 1rem 1rem 3rem;
+  animation: slideDown 0.3s ease;
+
+  @media (max-width: $mobile) { padding: 0.5rem 0.75rem 0.75rem 1.5rem; }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; max-height: 0; transform: translateY(-8px); }
+  to { opacity: 1; max-height: 2000px; transform: translateY(0); }
+}
+
+.detalle-header {
+  font-weight: 600;
+  font-size: 0.8rem;
+  color: $md-blue-dark;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding-bottom: 0.5rem;
+  margin-bottom: 0.5rem;
+  border-bottom: 2px solid rgba($md-blue, 0.2);
+}
+
+.actividad-item {
+  padding: 0.6rem 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+  &:last-child { border-bottom: none; }
+}
+
+.actividad-titulo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.actividad-numero {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  background-color: lighten($md-blue, 30%);
+  color: $md-blue-dark;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.actividad-meta {
+  font-size: 0.8rem;
+  color: $md-grey-600;
+  padding-left: 2rem;
+  span { margin-right: 1rem; }
+}
+
+.actividad-materiales {
+  font-size: 0.8rem;
+  color: $color-materiales;
+  padding-left: 2rem;
+  margin-top: 0.2rem;
+  font-style: italic;
+}
+
+// ─── IA ─────────────────────────────────────────────────────────────
+
+.ia-card {
+  border: 2px dashed rgba($color-ia, 0.3);
+  background: lighten($color-ia, 44%);
+}
+
+.text-ia { color: $color-ia; }
+
+.btn-ia {
+  @include flat-btn($color-ia);
+  padding: 0.6rem 2rem;
+  font-size: 1rem;
+}
+
+.spinner-border.text-ia {
+  color: $color-ia;
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+.ia-resultado {
+  background: #fff;
+  border: 1px solid rgba($color-ia, 0.2);
+  border-radius: 0.5rem;
+  border-left: 4px solid $color-ia;
+  @include md-elevation-1;
+}
+
+.ia-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid $md-grey-200;
+
+  h5 { margin: 0; color: $color-ia; font-weight: 600; }
+  .ia-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 0.25rem; }
+}
+
+.ia-puntaje {
+  text-align: center;
+  padding: 1.5rem;
+
+  .puntaje-circulo {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 4px solid;
+    background: #fff;
+  }
+
+  .puntaje-numero { font-size: 2rem; font-weight: 700; line-height: 1; }
+  .puntaje-label { font-size: 0.75rem; color: $md-grey-600; }
+  .puntaje-texto { margin-top: 0.5rem; color: $md-grey-600; font-size: 0.9rem; }
+}
+
+.ia-seccion {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid $md-grey-100;
+
+  &:last-child { border-bottom: none; }
+
+  h6 {
+    font-weight: 600;
+    color: $md-grey-800;
+    margin-bottom: 0.75rem;
+    i { color: $color-ia; }
+  }
+
+  ul { padding-left: 1.25rem; margin-bottom: 0; li { margin-bottom: 0.4rem; font-size: 0.9rem; } }
+
+  &.fortalezas h6 i { color: $md-green; }
+  &.brechas h6 i { color: $md-red; }
+  &.recomendaciones h6 i { color: $md-amber; }
+}
+
+.mini-stat {
+  text-align: center;
+  padding: 0.75rem;
+  background: $md-grey-50;
+  border-radius: 0.5rem;
+
+  i { display: block; font-size: 1.25rem; color: $md-orange; margin-bottom: 0.25rem; }
+  strong { display: block; font-size: 1.5rem; color: $md-grey-800; }
+  span { font-size: 0.8rem; color: $md-grey-600; }
+}
+
+.clasificacion-item {
+  padding: 0.3rem 0;
+  font-size: 0.9rem;
+  strong { color: $md-grey-800; }
+  span { color: $md-grey-600; }
+}
+
+// ─── Botones ────────────────────────────────────────────────────────
+
+.btn-primary { @include flat-btn($md-blue); }
+.btn-outline-secondary {
+  border: 1px solid $md-grey-400;
+  color: $md-grey-700;
+  background: #fff;
+  transition: all 0.3s;
+  &:hover { background: $md-grey-100; border-color: $md-grey-600; color: $md-grey-800; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+// ─── Inputs ─────────────────────────────────────────────────────────
+
+.form-label { font-weight: 500; color: $md-grey-700; font-size: 0.875rem; }
+
+.form-select, .form-control {
+  border-color: $md-grey-300;
+  transition: all 0.2s;
+  &:focus { border-color: $md-blue; box-shadow: 0 0 0 0.15rem rgba($md-blue, 0.25); }
+}
+
+.input-group {
+  .input-group-text { background-color: $md-grey-100; border-right: none; color: $md-grey-600; }
+  .form-control { border-left: none; }
+}
+
+// ─── Paginación ─────────────────────────────────────────────────────
+
+.pagination {
+  .page-link {
+    color: $md-blue;
+    padding: 0.5rem 0.75rem;
+    margin: 0 0.125rem;
+    border: 1px solid $md-grey-300;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    background: #fff;
+    transition: all 0.3s;
+
+    &:hover { background: $md-blue-light; color: #fff; border-color: $md-blue-light; transform: translateY(-2px); @include md-elevation-1; }
+  }
+
+  .page-item {
+    &.active .page-link { background: $md-blue; border-color: $md-blue; color: #fff; @include md-elevation-1; cursor: default; }
+    &.disabled .page-link { opacity: 0.5; cursor: not-allowed; background: $md-grey-100; &:hover { transform: none; box-shadow: none; } }
+  }
+}
+
+// ─── Spinner ────────────────────────────────────────────────────────
+
+.spinner-border { width: 3rem; height: 3rem; border-width: 0.3rem; color: $md-blue; }
+
+// ─── Animaciones ────────────────────────────────────────────────────
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.resumen-card, .filtros-card, .ia-resultado { animation: fadeIn 0.3s ease-in-out; }
+
+// ─── Tabs de secciones ──────────────────────────────────────────────
+.seccion-tabs {
+  border-bottom: 2px solid $md-grey-200;
+
+  .nav-link {
+    color: $md-grey-600;
+    border: none;
+    border-bottom: 3px solid transparent;
+    padding: 0.75rem 1.25rem;
+    font-weight: 500;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover { color: $gold; background-color: rgba($gold, 0.04); }
+    &.active { color: $gold; border-bottom-color: $gold; font-weight: 600; }
+
+    .badge { font-size: 0.7rem; }
+  }
+}
+
+.bg-ia { background-color: $md-purple !important; color: #fff !important; }
+
+// ─── Menú hamburguesa móvil ────────────────────────────────────────
+.seccion-movil-nav {
+  position: relative;
+
+  .seccion-movil-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    background: #fff;
+    border: 1px solid $md-grey-200;
+    border-radius: 0 0 8px 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    overflow: hidden;
+
+    a {
+      display: block;
+      padding: 0.75rem 1rem;
+      color: $md-grey-700;
+      text-decoration: none;
+      cursor: pointer;
+      border-bottom: 1px solid $md-grey-100;
+      transition: all 0.15s;
+
+      &:hover { background-color: rgba($gold, 0.06); }
+      &.activo { color: $gold; font-weight: 600; background-color: rgba($gold, 0.04); border-left: 3px solid $gold; }
+      &:last-child { border-bottom: none; }
+    }
+  }
+}
+
+// ─── Estadísticas IA ────────────────────────────────────────────────
+.ia-estadisticas {
+  background: linear-gradient(135deg, rgba($md-purple, 0.03), rgba($md-blue, 0.03));
+  border: 1px solid rgba($md-purple, 0.12);
+  border-radius: 8px;
+  padding: 1.25rem;
+}
+
+.mini-stat-ia {
+  background: #fff;
+  border-radius: 8px;
+  padding: 0.75rem;
+  text-align: center;
+  border-left: 3px solid $md-purple;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+
+  .mini-stat-valor { display: block; font-size: 1.4rem; font-weight: 700; color: $md-grey-800; }
+  .mini-stat-label { display: block; font-size: 0.72rem; color: $md-grey-600; text-transform: uppercase; letter-spacing: 0.5px; }
+}
+
+.grafico-ia-container {
+  background: #fff;
+  border-radius: 8px;
+  padding: 0.75rem;
+  height: 200px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+// ─── Tabs IA ───────────────────────────────────────────────────────
+.ia-tabs {
+  border-bottom: 2px solid $md-grey-200;
+  margin-bottom: 0;
+  overflow-x: auto;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+
+  .nav-item { flex-shrink: 0; }
+
+  .nav-link {
+    color: $md-grey-600;
+    border: none;
+    border-bottom: 3px solid transparent;
+    padding: 0.75rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover { color: $md-purple; background-color: rgba($md-purple, 0.04); }
+    &.active { color: $md-purple; border-bottom-color: $md-purple; font-weight: 600; }
+  }
+}
+
+.ia-tab-content {
+  padding: 1.25rem;
+  background: #fff;
+  border: 1px solid $md-grey-200;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+}
+
+.ia-tab-meta { border-bottom: 1px solid $md-grey-100; padding-bottom: 0.5rem; }
+
+// ─── Fila actividad IA clickeable ──────────────────────────────────
+.fila-actividad-ia {
+  cursor: pointer;
+  transition: all 0.2s;
+  &:hover { background-color: rgba($md-purple, 0.04); box-shadow: inset 3px 0 0 $md-purple; }
+}
+
+// ─── Cards actividad móvil ─────────────────────────────────────────
+.card-actividad-movil {
+  border: 1px solid $md-grey-200;
+  border-radius: 8px;
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover { border-color: $md-purple; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+
+  .card-act-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.4rem;
+    strong { font-size: 0.85rem; }
+  }
+
+  .card-act-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    margin-bottom: 0.3rem;
+    .badge { font-size: 0.7rem; }
+  }
+}
+
+// ─── Badges IA ─────────────────────────────────────────────────────
+.badge-aire-libre { @include flat-badge($md-green); padding: 0.25rem 0.5rem; font-size: 0.75rem; }
+.badge-aula { @include flat-badge($md-blue); padding: 0.25rem 0.5rem; font-size: 0.75rem; }
+.badge-grupal { @include flat-badge($md-teal); padding: 0.25rem 0.5rem; font-size: 0.75rem; }
+.badge-individual { @include flat-badge($md-orange); padding: 0.25rem 0.5rem; font-size: 0.75rem; }
+.badge-tipo { @include flat-badge($md-indigo); padding: 0.25rem 0.5rem; font-size: 0.75rem; text-transform: capitalize; }
+
+// Niveles lúdicos
+.badge-nivel-alto { background-color: rgba($md-green, 0.15); color: $md-green-dark; font-size: 0.7rem; padding: 0.2rem 0.4rem; text-transform: capitalize; }
+.badge-nivel-medio { background-color: rgba($md-orange, 0.15); color: $md-orange-dark; font-size: 0.7rem; padding: 0.2rem 0.4rem; text-transform: capitalize; }
+.badge-nivel-bajo { background-color: rgba($md-red, 0.15); color: $md-red-dark; font-size: 0.7rem; padding: 0.2rem 0.4rem; text-transform: capitalize; }
+
+.card-act-niveles { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.3rem; }
+
+// ─── Responsive tabla logros ───────────────────────────────────────
+@media (max-width: 768px) {
+  .table thead { display: none; }
+
+  .table tbody tr.fila-logro {
+    display: flex;
+    flex-wrap: wrap;
+    padding: 0.75rem;
+    border-bottom: 1px solid $md-grey-200;
+    gap: 0.3rem;
+
+    td { border: none; padding: 0.15rem 0.25rem; }
+    td.col-expand { width: 30px; }
+    td.col-logro-nombre { width: calc(100% - 40px); }
+  }
+
+  .table tbody tr.fila-detalle td { padding: 0; }
+
+  .filtros-card .row .col-md-4,
+  .filtros-card .row .col-md-3,
+  .filtros-card .row .col-md-2 { margin-bottom: 0.5rem; }
+
+  .estadistica-item { padding: 0.75rem !important; .estadistica-valor { font-size: 1.5rem !important; } }
+
+  .ia-tabs .nav-link { padding: 0.5rem 0.75rem; font-size: 0.78rem; }
+}

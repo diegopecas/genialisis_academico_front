@@ -1,0 +1,65 @@
+<div class="modulo">
+  <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [accion]="'ConsultarTodos'" [raiz]="'/estudiantes'"
+    [regresar]="'/reportes/academicos-estudiante'"></app-header>
+
+  <div class="container text-center mt-3">
+    <div class="row">
+      <div class="col">
+        <label>Nombre del Estudiante:</label>
+        <h5 *ngIf="estudiante">{{ estudiante.primer_nombre }} {{
+          estudiante.segundo_nombre }} {{ estudiante.primer_apellido }} {{ estudiante.segundo_apellido }}</h5>
+
+      </div>
+      <div class="col">
+        <label>Grupo</label>
+        <h5 *ngIf="estudiante">{{ estudiante.nombre_grupo }}</h5>
+      </div>
+    </div>
+
+  </div>
+  <hr />
+
+  <div class="container text-center mt-3">
+    <div class="row">
+      <div class="col">
+        <label>Edad del estudiante:</label>
+        <h5 *ngIf="estudiante">{{ estudiante.edad }} Años
+        </h5>
+
+      </div>
+      <div class="col">
+        <label>% Alcanzado Edad</label>
+        <h5>{{porcentajeAlcanzadoNivelMasAlto }} %</h5>
+      </div>
+    </div>
+  </div>
+  <div class="container">
+    <div class="row">
+      <div class="col">
+
+        <canvas id="graficoNivel"></canvas>
+      </div>
+      <div class="col">
+
+        <canvas id="graficoArea"></canvas>
+      </div>
+    </div>
+  </div>
+  <div class="container">
+    <div class="row">
+      <div class="col">
+        <app-tablas [titulos]="titulosLogrosAgrupados" [datos]="logrosAgrupados" [raiz]="'/estudiantes'"
+          ></app-tablas>
+      </div>
+    </div>
+  </div>
+  <div class="fluid-container">
+    <div class="row">
+      <div class="col">
+        <app-tablas [titulos]="titulos" [datos]="datos" [raiz]="'/estudiantes'"></app-tablas>
+      </div>
+    </div>
+  </div>
+
+
+</div>

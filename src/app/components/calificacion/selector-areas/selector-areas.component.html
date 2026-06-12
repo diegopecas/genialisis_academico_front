@@ -1,0 +1,255 @@
+<div class="modulo">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="false"
+    [accion]="'ConsultarTodos'"
+    [regresar]="'/calificacion'"
+    [iconoTitulo]="'/assets/images/reporte.png'"
+  ></app-header>
+
+  <div class="container-fluid mt-2">
+
+    <div class="row" *ngIf="grupo != null">
+      <div class="col-12 d-flex align-items-center justify-content-between mb-2">
+        <h2 class="mb-0">{{ grupo.nombre }}</h2>
+        <div class="d-flex align-items-center gap-3">
+          <a class="link-ver-horario" (click)="abrirModalHorarioVista()" *ngIf="horariosGrupo.length > 0">
+            🕐 Ver horario
+          </a>
+          <span class="badge-dia">{{ nombreDia }}</span>
+        </div>
+      </div>
+      <hr/>
+    </div>
+
+    <!-- Área destacada (la más cercana a la hora actual) -->
+    <div class="row" *ngIf="areaDestacada">
+      <div class="col-sm-12 col-md-4 px-3 mb-4">
+        <div
+          class="text-center ficha ficha-area ficha-area-destacada"
+          [style.background-image]="'linear-gradient(to bottom, #ffffff 80%, ' + areaDestacada.color + ')'"
+          (click)="seleccionarArea(areaDestacada)"
+        >
+          <div class="imagen-container-area">
+            <img [src]="areaDestacada.icono" [alt]="areaDestacada.nombre_area_academica" />
+          </div>
+          <p class="nombre-item">{{ areaDestacada.nombre_area_academica | titlecase }}</p>
+          <span class="horario-badge" *ngIf="areaDestacada.horarioTexto">🕐 {{ areaDestacada.horarioTexto }}</span>
+        </div>
+      </div>
+
+      <!-- Tarjeta Gini -->
+      <div class="col-sm-12 col-md-4 px-3 mb-4">
+        <div class="text-center ficha ficha-gini" (click)="irAGini()">
+          <div class="imagen-container-area gini-avatar-mini">
+            <svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" style="width:70px;height:70px">
+              <circle cx="40" cy="40" r="36" fill="url(#gMini)"/>
+              <ellipse cx="28" cy="35" rx="5.5" ry="6.5" fill="white"/>
+              <ellipse cx="52" cy="35" rx="5.5" ry="6.5" fill="white"/>
+              <circle cx="29.5" cy="36" r="3.2" fill="#3949ab"/>
+              <circle cx="53.5" cy="36" r="3.2" fill="#3949ab"/>
+              <circle cx="30.5" cy="34.5" r="1.2" fill="white"/>
+              <circle cx="54.5" cy="34.5" r="1.2" fill="white"/>
+              <path d="M28 52 Q40 62 52 52" stroke="#3949ab" stroke-width="3" fill="none" stroke-linecap="round"/>
+              <circle cx="22" cy="48" r="5" fill="#ef9a9a" opacity="0.35"/>
+              <circle cx="58" cy="48" r="5" fill="#ef9a9a" opacity="0.35"/>
+              <defs>
+                <radialGradient id="gMini" cx="40%" cy="35%">
+                  <stop offset="0%" stop-color="#e8eaf6"/>
+                  <stop offset="100%" stop-color="#c5cae9"/>
+                </radialGradient>
+              </defs>
+            </svg>
+          </div>
+          <p class="nombre-item">Gini <span class="badge-gini">IA</span></p>
+          <p class="gini-subtitulo">Clase en inglés</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mensaje si no hay áreas hoy -->
+    <div class="row" *ngIf="!areaDestacada && areasAcademicas.length > 0">
+      <div class="col-12 mb-3">
+        <div class="aviso-sin-horario">
+          No hay áreas programadas para hoy ({{ nombreDia }})
+        </div>
+      </div>
+    </div>
+
+    <!-- Botón ver todas (otras del día + fuera del día) -->
+    <div class="row" *ngIf="areasHoyResto.length > 0 || areasFueraDia.length > 0">
+      <div class="col-12 mb-3">
+        <button class="btn-ver-todas" (click)="toggleVerTodas()">
+          {{ verTodas ? '🔼 Ocultar otras áreas' : '🔽 Ver todas las áreas (' + (areasHoyResto.length + areasFueraDia.length) + ')' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Áreas ocultas -->
+    <div class="row" *ngIf="verTodas">
+
+      <!-- Otras del día (con horario) -->
+      <ng-container *ngIf="areasHoyResto.length > 0">
+        <div class="col-12 mb-2">
+          <label class="seccion-label">Otras del {{ nombreDia }}</label>
+        </div>
+        <div class="col-sm-12 col-md-4 px-3 mb-4" *ngFor="let area of areasHoyResto">
+          <div
+            class="text-center ficha ficha-area ficha-area-hoy-resto"
+            [style.background-image]="'linear-gradient(to bottom, #ffffff 80%, ' + area.color + ')'"
+            (click)="seleccionarArea(area)"
+          >
+            <div class="imagen-container-area">
+              <img [src]="area.icono" [alt]="area.nombre_area_academica" />
+            </div>
+            <p class="nombre-item">{{ area.nombre_area_academica | titlecase }}</p>
+            <span class="horario-badge" *ngIf="obtenerHorarioTextoArea(area) as horTxt">🕐 {{ horTxt }}</span>
+          </div>
+        </div>
+      </ng-container>
+
+      <!-- Fuera del día -->
+      <ng-container *ngIf="areasFueraDia.length > 0">
+        <div class="col-12 mb-2">
+          <label class="seccion-label seccion-otras">Fuera del horario de hoy</label>
+        </div>
+        <div class="col-sm-12 col-md-4 px-3 mb-4" *ngFor="let area of areasFueraDia">
+          <div
+            class="text-center ficha ficha-area ficha-area-fuera"
+            [style.background-image]="'linear-gradient(to bottom, #ffffff 80%, ' + area.color + ')'"
+            (click)="seleccionarArea(area)"
+          >
+            <div class="imagen-container-area">
+              <img [src]="area.icono" [alt]="area.nombre_area_academica" />
+            </div>
+            <p class="nombre-item">{{ area.nombre_area_academica | titlecase }}</p>
+            <span class="fuera-horario-badge">Fuera del horario de hoy</span>
+          </div>
+        </div>
+      </ng-container>
+
+      <!-- Tarjeta Gini si no se mostró arriba -->
+      <div class="col-sm-12 col-md-4 px-3 mb-4" *ngIf="!areaDestacada">
+        <div class="text-center ficha ficha-gini" (click)="irAGini()">
+          <div class="imagen-container-area gini-avatar-mini">
+            <svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" style="width:70px;height:70px">
+              <circle cx="40" cy="40" r="36" fill="url(#gMini2)"/>
+              <ellipse cx="28" cy="35" rx="5.5" ry="6.5" fill="white"/>
+              <ellipse cx="52" cy="35" rx="5.5" ry="6.5" fill="white"/>
+              <circle cx="29.5" cy="36" r="3.2" fill="#3949ab"/>
+              <circle cx="53.5" cy="36" r="3.2" fill="#3949ab"/>
+              <circle cx="30.5" cy="34.5" r="1.2" fill="white"/>
+              <circle cx="54.5" cy="34.5" r="1.2" fill="white"/>
+              <path d="M28 52 Q40 62 52 52" stroke="#3949ab" stroke-width="3" fill="none" stroke-linecap="round"/>
+              <circle cx="22" cy="48" r="5" fill="#ef9a9a" opacity="0.35"/>
+              <circle cx="58" cy="48" r="5" fill="#ef9a9a" opacity="0.35"/>
+              <defs>
+                <radialGradient id="gMini2" cx="40%" cy="35%">
+                  <stop offset="0%" stop-color="#e8eaf6"/>
+                  <stop offset="100%" stop-color="#c5cae9"/>
+                </radialGradient>
+              </defs>
+            </svg>
+          </div>
+          <p class="nombre-item">Gini <span class="badge-gini">IA</span></p>
+          <p class="gini-subtitulo">Clase en inglés</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Modal de horario (solo lectura) -->
+<div class="modal-overlay" *ngIf="mostrarModalHorario" (click)="cerrarModalHorarioVista()">
+  <div class="modal-content-horario" (click)="$event.stopPropagation()">
+    <div class="modal-header-custom">
+      <h3>🕐 Horario - {{ grupo?.nombre }}</h3>
+      <button type="button" class="btn-close-custom" (click)="cerrarModalHorarioVista()">✕</button>
+    </div>
+
+    <div class="modal-body-custom">
+
+      <!-- VISTA DESKTOP -->
+      <div class="horario-desktop">
+        <div class="horario-scroll-container">
+          <div class="horario-grid">
+            <div class="horario-header-dias">
+              <div class="horario-cell horario-time-header">Hora</div>
+              <div class="horario-cell horario-day-header" 
+                   *ngFor="let dia of diasSemana"
+                   [class.dia-actual]="esDiaActual(dia.id)">
+                {{ dia.nombre }}
+              </div>
+            </div>
+
+            <div class="horario-row" *ngFor="let hora of horasDelDia">
+              <div class="horario-cell horario-time-cell">{{ hora }}</div>
+              <div class="horario-cell horario-content-cell" 
+                   *ngFor="let dia of diasSemana"
+                   [ngClass]="getClaseHorario(dia.id, hora)"
+                   [class.columna-dia-actual]="esDiaActual(dia.id)">
+                
+                <div class="horario-block" 
+                     *ngIf="getHorarioInfo(dia.id, hora) as horarioInfo"
+                     [style.background-color]="obtenerColorArea(horarioInfo.id_area_academica)"
+                     [ngClass]="[horarioInfo.esInicio ? 'es-inicio' : '',
+                               horarioInfo.esFin ? 'es-fin' : '',
+                               horarioInfo.esIntermedio ? 'es-intermedio' : '']">
+                  
+                  <div *ngIf="horarioInfo.esInicio" class="horario-block-header">
+                    <strong>{{ obtenerNombreArea(horarioInfo.id_area_academica) }}</strong>
+                    <div class="horario-tiempo-small">{{ horarioInfo.duracionCompleta }}</div>
+                  </div>
+                  
+                  <div *ngIf="horarioInfo.esInicio" class="horario-block-content">
+                    <div class="horario-minutos">{{ horarioInfo.total_minutos }}min</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VISTA MÓVIL -->
+      <div class="horario-mobile">
+        <div class="dia-selector">
+          <button class="dia-nav-btn" (click)="diaMovilAnterior()" [disabled]="indiceDiaMovil === 0">‹</button>
+          <div class="dia-tabs">
+            <button *ngFor="let dia of diasConHorario; let i = index" 
+                    class="dia-tab"
+                    [class.dia-tab-activo]="indiceDiaMovil === i"
+                    [class.dia-tab-hoy]="esDiaActual(dia.id)"
+                    (click)="indiceDiaMovil = i">
+              {{ dia.nombre.substring(0, 3) }}
+            </button>
+          </div>
+          <button class="dia-nav-btn" (click)="diaMovilSiguiente()" [disabled]="indiceDiaMovil === diasConHorario.length - 1">›</button>
+        </div>
+
+        <div class="dia-nombre-movil" *ngIf="diasConHorario.length > 0">
+          {{ diasConHorario[indiceDiaMovil]?.nombre }}
+          <span class="tag-hoy" *ngIf="esDiaActual(diasConHorario[indiceDiaMovil]?.id)">Hoy</span>
+        </div>
+
+        <div class="bloques-dia" *ngIf="diasConHorario.length > 0">
+          <div class="bloque-horario-movil" 
+               *ngFor="let h of obtenerHorariosDia(diasConHorario[indiceDiaMovil]?.id)"
+               [style.border-left-color]="obtenerColorArea(h.id_area_academica)">
+            <div class="bloque-color-bar" [style.background-color]="obtenerColorArea(h.id_area_academica)"></div>
+            <div class="bloque-info">
+              <span class="bloque-area">{{ obtenerNombreArea(h.id_area_academica) | titlecase }}</span>
+              <span class="bloque-hora">{{ h.hora_inicial?.substring(0, 5) }} - {{ h.hora_final?.substring(0, 5) }}</span>
+            </div>
+            <span class="bloque-duracion">{{ h.total_minutos }}min</span>
+          </div>
+        </div>
+
+        <div class="sin-horario-movil" *ngIf="diasConHorario.length === 0">
+          No hay horarios configurados
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

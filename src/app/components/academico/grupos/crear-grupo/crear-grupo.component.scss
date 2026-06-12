@@ -1,0 +1,1149 @@
+.modulo {
+  padding: 20px;
+}
+
+.container {
+  max-width: 900px;
+}
+
+// Variables de colores
+$gold: #d4af37;
+$black: #222;
+$light-gold: rgba(212, 175, 55, 0.1);
+
+// =============================================
+// Estilos para las pestañas DESKTOP
+// =============================================
+.tabs-container {
+  max-width: 900px;
+  margin: 2rem auto 0 auto;
+  padding: 0 20px;
+}
+
+// Por defecto: desktop visible, móvil oculto
+.tabs-desktop {
+  display: block;
+}
+
+.tabs-movil {
+  display: none;
+}
+
+.tabs-nav {
+  border-bottom: 1px solid $gold;
+  flex-wrap: nowrap;
+  display: flex;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.tab-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  color: $black;
+  font-weight: 500;
+  margin-right: 3px;
+  border: 1px solid transparent;
+  border-radius: 6px 6px 0 0;
+  white-space: nowrap;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  background: none;
+
+  i {
+    color: $gold;
+    font-size: 1.1rem;
+  }
+
+  &:hover:not(.active) {
+    border-color: rgba($gold, 0.3);
+    background-color: $light-gold;
+  }
+
+  &.active {
+    color: $black;
+    border-color: $gold $gold #fff;
+    background-color: #fff;
+    font-weight: 600;
+
+    &:hover {
+      border-color: $gold $gold #fff;
+    }
+  }
+}
+
+.tab-content {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// =============================================
+// Estilos para las pestañas MOVIL (hamburguesa)
+// =============================================
+.tabs-movil-header {
+  border-bottom: 2px solid $gold;
+}
+
+.tabs-movil-trigger {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 16px;
+  background: #fff;
+  border: none;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: $black;
+
+  > i:first-child {
+    color: $gold;
+    font-size: 1.2rem;
+    width: 24px;
+    text-align: center;
+  }
+
+  .tabs-movil-label {
+    flex: 1;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    i {
+      color: $gold;
+      font-size: 0.95rem;
+    }
+  }
+
+  .tabs-movil-chevron {
+    color: #999;
+    font-size: 0.75rem;
+    transition: transform 0.3s ease;
+
+    &.rotado {
+      transform: rotate(180deg);
+    }
+  }
+}
+
+.tabs-movil-dropdown {
+  background: #fff;
+  border: 1px solid #e9ecef;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tabs-movil-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 20px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #495057;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid #f1f3f5;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  i {
+    color: $gold;
+    font-size: 1rem;
+    width: 20px;
+    text-align: center;
+  }
+
+  &:hover {
+    background-color: $light-gold;
+  }
+
+  &.active {
+    background-color: $light-gold;
+    color: $black;
+    font-weight: 600;
+    border-left: 3px solid $gold;
+    padding-left: 17px;
+  }
+}
+
+// =============================================
+// Preview del icono
+// =============================================
+.icono-section {
+  position: sticky;
+  top: 20px;
+}
+
+.icono-preview {
+  width: 100px;
+  height: 100px;
+  border: 2px solid #dee2e6;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8f9fa;
+  overflow: hidden;
+
+  &.is-invalid-border {
+    border-color: #dc3545;
+  }
+
+  .img-preview {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
+
+  .sin-icono {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: #6c757d;
+
+    i {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    span {
+      font-size: 0.8rem;
+    }
+  }
+}
+
+.icono-preview-large {
+  width: 180px;
+  height: 180px;
+  border: 2px solid #dee2e6;
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8f9fa;
+  overflow: hidden;
+  margin: 0 auto;
+
+  &.is-invalid-border {
+    border-color: #dc3545;
+  }
+
+  .img-preview {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
+
+  .sin-icono {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: #6c757d;
+
+    i {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+
+    span {
+      font-size: 0.9rem;
+    }
+  }
+}
+
+// =============================================
+// Modal overlay
+// =============================================
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+}
+
+.modal-content-custom {
+  background: white;
+  border-radius: 15px;
+  width: 100%;
+  max-width: 900px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header-custom {
+  padding: 1.5rem;
+  border-bottom: 1px solid #dee2e6;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  h3 {
+    margin: 0;
+    color: #2c3e50;
+  }
+
+  .btn-close-custom {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #6c757d;
+    cursor: pointer;
+    transition: color 0.3s ease;
+
+    &:hover {
+      color: #dc3545;
+    }
+  }
+}
+
+.modal-body-custom {
+  padding: 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+// Buscador
+.search-box {
+  position: relative;
+  margin-bottom: 1.5rem;
+
+  input {
+    padding-left: 2.5rem;
+    height: 50px;
+    border-radius: 10px;
+    border: 2px solid #dee2e6;
+
+    &:focus {
+      border-color: #80bdff;
+      box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+  }
+
+  i {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c757d;
+  }
+}
+
+// Grid de imágenes
+.imagenes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.imagen-item {
+  position: relative;
+  border: 2px solid #dee2e6;
+  border-radius: 10px;
+  padding: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  &:hover {
+    border-color: #007bff;
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  }
+
+  &.seleccionada {
+    border-color: #28a745;
+    background: #f0fff4;
+  }
+
+  img {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+    margin-bottom: 0.5rem;
+  }
+
+  .imagen-nombre {
+    font-size: 0.7rem;
+    text-align: center;
+    color: #6c757d;
+    word-break: break-all;
+    line-height: 1.2;
+    max-height: 2.4em;
+    overflow: hidden;
+  }
+
+  .check-icon {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    color: #28a745;
+    font-size: 1.2rem;
+  }
+}
+
+.sin-resultados {
+  text-align: center;
+  padding: 3rem;
+  color: #6c757d;
+
+  i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.3;
+  }
+
+  p {
+    font-size: 1.1rem;
+    margin: 0;
+  }
+}
+
+// =============================================
+// Sección de grados asociados
+// =============================================
+.grados-section {
+  .section-title {
+    color: #495057;
+    font-weight: 600;
+    font-size: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid #e9ecef;
+    
+    i {
+      margin-right: 0.5rem;
+      color: #6c757d;
+    }
+  }
+
+  .grados-card {
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    transition: box-shadow 0.3s ease;
+
+    &:hover {
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+  }
+
+  .card-header-subtle {
+    background: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+    padding: 0.875rem 1.25rem;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #495057;
+    display: flex;
+    align-items: center;
+
+    .header-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      background: #e9ecef;
+      margin-right: 0.75rem;
+      
+      i {
+        font-size: 0.875rem;
+        color: #6c757d;
+      }
+    }
+  }
+
+  .card-body-subtle {
+    padding: 1.25rem;
+  }
+
+  .grados-list {
+    max-height: 300px;
+    overflow-y: auto;
+    
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    &::-webkit-scrollbar-track {
+      background: #f8f9fa;
+      border-radius: 3px;
+    }
+    
+    &::-webkit-scrollbar-thumb {
+      background: #dee2e6;
+      border-radius: 3px;
+      
+      &:hover {
+        background: #adb5bd;
+      }
+    }
+  }
+
+  .grado-item {
+    padding: 0.625rem 0.75rem;
+    border-bottom: 1px solid #f1f3f5;
+    display: flex;
+    align-items: center;
+    transition: background-color 0.2s ease;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &:hover {
+      background-color: #f8f9fa;
+    }
+
+    .form-check-input {
+      width: 1.125rem;
+      height: 1.125rem;
+      margin: 0;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .form-check-label {
+      margin-left: 0.75rem;
+      cursor: pointer;
+      font-size: 0.9375rem;
+      color: #495057;
+      flex-grow: 1;
+    }
+  }
+
+  .grado-item-asociado {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #f1f3f5;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: background-color 0.2s ease;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &:hover {
+      background-color: #f8f9fa;
+    }
+
+    .grado-nombre {
+      font-size: 0.9375rem;
+      color: #495057;
+      flex-grow: 1;
+    }
+
+    .btn-desasociar {
+      background: none;
+      border: none;
+      color: #dc3545;
+      padding: 0.375rem 0.5rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 0.875rem;
+
+      &:hover {
+        background-color: #fff5f5;
+        color: #c82333;
+      }
+
+      i {
+        font-size: 0.875rem;
+      }
+    }
+  }
+
+  .btn-asociar {
+    background: #e3f2fd;
+    border: 1px solid #90caf9;
+    color: #1976d2;
+    padding: 0.75rem 1.25rem;
+    border-radius: 8px;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+
+    &:hover {
+      background: #bbdefb;
+      border-color: #64b5f6;
+      color: #1565c0;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(25, 118, 210, 0.15);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+
+    i {
+      margin-right: 0.5rem;
+    }
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 2.5rem 1rem;
+    color: #adb5bd;
+
+    i {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      opacity: 0.5;
+    }
+
+    p {
+      margin: 0;
+      font-size: 0.9375rem;
+      color: #6c757d;
+    }
+  }
+}
+
+// =============================================
+// Estilos para visualización de horarios tipo calendario
+// =============================================
+.horarios-section {
+  .horarios-header-section {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  .horarios-resumen {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    
+    .resumen-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      font-size: 0.85rem;
+      
+      i {
+        color: #F5A623;
+        font-size: 1rem;
+      }
+      
+      .resumen-numero {
+        font-weight: 700;
+        color: #2c3e50;
+        font-size: 1rem;
+      }
+      
+      .resumen-texto {
+        color: #6c757d;
+        font-size: 0.8rem;
+      }
+    }
+  }
+
+  .horario-leyenda {
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    flex: 1;
+    min-width: 300px;
+
+    h6 {
+      margin-bottom: 0.75rem;
+      color: #495057;
+      font-weight: 600;
+      font-size: 0.85rem;
+    }
+
+    .leyenda-items {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .leyenda-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.75rem;
+      cursor: pointer;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      transition: background-color 0.2s ease;
+      
+      &:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+      }
+
+      .leyenda-checkbox {
+        cursor: pointer;
+        width: 16px;
+        height: 16px;
+      }
+
+      .leyenda-color {
+        width: 16px;
+        height: 16px;
+        border-radius: 4px;
+        border: 2px solid rgba(0, 0, 0, 0.1);
+      }
+    }
+  }
+
+  .horario-scroll-container {
+    overflow-x: auto;
+    overflow-y: visible;
+    max-width: 100%;
+    padding-bottom: 1rem;
+    
+    &::-webkit-scrollbar {
+      height: 8px;
+    }
+    
+    &::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 4px;
+    }
+    
+    &::-webkit-scrollbar-thumb {
+      background: #888;
+      border-radius: 4px;
+      
+      &:hover {
+        background: #555;
+      }
+    }
+  }
+
+  .horario-grid {
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    min-width: 800px;
+  }
+
+  .horario-header-dias {
+    display: grid;
+    grid-template-columns: 60px repeat(7, 1fr);
+    background: linear-gradient(135deg, #F5A623 0%, #F76B1C 100%);
+    color: white;
+    font-weight: 600;
+    font-size: 0.75rem;
+  }
+
+  .horario-row {
+    display: grid;
+    grid-template-columns: 60px repeat(7, 1fr);
+    border-bottom: 1px solid #e0e0e0;
+    min-height: 50px;
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  .horario-cell {
+    padding: 0.4rem;
+    border-right: 1px solid #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+
+    &:last-child {
+      border-right: none;
+    }
+  }
+
+  .horario-time-header,
+  .horario-day-header {
+    text-align: center;
+    padding: 0.6rem 0.4rem;
+    font-size: 0.75rem;
+  }
+
+  .horario-time-cell {
+    background: #f8f9fa;
+    font-weight: 600;
+    color: #495057;
+    font-size: 0.7rem;
+    padding: 0.3rem;
+  }
+
+  .horario-content-cell {
+    position: relative;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    padding: 0;
+
+    &.sin-horario:hover {
+      background-color: #f0f0f0;
+    }
+
+    &.tiene-horario {
+      cursor: default;
+    }
+  }
+
+  .celda-vacia {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ccc;
+    font-size: 0.9rem;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+
+    .horario-content-cell:hover & {
+      opacity: 1;
+    }
+  }
+
+  .horario-block {
+    width: 100%;
+    height: 100%;
+    padding: 0.3rem;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    &.es-inicio {
+      border-top-left-radius: 6px;
+      border-top-right-radius: 6px;
+    }
+
+    &.es-fin {
+      border-bottom-left-radius: 6px;
+      border-bottom-right-radius: 6px;
+    }
+
+    &.es-intermedio {
+      border-radius: 0;
+      border-top: none;
+      border-bottom: none;
+      padding: 0;
+      min-height: 50px;
+    }
+
+    &:hover {
+      transform: translateX(2px);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      z-index: 10;
+
+      .btn-eliminar-horario-calendar {
+        opacity: 1;
+      }
+    }
+
+    .horario-block-header {
+      text-align: center;
+      margin-bottom: 0.15rem;
+
+      strong {
+        font-size: 0.65rem;
+        color: #2c3e50;
+        display: block;
+        text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
+        line-height: 1.1;
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+
+      .horario-tiempo-small {
+        font-size: 0.55rem;
+        opacity: 0.8;
+        color: #2c3e50;
+        margin-top: 0.1rem;
+      }
+    }
+
+    .horario-block-content {
+      text-align: center;
+
+      .horario-minutos {
+        font-size: 0.6rem;
+        font-weight: 700;
+        color: #2c3e50;
+      }
+    }
+
+    .btn-eliminar-horario-calendar {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      background: rgba(220, 53, 69, 0.9);
+      border: none;
+      color: white;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      z-index: 20;
+
+      i {
+        font-size: 0.55rem;
+      }
+
+      &:hover {
+        background: #c82333;
+      }
+    }
+  }
+
+}
+
+// =============================================
+// Vista móvil de horarios (lista por día)
+// =============================================
+.horario-vista-desktop {
+  display: block;
+}
+
+.horario-vista-movil {
+  display: none;
+}
+
+.horario-dia-grupo {
+  margin-bottom: 1rem;
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e9ecef;
+}
+
+.horario-dia-titulo {
+  background: linear-gradient(135deg, $gold 0%, darken($gold, 10%) 100%);
+  color: #fff;
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  i {
+    font-size: 0.9rem;
+  }
+}
+
+.horario-dia-items {
+  padding: 0;
+}
+
+.horario-dia-item {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #f1f3f5;
+  border-left: 4px solid transparent;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background-color: $light-gold;
+  }
+
+  &:active {
+    background-color: rgba($gold, 0.15);
+  }
+}
+
+.horario-dia-item-area {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: $black;
+  margin-bottom: 0.25rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.horario-dia-color-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+.horario-dia-item-hora {
+  font-size: 0.8rem;
+  color: #6c757d;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-left: 18px;
+
+  i {
+    font-size: 0.7rem;
+    color: $gold;
+  }
+
+  .horario-dia-item-min {
+    color: #adb5bd;
+    font-size: 0.75rem;
+  }
+}
+
+// =============================================
+// Modal de horario
+// =============================================
+.modal-content-horario {
+  background: white;
+  border-radius: 15px;
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.modal-footer-custom {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #dee2e6;
+  margin-top: 1rem;
+}
+
+// =============================================
+// Responsive
+// =============================================
+@media (max-width: 768px) {
+  .modulo {
+    padding: 10px;
+  }
+
+  // Tabs: ocultar desktop, mostrar móvil
+  .tabs-desktop {
+    display: none;
+  }
+
+  .tabs-movil {
+    display: block;
+  }
+
+  // Horarios: ocultar grilla, mostrar lista
+  .horario-vista-desktop {
+    display: none;
+  }
+
+  .horario-vista-movil {
+    display: block;
+  }
+
+  // Leyenda responsive
+  .horarios-section {
+    .horarios-header-section {
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .horario-leyenda {
+      min-width: unset;
+
+      .leyenda-items {
+        gap: 0.5rem;
+      }
+    }
+  }
+
+  // Modal responsive
+  .modal-content-custom {
+    max-width: 100%;
+    max-height: 95vh;
+  }
+
+  .imagenes-grid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .imagen-item {
+    img {
+      width: 60px;
+      height: 60px;
+    }
+  }
+
+  // Icono responsive
+  .icono-preview-large {
+    width: 140px;
+    height: 140px;
+  }
+}

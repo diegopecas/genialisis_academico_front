@@ -1,0 +1,120 @@
+<div class="modulo">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="puedeAdministrar"
+    [accion]="'ConsultarTodos'"
+    [raiz]="'/estudiantes'"
+    [regresar]="'/menu'"
+    [iconoTitulo]="'/assets/images/estudiantes.png'"
+  ></app-header>
+  
+  <!-- Vista de tabla para desktop/tablet -->
+  <app-tablas
+    *ngIf="!isMobile"
+    [titulos]="titulos"
+    [datos]="datos"
+    [raiz]="'/estudiantes'"
+    [acciones]="acciones"
+    [accionEditar]="puedeAdministrar" 
+    [mostrarBuscar]="true"
+    [columnasFiltro]="columnasFiltro" 
+    (clicAccion)="clicAccion($event)"
+  ></app-tablas>
+  
+  <!-- Vista móvil -->
+  <div *ngIf="isMobile" class="lista-estudiantes-movil">
+    <!-- Buscador móvil mejorado -->
+    <div class="buscador-movil">
+      <div class="search-container">
+        <input 
+          type="search" 
+          placeholder="Buscar estudiante..." 
+          [(ngModel)]="busquedaMovil"
+          (input)="filtrarEstudiantes()"
+        >
+        <span class="search-icon">🔍</span>
+      </div>
+      <div class="filtros-rapidos">
+        <button 
+          class="filtro-chip" 
+          [class.active]="filtroActivo === 'todos'"
+          (click)="aplicarFiltro('todos')"
+        >
+          Todos
+        </button>
+        <button 
+          class="filtro-chip" 
+          [class.active]="filtroActivo === 'activos'"
+          (click)="aplicarFiltro('activos')"
+        >
+          Activos
+        </button>
+        <button 
+          class="filtro-chip" 
+          [class.active]="filtroActivo === 'inactivos'"
+          (click)="aplicarFiltro('inactivos')"
+        >
+          Inactivos
+        </button>
+        <button 
+          *ngFor="let grupo of grupos" 
+          class="filtro-chip"
+          [class.active]="filtroActivo === grupo.nombre"
+          (click)="aplicarFiltro(grupo.nombre)"
+        >
+          {{ grupo.nombre }}
+        </button>
+      </div>
+    </div>
+    
+    <!-- Tarjetas de estudiantes -->
+    <div 
+      *ngFor="let estudiante of datosFiltrados" 
+      class="estudiante-card"
+      [class.inactivo]="estudiante.activo === 0"
+      (click)="mostrarOpcionesEstudiante(estudiante)"
+    >
+      <div class="card-header">
+        <div class="estudiante-info">
+          <div class="nombre">{{ estudiante.nombre_completo }}</div>
+          <div class="grupo">{{ estudiante.nombre_grupo }}</div>
+        </div>
+        <span 
+          class="estado-badge" 
+          [class.activo]="estudiante.activo === 1"
+          [class.inactivo]="estudiante.activo === 0"
+        >
+          {{ estudiante.estado }}
+        </span>
+      </div>
+      <div class="card-actions">
+        <a [routerLink]="['/estudiantes-vista', estudiante.id_estudiante]" class="ver-mas">
+          Ver más
+        </a>
+        <div class="acciones-rapidas">
+          <button *ngIf="puedeAdministrar" (click)="editarMovil($event, estudiante)">Editar</button>
+          <button *ngIf="puedeCambiarGrupo" (click)="cambiarGrupoMovil($event, estudiante)">Grupo</button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Mensaje cuando no hay resultados -->
+    <div *ngIf="datosFiltrados.length === 0" class="no-resultados">
+      <p>No se encontraron estudiantes</p>
+    </div>
+  </div>
+  
+  <!-- Menú de acciones flotante para móvil -->
+  <div *ngIf="isMobile && estudianteSeleccionado" class="acciones-movil">
+    <div class="acciones-scroll">
+      <div 
+        *ngFor="let accion of acciones" 
+        class="accion-item"
+        (click)="ejecutarAccionMovil(accion.id)"
+      >
+        <img [src]="accion.icono" [alt]="accion.label">
+        <span>{{ accion.label }}</span>
+      </div>
+    </div>
+  </div>
+</div>

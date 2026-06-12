@@ -1,0 +1,632 @@
+$color-primary: #ffbd31;
+$color-text: #555555;
+$color-star-checked: rgb(101, 245, 209);
+
+.modulo {
+  padding-bottom: 2rem;
+}
+
+.seccion-label {
+  font-size: 0.8em;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: $color-primary;
+  padding-bottom: 4px;
+  border-bottom: 2px solid $color-primary;
+  display: inline-block;
+}
+
+.texto-contenido {
+  font-size: 0.85em;
+  color: $color-text;
+  line-height: 1.4;
+
+  ::ng-deep {
+    strong { font-weight: 600; color: #333; }
+    em { font-style: italic; }
+  }
+}
+
+.ficha {
+  cursor: pointer;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  background-color: white;
+  overflow: hidden;
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  }
+
+  &.ficha-actividad {
+    min-height: 60px;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(to bottom, #ffffff 85%, #f5f5f5);
+    position: relative;
+    flex-wrap: wrap;
+    gap: 6px;
+
+    &:hover {
+      background: linear-gradient(to bottom, #ffffff 85%, #e8e8e8);
+    }
+  }
+
+  &.ficha-siguiente {
+    border: 2px solid $color-primary;
+    background: linear-gradient(to bottom, #FFFDF5 85%, #FFF3D6);
+
+    &:hover {
+      background: linear-gradient(to bottom, #FFFDF5 85%, #FFEAB5);
+    }
+  }
+}
+
+.orden-badge {
+  position: absolute;
+  top: 6px;
+  left: 8px;
+  font-size: 0.7em;
+  font-weight: 700;
+  color: #999;
+  background: #f0f0f0;
+  border-radius: 6px;
+  padding: 2px 6px;
+}
+
+.ficha-siguiente .orden-badge {
+  color: #8B6914;
+  background: rgba($color-primary, 0.2);
+}
+
+.duracion-badge {
+  font-size: 0.7em;
+  color: #888;
+  background: #f5f5f5;
+  border-radius: 10px;
+  padding: 2px 8px;
+}
+
+.btn-ver-todas {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  background: transparent;
+  border: 1px dashed #ccc;
+  border-radius: 8px;
+  color: #777;
+  font-size: 0.85em;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: $color-primary;
+    color: #333;
+    background: rgba($color-primary, 0.05);
+  }
+}
+
+.aviso-vacio {
+  text-align: center;
+  padding: 24px 20px;
+  background: #f5f5f5;
+  border-radius: 10px;
+  color: #888;
+  font-size: 0.9em;
+  font-weight: 500;
+}
+
+// ===================== BUSCADOR =====================
+.input-buscar {
+  width: 100%;
+  padding: 9px 14px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 0.88em;
+  font-family: inherit;
+  color: #333;
+  transition: border-color 0.2s;
+
+  &:focus {
+    outline: none;
+    border-color: $color-primary;
+    box-shadow: 0 0 0 2px rgba($color-primary, 0.12);
+  }
+
+  &::placeholder {
+    color: #bbb;
+  }
+}
+
+.input-buscar-edicion {
+  margin-top: 10px;
+}
+
+// ===================== BOTÓN EDITAR =====================
+.btn-editar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 14px;
+  background: white;
+  color: #555;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 0.85em;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+
+  &:hover {
+    border-color: $color-primary;
+    color: #333;
+    background: rgba($color-primary, 0.05);
+  }
+}
+
+// ===================== BARRA MODO EDICIÓN =====================
+.barra-edicion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: linear-gradient(135deg, #FFF3D6, #FFEAB5);
+  border-radius: 10px;
+  border: 1px solid rgba($color-primary, 0.3);
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.barra-edicion-titulo {
+  font-size: 0.85em;
+  font-weight: 600;
+  color: #8B6914;
+}
+
+.barra-edicion-btns {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-cancelar-edicion {
+  padding: 6px 14px;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 0.82em;
+  font-weight: 500;
+  cursor: pointer;
+  color: #666;
+  transition: all 0.2s;
+
+  &:hover { border-color: #999; color: #333; }
+}
+
+.btn-guardar-edicion {
+  padding: 6px 14px;
+  background: #4CAF50;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.82em;
+  font-weight: 600;
+  cursor: pointer;
+  color: white;
+  transition: all 0.2s;
+
+  &:hover:not(:disabled) { background: #43A047; }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+}
+
+// ===================== LISTA EDICIÓN (DRAG & DROP) =====================
+.lista-edicion {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ficha-edicion {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  border: 1px solid #eee;
+  cursor: grab;
+  transition: box-shadow 0.2s, transform 0.15s, opacity 0.15s;
+  touch-action: none;
+  user-select: none;
+
+  &:active { cursor: grabbing; }
+
+  &.dragging {
+    opacity: 0.5;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    transform: scale(1.02);
+    border-color: $color-primary;
+  }
+}
+
+.edicion-handle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+
+  .handle-icon {
+    font-size: 1.1em;
+    color: #bbb;
+    cursor: grab;
+  }
+
+  .edicion-orden {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #f0f0f0;
+    font-size: 0.75em;
+    font-weight: 700;
+    color: #888;
+  }
+}
+
+.edicion-info {
+  flex: 1;
+  min-width: 0;
+
+  .edicion-titulo {
+    font-size: 0.85em;
+    color: #333;
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    ::ng-deep {
+      strong { font-weight: 600; }
+    }
+  }
+}
+
+.edicion-duracion {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
+
+  .input-duracion {
+    width: 52px;
+    padding: 4px 6px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 0.82em;
+    text-align: center;
+    font-weight: 600;
+    color: #333;
+
+    &:focus {
+      outline: none;
+      border-color: $color-primary;
+      box-shadow: 0 0 0 2px rgba($color-primary, 0.15);
+    }
+  }
+
+  .duracion-sufijo {
+    font-size: 0.72em;
+    color: #999;
+  }
+}
+
+.edicion-flechas {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex-shrink: 0;
+
+  .btn-flecha {
+    width: 24px;
+    height: 20px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: white;
+    font-size: 0.65em;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #888;
+    transition: all 0.15s;
+    padding: 0;
+
+    &:hover:not(:disabled) {
+      border-color: $color-primary;
+      color: #333;
+      background: rgba($color-primary, 0.05);
+    }
+    &:disabled { opacity: 0.3; cursor: not-allowed; }
+  }
+
+  .btn-flecha-extremo {
+    font-size: 0.55em;
+    color: #aaa;
+    height: 18px;
+
+    &:hover:not(:disabled) {
+      color: #8B6914;
+      background: rgba($color-primary, 0.1);
+    }
+  }
+}
+
+// ===================== CREAR ACTIVIDAD RÁPIDA =====================
+.btn-crear-actividad {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 16px;
+  background: $color-primary;
+  color: #333;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.85em;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+
+  &:hover {
+    background: darken($color-primary, 8%);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba($color-primary, 0.4);
+  }
+}
+
+.form-crear-rapida {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  border: 2px solid $color-primary;
+}
+
+.form-crear-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #FFF3D6, #FFEAB5);
+  font-weight: 700;
+  font-size: 0.95em;
+  color: #333;
+}
+
+.form-crear-cerrar {
+  cursor: pointer;
+  font-size: 18px;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+  &:hover { opacity: 1; }
+}
+
+.form-crear-body {
+  padding: 16px;
+}
+
+.form-crear-campo {
+  margin-bottom: 12px;
+
+  label {
+    display: block;
+    font-size: 0.78em;
+    font-weight: 600;
+    color: #888;
+    margin-bottom: 4px;
+  }
+
+  input, textarea, select {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    font-size: 0.85em;
+    font-family: inherit;
+
+    &:focus {
+      outline: none;
+      border-color: $color-primary;
+      box-shadow: 0 0 0 2px rgba($color-primary, 0.15);
+    }
+
+    &.campo-invalido {
+      border-color: #F44336;
+      box-shadow: 0 0 0 2px rgba(#F44336, 0.15);
+    }
+  }
+
+  textarea { resize: vertical; }
+}
+
+.campo-error {
+  display: block;
+  color: #F44336;
+  font-size: 0.72em;
+  margin-top: 3px;
+  font-weight: 500;
+}
+
+.form-crear-row {
+  display: flex;
+  gap: 10px;
+}
+
+.form-crear-half { flex: 1; }
+.form-crear-third { flex: 1; }
+
+.form-crear-botones {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+.btn-ia-cal {
+  padding: 8px 16px;
+  background: white;
+  color: #7C3AED;
+  border: 2px solid #7C3AED;
+  border-radius: 6px;
+  font-size: 0.85em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover:not(:disabled) { background: #F5F3FF; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+.btn-crear-cal {
+  padding: 8px 16px;
+  background: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.85em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover:not(:disabled) { background: #43A047; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+.form-crear-indicadores {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.indicador-chip-cal {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  background: #E8F5E9;
+  border: 1px solid #A5D6A7;
+  font-size: 0.75em;
+}
+
+.indicador-logro-cal {
+  color: #4CAF50;
+  font-weight: 600;
+  font-size: 0.85em;
+  text-transform: uppercase;
+}
+
+.indicador-nombre-cal { color: #333; }
+
+.indicador-remove-cal {
+  cursor: pointer;
+  opacity: 0.6;
+  &:hover { opacity: 1; color: #F44336; }
+}
+
+.agregar-indicador-panel-cal {
+  margin-top: 6px;
+
+  summary {
+    font-size: 0.8em;
+    color: $color-primary;
+    font-weight: 600;
+    cursor: pointer;
+    list-style: none;
+    &::-webkit-details-marker { display: none; }
+    &:hover { text-decoration: underline; }
+  }
+}
+
+.buscador-indicador-cal {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  font-size: 0.8em;
+  margin: 6px 0;
+
+  &:focus {
+    outline: none;
+    border-color: $color-primary;
+  }
+}
+
+.indicadores-disponibles-cal {
+  max-height: 180px;
+  overflow-y: auto;
+  padding: 6px;
+  background: #f5f5f5;
+  border-radius: 4px;
+}
+
+.logro-group-cal {
+  margin-bottom: 6px;
+
+  strong {
+    font-size: 0.72em;
+    color: #888;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 3px;
+  }
+}
+
+.indicador-opcion-cal {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 6px;
+  font-size: 0.78em;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background 0.2s;
+
+  &:hover { background: #FFF3D6; }
+  &.ya-agregado { color: #4CAF50; }
+}
+
+@media (max-width: 768px) {
+  .form-crear-row { flex-direction: column; }
+  .form-crear-botones { flex-direction: column; }
+  .btn-crear-actividad { width: 100%; justify-content: center; }
+  .btn-editar { width: 100%; justify-content: center; }
+
+  .barra-edicion {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+
+  .barra-edicion-btns {
+    justify-content: center;
+  }
+
+  .edicion-flechas {
+    display: none;
+  }
+
+  .edicion-info .edicion-titulo {
+    font-size: 0.78em;
+  }
+}

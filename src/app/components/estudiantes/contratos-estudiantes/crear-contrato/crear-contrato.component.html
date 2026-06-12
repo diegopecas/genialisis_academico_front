@@ -1,0 +1,457 @@
+<div class="modulo">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="false"
+    [accion]="accion"
+    [raiz]="'/estudiantes'"
+    [regresar]="regresar"
+    [iconoTitulo]="'/assets/images/contratos.png'"
+  >
+  </app-header>
+
+  <div
+    class="container-custom py-4"
+    [ngClass]="{ 'disabled-container': !editable }"
+  >
+    <!-- Alerta de contrato firmado -->
+    <div *ngIf="model.firmado == 1" class="alert alert-success mb-3">
+      <i class="fas fa-check-circle me-2"></i>
+      <strong>Contrato Firmado:</strong> Este contrato fue firmado el
+      {{ formatearFecha(model.fecha_firma) }} y no puede ser modificado.
+    </div>
+
+    <!-- Información del Estudiante -->
+    <div class="card-simple mb-3">
+      <div class="card-header-simple justify-content-start">
+        <i class="fas fa-user-graduate me-2"></i>
+        <span>Información del Estudiante</span>
+      </div>
+      <div class="card-body-simple">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="label-simple">Nombre Completo</label>
+            <div class="value-simple">{{ nombre_estudiante }}</div>
+          </div>
+          <div class="col-md-3">
+            <label class="label-simple">Documento</label>
+            <div class="value-simple">{{ estudiante?.numero_identificacion }}</div>
+          </div>
+          <div class="col-md-3">
+            <label class="label-simple">Grupo</label>
+            <div class="value-simple">{{ estudiante?.nombre_grupo }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Acudientes del Contrato -->
+    <div class="card-simple mb-3">
+      <div class="card-header-simple justify-content-start">
+        <i class="fas fa-users me-2"></i>
+        <span>Acudientes del Contrato</span>
+      </div>
+      <div class="card-body-simple">
+        <div *ngIf="acudientesDisponibles.length === 0" class="alert alert-danger">
+          <i class="fas fa-exclamation-circle me-2"></i>
+          No hay acudientes registrados.
+          <a [routerLink]="['/estudiantes-acudientes', idEstudiante]" class="alert-link">
+            Registre al menos uno
+          </a>
+        </div>
+        <div *ngIf="acudientesDisponibles.length > 0">
+          <p class="text-muted mb-3">Seleccione los acudientes que firmarán (mínimo 1):</p>
+          <div class="row g-3">
+            <div class="col-md-6" *ngFor="let acudiente of acudientesDisponibles">
+              <div class="acudiente-card" [ngClass]="{ selected: isAcudienteSeleccionado(acudiente.id) }"
+                (click)="editable ? toggleAcudiente(acudiente.id) : null">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" [checked]="isAcudienteSeleccionado(acudiente.id)"
+                    [disabled]="!editable" (click)="$event.stopPropagation()" (change)="toggleAcudiente(acudiente.id)" />
+                  <label class="form-check-label w-100">
+                    <strong>{{ acudiente.nombre_completo }}</strong>
+                    <div class="mt-1"><span class="badge bg-secondary">{{ acudiente.nombre_tipo_acudiente || acudiente.tipo_acudiente }}</span></div>
+                    <small class="text-muted d-block mt-1">
+                      <i class="fas fa-id-card me-1"></i>
+                      {{ acudiente.documento_acudiente || acudiente.numero_documento || "Sin documento" }}
+                    </small>
+                    <small class="d-block mt-1" [ngClass]="acudiente.correo_electronico ? 'text-muted' : 'text-danger'">
+                      <i class="fas fa-envelope me-1"></i>
+                      {{ acudiente.correo_electronico || "Sin correo electrónico" }}
+                    </small>
+                    <div *ngIf="acudiente.es_responsable_pago == 1" class="mt-1">
+                      <span class="badge bg-success">Responsable de pago</span>
+                    </div>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div *ngIf="model.acudientes?.length === 0 && submitted" class="alert alert-danger mt-3">
+            <i class="fas fa-exclamation-circle me-2"></i>Debe seleccionar al menos un acudiente
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Observaciones -->
+    <div class="card-simple mb-3">
+      <div class="card-header-simple justify-content-start">
+        <i class="fas fa-comment-dots me-2"></i>
+        <span>Observaciones</span>
+      </div>
+      <div class="card-body-simple">
+        <textarea class="form-control" rows="3" [(ngModel)]="model.observaciones"
+          placeholder="Observaciones adicionales (opcional)..."></textarea>
+      </div>
+    </div>
+
+    <!-- Datos del Contrato -->
+    <div class="card-simple mb-3">
+      <div class="card-header-simple justify-content-start">
+        <i class="fas fa-file-signature me-2"></i>
+        <span>Datos del Contrato</span>
+      </div>
+      <div class="card-body-simple">
+        <div class="row g-3">
+          <div class="col-md-2">
+            <label class="form-label">Año <span class="text-danger">*</span></label>
+            <input type="number" class="form-control" [(ngModel)]="model.anio" required
+              [ngClass]="{ 'is-invalid': !model.anio && submitted }" (change)="onAnioCambiado()" />
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">Fecha Firma <span class="text-danger">*</span></label>
+            <input type="date" class="form-control" [(ngModel)]="model.fecha_firma" required
+              [ngClass]="{ 'is-invalid': !model.fecha_firma && submitted }" />
+            <small class="text-muted">Cuándo se firma</small>
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">Inicio Servicio <span class="text-danger">*</span></label>
+            <input type="date" class="form-control" [(ngModel)]="model.fecha_inicio" required
+              [ngClass]="{ 'is-invalid': !model.fecha_inicio && submitted }" (change)="onFechaInicioChange()" />
+            <small class="text-muted">Cuándo inicia</small>
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">Fin Servicio <span class="text-danger">*</span></label>
+            <input type="date" class="form-control" [(ngModel)]="model.fecha_fin" required
+              [ngClass]="{ 'is-invalid': !model.fecha_fin && submitted }" (change)="onFechaFinChange()" />
+            <small class="text-muted">Cuándo termina</small>
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">Lugar <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" [(ngModel)]="model.lugar_firma" required
+              [ngClass]="{ 'is-invalid': !model.lugar_firma && submitted }" />
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">Cuotas Matrícula</label>
+            <input type="number" class="form-control" [(ngModel)]="cuotasMatricula" min="1" max="12"
+              (change)="onCuotasMatriculaChange()" />
+            <small class="text-muted">Dividir matrícula en</small>
+          </div>
+          <div class="col-md-6 mt-2">
+            <label class="form-label">Autorización de Uso de Imágenes</label>
+            <select class="form-select" [(ngModel)]="model.autoriza_imagenes">
+              <option [value]="1">Sí, autorizo el uso de imágenes</option>
+              <option [value]="0">No autorizo el uso de imágenes</option>
+            </select>
+          </div>
+          <div class="col-md-6 mt-2">
+            <label class="form-label">Incluir Pagaré en el Contrato</label>
+            <select class="form-select" [(ngModel)]="model.autoriza_pagare">
+              <option [value]="1">Sí, incluir pagaré</option>
+              <option [value]="0">No incluir pagaré</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Valores del Contrato -->
+    <div class="card-simple mb-3">
+      <div class="card-header-simple justify-content-start">
+        <i class="fas fa-dollar-sign me-2"></i>
+        <span>Valores del Contrato</span>
+      </div>
+      <div class="card-body-simple">
+        <!-- Tarifas sugeridas -->
+        <div *ngIf="tarifaGrupo" class="alert alert-info mb-3">
+          <i class="fas fa-info-circle me-2"></i>
+          <strong>Tarifas base para {{ tarifaGrupo.nombre_grupo }} año {{ model.anio }}:</strong>
+          Matrícula {{ formatearMoneda(matriculaBase) }} • Pensión {{ formatearMoneda(pensionBase) }}
+        </div>
+        <div *ngIf="!tarifaGrupo && model.anio && estudiante" class="alert alert-warning mb-3">
+          <i class="fas fa-exclamation-triangle me-2"></i>
+          No hay tarifas configuradas para este grupo en el año {{ model.anio }}.
+        </div>
+
+        <!-- Ajustes de Valores -->
+        <div *ngIf="tarifaGrupo" class="card border mb-3">
+          <div class="card-header bg-light py-2 d-flex justify-content-start align-items-center">
+            <i class="fas fa-sliders-h me-2"></i>
+            <strong>Ajustes de Valores</strong>
+          </div>
+          <div class="card-body">
+            <div class="row g-3">
+              <!-- Columna Matrícula -->
+              <div class="col-md-6">
+                <div class="border rounded p-3 h-100">
+                  <h6 class="mb-3 text-primary text-start">
+                    <i class="fas fa-graduation-cap me-2"></i>Matrícula
+                  </h6>
+                  <div class="row g-2">
+                    <div class="col-12">
+                      <label class="form-label small text-muted mb-1">Valor Base</label>
+                      <div class="form-control-plaintext fw-bold">{{ formatearMoneda(matriculaBase) }}</div>
+                    </div>
+                    <div class="col-6">
+                      <label class="form-label small text-muted mb-1">
+                        <i class="fas fa-minus-circle text-success me-1"></i>Descuento
+                      </label>
+                      <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input type="text" class="form-control text-end" [value]="formateados.descuentoMatricula"
+                          (input)="onDescuentoMatriculaInput($event)" placeholder="0" [disabled]="!editable" />
+                      </div>
+                    </div>
+                    <div class="col-6">
+                      <label class="form-label small text-muted mb-1">
+                        <i class="fas fa-plus-circle text-danger me-1"></i>Recargo
+                      </label>
+                      <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input type="text" class="form-control text-end" [value]="formateados.recargoMatricula"
+                          (input)="onRecargoMatriculaInput($event)" placeholder="0" [disabled]="!editable" />
+                      </div>
+                    </div>
+                    <div class="col-12">
+                      <label class="form-label small text-muted mb-1">Valor Final</label>
+                      <div class="form-control bg-light fw-bold text-end py-2">{{ formatearMoneda(matriculaFinal) }}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- Columna Pensión -->
+              <div class="col-md-6">
+                <div class="border rounded p-3 h-100">
+                  <h6 class="mb-3 text-primary text-start">
+                    <i class="fas fa-calendar-alt me-2"></i>Pensión Mensual
+                  </h6>
+                  <div class="row g-2">
+                    <div class="col-12">
+                      <label class="form-label small text-muted mb-1">Valor Base</label>
+                      <div class="form-control-plaintext fw-bold">{{ formatearMoneda(pensionBase) }}</div>
+                    </div>
+                    <div class="col-6">
+                      <label class="form-label small text-muted mb-1">
+                        <i class="fas fa-minus-circle text-success me-1"></i>Descuento
+                      </label>
+                      <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input type="text" class="form-control text-end" [value]="formateados.descuentoPension"
+                          (input)="onDescuentoPensionInput($event)" placeholder="0" [disabled]="!editable" />
+                      </div>
+                    </div>
+                    <div class="col-6">
+                      <label class="form-label small text-muted mb-1">
+                        <i class="fas fa-plus-circle text-danger me-1"></i>Recargo
+                      </label>
+                      <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input type="text" class="form-control text-end" [value]="formateados.recargoPension"
+                          (input)="onRecargoPensionInput($event)" placeholder="0" [disabled]="!editable" />
+                      </div>
+                    </div>
+                    <div class="col-12">
+                      <label class="form-label small text-muted mb-1">Valor Final</label>
+                      <div class="form-control bg-light fw-bold text-end py-2">{{ formatearMoneda(pensionFinal) }}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- Razón del descuento -->
+              <div class="col-md-6" *ngIf="hayDescuentos()">
+                <label class="form-label text-start">
+                  <i class="fas fa-comment-alt text-success me-1"></i>
+                  Razón del descuento <span class="text-danger">*</span>
+                </label>
+                <input type="text" class="form-control" [(ngModel)]="razon_descuento"
+                  placeholder="Ej: Descuento por hermano, Beca parcial..." [disabled]="!editable" maxlength="500" />
+              </div>
+              <!-- Razón del recargo -->
+              <div class="col-md-6" *ngIf="hayRecargos()">
+                <label class="form-label text-start">
+                  <i class="fas fa-comment-alt text-danger me-1"></i>
+                  Razón del recargo <span class="text-danger">*</span>
+                </label>
+                <input type="text" class="form-control" [(ngModel)]="razon_recargo"
+                  placeholder="Ej: Jornada extendida, Servicios adicionales..." [disabled]="!editable" maxlength="500" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Botón Regenerar Valores -->
+        <div class="mb-3" *ngIf="tarifaGrupo">
+          <button class="btn btn-primary" (click)="generarValores()" *ngIf="editable"
+            [disabled]="!model.fecha_inicio || !model.fecha_fin">
+            <i class="fas fa-sync-alt me-1"></i>
+            {{ valoresGenerados ? 'Regenerar Valores' : 'Generar Valores' }}
+          </button>
+          <small class="text-muted ms-2" *ngIf="!valoresGenerados">
+            Configure las fechas y haga clic para generar los valores mensuales
+          </small>
+        </div>
+
+        <!-- Mensaje para generar valores -->
+        <div *ngIf="!valoresGenerados && tarifaGrupo" class="alert alert-secondary text-center py-4">
+          <i class="fas fa-calculator fa-2x mb-2 d-block"></i>
+          <p class="mb-2">Configure las fechas, ajuste descuentos/recargos si aplica, luego haga clic en "Generar Valores"</p>
+          <small class="text-muted">Se creará una cuota por cada mes del período seleccionado</small>
+        </div>
+
+        <!-- Tabla de valores por mes -->
+        <div *ngIf="valoresGenerados && valoresMensuales.length > 0">
+          <div class="table-responsive">
+            <table class="table table-hover table-valores">
+              <thead class="table-light">
+                <tr>
+                  <th class="text-start" style="width: 180px;">Mes</th>
+                  <th class="text-end" style="width: 180px;">Matrícula</th>
+                  <th class="text-end" style="width: 180px;">Pensión</th>
+                  <th class="text-end" style="width: 150px;">Total Mes</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let vm of valoresMensuales; let i = index">
+                  <td class="text-start"><strong>{{ vm.fechaFormateada }}</strong></td>
+                  <td>
+                    <div class="input-group input-group-sm" *ngIf="vm.matricula">
+                      <span class="input-group-text">$</span>
+                      <input type="text" class="form-control text-end" 
+                        [value]="formatearNumeroTabla(vm.matricula.valor)"
+                        (input)="onInputValorTabla($event, vm, 'matricula')"
+                        (blur)="onBlurValorTabla($event, vm, 'matricula')"
+                        [disabled]="!editable" />
+                    </div>
+                    <span *ngIf="!vm.matricula" class="text-muted">-</span>
+                  </td>
+                  <td>
+                    <div class="input-group input-group-sm" *ngIf="vm.pension">
+                      <span class="input-group-text">$</span>
+                      <input type="text" class="form-control text-end" 
+                        [value]="formatearNumeroTabla(vm.pension.valor)"
+                        (input)="onInputValorTabla($event, vm, 'pension')"
+                        (blur)="onBlurValorTabla($event, vm, 'pension')"
+                        [disabled]="!editable" />
+                    </div>
+                    <span *ngIf="!vm.pension" class="text-muted">-</span>
+                  </td>
+                  <td class="text-end"><strong>{{ formatearMoneda(vm.totalMes) }}</strong></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <!-- Resumen de valores -->
+          <div class="resumen-valores mt-4 p-3 bg-light rounded">
+            <div class="row align-items-center text-center">
+              <div class="col-md-3">
+                <div class="resumen-item">
+                  <small class="text-muted d-block">Total Matrícula</small>
+                  <strong class="text-primary">{{ formatearMoneda(resumenValores.total_matricula) }}</strong>
+                </div>
+              </div>
+              <div class="col-md-1"><i class="fas fa-plus text-muted"></i></div>
+              <div class="col-md-3">
+                <div class="resumen-item">
+                  <small class="text-muted d-block">Total Pensiones ({{ resumenValores.numero_cuotas }} meses)</small>
+                  <strong class="text-primary">{{ formatearMoneda(resumenValores.total_pension) }}</strong>
+                </div>
+              </div>
+              <div class="col-md-1"><i class="fas fa-equals text-muted"></i></div>
+              <div class="col-md-4">
+                <div class="resumen-item resumen-total">
+                  <small class="text-muted d-block">Total Contrato</small>
+                  <strong class="text-success fs-4">{{ formatearMoneda(resumenValores.valor_total) }}</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Error si no hay valores -->
+        <div *ngIf="!valoresGenerados && submitted" class="alert alert-danger mt-3">
+          <i class="fas fa-exclamation-circle me-2"></i>Debe generar los valores del contrato antes de guardar
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMPONENTE DOCUMENTOS - FUERA DEL DISABLED-CONTAINER -->
+  <div class="container-custom pb-4">
+    <div class="card-simple mb-3" *ngIf="accion !== 'crear' && estudiante && model.id">
+      <div class="card-header-simple justify-content-start">
+        <i class="fas fa-file-contract me-2"></i>
+        <span>Contrato Firmado</span>
+      </div>
+      <div class="card-body-simple">
+        <app-documentos-persona [idPersona]="estudiante.id_persona" [tipoPersona]="'estudiante'" [idContrato]="model.id"
+          [soloContratoFirmado]="true" [nombrePersona]="nombre_estudiante" [soloLectura]="!editable"
+          [emailsFirmantes]="emailsFirmantes" (documentoSubido)="onDocumentoSubido($event)">
+        </app-documentos-persona>
+      </div>
+    </div>
+    <!-- Estado de Firma -->
+    <div class="card-simple mb-3" *ngIf="accion !== 'crear'">
+      <div class="card-header-simple justify-content-start">
+        <i class="fas fa-signature me-2"></i>
+        <span>Estado de Firma</span>
+      </div>
+      <div class="card-body-simple">
+        <div *ngIf="model.firmado == 1" class="alert alert-success">
+          <i class="fas fa-check-circle me-2"></i>
+          <strong>Contrato Firmado</strong> - Fecha: {{ formatearFecha(model.fecha_firma) }}
+        </div>
+        <div *ngIf="model.firmado != 1">
+          <div class="d-flex align-items-center justify-content-between">
+            <div>
+              <i class="fas fa-clock text-warning me-2"></i>
+              <strong>Pendiente de Firma</strong>
+            </div>
+            <button class="btn btn-success" (click)="marcarComoFirmado()" *ngIf="editable && tieneDocumentoFirmado">
+              <i class="fas fa-check me-2"></i>Marcar como Firmado
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Botones de acción -->
+  <div class="container-custom pb-4">
+    <div class="row g-3">
+      <div class="col-md-3" *ngIf="editable">
+        <button class="btn btn-warning w-100" (click)="grabar()" [disabled]="guardando">
+          <i class="fas fa-save me-2"></i>{{ guardando ? "Guardando..." : "Guardar Contrato" }}
+        </button>
+      </div>
+      <div class="col-md-3" *ngIf="editable && accion === 'crear'">
+        <button class="btn btn-success w-100" (click)="grabarYGenerarPDF()" [disabled]="guardando">
+          <i class="fas fa-file-pdf me-2"></i>{{ guardando ? "Procesando..." : "Guardar y Generar PDF" }}
+        </button>
+      </div>
+      <div class="col-md-3" *ngIf="accion === 'editar' && model.id && !tieneDocumentoFirmado">
+        <button class="btn btn-success w-100" (click)="generarPDF()" [disabled]="guardando">
+          <i class="fas fa-file-pdf me-2"></i>{{ guardando ? "Procesando..." : "Guardar y Generar PDF" }}
+        </button>
+      </div>
+      <div class="col-md-3" *ngIf="accion !== 'crear' && model.id && valoresGenerados && model.firmado != 1">
+        <button class="btn btn-cobrar w-100" (click)="generarCuentasPorCobrar()" [disabled]="generandoCuentas">
+          <i class="fas fa-file-invoice-dollar me-2"></i>{{ generandoCuentas ? "Generando..." : "Generar Cuentas por Cobrar" }}
+        </button>
+      </div>
+      <div class="col-md-3">
+        <button class="btn btn-secondary w-100" (click)="volver()">
+          <i class="fas fa-arrow-left me-2"></i>Volver
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

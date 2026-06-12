@@ -1,0 +1,252 @@
+<div class="modulo">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="false"
+    [accion]="'ConsultarTodos'"
+    [regresar]="rutaRegresar"
+    [iconoTitulo]="'/assets/images/reporte.png'"
+  ></app-header>
+
+  <div class="container-fluid mt-2">
+
+    <!-- Info de actividad -->
+    <div class="row mb-3" *ngIf="actividadAcademica != null">
+      <div class="col-md-12">
+        <div class="text-center ficha-sin-seleccion">
+          <div class="row">
+            <div class="col-sm-12 col-md-12">
+              <label class="letra-titulo">
+                Indicador de Logro
+                <span class="badge-evaluacion" *ngIf="esEvaluacion">📋 Sprint de Evaluación</span>
+              </label>
+              <p class="texto-contenido" [innerHTML]="actividadAcademica.indicador_logro_nombre"></p>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-sm-12 col-md-3">
+              <label class="letra-titulo">Título</label>
+              <p class="texto-contenido">
+                <span [innerHTML]="actividadAcademica.titulo"></span><br />
+                ({{ actividadAcademica.minutos_duracion }}min.)
+              </p>
+            </div>
+            <div class="col-sm-12 col-md-3">
+              <label class="letra-titulo">Materiales</label>
+              <p class="texto-contenido" [innerHTML]="actividadAcademica.materiales"></p>
+            </div>
+            <div class="col-sm-12 col-md-3">
+              <label class="letra-titulo">Nivel 1</label>
+              <p class="texto-contenido" [innerHTML]="actividadAcademica.nivel_uno"></p>
+            </div>
+            <div class="col-sm-12 col-md-3">
+              <label class="letra-titulo">Nivel 2</label>
+              <p class="texto-contenido" [innerHTML]="actividadAcademica.nivel_dos"></p>
+            </div>
+          </div>
+          <hr />
+          <div class="row">
+            <div class="col-sm-12 col-md-12">
+              <label class="letra-titulo">Descripción</label>
+              <p class="texto-contenido" [innerHTML]="actividadAcademica.descripcion"></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Observación general de la tarea -->
+    <div class="row mb-3" *ngIf="actividadAcademica != null && actividadAcademica.id_docente_inicia != null">
+      <div class="col-12">
+        <div class="observacion-tarea-container">
+          <label class="observacion-label">📝 Observación de la clase</label>
+          <textarea
+            class="observacion-textarea"
+            [(ngModel)]="observacionTarea"
+            (blur)="guardarObservacionTarea()"
+            placeholder="Observaciones generales de la clase... (opcional)"
+            rows="2"
+          ></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Calificación de estudiantes -->
+    <div class="row" *ngIf="actividadAcademica != null">
+      <ng-container *ngIf="actividadAcademica.id_docente_inicia != null">
+
+        <!-- Estudiantes presentes -->
+        <div class="col-sm-12 col-md-4 px-3 mb-3"
+             *ngFor="let estudiante of estudiantes; trackBy: trackByEstudiante">
+          <div class="ficha-estudiante">
+            <div class="estudiante-header">
+              <label class="estudiante-label">Estudiante</label>
+              <p class="estudiante-nombre">
+                {{ estudiante.primer_nombre }} {{ estudiante.primer_apellido }}
+              </p>
+            </div>
+            <div class="parametros-container">
+              <div class="parametro-item" *ngFor="let parametro of estudiante.parametrosCalificaciones">
+                <label class="parametro-label">{{ parametro.nombre }}</label>
+                <div class="estrellas-container">
+                  <span
+                    *ngFor="let valorParametro of parametro.valores"
+                    [ngClass]="[
+                      'calificacion', 'fa',
+                      valorParametro.icono || 'fa-star',
+                      parametro.seleccionado &&
+                      parametro.seleccionado.valor_cuantitativo >= valorParametro.valor_cuantitativo ? 'checked' : ''
+                    ]"
+                    [title]="valorParametro.valor_cualitativo + ' (' + valorParametro.valor_cuantitativo + ')'"
+                    (click)="calificar(valorParametro, parametro, estudiante)"
+                  ></span>
+                </div>
+              </div>
+            </div>
+            <div class="observacion-estudiante">
+              <textarea
+                class="observacion-textarea-mini"
+                [(ngModel)]="estudiante.observacion"
+                (blur)="guardarObservacionEstudiante(estudiante)"
+                placeholder="Observación... (opcional)"
+                rows="1"
+              ></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Acordeón de estudiantes ausentes (solo en evaluación) -->
+        <div class="col-12 mt-3" *ngIf="esEvaluacion && estudiantesAusentes.length > 0">
+          <div class="acordeon-ausentes">
+            <button class="acordeon-header" type="button" (click)="toggleAusentes()">
+              <span class="acordeon-titulo">
+                <i class="fa fa-user-times"></i>
+                Estudiantes ausentes
+                <span class="acordeon-contador">{{ estudiantesAusentes.length }}</span>
+              </span>
+              <i class="fa" [ngClass]="ausentesExpandido ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+            </button>
+
+            <ng-container *ngIf="ausentesExpandido">
+              <div class="acordeon-aviso">
+                <i class="fa fa-info-circle"></i>
+                Estudiantes que no tienen asistencia registrada hoy. Puedes calificarlos si están realizando la evaluación de forma alternativa.
+              </div>
+              <div class="acordeon-contenido">
+                <div class="row">
+                  <div class="col-sm-12 col-md-4 px-3 mb-3"
+                       *ngFor="let estudiante of estudiantesAusentes; trackBy: trackByEstudiante">
+                    <div class="ficha-estudiante ficha-ausente">
+                      <div class="estudiante-header">
+                        <label class="estudiante-label">
+                          Estudiante
+                          <span class="badge-ausente">Ausente</span>
+                        </label>
+                        <p class="estudiante-nombre">
+                          {{ estudiante.primer_nombre }} {{ estudiante.primer_apellido }}
+                        </p>
+                      </div>
+                      <div class="parametros-container">
+                        <div class="parametro-item" *ngFor="let parametro of estudiante.parametrosCalificaciones">
+                          <label class="parametro-label">{{ parametro.nombre }}</label>
+                          <div class="estrellas-container">
+                            <span
+                              *ngFor="let valorParametro of parametro.valores"
+                              [ngClass]="[
+                                'calificacion', 'fa',
+                                valorParametro.icono || 'fa-star',
+                                parametro.seleccionado &&
+                                parametro.seleccionado.valor_cuantitativo >= valorParametro.valor_cuantitativo ? 'checked' : ''
+                              ]"
+                              [title]="valorParametro.valor_cualitativo + ' (' + valorParametro.valor_cuantitativo + ')'"
+                              (click)="calificar(valorParametro, parametro, estudiante)"
+                            ></span>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="observacion-estudiante">
+                        <textarea
+                          class="observacion-textarea-mini"
+                          [(ngModel)]="estudiante.observacion"
+                          (blur)="guardarObservacionEstudiante(estudiante)"
+                          placeholder="Observación... (opcional)"
+                          rows="1"
+                        ></textarea>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </ng-container>
+          </div>
+        </div>
+
+      </ng-container>
+
+      <div class="col-md-12 mt-3">
+        <hr />
+
+        <!-- Mini selector de horario (solo si no ha iniciado y hay bloques) -->
+        <div class="row justify-content-center" *ngIf="actividadAcademica.id_docente_inicia == null && bloquesHorario.length > 0">
+          <div class="col-sm-8 col-md-4">
+            <div class="selector-horario">
+              <label class="selector-horario-label">🕐 Clase correspondiente (opcional)</label>
+              <div class="bloques-radio">
+                <label class="bloque-radio" *ngFor="let bloque of bloquesHorario"
+                       [class.bloque-radio-activo]="horarioSeleccionado?.id === bloque.id">
+                  <input type="radio" name="horario"
+                         [value]="bloque.id"
+                         [checked]="horarioSeleccionado?.id === bloque.id"
+                         (change)="horarioSeleccionado = bloque">
+                  <span class="bloque-radio-texto">
+                    {{ bloque.hora_inicial?.substring(0, 5) }} - {{ bloque.hora_final?.substring(0, 5) }}
+                  </span>
+                  <span class="bloque-radio-min">{{ bloque.total_minutos }}min</span>
+                </label>
+                <label class="bloque-radio" [class.bloque-radio-activo]="!horarioSeleccionado">
+                  <input type="radio" name="horario"
+                         [value]="null"
+                         [checked]="!horarioSeleccionado"
+                         (change)="horarioSeleccionado = null">
+                  <span class="bloque-radio-texto">Sin asociar</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row justify-content-center">
+          <div class="col-sm-6 col-md-3 text-center">
+            <label class="docente-label">
+              Docente: {{ usuario.id_genero == 1 ? 'Miss' : 'Mr' }} {{ usuario.primer_nombre }}
+            </label>
+            <button
+              *ngIf="actividadAcademica.id_docente_inicia == null && usuario.id_docente"
+              class="btn btn-success btn-tarea"
+              (click)="iniciarTarea()"
+            >
+              <i class="fa fa-play"></i> Iniciar tarea
+            </button>
+            <button
+              *ngIf="actividadAcademica.id_docente_inicia == null && !usuario.id_docente"
+              class="btn btn-success btn-tarea btn-tarea-disabled"
+              disabled
+            >
+              <i class="fa fa-play"></i> Iniciar tarea
+            </button>
+            <small class="aviso-no-docente" *ngIf="actividadAcademica.id_docente_inicia == null && !usuario.id_docente">
+              Debes tener perfil de docente para iniciar tareas
+            </small>
+            <button
+              *ngIf="actividadAcademica.id_docente_inicia != null"
+              class="btn btn-danger btn-tarea"
+              (click)="finalizarTarea()"
+            >
+              <i class="fa fa-stop"></i> Finalizar tarea
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

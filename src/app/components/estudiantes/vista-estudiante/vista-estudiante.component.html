@@ -1,0 +1,221 @@
+<div class="modulo vista-360">
+  <app-header
+    [tituloModulo]="'Vista 360° del Estudiante: ' + nombreCompleto"
+    [mostrarCrear]="false"
+    [accion]="'consultar'"
+    [raiz]="'/estudiantes'"
+    [regresar]="'/estudiantes'"
+    [iconoTitulo]="'/assets/images/estudiantes.png'"
+  ></app-header>
+
+  <!-- Indicador de carga -->
+  <div *ngIf="cargando" class="loading-container">
+    <div class="spinner-wrapper">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+      <p class="loading-text">Cargando información del estudiante...</p>
+    </div>
+  </div>
+
+  <!-- Sistema de pestañas -->
+  <div class="container-fluid mt-4" *ngIf="!cargando">
+    <!-- Navegación desktop -->
+    <ul class="nav nav-tabs" id="vistaEstudianteTab" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" [class.active]="pestanaActiva === 'datos'" type="button" (click)="cambiarPestana('datos')">
+          <i class="fas fa-user-circle me-2"></i>Datos Personales y Acudientes
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" [class.active]="pestanaActiva === 'datos-medicos'" type="button" (click)="cambiarPestana('datos-medicos')">
+          <i class="fas fa-heartbeat me-2"></i>Datos Médicos
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" [class.active]="pestanaActiva === 'datos-adicionales'" type="button" (click)="cambiarPestana('datos-adicionales')">
+          <i class="fas fa-puzzle-piece me-2"></i>Datos Adicionales
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" [class.active]="pestanaActiva === 'medidas'" type="button" (click)="cambiarPestana('medidas')">
+          <i class="fas fa-weight me-2"></i>Medidas
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" [class.active]="pestanaActiva === 'cuenta'" type="button" (click)="cambiarPestana('cuenta')">
+          <i class="fas fa-file-invoice-dollar me-2"></i>Estado de Cuenta
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" [class.active]="pestanaActiva === 'observaciones'" type="button" (click)="cambiarPestana('observaciones')">
+          <i class="fas fa-comment-alt me-2"></i>Observaciones
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" [class.active]="pestanaActiva === 'asistencia'" type="button" (click)="cambiarPestana('asistencia')">
+          <i class="fas fa-calendar-check me-2"></i>Asistencia
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" [class.active]="pestanaActiva === 'evaluaciones'" type="button" (click)="cambiarPestana('evaluaciones')">
+          <i class="fas fa-graduation-cap me-2"></i>Evaluaciones
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" [class.active]="pestanaActiva === 'ead3'" type="button" (click)="cambiarPestana('ead3')">
+          <i class="fas fa-brain me-2"></i>EAD-3
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" [class.active]="pestanaActiva === 'documentos'" type="button" (click)="cambiarPestana('documentos')">
+          <i class="fas fa-file-alt me-2"></i>Documentos
+        </button>
+      </li>
+    </ul>
+
+    <!-- Navegación móvil tipo grid -->
+    <div class="mobile-nav-grid">
+      <div class="nav-card" [class.active]="pestanaActiva === 'datos'" (click)="cambiarPestana('datos')">
+        <div class="nav-icon"><i class="fas fa-user-circle"></i></div>
+        <div class="nav-label">Datos Personales</div>
+      </div>
+      <div class="nav-card" [class.active]="pestanaActiva === 'datos-medicos'" (click)="cambiarPestana('datos-medicos')">
+        <div class="nav-icon"><i class="fas fa-heartbeat"></i></div>
+        <div class="nav-label">Datos Médicos</div>
+      </div>
+      <div class="nav-card" [class.active]="pestanaActiva === 'datos-adicionales'" (click)="cambiarPestana('datos-adicionales')">
+        <div class="nav-icon"><i class="fas fa-puzzle-piece"></i></div>
+        <div class="nav-label">Datos Adicionales</div>
+      </div>
+      <div class="nav-card" [class.active]="pestanaActiva === 'medidas'" (click)="cambiarPestana('medidas')">
+        <div class="nav-icon"><i class="fas fa-weight"></i></div>
+        <div class="nav-label">Medidas</div>
+      </div>
+      <div class="nav-card" [class.active]="pestanaActiva === 'cuenta'" (click)="cambiarPestana('cuenta')">
+        <div class="nav-icon"><i class="fas fa-file-invoice-dollar"></i></div>
+        <div class="nav-label">Estado de Cuenta</div>
+      </div>
+      <div class="nav-card" [class.active]="pestanaActiva === 'observaciones'" (click)="cambiarPestana('observaciones')">
+        <div class="nav-icon"><i class="fas fa-comment-alt"></i></div>
+        <div class="nav-label">Observaciones</div>
+      </div>
+      <div class="nav-card" [class.active]="pestanaActiva === 'asistencia'" (click)="cambiarPestana('asistencia')">
+        <div class="nav-icon"><i class="fas fa-calendar-check"></i></div>
+        <div class="nav-label">Asistencia</div>
+      </div>
+      <div class="nav-card" [class.active]="pestanaActiva === 'evaluaciones'" (click)="cambiarPestana('evaluaciones')">
+        <div class="nav-icon"><i class="fas fa-graduation-cap"></i></div>
+        <div class="nav-label">Evaluaciones</div>
+      </div>
+      <div class="nav-card" [class.active]="pestanaActiva === 'ead3'" (click)="cambiarPestana('ead3')">
+        <div class="nav-icon"><i class="fas fa-brain"></i></div>
+        <div class="nav-label">EAD-3</div>
+      </div>
+      <div class="nav-card" [class.active]="pestanaActiva === 'documentos'" (click)="cambiarPestana('documentos')">
+        <div class="nav-icon"><i class="fas fa-file-alt"></i></div>
+        <div class="nav-label">Documentos</div>
+      </div>
+    </div>
+
+    <!-- Contenido de las pestañas (lazy load + keep alive) -->
+    <div class="tab-content border border-top-0 rounded-bottom shadow" id="vistaEstudianteTabContent">
+      <!-- Datos Personales y Acudientes -->
+      <div class="p-4" *ngIf="tabsCargados.has('datos')" [hidden]="pestanaActiva !== 'datos'">
+        <app-estudiante-datos [idEstudiante]="idEstudiante"></app-estudiante-datos>
+      </div>
+
+      <!-- Datos Médicos -->
+      <div class="p-4" *ngIf="tabsCargados.has('datos-medicos')" [hidden]="pestanaActiva !== 'datos-medicos'">
+        <app-estudiante-datos-medicos [idEstudiante]="idEstudiante"></app-estudiante-datos-medicos>
+      </div>
+
+      <!-- Datos Adicionales -->
+      <div class="p-4" *ngIf="tabsCargados.has('datos-adicionales')" [hidden]="pestanaActiva !== 'datos-adicionales'">
+        <app-estudiante-datos-adicionales [idEstudiante]="idEstudiante"></app-estudiante-datos-adicionales>
+      </div>
+
+      <!-- Medidas -->
+      <div class="p-4" *ngIf="tabsCargados.has('medidas')" [hidden]="pestanaActiva !== 'medidas'">
+        <app-estudiante-medidas [idEstudiante]="idEstudiante"></app-estudiante-medidas>
+      </div>
+
+      <!-- Estado de Cuenta -->
+      <div class="p-4" *ngIf="tabsCargados.has('cuenta')" [hidden]="pestanaActiva !== 'cuenta'">
+        <app-estudiante-cuentas [idEstudiante]="idEstudiante"></app-estudiante-cuentas>
+      </div>
+
+      <!-- Observaciones -->
+      <div class="p-4" *ngIf="tabsCargados.has('observaciones')" [hidden]="pestanaActiva !== 'observaciones'">
+        <app-estudiante-observaciones [idEstudiante]="idEstudiante"></app-estudiante-observaciones>
+      </div>
+
+      <!-- Asistencia -->
+      <div class="p-4" *ngIf="tabsCargados.has('asistencia')" [hidden]="pestanaActiva !== 'asistencia'">
+        <app-estudiante-asistencia [idEstudiante]="idEstudiante"></app-estudiante-asistencia>
+      </div>
+
+      <!-- Evaluaciones -->
+      <div class="p-4" *ngIf="tabsCargados.has('evaluaciones')" [hidden]="pestanaActiva !== 'evaluaciones'">
+        <app-estudiante-evaluaciones [idEstudiante]="idEstudiante"></app-estudiante-evaluaciones>
+      </div>
+
+      <!-- EAD-3 -->
+      <div class="p-4" *ngIf="tabsCargados.has('ead3')" [hidden]="pestanaActiva !== 'ead3'">
+        <app-estudiante-ead3 [idEstudiante]="idEstudiante"></app-estudiante-ead3>
+      </div>
+
+      <!-- Documentos -->
+      <div class="p-4" *ngIf="tabsCargados.has('documentos')" [hidden]="pestanaActiva !== 'documentos'">
+        <app-documentos-persona
+          *ngIf="idPersona"
+          [idPersona]="idPersona"
+          [tipoPersona]="'estudiante'"
+          [nombrePersona]="nombreCompleto"
+          [soloLectura]="false"
+          [validarAcudientes]="false"
+        >
+        </app-documentos-persona>
+      </div>
+    </div>
+
+    <!-- Botón flotante de navegación rápida (móvil) -->
+    <div class="mobile-quick-nav">
+      <button class="quick-nav-btn" [class.open]="menuRapidoAbierto" (click)="toggleMenuRapido()">
+        <i class="fas fa-bars"></i>
+      </button>
+      <div class="quick-nav-menu" [class.open]="menuRapidoAbierto">
+        <div class="quick-nav-item" (click)="navegarRapido('datos')">
+          <i class="fas fa-user-circle"></i><span>Datos Personales</span>
+        </div>
+        <div class="quick-nav-item" (click)="navegarRapido('datos-medicos')">
+          <i class="fas fa-heartbeat"></i><span>Datos Médicos</span>
+        </div>
+        <div class="quick-nav-item" (click)="navegarRapido('datos-adicionales')">
+          <i class="fas fa-puzzle-piece"></i><span>Datos Adicionales</span>
+        </div>
+        <div class="quick-nav-item" (click)="navegarRapido('medidas')">
+          <i class="fas fa-weight"></i><span>Medidas</span>
+        </div>
+        <div class="quick-nav-item" (click)="navegarRapido('cuenta')">
+          <i class="fas fa-file-invoice-dollar"></i><span>Estado de Cuenta</span>
+        </div>
+        <div class="quick-nav-item" (click)="navegarRapido('observaciones')">
+          <i class="fas fa-comment-alt"></i><span>Observaciones</span>
+        </div>
+        <div class="quick-nav-item" (click)="navegarRapido('asistencia')">
+          <i class="fas fa-calendar-check"></i><span>Asistencia</span>
+        </div>
+        <div class="quick-nav-item" (click)="navegarRapido('evaluaciones')">
+          <i class="fas fa-graduation-cap"></i><span>Evaluaciones</span>
+        </div>
+        <div class="quick-nav-item" (click)="navegarRapido('ead3')">
+          <i class="fas fa-brain"></i><span>EAD-3</span>
+        </div>
+        <div class="quick-nav-item" (click)="navegarRapido('documentos')">
+          <i class="fas fa-file-alt"></i><span>Documentos</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

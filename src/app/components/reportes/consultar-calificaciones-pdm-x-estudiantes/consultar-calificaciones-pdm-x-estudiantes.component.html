@@ -1,0 +1,95 @@
+<div class="modulo">
+    <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [raiz]="'/'" [regresar]="'/reportes'"></app-header>
+
+    <div class="container">
+        <div class="row mb-3">
+            <div class="col-sm-6 col-md-4 mt-3">
+                <label for="grupo">Seleccionar grupo:</label>
+                <select id="grupo" class="form-control" [(ngModel)]="grupoSeleccionado" (change)="filtrarDatosGrupos()">
+                    <option value="">Todos</option>
+                    <option *ngFor="let grupo of grupos" [value]="grupo.id_grupo">{{ grupo.nombre_grupo }}</option>
+                </select>
+            </div>
+
+            <div class="col-sm-6 col-md-4 mt-3">
+                <label for="estudiante">Seleccionar estudiante:</label>
+                <select id="estudiante" class="form-control" [(ngModel)]="estudianteSeleccionado" (change)="filtrarDatosEstudiantes()">
+                    <option value="">Todos</option>
+                    <option *ngFor="let estudiante of estudiantes" [value]="estudiante.id_estudiante">
+                        {{ estudiante.nombre_completo }}
+                    </option>
+                </select>
+            </div>
+
+            <div class="col-sm-6 col-md-4 mt-3">
+                <label for="logro">Seleccionar logro:</label>
+                <select id="logro" class="form-control" [(ngModel)]="logroSeleccionado" (change)="filtrarDatosLogros()">
+                    <option value="">Todos</option>
+                    <option *ngFor="let logro of logros" [value]="logro.id_logro">{{ logro.nombre_logro }}</option>
+                </select>
+            </div>
+
+            <div class="col-sm-6 col-md-4 mt-3">
+                <input type="checkbox" id="pendientes" [(ngModel)]="filtrarPendientes" (change)="filtrarDatosPendientes()">
+                <label for="pendientes" class="ms-2">Mostrar solo pendientes</label>
+            </div>
+
+            <!-- Botón para resetear los filtros -->
+            <div class="col-sm-6 col-md-4 mt-3">
+                <button class="btn btn-secondary" (click)="resetearFiltros()">Borrar filtros</button>
+            </div>
+        </div>
+        <hr class="mt-3 mb-3"/>
+
+        <div class="panel">
+            <label class="panel-title" (click)="cambiar('panel1')">
+                Totales por Grupo por Área
+            </label>
+            @if(paneles.panel1) {
+                <div class="panel-content">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Grupo</th>
+                                <th>Área</th>
+                                <th>Pendientes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let item of datosTotales" [ngStyle]="{'font-weight': item.area === '' ? 'bold' : 'normal'}">
+                                <td>{{ item.nombre_grupo }}</td>
+                                <td>{{ item.area }}</td>
+                                <td>{{ item.pendientes }}</td>
+                            </tr>
+                        </tbody>
+                    </table>    
+                </div>
+            }
+        </div>
+
+        <div class="panel">
+            <label class="panel-title" (click)="cambiar('panel2')">
+                Ejecutados vs Pendientes
+            </label>
+            <div class="panel-content">
+                <app-tablas [titulos]="titulos_resumen" [datos]="datosResumen" [raiz]="'/reportes'"></app-tablas>
+            </div>
+            @if(paneles.panel2) {
+
+            }
+        </div>
+
+        <div class="panel">
+            <label class="panel-title" (click)="cambiar('panel3')">
+                Logros por Estudiante
+            </label>
+            <div class="panel-content">
+                <app-tablas [titulos]="titulos" [datos]="datosFiltrados" [raiz]="'/reportes'"></app-tablas>
+            </div>
+            @if(paneles.panel3) {
+
+            }
+        </div>
+
+    </div>
+</div>

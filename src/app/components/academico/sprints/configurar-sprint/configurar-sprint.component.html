@@ -1,0 +1,332 @@
+<div class="modulo">
+  <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [accion]="'consultar'" [id]="idSprint"
+    [raiz]="'/academico/sprints'" [regresar]="'/academico/sprints'" [iconoTitulo]="'/assets/images/sprints.png'">
+  </app-header>
+
+  <div class="container-fluid mt-4">
+
+    <!-- Info del Sprint -->
+    <div class="sprint-resumen" *ngIf="sprint">
+      <div class="resumen-item">
+        <i class="fas fa-hashtag"></i>
+        <span class="resumen-valor">{{ sprint.numero_sprint }}</span>
+        <span class="resumen-label">Sprint</span>
+      </div>
+      <div class="resumen-item">
+        <i class="fas fa-calendar-alt"></i>
+        <span class="resumen-valor">{{ formatearFecha(sprint.fecha_inicial) }}</span>
+        <span class="resumen-label">Inicio</span>
+      </div>
+      <div class="resumen-item">
+        <i class="fas fa-calendar-check"></i>
+        <span class="resumen-valor">{{ formatearFecha(sprint.fecha_final) }}</span>
+        <span class="resumen-label">Fin</span>
+      </div>
+      <div class="resumen-item">
+        <i class="fas fa-business-time"></i>
+        <span class="resumen-valor">{{ sprint.total_dias_habiles }}</span>
+        <span class="resumen-label">Días hábiles</span>
+      </div>
+    </div>
+
+    <!-- Selectores -->
+    <div class="selectores-row">
+      <div class="selector-box">
+        <label class="selector-label"><i class="fas fa-users me-1"></i>Grupo</label>
+        <select class="form-select" [(ngModel)]="filtroGrupo" (ngModelChange)="onFiltroChange()">
+          <option value="">Seleccione un grupo...</option>
+          <option *ngFor="let grupo of grupos" [value]="grupo.id">{{ grupo.nombre }}</option>
+        </select>
+      </div>
+      <div class="selector-box">
+        <label class="selector-label"><i class="fas fa-book me-1"></i>Área Académica</label>
+        <select class="form-select" [(ngModel)]="filtroArea" (ngModelChange)="onFiltroChange()">
+          <option value="">Seleccione un área...</option>
+          <option *ngFor="let area of areas" [value]="area.id">{{ area.nombre }}</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Estado vacío -->
+    <div class="empty-state" *ngIf="!filtroGrupo || !filtroArea">
+      <i class="fas fa-hand-pointer"></i>
+      <p>Seleccione un <strong>grupo</strong> y un <strong>área académica</strong> para configurar las actividades del sprint.</p>
+    </div>
+
+    <!-- Contenido principal -->
+    <div *ngIf="filtroGrupo && filtroArea">
+
+      <!-- Barras de capacidad + botón horarios -->
+      <div class="barras-capacidad">
+        <h6 class="seccion-titulo"><i class="fas fa-chart-bar me-2"></i>Indicadores del Sprint</h6>
+        <!-- Tiempo -->
+        <div class="barra-item" *ngIf="capacidad">
+          <div class="barra-header">
+            <span class="barra-label"><i class="fas fa-clock me-1"></i>Tiempo</span>
+            <span class="barra-valores">{{ minutosUsadosLocal }} / {{ minutosDisponibles }} min</span>
+            <span class="barra-badge" [ngClass]="getClaseBarra(porcentajeTiempo)">
+              <span *ngIf="minutosRestantes > 0">{{ minutosRestantes }} min libres</span>
+              <span *ngIf="minutosRestantes <= 0"><i class="fas fa-exclamation-triangle me-1"></i>Excedido</span>
+            </span>
+          </div>
+          <div class="barra-progreso">
+            <div class="barra-fill" [ngClass]="getClaseBarra(porcentajeTiempo)"
+              [style.width.%]="porcentajeTiempo > 100 ? 100 : porcentajeTiempo"></div>
+          </div>
+        </div>
+
+        <!-- Clases -->
+        <div class="barra-item" *ngIf="totalClasesEnSprint > 0">
+          <div class="barra-header">
+            <span class="barra-label"><i class="fas fa-chalkboard me-1"></i>Clases</span>
+            <span class="barra-valores">{{ tareasAsignadas.length }} / {{ totalClasesEnSprint }} tareas</span>
+            <span class="barra-badge" [ngClass]="getClaseBarra(porcentajeClases)">
+              <span *ngIf="clasesRestantes > 0">Faltan {{ clasesRestantes }}</span>
+              <span *ngIf="clasesRestantes <= 0 && porcentajeClases <= 100">Completo</span>
+              <span *ngIf="porcentajeClases > 100"><i class="fas fa-exclamation-triangle me-1"></i>Excede</span>
+            </span>
+          </div>
+          <div class="barra-progreso">
+            <div class="barra-fill" [ngClass]="getClaseBarra(porcentajeClases)"
+              [style.width.%]="porcentajeClases > 100 ? 100 : porcentajeClases"></div>
+          </div>
+        </div>
+
+        <!-- Logros -->
+        <div class="barra-item barra-clickeable" *ngIf="mapaLogros.length > 0" (click)="verResumenLogros()">
+          <div class="barra-header">
+            <span class="barra-label"><i class="fas fa-trophy me-1"></i>Logros</span>
+            <span class="barra-valores">{{ logrosAtendidosLocal }} / {{ mapaLogros.length }} atendidos</span>
+            <span class="barra-badge" [ngClass]="getClaseBarra(porcentajeLogros)">{{ porcentajeLogros }}%</span>
+          </div>
+          <div class="barra-progreso">
+            <div class="barra-fill" [ngClass]="getClaseBarra(porcentajeLogros)"
+              [style.width.%]="porcentajeLogros"></div>
+          </div>
+        </div>
+
+        <!-- Botón ver horarios -->
+        <div class="barra-horarios">
+          <button class="btn-ver-horarios" (click)="verHorarios()">
+            <i class="fas fa-calendar-week me-2"></i>Ver Horarios
+          </button>
+        </div>
+      </div>
+
+      <!-- Sección de indicadores/logros detallados -->
+      <div class="logros-section" *ngIf="mapaLogros.length > 0">
+        <div class="logros-section-header">
+          <h6>
+            <i class="fas fa-trophy me-2"></i>Logros en el corte
+            <span class="badge-count">{{ logrosFiltrados.length }}</span>
+          </h6>
+          <div class="logros-controles">
+            <div class="logros-search">
+              <i class="fas fa-search"></i>
+              <input type="text" [(ngModel)]="busquedaLogro" placeholder="Buscar logro...">
+            </div>
+            <button class="btn-orden-logros" (click)="ordenLogros = ordenLogros === 'nombre' ? 'actividades' : 'nombre'"
+              [title]="ordenLogros === 'nombre' ? 'Ordenar por actividades' : 'Ordenar por nombre'">
+              <i class="fas" [ngClass]="ordenLogros === 'nombre' ? 'fa-sort-alpha-down' : 'fa-sort-numeric-down'"></i>
+            </button>
+          </div>
+        </div>
+        <div class="logros-lista">
+          <div class="logro-row" *ngFor="let logro of logrosFiltrados" (click)="verActividadesLogro(logro)">
+            <div class="logro-top">
+              <span class="logro-nombre">{{ logro.nombre }}</span>
+              <span class="logro-count" [ngClass]="logro.tareas_corte > 0 ? 'atendido' : 'sin-atender'">
+                {{ logro.tareas_corte }}
+              </span>
+            </div>
+            <div class="logro-barra">
+              <div class="logro-barra-fill"
+                [style.width.%]="maxTareasCorte > 0 ? (logro.tareas_corte / maxTareasCorte) * 100 : 0">
+              </div>
+            </div>
+            <div class="logro-bottom">
+              <small>
+                {{ logro.tareas_corte }} clase{{ logro.tareas_corte !== 1 ? 's' : '' }} en el corte
+              </small>
+              <small class="meta-sprint">
+                {{ tareasLocalParaLogro(logro) }} en este sprint
+              </small>
+            </div>
+          </div>
+          <div class="logros-empty" *ngIf="logrosFiltrados.length === 0">
+            <small>No se encontraron logros con "{{ busquedaLogro }}"</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabs móvil -->
+      <div class="tabs-movil">
+        <button [class.activo]="tabMovil === 'tareas'" (click)="tabMovil = 'tareas'">
+          <i class="fas fa-list-ol me-1"></i>Tareas <span class="tab-badge">{{ tareasAsignadas.length }}</span>
+        </button>
+        <button [class.activo]="tabMovil === 'actividades'" (click)="tabMovil = 'actividades'">
+          <i class="fas fa-puzzle-piece me-1"></i>Actividades <span class="tab-badge">{{ actividadesDisponibles.length }}</span>
+        </button>
+      </div>
+
+      <!-- Paneles -->
+      <div class="paneles-container">
+
+        <!-- Panel Tareas Creadas -->
+        <div class="panel panel-asignadas" [class.oculto-movil]="tabMovil !== 'tareas'">
+          <div class="panel-header">
+            <h6>
+              <i class="fas fa-list-ol me-2"></i>Tareas Creadas
+              <span class="badge-count">
+                {{ tareasFiltradas.length }}
+                <span *ngIf="tareasFiltradas.length !== tareasAsignadas.length"> / {{ tareasAsignadas.length }}</span>
+              </span>
+            </h6>
+            <div class="panel-filtros">
+              <div class="panel-search">
+                <i class="fas fa-search"></i>
+                <input type="text" [(ngModel)]="busquedaTarea" placeholder="Buscar tarea...">
+              </div>
+              <select class="filtro-asignacion" [(ngModel)]="filtroEstadoTarea">
+                <option value="todas">Todas</option>
+                <option value="pendientes">Pendientes</option>
+                <option value="ejecutadas">Ejecutadas</option>
+              </select>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="panel-loading" *ngIf="cargandoTareas">
+              <i class="fas fa-spinner fa-spin"></i> Cargando...
+            </div>
+            <div class="panel-empty" *ngIf="!cargandoTareas && tareasAsignadas.length === 0">
+              <i class="fas fa-inbox"></i>
+              <p>No hay tareas creadas.</p>
+            </div>
+            <div class="panel-empty" *ngIf="!cargandoTareas && tareasAsignadas.length > 0 && tareasFiltradas.length === 0">
+              <i class="fas fa-search"></i>
+              <p>Sin resultados.</p>
+            </div>
+            <div class="tarea-list" *ngIf="!cargandoTareas && tareasFiltradas.length > 0">
+              <div class="tarea-item" *ngFor="let tarea of tareasFiltradas"
+                draggable="true"
+                (dragstart)="onDragStart(getIndexReal(tarea))"
+                (dragover)="onDragOver($event, getIndexReal(tarea))"
+                (drop)="onDrop($event, getIndexReal(tarea))"
+                (dragend)="onDragEnd()"
+                [class.dragging]="dragIndex === getIndexReal(tarea)">
+                <div class="tarea-orden">
+                  <span class="orden-numero">{{ tarea.orden_ejecucion }}</span>
+                  <div class="orden-controles">
+                    <button class="btn-orden" (click)="moverArriba(getIndexReal(tarea))" [disabled]="getIndexReal(tarea) === 0">
+                      <i class="fas fa-chevron-up"></i>
+                    </button>
+                    <button class="btn-orden" (click)="moverAbajo(getIndexReal(tarea))" [disabled]="getIndexReal(tarea) === tareasAsignadas.length - 1">
+                      <i class="fas fa-chevron-down"></i>
+                    </button>
+                  </div>
+                </div>
+                <div class="tarea-info" (click)="verDetalleTarea(tarea)" style="cursor: pointer;">
+                  <div class="tarea-titulo">{{ tarea.titulo_actividad }}</div>
+                  <div class="tarea-meta">
+                    <span><i class="fas fa-clock me-1"></i>{{ tarea.minutos_duracion }} min</span>
+                    <span class="tarea-estado" [ngClass]="{
+                      'estado-pendiente': tarea.id_estado_tarea == 1,
+                      'estado-ejecutada': tarea.id_estado_tarea == 2,
+                      'estado-cancelada': tarea.id_estado_tarea == 3
+                    }">{{ tarea.nombre_estado }}</span>
+                  </div>
+                </div>
+                <button class="btn-eliminar"
+                  (click)="eliminarTarea(tarea, getIndexReal(tarea))"
+                  [disabled]="tarea.id_estado_tarea == 2"
+                  [title]="tarea.id_estado_tarea == 2 ? 'No se puede eliminar una tarea ejecutada' : 'Eliminar del sprint'">
+                  <i class="fas fa-times"></i>
+                </button>
+                <div class="drag-handle"><i class="fas fa-grip-vertical"></i></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel Actividades Disponibles -->
+        <div class="panel panel-disponibles" [class.oculto-movil]="tabMovil !== 'actividades'">
+          <div class="panel-header">
+            <h6>
+              <i class="fas fa-puzzle-piece me-2"></i>Actividades
+              <span class="badge-count">
+                {{ actividadesFiltradas.length }}
+                <span *ngIf="actividadesFiltradas.length !== actividadesDisponibles.length"> / {{ actividadesDisponibles.length }}</span>
+              </span>
+            </h6>
+            <div class="panel-filtros">
+              <div class="panel-search">
+                <i class="fas fa-search"></i>
+                <input type="text" [(ngModel)]="busquedaActividad" placeholder="Buscar...">
+              </div>
+              <select class="filtro-asignacion" [(ngModel)]="filtroAsignacion">
+                <option value="todas">Todas</option>
+                <option value="con_tareas">Con tareas</option>
+                <option value="sin_tareas">Sin tareas</option>
+              </select>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="panel-loading" *ngIf="cargandoActividades">
+              <i class="fas fa-spinner fa-spin"></i> Cargando...
+            </div>
+            <div class="panel-empty" *ngIf="!cargandoActividades && actividadesFiltradas.length === 0">
+              <i class="fas fa-search"></i>
+              <p>Sin resultados.</p>
+            </div>
+            <div class="actividad-list" *ngIf="!cargandoActividades && actividadesFiltradas.length > 0">
+              <div class="actividad-item" *ngFor="let actividad of actividadesFiltradas">
+                <div class="actividad-info" (click)="verDetalleActividad(actividad)" style="cursor: pointer;">
+                  <div class="actividad-titulo">
+                    {{ actividad.titulo }}
+                    <span class="badge-asignada" *ngIf="contarVecesAsignada(actividad.id) > 0">
+                      ×{{ contarVecesAsignada(actividad.id) }}
+                    </span>
+                  </div>
+                  <div class="actividad-meta">
+                    <span><i class="fas fa-clock me-1"></i>{{ actividad.minutos_duracion }} min</span>
+                    <span *ngIf="actividad.nombre_tipo_actividad">
+                      <i class="fas fa-tag me-1"></i>{{ actividad.nombre_tipo_actividad }}
+                    </span>
+                  </div>
+                </div>
+                <button class="btn-agregar" (click)="agregarActividad(actividad)">
+                  <i class="fas fa-plus"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Barra de cambios -->
+    <div class="cambios-bar" *ngIf="hayCambios">
+      <div class="cambios-info">
+        <i class="fas fa-exclamation-circle"></i>
+        <span>Cambios sin guardar</span>
+      </div>
+      <div class="cambios-acciones">
+        <button class="btn btn-descartar" (click)="descartarCambios()" [disabled]="guardando">
+          <i class="fas fa-undo me-1"></i>Descartar
+        </button>
+        <button class="btn btn-guardar" (click)="guardarCambios()" [disabled]="guardando">
+          <i class="fas fa-save me-1" *ngIf="!guardando"></i>
+          <i class="fas fa-spinner fa-spin me-1" *ngIf="guardando"></i>
+          {{ guardando ? 'Guardando...' : 'Guardar Cambios' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Volver -->
+    <div class="acciones-footer">
+      <button class="btn btn-corporate-secondary btn-lg" (click)="volver()">
+        <i class="fas fa-arrow-left me-2"></i>Volver a Sprints
+      </button>
+    </div>
+  </div>
+</div>

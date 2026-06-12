@@ -1,0 +1,498 @@
+// crear-logros.component.scss
+
+// Variables de color corporativo
+$corporate-yellow: #F5A623;  // Amarillo oscuro corporativo
+$corporate-black: #2C2C2C;   // Negro suave
+$corporate-gray: #4A4A4A;    // Gris oscuro
+$light-gray: #F5F5F5;        // Gris claro para fondos
+$white: #FFFFFF;
+$danger-color: #dc3545;
+$success-color: #28a745;
+$corporate-info: #17a2b8;    // Azul para información
+
+// Contenedor principal
+.modulo {
+  background-color: $light-gray;
+  min-height: 100vh;
+  padding-bottom: 2rem;
+}
+
+// Cards mejoradas
+.card {
+  border: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+  }
+  
+  .card-header {
+    border: none;
+    font-weight: 600;
+    
+    &.bg-corporate-primary {
+      background-color: $corporate-yellow;
+      color: $corporate-black;
+      
+      h5 {
+        color: $corporate-black;
+        font-weight: 700;
+      }
+    }
+    
+    &.bg-corporate-secondary {
+      background-color: $corporate-black;
+      color: $white;
+      
+      h5 {
+        color: $white;
+      }
+    }
+    
+    &.bg-corporate-info {
+      background-color: $corporate-info;
+      color: $white;
+      
+      h5 {
+        color: $white;
+        display: flex;
+        align-items: center;
+        
+        .badge {
+          font-size: 0.8rem;
+          font-weight: 600;
+        }
+      }
+    }
+    
+    h5 {
+      margin: 0;
+      font-size: 1.1rem;
+      letter-spacing: 0.5px;
+    }
+  }
+  
+  .card-body {
+    padding: 1.5rem;
+    background-color: $white;
+  }
+}
+
+// Grid de actividades
+.activities-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+  
+  .activity-card {
+    border: 1px solid #e0e0e0;
+    border-radius: 0.5rem;
+    padding: 1.25rem;
+    background-color: #fafafa;
+    transition: all 0.3s ease;
+    
+    &:hover {
+      border-color: $corporate-yellow;
+      background-color: $white;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+      transform: translateY(-2px);
+    }
+    
+    .activity-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      margin-bottom: 0.75rem;
+      
+      .activity-title {
+        color: $corporate-black;
+        font-weight: 600;
+        font-size: 1rem;
+        flex: 1;
+        margin-right: 0.5rem;
+      }
+      
+      .badge {
+        font-size: 0.75rem;
+        white-space: nowrap;
+        
+        &.bg-corporate-yellow {
+          background-color: $corporate-yellow !important;
+        }
+      }
+    }
+    
+    .activity-body {
+      .activity-description {
+        color: $corporate-gray;
+        font-size: 0.875rem;
+        line-height: 1.5;
+        margin-bottom: 0.75rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      
+      .activity-meta {
+        display: flex;
+        gap: 1rem;
+        font-size: 0.8rem;
+        color: $corporate-gray;
+        
+        .meta-item {
+          display: flex;
+          align-items: center;
+          gap: 0.25rem;
+          max-width: 50%;
+          
+          i {
+            font-size: 0.875rem;
+          }
+          
+          span {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+        }
+      }
+    }
+    
+    .activity-footer {
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid #e0e0e0;
+      
+      .btn-outline-corporate-primary {
+        color: $corporate-yellow;
+        border-color: $corporate-yellow;
+        font-size: 0.875rem;
+        padding: 0.375rem 0.75rem;
+        width: 100%;
+        
+        &:hover {
+          background-color: $corporate-yellow;
+          color: $corporate-black;
+        }
+        
+        i {
+          font-size: 0.875rem;
+        }
+      }
+    }
+  }
+}
+
+// Formularios mejorados
+.form-label {
+  color: $corporate-black;
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+  white-space: nowrap;  // Evita que el contenido se divida en líneas
+  
+  &.fw-semibold {
+    font-weight: 600;
+  }
+  
+  .text-danger {
+    font-size: 0.9rem;
+    margin-left: 0.25rem;
+    display: inline;  // Asegura que esté en línea
+  }
+}
+
+.form-select, .form-control {
+  border-radius: 0.375rem;
+  border: 2px solid #E0E0E0;
+  transition: all 0.3s ease;
+  background-color: $white;
+  
+  &:focus {
+    border-color: $corporate-yellow;
+    box-shadow: 0 0 0 0.2rem rgba($corporate-yellow, 0.25);
+    background-color: $white;
+  }
+  
+  &.is-invalid {
+    border-color: $danger-color;
+    
+    &:focus {
+      box-shadow: 0 0 0 0.2rem rgba($danger-color, 0.25);
+    }
+  }
+  
+  option {
+    color: $corporate-black;
+  }
+}
+
+// Textarea mejorado
+textarea.form-control {
+  resize: vertical;
+  min-height: 120px;
+  font-size: 1rem;
+  line-height: 1.6;
+  padding: 0.75rem;
+  
+  &:disabled {
+    background-color: #e9ecef;
+    opacity: 0.8;
+    cursor: not-allowed;
+  }
+}
+
+// Contenedor de textarea
+.textarea-wrapper {
+  position: relative;
+  
+  .textarea-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.5rem;
+    padding: 0 0.25rem;
+    
+    .character-count {
+      font-size: 0.875rem;
+      color: $corporate-gray;
+      font-weight: 500;
+      
+      i {
+        color: $corporate-yellow;
+      }
+      
+      &.text-danger {
+        font-weight: 600;
+        color: $danger-color;
+        
+        i {
+          color: $danger-color;
+        }
+      }
+    }
+  }
+}
+
+// Sugerencias de formato
+.formatting-tips {
+  .alert-corporate {
+    background-color: lighten($corporate-yellow, 35%);
+    border: 1px solid $corporate-yellow;
+    border-left: 4px solid $corporate-yellow;
+    color: $corporate-black;
+    
+    .alert-heading {
+      color: $corporate-black;
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+    
+    ul {
+      margin-bottom: 0;
+      color: $corporate-gray;
+      
+      li {
+        margin-bottom: 0.25rem;
+        
+        &:last-child {
+          margin-bottom: 0;
+        }
+      }
+    }
+  }
+}
+
+// Botones corporativos
+.btn {
+  font-weight: 600;
+  letter-spacing: 0.025rem;
+  transition: all 0.3s ease;
+  border: none;
+  
+  &.btn-lg {
+    padding: 0.75rem 2rem;
+    font-size: 1.1rem;
+  }
+  
+  &.btn-corporate-primary {
+    background-color: $corporate-yellow;
+    color: $corporate-black;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    
+    &:hover:not(:disabled) {
+      background-color: darken($corporate-yellow, 10%);
+      color: $corporate-black;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+    
+    &:active {
+      transform: translateY(0);
+    }
+    
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      background-color: lighten($corporate-yellow, 20%);
+    }
+  }
+  
+  &.btn-corporate-secondary {
+    background-color: $corporate-black;
+    color: $white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    
+    &:hover {
+      background-color: lighten($corporate-black, 10%);
+      color: $white;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+    
+    &:active {
+      transform: translateY(0);
+    }
+  }
+  
+  i {
+    font-size: 1rem;
+  }
+}
+
+// Contenedor deshabilitado
+.disabled-container {
+  pointer-events: none;
+  opacity: 0.7;
+  
+  textarea {
+    background-color: #e9ecef !important;
+  }
+}
+
+// Feedback de validación
+.invalid-feedback, .text-danger {
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  display: block;
+}
+
+// Texto de ayuda
+small.text-muted {
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+  display: block;
+  color: $corporate-gray;
+  
+  i {
+    color: $corporate-yellow;
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .container-fluid {
+    padding: 0 1rem;
+  }
+  
+  .card-body {
+    padding: 1rem;
+  }
+  
+  .btn-lg {
+    padding: 0.5rem 1.5rem;
+    font-size: 1rem;
+  }
+  
+  .row.g-3 {
+    --bs-gutter-y: 1rem;
+  }
+  
+  textarea.form-control {
+    min-height: 100px;
+  }
+  
+  .activities-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
+// Modal personalizado
+.modal {
+  .modal-content {
+    border: none;
+    border-radius: 0.5rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  }
+  
+  .modal-header {
+    border-bottom: 2px solid $corporate-yellow;
+    padding: 1.25rem;
+    
+    &.bg-corporate-primary {
+      background-color: $corporate-yellow;
+      color: $corporate-black;
+      
+      .modal-title {
+        font-weight: 700;
+        font-size: 1.2rem;
+      }
+      
+      .btn-close {
+        filter: invert(1);
+        opacity: 0.8;
+        
+        &:hover {
+          opacity: 1;
+        }
+      }
+    }
+  }
+  
+  .modal-body {
+    padding: 1.5rem;
+    
+    .form-group {
+      margin-bottom: 0;
+    }
+    
+    textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+  }
+  
+  .modal-footer {
+    border-top: 1px solid #dee2e6;
+    padding: 1rem 1.5rem;
+  }
+}
+
+// Tabla de indicadores mejorada
+.table {
+  .btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    
+    &.btn-warning {
+      background-color: $corporate-yellow;
+      border-color: $corporate-yellow;
+      color: $corporate-black;
+      
+      &:hover {
+        background-color: darken($corporate-yellow, 10%);
+      }
+    }
+  }
+}
+
+// Truncate helper
+.text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

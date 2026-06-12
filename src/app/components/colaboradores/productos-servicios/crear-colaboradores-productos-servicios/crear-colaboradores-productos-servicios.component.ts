@@ -11,6 +11,7 @@ import { ProductosServiciosService } from '../../../../services/productos-servic
 import { ColaboradoresService } from '../../../../services/colaboradores.service';
 import { UtilService } from '../../../../common/constantes/util.service';
 import { CuentaPagadaService } from '../../../../services/cuenta-pagada.service';
+import { HorariosAlimentacionService } from '../../../../services/horarios-alimentacion.service';
 
 interface CuentaModel {
   id: number;
@@ -98,7 +99,8 @@ export class CrearColaboradoresProductosServiciosComponent implements OnInit {
     private productosServiciosService: ProductosServiciosService,
     private colaboradoresService: ColaboradoresService,
     private utilService: UtilService,
-    private cuentaPagadaService: CuentaPagadaService
+    private cuentaPagadaService: CuentaPagadaService,
+    private horariosAlimentacionService: HorariosAlimentacionService
   ) { }
 
   ngOnInit() {
@@ -201,6 +203,9 @@ export class CrearColaboradoresProductosServiciosComponent implements OnInit {
       this.productosDropdownItems = [];
     });
 
+    this.horariosAlimentacionService.obtenerTodos().subscribe((response: any) => {
+      this.listas.horariosAlimentacion = response.body;
+    });
 
     this.listas.personas = [];
   }

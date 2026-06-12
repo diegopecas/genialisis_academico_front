@@ -1,0 +1,283 @@
+<app-header [tituloModulo]="titulo" [mostrarCrear]="false" [raiz]="'/academico'" [regresar]="'/academico/selector-actividades'"></app-header>
+
+<div class="maquina-container">
+
+  <!-- STEPPER -->
+  <div class="stepper">
+    <div class="step" [class.active]="pasoActual >= 1" [class.done]="pasoActual > 1" (click)="pasoActual > 1 ? volverAPaso1() : null">
+      <div class="step-circle">1</div>
+      <span class="step-label">Configuración</span>
+    </div>
+    <div class="step-line" [class.active]="pasoActual >= 2"></div>
+    <div class="step" [class.active]="pasoActual >= 2" [class.done]="pasoActual > 2" (click)="pasoActual > 2 ? volverAPaso2() : null">
+      <div class="step-circle">2</div>
+      <span class="step-label">Generación IA</span>
+    </div>
+    <div class="step-line" [class.active]="pasoActual >= 3"></div>
+    <div class="step" [class.active]="pasoActual >= 3">
+      <div class="step-circle">3</div>
+      <span class="step-label">Confirmar</span>
+    </div>
+  </div>
+
+  <!-- ===================== PASO 1: CONFIGURACIÓN ===================== -->
+  <div *ngIf="pasoActual === 1" class="paso-contenido">
+
+    <div class="seccion-header">⚙️ Configuración Básica</div>
+    <div class="filtros-row">
+      <div class="filtro-item">
+        <label>Grupo *</label>
+        <select [(ngModel)]="idGrupo" (ngModelChange)="onGrupoChange()">
+          <option value="">Seleccione grupo...</option>
+          <option *ngFor="let g of grupos" [value]="g.id">{{ g.nombre }}</option>
+        </select>
+      </div>
+      <div class="filtro-item">
+        <label>Área Académica *</label>
+        <select [(ngModel)]="idArea" (ngModelChange)="onAreaChange()" [disabled]="!idGrupo">
+          <option value="">Seleccione área...</option>
+          <option *ngFor="let a of areas" [value]="a.id">{{ a.nombre }}</option>
+        </select>
+      </div>
+      <div class="filtro-item">
+        <label>Sprint *</label>
+        <select [(ngModel)]="idSprint" (ngModelChange)="onSprintChange()">
+          <option value="">Seleccione sprint...</option>
+          <option *ngFor="let s of sprints" [value]="s.id">{{ s.nombre_sprint }} ({{ s.nombre_corte_academico }})</option>
+        </select>
+      </div>
+      <div class="filtro-item filtro-cantidad">
+        <label>Cantidad *</label>
+        <input type="number" [(ngModel)]="cantidadActividades" min="1" max="10" placeholder="1-10">
+      </div>
+    </div>
+
+    <!-- Tipo de Actividad -->
+    <div class="seccion-header">🎯 Tipo de Actividad <span class="seccion-hint">Selecciona uno</span></div>
+    <div class="badges-container">
+      <div *ngFor="let tipo of tiposActividad" class="badge-item" [class.selected]="idTipoActividad == tipo.id" (click)="idTipoActividad = tipo.id">
+        <span class="badge-emoji">{{ tipo.icono || '📌' }}</span>
+        <span>{{ tipo.nombre }}</span>
+        <span *ngIf="idTipoActividad == tipo.id" class="badge-check-emoji">✅</span>
+      </div>
+    </div>
+
+    <!-- Ambientes -->
+    <div class="seccion-header">🏠 Ambientes <span class="seccion-hint">Selecciona uno o varios</span></div>
+    <div class="badges-container">
+      <div *ngFor="let amb of ambientes" class="badge-item" [class.selected]="isAmbienteSeleccionado(amb)" (click)="toggleAmbiente(amb)">
+        <span class="badge-emoji">{{ amb.icono }}</span>
+        <span>{{ amb.nombre }}</span>
+        <span *ngIf="isAmbienteSeleccionado(amb)" class="badge-check-emoji">✅</span>
+      </div>
+    </div>
+
+    <!-- Materiales -->
+    <div class="seccion-header">📦 Materiales <span class="seccion-hint">Del inventario del grupo o escribe uno nuevo</span></div>
+
+    <div class="chips-container" *ngIf="materialesSeleccionados.length > 0">
+      <div *ngFor="let mat of materialesSeleccionados; let i = index" class="chip-material" [class.chip-producto]="mat.es_producto" [class.chip-libre]="!mat.es_producto">
+        <span class="chip-text" (click)="verProducto(mat)" [class.clickable]="mat.es_producto">
+          <span *ngIf="mat.es_producto">📦</span>
+          <span *ngIf="!mat.es_producto">✏️</span>
+          {{ mat.nombre_material }}
+        </span>
+        <span class="chip-remove" (click)="quitarMaterial(i)">✕</span>
+      </div>
+    </div>
+
+    <div class="material-input-row">
+      <input type="text" [(ngModel)]="materialTextoLibre" (keydown)="agregarMaterialConEnter($event)" placeholder="Escribe un material y presiona Enter..." class="material-input">
+      <button class="btn-agregar-material" (click)="agregarMaterialLibre()" [disabled]="!materialTextoLibre.trim()">➕</button>
+    </div>
+
+    <!-- Inventario en acordeón -->
+    <div class="acordeon-inventario" *ngIf="productosDisponibles.length > 0">
+      <details class="inventario-details">
+        <summary class="inventario-summary">
+          📋 Ver inventario del grupo ({{ productosDisponibles.length }} productos)
+          <span class="inventario-acciones" (click)="$event.stopPropagation()">
+            <button class="btn-link-sm" (click)="incluirTodosProductos()">Incluir todos</button>
+          </span>
+        </summary>
+        <div class="inventario-contenido">
+          <input type="text" [(ngModel)]="busquedaProducto" placeholder="🔍 Buscar producto..." class="buscador-producto">
+          <div class="badges-container badges-productos-acordeon">
+            <ng-container *ngFor="let prod of productosDisponibles">
+              <div class="badge-item badge-producto" [class.selected]="isMaterialSeleccionado(prod)" [hidden]="!productoCoincideBusqueda(prod)" (click)="toggleMaterial(prod)">
+                <span>📦</span>
+                <span>{{ prod.nombre }}</span>
+                <span *ngIf="isMaterialSeleccionado(prod)" class="badge-check-emoji">✅</span>
+                <span class="badge-ver-detalle" (click)="verProductoDetalle(prod); $event.stopPropagation()" title="Ver detalle">👁️</span>
+              </div>
+            </ng-container>
+          </div>
+        </div>
+      </details>
+    </div>
+    <p *ngIf="idGrupo && productosDisponibles.length === 0" class="sin-productos">No hay productos académicos registrados para este grupo.</p>
+
+    <!-- Descripción -->
+    <div class="seccion-header">✏️ ¿Qué tipo de actividades necesitas? *</div>
+    <textarea [(ngModel)]="descripcionDocente" rows="4" placeholder="Describe las actividades que quieres generar. Por ejemplo: 'Actividades lúdicas para trabajar reconocimiento de vocales, preferiblemente con juegos de mesa y canciones...'"></textarea>
+    <div class="caracteres-info" [class.warning]="descripcionDocente.length < 10">{{ descripcionDocente.length }} caracteres (mínimo 10)</div>
+
+    <div class="botones-row">
+      <button class="btn-secundario" (click)="volver()">← Volver</button>
+      <button class="btn-primario" (click)="irAPaso2()" [disabled]="!paso1Valido()">✨ Generar Actividades</button>
+    </div>
+  </div>
+
+  <!-- ===================== PASO 2: GENERACIÓN IA ===================== -->
+  <div *ngIf="pasoActual === 2" class="paso-contenido">
+
+    <div *ngIf="cargandoIA" class="ia-loading">
+      <div class="ia-loading-spinner"></div>
+      <h3>Generando actividades con IA... ✨</h3>
+      <p>Creando {{ cantidadActividades }} actividades para {{ nombreGrupo }} - {{ nombreArea }}</p>
+    </div>
+
+    <div *ngIf="!cargandoIA && actividadesGeneradas.length > 0">
+      <div class="resultado-header">
+        <div class="resultado-info">
+          <span class="resultado-badge">✨ {{ actividadesGeneradas.length }} actividades generadas</span>
+          <span class="resultado-meta">{{ proveedorIA }} · {{ tiempoIA }}ms</span>
+        </div>
+        <div class="resultado-acciones">
+          <button class="btn-link" (click)="seleccionarTodas()">Seleccionar todas</button>
+          <button class="btn-link" (click)="deseleccionarTodas()">Deseleccionar</button>
+        </div>
+      </div>
+
+      <div *ngFor="let act of actividadesGeneradas; let i = index" class="actividad-card" [class.deseleccionada]="!actividadesSeleccionadas[i]">
+        <div class="actividad-card-header">
+          <label class="check-actividad">
+            <input type="checkbox" [(ngModel)]="actividadesSeleccionadas[i]">
+            <span class="checkmark"></span>
+          </label>
+          <div class="actividad-titulo-row">
+            <input type="text" [(ngModel)]="act.titulo" class="input-titulo" placeholder="Título de la actividad">
+            <span class="ambiente-badge" *ngIf="act.id_ambiente">{{ getIconoAmbiente(act.id_ambiente) }} {{ getNombreAmbiente(act.id_ambiente) }}</span>
+          </div>
+        </div>
+        <div class="actividad-card-body">
+          <div class="campo-grupo">
+            <label>Descripción</label>
+            <textarea [(ngModel)]="act.descripcion" rows="3" placeholder="Descripción detallada"></textarea>
+          </div>
+          <div class="campos-row">
+            <div class="campo-grupo campo-half">
+              <label>1️⃣ Nivel Básico</label>
+              <textarea [(ngModel)]="act.nivel_uno" rows="3" placeholder="Actividad nivel básico"></textarea>
+            </div>
+            <div class="campo-grupo campo-half">
+              <label>2️⃣ Nivel Avanzado</label>
+              <textarea [(ngModel)]="act.nivel_dos" rows="3" placeholder="Actividad nivel avanzado"></textarea>
+            </div>
+          </div>
+          <div class="campos-row">
+            <div class="campo-grupo campo-third">
+              <label>Tipo de Actividad</label>
+              <select [(ngModel)]="act.id_tipo_actividad_academica">
+                <option value="" disabled>Seleccione...</option>
+                <option *ngFor="let t of tiposActividad" [value]="t.id">{{ t.icono || '📌' }} {{ t.nombre }}</option>
+              </select>
+            </div>
+            <div class="campo-grupo campo-third">
+              <label>Duración (min)</label>
+              <input type="number" [(ngModel)]="act.minutos_duracion" min="5" max="180">
+            </div>
+            <div class="campo-grupo campo-third">
+              <label>Ambiente</label>
+              <select [(ngModel)]="act.id_ambiente">
+                <option [ngValue]="null">Sin ambiente</option>
+                <option *ngFor="let a of ambientes" [value]="a.id">{{ a.icono }} {{ a.nombre }}</option>
+              </select>
+            </div>
+          </div>
+          <div class="campo-grupo">
+            <label>📦 Materiales sugeridos</label>
+            <div class="chips-container chips-sm">
+              <span *ngFor="let mat of act.materiales_sugeridos" class="chip-material chip-sm">{{ mat }}</span>
+            </div>
+          </div>
+          <div class="campo-grupo">
+            <label>📋 Indicadores de Logro asociados</label>
+            <div class="indicadores-list">
+              <div *ngFor="let ind of act.indicadores" class="indicador-chip">
+                <span class="indicador-logro">{{ ind.logro_nombre }}</span>
+                <span class="indicador-nombre">{{ ind.nombre }}</span>
+                <span class="indicador-remove" (click)="quitarIndicadorDeActividad(i, ind.id)">✕</span>
+              </div>
+              <div *ngIf="act.indicadores?.length === 0" class="sin-indicadores">Sin indicadores asociados</div>
+            </div>
+            <details class="agregar-indicador-panel">
+              <summary>➕ Agregar indicador</summary>
+              <input type="text" [(ngModel)]="busquedaIndicador[i]" placeholder="🔍 Buscar indicador..." class="buscador-indicador">
+              <div class="indicadores-disponibles">
+                <ng-container *ngFor="let logro of logrosDisponibles">
+                  <div class="logro-group" *ngIf="tieneIndicadoresFiltrados(logro, i)">
+                    <strong>{{ logro.nombre }}</strong>
+                    <div *ngFor="let ind of logro.indicadores" class="indicador-opcion" [class.ya-agregado]="act.indicadores_ids.includes(ind.id)" [hidden]="!indicadorCoincideBusqueda(ind, i)" (click)="toggleIndicadorEnActividad(i, ind.id)">
+                      <span>{{ act.indicadores_ids.includes(ind.id) ? '☑️' : '⬜' }}</span> {{ ind.nombre }}
+                    </div>
+                  </div>
+                </ng-container>
+              </div>
+            </details>
+          </div>
+        </div>
+      </div>
+
+      <div class="botones-row">
+        <button class="btn-secundario" (click)="volverAPaso1()">← Reconfigurar</button>
+        <button class="btn-regenerar" (click)="generarActividades()">🔄 Regenerar</button>
+        <button class="btn-primario" (click)="irAPaso3()" [disabled]="cantidadSeleccionadas() === 0">✅ Confirmar {{ cantidadSeleccionadas() }} actividad{{ cantidadSeleccionadas() > 1 ? 'es' : '' }}</button>
+      </div>
+    </div>
+
+    <div *ngIf="!cargandoIA && actividadesGeneradas.length === 0" class="sin-resultados">
+      <p>😕 No se generaron actividades. Intenta con una descripción más detallada.</p>
+      <button class="btn-secundario" (click)="volverAPaso1()">← Volver a configurar</button>
+    </div>
+  </div>
+
+  <!-- ===================== PASO 3: CONFIRMACIÓN ===================== -->
+  <div *ngIf="pasoActual === 3" class="paso-contenido">
+    <div class="seccion-header">📋 Resumen de creación</div>
+    <div class="resumen-info">
+      <div class="resumen-item">👥 <span><strong>Grupo:</strong> {{ nombreGrupo }}</span></div>
+      <div class="resumen-item">📚 <span><strong>Área:</strong> {{ nombreArea }}</span></div>
+      <div class="resumen-item">🏃 <span><strong>Sprint:</strong> {{ nombreSprint }}</span></div>
+      <div class="resumen-item resumen-total">✨ <span><strong>{{ cantidadSeleccionadas() }}</strong> actividad{{ cantidadSeleccionadas() > 1 ? 'es' : '' }} a crear</span></div>
+    </div>
+    <div *ngFor="let act of getActividadesParaGrabar(); let i = index" class="resumen-actividad">
+      <div class="resumen-actividad-num">{{ i + 1 }}</div>
+      <div class="resumen-actividad-info">
+        <strong>{{ act.titulo }}</strong>
+        <span class="resumen-tipo">{{ getNombreTipoActividad(act.id_tipo_actividad_academica) }} · {{ act.minutos_duracion }} min</span>
+        <span class="resumen-indicadores">{{ act.indicadores?.length || 0 }} indicador{{ (act.indicadores?.length || 0) > 1 ? 'es' : '' }}</span>
+      </div>
+    </div>
+    <div class="botones-row">
+      <button class="btn-secundario" (click)="volverAPaso2()">← Revisar actividades</button>
+      <button class="btn-primario btn-grande" (click)="confirmarYGrabar()">🚀 Crear {{ cantidadSeleccionadas() }} Actividad{{ cantidadSeleccionadas() > 1 ? 'es' : '' }}</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de producto -->
+<div class="modal-overlay" *ngIf="productoModal" (click)="cerrarModalProducto()">
+  <div class="modal-producto" (click)="$event.stopPropagation()">
+    <div class="modal-producto-header">
+      <h3>📦 {{ productoModal.nombre || productoModal.nombre_material }}</h3>
+      <span class="modal-close" (click)="cerrarModalProducto()">✕</span>
+    </div>
+    <div class="modal-producto-body">
+      <img *ngIf="productoModal.imagen" [src]="productoModal.imagen" [alt]="productoModal.nombre || productoModal.nombre_material" class="producto-imagen">
+      <div *ngIf="!productoModal.imagen" class="producto-sin-imagen">📷 Sin imagen disponible</div>
+      <p *ngIf="productoModal.descripcion" class="producto-descripcion">{{ productoModal.descripcion }}</p>
+      <p *ngIf="productoModal.tipo_producto_academico" class="producto-tipo">Tipo: {{ productoModal.tipo_producto_academico }}</p>
+    </div>
+  </div>
+</div>

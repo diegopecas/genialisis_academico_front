@@ -1,0 +1,867 @@
+<div class="seccion-financiero">
+
+  <!-- ============================================ -->
+  <!-- VISTA: KPIs (2 cards) -->
+  <!-- ============================================ -->
+  <ng-container *ngIf="vista === 'kpis'">
+
+    <div class="barra-kpis">
+      <div class="auto-refresh-info">
+        <label class="auto-refresh-toggle" [title]="autoRefreshActivo ? 'Auto-refresh activo (cada 2 min)' : 'Auto-refresh pausado'">
+          <input type="checkbox" [checked]="autoRefreshActivo" (change)="toggleAutoRefresh()" />
+          <span class="auto-refresh-label">
+            <span class="pulso" *ngIf="autoRefreshActivo"></span>
+            Auto-refresh
+          </span>
+        </label>
+        <span class="ultima-actualizacion" *ngIf="ultimaActualizacion">
+          Actualizado {{ ultimaActualizacion | date:'HH:mm:ss' }}
+        </span>
+      </div>
+
+      <button class="btn btn-sm btn-warning" (click)="refrescarKpis()" [disabled]="cargandoResumen">
+        <span *ngIf="!cargandoResumen">🔄 Refrescar</span>
+        <span *ngIf="cargandoResumen">
+          <span class="spinner-border spinner-border-sm" role="status"></span>
+          Cargando...
+        </span>
+      </button>
+    </div>
+
+    <div class="kpis-contenedor">
+
+      <!-- ========================================================== -->
+      <!-- CARD 1: CARTERA -->
+      <!-- ========================================================== -->
+      <div class="bloque-indicador bloque-cartera" (click)="abrirDetalleCartera()">
+        <div class="bloque-header">
+          <div class="bloque-titulo">
+            <span class="bloque-icono">💰</span>
+            <h4>Cartera</h4>
+          </div>
+          <span class="bloque-accion">Ver detalle <i class="fas fa-arrow-right"></i></span>
+        </div>
+
+        <!-- Dúo de datos grandes: $ Vencido (%) y Cartera total -->
+        <div class="kpi-dual">
+          <div class="kpi-dual-item kpi-vencido">
+            <div class="kpi-dual-valor">{{ formatoMoneda(cartera.saldo_vencido) }}</div>
+            <div class="kpi-dual-pct">{{ cartera.porcentaje_vencido }}%</div>
+            <div class="kpi-delta"
+                 [class.delta-sube-malo]="cartera.delta_vencido > 0"
+                 [class.delta-baja-bueno]="cartera.delta_vencido < 0"
+                 [class.delta-neutro]="cartera.delta_vencido === 0">
+              <i class="fas" [ngClass]="{
+                'fa-arrow-up': cartera.delta_vencido > 0,
+                'fa-arrow-down': cartera.delta_vencido < 0,
+                'fa-minus': cartera.delta_vencido === 0
+              }"></i>
+              <span *ngIf="cartera.delta_vencido !== 0">{{ formatoMoneda(cartera.delta_vencido > 0 ? cartera.delta_vencido : -cartera.delta_vencido) }}</span>
+              <span *ngIf="cartera.delta_vencido === 0">Sin cambios</span>
+              <span class="delta-ref">vs ayer</span>
+            </div>
+            <div class="kpi-dual-label">Vencido</div>
+          </div>
+          <div class="kpi-dual-sep"></div>
+          <div class="kpi-dual-item kpi-pendiente">
+            <div class="kpi-dual-valor">{{ formatoMoneda(cartera.saldo_pendiente) }}</div>
+            <div class="kpi-dual-label">Cartera total</div>
+          </div>
+        </div>
+
+        <div class="barra-progreso-contenedor">
+          <div class="barra-progreso barra-vencido" [style.width.%]="cartera.porcentaje_vencido"></div>
+        </div>
+
+        <!-- Antigüedad de cartera (buckets) -->
+        <div class="antiguedad-bloque">
+          <div class="antiguedad-titulo">Antigüedad de cartera</div>
+          <div class="antiguedad-grid">
+            <div class="antiguedad-item bucket-por-vencer">
+              <div class="antiguedad-valor">{{ formatoMoneda(cartera.buckets.por_vencer.saldo) }}</div>
+              <div class="antiguedad-pct">{{ cartera.buckets.por_vencer.porcentaje }}%</div>
+              <div class="antiguedad-label">Por vencer</div>
+            </div>
+            <div class="antiguedad-item bucket-1-30">
+              <div class="antiguedad-valor">{{ formatoMoneda(cartera.buckets.d_1_30.saldo) }}</div>
+              <div class="antiguedad-pct">{{ cartera.buckets.d_1_30.porcentaje }}%</div>
+              <div class="antiguedad-label">1-30 días</div>
+            </div>
+            <div class="antiguedad-item bucket-31-60">
+              <div class="antiguedad-valor">{{ formatoMoneda(cartera.buckets.d_31_60.saldo) }}</div>
+              <div class="antiguedad-pct">{{ cartera.buckets.d_31_60.porcentaje }}%</div>
+              <div class="antiguedad-label">31-60 días</div>
+            </div>
+            <div class="antiguedad-item bucket-61-90">
+              <div class="antiguedad-valor">{{ formatoMoneda(cartera.buckets.d_61_90.saldo) }}</div>
+              <div class="antiguedad-pct">{{ cartera.buckets.d_61_90.porcentaje }}%</div>
+              <div class="antiguedad-label">61-90 días</div>
+            </div>
+            <div class="antiguedad-item bucket-mas-90">
+              <div class="antiguedad-valor">{{ formatoMoneda(cartera.buckets.mas_90.saldo) }}</div>
+              <div class="antiguedad-pct">{{ cartera.buckets.mas_90.porcentaje }}%</div>
+              <div class="antiguedad-label">+90 días</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sub-bloques: cuándo + a quién -->
+        <div class="desglose-tipo">
+          <div class="desglose-item desglose-mes-actual">
+            <div class="desglose-icono">📆</div>
+            <div class="desglose-contenido">
+              <div class="desglose-valores">
+                <span class="desglose-num-money">{{ formatoMoneda(cartera.saldo_mes_actual.saldo) }}</span>
+              </div>
+              <div class="desglose-label">Cartera del mes</div>
+              <div class="desglose-sub">{{ cartera.saldo_mes_actual.total_cuentas }} cuenta(s)</div>
+            </div>
+          </div>
+
+          <div class="desglose-item desglose-meses-ant">
+            <div class="desglose-icono">📂</div>
+            <div class="desglose-contenido">
+              <div class="desglose-valores">
+                <span class="desglose-num-money">{{ formatoMoneda(cartera.saldo_meses_anteriores.saldo) }}</span>
+              </div>
+              <div class="desglose-label">Cartera meses anteriores</div>
+              <div class="desglose-sub">{{ cartera.saldo_meses_anteriores.total_cuentas }} cuenta(s)</div>
+            </div>
+          </div>
+
+          <div class="desglose-item desglose-estudiantes">
+            <div class="desglose-icono">🎒</div>
+            <div class="desglose-contenido">
+              <div class="desglose-valores">
+                <span class="desglose-num-money">{{ formatoMoneda(cartera.saldo_estudiantes.saldo) }}</span>
+              </div>
+              <div class="desglose-label">Cartera estudiantes</div>
+              <div class="desglose-sub">{{ cartera.saldo_estudiantes.total_cuentas }} cuenta(s)</div>
+            </div>
+          </div>
+
+          <div class="desglose-item desglose-colaboradores">
+            <div class="desglose-icono">👔</div>
+            <div class="desglose-contenido">
+              <div class="desglose-valores">
+                <span class="desglose-num-money">{{ formatoMoneda(cartera.saldo_colaboradores.saldo) }}</span>
+              </div>
+              <div class="desglose-label">Cartera colaboradores</div>
+              <div class="desglose-sub">{{ cartera.saldo_colaboradores.total_cuentas }} cuenta(s)</div>
+            </div>
+          </div>
+
+          <div class="desglose-item desglose-anuladas" *ngIf="cartera.cuentas_anuladas_mes.cantidad > 0">
+            <div class="desglose-icono">🚫</div>
+            <div class="desglose-contenido">
+              <div class="desglose-valores">
+                <span class="desglose-num-money">{{ formatoMoneda(cartera.cuentas_anuladas_mes.total) }}</span>
+              </div>
+              <div class="desglose-label">Cuentas anuladas este mes</div>
+              <div class="desglose-sub">{{ cartera.cuentas_anuladas_mes.cantidad }} cuenta(s)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================================== -->
+      <!-- CARD 2: RECAUDO -->
+      <!-- ========================================================== -->
+      <div class="bloque-indicador bloque-recaudo" (click)="abrirDetalleRecaudo()">
+        <div class="bloque-header">
+          <div class="bloque-titulo">
+            <span class="bloque-icono">💵</span>
+            <h4>Recaudo</h4>
+          </div>
+          <span class="bloque-accion">Ver detalle <i class="fas fa-arrow-right"></i></span>
+        </div>
+
+        <!-- Dúo de datos grandes: mes y año -->
+        <div class="kpi-dual">
+          <div class="kpi-dual-item kpi-recaudo-mes">
+            <div class="kpi-dual-valor">{{ formatoMoneda(recaudo.recaudado_mes.total) }}</div>
+            <div class="kpi-delta"
+                 [class.delta-sube-bueno]="recaudo.delta_recaudado_mes > 0"
+                 [class.delta-neutro]="recaudo.delta_recaudado_mes === 0">
+              <i class="fas" [ngClass]="{
+                'fa-arrow-up': recaudo.delta_recaudado_mes > 0,
+                'fa-minus': recaudo.delta_recaudado_mes === 0
+              }"></i>
+              <span *ngIf="recaudo.delta_recaudado_mes > 0">{{ formatoMoneda(recaudo.delta_recaudado_mes) }}</span>
+              <span *ngIf="recaudo.delta_recaudado_mes === 0">Sin cambios</span>
+              <span class="delta-ref">vs ayer</span>
+            </div>
+            <div class="kpi-dual-label">Recaudado este mes</div>
+            <div class="kpi-dual-sub">{{ recaudo.recaudado_mes.cantidad }} pago(s)</div>
+          </div>
+          <div class="kpi-dual-sep"></div>
+          <div class="kpi-dual-item kpi-recaudo-anio">
+            <div class="kpi-dual-valor">{{ formatoMoneda(recaudo.recaudado_anio.total) }}</div>
+            <div class="kpi-dual-label">Recaudado año</div>
+            <div class="kpi-dual-sub">{{ recaudo.recaudado_anio.cantidad }} pago(s)</div>
+          </div>
+        </div>
+
+        <!-- Sub-bloques -->
+        <div class="desglose-tipo">
+          <div class="desglose-item desglose-recaudado-hoy">
+            <div class="desglose-icono">📅</div>
+            <div class="desglose-contenido">
+              <div class="desglose-valores">
+                <span class="desglose-num-money">{{ formatoMoneda(recaudo.recaudado_hoy.total) }}</span>
+              </div>
+              <div class="desglose-label">Recaudé hoy</div>
+              <div class="desglose-sub">{{ recaudo.recaudado_hoy.cantidad }} pago(s)</div>
+            </div>
+          </div>
+
+          <div class="desglose-item desglose-registrado-hoy">
+            <div class="desglose-icono">📝</div>
+            <div class="desglose-contenido">
+              <div class="desglose-valores">
+                <span class="desglose-num-money">{{ formatoMoneda(recaudo.registrado_hoy.total) }}</span>
+              </div>
+              <div class="desglose-label">Registré hoy</div>
+              <div class="desglose-sub">{{ recaudo.registrado_hoy.cantidad }} pago(s)</div>
+            </div>
+          </div>
+
+          <div class="desglose-item desglose-mes-corriente">
+            <div class="desglose-icono">📆</div>
+            <div class="desglose-contenido">
+              <div class="desglose-valores">
+                <span class="desglose-num-money">{{ formatoMoneda(recaudo.recaudado_mes_corriente.total) }}</span>
+              </div>
+              <div class="desglose-label">Mes · cuentas del mes o futuras</div>
+              <div class="desglose-sub">Pagos al día o anticipados</div>
+            </div>
+          </div>
+
+          <div class="desglose-item desglose-mes-anteriores">
+            <div class="desglose-icono">📂</div>
+            <div class="desglose-contenido">
+              <div class="desglose-valores">
+                <span class="desglose-num-money">{{ formatoMoneda(recaudo.recaudado_mes_anteriores.total) }}</span>
+              </div>
+              <div class="desglose-label">Mes · cuentas anteriores</div>
+              <div class="desglose-sub">Recuperación de cartera</div>
+            </div>
+          </div>
+
+          <div class="desglose-item desglose-estudiantes">
+            <div class="desglose-icono">🎒</div>
+            <div class="desglose-contenido">
+              <div class="desglose-valores">
+                <span class="desglose-num-money">{{ formatoMoneda(recaudo.mes_estudiantes.total) }}</span>
+              </div>
+              <div class="desglose-label">Pagos del mes · estudiantes</div>
+              <div class="desglose-sub">{{ recaudo.mes_estudiantes.cantidad }} pago(s)</div>
+            </div>
+          </div>
+
+          <div class="desglose-item desglose-colaboradores">
+            <div class="desglose-icono">👔</div>
+            <div class="desglose-contenido">
+              <div class="desglose-valores">
+                <span class="desglose-num-money">{{ formatoMoneda(recaudo.mes_colaboradores.total) }}</span>
+              </div>
+              <div class="desglose-label">Pagos del mes · colaboradores</div>
+              <div class="desglose-sub">{{ recaudo.mes_colaboradores.cantidad }} pago(s)</div>
+            </div>
+          </div>
+
+          <div class="desglose-item desglose-anuladas" *ngIf="recaudo.anulados_mes.cantidad > 0">
+            <div class="desglose-icono">🚫</div>
+            <div class="desglose-contenido">
+              <div class="desglose-valores">
+                <span class="desglose-num-money">{{ formatoMoneda(recaudo.anulados_mes.total) }}</span>
+              </div>
+              <div class="desglose-label">Pagos anulados este mes</div>
+              <div class="desglose-sub">{{ recaudo.anulados_mes.cantidad }} pago(s)</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mini-bloque: recaudo del mes por tipo de pago -->
+        <div class="antiguedad-bloque" *ngIf="recaudo.por_tipo_pago.length > 0">
+          <div class="antiguedad-titulo">Recaudo del mes por tipo de pago</div>
+          <div class="tipos-pago-grid">
+            <div class="tipo-pago-item" *ngFor="let t of recaudo.por_tipo_pago">
+              <div class="tipo-pago-valor">{{ formatoMoneda(t.total) }}</div>
+              <div class="tipo-pago-label">{{ t.tipo_pago }}</div>
+              <div class="tipo-pago-cantidad">{{ t.cantidad }} pago(s)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================================== -->
+      <!-- CARD 3: MOVIMIENTOS FINANCIEROS -->
+      <!-- ========================================================== -->
+      <div class="bloque-indicador bloque-movimientos" (click)="abrirDetalleMovimientos()">
+        <div class="bloque-header">
+          <div class="bloque-titulo">
+            <span class="bloque-icono">💼</span>
+            <h4>Movimientos</h4>
+          </div>
+          <span class="bloque-accion">Ver detalle <i class="fas fa-arrow-right"></i></span>
+        </div>
+
+        <!-- KPIs grandes: Ingresos / Gastos del mes con deltas -->
+        <div class="kpi-dual">
+          <div class="kpi-dual-item kpi-ingresos">
+            <div class="kpi-dual-valor">{{ formatoMoneda(movimientos.ingresos_mes.total) }}</div>
+            <div class="kpi-delta"
+                 [class.delta-sube-bueno]="movimientos.delta_ingresos_mes > 0"
+                 [class.delta-neutro]="movimientos.delta_ingresos_mes === 0">
+              <i class="fas" [ngClass]="{
+                'fa-arrow-up': movimientos.delta_ingresos_mes > 0,
+                'fa-minus': movimientos.delta_ingresos_mes === 0
+              }"></i>
+              <span *ngIf="movimientos.delta_ingresos_mes > 0">{{ formatoMoneda(movimientos.delta_ingresos_mes) }}</span>
+              <span *ngIf="movimientos.delta_ingresos_mes === 0">Sin cambios</span>
+              <span class="delta-ref">vs ayer</span>
+            </div>
+            <div class="kpi-dual-label">Ingresos del mes</div>
+            <div class="kpi-dual-sub">{{ movimientos.ingresos_mes.cantidad }} mov.</div>
+          </div>
+          <div class="kpi-dual-sep"></div>
+          <div class="kpi-dual-item kpi-gastos">
+            <div class="kpi-dual-valor">{{ formatoMoneda(movimientos.gastos_mes.total) }}</div>
+            <div class="kpi-delta"
+                 [class.delta-sube-malo]="movimientos.delta_gastos_mes > 0"
+                 [class.delta-neutro]="movimientos.delta_gastos_mes === 0">
+              <i class="fas" [ngClass]="{
+                'fa-arrow-up': movimientos.delta_gastos_mes > 0,
+                'fa-minus': movimientos.delta_gastos_mes === 0
+              }"></i>
+              <span *ngIf="movimientos.delta_gastos_mes > 0">{{ formatoMoneda(movimientos.delta_gastos_mes) }}</span>
+              <span *ngIf="movimientos.delta_gastos_mes === 0">Sin cambios</span>
+              <span class="delta-ref">vs ayer</span>
+            </div>
+            <div class="kpi-dual-label">Gastos del mes</div>
+            <div class="kpi-dual-sub">{{ movimientos.gastos_mes.cantidad }} mov.</div>
+          </div>
+        </div>
+
+        <!-- Balance del mes como texto resaltado pero pequeño -->
+        <div class="balance-mes-linea"
+             [class.balance-positivo]="movimientos.balance_mes >= 0"
+             [class.balance-negativo]="movimientos.balance_mes < 0">
+          <span class="balance-label">Balance del mes</span>
+          <span class="balance-valor">{{ formatoMoneda(movimientos.balance_mes) }}</span>
+        </div>
+
+        <!-- Sub-bloques: año y resto -->
+        <div class="desglose-tipo">
+          <div class="desglose-item desglose-ingresos-anio">
+            <div class="desglose-icono">📈</div>
+            <div class="desglose-contenido">
+              <div class="desglose-valores">
+                <span class="desglose-num-money">{{ formatoMoneda(movimientos.ingresos_anio.total) }}</span>
+              </div>
+              <div class="desglose-label">Ingresos del año</div>
+              <div class="desglose-sub">{{ movimientos.ingresos_anio.cantidad }} mov.</div>
+            </div>
+          </div>
+
+          <div class="desglose-item desglose-gastos-anio">
+            <div class="desglose-icono">📉</div>
+            <div class="desglose-contenido">
+              <div class="desglose-valores">
+                <span class="desglose-num-money">{{ formatoMoneda(movimientos.gastos_anio.total) }}</span>
+              </div>
+              <div class="desglose-label">Gastos del año</div>
+              <div class="desglose-sub">{{ movimientos.gastos_anio.cantidad }} mov.</div>
+            </div>
+          </div>
+
+          <div class="desglose-item desglose-balance-anio"
+               [class.balance-anio-pos]="movimientos.balance_anio >= 0"
+               [class.balance-anio-neg]="movimientos.balance_anio < 0">
+            <div class="desglose-icono">⚖️</div>
+            <div class="desglose-contenido">
+              <div class="desglose-valores">
+                <span class="desglose-num-money">{{ formatoMoneda(movimientos.balance_anio) }}</span>
+              </div>
+              <div class="desglose-label">Balance del año</div>
+              <div class="desglose-sub">Ingresos − Gastos</div>
+            </div>
+          </div>
+
+          <div class="desglose-item desglose-pendientes" *ngIf="movimientos.pendientes_aprobacion.cantidad > 0">
+            <div class="desglose-icono">⏳</div>
+            <div class="desglose-contenido">
+              <div class="desglose-valores">
+                <span class="desglose-num-money">{{ formatoMoneda(movimientos.pendientes_aprobacion.total) }}</span>
+              </div>
+              <div class="desglose-label">Pendientes de aprobación</div>
+              <div class="desglose-sub">{{ movimientos.pendientes_aprobacion.cantidad }} mov.</div>
+            </div>
+          </div>
+
+          <div class="desglose-item desglose-top-categoria" *ngIf="movimientos.top_categoria_gasto">
+            <div class="desglose-icono">🏷️</div>
+            <div class="desglose-contenido">
+              <div class="desglose-valores">
+                <span class="desglose-num-money">{{ formatoMoneda(movimientos.top_categoria_gasto.total) }}</span>
+              </div>
+              <div class="desglose-label">Top categoría de gasto</div>
+              <div class="desglose-sub">{{ movimientos.top_categoria_gasto.nombre }} · {{ movimientos.top_categoria_gasto.cantidad }} mov.</div>
+            </div>
+          </div>
+
+          <div class="desglose-item desglose-top-concepto" *ngIf="movimientos.top_concepto_gasto">
+            <div class="desglose-icono">📌</div>
+            <div class="desglose-contenido">
+              <div class="desglose-valores">
+                <span class="desglose-num-money">{{ formatoMoneda(movimientos.top_concepto_gasto.total) }}</span>
+              </div>
+              <div class="desglose-label">Top concepto de gasto</div>
+              <div class="desglose-sub">{{ movimientos.top_concepto_gasto.nombre }} · {{ movimientos.top_concepto_gasto.cantidad }} mov.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </ng-container>
+
+  <!-- ============================================ -->
+  <!-- VISTA: DETALLE CARTERA (morosos) -->
+  <!-- ============================================ -->
+  <div *ngIf="vista === 'cartera'" class="detalle-contenedor">
+    <div class="detalle-header">
+      <button class="btn-volver" (click)="volverAKpis()">
+        <i class="fas fa-arrow-left"></i> Volver
+      </button>
+      <div class="detalle-titulo">
+        <h4 class="mb-0">
+          <span class="me-2">💰</span>Personas con saldo pendiente
+        </h4>
+        <small class="text-muted">
+          {{ morosos.length }} de {{ morososOriginal.length }} mostrado(s)
+        </small>
+      </div>
+    </div>
+
+    <div class="filtros-bar" *ngIf="!cargandoDetalleCartera && morososOriginal.length > 0">
+      <div class="filtro-grupo">
+        <button class="btn btn-sm" [class.btn-warning]="filtroEstado === 'todos'" [class.btn-outline-secondary]="filtroEstado !== 'todos'"
+                (click)="cambiarFiltroEstado('todos')">
+          Todos ({{ morososOriginal.length }})
+        </button>
+        <button class="btn btn-sm" [class.btn-warning]="filtroEstado === 'activos'" [class.btn-outline-secondary]="filtroEstado !== 'activos'"
+                (click)="cambiarFiltroEstado('activos')">
+          Activos ({{ totalActivos }})
+        </button>
+        <button class="btn btn-sm" [class.btn-warning]="filtroEstado === 'inactivos'" [class.btn-outline-secondary]="filtroEstado !== 'inactivos'"
+                (click)="cambiarFiltroEstado('inactivos')">
+          Inactivos ({{ totalInactivos }})
+        </button>
+      </div>
+
+      <div class="busqueda-grupo">
+        <input type="text" class="form-control form-control-sm" placeholder="Buscar por nombre, grupo o ID..."
+               [(ngModel)]="busquedaCartera" (input)="buscarMorosos()" />
+      </div>
+    </div>
+
+    <div *ngIf="cargandoDetalleCartera" class="text-center p-4">
+      <div class="spinner-border text-warning" role="status"></div>
+      <div class="mt-2">Cargando...</div>
+    </div>
+
+    <div *ngIf="!cargandoDetalleCartera && morosos.length === 0" class="sin-datos">
+      <em *ngIf="morososOriginal.length === 0">No hay personas con saldo pendiente.</em>
+      <em *ngIf="morososOriginal.length > 0">No hay resultados con los filtros aplicados.</em>
+    </div>
+
+    <div *ngIf="!cargandoDetalleCartera && morosos.length > 0" class="tabla-wrap">
+      <table class="tabla-morosos">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th class="th-ordenable" (click)="ordenarCartera('nombre_persona')">
+              Persona <i class="fas ms-1" [ngClass]="iconoOrdenCartera('nombre_persona')"></i>
+            </th>
+            <th class="th-ordenable" (click)="ordenarCartera('grupo_o_cargo')">
+              Grupo/Cargo <i class="fas ms-1" [ngClass]="iconoOrdenCartera('grupo_o_cargo')"></i>
+            </th>
+            <th class="text-center th-ordenable" (click)="ordenarCartera('activo')">
+              Estado <i class="fas ms-1" [ngClass]="iconoOrdenCartera('activo')"></i>
+            </th>
+            <th class="text-center th-ordenable" (click)="ordenarCartera('cuentas_pendientes')">
+              Cuentas <i class="fas ms-1" [ngClass]="iconoOrdenCartera('cuentas_pendientes')"></i>
+            </th>
+            <th class="text-center th-ordenable" (click)="ordenarCartera('cuentas_vencidas')">
+              Vencidas <i class="fas ms-1" [ngClass]="iconoOrdenCartera('cuentas_vencidas')"></i>
+            </th>
+            <th class="text-end th-ordenable" (click)="ordenarCartera('saldo_pendiente')">
+              Saldo pendiente <i class="fas ms-1" [ngClass]="iconoOrdenCartera('saldo_pendiente')"></i>
+            </th>
+            <th class="text-end th-ordenable" (click)="ordenarCartera('saldo_vencido')">
+              Saldo vencido <i class="fas ms-1" [ngClass]="iconoOrdenCartera('saldo_vencido')"></i>
+            </th>
+            <th class="text-center th-ordenable" (click)="ordenarCartera('dias_max_vencido')">
+              Días <i class="fas ms-1" [ngClass]="iconoOrdenCartera('dias_max_vencido')"></i>
+            </th>
+            <th class="th-ordenable" (click)="ordenarCartera('recordatorio_fecha')">
+              Último recordatorio <i class="fas ms-1" [ngClass]="iconoOrdenCartera('recordatorio_fecha')"></i>
+            </th>
+            <th class="th-ordenable" (click)="ordenarCartera('compromiso_fecha')">
+              Compromiso <i class="fas ms-1" [ngClass]="iconoOrdenCartera('compromiso_fecha')"></i>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let m of morosos; let i = index"
+              [class.fila-critica]="m.saldo_vencido > 0"
+              [class.fila-inactivo]="m.activo === 0">
+            <td>{{ i + 1 }}</td>
+            <td>
+              <div class="persona-nombre">{{ m.nombre_persona }}</div>
+              <div class="persona-tipo">
+                <span class="badge-tipo"
+                  [class.badge-estudiante]="m.tipo_persona === 'Estudiante'"
+                  [class.badge-colaborador]="m.tipo_persona === 'Colaborador'">
+                  {{ m.tipo_persona }}
+                </span>
+              </div>
+            </td>
+            <td>{{ m.grupo_o_cargo }}</td>
+            <td class="text-center">
+              <span class="badge-estado"
+                [class.badge-activo]="m.activo === 1"
+                [class.badge-inactivo]="m.activo === 0">
+                {{ m.activo === 1 ? 'Activo' : 'Inactivo' }}
+              </span>
+            </td>
+            <td class="text-center">{{ m.cuentas_pendientes }}</td>
+            <td class="text-center">
+              <span class="badge-venc" *ngIf="m.cuentas_vencidas > 0">{{ m.cuentas_vencidas }}</span>
+              <span *ngIf="m.cuentas_vencidas === 0" class="text-muted">—</span>
+            </td>
+            <td class="text-end money">{{ formatoMoneda(m.saldo_pendiente) }}</td>
+            <td class="text-end money money-venc" [class.tiene-vencido]="m.saldo_vencido > 0">
+              <span *ngIf="m.saldo_vencido > 0">{{ formatoMoneda(m.saldo_vencido) }}</span>
+              <span *ngIf="m.saldo_vencido === 0" class="text-muted">—</span>
+            </td>
+            <td class="text-center">
+              <span class="tag-dias"
+                *ngIf="m.dias_max_vencido > 0"
+                [class.tag-dias-alto]="m.dias_max_vencido > 60"
+                [class.tag-dias-medio]="m.dias_max_vencido > 30 && m.dias_max_vencido <= 60"
+                [class.tag-dias-bajo]="m.dias_max_vencido <= 30">
+                {{ m.dias_max_vencido }}d
+              </span>
+              <span *ngIf="m.dias_max_vencido === 0" class="text-muted">—</span>
+            </td>
+            <td class="recordatorio-col">
+              <ng-container *ngIf="m.recordatorio; else sinRecordatorio">
+                <div class="recordatorio-fecha">{{ m.recordatorio.fecha_envio | date:'dd/MM/yyyy' }}</div>
+                <div class="recordatorio-meta">
+                  <span class="badge-recordatorio"
+                    [class.badge-rec-pago]="m.recordatorio.origen === 'pago'"
+                    [class.badge-rec-general]="m.recordatorio.origen === 'general'">
+                    {{ m.recordatorio.origen === 'pago' ? 'Pago' : 'General' }}
+                  </span>
+                  <span class="recordatorio-tipo">{{ m.recordatorio.tipo }}</span>
+                </div>
+              </ng-container>
+              <ng-template #sinRecordatorio>
+                <span class="text-muted sin-recordatorio">Sin recordatorios</span>
+              </ng-template>
+            </td>
+            <td class="compromiso-col">
+              <ng-container *ngIf="m.recordatorio && m.recordatorio.compromiso; else sinCompromiso">
+                <div class="compromiso-texto">{{ m.recordatorio.compromiso }}</div>
+                <div class="compromiso-fecha" *ngIf="m.recordatorio.fecha_compromiso">
+                  <i class="fas fa-flag-checkered"></i>
+                  {{ m.recordatorio.fecha_compromiso | date:'dd/MM/yyyy' }}
+                </div>
+              </ng-container>
+              <ng-template #sinCompromiso>
+                <span class="text-muted">—</span>
+              </ng-template>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- VISTA: DETALLE RECAUDO (pagos) -->
+  <!-- ============================================ -->
+  <div *ngIf="vista === 'recaudo'" class="detalle-contenedor">
+    <div class="detalle-header">
+      <button class="btn-volver" (click)="volverAKpis()">
+        <i class="fas fa-arrow-left"></i> Volver
+      </button>
+      <div class="detalle-titulo">
+        <h4 class="mb-0">
+          <span class="me-2">💵</span>Pagos recibidos
+        </h4>
+        <small class="text-muted">
+          {{ pagos.length }} pago(s) · Total: <strong>{{ formatoMoneda(totalRecaudoFiltrado) }}</strong>
+        </small>
+      </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="filtros-bar" *ngIf="!cargandoDetalleRecaudo">
+      <div class="filtro-grupo">
+        <button class="btn btn-sm" [class.btn-warning]="rangoRecaudo === 'hoy'" [class.btn-outline-secondary]="rangoRecaudo !== 'hoy'"
+                (click)="cambiarRangoRecaudo('hoy')">Hoy</button>
+        <button class="btn btn-sm" [class.btn-warning]="rangoRecaudo === 'mes'" [class.btn-outline-secondary]="rangoRecaudo !== 'mes'"
+                (click)="cambiarRangoRecaudo('mes')">Mes</button>
+        <button class="btn btn-sm" [class.btn-warning]="rangoRecaudo === 'anio'" [class.btn-outline-secondary]="rangoRecaudo !== 'anio'"
+                (click)="cambiarRangoRecaudo('anio')">Año</button>
+      </div>
+
+      <div class="filtro-grupo">
+        <button class="btn btn-sm" [class.btn-warning]="filtroTipoPersonaRec === 'todos'" [class.btn-outline-secondary]="filtroTipoPersonaRec !== 'todos'"
+                (click)="cambiarFiltroTipoPersona('todos')">Todos</button>
+        <button class="btn btn-sm" [class.btn-warning]="filtroTipoPersonaRec === 'estudiantes'" [class.btn-outline-secondary]="filtroTipoPersonaRec !== 'estudiantes'"
+                (click)="cambiarFiltroTipoPersona('estudiantes')">Estudiantes</button>
+        <button class="btn btn-sm" [class.btn-warning]="filtroTipoPersonaRec === 'colaboradores'" [class.btn-outline-secondary]="filtroTipoPersonaRec !== 'colaboradores'"
+                (click)="cambiarFiltroTipoPersona('colaboradores')">Colaboradores</button>
+        <button class="btn btn-sm" [class.btn-warning]="filtroTipoPersonaRec === 'acudientes'" [class.btn-outline-secondary]="filtroTipoPersonaRec !== 'acudientes'"
+                (click)="cambiarFiltroTipoPersona('acudientes')">Acudientes</button>
+      </div>
+
+      <div class="filtro-grupo">
+        <select class="form-select form-select-sm" [(ngModel)]="filtroTipoPagoId" (change)="cambiarFiltroTipoPago()">
+          <option value="">Todos los tipos de pago</option>
+          <option *ngFor="let tp of tiposPago" [value]="tp.id">{{ tp.nombre }}</option>
+        </select>
+      </div>
+
+      <div class="busqueda-grupo">
+        <input type="text" class="form-control form-control-sm" placeholder="Buscar por nombre, referencia..."
+               [(ngModel)]="busquedaRecaudo" (input)="buscarPagos()" />
+      </div>
+    </div>
+
+    <div *ngIf="cargandoDetalleRecaudo" class="text-center p-4">
+      <div class="spinner-border text-warning" role="status"></div>
+      <div class="mt-2">Cargando...</div>
+    </div>
+
+    <!-- Resumen por tipo de pago para el rango actual -->
+    <div *ngIf="!cargandoDetalleRecaudo && resumenTiposDetalle.length > 0" class="resumen-tipos-bar">
+      <div class="resumen-tipos-titulo">Resumen por tipo de pago</div>
+      <div class="resumen-tipos-grid">
+        <div class="resumen-tipo-item" *ngFor="let t of resumenTiposDetalle">
+          <div class="resumen-tipo-valor">{{ formatoMoneda(t.total) }}</div>
+          <div class="resumen-tipo-label">{{ t.tipo_pago }}</div>
+          <div class="resumen-tipo-cantidad">{{ t.cantidad }} pago(s)</div>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="!cargandoDetalleRecaudo && pagos.length === 0" class="sin-datos">
+      <em *ngIf="pagosOriginal.length === 0">No hay pagos en el periodo seleccionado.</em>
+      <em *ngIf="pagosOriginal.length > 0">No hay resultados con los filtros aplicados.</em>
+    </div>
+
+    <div *ngIf="!cargandoDetalleRecaudo && pagos.length > 0" class="tabla-wrap">
+      <table class="tabla-pagos">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th class="th-ordenable" (click)="ordenarRecaudo('fecha')">
+              Fecha <i class="fas ms-1" [ngClass]="iconoOrdenRecaudo('fecha')"></i>
+            </th>
+            <th class="th-ordenable" (click)="ordenarRecaudo('nombre_persona')">
+              Persona <i class="fas ms-1" [ngClass]="iconoOrdenRecaudo('nombre_persona')"></i>
+            </th>
+            <th class="th-ordenable" (click)="ordenarRecaudo('tipo_persona')">
+              Tipo <i class="fas ms-1" [ngClass]="iconoOrdenRecaudo('tipo_persona')"></i>
+            </th>
+            <th class="th-ordenable" (click)="ordenarRecaudo('tipo_pago')">
+              Forma de pago <i class="fas ms-1" [ngClass]="iconoOrdenRecaudo('tipo_pago')"></i>
+            </th>
+            <th class="text-end th-ordenable" (click)="ordenarRecaudo('valor_recibido')">
+              Valor <i class="fas ms-1" [ngClass]="iconoOrdenRecaudo('valor_recibido')"></i>
+            </th>
+            <th class="th-ordenable" (click)="ordenarRecaudo('referencia_bancaria')">
+              Referencia <i class="fas ms-1" [ngClass]="iconoOrdenRecaudo('referencia_bancaria')"></i>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of pagos; let i = index">
+            <td>{{ i + 1 }}</td>
+            <td class="fecha-col">{{ p.fecha }}</td>
+            <td>{{ p.nombre_persona }}</td>
+            <td>
+              <span class="badge-tipo"
+                [class.badge-estudiante]="p.tipo_persona === 'Estudiante'"
+                [class.badge-colaborador]="p.tipo_persona === 'Colaborador'"
+                [class.badge-acudiente]="p.tipo_persona === 'Acudiente'">
+                {{ p.tipo_persona }}
+              </span>
+            </td>
+            <td>{{ p.tipo_pago }}</td>
+            <td class="text-end money">{{ formatoMoneda(p.valor_recibido) }}</td>
+            <td class="referencia-col">{{ p.referencia_bancaria || '—' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- VISTA: DETALLE MOVIMIENTOS -->
+  <!-- ============================================ -->
+  <div *ngIf="vista === 'movimientos'" class="detalle-contenedor">
+    <div class="detalle-header">
+      <button class="btn-volver" (click)="volverAKpis()">
+        <i class="fas fa-arrow-left"></i> Volver
+      </button>
+      <div class="detalle-titulo">
+        <h4 class="mb-0">
+          <span class="me-2">💼</span>Movimientos financieros
+        </h4>
+        <small class="text-muted">
+          {{ movimientosFiltrados.length }} mov. ·
+          <strong class="text-success">{{ formatoMoneda(totalIngresosFiltrados) }}</strong> ingresos ·
+          <strong class="text-danger">{{ formatoMoneda(totalGastosFiltrados) }}</strong> gastos ·
+          Balance <strong [class.text-success]="balanceFiltrado >= 0" [class.text-danger]="balanceFiltrado < 0">{{ formatoMoneda(balanceFiltrado) }}</strong>
+        </small>
+      </div>
+    </div>
+
+    <div class="filtros-bar" *ngIf="!cargandoDetalleMovimientos">
+      <div class="filtro-grupo">
+        <button class="btn btn-sm" [class.btn-warning]="rangoMovimientos === 'hoy'" [class.btn-outline-secondary]="rangoMovimientos !== 'hoy'"
+                (click)="cambiarRangoMovimientos('hoy')">Hoy</button>
+        <button class="btn btn-sm" [class.btn-warning]="rangoMovimientos === 'mes'" [class.btn-outline-secondary]="rangoMovimientos !== 'mes'"
+                (click)="cambiarRangoMovimientos('mes')">Mes</button>
+        <button class="btn btn-sm" [class.btn-warning]="rangoMovimientos === 'anio'" [class.btn-outline-secondary]="rangoMovimientos !== 'anio'"
+                (click)="cambiarRangoMovimientos('anio')">Año</button>
+      </div>
+
+      <div class="filtro-grupo">
+        <button class="btn btn-sm" [class.btn-warning]="filtroTipoMov === 'todos'" [class.btn-outline-secondary]="filtroTipoMov !== 'todos'"
+                (click)="cambiarFiltroTipoMov('todos')">Todos</button>
+        <button class="btn btn-sm" [class.btn-warning]="filtroTipoMov === 'ingresos'" [class.btn-outline-secondary]="filtroTipoMov !== 'ingresos'"
+                (click)="cambiarFiltroTipoMov('ingresos')">Ingresos</button>
+        <button class="btn btn-sm" [class.btn-warning]="filtroTipoMov === 'gastos'" [class.btn-outline-secondary]="filtroTipoMov !== 'gastos'"
+                (click)="cambiarFiltroTipoMov('gastos')">Gastos</button>
+      </div>
+
+      <div class="filtro-grupo">
+        <button class="btn btn-sm" [class.btn-warning]="filtroEstadoMov === 'todos'" [class.btn-outline-secondary]="filtroEstadoMov !== 'todos'"
+                (click)="cambiarFiltroEstadoMov('todos')">Todos</button>
+        <button class="btn btn-sm" [class.btn-warning]="filtroEstadoMov === 'aprobados'" [class.btn-outline-secondary]="filtroEstadoMov !== 'aprobados'"
+                (click)="cambiarFiltroEstadoMov('aprobados')">Aprobados</button>
+        <button class="btn btn-sm" [class.btn-warning]="filtroEstadoMov === 'pendientes'" [class.btn-outline-secondary]="filtroEstadoMov !== 'pendientes'"
+                (click)="cambiarFiltroEstadoMov('pendientes')">Pendientes</button>
+        <button class="btn btn-sm" [class.btn-warning]="filtroEstadoMov === 'anulados'" [class.btn-outline-secondary]="filtroEstadoMov !== 'anulados'"
+                (click)="cambiarFiltroEstadoMov('anulados')">Anulados</button>
+      </div>
+
+      <div class="filtro-grupo">
+        <select class="form-select form-select-sm" [(ngModel)]="filtroCategoriaMovId" (change)="cambiarFiltroCategoriaMov()">
+          <option value="">Todas las categorías</option>
+          <option *ngFor="let c of categoriasMov" [value]="c.id">{{ c.nombre }}</option>
+        </select>
+      </div>
+
+      <div class="filtro-grupo">
+        <select class="form-select form-select-sm" [(ngModel)]="filtroMedioPagoMovId" (change)="cambiarFiltroMedioPagoMov()">
+          <option value="">Todos los medios</option>
+          <option *ngFor="let m of mediosPagoMov" [value]="m.id">{{ m.nombre }}</option>
+        </select>
+      </div>
+
+      <div class="busqueda-grupo">
+        <input type="text" class="form-control form-control-sm" placeholder="Buscar concepto, detalle, referencia..."
+               [(ngModel)]="busquedaMov" (input)="buscarMovimientos()" />
+      </div>
+    </div>
+
+    <div *ngIf="cargandoDetalleMovimientos" class="text-center p-4">
+      <div class="spinner-border text-warning" role="status"></div>
+      <div class="mt-2">Cargando...</div>
+    </div>
+
+    <div *ngIf="!cargandoDetalleMovimientos && movimientosFiltrados.length === 0" class="sin-datos">
+      <em *ngIf="movimientosOriginal.length === 0">No hay movimientos en el periodo seleccionado.</em>
+      <em *ngIf="movimientosOriginal.length > 0">No hay resultados con los filtros aplicados.</em>
+    </div>
+
+    <div *ngIf="!cargandoDetalleMovimientos && movimientosFiltrados.length > 0" class="tabla-wrap">
+      <table class="tabla-movimientos">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th class="th-ordenable" (click)="ordenarMov('fecha')">
+              Fecha <i class="fas ms-1" [ngClass]="iconoOrdenMov('fecha')"></i>
+            </th>
+            <th class="th-ordenable" (click)="ordenarMov('tipo')">
+              Tipo <i class="fas ms-1" [ngClass]="iconoOrdenMov('tipo')"></i>
+            </th>
+            <th class="th-ordenable" (click)="ordenarMov('categoria')">
+              Categoría <i class="fas ms-1" [ngClass]="iconoOrdenMov('categoria')"></i>
+            </th>
+            <th class="th-ordenable" (click)="ordenarMov('concepto')">
+              Concepto <i class="fas ms-1" [ngClass]="iconoOrdenMov('concepto')"></i>
+            </th>
+            <th class="th-ordenable" (click)="ordenarMov('medio_pago')">
+              Medio <i class="fas ms-1" [ngClass]="iconoOrdenMov('medio_pago')"></i>
+            </th>
+            <th class="text-end th-ordenable" (click)="ordenarMov('valor')">
+              Valor <i class="fas ms-1" [ngClass]="iconoOrdenMov('valor')"></i>
+            </th>
+            <th class="text-center th-ordenable" (click)="ordenarMov('estado')">
+              Estado <i class="fas ms-1" [ngClass]="iconoOrdenMov('estado')"></i>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let m of movimientosFiltrados; let i = index"
+              [class.fila-anulado]="m.estado === 'Anulado'"
+              [class.fila-pendiente]="m.estado === 'Pendiente'">
+            <td>{{ i + 1 }}</td>
+            <td class="fecha-col">{{ m.fecha }}</td>
+            <td>
+              <span class="badge-tipo"
+                [class.badge-ingreso]="m.tipo === 'Ingreso'"
+                [class.badge-gasto]="m.tipo === 'Gasto'">
+                {{ m.tipo }}
+              </span>
+            </td>
+            <td>
+              <span class="cat-color" [style.background-color]="m.color_categoria || '#999'"></span>
+              {{ m.categoria }}
+            </td>
+            <td>
+              <div>{{ m.concepto }}</div>
+              <small class="text-muted" *ngIf="m.detalle">{{ m.detalle }}</small>
+            </td>
+            <td>{{ m.medio_pago || '—' }}</td>
+            <td class="text-end money"
+                [class.money-ingreso]="m.tipo === 'Ingreso' && m.estado !== 'Anulado'"
+                [class.money-gasto]="m.tipo === 'Gasto' && m.estado !== 'Anulado'">
+              {{ formatoMoneda(m.valor) }}
+            </td>
+            <td class="text-center">
+              <span class="badge-estado-mov"
+                [class.badge-aprobado]="m.estado === 'Aprobado'"
+                [class.badge-pendiente-mov]="m.estado === 'Pendiente'"
+                [class.badge-anulado]="m.estado === 'Anulado'">
+                {{ m.estado }}
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>

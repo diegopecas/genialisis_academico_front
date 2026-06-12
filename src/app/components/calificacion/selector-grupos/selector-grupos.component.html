@@ -1,0 +1,26 @@
+<div class="modulo">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="false"
+    [accion]="'ConsultarTodos'"
+    [regresar]="'/menu'"
+    [iconoTitulo]="'/assets/images/reporte.png'"
+  ></app-header>
+
+  <div class="container-fluid mt-3">
+    <div class="row">
+      <div class="col-sm-12 col-md-3 px-3 mb-5" *ngFor="let grupo of grupos">
+        <div
+          class="text-center ficha ficha-grupo"
+          [style.background-image]="'linear-gradient(to bottom, #ffffff 80%, ' + grupo.color + ')'"
+          (click)="seleccionarGrupo(grupo)"
+        >
+          <div class="imagen-container">
+            <img [src]="grupo.icono" [alt]="grupo.nombre" />
+          </div>
+          <p class="nombre-item">{{ grupo.nombre }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

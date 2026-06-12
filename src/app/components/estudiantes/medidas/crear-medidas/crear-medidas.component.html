@@ -1,0 +1,152 @@
+<div class="modulo">
+    <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [accion]="accion" [raiz]="'/estudiantes'"
+        [regresar]="regresar" [iconoTitulo]="'/assets/images/medidas.png'"></app-header>
+
+    <div class="container mt-5" [ngClass]="{ 'disabled-container': !editable }">
+        <div class="row">
+            <!-- Tipo de Medida -->
+            <div class="col-sm-12 col-md-4">
+                <label class="form-label">Tipo de Medida <span class="text-danger">*</span></label>
+                <select class="form-select form-select-lg" 
+                        [(ngModel)]="model.id_medida" 
+                        required
+                        (change)="onTipoMedidaCambiado()"
+                        [ngClass]="{'is-invalid': !model.id_medida && submitted}">
+                    <option value="">Seleccionar</option>
+                    <optgroup *ngFor="let cat of categorias" [label]="cat.nombre">
+                        <option *ngFor="let medida of cat.medidas" [value]="medida.id">
+                            {{ medida.nombre }}
+                            <ng-container *ngIf="medida.unidad_abreviatura"> ({{ medida.unidad_abreviatura }})</ng-container>
+                        </option>
+                    </optgroup>
+                </select>
+            </div>
+
+            <!-- Fecha -->
+            <div class="col-sm-12 col-md-4">
+                <label class="form-label">Fecha <span class="text-danger">*</span></label>
+                <input type="date" 
+                       class="form-control form-control-lg" 
+                       [(ngModel)]="model.fecha" 
+                       required
+                       (change)="onFechaCambiada()"
+                       [ngClass]="{'is-invalid': !model.fecha && submitted}">
+            </div>
+
+            <!-- Valor: numérico o select según tipo -->
+            <div class="col-sm-12 col-md-4">
+                <label class="form-label">
+                    Valor <span class="text-danger">*</span>
+                    <span *ngIf="obtenerUnidadMedida()" class="text-muted">({{ obtenerUnidadMedida() }})</span>
+                </label>
+
+                <!-- Input numérico -->
+                <input *ngIf="!obtenerMedidaSeleccionada() || obtenerMedidaSeleccionada()?.tipo_valor !== 'select'"
+                       type="number" 
+                       step="0.01" 
+                       class="form-control form-control-lg" 
+                       [(ngModel)]="model.valor" 
+                       required
+                       [ngClass]="{'is-invalid': !model.valor && submitted}" 
+                       placeholder="Ingrese el valor de la medida">
+
+                <!-- Select para medidas tipo select (ej: Tipo de cuerpo) -->
+                <select *ngIf="obtenerMedidaSeleccionada()?.tipo_valor === 'select'"
+                        class="form-select form-select-lg"
+                        [(ngModel)]="model.valor"
+                        required
+                        [ngClass]="{'is-invalid': !model.valor && submitted}">
+                    <option [ngValue]="0">Seleccionar</option>
+                    <option *ngFor="let op of obtenerMedidaSeleccionada()?.opciones" 
+                            [ngValue]="op.valor_numerico">
+                        {{ op.etiqueta }}
+                    </option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Información del valor anterior -->
+        <div class="row mt-4" *ngIf="model.id_medida && model.fecha">
+            <div class="col-12">
+                <div class="card valor-anterior-card">
+                    <div class="card-body">
+                        <h6 class="card-title">
+                            <i class="fas fa-history me-2 text-info"></i>
+                            Información de referencia
+                        </h6>
+                        
+                        <!-- Cargando -->
+                        <div *ngIf="cargandoValorAnterior" class="text-center py-2">
+                            <div class="spinner-border spinner-border-sm text-info me-2" role="status"></div>
+                            <span class="text-muted">Consultando valor anterior...</span>
+                        </div>
+                        
+                        <!-- Valor anterior encontrado -->
+                        <div *ngIf="!cargandoValorAnterior && valorAnterior.existe" class="valor-anterior-info">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <strong class="text-success">Valor anterior:</strong>
+                                    <span class="ms-2 valor-destacado">
+                                        <ng-container *ngIf="obtenerMedidaSeleccionada()?.tipo_valor === 'select'">
+                                            {{ obtenerEtiquetaValor(valorAnterior.valor!) }}
+                                        </ng-container>
+                                        <ng-container *ngIf="obtenerMedidaSeleccionada()?.tipo_valor !== 'select'">
+                                            {{ valorAnterior.valor }} {{ obtenerUnidadMedida() }}
+                                        </ng-container>
+                                    </span>
+                                </div>
+                                <div class="col-md-6">
+                                    <strong class="text-info">Fecha del registro:</strong>
+                                    <span class="ms-2">{{ formatearFecha(valorAnterior.fecha) }}</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Comparación si hay valor actual (solo para numéricos) -->
+                            <div *ngIf="model.valor > 0 && obtenerMedidaSeleccionada()?.tipo_valor !== 'select'" class="mt-3 pt-3 border-top">
+                                <div class="comparacion-valores">
+                                    <strong>Comparación:</strong>
+                                    <span class="ms-2">
+                                        <span *ngIf="model.valor > valorAnterior.valor!" class="text-success">
+                                            <i class="fas fa-arrow-up me-1"></i>
+                                            +{{ (model.valor - valorAnterior.valor!).toFixed(2) }} {{ obtenerUnidadMedida() }}
+                                        </span>
+                                        <span *ngIf="model.valor < valorAnterior.valor!" class="text-warning">
+                                            <i class="fas fa-arrow-down me-1"></i>
+                                            {{ (model.valor - valorAnterior.valor!).toFixed(2) }} {{ obtenerUnidadMedida() }}
+                                        </span>
+                                        <span *ngIf="model.valor === valorAnterior.valor!" class="text-info">
+                                            <i class="fas fa-equals me-1"></i>
+                                            Sin cambios
+                                        </span>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Sin valor anterior -->
+                        <div *ngIf="!cargandoValorAnterior && !valorAnterior.existe" class="text-muted">
+                            <i class="fas fa-info-circle me-2"></i>
+                            No hay registros anteriores para esta medida.
+                            <small class="d-block mt-1">Este será el primer registro.</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-sm-6" *ngIf="editable">
+                <button class="btn btn-lg btn-warning w-100" (click)="grabar()">
+                    <i class="fas fa-save me-2"></i>Grabar
+                </button>
+            </div>
+            <div class="col-sm-6">
+                <button class="btn btn-lg btn-secondary w-100" (click)="volver()">
+                    <i class="fas fa-arrow-left me-2"></i>Volver
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

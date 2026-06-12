@@ -1,0 +1,731 @@
+<div class="modulo">
+  <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [accion]="accion" [raiz]="'/estudiantes'"
+    [regresar]="regresar" [iconoTitulo]="'/assets/images/estudiantes.png'"></app-header>
+
+  <div class="layout-container mt-3">
+
+    <!-- SIDEBAR DESKTOP -->
+    <aside class="sidebar-desktop" *ngIf="!nuevo">
+      <div class="sidebar-foto" *ngIf="(accion === 'editar' || accion === 'consultar') && model.idPersona">
+        <app-foto-persona
+          [idPersona]="model.idPersona"
+          [nombrePersona]="obtenerNombreCompleto()"
+          [soloLectura]="accion === 'consultar'">
+        </app-foto-persona>
+      </div>
+      <nav class="sidebar-nav">
+        <a class="sidebar-link" [class.active]="seccionActiva === 'datos-personales'" (click)="cambiarSeccion('datos-personales')"><i class="fas fa-user-circle"></i> <span>Datos Personales</span></a>
+        <a class="sidebar-link" [class.active]="seccionActiva === 'datos-academicos'" (click)="cambiarSeccion('datos-academicos')"><i class="fas fa-graduation-cap"></i> <span>Datos Académicos</span></a>
+        <a class="sidebar-link" *ngIf="model.idEstudiante > 0" [class.active]="seccionActiva === 'horarios'" (click)="cambiarSeccion('horarios')"><i class="fas fa-clock"></i> <span>Horarios</span></a>
+        <a class="sidebar-link" *ngIf="model.idEstudiante > 0" [class.active]="seccionActiva === 'convenios'" (click)="cambiarSeccion('convenios')"><i class="fas fa-handshake"></i> <span>Convenios</span></a>
+        <a class="sidebar-link" *ngIf="model.idEstudiante > 0" [class.active]="seccionActiva === 'datos-medicos'" (click)="cambiarSeccion('datos-medicos')"><i class="fas fa-heartbeat"></i> <span>Datos Médicos</span></a>
+        <a class="sidebar-link" *ngIf="model.idEstudiante > 0" [class.active]="seccionActiva === 'datos-adicionales'" (click)="cambiarSeccion('datos-adicionales')"><i class="fas fa-puzzle-piece"></i> <span>Datos Adicionales</span></a>
+        <a class="sidebar-link" *ngIf="model.idPersona > 0" [class.active]="seccionActiva === 'documentos'" (click)="cambiarSeccion('documentos')"><i class="fas fa-file-alt"></i> <span>Documentos</span></a>
+      </nav>
+    </aside>
+
+    <!-- MOBILE HEADER -->
+    <div class="mobile-header-bar" *ngIf="!nuevo">
+      <div class="mobile-foto" *ngIf="(accion === 'editar' || accion === 'consultar') && model.idPersona">
+        <app-foto-persona
+          [idPersona]="model.idPersona"
+          [nombrePersona]="obtenerNombreCompleto()"
+          [soloLectura]="accion === 'consultar'">
+        </app-foto-persona>
+      </div>
+      <button class="btn-seccion-mobile" (click)="toggleSidebar()">
+        <i [class]="obtenerIconoSeccion()"></i> <span>{{ obtenerNombreSeccion() }}</span> <i class="fas fa-bars ms-auto"></i>
+      </button>
+    </div>
+
+    <!-- SIDEBAR MOBILE OVERLAY -->
+    <div class="sidebar-overlay" *ngIf="sidebarAbierto" (click)="cerrarSidebar()"></div>
+    <aside class="sidebar-mobile" [class.abierto]="sidebarAbierto">
+      <div class="sidebar-mobile-header"><h6><i class="fas fa-th-list me-2"></i>Secciones</h6><button class="btn-cerrar-sidebar" (click)="cerrarSidebar()"><i class="fas fa-times"></i></button></div>
+      <nav class="sidebar-nav">
+        <a class="sidebar-link" [class.active]="seccionActiva === 'datos-personales'" (click)="cambiarSeccion('datos-personales')"><i class="fas fa-user-circle"></i> <span>Datos Personales</span></a>
+        <a class="sidebar-link" [class.active]="seccionActiva === 'datos-academicos'" (click)="cambiarSeccion('datos-academicos')"><i class="fas fa-graduation-cap"></i> <span>Datos Académicos</span></a>
+        <a class="sidebar-link" *ngIf="model.idEstudiante > 0" [class.active]="seccionActiva === 'horarios'" (click)="cambiarSeccion('horarios')"><i class="fas fa-clock"></i> <span>Horarios</span></a>
+        <a class="sidebar-link" *ngIf="model.idEstudiante > 0" [class.active]="seccionActiva === 'convenios'" (click)="cambiarSeccion('convenios')"><i class="fas fa-handshake"></i> <span>Convenios</span></a>
+        <a class="sidebar-link" *ngIf="model.idEstudiante > 0" [class.active]="seccionActiva === 'datos-medicos'" (click)="cambiarSeccion('datos-medicos')"><i class="fas fa-heartbeat"></i> <span>Datos Médicos</span></a>
+        <a class="sidebar-link" *ngIf="model.idEstudiante > 0" [class.active]="seccionActiva === 'datos-adicionales'" (click)="cambiarSeccion('datos-adicionales')"><i class="fas fa-puzzle-piece"></i> <span>Datos Adicionales</span></a>
+        <a class="sidebar-link" *ngIf="model.idPersona > 0" [class.active]="seccionActiva === 'documentos'" (click)="cambiarSeccion('documentos')"><i class="fas fa-file-alt"></i> <span>Documentos</span></a>
+      </nav>
+    </aside>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="contenido-principal" [class.con-sidebar]="!nuevo">
+
+      <!-- ===================================================================== -->
+      <!-- MODO CREAR (nuevo=true): secciones con *ngIf, scroll largo            -->
+      <!-- ===================================================================== -->
+      <ng-container *ngIf="nuevo">
+
+        <!-- DATOS PERSONALES (crear) -->
+        <div>
+          <div class="row mb-4">
+            <div class="col-sm-12 col-md-6">
+              <label for="tipoDocumento" class="form-label">Tipo de documento <span class="text-danger">*</span></label>
+              <select class="form-select form-select-lg" id="tipoDocumento" [(ngModel)]="model.tipoIdentificacion" required
+                [ngClass]="{'is-invalid': !model.tipoIdentificacion && submitted}"
+                [disabled]="documentoEncontrado || !editable">
+                <option value="">Seleccionar</option>
+                <ng-container *ngFor="let ti of listas.tiposIdentificacion">
+                  <option [value]="ti.id">{{ ti.nombre }}</option>
+                </ng-container>
+              </select>
+            </div>
+            <div class="col-sm-12 col-md-6">
+              <label for="numeroDocumento" class="form-label">Número de documento <span class="text-danger">*</span></label>
+              <input class="form-control form-control-lg" type="text" id="numeroDocumento"
+                [(ngModel)]="model.numeroIdentificacion" required
+                [ngClass]="{'is-invalid': !model.numeroIdentificacion && submitted}"
+                [disabled]="documentoEncontrado || !editable">
+            </div>
+          </div>
+          <div class="row mt-1 mb-3" *ngIf="editable && !documentoEncontrado">
+            <div class="col-sm-12 col-md-6">
+              <button class="btn btn-sm btn-warning" (click)="consultaPersona(model.tipoIdentificacion, model.numeroIdentificacion)">
+                <i class="fas fa-search me-1"></i> Verificar
+              </button>
+            </div>
+          </div>
+          <hr />
+          <div [ngClass]="{ 'disabled-container': !camposHabilitados && editable }">
+            <div class="row">
+              <div class="col-sm-12 col-md-6">
+                <label for="primerNombre" class="form-label">Primer nombre <span class="text-danger">*</span></label>
+                <input class="form-control form-control-lg" type="text" id="primerNombre" [(ngModel)]="model.primerNombre"
+                  required [ngClass]="{'is-invalid': !model.primerNombre && submitted}"
+                  [disabled]="!camposHabilitados && editable">
+              </div>
+              <div class="col-sm-12 col-md-6">
+                <label for="segundoNombre" class="form-label">Segundo nombre</label>
+                <input class="form-control form-control-lg" type="text" id="segundoNombre" [(ngModel)]="model.segundoNombre"
+                  [disabled]="!camposHabilitados && editable">
+              </div>
+            </div>
+            <div class="row mt-3">
+              <div class="col-sm-12 col-md-6">
+                <label for="primerApellido" class="form-label">Primer apellido <span class="text-danger">*</span></label>
+                <input class="form-control form-control-lg" type="text" id="primerApellido" [(ngModel)]="model.primerApellido"
+                  required [ngClass]="{'is-invalid': !model.primerApellido && submitted}"
+                  [disabled]="!camposHabilitados && editable">
+              </div>
+              <div class="col-sm-12 col-md-6">
+                <label for="segundoApellido" class="form-label">Segundo apellido</label>
+                <input class="form-control form-control-lg" type="text" id="segundoApellido" [(ngModel)]="model.segundoApellido"
+                  [disabled]="!camposHabilitados && editable">
+              </div>
+            </div>
+            <div class="row mt-3">
+              <div class="col-sm-12 col-md-6">
+                <label for="nacionalidad" class="form-label">Nacionalidad</label>
+                <input class="form-control form-control-lg" type="text" id="nacionalidad" [(ngModel)]="model.nacionalidad"
+                  [disabled]="!camposHabilitados && editable">
+                <small class="form-text text-muted">Predeterminado: Colombiana</small>
+              </div>
+              <div class="col-sm-12 col-md-6">
+                <label for="fechaNacimiento" class="form-label">Fecha de nacimiento <span class="text-danger">*</span></label>
+                <input class="form-control form-control-lg" type="date" id="fechaNacimiento" [(ngModel)]="model.fechaNacimiento"
+                  required [ngClass]="{'is-invalid': !model.fechaNacimiento && submitted}"
+                  [disabled]="!camposHabilitados && editable">
+              </div>
+            </div>
+            <div class="row mt-3">
+              <div class="col-sm-12 col-md-6">
+                <label for="genero" class="form-label">Género <span class="text-danger">*</span></label>
+                <select class="form-select form-select-lg" id="genero" [(ngModel)]="model.genero"
+                  required [ngClass]="{'is-invalid': !model.genero && submitted}"
+                  [disabled]="!camposHabilitados && editable">
+                  <option value="">Seleccionar</option>
+                  <ng-container *ngFor="let g of listas.generos">
+                    <option [value]="g.id">{{ g.nombre }}</option>
+                  </ng-container>
+                </select>
+              </div>
+              <div class="col-sm-12 col-md-6">
+                <label for="rh" class="form-label">Grupo Sanguíneo (RH)</label>
+                <select class="form-select form-select-lg" id="rh" [(ngModel)]="model.rh"
+                  [disabled]="!camposHabilitados && editable">
+                  <option value="">Seleccionar</option>
+                  <ng-container *ngFor="let rh of listas.gruposRh">
+                    <option [value]="rh.id">{{ rh.nombre }}</option>
+                  </ng-container>
+                </select>
+              </div>
+            </div>
+            <div class="row mt-3">
+              <div class="col-sm-12 col-md-6">
+                <label for="direccion" class="form-label">Dirección</label>
+                <input class="form-control form-control-lg" type="text" id="direccion" [(ngModel)]="model.direccion"
+                  [disabled]="!camposHabilitados && editable">
+              </div>
+              <div class="col-sm-12 col-md-6">
+                <label for="ciudad" class="form-label">Ciudad</label>
+                <select class="form-select form-select-lg" id="ciudad" [(ngModel)]="model.ciudad"
+                  [disabled]="!camposHabilitados && editable">
+                  <option value="">Seleccionar</option>
+                  <ng-container *ngFor="let c of listas.ciudades">
+                    <option [value]="c.id">{{ c.nombre }}</option>
+                  </ng-container>
+                </select>
+              </div>
+            </div>
+            <div class="row mt-3">
+              <div class="col-sm-12 col-md-6">
+                <label for="correoElectronico" class="form-label">Correo electrónico</label>
+                <input class="form-control form-control-lg" type="email" id="correoElectronico"
+                  [(ngModel)]="model.correoElectronico" placeholder="ejemplo&#64;correo.com"
+                  [disabled]="!camposHabilitados && editable">
+              </div>
+              <div class="col-sm-12 col-md-6">
+                <label for="telefono" class="form-label">Teléfono</label>
+                <input class="form-control form-control-lg" type="tel" id="telefono" [(ngModel)]="model.telefono"
+                  placeholder="Ej: 3001234567"
+                  [disabled]="!camposHabilitados && editable">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- DATOS ACADÉMICOS (crear) -->
+        <div>
+          <hr />
+          <div [ngClass]="{ 'disabled-container': !camposHabilitados && editable }">
+            <div class="row">
+              <div class="col-sm-12 col-md-6">
+                <label for="grupoCrear" class="form-label">Grupo <span class="text-danger">*</span></label>
+                <select class="form-select form-select-lg" id="grupoCrear" [(ngModel)]="model.grupo" required
+                  [ngClass]="{'is-invalid': !model.grupo && submitted}" [disabled]="!camposHabilitados && editable"
+                  (change)="onGrupoChange(model.grupo)">
+                  <option value="">Seleccionar</option>
+                  <ng-container *ngFor="let g of listas.grupos">
+                    <option [value]="g.id">{{ g.nombre }}</option>
+                  </ng-container>
+                </select>
+              </div>
+              <div class="col-sm-12 col-md-6">
+                <label for="gradoCrear" class="form-label">Grado</label>
+                <select class="form-select form-select-lg" id="gradoCrear" [(ngModel)]="model.grado"
+                  [disabled]="(!camposHabilitados && editable) || listas.grados.length === 0">
+                  <option value="">{{ listas.grados.length === 0 ? 'Seleccione un grupo primero' : 'Seleccionar' }}</option>
+                  <ng-container *ngFor="let gr of listas.grados">
+                    <option [value]="gr.id_grado">{{ gr.nombre_grado }}</option>
+                  </ng-container>
+                </select>
+              </div>
+            </div>
+            <div class="row mt-3">
+              <div class="col-sm-12 col-md-6">
+                <label for="fechaIngresoCrear" class="form-label">Fecha de ingreso <span class="text-danger">*</span></label>
+                <input class="form-control form-control-lg" type="date" id="fechaIngresoCrear" [(ngModel)]="model.fechaIngreso"
+                  required [ngClass]="{'is-invalid': !model.fechaIngreso && submitted}"
+                  [disabled]="!camposHabilitados && editable">
+              </div>
+              <div class="col-sm-12 col-md-6">
+                <label for="annoCrear" class="form-label">Año escolar</label>
+                <select class="form-select form-select-lg" id="annoCrear" [(ngModel)]="model.anno"
+                  [disabled]="!camposHabilitados && editable">
+                  <option value="">Seleccionar</option>
+                  <ng-container *ngFor="let a of listas.annos">
+                    <option [value]="a.id">{{ a.nombre }}</option>
+                  </ng-container>
+                </select>
+              </div>
+            </div>
+            <div class="row mt-3">
+              <div class="col-sm-12 col-md-6">
+                <label for="telefonoEmergenciaCrear" class="form-label">Teléfono de emergencia</label>
+                <input class="form-control form-control-lg" type="tel" id="telefonoEmergenciaCrear"
+                  [(ngModel)]="model.telefonoEmergencia" placeholder="Ej: 3001234567"
+                  [disabled]="!camposHabilitados && editable">
+              </div>
+              <div class="col-sm-12 col-md-6">
+                <label for="epsCrear" class="form-label">EPS</label>
+                <input class="form-control form-control-lg" type="text" id="epsCrear" [(ngModel)]="model.eps"
+                  [disabled]="!camposHabilitados && editable">
+              </div>
+            </div>
+            <div class="row mt-3">
+              <div class="col-sm-12 col-md-6">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="alimentacionCrear" [(ngModel)]="model.alimentacion"
+                    [disabled]="!camposHabilitados && editable">
+                  <label class="form-check-label" for="alimentacionCrear">Toma alimentación en la institución</label>
+                </div>
+              </div>
+              <div class="col-sm-12 col-md-6">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="permanenteCrear" [(ngModel)]="model.permanente"
+                    [disabled]="!camposHabilitados && editable">
+                  <label class="form-check-label" for="permanenteCrear">Estudiante permanente</label>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-sm-12 col-md-6">
+                <input type="hidden" [(ngModel)]="model.ocupacion" value="Estudiante">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- HORARIOS (crear) -->
+        <div *ngIf="camposHabilitados">
+          <hr />
+          <div class="table-responsive">
+            <table class="table table-bordered table-sm">
+              <thead class="table-light">
+                <tr>
+                  <th>Día</th>
+                  <th>Hora Entrada</th>
+                  <th>Hora Salida</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let horario of horarios">
+                  <td class="align-middle fw-bold">{{ horario.nombre_dia }}</td>
+                  <td>
+                    <input type="time" class="form-control" [(ngModel)]="horario.hora_entrada"
+                      (change)="onHorarioChange()">
+                  </td>
+                  <td>
+                    <input type="time" class="form-control" [(ngModel)]="horario.hora_salida"
+                      (change)="onHorarioChange()">
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div *ngIf="horariosModificados" class="alert alert-info py-2">
+            <i class="fas fa-info-circle me-1"></i> Los horarios se guardarán junto con los datos del estudiante.
+          </div>
+        </div>
+      </ng-container>
+
+      <!-- ===================================================================== -->
+      <!-- MODO EDITAR/CONSULTAR (!nuevo): secciones con [hidden], sin recarga   -->
+      <!-- ===================================================================== -->
+      <ng-container *ngIf="!nuevo">
+
+        <!-- DATOS PERSONALES (editar/consultar) -->
+        <div [hidden]="seccionActiva !== 'datos-personales'">
+          <div class="row mb-4">
+            <div class="col-sm-12 col-md-6">
+              <label for="tipoDocumentoEdit" class="form-label">Tipo de documento <span class="text-danger">*</span></label>
+              <select class="form-select form-select-lg" id="tipoDocumentoEdit" [(ngModel)]="model.tipoIdentificacion" required
+                [ngClass]="{'is-invalid': !model.tipoIdentificacion && submitted}"
+                [disabled]="documentoEncontrado || !editable">
+                <option value="">Seleccionar</option>
+                <ng-container *ngFor="let ti of listas.tiposIdentificacion">
+                  <option [value]="ti.id">{{ ti.nombre }}</option>
+                </ng-container>
+              </select>
+            </div>
+            <div class="col-sm-12 col-md-6">
+              <label for="numeroDocumentoEdit" class="form-label">Número de documento <span class="text-danger">*</span></label>
+              <input class="form-control form-control-lg" type="text" id="numeroDocumentoEdit"
+                [(ngModel)]="model.numeroIdentificacion" required
+                [ngClass]="{'is-invalid': !model.numeroIdentificacion && submitted}"
+                [disabled]="documentoEncontrado || !editable">
+            </div>
+          </div>
+          <hr />
+          <div [ngClass]="{ 'disabled-container': !camposHabilitados && editable }">
+            <div class="row">
+              <div class="col-sm-12 col-md-6">
+                <label for="primerNombreEdit" class="form-label">Primer nombre <span class="text-danger">*</span></label>
+                <input class="form-control form-control-lg" type="text" id="primerNombreEdit" [(ngModel)]="model.primerNombre"
+                  required [ngClass]="{'is-invalid': !model.primerNombre && submitted}"
+                  [disabled]="!camposHabilitados && editable">
+              </div>
+              <div class="col-sm-12 col-md-6">
+                <label for="segundoNombreEdit" class="form-label">Segundo nombre</label>
+                <input class="form-control form-control-lg" type="text" id="segundoNombreEdit" [(ngModel)]="model.segundoNombre"
+                  [disabled]="!camposHabilitados && editable">
+              </div>
+            </div>
+            <div class="row mt-3">
+              <div class="col-sm-12 col-md-6">
+                <label for="primerApellidoEdit" class="form-label">Primer apellido <span class="text-danger">*</span></label>
+                <input class="form-control form-control-lg" type="text" id="primerApellidoEdit" [(ngModel)]="model.primerApellido"
+                  required [ngClass]="{'is-invalid': !model.primerApellido && submitted}"
+                  [disabled]="!camposHabilitados && editable">
+              </div>
+              <div class="col-sm-12 col-md-6">
+                <label for="segundoApellidoEdit" class="form-label">Segundo apellido</label>
+                <input class="form-control form-control-lg" type="text" id="segundoApellidoEdit" [(ngModel)]="model.segundoApellido"
+                  [disabled]="!camposHabilitados && editable">
+              </div>
+            </div>
+            <div class="row mt-3">
+              <div class="col-sm-12 col-md-6">
+                <label for="nacionalidadEdit" class="form-label">Nacionalidad</label>
+                <input class="form-control form-control-lg" type="text" id="nacionalidadEdit" [(ngModel)]="model.nacionalidad"
+                  [disabled]="!camposHabilitados && editable">
+                <small class="form-text text-muted">Predeterminado: Colombiana</small>
+              </div>
+              <div class="col-sm-12 col-md-6">
+                <label for="fechaNacimientoEdit" class="form-label">Fecha de nacimiento <span class="text-danger">*</span></label>
+                <input class="form-control form-control-lg" type="date" id="fechaNacimientoEdit" [(ngModel)]="model.fechaNacimiento"
+                  required [ngClass]="{'is-invalid': !model.fechaNacimiento && submitted}"
+                  [disabled]="!camposHabilitados && editable">
+              </div>
+            </div>
+            <div class="row mt-3">
+              <div class="col-sm-12 col-md-6">
+                <label for="generoEdit" class="form-label">Género <span class="text-danger">*</span></label>
+                <select class="form-select form-select-lg" id="generoEdit" [(ngModel)]="model.genero"
+                  required [ngClass]="{'is-invalid': !model.genero && submitted}"
+                  [disabled]="!camposHabilitados && editable">
+                  <option value="">Seleccionar</option>
+                  <ng-container *ngFor="let g of listas.generos">
+                    <option [value]="g.id">{{ g.nombre }}</option>
+                  </ng-container>
+                </select>
+              </div>
+              <div class="col-sm-12 col-md-6">
+                <label for="rhEdit" class="form-label">Grupo Sanguíneo (RH)</label>
+                <select class="form-select form-select-lg" id="rhEdit" [(ngModel)]="model.rh"
+                  [disabled]="!camposHabilitados && editable">
+                  <option value="">Seleccionar</option>
+                  <ng-container *ngFor="let rh of listas.gruposRh">
+                    <option [value]="rh.id">{{ rh.nombre }}</option>
+                  </ng-container>
+                </select>
+              </div>
+            </div>
+            <div class="row mt-3">
+              <div class="col-sm-12 col-md-6">
+                <label for="direccionEdit" class="form-label">Dirección</label>
+                <input class="form-control form-control-lg" type="text" id="direccionEdit" [(ngModel)]="model.direccion"
+                  [disabled]="!camposHabilitados && editable">
+              </div>
+              <div class="col-sm-12 col-md-6">
+                <label for="ciudadEdit" class="form-label">Ciudad</label>
+                <select class="form-select form-select-lg" id="ciudadEdit" [(ngModel)]="model.ciudad"
+                  [disabled]="!camposHabilitados && editable">
+                  <option value="">Seleccionar</option>
+                  <ng-container *ngFor="let c of listas.ciudades">
+                    <option [value]="c.id">{{ c.nombre }}</option>
+                  </ng-container>
+                </select>
+              </div>
+            </div>
+            <div class="row mt-3">
+              <div class="col-sm-12 col-md-6">
+                <label for="correoElectronicoEdit" class="form-label">Correo electrónico</label>
+                <input class="form-control form-control-lg" type="email" id="correoElectronicoEdit"
+                  [(ngModel)]="model.correoElectronico" placeholder="ejemplo&#64;correo.com"
+                  [disabled]="!camposHabilitados && editable">
+              </div>
+              <div class="col-sm-12 col-md-6">
+                <label for="telefonoEdit" class="form-label">Teléfono</label>
+                <input class="form-control form-control-lg" type="tel" id="telefonoEdit" [(ngModel)]="model.telefono"
+                  placeholder="Ej: 3001234567"
+                  [disabled]="!camposHabilitados && editable">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- DATOS ACADÉMICOS (editar/consultar) -->
+        <div [hidden]="seccionActiva !== 'datos-academicos'">
+          <div [ngClass]="{ 'disabled-container': !camposHabilitados && editable }">
+            <div class="row">
+              <div class="col-sm-12 col-md-6">
+                <label for="grupoEdit" class="form-label">Grupo <span class="text-danger">*</span></label>
+                <select class="form-select form-select-lg" id="grupoEdit" [(ngModel)]="model.grupo" required
+                  [ngClass]="{'is-invalid': !model.grupo && submitted}" [disabled]="!camposHabilitados && editable"
+                  (change)="onGrupoChange(model.grupo)">
+                  <option value="">Seleccionar</option>
+                  <ng-container *ngFor="let g of listas.grupos">
+                    <option [value]="g.id">{{ g.nombre }}</option>
+                  </ng-container>
+                </select>
+              </div>
+              <div class="col-sm-12 col-md-6">
+                <label for="gradoEdit" class="form-label">Grado</label>
+                <select class="form-select form-select-lg" id="gradoEdit" [(ngModel)]="model.grado"
+                  [disabled]="(!camposHabilitados && editable) || listas.grados.length === 0 || accion === 'consultar'">
+                  <option value="">{{ listas.grados.length === 0 ? 'Seleccione un grupo primero' : 'Seleccionar' }}</option>
+                  <ng-container *ngFor="let gr of listas.grados">
+                    <option [value]="gr.id_grado">{{ gr.nombre_grado }}</option>
+                  </ng-container>
+                </select>
+              </div>
+            </div>
+            <div class="row mt-3">
+              <div class="col-sm-12 col-md-6">
+                <label for="fechaIngresoEdit" class="form-label">Fecha de ingreso <span class="text-danger">*</span></label>
+                <input class="form-control form-control-lg" type="date" id="fechaIngresoEdit" [(ngModel)]="model.fechaIngreso"
+                  required [ngClass]="{'is-invalid': !model.fechaIngreso && submitted}"
+                  [disabled]="!camposHabilitados && editable">
+              </div>
+              <div class="col-sm-12 col-md-6">
+                <label for="annoEdit" class="form-label">Año escolar</label>
+                <select class="form-select form-select-lg" id="annoEdit" [(ngModel)]="model.anno"
+                  [disabled]="!camposHabilitados && editable">
+                  <option value="">Seleccionar</option>
+                  <ng-container *ngFor="let a of listas.annos">
+                    <option [value]="a.id">{{ a.nombre }}</option>
+                  </ng-container>
+                </select>
+              </div>
+            </div>
+            <div class="row mt-3">
+              <div class="col-sm-12 col-md-6">
+                <label for="telefonoEmergenciaEdit" class="form-label">Teléfono de emergencia</label>
+                <input class="form-control form-control-lg" type="tel" id="telefonoEmergenciaEdit"
+                  [(ngModel)]="model.telefonoEmergencia" placeholder="Ej: 3001234567"
+                  [disabled]="!camposHabilitados && editable">
+              </div>
+              <div class="col-sm-12 col-md-6">
+                <label for="epsEdit" class="form-label">EPS</label>
+                <input class="form-control form-control-lg" type="text" id="epsEdit" [(ngModel)]="model.eps"
+                  [disabled]="!camposHabilitados && editable">
+              </div>
+            </div>
+            <div class="row mt-3">
+              <div class="col-sm-12 col-md-6">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="alimentacionEdit" [(ngModel)]="model.alimentacion"
+                    [disabled]="!camposHabilitados && editable">
+                  <label class="form-check-label" for="alimentacionEdit">Toma alimentación en la institución</label>
+                </div>
+              </div>
+              <div class="col-sm-12 col-md-6">
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="estudianteActivoEdit" [(ngModel)]="estudianteActivoSwitch"
+                    (change)="cambiarEstadoEstudiante()" [disabled]="accion === 'consultar'">
+                  <label class="form-check-label" for="estudianteActivoEdit">
+                    <strong>{{ estudianteActivoSwitch ? 'Estudiante Activo' : 'Estudiante Inactivo' }}</strong>
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div class="row mt-3">
+              <div class="col-sm-12 col-md-6">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="permanenteEdit" [(ngModel)]="model.permanente"
+                    [disabled]="!camposHabilitados && editable">
+                  <label class="form-check-label" for="permanenteEdit">Estudiante permanente</label>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-sm-12 col-md-6">
+                <input type="hidden" [(ngModel)]="model.ocupacion" value="Estudiante">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- HORARIOS (editar/consultar) -->
+        <div *ngIf="model.idEstudiante > 0" [hidden]="seccionActiva !== 'horarios'">
+          <div class="table-responsive">
+            <table class="table table-bordered table-sm">
+              <thead class="table-light">
+                <tr>
+                  <th>Día</th>
+                  <th>Hora Entrada</th>
+                  <th>Hora Salida</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let horario of horarios">
+                  <td class="align-middle fw-bold">{{ horario.nombre_dia }}</td>
+                  <td>
+                    <input type="time" class="form-control" [(ngModel)]="horario.hora_entrada"
+                      (change)="onHorarioChange()" [disabled]="accion === 'consultar'">
+                  </td>
+                  <td>
+                    <input type="time" class="form-control" [(ngModel)]="horario.hora_salida"
+                      (change)="onHorarioChange()" [disabled]="accion === 'consultar'">
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div *ngIf="horariosModificados && editable" class="alert alert-info py-2">
+            <i class="fas fa-info-circle me-1"></i> Los horarios se guardarán junto con los datos del estudiante.
+          </div>
+        </div>
+
+        <!-- CONVENIOS (editar/consultar) -->
+        <div *ngIf="model.idEstudiante > 0" [hidden]="seccionActiva !== 'convenios'">
+          <div class="row mb-3" *ngIf="accion === 'editar'">
+            <div class="col-sm-12 col-md-4">
+              <label class="form-label">Convenio</label>
+              <select class="form-select" [(ngModel)]="nuevoConvenio.id_convenio">
+                <option value="">Seleccionar convenio</option>
+                <ng-container *ngFor="let c of conveniosDisponiblesFiltrados">
+                  <option [value]="c.id">{{ c.nombre }} - {{ c.nombre_producto_servicio }}</option>
+                </ng-container>
+              </select>
+            </div>
+            <div class="col-sm-12 col-md-2">
+              <label class="form-label">Fecha inicio</label>
+              <input type="date" class="form-control" [(ngModel)]="nuevoConvenio.fecha_inicio">
+            </div>
+            <div class="col-sm-12 col-md-2">
+              <label class="form-label">Fecha fin <span class="text-danger">*</span></label>
+              <input type="date" class="form-control" [(ngModel)]="nuevoConvenio.fecha_fin" required>
+            </div>
+            <div class="col-sm-12 col-md-4 d-flex align-items-end gap-3">
+              <div class="form-check mb-2">
+                <input class="form-check-input" type="checkbox" id="crearCobrosAutomaticos"
+                  [(ngModel)]="nuevoConvenio.crear_cobros_automaticos">
+                <label class="form-check-label" for="crearCobrosAutomaticos" title="Si se activa, se generarán automáticamente las cuentas por cobrar mensuales del convenio entre la fecha de inicio y fecha fin.">
+                  Generar cobros
+                </label>
+              </div>
+              <button class="btn-save flex-grow-1" (click)="agregarConvenio()">
+                <i class="fas fa-plus me-1"></i> Agregar
+              </button>
+            </div>
+          </div>
+
+          <div class="table-responsive" *ngIf="conveniosEstudiante.length > 0">
+            <table class="table table-bordered table-sm">
+              <thead class="table-light">
+                <tr>
+                  <th>Convenio</th>
+                  <th>Producto asociado</th>
+                  <th>Fecha inicio</th>
+                  <th>Fecha fin</th>
+                  <th>Registrado por</th>
+                  <th *ngIf="accion === 'editar'">Acción</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let conv of conveniosEstudiante">
+                  <td class="fw-bold">{{ conv.nombre_convenio }}</td>
+                  <td>{{ conv.nombre_producto_servicio }}</td>
+                  <td>{{ conv.fecha_inicio | date:'dd/MM/yyyy' }}</td>
+                  <td>{{ conv.fecha_fin ? (conv.fecha_fin | date:'dd/MM/yyyy') : 'Indefinido' }}</td>
+                  <td>{{ conv.nombre_usuario }}</td>
+                  <td *ngIf="accion === 'editar'">
+                    <button class="btn btn-sm btn-outline-danger" (click)="eliminarConvenio(conv)">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div *ngIf="conveniosEstudiante.length === 0" class="alert alert-light py-2 text-center">
+            No tiene convenios asignados.
+          </div>
+        </div>
+
+        <!-- DATOS MÉDICOS (editar/consultar) -->
+        <div *ngIf="model.idEstudiante > 0" [hidden]="seccionActiva !== 'datos-medicos'">
+          <div *ngIf="gruposDatosMedicos.length === 0" class="alert alert-light py-2 text-center">
+            No hay datos médicos configurados para esta institución.
+          </div>
+          <div *ngFor="let grupo of gruposDatosMedicos" class="datos-dinamicos-grupo">
+            <h6 class="datos-dinamicos-titulo"><span class="me-2">{{ grupo.icono }}</span>{{ grupo.nombre_tipo }}</h6>
+            <div class="row">
+              <div *ngFor="let dato of grupo.datos" class="col-sm-12" [ngClass]="{'col-md-6': !dato.es_parrafo, 'col-md-12': dato.es_parrafo}">
+                <div class="mb-3">
+                  <label class="form-label">{{ dato.nombre }}</label>
+                  <select *ngIf="dato.opciones.length > 0" class="form-select"
+                    [(ngModel)]="dato.valor_texto" (change)="onDatoMedicoChange()"
+                    [disabled]="accion === 'consultar'">
+                    <option value="">Seleccionar</option>
+                    <option *ngFor="let op of dato.opciones" [value]="op">{{ op }}</option>
+                  </select>
+                  <input *ngIf="dato.es_numero && dato.opciones.length === 0" type="number" class="form-control"
+                    [(ngModel)]="dato.valor_numero" (change)="onDatoMedicoChange()"
+                    [disabled]="accion === 'consultar'">
+                  <input *ngIf="dato.es_texto && dato.opciones.length === 0" type="text" class="form-control"
+                    [(ngModel)]="dato.valor_texto" (change)="onDatoMedicoChange()"
+                    [disabled]="accion === 'consultar'">
+                  <textarea *ngIf="dato.es_parrafo && dato.opciones.length === 0" class="form-control" rows="3"
+                    [(ngModel)]="dato.valor_parrafo" (change)="onDatoMedicoChange()"
+                    [disabled]="accion === 'consultar'"></textarea>
+                  <input *ngIf="dato.es_fecha && dato.opciones.length === 0" type="date" class="form-control"
+                    [(ngModel)]="dato.valor_fecha" (change)="onDatoMedicoChange()"
+                    [disabled]="accion === 'consultar'">
+                  <input type="text" class="form-control mt-1 observacion-input" placeholder="Observación (opcional)"
+                    [(ngModel)]="dato.observacion" (change)="onDatoMedicoChange()"
+                    [disabled]="accion === 'consultar'">
+                </div>
+              </div>
+            </div>
+          </div>
+          <div *ngIf="datosMedicosModificados && editable" class="alert alert-info py-2">
+            <i class="fas fa-info-circle me-1"></i> Los datos médicos se guardarán junto con los datos del estudiante.
+          </div>
+        </div>
+
+        <!-- DATOS ADICIONALES (editar/consultar) -->
+        <div *ngIf="model.idEstudiante > 0" [hidden]="seccionActiva !== 'datos-adicionales'">
+          <div *ngIf="gruposDatosAdicionales.length === 0" class="alert alert-light py-2 text-center">
+            No hay datos adicionales configurados para esta institución.
+          </div>
+          <div *ngFor="let grupo of gruposDatosAdicionales" class="datos-dinamicos-grupo">
+            <h6 class="datos-dinamicos-titulo"><span class="me-2">{{ grupo.icono }}</span>{{ grupo.nombre_tipo }}</h6>
+            <div class="row">
+              <div *ngFor="let dato of grupo.datos" class="col-sm-12" [ngClass]="{'col-md-6': !dato.es_parrafo, 'col-md-12': dato.es_parrafo}">
+                <div class="mb-3">
+                  <label class="form-label">{{ dato.nombre }}</label>
+                  <select *ngIf="dato.opciones.length > 0" class="form-select"
+                    [(ngModel)]="dato.valor_texto" (change)="onDatoAdicionalChange()"
+                    [disabled]="accion === 'consultar'">
+                    <option value="">Seleccionar</option>
+                    <option *ngFor="let op of dato.opciones" [value]="op">{{ op }}</option>
+                  </select>
+                  <input *ngIf="dato.es_numero && dato.opciones.length === 0" type="number" class="form-control"
+                    [(ngModel)]="dato.valor_numero" (change)="onDatoAdicionalChange()"
+                    [disabled]="accion === 'consultar'">
+                  <input *ngIf="dato.es_texto && dato.opciones.length === 0" type="text" class="form-control"
+                    [(ngModel)]="dato.valor_texto" (change)="onDatoAdicionalChange()"
+                    [disabled]="accion === 'consultar'">
+                  <textarea *ngIf="dato.es_parrafo && dato.opciones.length === 0" class="form-control" rows="3"
+                    [(ngModel)]="dato.valor_parrafo" (change)="onDatoAdicionalChange()"
+                    [disabled]="accion === 'consultar'"></textarea>
+                  <input *ngIf="dato.es_fecha && dato.opciones.length === 0" type="date" class="form-control"
+                    [(ngModel)]="dato.valor_fecha" (change)="onDatoAdicionalChange()"
+                    [disabled]="accion === 'consultar'">
+                  <input type="text" class="form-control mt-1 observacion-input" placeholder="Observación (opcional)"
+                    [(ngModel)]="dato.observacion" (change)="onDatoAdicionalChange()"
+                    [disabled]="accion === 'consultar'">
+                </div>
+              </div>
+            </div>
+          </div>
+          <div *ngIf="datosAdicionalesModificados && editable" class="alert alert-info py-2">
+            <i class="fas fa-info-circle me-1"></i> Los datos adicionales se guardarán junto con los datos del estudiante.
+          </div>
+        </div>
+
+        <!-- DOCUMENTOS (editar/consultar) -->
+        <div *ngIf="model.idPersona > 0" [hidden]="seccionActiva !== 'documentos'">
+          <app-documentos-persona
+            [idPersona]="model.idPersona"
+            [tipoPersona]="'estudiante'"
+            [nombrePersona]="obtenerNombreCompleto()"
+            [soloLectura]="accion === 'consultar'">
+          </app-documentos-persona>
+        </div>
+
+      </ng-container>
+
+      <!-- ==================== BOTONES GLOBALES ==================== -->
+      <div class="row mt-4">
+        <div class="col-12 d-flex gap-2">
+          <button *ngIf="editable" class="btn-save" (click)="guardarPersona(model)" [disabled]="!camposHabilitados">
+            <i class="fas fa-save"></i> Grabar
+          </button>
+          <button class="btn-cancel" (click)="volver()">
+            <i class="fas fa-times-circle"></i> Volver
+          </button>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>

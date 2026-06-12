@@ -1,0 +1,35 @@
+<div class="modulo">
+    <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [accion]="accion"
+        [raiz]="'/administracion/gestion-medidas/unidades'" [regresar]="regresar"
+        [iconoTitulo]="'/assets/images/medidas.png'"></app-header>
+
+    <div class="container mt-5" [ngClass]="{ 'disabled-container': !editable }">
+        <div class="row">
+            <div class="col-sm-12 col-md-6">
+                <label class="form-label">Nombre <span class="text-danger">*</span></label>
+                <input type="text" class="form-control form-control-lg" [(ngModel)]="model.nombre"
+                    [ngClass]="{'is-invalid': !model.nombre && submitted}" placeholder="Ej: Kilogramos">
+            </div>
+            <div class="col-sm-12 col-md-6">
+                <label class="form-label">Abreviatura <span class="text-danger">*</span></label>
+                <input type="text" class="form-control form-control-lg" [(ngModel)]="model.abreviatura"
+                    [ngClass]="{'is-invalid': !model.abreviatura && submitted}" placeholder="Ej: kg">
+            </div>
+        </div>
+    </div>
+
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-sm-6" *ngIf="editable">
+                <button class="btn btn-lg btn-warning w-100" (click)="guardar()">
+                    <i class="fas fa-save me-2"></i>Grabar
+                </button>
+            </div>
+            <div class="col-sm-6">
+                <button class="btn btn-lg btn-secondary w-100" (click)="volver()">
+                    <i class="fas fa-arrow-left me-2"></i>Volver
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

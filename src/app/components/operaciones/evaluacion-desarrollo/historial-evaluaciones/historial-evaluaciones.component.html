@@ -1,0 +1,317 @@
+<div class="modulo">
+    <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [raiz]="'/operaciones/evaluacion-desarrollo'"
+        [regresar]="'/operaciones/evaluacion-desarrollo'"></app-header>
+
+    <div class="container-fluid mt-4 px-3 px-md-4">
+
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <h5 class="mb-0"><i class="fas fa-history me-2"></i>Historial de Evaluaciones</h5>
+            <button class="btn btn-ead3 btn-sm" (click)="nuevaEvaluacion()">
+                <i class="fas fa-plus me-1"></i>Nueva Evaluación
+            </button>
+        </div>
+
+        <!-- Sin evaluaciones -->
+        <div *ngIf="!cargando && evaluaciones.length === 0" class="text-center py-5">
+            <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
+            <p class="text-muted">No hay evaluaciones registradas.</p>
+            <button class="btn btn-ead3" (click)="nuevaEvaluacion()">
+                <i class="fas fa-plus me-2"></i>Realizar primera evaluación
+            </button>
+        </div>
+
+        <!-- Lista de evaluaciones -->
+        <div *ngIf="!cargando && evaluaciones.length > 0" class="evaluaciones-lista">
+            <div *ngFor="let eval of evaluaciones">
+
+                <!-- Card de evaluación -->
+                <div class="evaluacion-card card shadow-sm border-0 mb-3"
+                    [class.card-activa]="evaluacionSeleccionada?.id === eval.id"
+                    [class.card-en-proceso]="esEvaluacionActiva(eval)"
+                    (click)="verDetalle(eval)">
+                    <div class="card-body py-2 px-3">
+
+                        <!-- DESKTOP -->
+                        <div class="d-none d-md-block">
+                            <div class="row align-items-center">
+                                <div class="col-md-2">
+                                    <strong class="d-block">{{ eval.fecha_evaluacion }}</strong>
+                                    <small class="text-muted">{{ eval.nombre_rango }} · {{ eval.edad_meses }}m</small>
+                                </div>
+                                <div class="col-md-1">
+                                    <span class="badge" [ngClass]="getEstadoClase(eval.estado)">
+                                        {{ getEstadoLabel(eval.estado) }}
+                                    </span>
+                                </div>
+                                <div class="col-md-4">
+                                    <div *ngIf="!esEvaluacionActiva(eval)" class="d-flex gap-2 flex-wrap">
+                                        <div class="resultado-mini" *ngFor="let area of areas">
+                                            <small class="text-muted">{{ areaNombres[area] }}</small>
+                                            <span class="badge badge-sm"
+                                                [ngClass]="getClaseSemaforo(eval['resultado_' + area.toLowerCase()])">
+                                                {{ getTextoResultado(eval['resultado_' + area.toLowerCase()]) }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div *ngIf="esEvaluacionActiva(eval)" class="text-muted fst-italic small">
+                                        <i class="fas fa-clock me-1"></i>Evaluación pendiente de completar
+                                    </div>
+                                </div>
+                                <div class="col-md-2 text-center">
+                                    <span *ngIf="!esEvaluacionActiva(eval)" class="badge badge-global"
+                                        [ngClass]="getClaseSemaforo(eval.resultado_global)">
+                                        Global: {{ getTextoResultado(eval.resultado_global) }}
+                                    </span>
+                                </div>
+                                <div class="col-md-1 text-center">
+                                    <small class="text-muted"><i class="fas fa-user-md me-1"></i>{{ eval.nombre_evaluador }}</small>
+                                </div>
+                                <div class="col-md-2 text-end">
+                                    <button *ngIf="esEvaluacionActiva(eval)" class="btn btn-sm btn-continuar me-1"
+                                        (click)="continuarEvaluacion(eval, $event)">
+                                        <i class="fas fa-play me-1"></i>Continuar
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger"
+                                        (click)="anularEvaluacion(eval, $event)">
+                                        <i class="fas fa-ban"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- MÓVIL -->
+                        <div class="d-block d-md-none">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <strong>{{ eval.fecha_evaluacion }}</strong>
+                                    <small class="text-muted d-block">{{ eval.nombre_rango }} · {{ eval.edad_meses }}m</small>
+                                </div>
+                                <div class="d-flex flex-column align-items-end gap-1">
+                                    <span class="badge" [ngClass]="getEstadoClase(eval.estado)">
+                                        {{ getEstadoLabel(eval.estado) }}
+                                    </span>
+                                    <span *ngIf="!esEvaluacionActiva(eval)" class="badge badge-global"
+                                        [ngClass]="getClaseSemaforo(eval.resultado_global)">
+                                        {{ getTextoResultado(eval.resultado_global) }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div *ngIf="!esEvaluacionActiva(eval)" class="d-flex gap-2 flex-wrap mb-2">
+                                <span *ngFor="let area of areas" class="badge badge-sm"
+                                    [ngClass]="getClaseSemaforo(eval['resultado_' + area.toLowerCase()])">
+                                    {{ area }}: {{ getTextoResultado(eval['resultado_' + area.toLowerCase()]) }}
+                                </span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted"><i class="fas fa-user-md me-1"></i>{{ eval.nombre_evaluador }}</small>
+                                <div class="d-flex gap-1">
+                                    <button *ngIf="esEvaluacionActiva(eval)" class="btn btn-sm btn-continuar"
+                                        (click)="continuarEvaluacion(eval, $event)">
+                                        <i class="fas fa-play me-1"></i>Continuar
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger"
+                                        (click)="anularEvaluacion(eval, $event)">
+                                        <i class="fas fa-ban"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- ===== DETALLE (solo para finalizadas) ===== -->
+                <div *ngIf="evaluacionSeleccionada?.id === eval.id && detalleItems.length > 0"
+                    class="detalle-completo mb-4" (click)="$event.stopPropagation()">
+
+                    <!-- 1. OBSERVACIONES -->
+                    <div class="card shadow-sm border-0 mb-3 card-observaciones">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="mb-0"><i class="fas fa-sticky-note me-2 text-warning"></i>Observaciones</h6>
+                                <button class="btn btn-sm"
+                                    [ngClass]="editandoObservaciones ? 'btn-ead3' : 'btn-outline-primary'"
+                                    (click)="toggleEditarObservaciones()">
+                                    <i class="fas"
+                                        [class.fa-save]="editandoObservaciones"
+                                        [class.fa-edit]="!editandoObservaciones"></i>
+                                    {{ editandoObservaciones ? ' Guardar' : ' Editar' }}
+                                </button>
+                            </div>
+                            <div *ngIf="!editandoObservaciones" class="contenido-html"
+                                [innerHTML]="evaluacionSeleccionada.observaciones || '<em class=text-muted>Sin observaciones</em>'">
+                            </div>
+                            <div *ngIf="editandoObservaciones" class="editor-wrapper">
+                                <div id="editor-observaciones"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. GRÁFICOS -->
+                    <div class="row mb-3">
+                        <div class="col-md-6 mb-3 mb-md-0">
+                            <div class="card shadow-sm border-0 h-100">
+                                <div class="card-body p-2 p-md-3">
+                                    <div class="chart-container">
+                                        <canvas #graficoBarras></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card shadow-sm border-0 h-100">
+                                <div class="card-body p-2 p-md-3">
+                                    <div class="chart-container">
+                                        <canvas #graficoRadar></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. DETALLE ÍTEMS -->
+                    <div class="card shadow-sm border-0 mb-3">
+                        <div class="card-body">
+
+                            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                                <h6 class="mb-0"><i class="fas fa-list-alt me-2"></i>Detalle de Evaluación</h6>
+                                <button class="btn btn-sm btn-outline-secondary" (click)="cerrarDetalle()">
+                                    <i class="fas fa-times me-1"></i>Cerrar
+                                </button>
+                            </div>
+
+                            <!-- Buscador + Filtro cumple -->
+                            <div class="row mb-3 g-2">
+                                <div class="col-md-8">
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                        <input type="text" class="form-control"
+                                            placeholder="Buscar en los ítems..."
+                                            [(ngModel)]="busquedaDetalle" (input)="filtrarItems()">
+                                        <button *ngIf="busquedaDetalle" class="btn btn-outline-secondary"
+                                            (click)="busquedaDetalle = ''; filtrarItems()">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="btn-group btn-group-sm w-100">
+                                        <button class="btn" [ngClass]="filtroCumple === 'todos' ? 'btn-secondary' : 'btn-outline-secondary'"
+                                            (click)="cambiarFiltroCumple('todos')">
+                                            Todos ({{ detalleItems.length }})
+                                        </button>
+                                        <button class="btn" [ngClass]="filtroCumple === 'cumple' ? 'btn-cumple' : 'btn-outline-secondary'"
+                                            (click)="cambiarFiltroCumple('cumple')">
+                                            <i class="fas fa-check me-1"></i>{{ getTotalCumple() }}
+                                        </button>
+                                        <button class="btn" [ngClass]="filtroCumple === 'no_cumple' ? 'btn-no-cumple' : 'btn-outline-secondary'"
+                                            (click)="cambiarFiltroCumple('no_cumple')">
+                                            <i class="fas fa-times me-1"></i>{{ getTotalNoCumple() }}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Acordeón por área -->
+                            <div *ngFor="let area of areas" class="area-acordeon mb-2">
+                                <div class="area-header" [ngClass]="getClaseSemaforo(getColorArea(area))"
+                                    (click)="toggleAcordeon(area)">
+                                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                                        <i [class]="areaIconos[area]"></i>
+                                        <strong>{{ areaNombres[area] }}</strong>
+                                        <span class="badge bg-light text-dark">
+                                            PD: {{ evaluacionSeleccionada['puntaje_directo_' + area.toLowerCase()] }}
+                                        </span>
+                                        <span class="badge" [ngClass]="getClaseSemaforo(getColorArea(area))">
+                                            {{ getTextoResultado(getColorArea(area)) }}
+                                        </span>
+                                        <span *ngIf="busquedaDetalle || filtroCumple !== 'todos'" class="badge bg-info ms-auto">
+                                            {{ getItemsPorArea(area).length }}
+                                        </span>
+                                    </div>
+                                    <i class="fas" [class.fa-chevron-down]="!acordeonAbierto[area]"
+                                        [class.fa-chevron-up]="acordeonAbierto[area]"></i>
+                                </div>
+                                <div *ngIf="acordeonAbierto[area]" class="area-contenido">
+                                    <div *ngIf="getItemsPorArea(area).length === 0" class="text-center text-muted py-2">
+                                        <small>No se encontraron ítems</small>
+                                    </div>
+                                    <div *ngFor="let det of getItemsPorArea(area)"
+                                        class="item-detalle d-flex align-items-center gap-2 py-2 px-3"
+                                        (click)="toggleItem(det)">
+                                        <i class="fas item-toggle"
+                                            [class.fa-check-circle]="det.cumple === 1"
+                                            [class.fa-times-circle]="det.cumple === 0"
+                                            [class.text-cumple]="det.cumple === 1"
+                                            [class.text-no-cumple]="det.cumple === 0"></i>
+                                        <small class="flex-grow-1"
+                                            [innerHTML]="resaltarBusqueda(det.descripcion_item)"></small>
+                                        <i class="fas fa-exchange-alt text-muted item-edit-icon"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 4. ANÁLISIS PROFESIONAL -->
+                    <div class="card shadow-sm border-0 mb-3 card-analisis">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="mb-0"><i class="fas fa-user-md me-2 text-primary"></i>Análisis Profesional</h6>
+                                <button class="btn btn-sm"
+                                    [ngClass]="editandoAnalisis ? 'btn-ead3' : 'btn-outline-primary'"
+                                    (click)="toggleEditarAnalisis()">
+                                    <i class="fas"
+                                        [class.fa-save]="editandoAnalisis"
+                                        [class.fa-edit]="!editandoAnalisis"></i>
+                                    {{ editandoAnalisis ? ' Guardar' : ' Editar' }}
+                                </button>
+                            </div>
+
+                            <!-- Lectura -->
+                            <div *ngIf="!editandoAnalisis">
+                                <div class="mb-3">
+                                    <label class="fw-bold small text-muted">Análisis:</label>
+                                    <div class="contenido-html p-2 bg-light rounded"
+                                        [innerHTML]="evaluacionSeleccionada.analisis || '<em class=text-muted>Sin análisis</em>'">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="fw-bold small text-muted">Recomendaciones:</label>
+                                    <div class="contenido-html p-2 bg-light rounded"
+                                        [innerHTML]="evaluacionSeleccionada.recomendaciones || '<em class=text-muted>Sin recomendaciones</em>'">
+                                    </div>
+                                </div>
+                                <div *ngIf="evaluacionSeleccionada.fecha_analisis" class="mt-2">
+                                    <small class="text-muted">
+                                        <i class="fas fa-user me-1"></i>{{ evaluacionSeleccionada.nombre_analista }}
+                                        <span class="mx-1">·</span>
+                                        <i class="fas fa-clock me-1"></i>{{ evaluacionSeleccionada.fecha_analisis }}
+                                    </small>
+                                </div>
+                            </div>
+
+                            <!-- Edición -->
+                            <div *ngIf="editandoAnalisis">
+                                <div class="mb-3">
+                                    <label class="fw-bold small">Análisis:</label>
+                                    <div class="editor-wrapper"><div id="editor-analisis"></div></div>
+                                </div>
+                                <div>
+                                    <label class="fw-bold small">Recomendaciones:</label>
+                                    <div class="editor-wrapper"><div id="editor-recomendaciones"></div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading -->
+        <div *ngIf="cargando" class="text-center mt-5">
+            <div class="spinner-border text-ead3" role="status"></div>
+        </div>
+    </div>
+</div>

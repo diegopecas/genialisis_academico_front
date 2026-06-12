@@ -1,0 +1,19 @@
+<div class="modulo">
+    <app-header
+      [tituloModulo]="titulo"
+      [mostrarCrear]="false"
+      [accion]="'ConsultarTodos'"
+      [raiz]="'/academico/indicadores-logros'"
+      [regresar]="'/academico'"
+      [iconoTitulo]="'/assets/images/indicadores-logros.png'"
+    ></app-header>
+   
+    <app-tablas
+      [titulos]="titulos"
+      [datos]="datos"
+      [columnasFiltro]="columnasFiltro" 
+      [raiz]="'/academico/indicadores-logros'"
+      [accionVer]="true" [accionEditar]="true" [accionEliminar]="false"
+      (clicAccion)="seleccionar($event)"
+    ></app-tablas>
+  </div>

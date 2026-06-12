@@ -1,0 +1,146 @@
+<div class="modulo">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="false"
+    [accion]="accion"
+    [raiz]="'/operaciones/galerias'"
+    [regresar]="regresar"
+    [iconoTitulo]="'/assets/images/galeria.png'"
+  ></app-header>
+
+  <div class="container mt-5">
+    <!-- Información básica -->
+    <div class="row">
+      <div class="col-sm-12 col-md-8">
+        <label for="nombre" class="form-label">Nombre <span class="text-danger">*</span></label>
+        <input
+          class="form-control form-control-lg"
+          type="text"
+          id="nombre"
+          [(ngModel)]="model.nombre"
+          placeholder="Ej: Día de la Familia 2024"
+          [ngClass]="{'is-invalid': !model.nombre && submitted}"
+          [disabled]="!editable"
+        />
+      </div>
+      <div class="col-sm-12 col-md-4">
+        <label for="fecha" class="form-label">Fecha <span class="text-danger">*</span></label>
+        <input
+          class="form-control form-control-lg"
+          type="date"
+          id="fecha"
+          [(ngModel)]="model.fecha"
+          [ngClass]="{'is-invalid': !model.fecha && submitted}"
+          [disabled]="!editable"
+        />
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-12">
+        <label for="descripcion" class="form-label">Descripción</label>
+        <textarea
+          class="form-control form-control-lg"
+          id="descripcion"
+          rows="3"
+          [(ngModel)]="model.descripcion"
+          placeholder="Descripción de la galería"
+          [disabled]="!editable"
+        ></textarea>
+      </div>
+    </div>
+
+    <!-- Tipo de galería -->
+    <div class="row">
+      <div class="col-sm-12 col-md-4">
+        <label for="tipoGaleria" class="form-label">Tipo <span class="text-danger">*</span></label>
+        <select
+          class="form-select form-select-lg"
+          id="tipoGaleria"
+          [(ngModel)]="model.es_publica"
+          [disabled]="!editable"
+        >
+          <option [ngValue]="1">Pública (visible para todos)</option>
+          <option [ngValue]="0">Privada (solo grupos seleccionados)</option>
+        </select>
+      </div>
+      <div class="col-sm-12 col-md-4">
+        <label for="orden" class="form-label">Orden</label>
+        <input
+          class="form-control form-control-lg"
+          type="number"
+          id="orden"
+          [(ngModel)]="model.orden"
+          min="0"
+          [disabled]="!editable"
+        />
+        <small class="form-text text-muted">Menor número aparece primero</small>
+      </div>
+      <div class="col-sm-12 col-md-4">
+        <label for="activo" class="form-label">Estado</label>
+        <select
+          class="form-select form-select-lg"
+          id="activo"
+          [(ngModel)]="model.activo"
+          [disabled]="!editable"
+        >
+          <option [ngValue]="1">Activo</option>
+          <option [ngValue]="0">Inactivo</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Asignación de grupos (solo si es privada) -->
+    <div class="row" *ngIf="model.es_publica === 0">
+      <div class="col-12">
+        <hr />
+        <h5 class="mb-3">Grupos con acceso <span class="text-danger">*</span></h5>
+        <div class="alert alert-info">
+          <i class="fas fa-info-circle me-2"></i>
+          Selecciona los grupos que podrán ver esta galería
+        </div>
+        
+        <div class="grupos-grid">
+          <div
+            *ngFor="let grupo of grupos"
+            class="grupo-checkbox"
+            [class.selected]="isGrupoSeleccionado(grupo.id)"
+          >
+            <label class="form-check-label">
+              <input
+                type="checkbox"
+                class="form-check-input"
+                [checked]="isGrupoSeleccionado(grupo.id)"
+                (change)="toggleGrupo(grupo.id)"
+                [disabled]="!editable"
+              />
+              <span class="grupo-nombre">{{ grupo.nombre }}</span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botones de acción -->
+    <div class="row mt-5">
+      <div class="col-sm-6 col-md-4" *ngIf="editable">
+        <button class="btn btn-lg btn-warning w-100" (click)="guardar()">
+          <i class="fas fa-save me-2"></i>
+          Grabar
+        </button>
+      </div>
+      <div class="col-sm-6 col-md-4" *ngIf="accion === 'editar'">
+        <button class="btn btn-lg btn-primary w-100" (click)="gestionarImagenes()">
+          <i class="fas fa-images me-2"></i>
+          Gestionar Imágenes
+        </button>
+      </div>
+      <div class="col-sm-6" [ngClass]="{'col-md-4': accion === 'editar', 'col-md-8': accion !== 'editar'}">
+        <button class="btn btn-lg btn-secondary w-100" (click)="volver()">
+          <i class="fas fa-arrow-left me-2"></i>
+          Volver
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

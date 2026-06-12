@@ -1,0 +1,505 @@
+<!-- crear-actividades-academicas.component.html -->
+<div class="modulo">
+    <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [accion]="accion" [id]="id" [raiz]="'/actividades-academicas'"
+        [regresar]="'/academico/actividades-academicas'" [iconoTitulo]="'/assets/images/actividades.png'"></app-header>
+    
+    <div class="container-fluid mt-4" [ngClass]="{ 'disabled-container': !editable }">
+        <!-- Sección de Información Básica -->
+        <div class="card mb-4">
+            <div class="card-header bg-corporate-primary">
+                <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Información Básica de la Actividad</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <!-- Primera fila -->
+                    <div class="col-md-8">
+                        <label for="titulo" class="form-label fw-semibold d-inline-flex align-items-center">
+                            Título de la Actividad&nbsp;<span class="text-danger">*</span>
+                        </label>
+                        <input type="text" class="form-control" id="titulo"
+                            [(ngModel)]="model.titulo" (ngModelChange)="formularioValido()" required
+                            [ngClass]="{'is-invalid': !model.titulo && submitted}"
+                            placeholder="Ingrese el título de la actividad...">
+                        <div *ngIf="!model.titulo && submitted" class="invalid-feedback">Este campo es obligatorio</div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label for="tipoActividad" class="form-label fw-semibold">Tipo de Actividad <span class="text-danger">*</span></label>
+                        <select class="form-select" id="tipoActividad"
+                            [(ngModel)]="model.id_tipo_actividad_academica" (ngModelChange)="formularioValido()" required
+                            [ngClass]="{'is-invalid': !model.id_tipo_actividad_academica && submitted}">
+                            <option value="">Seleccionar tipo...</option>
+                            <ng-container *ngFor="let tipo of listas.tiposActividades">
+                                <option [value]="tipo.id">{{ tipo.nombre }}</option>
+                            </ng-container>
+                        </select>
+                        <div *ngIf="!model.id_tipo_actividad_academica && submitted" class="invalid-feedback">Este campo es obligatorio</div>
+                    </div>
+
+                    <!-- Segunda fila: Duración + Ambiente -->
+                    <div class="col-md-3">
+                        <label for="duracion" class="form-label fw-semibold">Duración (minutos) <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" id="duracion"
+                            [(ngModel)]="model.minutos_duracion" (ngModelChange)="formularioValido()" required
+                            [ngClass]="{'is-invalid': !model.minutos_duracion && submitted}"
+                            placeholder="Ej: 45" min="1" max="300">
+                        <div *ngIf="!model.minutos_duracion && submitted" class="invalid-feedback">Este campo es obligatorio</div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label for="ambiente" class="form-label fw-semibold">
+                            🏠 Ambiente
+                        </label>
+                        <select class="form-select" id="ambiente" [(ngModel)]="model.id_ambiente">
+                            <option [ngValue]="null">Sin ambiente</option>
+                            <option *ngFor="let amb of listas.ambientes" [value]="amb.id">
+                                {{ amb.nombre }}
+                            </option>
+                        </select>
+                    </div>
+
+                    <!-- Materiales con chips -->
+                    <div class="col-md-5">
+                        <label class="form-label fw-semibold">
+                            📦 Materiales <span class="text-danger">*</span>
+                        </label>
+                        <!-- Campo oculto que mantiene el valor para validación -->
+                        <input type="hidden" [(ngModel)]="model.materiales">
+                        
+                        <!-- Chips de materiales seleccionados -->
+                        <div class="materiales-chips-wrapper" [ngClass]="{'is-invalid-border': !model.materiales && submitted}">
+                            <div class="materiales-chips-area">
+                                <span *ngFor="let mat of materialesLista; let i = index" 
+                                      class="material-chip" 
+                                      [class.chip-producto]="mat.es_producto"
+                                      [class.chip-libre]="!mat.es_producto">
+                                    <span *ngIf="mat.es_producto" class="chip-ico" (click)="verProductoDetalle(mat)" style="cursor:pointer">📦</span>
+                                    <span *ngIf="!mat.es_producto" class="chip-ico">✏️</span>
+                                    <span class="chip-nombre" [class.clickable]="mat.es_producto" (click)="mat.es_producto ? verProductoDetalle(mat) : null">{{ mat.nombre_material }}</span>
+                                    <span class="chip-close" (click)="quitarMaterialDeLista(i)" *ngIf="editable" style="cursor:pointer">✕</span>
+                                </span>
+                            </div>
+                            <div class="materiales-input-area" *ngIf="editable">
+                                <input type="text" 
+                                       [(ngModel)]="nuevoMaterialTexto" 
+                                       (keydown.enter)="agregarMaterialTextoLibre(); $event.preventDefault()"
+                                       placeholder="Escribe y presiona Enter..." 
+                                       class="material-chip-input">
+                                <button class="btn-add-material" (click)="agregarMaterialTextoLibre()" [disabled]="!nuevoMaterialTexto.trim()">
+                                    ➕
+                                </button>
+                            </div>
+                        </div>
+                        <div *ngIf="!model.materiales && submitted" class="invalid-feedback">Agregue al menos un material</div>
+
+                        <!-- Productos del inventario (si hay indicadores para saber el grupo) -->
+                        <div class="productos-inventario mt-2" *ngIf="productosDisponiblesActividad.length > 0 && editable">
+                            <small class="text-muted d-block mb-1">
+                                📦
+                                Del inventario:
+                            </small>
+                            <div class="productos-badges">
+                                <span *ngFor="let prod of productosDisponiblesActividad"
+                                      class="producto-badge"
+                                      [class.ya-agregado]="isMaterialProductoAgregado(prod.id)"
+                                      (click)="toggleMaterialProducto(prod)">
+                                    {{ prod.nombre }}
+                                    <span *ngIf="isMaterialProductoAgregado(prod.id)">✅</span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección de Descripción -->
+        <div class="card mb-4">
+            <div class="card-header bg-corporate-primary">
+                <h5 class="mb-0"><i class="fas fa-edit me-2"></i>Descripción de la Actividad</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-12">
+                        <label for="editor-descripcion" class="form-label fw-semibold">Descripción Detallada <span class="text-danger">*</span></label>
+                        
+                        <!-- Editor CKEditor 5 -->
+                        <div class="editor-wrapper">
+                            <div id="editor-descripcion" class="editor-container" 
+                                 [ngClass]="{'is-invalid': !model.descripcion && submitted}"></div>
+                            
+                            <div class="editor-footer">
+                                <div *ngIf="!model.descripcion && submitted" class="text-danger">Este campo es obligatorio</div>
+                                <div class="character-count" [ngClass]="{'text-danger': caracteresRestantesDescripcion < 100}">
+                                    <i class="fas fa-keyboard me-1"></i>
+                                    <span>{{ caracteresRestantesDescripcion }}</span> caracteres restantes
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección de Niveles -->
+        <div class="card mb-4">
+            <div class="card-header bg-corporate-secondary">
+                <h5 class="mb-0"><i class="fas fa-layer-group me-2"></i>Actividades por Nivel</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <!-- Nivel Uno -->
+                    <div class="col-md-6">
+                        <label for="editor-nivel-uno" class="form-label fw-semibold">Nivel Uno <span class="text-danger">*</span></label>
+                        <div class="editor-wrapper">
+                            <div id="editor-nivel-uno" class="editor-container" 
+                                 [ngClass]="{'is-invalid': !model.nivel_uno && submitted}"></div>
+                            
+                            <div class="editor-footer">
+                                <div *ngIf="!model.nivel_uno && submitted" class="text-danger">Este campo es obligatorio</div>
+                                <div class="character-count" [ngClass]="{'text-danger': caracteresRestantesNivelUno < 100}">
+                                    <i class="fas fa-keyboard me-1"></i>
+                                    <span>{{ caracteresRestantesNivelUno }}</span> caracteres restantes
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="level-tips mt-3">
+                            <div class="alert alert-info py-2">
+                                <h6 class="alert-heading mb-2">
+                                    <i class="fas fa-lightbulb me-1"></i>
+                                    Nivel Uno - Básico:
+                                </h6>
+                                <ul class="mb-0 small">
+                                    <li>Actividades introductorias y de exploración</li>
+                                    <li>Enfoque en conceptos fundamentales</li>
+                                    <li>Mayor apoyo y guía del docente</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Nivel Dos -->
+                    <div class="col-md-6">
+                        <label for="editor-nivel-dos" class="form-label fw-semibold">Nivel Dos <span class="text-danger">*</span></label>
+                        <div class="editor-wrapper">
+                            <div id="editor-nivel-dos" class="editor-container" 
+                                 [ngClass]="{'is-invalid': !model.nivel_dos && submitted}"></div>
+                            
+                            <div class="editor-footer">
+                                <div *ngIf="!model.nivel_dos && submitted" class="text-danger">Este campo es obligatorio</div>
+                                <div class="character-count" [ngClass]="{'text-danger': caracteresRestantesNivelDos < 100}">
+                                    <i class="fas fa-keyboard me-1"></i>
+                                    <span>{{ caracteresRestantesNivelDos }}</span> caracteres restantes
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="level-tips mt-3">
+                            <div class="alert alert-warning py-2">
+                                <h6 class="alert-heading mb-2">
+                                    <i class="fas fa-lightbulb me-1"></i>
+                                    Nivel Dos - Avanzado:
+                                </h6>
+                                <ul class="mb-0 small">
+                                    <li>Actividades de profundización y aplicación</li>
+                                    <li>Mayor autonomía del estudiante</li>
+                                    <li>Retos y problemas más complejos</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección de Indicadores de Logro Asociados -->
+        <div class="card mb-4" *ngIf="!nuevo && datosIndicadoresLogro.length > 0">
+            <div class="card-header bg-corporate-secondary d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-list-check me-2"></i>Indicadores de Logro Asociados</h5>
+                <button class="btn btn-sm btn-corporate-primary" (click)="abrirModalIndicador()" *ngIf="editable">
+                    <i class="fas fa-plus me-1"></i>Asociar Indicador
+                </button>
+            </div>
+            <div class="card-body">
+                <app-tablas [titulos]="titulos" [datos]="datosIndicadoresLogro" [raiz]="'/academico/actividades-academicas'"
+                    (clicAccion)="seleccionarIndicador($event)" [accionEditar]="false" [accionEliminar]="true" [accionVer]="false"></app-tablas>
+            </div>
+        </div>
+
+        <!-- Card vacía para agregar el primer indicador cuando no hay ninguno -->
+        <div class="card mb-4" *ngIf="!nuevo && datosIndicadoresLogro.length === 0">
+            <div class="card-header bg-corporate-secondary">
+                <h5 class="mb-0"><i class="fas fa-list-check me-2"></i>Indicadores de Logro Asociados</h5>
+            </div>
+            <div class="card-body text-center py-4">
+                <p class="text-muted mb-3">No hay indicadores de logro asociados a esta actividad.</p>
+                <button class="btn btn-corporate-primary" (click)="abrirModalIndicador()" *ngIf="editable">
+                    <i class="fas fa-plus me-1"></i>Asociar Primer Indicador
+                </button>
+            </div>
+        </div>
+
+        <!-- Sección de Sprints Asociados -->
+        <div class="card mb-4" *ngIf="!nuevo && datosTareasActividad.length > 0">
+            <div class="card-header bg-corporate-secondary d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-running me-2"></i>Sprints Asociados</h5>
+                <button class="btn btn-sm btn-corporate-primary" (click)="abrirModalSprint()" *ngIf="editable">
+                    <i class="fas fa-plus me-1"></i>Asociar a Sprint
+                </button>
+            </div>
+            <div class="card-body">
+                <app-tablas 
+                    [titulos]="titulosSprints" 
+                    [datos]="datosTareasActividad" 
+                    [raiz]="'/academico/actividades-academicas'"
+                    (clicAccion)="accionTareaSprint($event)" 
+                    [accionEditar]="false" 
+                    [accionEliminar]="editable" 
+                    [accionVer]="false"
+                    [acciones]="editable ? [{ id: 'cambiarEstado', label: 'Cambiar Estado', icono: '' }] : []">
+                </app-tablas>
+            </div>
+        </div>
+
+        <!-- Card vacía de sprints -->
+        <div class="card mb-4" *ngIf="!nuevo && datosTareasActividad.length === 0">
+            <div class="card-header bg-corporate-secondary">
+                <h5 class="mb-0"><i class="fas fa-running me-2"></i>Sprints Asociados</h5>
+            </div>
+            <div class="card-body text-center py-4">
+                <p class="text-muted mb-3">Esta actividad no está asociada a ningún sprint.</p>
+                <button class="btn btn-corporate-primary" (click)="abrirModalSprint()" *ngIf="editable">
+                    <i class="fas fa-plus me-1"></i>Asociar a Sprint
+                </button>
+            </div>
+        </div>
+
+        <!-- Botones de acción -->
+        <div class="row mt-4 mb-3">
+            <div class="col-12 d-flex justify-content-center gap-3">
+                <button *ngIf="editable" 
+                    class="btn btn-corporate-primary btn-lg px-5" 
+                    (click)="grabar()"
+                    [disabled]="!formularioValido()">
+                    <i class="fas fa-save me-2"></i>Guardar Actividad
+                </button>
+                <button class="btn btn-corporate-secondary btn-lg px-5" (click)="volver()">
+                    <i class="fas fa-arrow-left me-2"></i>Volver
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para asociar a Sprint -->
+    <div class="modal-overlay-custom" *ngIf="mostrarModalSprint" (click)="cerrarModalSprint()">
+        <div class="modal-content-custom" (click)="$event.stopPropagation()" style="max-width: 500px;">
+            <div class="modal-header bg-corporate-primary">
+                <h5 class="mb-0"><i class="fas fa-running me-2"></i>Asociar a Sprint</h5>
+                <button type="button" class="btn-close btn-close-white" (click)="cerrarModalSprint()"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Sprint <span class="text-danger">*</span></label>
+                    <select class="form-select" [(ngModel)]="sprintModalData.id_sprint">
+                        <option [value]="null">Seleccione un sprint...</option>
+                        <option *ngFor="let s of sprintsDisponibles" [value]="s.id">
+                            {{ s.nombre_sprint }} ({{ s.fecha_inicial | date:'dd/MM/yyyy' }} - {{ s.fecha_final | date:'dd/MM/yyyy' }})
+                            <span *ngIf="s.actual == 1"> ★ Actual</span>
+                        </option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Grupo <span class="text-danger">*</span></label>
+                    <select class="form-select" [(ngModel)]="sprintModalData.id_grupo">
+                        <option [value]="null">Seleccione un grupo...</option>
+                        <option *ngFor="let g of gruposActividad" [value]="g.id">{{ g.nombre }}</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Área Académica <span class="text-danger">*</span></label>
+                    <select class="form-select" [(ngModel)]="sprintModalData.id_area_academica">
+                        <option [value]="null">Seleccione un área...</option>
+                        <option *ngFor="let a of areasActividad" [value]="a.id">{{ a.nombre }}</option>
+                    </select>
+                </div>
+
+                <div class="alert alert-info py-2" *ngIf="gruposActividad.length === 0 || areasActividad.length === 0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Los grupos y áreas se obtienen de los indicadores de logro asociados a esta actividad.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" (click)="cerrarModalSprint()">Cancelar</button>
+                <button class="btn btn-corporate-primary" (click)="asociarASprint()"
+                    [disabled]="!sprintModalData.id_sprint || !sprintModalData.id_grupo || !sprintModalData.id_area_academica">
+                    <i class="fas fa-link me-1"></i>Asociar
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- Modal para asociar indicador de logro -->
+    <div class="modal fade" id="modalIndicador" tabindex="-1" aria-labelledby="modalIndicadorLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-corporate-primary">
+                    <h5 class="modal-title" id="modalIndicadorLabel">
+                        <i class="fas fa-link me-2"></i>
+                        Asociar Indicadores de Logro Existentes
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Filtros -->
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <label for="filtroGrupo" class="form-label fw-semibold">
+                                Filtrar por Grupo
+                            </label>
+                            <select class="form-select" id="filtroGrupo" [(ngModel)]="filtroGrupo">
+                                <option value="">Todos los grupos</option>
+                                <option *ngFor="let grupo of gruposIndicadores" [value]="grupo.nombre">
+                                    {{ grupo.nombre }}
+                                </option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="filtroArea" class="form-label fw-semibold">
+                                Filtrar por Área
+                            </label>
+                            <select class="form-select" id="filtroArea" [(ngModel)]="filtroArea">
+                                <option value="">Todas las áreas</option>
+                                <option *ngFor="let area of areasIndicadores" [value]="area.nombre">
+                                    {{ area.nombre }}
+                                </option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="filtroCorte" class="form-label fw-semibold">
+                                Filtrar por Corte
+                            </label>
+                            <select class="form-select" id="filtroCorte" [(ngModel)]="filtroCorte">
+                                <option value="">Todos los cortes</option>
+                                <option *ngFor="let corte of cortesIndicadores" [value]="corte.nombre">
+                                    {{ corte.nombre }}
+                                </option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="buscarIndicador" class="form-label fw-semibold">
+                                Buscar por texto
+                            </label>
+                            <input type="text" class="form-control" id="buscarIndicador"
+                                [(ngModel)]="indicadoresBusqueda"
+                                placeholder="Buscar indicador...">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="form-label fw-semibold mb-0">
+                                Seleccione Indicadores <span class="text-danger">*</span>
+                                <span class="badge bg-secondary ms-2">{{ indicadoresFiltrados.length }} disponibles</span>
+                                <span class="badge bg-primary ms-1" *ngIf="indicadoresSeleccionados.length > 0">
+                                    {{ indicadoresSeleccionados.length }} seleccionados
+                                </span>
+                            </label>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <button type="button" class="btn btn-outline-secondary" 
+                                    (click)="seleccionarTodos()"
+                                    [disabled]="indicadoresFiltrados.length === 0">
+                                    <i class="fas fa-check-square me-1"></i>Seleccionar todos
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" 
+                                    (click)="deseleccionarTodos()"
+                                    [disabled]="indicadoresSeleccionados.length === 0">
+                                    <i class="fas fa-square me-1"></i>Deseleccionar todos
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="indicadores-list" [ngClass]="{'is-invalid': indicadoresSeleccionados.length === 0 && indicadorSubmitted}">
+                            <div class="no-results-message" *ngIf="indicadoresFiltrados.length === 0">
+                                <i class="fas fa-search me-2"></i>
+                                No se encontraron indicadores con los filtros aplicados
+                            </div>
+                            <div class="indicador-item" 
+                                *ngFor="let indicador of indicadoresFiltrados"
+                                [ngClass]="{'selected': isIndicadorSeleccionado(indicador)}"
+                                (click)="toggleIndicadorSeleccion(indicador)">
+                                <div class="indicador-info">
+                                    <strong>{{ indicador.nombre }}</strong>
+                                    <div class="text-muted small">
+                                        <span *ngIf="indicador.nombres_grupos">
+                                            <i class="fas fa-users me-1"></i>Grupo(s): {{ indicador.nombres_grupos }}
+                                        </span>
+                                        <span *ngIf="indicador.area_academica_nombre" class="ms-3">
+                                            <i class="fas fa-book me-1"></i>Área: {{ indicador.area_academica_nombre }}
+                                        </span>
+                                        <span *ngIf="indicador.corte_academico_nombre" class="ms-3">
+                                            <i class="fas fa-calendar me-1"></i>Corte: {{ indicador.corte_academico_nombre }}
+                                        </span>
+                                    </div>
+                                </div>
+                                <i class="fas fa-check-circle check-icon" *ngIf="isIndicadorSeleccionado(indicador)"></i>
+                            </div>
+                        </div>
+                        <div *ngIf="indicadoresSeleccionados.length === 0 && indicadorSubmitted" class="invalid-feedback d-block">
+                            Debe seleccionar al menos un indicador
+                        </div>
+                    </div>
+                    
+                    <div class="selected-summary mt-3" *ngIf="indicadoresSeleccionados.length > 0">
+                        <div class="alert alert-corporate py-2">
+                            <strong>{{ indicadoresSeleccionados.length }} indicador{{ indicadoresSeleccionados.length > 1 ? 'es' : '' }} seleccionado{{ indicadoresSeleccionados.length > 1 ? 's' : '' }}:</strong>
+                            <div class="selected-list mt-2" style="max-height: 100px; overflow-y: auto;">
+                                <small>
+                                    <div *ngFor="let ind of indicadoresSeleccionados; let i = index" class="mb-1">
+                                        {{ i + 1 }}. {{ ind.nombre }}
+                                        <span class="text-muted" *ngIf="ind.nombres_grupos">({{ ind.nombres_grupos }})</span>
+                                    </div>
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" (click)="cerrarModalIndicador()">
+                        <i class="fas fa-times me-1"></i>Cancelar
+                    </button>
+                    <button type="button" class="btn btn-corporate-primary" 
+                        (click)="asociarIndicadores()"
+                        [disabled]="!indicadoresSeleccionados || indicadoresSeleccionados.length === 0">
+                        <i class="fas fa-link me-1"></i>
+                        Asociar {{ indicadoresSeleccionados.length || '' }} Indicador{{ indicadoresSeleccionados.length !== 1 ? 'es' : '' }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal detalle de producto -->
+    <div class="modal-overlay-custom" *ngIf="productoDetalleModal" (click)="productoDetalleModal = null">
+        <div class="modal-content-custom" (click)="$event.stopPropagation()" style="max-width: 400px;">
+            <div class="modal-header bg-corporate-secondary">
+                <h5 class="mb-0">
+                    📦
+                    {{ productoDetalleModal.nombre_material }}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" (click)="productoDetalleModal = null"></button>
+            </div>
+            <div class="modal-body text-center p-4">
+                <img *ngIf="productoDetalleModal.imagen" [src]="productoDetalleModal.imagen" 
+                     [alt]="productoDetalleModal.nombre_material" 
+                     style="max-width: 100%; max-height: 250px; border-radius: 8px; object-fit: contain;">
+                <div *ngIf="!productoDetalleModal.imagen" class="py-4 text-muted">
+                    📷
+                    <p>Sin imagen</p>
+                </div>
+                <p *ngIf="productoDetalleModal.descripcion" class="mt-3 text-muted">{{ productoDetalleModal.descripcion }}</p>
+            </div>
+        </div>
+    </div>
+</div>

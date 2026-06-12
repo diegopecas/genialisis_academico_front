@@ -1,0 +1,318 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&family=Fredoka+One&display=swap');
+
+$pink: #FF6B9D;
+$purple: #9B59B6;
+$orange: #FF8C42;
+$teal: #00BCD4;
+$red: #FF4757;
+$green: #2ed573;
+
+.gini-world {
+  font-family: 'Nunito', sans-serif;
+  background: linear-gradient(180deg, #87CEEB 0%, #b8e4f7 50%, #c8f0a0 100%);
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+}
+
+.sun {
+  position: fixed; top: -30px; right: 60px;
+  width: 120px; height: 120px;
+  background: radial-gradient(circle, #FFE566, #FFD700);
+  border-radius: 50%;
+  box-shadow: 0 0 40px #FFD70088, 0 0 80px #FFD70044;
+  animation: sunPulse 3s ease-in-out infinite;
+  z-index: 0; pointer-events: none;
+  &::before { content: ''; position: absolute; inset: -20px; background: radial-gradient(circle, #FFD70033, transparent 70%); border-radius: 50%; }
+}
+@keyframes sunPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+
+.cloud { position: fixed; background: white; border-radius: 50px; opacity: 0.9; z-index: 0; pointer-events: none; }
+.cloud::before, .cloud::after { content: ''; position: absolute; background: white; border-radius: 50%; }
+.cloud1 { width: 120px; height: 40px; top: 40px; left: -20px; animation: cloudMove1 20s linear infinite; }
+.cloud1::before { width: 60px; height: 60px; top: -30px; left: 15px; }
+.cloud1::after { width: 40px; height: 40px; top: -20px; left: 55px; }
+.cloud2 { width: 90px; height: 30px; top: 80px; right: -10px; animation: cloudMove2 25s linear infinite; }
+.cloud2::before { width: 45px; height: 45px; top: -22px; left: 10px; }
+.cloud2::after { width: 30px; height: 30px; top: -15px; left: 45px; }
+@keyframes cloudMove1 { 0% { left: -150px; } 100% { left: 110%; } }
+@keyframes cloudMove2 { 0% { right: -120px; } 100% { right: 110%; } }
+
+.grass {
+  position: fixed; bottom: 0; left: 0; right: 0; height: 80px;
+  background: linear-gradient(180deg, #4CAF50, #388E3C);
+  border-radius: 50% 50% 0 0 / 20px 20px 0 0;
+  z-index: 0; pointer-events: none;
+  &::before { content: '🌸🌷🌻🌸🌷🌻🌸🌷🌻🌸🌷🌻🌸🌷🌻🌸'; position: absolute; top: -15px; left: 0; right: 0; font-size: 20px; letter-spacing: 8px; text-align: center; }
+}
+
+.confetti-container { position: fixed; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; z-index: 999; display: none; }
+.confetti-piece { position: absolute; width: 10px; height: 10px; top: -10px; animation: confettiFall 2s linear forwards; }
+@keyframes confettiFall { 0% { transform: translateY(0) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
+
+.gini-container {
+  position: relative; z-index: 1;
+  display: flex; flex-direction: column; align-items: center;
+  padding: 16px 20px 100px;
+  width: 100%; max-width: 500px;
+  margin: 0 auto;
+}
+
+.gini-title {
+  font-family: 'Fredoka One', cursive;
+  font-size: clamp(2rem, 8vw, 3rem);
+  color: white;
+  text-shadow: 3px 3px 0 #{$pink}, 5px 5px 0 #{$purple}33;
+  margin-top: 12px; margin-bottom: 4px; text-align: center; letter-spacing: 2px;
+}
+
+.gini-subtitle {
+  font-size: 0.9rem; color: #ffffffcc; font-weight: 700; text-align: center;
+  margin-bottom: 12px; background: #ffffff33; padding: 4px 14px;
+  border-radius: 20px; backdrop-filter: blur(5px);
+}
+
+.chip-grupo {
+  background: white; border-radius: 20px; padding: 5px 16px;
+  font-weight: 800; color: $purple; font-size: 0.9rem;
+  box-shadow: 0 2px 10px #0000001a; margin-bottom: 14px;
+  i { margin-right: 6px; }
+}
+
+.mode-selector {
+  display: flex; gap: 10px; margin-bottom: 20px;
+  background: white; border-radius: 20px; padding: 8px;
+  box-shadow: 0 4px 20px #0000001a; width: 100%;
+  position: relative; z-index: 2;
+}
+.mode-btn {
+  flex: 1; padding: 10px 8px; border: none; border-radius: 14px;
+  font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 0.85rem;
+  cursor: pointer; transition: all 0.2s; background: transparent; color: #999;
+  text-align: center; line-height: 1.3;
+  &.active {
+    background: linear-gradient(135deg, #{$pink}, #{$purple});
+    color: white; box-shadow: 0 4px 12px #{$pink}44; transform: scale(1.02);
+  }
+}
+
+// Avatar — margen top para que el sombrero no tape el selector
+.avatar-area {
+  position: relative;
+  margin-top: 30px;
+  margin-bottom: 20px;
+}
+
+.face {
+  width: clamp(160px, 40vw, 200px); height: clamp(160px, 40vw, 200px);
+  background: radial-gradient(circle at 40% 35%, #FFDAB9, #F4A460);
+  border-radius: 50%; position: relative;
+  box-shadow: 0 8px 30px #0000002a, inset 0 -10px 20px #00000011;
+  animation: faceIdle 4s ease-in-out infinite;
+  &.listening { animation: faceListen 0.5s ease-in-out infinite alternate; }
+  &.speaking { animation: faceSpeak 0.3s ease-in-out infinite alternate; }
+  &.thinking { animation: faceThink 1s ease-in-out infinite; }
+  &.celebrating { animation: faceCelebrate 0.4s ease-in-out infinite; }
+}
+@keyframes faceIdle { 0%, 100% { transform: translateY(0) rotate(-1deg); } 50% { transform: translateY(-8px) rotate(1deg); } }
+@keyframes faceListen { 0% { transform: scale(1.02) rotate(-1deg); } 100% { transform: scale(1.05) rotate(1deg); } }
+@keyframes faceSpeak { 0% { transform: scaleY(1) rotate(-0.5deg); } 100% { transform: scaleY(1.03) rotate(0.5deg); } }
+@keyframes faceThink { 0%, 100% { transform: rotate(-3deg); } 50% { transform: rotate(3deg); } }
+@keyframes faceCelebrate { 0% { transform: scale(1) rotate(-5deg); } 50% { transform: scale(1.1) rotate(5deg); } 100% { transform: scale(1) rotate(-5deg); } }
+
+// Pelo largo femenino — contenedor con posición y desbordamiento visible
+.hair {
+  position: absolute; top: -18px; left: 50%; transform: translateX(-50%);
+  width: 110%; overflow: visible;
+}
+.hair-top {
+  width: 100%; height: 55px;
+  background: linear-gradient(180deg, #c0392b, #e74c3c);
+  border-radius: 60% 60% 10% 10%;
+  position: relative;
+}
+.hair-long-left, .hair-long-right {
+  position: absolute; width: 30px; height: 100px;
+  background: linear-gradient(180deg, #c0392b, #e74c3c);
+  top: 30px; border-radius: 0 0 50% 50%;
+}
+.hair-long-left { left: -2px; transform: rotate(-5deg); }
+.hair-long-right { right: -2px; transform: rotate(5deg); }
+
+// Aretes
+.earring {
+  position: absolute; font-size: 16px; bottom: 20%;
+  &.earring-left { left: -12px; }
+  &.earring-right { right: -12px; }
+}
+
+// Sombrero
+.hat { position: absolute; top: -55px; left: 50%; transform: translateX(-50%); z-index: 1; }
+.hat-brim { width: 130px; height: 16px; background: linear-gradient(180deg, #{$pink}, #e0507f); border-radius: 50%; box-shadow: 0 4px 8px #0000002a; }
+.hat-top { width: 80px; height: 50px; background: linear-gradient(180deg, #{$pink}, #e0507f); border-radius: 12px 12px 0 0; position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); }
+.hat-band { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); width: 80px; height: 10px; background: #FFD700; }
+.hat-star { position: absolute; top: -5px; left: 50%; transform: translateX(-50%); font-size: 18px; }
+
+.eyes { position: absolute; top: 38%; left: 50%; transform: translateX(-50%); display: flex; gap: clamp(20px, 6vw, 28px); }
+.eye {
+  width: clamp(22px, 5vw, 28px); height: clamp(22px, 5vw, 28px);
+  background: #3a2410; border-radius: 50%; position: relative; transition: transform 0.3s;
+  &::before { content: ''; position: absolute; top: 4px; left: 4px; width: 8px; height: 8px; background: white; border-radius: 50%; }
+  &::after { content: ''; position: absolute; bottom: 3px; right: 3px; width: 5px; height: 5px; background: white; border-radius: 50%; opacity: 0.6; }
+}
+.face.listening .eye { transform: scaleY(1.3); }
+.face.celebrating .eye { transform: scaleY(0.3) translateY(4px); }
+
+.eyebrows { position: absolute; top: 32%; left: 50%; transform: translateX(-50%); display: flex; gap: clamp(20px, 6vw, 28px); }
+.eyebrow { width: clamp(22px, 5vw, 28px); height: 5px; background: #8B0000; border-radius: 3px; transition: transform 0.3s; }
+.eyebrow.left { transform: rotate(-8deg); }
+.eyebrow.right { transform: rotate(8deg); }
+.face.thinking .eyebrow.left { transform: rotate(-15deg) translateY(-3px); }
+.face.thinking .eyebrow.right { transform: rotate(20deg) translateY(-3px); }
+
+.cheeks { position: absolute; top: 50%; left: 50%; transform: translateX(-50%); display: flex; gap: clamp(40px, 12vw, 60px); }
+.cheek { width: 30px; height: 18px; background: #FF9999; border-radius: 50%; opacity: 0.6; }
+.nose { position: absolute; top: 50%; left: 50%; transform: translateX(-50%) translateY(-4px); width: 12px; height: 8px; background: #D2886088; border-radius: 50%; }
+
+.mouth-container { position: absolute; bottom: 26%; left: 50%; transform: translateX(-50%); width: clamp(40px, 12vw, 55px); height: clamp(25px, 7vw, 35px); overflow: hidden; }
+.mouth { width: 100%; height: 100%; position: relative; transition: all 0.15s; }
+.mouth-shape { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; height: 60%; border: 4px solid #3a2410; border-top: none; border-radius: 0 0 50px 50px; background: #cc6644; transition: all 0.15s; }
+.face.speaking .mouth-shape { height: 80%; border-radius: 0 0 40px 40px; background: #cc3322; animation: mouthTalk 0.2s ease-in-out infinite alternate; }
+@keyframes mouthTalk { 0% { height: 40%; border-radius: 0 0 50px 50px; } 100% { height: 90%; border-radius: 0 0 30px 30px; } }
+.face.speaking .mouth-shape::after { content: ''; position: absolute; top: 0; left: 5%; right: 5%; height: 40%; background: white; border-radius: 0 0 4px 4px; }
+.face.celebrating .mouth-shape { height: 90%; background: #cc3322; border-radius: 0 0 35px 35px; }
+
+.sound-waves { position: absolute; right: -50px; top: 50%; transform: translateY(-50%); display: flex; gap: 4px; align-items: center; opacity: 0; transition: opacity 0.3s; }
+.sound-waves.active { opacity: 1; }
+.wave-bar { width: 4px; background: linear-gradient(180deg, #{$teal}, #{$purple}); border-radius: 4px; animation: waveAnim 0.5s ease-in-out infinite alternate; }
+.wave-bar:nth-child(1) { height: 12px; animation-delay: 0s; }
+.wave-bar:nth-child(2) { height: 24px; animation-delay: 0.1s; }
+.wave-bar:nth-child(3) { height: 36px; animation-delay: 0.2s; }
+.wave-bar:nth-child(4) { height: 24px; animation-delay: 0.15s; }
+.wave-bar:nth-child(5) { height: 12px; animation-delay: 0.05s; }
+@keyframes waveAnim { 0% { transform: scaleY(0.4); } 100% { transform: scaleY(1); } }
+
+.ear-waves { position: absolute; left: -55px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 6px; align-items: flex-end; opacity: 0; transition: opacity 0.3s; }
+.ear-waves.active { opacity: 1; }
+.ear-ring { border: 3px solid #{$pink}; border-radius: 50%; animation: earPulse 1s ease-in-out infinite; }
+.ear-ring:nth-child(1) { width: 20px; height: 20px; }
+.ear-ring:nth-child(2) { width: 32px; height: 32px; animation-delay: 0.2s; opacity: 0.7; }
+.ear-ring:nth-child(3) { width: 44px; height: 44px; animation-delay: 0.4s; opacity: 0.4; }
+@keyframes earPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+
+.status-badge {
+  display: flex; align-items: center; gap: 8px; background: white;
+  border-radius: 30px; padding: 8px 18px; box-shadow: 0 4px 15px #0000001a;
+  margin-bottom: 16px; font-weight: 800; font-size: 0.9rem; color: #555;
+  transition: all 0.3s; min-width: 200px; justify-content: center;
+}
+.status-dot { width: 10px; height: 10px; border-radius: 50%; background: #ccc; transition: background 0.3s; }
+.status-badge.escuchando .status-dot { background: #{$pink}; animation: dotPulse 0.5s infinite alternate; }
+.status-badge.pensando .status-dot { background: #{$orange}; animation: dotPulse 0.8s infinite alternate; }
+.status-badge.hablando .status-dot { background: #{$teal}; animation: dotPulse 0.3s infinite alternate; }
+.status-badge.celebrando .status-dot { background: #{$green}; animation: dotPulse 0.3s infinite alternate; }
+@keyframes dotPulse { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(1.5); opacity: 0.7; } }
+
+.thinking-dots { display: none; gap: 6px; justify-content: center; margin: 4px 0; }
+.thinking-dots.visible { display: flex; }
+.thinking-dot { width: 8px; height: 8px; background: #{$orange}; border-radius: 50%; animation: thinkDot 1s ease-in-out infinite; }
+.thinking-dot:nth-child(2) { animation-delay: 0.2s; }
+.thinking-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes thinkDot { 0%, 100% { transform: translateY(0); opacity: 1; } 50% { transform: translateY(-8px); opacity: 0.5; } }
+
+.transcript-area { width: 100%; display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; min-height: 80px; }
+.bubble {
+  max-width: 85%; padding: 12px 16px; border-radius: 20px;
+  font-size: 0.9rem; font-weight: 700; line-height: 1.4;
+  animation: bubbleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  display: none;
+  &.visible { display: block; }
+  &.es { background: white; color: #333; align-self: flex-start; border-bottom-left-radius: 4px; box-shadow: 0 3px 10px #0000001a; }
+  &.en { background: linear-gradient(135deg, #{$purple}, #{$pink}); color: white; align-self: flex-end; border-bottom-right-radius: 4px; box-shadow: 0 3px 15px #{$purple}44; }
+}
+@keyframes bubbleIn { 0% { transform: scale(0.8) translateY(10px); opacity: 0; } 100% { transform: scale(1) translateY(0); opacity: 1; } }
+
+.volume-row {
+  display: flex; align-items: center; gap: 10px; background: white;
+  border-radius: 16px; padding: 12px 16px; width: 100%;
+  box-shadow: 0 3px 12px #0000001a; margin-bottom: 12px;
+  label { font-size: 0.8rem; font-weight: 800; color: #666; white-space: nowrap; }
+}
+.volume-slider {
+  flex: 1; -webkit-appearance: none; height: 6px; border-radius: 3px;
+  background: linear-gradient(90deg, #{$teal}, #{$purple}); outline: none;
+  &::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: white; border: 3px solid #{$purple}; cursor: pointer; box-shadow: 0 2px 6px #0000002a; }
+}
+
+.main-btn {
+  width: 100%; padding: 18px; border: none; border-radius: 20px;
+  font-family: 'Fredoka One', cursive; font-size: 1.4rem; cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); letter-spacing: 1px;
+  position: relative; overflow: hidden; margin-bottom: 12px;
+  &::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, #ffffff22, transparent); border-radius: 20px; }
+  &:active { transform: scale(0.97); }
+  &.start { background: linear-gradient(135deg, #{$green}, #00a854); color: white; box-shadow: 0 6px 20px #{$green}44; }
+  &.stop { background: linear-gradient(135deg, #{$red}, #c0392b); color: white; box-shadow: 0 6px 20px #{$red}44; }
+}
+
+.toast {
+  position: fixed; bottom: 100px; left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: #{$red}; color: white; padding: 12px 20px;
+  border-radius: 14px; font-weight: 800; font-size: 0.85rem;
+  box-shadow: 0 4px 15px #{$red}44;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 1000; text-align: center; max-width: 300px;
+  &.show { transform: translateX(-50%) translateY(0); }
+}
+
+// Selector de dispositivos
+.dispositivos-toggle {
+  width: 100%; padding: 10px 16px; margin-bottom: 8px;
+  background: white; border-radius: 14px; cursor: pointer;
+  font-size: 0.85rem; font-weight: 700; color: #666;
+  box-shadow: 0 2px 8px #0000001a; text-align: center;
+  transition: all 0.2s ease;
+  i { margin-right: 6px; }
+  &:hover { background: #f5f5f5; }
+}
+
+.dispositivos-panel {
+  width: 100%; background: white; border-radius: 16px;
+  padding: 0; max-height: 0; overflow: hidden;
+  transition: all 0.3s ease; margin-bottom: 0;
+  box-shadow: 0 2px 8px #0000001a;
+  opacity: 0;
+
+  &.visible {
+    max-height: 300px; padding: 16px;
+    margin-bottom: 12px; opacity: 1;
+  }
+}
+
+.dispositivo-row {
+  margin-bottom: 12px;
+  &:last-child { margin-bottom: 0; }
+
+  label {
+    display: block; font-size: 0.75rem; font-weight: 800;
+    color: #888; text-transform: uppercase; letter-spacing: 0.5px;
+    margin-bottom: 6px;
+    i { margin-right: 5px; }
+  }
+
+  select {
+    width: 100%; padding: 8px 12px; border-radius: 10px;
+    border: 2px solid #e0e0e0; font-family: 'Nunito', sans-serif;
+    font-size: 0.85rem; font-weight: 600; color: #444;
+    background: #fafafa; outline: none; cursor: pointer;
+    transition: border-color 0.2s;
+    &:focus { border-color: #FF6B9D; }
+    &:disabled { opacity: 0.5; cursor: not-allowed; }
+  }
+}
+
+.dispositivos-nota {
+  font-size: 0.8rem; color: #999; font-weight: 600;
+  margin: 8px 0 0 0; text-align: center; line-height: 1.4;
+}

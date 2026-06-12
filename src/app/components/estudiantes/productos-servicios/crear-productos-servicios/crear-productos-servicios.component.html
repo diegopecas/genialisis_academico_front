@@ -1,0 +1,222 @@
+<div class="modulo">
+    <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [accion]="accion" [raiz]="'/estudiantes'"
+        [regresar]="regresar" [iconoTitulo]="'/assets/images/productos.png'"></app-header>
+
+    <div class="container mt-5" [ngClass]="{ 'disabled-container': !editable }">
+        <div class="row">
+            <!-- Clasificación - Bloqueada si hay pagos y estamos en editar -->
+            <div
+                [ngClass]="{'col-sm-12 col-md-4': !requiereHorarioAlimentacion, 'col-sm-12 col-md-3': requiereHorarioAlimentacion}">
+                <label class="form-label">Clasificación <span class="text-danger">*</span></label>
+                <select class="form-select form-select-lg" [(ngModel)]="clasificacionSeleccionada"
+                    (change)="filtrarProductos()" required
+                    [ngClass]="{'is-invalid': !clasificacionSeleccionada && submitted}" [disabled]="camposBloqueados">
+                    <option value="">Seleccionar</option>
+                    <ng-container *ngFor="let p of listas.clasificacionProductosServicios">
+                        <option [value]="p.id">{{ p.nombre }}</option>
+                    </ng-container>
+                </select>
+                <div class="invalid-feedback" *ngIf="!clasificacionSeleccionada && submitted">
+                    Debe seleccionar una clasificación
+                </div>
+            </div>
+
+            <!-- Nuevo Dropdown personalizado para Producto / Servicio -->
+            <div
+                [ngClass]="{'col-sm-12 col-md-4': !requiereHorarioAlimentacion, 'col-sm-12 col-md-3': requiereHorarioAlimentacion}">
+                <label class="form-label">Producto / Servicio <span class="text-danger">*</span></label>
+                
+                <app-searchable-dropdown
+                    [items]="productosDropdownItems"
+                    [ngModel]="model.id_producto_servicio"
+                    (ngModelChange)="model.id_producto_servicio = $event"
+                    (selectionChange)="onProductoSeleccionado($event)"
+                    [disabled]="camposBloqueados || !clasificacionSeleccionada"
+                    [required]="true"
+                    placeholder="Seleccionar producto o servicio"
+                    searchPlaceholder="Buscar por nombre, periodicidad o descripción..."
+                    emptyMessage="No se encontraron productos para esta clasificación"
+                    maxHeight="350px"
+                    [clearable]="true"
+                    [showSearch]="true">
+                </app-searchable-dropdown>
+
+                <!-- Mensaje de error -->
+                <div class="invalid-feedback" 
+                     *ngIf="!model.id_producto_servicio && submitted"
+                     style="display: block;">
+                    Debe seleccionar un producto/servicio
+                </div>
+            </div>
+
+            <!-- Horario de Alimentación - Solo visible cuando es clasificación 3 -->
+            <div class="col-sm-12 col-md-3" *ngIf="requiereHorarioAlimentacion">
+                <label class="form-label">Horario de Alimentación <span class="text-danger">*</span></label>
+                <select class="form-select form-select-lg" [(ngModel)]="model.id_horario_alimentacion" required
+                    [ngClass]="{'is-invalid': !model.id_horario_alimentacion && submitted && requiereHorarioAlimentacion}"
+                    [disabled]="camposBloqueados">
+                    <option [ngValue]="null">Seleccionar</option>
+                    <ng-container *ngFor="let h of listas.horariosAlimentacion">
+                        <option [value]="h.id">{{ h.nombre }}</option>
+                    </ng-container>
+                </select>
+                <div class="invalid-feedback"
+                    *ngIf="!model.id_horario_alimentacion && submitted && requiereHorarioAlimentacion">
+                    Debe seleccionar un horario de alimentación
+                </div>
+            </div>
+
+            <!-- Fecha (siempre editable) -->
+            <div [ngClass]="{'col-sm-12 col-md-4': !requiereHorarioAlimentacion, 'col-sm-12 col-md-3': requiereHorarioAlimentacion}"
+                *ngIf="!esProductoMensual || accion !== 'crear'">
+                <label class="form-label">Fecha <span class="text-danger">*</span></label>
+                <input type="date" class="form-control form-control-lg" [(ngModel)]="model.fecha" required
+                    [ngClass]="{'is-invalid': !model.fecha && submitted}" [disabled]="!editable">
+                <div class="invalid-feedback" *ngIf="!model.fecha && submitted">
+                    Debe seleccionar una fecha
+                </div>
+            </div>
+        </div>
+
+        <!-- Fechas para productos mensuales (solo se muestra si es producto mensual y estamos en modo crear) -->
+        <div class="row mt-3" *ngIf="esProductoMensual && accion === 'crear'">
+            <div class="col-sm-6">
+                <label class="form-label">Fecha Inicial <span class="text-danger">*</span></label>
+                <input type="date" class="form-control form-control-lg" [(ngModel)]="fechaInicial" required
+                    [ngClass]="{'is-invalid': !fechaInicial && submitted}">
+                <div class="invalid-feedback" *ngIf="!fechaInicial && submitted">
+                    Debe seleccionar una fecha inicial
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <label class="form-label">Fecha Final <span class="text-danger">*</span></label>
+                <input type="date" class="form-control form-control-lg" [(ngModel)]="fechaFinal" required
+                    [ngClass]="{'is-invalid': !fechaFinal && submitted}">
+                <div class="invalid-feedback" *ngIf="!fechaFinal && submitted">
+                    Debe seleccionar una fecha final
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-3">
+            <!-- Valor - Bloqueado si hay pagos y estamos en editar -->
+            <div [ngClass]="{'col-sm-6': accion === 'crear', 'col-sm-4': accion !== 'crear'}">
+                <label class="form-label">Valor <span class="text-danger">*</span></label>
+                <div class="input-group input-group-lg">
+                    <span class="input-group-text">$</span>
+                    <input type="text" class="form-control form-control-lg" [value]="valorFormateado"
+                        (input)="onValorInput($event)" required [ngClass]="{'is-invalid': !model.valor && submitted}"
+                        [disabled]="camposBloqueados || !editable" placeholder="0">
+                </div>
+                <div class="invalid-feedback" *ngIf="!model.valor && submitted">
+                    Debe ingresar un valor
+                </div>
+            </div>
+
+            <!-- Valor pagado (solo visible en editar/consultar como texto de solo lectura) -->
+            <div class="col-sm-4" *ngIf="accion !== 'crear'">
+                <label class="form-label">Valor pagado</label>
+                <div class="input-group input-group-lg">
+                    <span class="input-group-text">$</span>
+                    <div class="form-control form-control-lg"
+                        style="background-color: #f8f9fa; color: #6c757d; pointer-events: none;">
+                        {{ valorPagadoFormateado }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Saldo - col-sm-6 en crear, col-sm-4 en otros modos -->
+            <div [ngClass]="{'col-sm-6': accion === 'crear', 'col-sm-4': accion !== 'crear'}">
+                <label class="form-label">Saldo</label>
+                <div class="input-group input-group-lg">
+                    <span class="input-group-text">$</span>
+                    <div class="form-control form-control-lg" [class.saldo-completado]="saldoCalculado === 0"
+                        [class.saldo-pendiente]="saldoCalculado > 0"
+                        style="background-color: #f8f9fa; pointer-events: none;">
+                        {{ saldoFormateado }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-3">
+            <div class="col-sm-12">
+                <label class="form-label">Detalle</label>
+                <textarea class="form-control form-control-lg" rows="3" [(ngModel)]="model.detalle"
+                    [disabled]="!editable"></textarea>
+            </div>
+        </div>
+
+        <!-- Mensaje informativo si hay campos bloqueados -->
+        <div class="row mt-3" *ngIf="camposBloqueados && editable">
+            <div class="col-sm-12">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle-fill me-2"></i>
+                    Esta cuenta ya tiene pagos aplicados. Solo puede modificar la fecha y el detalle.
+                </div>
+            </div>
+        </div>
+
+        <!-- Mensaje informativo para productos mensuales -->
+        <div class="row mt-3" *ngIf="esProductoMensual && accion === 'crear'">
+            <div class="col-sm-12">
+                <div class="alert alert-warning">
+                    <i class="bi bi-calendar-month me-2"></i>
+                    <strong>Producto Mensual:</strong> Se creará una cuenta por cada mes en el rango de fechas especificado.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de Pagos Aplicados (se muestra en consultar o en editar cuando hay pagos) -->
+    <div class="container mt-5"
+        *ngIf="(accion === 'consultar' || (accion === 'editar' && camposBloqueados)) && model.id > 0">
+        <h4 class="mb-3">Pagos Aplicados a esta Cuenta</h4>
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Fecha del Pago</th>
+                        <th>Tipo de Pago</th>
+                        <th>Valor Aplicado</th>
+                        <th>Referencia</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngIf="pagosAplicados.length === 0">
+                        <td colspan="5" class="text-center">No hay pagos aplicados a esta cuenta</td>
+                    </tr>
+                    <tr *ngFor="let pago of pagosAplicados">
+                        <td>{{ pago.fecha_pago | date:'dd/MM/yyyy' }}</td>
+                        <td>{{ pago.tipo_pago }}</td>
+                        <td class="text-end">{{ formatearMoneda(pago.valor_aplicado) }}</td>
+                        <td>{{ pago.referencia_bancaria || 'N/A' }}</td>
+                        <td>
+                            <span *ngIf="pago.anulado" class="badge bg-danger">Anulado</span>
+                            <span *ngIf="!pago.anulado" class="badge bg-success">Activo</span>
+                        </td>
+                    </tr>
+                </tbody>
+                <tfoot *ngIf="pagosAplicados.length > 0">
+                    <tr>
+                        <td colspan="2" class="text-end fw-bold">Total:</td>
+                        <td class="text-end fw-bold">{{ valorPagadoFormateado }}</td>
+                        <td colspan="2"></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-sm-6" *ngIf="editable">
+                <button class="btn btn-lg btn-warning w-100" (click)="grabar()">Grabar</button>
+            </div>
+            <div class="col-sm-6">
+                <button class="btn btn-lg btn-secondary w-100" (click)="volver()">Volver</button>
+            </div>
+        </div>
+    </div>
+</div>

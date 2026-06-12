@@ -1,0 +1,114 @@
+$primary-color: #ffbd31;
+$text-dark: #2c3e50;
+$text-light: #7f8c8d;
+$card-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+$hover-shadow: 0 15px 40px rgba(0, 0, 0, 0.18);
+
+.modulo {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
+}
+
+.titulo-seccion {
+  color: $text-dark;
+  font-weight: 600;
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.subtitulo-seccion {
+  color: $text-light;
+  font-size: 1.1rem;
+}
+
+.card-modulo {
+  background: white;
+  border-radius: 20px;
+  box-shadow: $card-shadow;
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.4s ease;
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 5px;
+    background: linear-gradient(90deg, #5c6bc0 0%, #9575cd 100%);
+    border-radius: 20px 20px 0 0;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  &:hover {
+    transform: translateY(-10px);
+    box-shadow: $hover-shadow;
+
+    &::before { opacity: 1; }
+
+    .icono-container { transform: scale(1.05); }
+  }
+}
+
+.card-modulo-content {
+  padding: 2.5rem 2rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.icono-container {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  transition: transform 0.3s ease;
+
+  svg {
+    width: 70%;
+    height: 70%;
+  }
+
+  &.gini {
+    background: linear-gradient(135deg, #c5cae9 0%, #9fa8da 100%);
+  }
+}
+
+.card-titulo {
+  color: $text-dark;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.card-descripcion {
+  color: $text-light;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+}
+
+.card-badge {
+  .badge-ia {
+    background: linear-gradient(135deg, #e8eaf6 0%, #c5cae9 100%);
+    color: #3949ab;
+    padding: 0.4rem 1rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.card-modulo {
+  animation: fadeInUp 0.6s ease-out both;
+}

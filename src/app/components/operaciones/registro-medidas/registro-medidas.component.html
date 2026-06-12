@@ -1,0 +1,277 @@
+<div class="modulo">
+  <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [raiz]="'/operaciones'" [regresar]="'/operaciones'"></app-header>
+
+  <div class="container-fluid px-3 py-4">
+
+    <!-- ============================================ -->
+    <!-- PASO 1: SELECCIÓN DE MEDIDAS                 -->
+    <!-- ============================================ -->
+    <div *ngIf="pasoActual === 1">
+
+      <div class="paso-header">
+        <h5><i class="fas fa-list-check me-2"></i>¿Qué medidas vas a registrar hoy?</h5>
+        <p class="text-muted mb-0">Selecciona las medidas que tomarás en esta sesión</p>
+      </div>
+
+      <div class="glass-card controles-paso1">
+        <div class="row g-2 align-items-center">
+          <div class="col-md-6">
+            <div class="input-group">
+              <span class="input-group-text"><i class="fas fa-search"></i></span>
+              <input type="text" class="form-control" placeholder="Buscar medida..."
+                [(ngModel)]="busquedaMedida" (input)="onBusquedaMedidaCambiada()">
+            </div>
+          </div>
+          <div class="col-md-6 text-end">
+            <button class="btn btn-glass btn-sm me-2" (click)="seleccionarTodas()">
+              <i class="fas fa-check-double me-1"></i>Todas
+            </button>
+            <button class="btn btn-glass btn-sm" (click)="limpiarSeleccion()">
+              <i class="fas fa-eraser me-1"></i>Limpiar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="cargandoCategorias" class="text-center py-5">
+        <div class="spinner-border spinner-gold" role="status"></div>
+        <p class="mt-2 text-muted">Cargando medidas disponibles...</p>
+      </div>
+
+      <div *ngIf="!cargandoCategorias" class="categorias-container">
+        <div *ngFor="let categoria of categoriasFiltradas" class="glass-card categoria-card">
+          <div class="categoria-header" (click)="toggleCategoria(categoria)">
+            <div class="categoria-titulo">
+              <i [class]="categoria.icono + ' me-2'"></i>
+              <span>{{ categoria.nombre }}</span>
+              <span class="badge-count">{{ contarSeleccionadasCategoria(categoria) }}/{{ categoria.medidas.length }}</span>
+            </div>
+            <div class="categoria-acciones">
+              <button class="btn btn-sm btn-link-gold" (click)="seleccionarTodasCategoria(categoria); $event.stopPropagation()">
+                {{ categoria.todasSeleccionadas ? 'Quitar todas' : 'Seleccionar todas' }}
+              </button>
+              <i [class]="categoria.abierta ? 'fas fa-chevron-up' : 'fas fa-chevron-down'" class="chevron-icon"></i>
+            </div>
+          </div>
+          <div class="categoria-body" *ngIf="categoria.abierta">
+            <div class="medidas-grid">
+              <div *ngFor="let medida of categoria.medidas" class="medida-chip" [class.seleccionada]="medida.seleccionada" (click)="toggleMedida(medida)">
+                <i [class]="medida.seleccionada ? 'fas fa-check-circle' : 'far fa-circle'" class="me-2"></i>
+                <span>{{ medida.nombre }}</span>
+                <small *ngIf="medida.unidad_abreviatura" class="unidad-badge">{{ medida.unidad_abreviatura }}</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="glass-card paso1-footer" *ngIf="!cargandoCategorias">
+        <div class="row align-items-center">
+          <div class="col-md-8">
+            <span class="seleccion-resumen"><strong>{{ totalMedidasSeleccionadas }}</strong> medida(s) seleccionada(s)</span>
+          </div>
+          <div class="col-md-4 text-end">
+            <button class="btn btn-gold btn-lg" (click)="irAPaso2()" [disabled]="totalMedidasSeleccionadas === 0">
+              Continuar <i class="fas fa-arrow-right ms-2"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- PASO 2: REGISTRO                             -->
+    <!-- ============================================ -->
+    <div *ngIf="pasoActual === 2">
+
+      <div class="mb-3">
+        <button class="btn btn-glass" (click)="volverAPaso1()">
+          <i class="fas fa-arrow-left me-2"></i>Cambiar medidas ({{ totalMedidasSeleccionadas }})
+        </button>
+      </div>
+
+      <div class="glass-card controles-paso2">
+        <div class="row g-2 align-items-center">
+          <div class="col-sm-12 col-md-4">
+            <label class="form-label fw-semibold"><i class="fas fa-calendar-alt me-2 text-gold"></i>Fecha:</label>
+            <input type="date" class="form-control" [(ngModel)]="fechaSeleccionada" (change)="onFechaCambiada()" [disabled]="cargandoEstudiantes">
+          </div>
+          <div class="col-sm-12 col-md-4">
+            <label class="form-label fw-semibold"><i class="fas fa-users me-2 text-gold"></i>Grupo:</label>
+            <select class="form-select" [(ngModel)]="grupoSeleccionado" (change)="onGrupoCambiado()" [disabled]="cargandoEstudiantes">
+              <option value="">Todos los grupos</option>
+              <option *ngFor="let grupo of grupos" [value]="grupo.id">{{ grupo.nombre }}</option>
+            </select>
+          </div>
+          <div class="col-sm-12 col-md-4">
+            <label class="form-label fw-semibold"><i class="fas fa-search me-2 text-gold"></i>Buscar:</label>
+            <input type="text" class="form-control" placeholder="Nombre del estudiante..."
+              [(ngModel)]="busquedaEstudiante" (input)="onBusquedaEstudianteCambiada()" [disabled]="cargandoEstudiantes">
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="cargandoEstudiantes" class="text-center py-5">
+        <div class="spinner-border spinner-gold" role="status"></div>
+        <p class="mt-2 text-muted">Cargando estudiantes y medidas...</p>
+      </div>
+
+      <div *ngIf="!cargandoEstudiantes && estudiantesFiltrados.length === 0" class="alert alert-info text-center mt-4">
+        <i class="fas fa-info-circle me-2"></i>No se encontraron estudiantes con los filtros aplicados.
+      </div>
+
+      <!-- TABLA DESKTOP -->
+      <div *ngIf="!cargandoEstudiantes && estudiantesFiltrados.length > 0" class="tabla-medidas-container d-none d-md-block">
+        <div class="table-scroll-wrapper">
+          <table class="table table-bordered table-hover tabla-medidas">
+            <thead>
+              <tr>
+                <th class="col-estudiante sticky-col">Estudiante</th>
+                <th class="col-imagen text-center">Imagen</th>
+                <th *ngFor="let medida of medidasSeleccionadas; trackBy: trackByMedida" class="col-medida text-center">
+                  <div class="medida-header-nombre" [title]="medida.nombre">{{ medida.nombre }}</div>
+                  <small *ngIf="medida.unidad_abreviatura" class="text-muted">{{ medida.unidad_abreviatura }}</small>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let est of estudiantesFiltrados; trackBy: trackByEstudiante">
+                <td class="sticky-col align-middle">
+                  <div class="estudiante-celda">
+                    <span class="badge-grupo-dot" [style.background-color]="est.color"></span>
+                    <div>
+                      <span class="nombre-est">{{ est.nombre_completo }}</span>
+                      <small class="d-block text-muted">{{ est.nombre_grupo }}</small>
+                    </div>
+                  </div>
+                </td>
+
+                <td class="text-center align-middle celda-imagen">
+                  <!-- Sin archivo ni imagen previa -->
+                  <ng-container *ngIf="!est.archivo && !est.analizandoIA && !est.imagenUrl">
+                    <label class="btn-camera" [for]="'archivo_' + est.id"><i class="fas fa-camera"></i></label>
+                    <input [id]="'archivo_' + est.id" type="file" accept=".jpg,.jpeg,.png" class="d-none" (change)="onArchivoSeleccionado(est, $event)">
+                  </ng-container>
+                  <!-- Analizando -->
+                  <div *ngIf="est.analizandoIA" class="ia-loading">
+                    <div class="spinner-border spinner-border-sm spinner-gold" role="status"></div>
+                    <small class="d-block text-muted">IA...</small>
+                  </div>
+                  <!-- Con imagen (subida o cargada de BD) -->
+                  <div *ngIf="est.imagenUrl && !est.analizandoIA" class="thumbnail-container">
+                    <img [src]="est.imagenUrl" class="thumbnail-img" (click)="abrirImagenModal(est)" alt="Reporte">
+                    <button class="btn-quitar-archivo" (click)="eliminarArchivo(est)" title="Quitar"><i class="fas fa-times-circle"></i></button>
+                    <input [id]="'archivo_' + est.id" type="file" accept=".jpg,.jpeg,.png" class="d-none" (change)="onArchivoSeleccionado(est, $event)">
+                    <label class="btn-resubir" [for]="'archivo_' + est.id" title="Cambiar imagen"><i class="fas fa-sync-alt"></i></label>
+                  </div>
+                </td>
+
+                <td *ngFor="let medida of medidasSeleccionadas; trackBy: trackByMedida" class="align-middle text-center celda-medida">
+                  <input *ngIf="medida.tipo_valor !== 'select'" type="number" step="0.01"
+                    class="form-control form-control-sm input-medida"
+                    [class.campo-prellenado]="esPrellenadoIA(est, medida.id)"
+                    [value]="obtenerValorMedida(est, medida.id)"
+                    (input)="onValorCambiado(est, medida.id, $event)" placeholder="—">
+                  <select *ngIf="medida.tipo_valor === 'select'"
+                    class="form-select form-select-sm input-medida"
+                    [class.campo-prellenado]="esPrellenadoIA(est, medida.id)"
+                    [ngModel]="obtenerValorMedida(est, medida.id)"
+                    (ngModelChange)="onSelectModelCambiado(est, medida.id, $event)">
+                    <option [ngValue]="null">—</option>
+                    <option *ngFor="let op of medida.opciones" [ngValue]="op.valor_numerico">{{ op.etiqueta }}</option>
+                  </select>
+                  <small *ngIf="obtenerValorAnterior(est, medida.id) as anterior" class="valor-ant-mini">
+                    Ant: {{ anterior.valor_anterior }}
+                  </small>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- CARDS MOBILE -->
+      <div *ngIf="!cargandoEstudiantes && estudiantesFiltrados.length > 0" class="d-md-none">
+        <!-- Buscador de medidas mobile -->
+        <div class="glass-card mb-3 p-2">
+          <div class="input-group input-group-sm">
+            <span class="input-group-text"><i class="fas fa-filter"></i></span>
+            <input type="text" class="form-control" placeholder="Filtrar medidas..."
+              [(ngModel)]="busquedaMedidaMobile" (input)="onBusquedaMedidaMobileCambiada()">
+          </div>
+        </div>
+
+        <div class="cards-mobile-container">
+          <div *ngFor="let est of estudiantesFiltrados; trackBy: trackByEstudiante" class="glass-card card-estudiante-mobile" [style.border-left-color]="est.color">
+            <div class="card-mobile-header">
+              <div class="card-mobile-info">
+                <strong>{{ est.nombre_completo }}</strong>
+                <span class="badge-grupo-mobile" [style.background-color]="est.color">{{ est.nombre_grupo }}</span>
+              </div>
+              <div class="card-mobile-imagen">
+                <ng-container *ngIf="!est.archivo && !est.analizandoIA && !est.imagenUrl">
+                  <label class="btn-camera-sm" [for]="'archivo_m_' + est.id"><i class="fas fa-camera"></i></label>
+                  <input [id]="'archivo_m_' + est.id" type="file" accept=".jpg,.jpeg,.png" class="d-none" (change)="onArchivoSeleccionado(est, $event)">
+                </ng-container>
+                <div *ngIf="est.analizandoIA"><div class="spinner-border spinner-border-sm spinner-gold" role="status"></div></div>
+                <div *ngIf="est.imagenUrl && !est.analizandoIA" class="thumbnail-container-sm">
+                  <img [src]="est.imagenUrl" class="thumbnail-img-sm" (click)="abrirImagenModal(est)" alt="Reporte">
+                  <button class="btn-quitar-archivo" (click)="eliminarArchivo(est)"><i class="fas fa-times-circle"></i></button>
+                  <input [id]="'archivo_m_' + est.id" type="file" accept=".jpg,.jpeg,.png" class="d-none" (change)="onArchivoSeleccionado(est, $event)">
+                  <label class="btn-resubir-sm" [for]="'archivo_m_' + est.id"><i class="fas fa-sync-alt"></i></label>
+                </div>
+              </div>
+            </div>
+            <div class="card-mobile-medidas">
+              <div *ngFor="let medida of medidasFiltradasMobile; trackBy: trackByMedida" class="card-mobile-medida-row">
+                <label class="card-mobile-label">{{ medida.nombre }} <small *ngIf="medida.unidad_abreviatura">({{ medida.unidad_abreviatura }})</small></label>
+                <input *ngIf="medida.tipo_valor !== 'select'" type="number" step="0.01"
+                  class="form-control form-control-sm" [class.campo-prellenado]="esPrellenadoIA(est, medida.id)"
+                  [value]="obtenerValorMedida(est, medida.id)" (input)="onValorCambiado(est, medida.id, $event)" placeholder="—">
+                <select *ngIf="medida.tipo_valor === 'select'" class="form-select form-select-sm"
+                  [class.campo-prellenado]="esPrellenadoIA(est, medida.id)"
+                  [ngModel]="obtenerValorMedida(est, medida.id)" (ngModelChange)="onSelectModelCambiado(est, medida.id, $event)">
+                  <option [ngValue]="null">—</option>
+                  <option *ngFor="let op of medida.opciones" [ngValue]="op.valor_numerico">{{ op.etiqueta }}</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer registro -->
+      <div *ngIf="!cargandoEstudiantes && estudiantesConDatos.length > 0" class="glass-card registro-footer">
+        <div class="row align-items-center">
+          <div class="col-md-8">
+            <span><strong>{{ estudiantesConDatos.length }}</strong> estudiante(s) con datos</span>
+            <span class="ms-3 text-muted">|</span>
+            <span class="ms-3"><strong>{{ totalMedidasARegistrar }}</strong> medidas a registrar</span>
+          </div>
+          <div class="col-md-4 text-end">
+            <button class="btn btn-gold btn-lg" (click)="registrarMedidas()" [disabled]="registrando">
+              <span *ngIf="!registrando"><i class="fas fa-save me-2"></i>Registrar Medidas</span>
+              <span *ngIf="registrando"><span class="spinner-border spinner-border-sm me-2" role="status"></span>Registrando...</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL IMAGEN -->
+  <div *ngIf="imagenModalUrl" class="modal-overlay" (click)="cerrarImagenModal()">
+    <div class="modal-imagen-content" (click)="$event.stopPropagation()">
+      <div class="modal-imagen-header">
+        <span>{{ imagenModalNombre }}</span>
+        <div class="modal-imagen-acciones">
+          <a *ngIf="imagenModalDescargarUrl" [href]="imagenModalDescargarUrl" target="_blank" class="btn-descargar-modal" title="Descargar">
+            <i class="fas fa-download"></i>
+          </a>
+          <button class="btn-cerrar-modal" (click)="cerrarImagenModal()"><i class="fas fa-times"></i></button>
+        </div>
+      </div>
+      <img [src]="imagenModalUrl" class="modal-imagen-full" alt="Reporte completo">
+    </div>
+  </div>
+</div>

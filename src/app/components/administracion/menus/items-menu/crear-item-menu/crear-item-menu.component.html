@@ -1,0 +1,203 @@
+<div class="modulo">
+    <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [accion]="accion"
+        [raiz]="'/administracion/items-menu'" [regresar]="regresar"
+        [iconoTitulo]="'/assets/images/items-menu.png'">
+    </app-header>
+
+    <div class="container mt-5">
+        <!-- Sistema de Tabs -->
+        <ul class="nav nav-tabs mb-4" id="itemMenuTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="datos-generales-tab" data-bs-toggle="tab"
+                    data-bs-target="#datos-generales" type="button" role="tab" aria-controls="datos-generales"
+                    aria-selected="true" (click)="tabActivo = 'datos-generales'">
+                    <i class="fas fa-info-circle"></i> Datos Generales
+                </button>
+            </li>
+            <li class="nav-item" role="presentation" *ngIf="accion !== 'crear'">
+                <button class="nav-link" id="ingredientes-tab" data-bs-toggle="tab"
+                    data-bs-target="#ingredientes" type="button" role="tab" aria-controls="ingredientes"
+                    aria-selected="false" (click)="tabActivo = 'ingredientes'">
+                    <i class="fas fa-carrot"></i> Ingredientes
+                    <span class="badge bg-success ms-2" *ngIf="ingredientesAsignados.length > 0">
+                        {{ ingredientesAsignados.length }}
+                    </span>
+                </button>
+            </li>
+        </ul>
+
+        <!-- Contenido de los Tabs -->
+        <div class="tab-content" id="itemMenuTabsContent">
+
+            <!-- Tab 1: Datos Generales -->
+            <div class="tab-pane fade show active" id="datos-generales" role="tabpanel"
+                aria-labelledby="datos-generales-tab">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-utensils"></i> Información del Ítem de Menú</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-sm-12 col-md-6">
+                                <label for="nombre" class="form-label">Nombre <span
+                                        class="text-danger">*</span></label>
+                                <input class="form-control form-control-lg" type="text" id="nombre"
+                                    [(ngModel)]="model.nombre" required
+                                    [ngClass]="{'is-invalid': !model.nombre && submitted}"
+                                    [disabled]="!editable"
+                                    placeholder="Ej: Arroz blanco, Sopa de verduras">
+                                <div class="invalid-feedback">
+                                    El nombre es requerido
+                                </div>
+                            </div>
+                            <div class="col-sm-12 col-md-6">
+                                <label for="porcion" class="form-label">Porción <span
+                                        class="text-danger">*</span></label>
+                                <select class="form-select form-select-lg" id="porcion"
+                                    [(ngModel)]="model.idPorcion" required
+                                    [ngClass]="{'is-invalid': !model.idPorcion && submitted}"
+                                    [disabled]="!editable">
+                                    <option value="">Seleccionar porción</option>
+                                    <ng-container *ngFor="let porcion of listas.porciones">
+                                        <option [value]="porcion.value">{{ porcion.label }}</option>
+                                    </ng-container>
+                                </select>
+                                <div class="invalid-feedback">
+                                    La porción es requerida
+                                </div>
+                                <small class="text-muted">
+                                    Define el tamaño de la porción para este ítem
+                                </small>
+                            </div>
+                        </div>
+
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <div class="alert alert-info" *ngIf="accion === 'crear'">
+                                    <i class="fas fa-info-circle"></i>
+                                    Una vez creado el ítem, podrá agregar los ingredientes necesarios.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 2: Ingredientes -->
+            <div class="tab-pane fade" id="ingredientes" role="tabpanel" aria-labelledby="ingredientes-tab"
+                *ngIf="accion !== 'crear'">
+
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fas fa-carrot"></i> Ingredientes del Ítem
+                            </h5>
+                            <button class="btn btn-success btn-sm" (click)="abrirModalAsignarIngrediente()"
+                                [disabled]="!editable">
+                                <i class="fas fa-plus"></i> Agregar Ingrediente
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info" *ngIf="ingredientesAsignados.length === 0">
+                            <i class="fas fa-info-circle"></i> No hay ingredientes configurados para este ítem
+                        </div>
+
+                        <!-- Tabla de ingredientes -->
+                        <div class="table-responsive" *ngIf="ingredientesAsignados.length > 0">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Producto</th>
+                                        <th>Cantidad</th>
+                                        <th>Unidad</th>
+                                        <th class="text-center">Opcional</th>
+                                        <th class="text-center" *ngIf="editable">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr *ngFor="let ingrediente of ingredientesAsignados">
+                                        <td>
+                                            <strong>{{ ingrediente.nombre_producto }}</strong>
+                                            <small class="text-muted d-block" *ngIf="ingrediente.descripcion_producto">
+                                                {{ ingrediente.descripcion_producto }}
+                                            </small>
+                                        </td>
+                                        <td>{{ ingrediente.cantidad || '-' }}</td>
+                                        <td>
+                                            <span class="badge bg-secondary">
+                                                {{ ingrediente.abreviatura_unidad || ingrediente.nombre_unidad || '-' }}
+                                            </span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge" 
+                                                [ngClass]="ingrediente.es_opcional ? 'bg-warning' : 'bg-success'">
+                                                {{ ingrediente.es_opcional ? 'Sí' : 'No' }}
+                                            </span>
+                                        </td>
+                                        <td class="text-center" *ngIf="editable">
+                                            <button class="btn btn-sm btn-outline-primary me-2"
+                                                (click)="editarIngrediente(ingrediente)"
+                                                title="Editar">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger"
+                                                (click)="eliminarIngrediente(ingrediente)"
+                                                title="Eliminar">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Resumen de ingredientes -->
+                        <div class="row mt-4" *ngIf="ingredientesAsignados.length > 0">
+                            <div class="col-md-12">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6 class="card-title">
+                                            <i class="fas fa-chart-bar"></i> Resumen de Ingredientes
+                                        </h6>
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <small class="text-muted">Total de Ingredientes</small>
+                                                <h5 class="text-primary">{{ ingredientesAsignados.length }}</h5>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <small class="text-muted">Ingredientes Obligatorios</small>
+                                                <h5 class="text-success">{{ contarIngredientesObligatorios() }}</h5>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <small class="text-muted">Ingredientes Opcionales</small>
+                                                <h5 class="text-warning">{{ contarIngredientesOpcionales() }}</h5>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botones de acción -->
+    <div class="container mt-4 mb-5">
+        <div class="row">
+            <div class="col-sm-6" *ngIf="editable">
+                <button class="btn btn-lg btn-warning w-100" (click)="guardarItemMenu()">
+                    <i class="fas fa-save"></i> Guardar
+                </button>
+            </div>
+            <div class="col-sm-6">
+                <button class="btn btn-lg btn-secondary w-100" (click)="volver()">
+                    <i class="fas fa-arrow-left"></i> Volver
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
