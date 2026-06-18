@@ -29,6 +29,9 @@ export class TablasComponent implements OnChanges, OnInit {
   @Input() columnasFiltro: (string | { columna: string, tipoFiltro?: 'fecha' | 'normal' | 'rango' })[] = [];
   @Input() seleccionMultiple: boolean = false;
   @Input() campoId: string = 'id';
+  // Por defecto se oculta la columna del id (UUID) de la vista; el id sigue disponible en los datos para acciones.
+  // Poner [mostrarColumnaId]="true" para mostrarla explicitamente.
+  @Input() mostrarColumnaId: boolean = false;
   @Input() exportarExcel: boolean = true;
   @Input() prefiltrosExcluir: { [alias: string]: any[] } = {};
   @Input() prefiltrosFecha: { [alias: string]: { anio?: number, mes?: number, dia?: number } } = {};
@@ -306,7 +309,12 @@ export class TablasComponent implements OnChanges, OnInit {
       this.tabla.acciones = changes["acciones"]["currentValue"] || [];
     }
     if (changes["titulos"]) {
-      this.tabla.titulos = changes["titulos"]["currentValue"] || [];
+      const titulosRecibidos = changes["titulos"]["currentValue"] || [];
+      // Ocultar de la vista la columna del id (campoId) salvo que se pida mostrarla.
+      // No se altera el array de datos: el id sigue disponible para acciones, edicion y seleccion.
+      this.tabla.titulos = this.mostrarColumnaId
+        ? titulosRecibidos
+        : titulosRecibidos.filter((titulo: any) => titulo.clave !== this.campoId);
       this.tabla.titulos.forEach((titulo: any) => {
         if (titulo.formato) {
           this.formatConfig[titulo.clave] = titulo.formato;
