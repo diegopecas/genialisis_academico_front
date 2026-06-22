@@ -300,7 +300,7 @@ export class CrearProductosServiciosComponent implements OnInit {
     const producto = this.listas.productosServicios.find(p => String(p.id) === idProducto);
 
     if (producto) {
-      this.esClasificacionAlimentacion = producto.id_clasificacion_productos_servicios === 3;
+      this.esClasificacionAlimentacion = producto.clasificacion_codigo === 'ALIMENTACION';
       this.requiereHorarioAlimentacion = this.esClasificacionAlimentacion;
 
       if (!this.requiereHorarioAlimentacion) {
@@ -612,7 +612,7 @@ export class CrearProductosServiciosComponent implements OnInit {
   filtrarProductos() {
     console.log("filtrarProductos", this.clasificacionSeleccionada);
     this.productosFiltrados = this.listas.productosServicios.filter(
-      p => Number(p.id_clasificacion_productos_servicios) === Number(this.clasificacionSeleccionada)
+      p => p.id_clasificacion_productos_servicios === this.clasificacionSeleccionada
     );
     // Convertir a formato DropdownItem
     this.productosDropdownItems = this.productosFiltrados.map(producto => ({
@@ -622,7 +622,7 @@ export class CrearProductosServiciosComponent implements OnInit {
       disabled: producto.disponible === 0
     }));
     console.log("productosDropdownItems", this.productosDropdownItems);
-    this.esClasificacionAlimentacion = Number(this.clasificacionSeleccionada) === 3;
+    this.esClasificacionAlimentacion = this.productosFiltrados.length > 0 && this.productosFiltrados[0].clasificacion_codigo === 'ALIMENTACION';
     this.requiereHorarioAlimentacion = this.esClasificacionAlimentacion;
 
     if (!this.camposBloqueados) {
@@ -644,7 +644,7 @@ export class CrearProductosServiciosComponent implements OnInit {
         this.valorFormateado = this.formatearMoneda(this.model.valor);
 
         this.esProductoMensual = this.esProductoPeriodicidadMensual();
-        this.esClasificacionAlimentacion = producto.id_clasificacion_productos_servicios === 3;
+        this.esClasificacionAlimentacion = producto.clasificacion_codigo === 'ALIMENTACION';
         this.requiereHorarioAlimentacion = this.esClasificacionAlimentacion;
 
         this.model.id_horario_alimentacion = null;

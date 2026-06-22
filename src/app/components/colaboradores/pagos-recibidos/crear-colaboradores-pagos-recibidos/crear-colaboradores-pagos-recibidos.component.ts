@@ -676,7 +676,7 @@ export class CrearColaboradoresPagosRecibidosComponent implements OnInit {
 
     if (this.accion === 'editar') {
       cuentasNuevasAplicadas = this.model.cuentas_aplicadas
-        .filter(cuenta => cuenta.id === 0 && cuenta.valor_aplicado > 0)
+        .filter(cuenta => !cuenta.id && cuenta.valor_aplicado > 0)
         .map(cuenta => ({
           ...cuenta,
           fecha: this.model.fecha

@@ -85,7 +85,7 @@ export class CrearColaboradoresPrestamosComponent implements OnInit {
       this.cargarCatalogos();
       this.obtenerColaborador();
 
-      if (this.idPrestamo && this.idPrestamo != 0) {
+      if (this.idPrestamo && !!this.idPrestamo) {
         this.obtenerPrestamo();
         this.obtenerCuotas();
       }
@@ -407,7 +407,7 @@ export class CrearColaboradoresPrestamosComponent implements OnInit {
   }
 
   validarDatos(): boolean {
-    if (!this.prestamo.id_tipo_prestamo || this.prestamo.id_tipo_prestamo == 0) {
+    if (!this.prestamo.id_tipo_prestamo || !this.prestamo.id_tipo_prestamo) {
       Swal.fire({
         title: 'Datos incompletos',
         text: 'Debe seleccionar un tipo de préstamo',

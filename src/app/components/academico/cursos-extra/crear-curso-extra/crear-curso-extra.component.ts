@@ -598,13 +598,13 @@ export class CrearCursoExtraComponent implements OnInit {
       next: (response: any) => {
         const productos = response.body || [];
         this.productosMatricula = productos.filter((p: any) =>
-          p.id_clasificacion_productos_servicios == 2 && p.id_periodicidad_cobro == 1
+          p.clasificacion_codigo === 'EXTRA_ACADEMICO' && p.id_periodicidad_cobro == 1
         );
         this.productosPension = productos.filter((p: any) =>
-          p.id_clasificacion_productos_servicios == 2 && p.id_periodicidad_cobro == 2
+          p.clasificacion_codigo === 'EXTRA_ACADEMICO' && p.id_periodicidad_cobro == 2
         );
         this.productosUnico = productos.filter((p: any) =>
-          p.id_clasificacion_productos_servicios == 2 && p.id_periodicidad_cobro == 4
+          p.clasificacion_codigo === 'EXTRA_ACADEMICO' && p.id_periodicidad_cobro == 4
         );
       },
       error: (error: any) => {

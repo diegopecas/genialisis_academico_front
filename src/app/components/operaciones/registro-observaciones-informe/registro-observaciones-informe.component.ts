@@ -474,7 +474,7 @@ export class RegistroObservacionesInformeComponent implements OnInit, OnDestroy 
 
         this.guardandoModal = true;
 
-        const esCreacion = this.modeloModal.id === 0;
+        const esCreacion = !this.modeloModal.id;
         const servicio = esCreacion
             ? this.observacionesService.crear(this.modeloModal)
             : this.observacionesService.actualizar(this.modeloModal);

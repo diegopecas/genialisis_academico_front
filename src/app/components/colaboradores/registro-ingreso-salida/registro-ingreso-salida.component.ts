@@ -66,7 +66,7 @@ export class RegistroIngresoSalidaComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.cargarUsuario();
     this.generarHuellaDispositivo();
-    if (this.idColaborador > 0) {
+    if (!!this.idColaborador) {
       this.iniciarReloj();
       this.cargarDatosIniciales();
     }
@@ -86,7 +86,7 @@ export class RegistroIngresoSalidaComponent implements OnInit, OnDestroy {
       this.validaJornada = this.usuario.valida_ingreso_jornada == 1 || this.usuario.valida_ingreso_jornada == null;
       this.validaDescanso = this.usuario.valida_ingreso_descanso == 1;
     }
-    if (this.idColaborador === 0) {
+    if (!this.idColaborador) {
       Swal.fire({ icon: 'warning', title: 'Sin acceso', text: 'No se encontró un colaborador asociado a tu usuario' });
       this.router.navigate(['/menu']);
     }

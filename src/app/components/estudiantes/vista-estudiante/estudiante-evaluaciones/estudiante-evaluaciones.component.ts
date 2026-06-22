@@ -446,7 +446,7 @@ export class EstudianteEvaluacionesComponent implements OnInit, OnDestroy {
                 );
 
                 // Buscar el último peso (id_medida = 1)
-                const pesoMasReciente = medidasValidas.find((m: any) => m.id_medida === 1);
+                const pesoMasReciente = medidasValidas.find((m: any) => m.medida_codigo === 'PESO');
                 if (pesoMasReciente) {
                     this.ultimoPeso = {
                         ...pesoMasReciente,
@@ -455,7 +455,7 @@ export class EstudianteEvaluacionesComponent implements OnInit, OnDestroy {
                 }
 
                 // Buscar la última talla (id_medida = 2)
-                const tallaMasReciente = medidasValidas.find((m: any) => m.id_medida === 2);
+                const tallaMasReciente = medidasValidas.find((m: any) => m.medida_codigo === 'TALLA');
                 if (tallaMasReciente) {
                     this.ultimaTalla = {
                         ...tallaMasReciente,

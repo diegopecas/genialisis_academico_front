@@ -170,7 +170,7 @@
 
     <!-- Tabla de Pagos Aplicados (se muestra en consultar o en editar cuando hay pagos) -->
     <div class="container mt-5"
-        *ngIf="(accion === 'consultar' || (accion === 'editar' && camposBloqueados)) && model.id > 0">
+        *ngIf="(accion === 'consultar' || (accion === 'editar' && camposBloqueados)) && model.id">
         <h4 class="mb-3">Pagos Aplicados a esta Cuenta</h4>
         <div class="table-responsive">
             <table class="table table-striped table-bordered">

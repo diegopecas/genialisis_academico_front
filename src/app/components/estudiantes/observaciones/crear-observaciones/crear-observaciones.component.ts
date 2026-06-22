@@ -183,7 +183,7 @@ export class CrearObservacionesComponent implements OnInit {
     // Verificar si hay firmas registradas en una observación guardada
     hayFirmasGuardadas(): boolean {
         // Solo considerar las firmas como restrictivas si ya están guardadas (id > 0)
-        return this.model.id > 0 && (!!this.model.firma_informe_padre || !!this.model.firma_informe_padre_afectado);
+        return !!this.model.id && (!!this.model.firma_informe_padre || !!this.model.firma_informe_padre_afectado);
     }
 
     // Verificar si hay firmas (para cualquier propósito)

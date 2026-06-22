@@ -16,11 +16,11 @@
       <nav class="sidebar-nav">
         <a class="sidebar-link" [class.active]="seccionActiva === 'datos-personales'" (click)="cambiarSeccion('datos-personales')"><i class="fas fa-user-circle"></i> <span>Datos Personales</span></a>
         <a class="sidebar-link" [class.active]="seccionActiva === 'datos-academicos'" (click)="cambiarSeccion('datos-academicos')"><i class="fas fa-graduation-cap"></i> <span>Datos Académicos</span></a>
-        <a class="sidebar-link" *ngIf="model.idEstudiante > 0" [class.active]="seccionActiva === 'horarios'" (click)="cambiarSeccion('horarios')"><i class="fas fa-clock"></i> <span>Horarios</span></a>
-        <a class="sidebar-link" *ngIf="model.idEstudiante > 0" [class.active]="seccionActiva === 'convenios'" (click)="cambiarSeccion('convenios')"><i class="fas fa-handshake"></i> <span>Convenios</span></a>
-        <a class="sidebar-link" *ngIf="model.idEstudiante > 0" [class.active]="seccionActiva === 'datos-medicos'" (click)="cambiarSeccion('datos-medicos')"><i class="fas fa-heartbeat"></i> <span>Datos Médicos</span></a>
-        <a class="sidebar-link" *ngIf="model.idEstudiante > 0" [class.active]="seccionActiva === 'datos-adicionales'" (click)="cambiarSeccion('datos-adicionales')"><i class="fas fa-puzzle-piece"></i> <span>Datos Adicionales</span></a>
-        <a class="sidebar-link" *ngIf="model.idPersona > 0" [class.active]="seccionActiva === 'documentos'" (click)="cambiarSeccion('documentos')"><i class="fas fa-file-alt"></i> <span>Documentos</span></a>
+        <a class="sidebar-link" *ngIf="model.idEstudiante" [class.active]="seccionActiva === 'horarios'" (click)="cambiarSeccion('horarios')"><i class="fas fa-clock"></i> <span>Horarios</span></a>
+        <a class="sidebar-link" *ngIf="model.idEstudiante" [class.active]="seccionActiva === 'convenios'" (click)="cambiarSeccion('convenios')"><i class="fas fa-handshake"></i> <span>Convenios</span></a>
+        <a class="sidebar-link" *ngIf="model.idEstudiante" [class.active]="seccionActiva === 'datos-medicos'" (click)="cambiarSeccion('datos-medicos')"><i class="fas fa-heartbeat"></i> <span>Datos Médicos</span></a>
+        <a class="sidebar-link" *ngIf="model.idEstudiante" [class.active]="seccionActiva === 'datos-adicionales'" (click)="cambiarSeccion('datos-adicionales')"><i class="fas fa-puzzle-piece"></i> <span>Datos Adicionales</span></a>
+        <a class="sidebar-link" *ngIf="model.idPersona" [class.active]="seccionActiva === 'documentos'" (click)="cambiarSeccion('documentos')"><i class="fas fa-file-alt"></i> <span>Documentos</span></a>
       </nav>
     </aside>
 
@@ -45,11 +45,11 @@
       <nav class="sidebar-nav">
         <a class="sidebar-link" [class.active]="seccionActiva === 'datos-personales'" (click)="cambiarSeccion('datos-personales')"><i class="fas fa-user-circle"></i> <span>Datos Personales</span></a>
         <a class="sidebar-link" [class.active]="seccionActiva === 'datos-academicos'" (click)="cambiarSeccion('datos-academicos')"><i class="fas fa-graduation-cap"></i> <span>Datos Académicos</span></a>
-        <a class="sidebar-link" *ngIf="model.idEstudiante > 0" [class.active]="seccionActiva === 'horarios'" (click)="cambiarSeccion('horarios')"><i class="fas fa-clock"></i> <span>Horarios</span></a>
-        <a class="sidebar-link" *ngIf="model.idEstudiante > 0" [class.active]="seccionActiva === 'convenios'" (click)="cambiarSeccion('convenios')"><i class="fas fa-handshake"></i> <span>Convenios</span></a>
-        <a class="sidebar-link" *ngIf="model.idEstudiante > 0" [class.active]="seccionActiva === 'datos-medicos'" (click)="cambiarSeccion('datos-medicos')"><i class="fas fa-heartbeat"></i> <span>Datos Médicos</span></a>
-        <a class="sidebar-link" *ngIf="model.idEstudiante > 0" [class.active]="seccionActiva === 'datos-adicionales'" (click)="cambiarSeccion('datos-adicionales')"><i class="fas fa-puzzle-piece"></i> <span>Datos Adicionales</span></a>
-        <a class="sidebar-link" *ngIf="model.idPersona > 0" [class.active]="seccionActiva === 'documentos'" (click)="cambiarSeccion('documentos')"><i class="fas fa-file-alt"></i> <span>Documentos</span></a>
+        <a class="sidebar-link" *ngIf="model.idEstudiante" [class.active]="seccionActiva === 'horarios'" (click)="cambiarSeccion('horarios')"><i class="fas fa-clock"></i> <span>Horarios</span></a>
+        <a class="sidebar-link" *ngIf="model.idEstudiante" [class.active]="seccionActiva === 'convenios'" (click)="cambiarSeccion('convenios')"><i class="fas fa-handshake"></i> <span>Convenios</span></a>
+        <a class="sidebar-link" *ngIf="model.idEstudiante" [class.active]="seccionActiva === 'datos-medicos'" (click)="cambiarSeccion('datos-medicos')"><i class="fas fa-heartbeat"></i> <span>Datos Médicos</span></a>
+        <a class="sidebar-link" *ngIf="model.idEstudiante" [class.active]="seccionActiva === 'datos-adicionales'" (click)="cambiarSeccion('datos-adicionales')"><i class="fas fa-puzzle-piece"></i> <span>Datos Adicionales</span></a>
+        <a class="sidebar-link" *ngIf="model.idPersona" [class.active]="seccionActiva === 'documentos'" (click)="cambiarSeccion('documentos')"><i class="fas fa-file-alt"></i> <span>Documentos</span></a>
       </nav>
     </aside>
 
@@ -523,7 +523,7 @@
         </div>
 
         <!-- HORARIOS (editar/consultar) -->
-        <div *ngIf="model.idEstudiante > 0" [hidden]="seccionActiva !== 'horarios'">
+        <div *ngIf="model.idEstudiante" [hidden]="seccionActiva !== 'horarios'">
           <div class="table-responsive">
             <table class="table table-bordered table-sm">
               <thead class="table-light">
@@ -554,7 +554,7 @@
         </div>
 
         <!-- CONVENIOS (editar/consultar) -->
-        <div *ngIf="model.idEstudiante > 0" [hidden]="seccionActiva !== 'convenios'">
+        <div *ngIf="model.idEstudiante" [hidden]="seccionActiva !== 'convenios'">
           <div class="row mb-3" *ngIf="accion === 'editar'">
             <div class="col-sm-12 col-md-4">
               <label class="form-label">Convenio</label>
@@ -621,7 +621,7 @@
         </div>
 
         <!-- DATOS MÉDICOS (editar/consultar) -->
-        <div *ngIf="model.idEstudiante > 0" [hidden]="seccionActiva !== 'datos-medicos'">
+        <div *ngIf="model.idEstudiante" [hidden]="seccionActiva !== 'datos-medicos'">
           <div *ngIf="gruposDatosMedicos.length === 0" class="alert alert-light py-2 text-center">
             No hay datos médicos configurados para esta institución.
           </div>
@@ -662,7 +662,7 @@
         </div>
 
         <!-- DATOS ADICIONALES (editar/consultar) -->
-        <div *ngIf="model.idEstudiante > 0" [hidden]="seccionActiva !== 'datos-adicionales'">
+        <div *ngIf="model.idEstudiante" [hidden]="seccionActiva !== 'datos-adicionales'">
           <div *ngIf="gruposDatosAdicionales.length === 0" class="alert alert-light py-2 text-center">
             No hay datos adicionales configurados para esta institución.
           </div>
@@ -703,7 +703,7 @@
         </div>
 
         <!-- DOCUMENTOS (editar/consultar) -->
-        <div *ngIf="model.idPersona > 0" [hidden]="seccionActiva !== 'documentos'">
+        <div *ngIf="model.idPersona" [hidden]="seccionActiva !== 'documentos'">
           <app-documentos-persona
             [idPersona]="model.idPersona"
             [tipoPersona]="'estudiante'"

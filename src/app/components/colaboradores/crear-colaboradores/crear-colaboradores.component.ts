@@ -59,7 +59,7 @@ export class CrearColaboradoresComponent implements OnInit {
     tipoIdentificacion: '' as any, numeroIdentificacion: '' as any,
     primerNombre: '' as any, segundoNombre: '' as any, primerApellido: '' as any, segundoApellido: '' as any,
     fechaNacimiento: '' as any, genero: '' as any, direccion: '' as any, correoElectronico: '' as any,
-    telefono: '' as any, ciudad: '' as any, rolColaborador: '' as any, nivelEscolaridad: '' as any,
+    telefono: '' as any, ciudad: '' as any, rolColaborador: '' as any, rolCodigo: '' as any, nivelEscolaridad: '' as any,
     casaColaborador: '' as any, correoInstitucional: '' as any, jefeDirecto: '' as any, activo: 1 as any,
     sobrenombre: '' as any, fechaIngreso: '' as any, fechaRetiro: '' as any, idMotivoRetiro: '' as any,
     idCargo: '' as any, salarioMensual: '' as any, tipoContrato: '' as any,
@@ -181,14 +181,14 @@ export class CrearColaboradoresComponent implements OnInit {
   }
 
   establecerValoresPorDefecto() { this.model.activo = 1; this.colaboradorActivoSwitch = true; this.model.validaIngresoJornada = 1; this.model.validaIngresoDescanso = 0; }
-  esDocente(): boolean { return this.model.rolColaborador == 1; }
+  esDocente(): boolean { return this.model.rolCodigo === 'DOCENTE'; }
 
   cambiarSeccion(seccion: 'datos-personales' | 'datos-colaborador' | 'grupos' | 'areas' | 'usuario' | 'documentos' | 'horarios') {
     this.seccionActiva = seccion; this.cerrarSidebar();
-    if (seccion === 'grupos' && this.model.idDocente > 0) this.consultarGruposAsignados();
-    if (seccion === 'areas' && this.model.idDocente > 0) this.consultarAreasAcademicas();
-    if (seccion === 'usuario' && this.model.idPersona > 0) this.cargarUsuario();
-    if (seccion === 'horarios' && this.model.idColaborador > 0) this.cargarHorarios();
+    if (seccion === 'grupos' && !!this.model.idDocente) this.consultarGruposAsignados();
+    if (seccion === 'areas' && !!this.model.idDocente) this.consultarAreasAcademicas();
+    if (seccion === 'usuario' && !!this.model.idPersona) this.cargarUsuario();
+    if (seccion === 'horarios' && !!this.model.idColaborador) this.cargarHorarios();
   }
 
   consultarListas() {
@@ -210,7 +210,7 @@ export class CrearColaboradoresComponent implements OnInit {
     this.colaboradoresService.obtenerById(this.id).subscribe({
       next: (response: any) => {
         const datos = response.body;
-        if (datos && datos.length > 0) { this.llenarFormularioColaborador(datos[0]); if (this.model.idPersona > 0) this.cargarUsuario(); if (this.esDocente() && this.model.idDocente > 0) { this.consultarGruposAsignados(); this.consultarAreasAcademicas(); } }
+        if (datos && datos.length > 0) { this.llenarFormularioColaborador(datos[0]); if (!!this.model.idPersona) this.cargarUsuario(); if (this.esDocente() && !!this.model.idDocente) { this.consultarGruposAsignados(); this.consultarAreasAcademicas(); } }
       },
       error: () => Swal.fire({ title: 'Error', text: 'Error al consultar el colaborador', icon: 'error' }),
     });
@@ -224,7 +224,7 @@ export class CrearColaboradoresComponent implements OnInit {
     this.model.fechaNacimiento = c.fecha_nacimiento; this.model.genero = c.id_genero;
     this.model.direccion = c.direccion || ''; this.model.correoElectronico = c.correo_electronico || '';
     this.model.telefono = c.telefono || ''; this.model.ciudad = c.id_ciudad || '';
-    this.model.rolColaborador = c.id_rol_colaborador; this.model.nivelEscolaridad = c.id_nivel_escolaridad;
+    this.model.rolColaborador = c.id_rol_colaborador; this.model.rolCodigo = c.rol_codigo; this.model.nivelEscolaridad = c.id_nivel_escolaridad;
     this.model.casaColaborador = c.id_casa_colaborador || ''; this.model.correoInstitucional = c.correo_electronico || '';
     this.model.jefeDirecto = c.id_jefe_directo || ''; this.model.activo = c.activo;
     this.colaboradorActivoSwitch = c.activo == 1; this.model.sobrenombre = c.sobrenombre || '';
@@ -248,17 +248,17 @@ export class CrearColaboradoresComponent implements OnInit {
     return true;
   }
 
-  guardar() { if (!this.validar()) return; this.model.idPersona > 0 ? this.actualizarPersona() : this.crearPersona(); }
+  guardar() { if (!this.validar()) return; !!this.model.idPersona ? this.actualizarPersona() : this.crearPersona(); }
 
   guardarDatosPersonales() {
     this.submitted = true;
     if (!this.model.tipoIdentificacion || !this.model.numeroIdentificacion || !this.model.primerNombre || !this.model.primerApellido || !this.model.fechaNacimiento) { Swal.fire({ icon: 'warning', title: 'Campos incompletos', text: 'Por favor complete todos los campos requeridos de datos personales' }); return; }
     const personaData = this.prepararDatosPersona(this.model);
-    if (this.model.idPersona > 0) { this.personasService.actualizar(personaData).subscribe({ next: () => Swal.fire({ icon: 'success', title: 'Datos Personales Actualizados', text: 'Los datos personales se han guardado correctamente', confirmButtonText: 'Aceptar' }), error: (e: any) => Swal.fire({ icon: 'error', title: 'Error', text: e.error?.error || 'Error al actualizar' }) }); }
+    if (!!this.model.idPersona) { this.personasService.actualizar(personaData).subscribe({ next: () => Swal.fire({ icon: 'success', title: 'Datos Personales Actualizados', text: 'Los datos personales se han guardado correctamente', confirmButtonText: 'Aceptar' }), error: (e: any) => Swal.fire({ icon: 'error', title: 'Error', text: e.error?.error || 'Error al actualizar' }) }); }
     else { this.personasService.crear(personaData).subscribe({ next: (r: any) => { this.model.idPersona = r.id; Swal.fire({ icon: 'success', title: 'Datos Personales Creados', text: 'Ahora puede completar la información del colaborador.', confirmButtonText: 'Aceptar' }); }, error: (e: any) => Swal.fire({ icon: 'error', title: 'Error', text: e.error?.error || 'Error al crear' }) }); }
   }
 
-  guardarInformacionColaborador() { if (!this.validar()) return; this.model.idPersona > 0 ? this.actualizarPersona() : this.crearPersona(); }
+  guardarInformacionColaborador() { if (!this.validar()) return; !!this.model.idPersona ? this.actualizarPersona() : this.crearPersona(); }
   validarFechaRetiro() {}
 
   prepararDatosPersona(d: any) {
@@ -270,9 +270,9 @@ export class CrearColaboradoresComponent implements OnInit {
 
   crearActualizarColaborador() {
     const d = { id: this.model.idColaborador || 0, id_persona: this.model.idPersona, id_rol_colaborador: this.model.rolColaborador, id_nivel_escolaridad: this.model.nivelEscolaridad, id_casa_colaborador: this.model.casaColaborador || null, correo_electronico: this.model.correoInstitucional || null, sobrenombre: this.model.sobrenombre || null, fecha_ingreso: this.model.fechaIngreso || null, fecha_retiro: this.model.fechaRetiro || null, id_motivo_retiro: this.model.idMotivoRetiro || null, id_cargo: this.model.idCargo || null, salario_mensual: this.model.salarioMensual || null, id_tipo_contrato: this.model.tipoContrato || null, id_jefe_directo: this.model.jefeDirecto || null, activo: this.model.activo, valida_ingreso_jornada: this.model.validaIngresoJornada, valida_ingreso_descanso: this.model.validaIngresoDescanso };
-    const svc = this.model.idColaborador > 0 ? this.colaboradoresService.actualizar(d) : this.colaboradoresService.crear(d);
+    const svc = !!this.model.idColaborador ? this.colaboradoresService.actualizar(d) : this.colaboradoresService.crear(d);
     svc.subscribe({
-      next: (r: any) => { if (this.model.idColaborador === 0 && r.id) { this.model.idColaborador = r.id; this.id = r.id.toString(); } Swal.fire({ icon: 'success', title: this.accion === 'crear' ? 'Colaborador creado' : 'Colaborador actualizado', text: 'Los datos se han guardado correctamente', confirmButtonText: 'Aceptar' }).then(() => { this.esDocente() ? this.consultarColaborador() : this.router.navigate(['/colaboradores']); }); },
+      next: (r: any) => { if (!this.model.idColaborador && r.id) { this.model.idColaborador = r.id; this.id = r.id.toString(); } Swal.fire({ icon: 'success', title: this.accion === 'crear' ? 'Colaborador creado' : 'Colaborador actualizado', text: 'Los datos se han guardado correctamente', confirmButtonText: 'Aceptar' }).then(() => { this.esDocente() ? this.consultarColaborador() : this.router.navigate(['/colaboradores']); }); },
       error: (e: any) => Swal.fire({ icon: 'error', title: 'Error', text: e.error?.error || 'Error al guardar el colaborador' }),
     });
   }
@@ -292,9 +292,9 @@ export class CrearColaboradoresComponent implements OnInit {
   // ========== USUARIO ==========
   cargarUsuario() { this.usuariosService.obtenerPorPersona(this.model.idPersona).subscribe({ next: (r: any) => { const d = r.body; if (d && d.length > 0) { const u = d[0]; this.modelUsuario = { id: u.id, id_persona: u.id_persona, usuario: u.usuario, correo_electronico: u.correo_electronico, clave: '', activo: u.activo, acceso_institucional: u.acceso_institucional, acceso_portal_padres: u.acceso_portal_padres }; } else { this.resetearModeloUsuario(); } }, error: () => this.resetearModeloUsuario() }); }
   resetearModeloUsuario() { this.modelUsuario = { id: 0, id_persona: this.model.idPersona, usuario: '', correo_electronico: '', clave: '', activo: 1, acceso_institucional: 0, acceso_portal_padres: 0 }; }
-  tieneUsuario(): boolean { return this.modelUsuario.id > 0; }
+  tieneUsuario(): boolean { return !!this.modelUsuario.id; }
   crearUsuario() {
-    if (this.model.idPersona === 0) { Swal.fire({ icon: 'warning', title: 'Advertencia', text: 'Primero debe guardar los datos del colaborador' }); return; }
+    if (!this.model.idPersona) { Swal.fire({ icon: 'warning', title: 'Advertencia', text: 'Primero debe guardar los datos del colaborador' }); return; }
     Swal.fire({ title: '<strong>Crear Usuario</strong>', icon: 'question', html: `<div class="text-start"><div class="mb-3"><label for="swal-email" class="form-label fw-semibold">Correo Electrónico <span class="text-danger">*</span></label><input type="email" id="swal-email" class="form-control form-control-lg" placeholder="usuario@example.com" style="border: 2px solid #e0e0e0; border-radius: 8px;"></div><div class="mb-3"><label for="swal-password" class="form-label fw-semibold">Contraseña <span class="text-danger">*</span></label><input type="password" id="swal-password" class="form-control form-control-lg" placeholder="Mínimo 6 caracteres" style="border: 2px solid #e0e0e0; border-radius: 8px;"><small class="text-muted">Debe tener al menos 6 caracteres</small></div><div class="form-check form-switch mt-3"><input class="form-check-input" type="checkbox" id="swal-acceso" style="width: 3em; height: 1.5em;"><label class="form-check-label ms-2 fw-semibold" for="swal-acceso">Acceso Institucional</label></div><div class="form-check form-switch mt-3"><input class="form-check-input" type="checkbox" id="swal-acceso-portal" style="width: 3em; height: 1.5em;"><label class="form-check-label ms-2 fw-semibold" for="swal-acceso-portal">Acceso Portal de Padres</label></div></div>`, showCancelButton: true, confirmButtonText: 'Crear Usuario', cancelButtonText: 'Cancelar', customClass: { confirmButton: 'btn btn-lg px-4', cancelButton: 'btn btn-outline-secondary btn-lg px-4' }, buttonsStyling: false, didOpen: () => { const b = Swal.getConfirmButton(); if (b) { b.style.background = 'linear-gradient(135deg, #f9a825 0%, #f57f17 100%)'; b.style.color = 'white'; b.style.border = 'none'; b.style.marginRight = '10px'; } },
       preConfirm: () => { const email = (document.getElementById('swal-email') as HTMLInputElement).value; const pw = (document.getElementById('swal-password') as HTMLInputElement).value; const ai = (document.getElementById('swal-acceso') as HTMLInputElement).checked; const ap = (document.getElementById('swal-acceso-portal') as HTMLInputElement).checked; if (!email || !pw) { Swal.showValidationMessage('Complete todos los campos'); return false; } if (pw.length < 6) { Swal.showValidationMessage('Mínimo 6 caracteres'); return false; } return { correo_electronico: email, clave: pw, acceso_institucional: ai ? 1 : 0, acceso_portal_padres: ap ? 1 : 0 }; }
     }).then((r) => { if (r.isConfirmed && r.value) { this.usuariosService.crear({ id_persona: this.model.idPersona, ...r.value, activo: 1 }).subscribe({ next: () => { Swal.fire({ icon: 'success', title: '¡Usuario Creado!', timer: 2000, showConfirmButton: false }); this.cargarUsuario(); }, error: (e: any) => Swal.fire({ icon: 'error', title: 'Error', text: e.error?.error || 'No se pudo crear' }) }); } });
@@ -579,7 +579,7 @@ export class CrearColaboradoresComponent implements OnInit {
   calcularTotalHorasSemana(): string { let t = 0; for (const h of this.horarios) t += parseFloat(this.calcularHorasDia(h)); return t.toFixed(1); }
 
   guardarHorarios() {
-    if (this.model.idColaborador === 0) { Swal.fire({ icon: 'warning', title: 'Advertencia', text: 'Primero debe guardar los datos del colaborador' }); return; }
+    if (!this.model.idColaborador) { Swal.fire({ icon: 'warning', title: 'Advertencia', text: 'Primero debe guardar los datos del colaborador' }); return; }
     const data = { id_colaborador: this.model.idColaborador, horarios: this.horarios.map((h) => ({ dia_semana: h.dia_semana, hora_entrada: h.hora_entrada || '07:00', hora_salida: h.hora_salida || '16:00', hora_inicio_descanso: h.hora_inicio_descanso || null, hora_fin_descanso: h.hora_fin_descanso || null, activo: h.activo })) };
     this.horariosService.guardarTodos(data).subscribe({
       next: () => Swal.fire({ icon: 'success', title: 'Horarios Guardados', text: 'Los horarios se han guardado correctamente', timer: 2000, showConfirmButton: false }),

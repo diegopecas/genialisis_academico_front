@@ -637,7 +637,7 @@ export class CrearDocentesComponent implements OnInit {
     if (this.accion === 'editar' && this.model.idPersona) {
       this.actualizarPersona();
     } else {
-      if (!this.model.idPersona || this.model.idPersona == 0) {
+      if (!this.model.idPersona || !this.model.idPersona) {
         this.crearPersona();
       } else {
         this.docentesService.verificarDuplicados(this.model.idPersona).subscribe({
@@ -674,7 +674,7 @@ export class CrearDocentesComponent implements OnInit {
     this.personasService.crear(personaData).subscribe({
       next: (response: any) => {
         console.log("Persona creada", response);
-        if (+response.id == 0) {
+        if (+!response.id) {
           Swal.fire({
             title: 'Error',
             text: 'Error al crear persona',
@@ -736,7 +736,7 @@ export class CrearDocentesComponent implements OnInit {
       activo: this.model.activo
     };
 
-    const docenteService = this.model.idDocente > 0 ?
+    const docenteService = !!this.model.idDocente ?
       this.docentesService.actualizar(docenteData) :
       this.docentesService.crear(docenteData);
 

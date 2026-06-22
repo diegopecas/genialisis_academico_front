@@ -17,13 +17,13 @@
           Información Docente
         </a>
       </li>
-      <li class="nav-item" *ngIf="model.idDocente > 0">
+      <li class="nav-item" *ngIf="model.idDocente">
         <a class="nav-link" [class.active]="seccionActiva === 'grupos'" (click)="cambiarSeccion('grupos')"
           style="cursor: pointer;">
           Grupos Asignados
         </a>
       </li>
-      <li class="nav-item" *ngIf="model.idDocente > 0">
+      <li class="nav-item" *ngIf="model.idDocente">
         <a class="nav-link" [class.active]="seccionActiva === 'areas'" (click)="cambiarSeccion('areas')"
           style="cursor: pointer;">
           Áreas Académicas
@@ -147,7 +147,7 @@
     </div>
 
     <!-- Sección Datos Docente -->
-    <div *ngIf="(seccionActiva === 'datos-docente' || nuevo) && model.idPersona > 0"
+    <div *ngIf="(seccionActiva === 'datos-docente' || nuevo) && model.idPersona"
          [ngClass]="{ 'disabled-container': !camposHabilitados && editable }">
       <h3 class="mb-3 mt-4">Información del Docente</h3>
       <div class="row">
@@ -194,7 +194,7 @@
     </div>
 
     <!-- Sección Grupos Asignados -->
-    <div *ngIf="seccionActiva === 'grupos' && model.idDocente > 0">
+    <div *ngIf="seccionActiva === 'grupos' && model.idDocente">
       <h3 class="mb-3">Grupos Asignados</h3>
 
       <div class="row mb-3" *ngIf="editable">
@@ -271,7 +271,7 @@
     </div>
 
     <!-- Sección Áreas Académicas -->
-    <div *ngIf="seccionActiva === 'areas' && model.idDocente > 0">
+    <div *ngIf="seccionActiva === 'areas' && model.idDocente">
       <h3 class="mb-3">Áreas Académicas por Grupo</h3>
 
       <div class="alert alert-info" *ngIf="gruposAsignados.length === 0">

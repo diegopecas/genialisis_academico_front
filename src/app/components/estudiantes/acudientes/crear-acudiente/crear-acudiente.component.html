@@ -42,7 +42,7 @@
           <i class="fas fa-user-friends"></i> Información Acudiente
         </a>
       </li>
-      <li class="custom-tab-item" *ngIf="model.idAcudiente > 0">
+      <li class="custom-tab-item" *ngIf="model.idAcudiente">
         <a
           class="custom-tab-link"
           [class.active]="seccionActiva === 'documentos'"
@@ -51,7 +51,7 @@
           <i class="fas fa-file-alt"></i> Documentos
         </a>
       </li>
-      <li class="custom-tab-item" *ngIf="model.idAcudiente > 0">
+      <li class="custom-tab-item" *ngIf="model.idAcudiente">
         <a
           class="custom-tab-link"
           [class.active]="seccionActiva === 'usuario'"
@@ -413,7 +413,7 @@
               estudiante</small
             >
           </div>
-          <div class="form-check mt-2" *ngIf="model.idAcudiente > 0">
+          <div class="form-check mt-2" *ngIf="model.idAcudiente">
             <input
               class="form-check-input"
               type="checkbox"
@@ -445,7 +445,7 @@
     </div>
 
     <!-- Sección Usuario -->
-    <div *ngIf="seccionActiva === 'usuario' && model.idAcudiente > 0">
+    <div *ngIf="seccionActiva === 'usuario' && model.idAcudiente">
       <!-- Mensaje si no tiene usuario creado -->
       <div
         *ngIf="!tieneUsuario() && editable"
@@ -535,7 +535,7 @@
 
         <!-- Sección cambiar contraseña -->
         <div
-          *ngIf="editable && modelUsuario.id > 0"
+          *ngIf="editable && modelUsuario.id"
           class="password-section mt-4"
         >
           <h6 class="section-title mb-3">
@@ -608,7 +608,7 @@
     </div>
 
     <!-- Sección de Documentos -->
-    <div *ngIf="seccionActiva === 'documentos' && model.idPersona > 0">
+    <div *ngIf="seccionActiva === 'documentos' && model.idPersona">
       <div class="container mt-4">
         <app-documentos-persona
           [idPersona]="model.idPersona"

@@ -1030,11 +1030,11 @@ export class CrearEstudianteComponent implements OnInit {
     if (this.accion === 'editar' && persona.idPersona) {
       this.actualizarPersona(persona);
     } else {
-      if (!persona.idPersona || persona.idPersona == 0) {
+      if (!persona.idPersona || !persona.idPersona) {
         const personaData = this.prepararDatosPersona(persona);
         this.personasService.crear(personaData).subscribe({
           next: (response: any) => {
-            if (+response.id == 0) {
+            if (+!response.id) {
               Swal.fire({ title: 'Error', text: 'Error al crear persona', icon: 'error', confirmButtonText: 'Aceptar' });
               return;
             }

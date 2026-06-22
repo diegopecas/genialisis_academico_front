@@ -354,13 +354,13 @@ export class CrearAcudienteComponent implements OnInit {
     if (this.accion === 'editar' && persona.idPersona) {
       this.actualizarPersona(persona);
     } else {
-      if (!persona.idPersona || persona.idPersona == 0) {
+      if (!persona.idPersona || !persona.idPersona) {
         const personaData = this.prepararDatosPersona(persona);
 
         this.personasService.crear(personaData).subscribe({
           next: (response: any) => {
             console.log("persona creada", response);
-            if (+response.id == 0) {
+            if (+!response.id) {
               Swal.fire({
                 title: 'Error',
                 text: 'Error al crear persona',
@@ -698,7 +698,7 @@ export class CrearAcudienteComponent implements OnInit {
 
     const personaData = this.prepararDatosPersona();
 
-    if (this.model.idPersona > 0) {
+    if (!!this.model.idPersona) {
       this.personasService.actualizar(personaData).subscribe({
         next: (response: any) => {
           Swal.fire({
@@ -729,8 +729,8 @@ export class CrearAcudienteComponent implements OnInit {
       return;
     }
 
-    if (this.model.idPersona > 0) {
-      if (this.accion === 'crear' && this.model.idAcudiente === 0) {
+    if (!!this.model.idPersona) {
+      if (this.accion === 'crear' && !this.model.idAcudiente) {
         this.crearActualizarAcudiente(this.model);
       } else {
         this.actualizarPersonaYAcudiente();
@@ -811,11 +811,11 @@ export class CrearAcudienteComponent implements OnInit {
   }
 
   tieneUsuario(): boolean {
-    return this.modelUsuario.id > 0;
+    return !!this.modelUsuario.id;
   }
 
   cargarUsuario() {
-    if (!this.model.idPersona || this.model.idPersona === 0) return;
+    if (!this.model.idPersona || !this.model.idPersona) return;
 
     this.usuariosService.obtenerPorPersona(this.model.idPersona).subscribe({
       next: (response: any) => {
