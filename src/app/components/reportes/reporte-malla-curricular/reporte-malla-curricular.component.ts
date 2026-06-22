@@ -18,20 +18,20 @@ import { InstitucionConfigService } from '../../../services/institucion-config.s
 
 // Interfaces
 interface Indicador {
-  id: number;
+  id: string;
   nombre: string;
 }
 
 interface Logro {
-  id: number;
+  id: string;
   nombre: string;
-  id_grado: number;
-  id_area_academica: number;
-  id_eje_curricular: number;
-  id_esfera_desarrollo: number;
-  id_competencia_cognitiva: number;
-  id_estandar_basico: number;
-  id_corte_academico: number;
+  id_grado: string;
+  id_area_academica: string;
+  id_eje_curricular: string;
+  id_esfera_desarrollo: string;
+  id_competencia_cognitiva: string;
+  id_estandar_basico: string;
+  id_corte_academico: string;
   nombre_grado: string;
   nombre_area_academica: string;
   nombre_eje_curricular: string;
@@ -45,7 +45,7 @@ interface Logro {
 }
 
 interface Catalogo {
-  id: number;
+  id: string;
   nombre: string;
   orden?: number;
 }
@@ -177,7 +177,7 @@ export class ReporteMallaCurricularComponent implements OnInit, OnDestroy {
         // Agrupar indicadores por id_logro en un Map
         const indicadoresPorLogro = new Map<number, Indicador[]>();
         indicadoresData.forEach((ind: any) => {
-          const idLogro = Number(ind.id_logro);
+          const idLogro = ind.id_logro;
           if (!indicadoresPorLogro.has(idLogro)) {
             indicadoresPorLogro.set(idLogro, []);
           }
@@ -190,7 +190,7 @@ export class ReporteMallaCurricularComponent implements OnInit, OnDestroy {
         // Mapear logros con sus indicadores ya asociados
         this.logros = logrosData.map((l: any) => ({
           ...l,
-          indicadores: indicadoresPorLogro.get(Number(l.id)) || [],
+          indicadores: indicadoresPorLogro.get(l.id) || [],
           indicadoresCargados: true,
           expandido: false
         }));
@@ -218,19 +218,19 @@ export class ReporteMallaCurricularComponent implements OnInit, OnDestroy {
     let filtrados = [...this.logros];
 
     if (this.gradoSeleccionado) {
-      filtrados = filtrados.filter(l => l.id_grado == Number(this.gradoSeleccionado));
+      filtrados = filtrados.filter(l => l.id_grado == this.gradoSeleccionado);
     }
 
     if (this.areaSeleccionada) {
-      filtrados = filtrados.filter(l => l.id_area_academica == Number(this.areaSeleccionada));
+      filtrados = filtrados.filter(l => l.id_area_academica == this.areaSeleccionada);
     }
 
     if (this.corteSeleccionado) {
-      filtrados = filtrados.filter(l => l.id_corte_academico == Number(this.corteSeleccionado));
+      filtrados = filtrados.filter(l => l.id_corte_academico == this.corteSeleccionado);
     }
 
     if (this.esferaSeleccionada) {
-      filtrados = filtrados.filter(l => l.id_esfera_desarrollo == Number(this.esferaSeleccionada));
+      filtrados = filtrados.filter(l => l.id_esfera_desarrollo == this.esferaSeleccionada);
     }
 
     if (this.busquedaLogro && this.busquedaLogro.trim() !== '') {
@@ -309,12 +309,12 @@ export class ReporteMallaCurricularComponent implements OnInit, OnDestroy {
     } else {
       // Orden por defecto: corte (orden) → grado (orden) → área → esfera
       this.logrosFiltrados.sort((a: any, b: any) => {
-        const ordenCorteA = this.ordenCortes.get(Number(a.id_corte_academico)) ?? 999;
-        const ordenCorteB = this.ordenCortes.get(Number(b.id_corte_academico)) ?? 999;
+        const ordenCorteA = this.ordenCortes.get(a.id_corte_academico) ?? 999;
+        const ordenCorteB = this.ordenCortes.get(b.id_corte_academico) ?? 999;
         if (ordenCorteA !== ordenCorteB) return ordenCorteA - ordenCorteB;
 
-        const ordenGradoA = this.ordenGrados.get(Number(a.id_grado)) ?? 999;
-        const ordenGradoB = this.ordenGrados.get(Number(b.id_grado)) ?? 999;
+        const ordenGradoA = this.ordenGrados.get(a.id_grado) ?? 999;
+        const ordenGradoB = this.ordenGrados.get(b.id_grado) ?? 999;
         if (ordenGradoA !== ordenGradoB) return ordenGradoA - ordenGradoB;
 
         const areaA = (a.nombre_area_academica || '').localeCompare(b.nombre_area_academica || '', 'es');
@@ -328,9 +328,9 @@ export class ReporteMallaCurricularComponent implements OnInit, OnDestroy {
   private getValorOrden(logro: any, columna: string): any {
     switch (columna) {
       case 'nombre': return logro.nombre || '';
-      case 'grado': return this.ordenGrados.get(Number(logro.id_grado)) ?? 999;
+      case 'grado': return this.ordenGrados.get(logro.id_grado) ?? 999;
       case 'area': return logro.nombre_area_academica || '';
-      case 'corte': return this.ordenCortes.get(Number(logro.id_corte_academico)) ?? 999;
+      case 'corte': return this.ordenCortes.get(logro.id_corte_academico) ?? 999;
       case 'esfera': return logro.nombre_esfera_desarrollo || '';
       case 'eje': return logro.nombre_eje_curricular || '';
       case 'competencia': return logro.nombre_competencia_cognitiva || '';
@@ -506,11 +506,11 @@ export class ReporteMallaCurricularComponent implements OnInit, OnDestroy {
     // Nombre del archivo con filtros aplicados
     let nombreArchivo = 'malla_curricular';
     if (this.gradoSeleccionado) {
-      const grado = this.grados.find(g => g.id == Number(this.gradoSeleccionado));
+      const grado = this.grados.find(g => g.id == this.gradoSeleccionado);
       if (grado) nombreArchivo += `_${grado.nombre.replace(/\s+/g, '_')}`;
     }
     if (this.areaSeleccionada) {
-      const area = this.areas.find(a => a.id == Number(this.areaSeleccionada));
+      const area = this.areas.find(a => a.id == this.areaSeleccionada);
       if (area) nombreArchivo += `_${area.nombre.replace(/\s+/g, '_')}`;
     }
     nombreArchivo += '.xlsx';
@@ -570,19 +570,19 @@ export class ReporteMallaCurricularComponent implements OnInit, OnDestroy {
   getDescripcionFiltros(): string {
     const partes: string[] = [];
     if (this.gradoSeleccionado) {
-      const grado = this.grados.find(g => g.id == Number(this.gradoSeleccionado));
+      const grado = this.grados.find(g => g.id == this.gradoSeleccionado);
       if (grado) partes.push(grado.nombre);
     }
     if (this.areaSeleccionada) {
-      const area = this.areas.find(a => a.id == Number(this.areaSeleccionada));
+      const area = this.areas.find(a => a.id == this.areaSeleccionada);
       if (area) partes.push(area.nombre);
     }
     if (this.corteSeleccionado) {
-      const corte = this.cortes.find(c => c.id == Number(this.corteSeleccionado));
+      const corte = this.cortes.find(c => c.id == this.corteSeleccionado);
       if (corte) partes.push(corte.nombre);
     }
     if (this.esferaSeleccionada) {
-      const esfera = this.esferas.find(e => e.id == Number(this.esferaSeleccionada));
+      const esfera = this.esferas.find(e => e.id == this.esferaSeleccionada);
       if (esfera) partes.push(esfera.nombre);
     }
     return partes.length > 0 ? partes.join(' · ') : 'Todos los registros';

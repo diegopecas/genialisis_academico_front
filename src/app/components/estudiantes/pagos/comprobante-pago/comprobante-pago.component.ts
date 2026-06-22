@@ -18,12 +18,12 @@ interface AcudienteModel {
 }
 
 interface CuentaAplicadaModel {
-  id: number;
+  id: string;
   nombre_producto_servicio: string;
   valor: number;
   valor_aplicado: number;
   detalle?: string;
-  id_cuenta_por_cobrar?: number;
+  id_cuenta_por_cobrar?: string;
   saldo_pendiente?: number;
   saldo_actual_cuenta?: number;
   saldo_antes_pago?: number;
@@ -32,7 +32,7 @@ interface CuentaAplicadaModel {
 }
 
 interface PagoModel {
-  id: number;
+  id: string;
   fecha: string;
   valor_recibido: number;
   saldo: number;
@@ -40,15 +40,15 @@ interface PagoModel {
   referencia_bancaria: string;
   observaciones: string;
   cuentas_aplicadas: CuentaAplicadaModel[];
-  id_estudiante: number;
-  id_acudiente: number;
+  id_estudiante: string;
+  id_acudiente: string;
   anulado?: number;
   fecha_registro?: string;
-  id_usuario_registro?: number;
+  id_usuario_registro?: string;
   fecha_contabilizacion?: string;
-  id_usuario_contable?: number;
+  id_usuario_contable?: string;
   fecha_anulacion?: string;
-  id_usuario_anulacion?: number;
+  id_usuario_anulacion?: string;
   tipo_pago_nombre?: string;
   nombre_completo_usuario_registro?: string;
   nombre_completo_usuario_contable?: string;

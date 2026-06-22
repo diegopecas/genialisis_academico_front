@@ -12,7 +12,7 @@ export class AuditoriaService {
 
   constructor(private http: HttpClient) { }
 
-  obtenerResumenCompleto(fechaInicio: string, fechaFin: string, idSprint?: number): Observable<HttpResponse<Object>> {
+  obtenerResumenCompleto(fechaInicio: string, fechaFin: string, idSprint?: string): Observable<HttpResponse<Object>> {
     let params = new HttpParams()
       .set('fecha_inicio', fechaInicio)
       .set('fecha_fin', fechaFin);
@@ -37,7 +37,7 @@ export class AuditoriaService {
         catchError(this.handleError)
       );
   }
-  obtenerDetalleMedidas(idGrupo: number, fechaInicio: string, fechaFin: string): Observable<HttpResponse<Object>> {
+  obtenerDetalleMedidas(idGrupo: string, fechaInicio: string, fechaFin: string): Observable<HttpResponse<Object>> {
     const params = new HttpParams()
       .set('id_grupo', idGrupo.toString())
       .set('fecha_inicio', fechaInicio)
@@ -60,7 +60,7 @@ export class AuditoriaService {
       );
   }
 
-  obtenerDetalleAsistencia(idGrupo: number, fechaInicio: string, fechaFin: string): Observable<HttpResponse<Object>> {
+  obtenerDetalleAsistencia(idGrupo: string, fechaInicio: string, fechaFin: string): Observable<HttpResponse<Object>> {
     const params = new HttpParams()
       .set('id_grupo', idGrupo.toString())
       .set('fecha_inicio', fechaInicio)
@@ -83,7 +83,7 @@ export class AuditoriaService {
       );
   }
 
-  obtenerDetalleClases(idGrupo: number, idSprint?: number): Observable<HttpResponse<Object>> {
+  obtenerDetalleClases(idGrupo: string, idSprint?: string): Observable<HttpResponse<Object>> {
     let params = new HttpParams()
       .set('id_grupo', idGrupo.toString());
 

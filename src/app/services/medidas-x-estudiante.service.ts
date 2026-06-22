@@ -114,7 +114,7 @@ export class MedidasXEstudianteService {
     );
   }
 
-  obtenerResumenMedidasPorGrupo(idGrupo: number, fechaInicio: string, fechaFin: string) {
+  obtenerResumenMedidasPorGrupo(idGrupo: string, fechaInicio: string, fechaFin: string) {
     const params = new HttpParams()
       .set('fecha_inicio', fechaInicio)
       .set('fecha_fin', fechaFin);
@@ -131,7 +131,7 @@ export class MedidasXEstudianteService {
       );
   }
 
-  obtenerMedidasMultiplesEstudiantes(estudiantesIds: number[], fecha: string, medidasIds?: number[]) {
+  obtenerMedidasMultiplesEstudiantes(estudiantesIds: string[], fecha: string, medidasIds?: string[]) {
     const payload: any = {
       estudiantes_ids: estudiantesIds,
       fecha: fecha

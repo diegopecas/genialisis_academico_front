@@ -104,9 +104,9 @@ export class ConsultarCalificacionesPdmXEstudiantesComponent {
 
   filtrarDatos() {
     this.datosFiltrados = this.datos.filter(item =>
-      (this.grupoSeleccionado === "" || Number(item.id_grupo) === Number(this.grupoSeleccionado)) &&
-      (this.estudianteSeleccionado === "" || Number(item.id_estudiante) === Number(this.estudianteSeleccionado)) &&
-      (this.logroSeleccionado === "" || Number(item.id_logro) === Number(this.logroSeleccionado)) &&
+      (this.grupoSeleccionado === "" || item.id_grupo === this.grupoSeleccionado) &&
+      (this.estudianteSeleccionado === "" || item.id_estudiante === this.estudianteSeleccionado) &&
+      (this.logroSeleccionado === "" || item.id_logro === this.logroSeleccionado) &&
       (!this.filtrarPendientes || item.estado_tarea === "Pendiente")
     );
     this.generarTablaResumen();

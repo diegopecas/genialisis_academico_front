@@ -47,7 +47,7 @@ interface PestanaInfo {
 })
 export class VistaEstudianteComponent implements OnInit {
   public idEstudiante = '0';
-  public idPersona = 0;
+  public idPersona = '';
   public nombreCompleto = '';
   public pestanaActiva = 'datos';
   public cargando = false;

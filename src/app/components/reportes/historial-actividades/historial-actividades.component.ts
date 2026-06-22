@@ -7,7 +7,7 @@ import { ActividadesColaboradoresService } from '../../../services/actividades-c
 
 interface Actividad {
   id_actividad: number;
-  id_tipo_actividad: number;
+  id_tipo_actividad: string;
   tipo_actividad: string;
   categoria: string;
   registro_x_horas: number;
@@ -21,17 +21,17 @@ interface Actividad {
   minutos_restantes: number;
   estado: string;
   color_estado: string;
-  id_contabilizacion?: number;
+  id_contabilizacion?: string;
   fecha_contabilizacion?: string;
   tipo_contabilizacion?: string;
-  id_colaborador: number;
+  id_colaborador: string;
   colaborador: string;
   seleccionado: boolean;
 }
 
 interface ColaboradorAgrupado {
   nombre: string;
-  id_colaborador: number;
+  id_colaborador: string;
   total_actividades: number;
   actividades: Actividad[];
   expandido: boolean;
@@ -329,7 +329,7 @@ export class HistorialActividadesComponent implements OnInit {
   }
 
   agruparPorColaborador() {
-    const grupos: { [key: number]: ColaboradorAgrupado } = {};
+    const grupos: { [key: string]: ColaboradorAgrupado } = {};
     const filtradas = this.actividadesFiltradas;
 
     filtradas.forEach(actividad => {

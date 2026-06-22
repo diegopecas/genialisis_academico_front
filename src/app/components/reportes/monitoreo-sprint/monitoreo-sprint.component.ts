@@ -293,9 +293,9 @@ export class MonitoreoSprintComponent {
       const fechaSoloDia = new Date(item.fecha_ejecucion).toISOString().split("T")[0];
 
       return (
-        (this.grupoSeleccionado === "" || Number(item.id_grupo) === Number(this.grupoSeleccionado)) &&
-        (this.estudianteSeleccionado === "" || Number(item.id_estudiante) === Number(this.estudianteSeleccionado)) &&
-        (this.estadoTareaSeleccionado === "" || Number(item.id_estado_tarea) === Number(this.estadoTareaSeleccionado)) &&
+        (this.grupoSeleccionado === "" || item.id_grupo === this.grupoSeleccionado) &&
+        (this.estudianteSeleccionado === "" || item.id_estudiante === this.estudianteSeleccionado) &&
+        (this.estadoTareaSeleccionado === "" || String(item.id_estado_tarea) === this.estadoTareaSeleccionado) &&
         (this.areaAcademicaSeleccionada === "" || item.area_academica === this.areaAcademicaSeleccionada) &&
         (this.esferaDesarrolloSeleccionada === "" || item.nombre_esfera_desarrollo === this.esferaDesarrolloSeleccionada) &&
         (this.parametroCalificacionSeleccionado === "" || item.parametro_calificacion === this.parametroCalificacionSeleccionado) &&

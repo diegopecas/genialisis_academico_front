@@ -21,7 +21,7 @@ interface AccesoAcumulado {
 }
 
 export interface AccesoRapido {
-  id: number;
+  id: string;
   ruta: string;
   label: string;
   icono: string;
@@ -222,7 +222,7 @@ export class AccesosRapidosService implements OnDestroy {
     );
   }
 
-  toggleFijo(id: number, esFijo: number) {
+  toggleFijo(id: string, esFijo: number) {
     const body = JSON.stringify({ id: id, es_fijo: esFijo });
     return this.http.put<any>(this.servicio + '/toggle-fijo', body, httpOptionsSilent).pipe(
       tap((respuesta: any) => {

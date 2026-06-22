@@ -9,7 +9,7 @@ import { SprintsService } from '../../../services/sprints.service';
 import collect from 'collect.js';
 
 interface ResumenGrupo {
-  id_grupo: number;
+  id_grupo: string;
   nombre_grupo: string;
   icono?: string;
   color?: string;

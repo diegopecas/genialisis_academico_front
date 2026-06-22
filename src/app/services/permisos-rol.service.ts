@@ -59,7 +59,7 @@ export class PermisosRolService {
       );
   }
 
-  obtenerPermisosPorRol(idRol: number) {
+  obtenerPermisosPorRol(idRol: string) {
     return this.http
       .get<HttpResponse<Object>>(`${this.servicio}/rol/${idRol}`, { observe: 'response' })
       .pipe(
@@ -74,7 +74,7 @@ export class PermisosRolService {
       );
   }
 
-  guardarPermisos(idRol: number, permisos: string[]) {
+  guardarPermisos(idRol: string, permisos: string[]) {
     const body = JSON.stringify({ permisos });
     return this.http.post<any>(`${this.servicio}/rol/${idRol}`, body, httpOptions).pipe(
       tap((respuesta: any) => {

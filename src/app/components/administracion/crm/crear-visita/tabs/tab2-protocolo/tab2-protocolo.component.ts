@@ -363,7 +363,7 @@ export class Tab2ProtocoloComponent implements OnInit, OnChanges {
         return Math.round((pasosCompletadosCount / totalPasos) * 100);
     }
 
-    obtenerChecklistCompletados(idPaso: number): number {
+    obtenerChecklistCompletados(idPaso: string): number {
         return this.checklistPorPaso[idPaso]?.length || 0;
     }
 
@@ -404,12 +404,12 @@ export class Tab2ProtocoloComponent implements OnInit, OnChanges {
         this.marcarCambio('protocoloPasos');
     }
 
-    togglePasoCompletado(idPaso: number): void {
+    togglePasoCompletado(idPaso: string): void {
         this.pasosCompletados[idPaso] = !this.pasosCompletados[idPaso];
         this.marcarCambio('protocoloPasos');
     }
 
-    toggleChecklistItem(idPaso: number, itemIndex: number): void {
+    toggleChecklistItem(idPaso: string, itemIndex: number): void {
         if (!this.checklistPorPaso[idPaso]) {
             this.checklistPorPaso[idPaso] = [];
         }
@@ -424,11 +424,11 @@ export class Tab2ProtocoloComponent implements OnInit, OnChanges {
         this.marcarCambio('protocoloChecklist');
     }
 
-    isChecklistItemChecked(idPaso: number, itemIndex: number): boolean {
+    isChecklistItemChecked(idPaso: string, itemIndex: number): boolean {
         return this.checklistPorPaso[idPaso]?.includes(itemIndex) || false;
     }
 
-    obtenerContenidoPaso(idPaso: number): any {
+    obtenerContenidoPaso(idPaso: string): any {
         if (this.contenidoPorPerfil[this.perfilSeleccionado]) {
             return this.contenidoPorPerfil[this.perfilSeleccionado][idPaso] || null;
         }
@@ -458,7 +458,7 @@ export class Tab2ProtocoloComponent implements OnInit, OnChanges {
 
         if (this.seccionesModificadas.has('protocoloPasos')) {
             datosCompletos.protocoloPasos = Object.keys(this.pasosCompletados).map(idPaso => ({
-                id_protocolo_paso: parseInt(idPaso),
+                id_protocolo_paso: idPaso,
                 completado: this.pasosCompletados[idPaso],
                 perfil_usado: this.perfilSeleccionado
             }));
@@ -467,7 +467,7 @@ export class Tab2ProtocoloComponent implements OnInit, OnChanges {
         if (this.seccionesModificadas.has('protocoloChecklist')) {
             datosCompletos.protocoloChecklist = Object.keys(this.checklistPorPaso).flatMap(idPaso =>
                 this.checklistPorPaso[idPaso].map((itemIndex: number) => ({
-                    id_protocolo_paso: parseInt(idPaso),
+                    id_protocolo_paso: idPaso,
                     item_index: itemIndex,
                     completado: true
                 }))

@@ -29,7 +29,7 @@ export class GoogleConfiguracionService {
       );
   }
 
-  obtenerPorId(id: number) {
+  obtenerPorId(id: string) {
     return this.http
       .get<HttpResponse<Object>>(`${this.servicio}/${id}`, { observe: 'response' })
       .pipe(

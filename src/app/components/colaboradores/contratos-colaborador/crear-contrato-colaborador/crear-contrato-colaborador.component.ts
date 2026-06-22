@@ -28,8 +28,8 @@ import { CargosService } from '../../../../services/cargos.service';
   styleUrls: ['./crear-contrato-colaborador.component.scss'],
 })
 export class CrearContratoColaboradorComponent implements OnInit {
-  idColaborador!: number;
-  idContrato: number | null = null;
+  idColaborador!: string;
+  idContrato: string | null = null;
   esEdicion = false;
 
   public titulo = 'Crear contrato';
@@ -45,9 +45,9 @@ export class CrearContratoColaboradorComponent implements OnInit {
   // Modelo del formulario
   contrato: ContratoColaborador = {
     anio: new Date().getFullYear(),
-    id_colaborador: 0,
-    id_cargo: 0,
-    id_tipo_contrato: 0,
+    id_colaborador: '',
+    id_cargo: '',
+    id_tipo_contrato: '',
     salario_mensual: 0,
     periodo_pago: 'Mensual',
     fecha_inicio: '',
@@ -86,14 +86,12 @@ export class CrearContratoColaboradorComponent implements OnInit {
   ngOnInit(): void {
     const accion = this.route.snapshot.paramMap.get('accion');
     const idParam = this.route.snapshot.paramMap.get('id');
-    this.idColaborador = Number(
-      this.route.snapshot.paramMap.get('idColaborador')
-    );
+    this.idColaborador = this.route.snapshot.paramMap.get('idColaborador') || '';
     this.contrato.id_colaborador = this.idColaborador;
     this.regresar = '/colaboradores-contratos/' + this.idColaborador;
 
-    if (accion === 'editar' && idParam && Number(idParam) > 0) {
-      this.idContrato = Number(idParam);
+    if (accion === 'editar' && idParam) {
+      this.idContrato = idParam;
       this.esEdicion = true;
       this.accion = 'editar';
       this.titulo = 'Editar contrato';
@@ -125,7 +123,7 @@ export class CrearContratoColaboradorComponent implements OnInit {
       next: (response: any) => {
         this.cargos = (response.body || []).map((c: any) => ({
           ...c,
-          id: Number(c.id),
+          id: c.id,
         }));
       },
       error: (error: any) => console.error('Error al cargar cargos:', error),
@@ -149,8 +147,8 @@ export class CrearContratoColaboradorComponent implements OnInit {
   get existePlantilla(): boolean {
     return this.mapeosPlantillas.some(
       (m) =>
-        Number(m.id_cargo) === Number(this.contrato.id_cargo) &&
-        Number(m.id_tipo_contrato) === Number(this.contrato.id_tipo_contrato) &&
+        m.id_cargo === this.contrato.id_cargo &&
+        m.id_tipo_contrato === this.contrato.id_tipo_contrato &&
         Number(m.activo) === 1
     );
   }
@@ -160,7 +158,7 @@ export class CrearContratoColaboradorComponent implements OnInit {
       next: (response: any) => {
         this.tiposContrato = (response.body || []).map((tc: any) => ({
           ...tc,
-          id: Number(tc.id),
+          id: tc.id,
         }));
       },
       error: (error: any) =>
@@ -235,9 +233,9 @@ export class CrearContratoColaboradorComponent implements OnInit {
 
         // Precargar valores del colaborador en el contrato (editables luego)
         if (!this.esEdicion) {
-          this.contrato.id_cargo = Number(this.colaborador.id_cargo) || 0;
+          this.contrato.id_cargo = this.colaborador.id_cargo || 0;
           this.contrato.id_tipo_contrato =
-            Number(this.colaborador.id_tipo_contrato) || 0;
+            this.colaborador.id_tipo_contrato || 0;
           this.contrato.salario_mensual =
             this.colaborador.salario_mensual || 0;
           if (this.colaborador.fecha_ingreso) {
@@ -294,7 +292,7 @@ export class CrearContratoColaboradorComponent implements OnInit {
       });
   }
 
-  private cargarContrato(id: number): void {
+  private cargarContrato(id: string): void {
     this.contratosService.obtenerById(id).subscribe({
       next: (response: any) => {
         const c = response.body;
@@ -303,8 +301,8 @@ export class CrearContratoColaboradorComponent implements OnInit {
           numero: c.numero,
           anio: c.anio,
           id_colaborador: c.id_colaborador,
-          id_cargo: Number(c.id_cargo),
-          id_tipo_contrato: Number(c.id_tipo_contrato),
+          id_cargo: c.id_cargo,
+          id_tipo_contrato: c.id_tipo_contrato,
           id_plantilla: c.id_plantilla,
           salario_mensual: c.salario_mensual,
           periodo_pago: c.periodo_pago,

@@ -118,7 +118,7 @@ export class ProductosAcademicoService {
       );
   }
 
-  asignarGrados(idProductoAcademico: number, grados: number[]) {
+  asignarGrados(idProductoAcademico: string, grados: string[]) {
     const body = JSON.stringify({ grados: grados });
     return this.http.post<any>(
       this.servicio + `/${idProductoAcademico}/grados`,

@@ -11,7 +11,7 @@ import { DatosEvaluacionPDF, ExportarPdfEvaluacionService } from './exportar-pdf
 type ValorCalificativo = 'Excelente' | 'Sobresaliente' | 'Bueno' | 'Aceptable' | 'Insuficiente' | 'Sin calificación';
 
 interface SprintInfo {
-    id: number;
+    id: string;
     nombre_sprint: string;
     fecha_final: string;
     nombre_corte_academico?: string | null;
@@ -31,7 +31,7 @@ export class InformeEstudianteService {
 
     // Genera y descarga el PDF del informe del estudiante para un sprint dado.
     // Replica la lógica de exportarPDF() del componente estudiante-evaluaciones.
-    generarYDescargarInforme(idEstudiante: number | string, sprint: SprintInfo): Observable<void> {
+    generarYDescargarInforme(idEstudiante: string | string, sprint: SprintInfo): Observable<void> {
         return forkJoin({
             calificaciones: this.calificacionesService.obtenerCalificacionesEstudianteDetalle(sprint.id, idEstudiante),
             observaciones: this.observacionesService.obtenerPorEstudiante(idEstudiante),
@@ -49,7 +49,7 @@ export class InformeEstudianteService {
                 const observaciones = observacionesAll
                     .filter((obs: any) => String(obs.id_sprint) === String(sprint.id) && Number(obs.para_informe) === 1)
                     .map((obs: any) => {
-                        const tipo = tiposObservaciones.find((t: any) => Number(t.id) === Number(obs.id_tipo_observacion_estudiante));
+                        const tipo = tiposObservaciones.find((t: any) => t.id === obs.id_tipo_observacion_estudiante);
                         return {
                             ...obs,
                             nombre_tipo_observacion: tipo ? tipo.nombre : 'Desconocido',
@@ -73,8 +73,8 @@ export class InformeEstudianteService {
                     .filter((m: any) => new Date(m.fecha) <= fechaFinSprint)
                     .sort((a: any, b: any) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
 
-                const pesoMasReciente = medidasValidas.find((m: any) => Number(m.id_medida) === 1);
-                const tallaMasReciente = medidasValidas.find((m: any) => Number(m.id_medida) === 2);
+                const pesoMasReciente = medidasValidas.find((m: any) => m.id_medida === 1);
+                const tallaMasReciente = medidasValidas.find((m: any) => m.id_medida === 2);
 
                 const ultimoPeso = pesoMasReciente
                     ? { valor: pesoMasReciente.valor, fecha: pesoMasReciente.fecha, unidad: 'kg' }

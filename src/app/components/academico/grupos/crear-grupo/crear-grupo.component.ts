@@ -44,18 +44,18 @@ export class CrearGrupoComponent implements OnInit {
   // Grados disponibles y asociados
   gradosDisponibles: any[] = [];
   gradosAsociados: any[] = [];
-  gradosSeleccionados: { [key: number]: boolean } = {};
+  gradosSeleccionados: { [key: string]: boolean } = {};
 
   // Áreas académicas disponibles y asociadas
   areasDisponibles: any[] = [];
   areasAsociadas: any[] = [];
-  areasSeleccionadas: { [key: number]: boolean } = {};
+  areasSeleccionadas: { [key: string]: boolean } = {};
 
   // Horarios
   diasSemana: any[] = [];
   horariosGrupo: any[] = [];
   horasDelDia: string[] = [];
-  areasSeleccionadasFiltro: { [key: number]: boolean } = {};
+  areasSeleccionadasFiltro: { [key: string]: boolean } = {};
   mostrarModalHorario: boolean = false;
   horarioErrorSolapamiento: string = '';
   horarioModal = {
@@ -317,7 +317,7 @@ export class CrearGrupoComponent implements OnInit {
     });
   }
 
-  toggleGrado(id_grado: number) {
+  toggleGrado(id_grado: string) {
     this.gradosSeleccionados[id_grado] = !this.gradosSeleccionados[id_grado];
   }
 
@@ -499,7 +499,7 @@ export class CrearGrupoComponent implements OnInit {
     });
   }
 
-  toggleAreaFiltro(idArea: number) {
+  toggleAreaFiltro(idArea: string) {
     this.areasSeleccionadasFiltro[idArea] = !this.areasSeleccionadasFiltro[idArea];
   }
 
@@ -736,13 +736,13 @@ export class CrearGrupoComponent implements OnInit {
     }
   }
 
-  obtenerHorariosPorAreaYDia(id_area: number, id_dia: number): any[] {
+  obtenerHorariosPorAreaYDia(id_area: string, id_dia: number): any[] {
     return this.horariosGrupo.filter(h => 
       h.id_area_academica === id_area && h.id_dia_semana === id_dia
     );
   }
 
-  obtenerColorArea(id_area: number): string {
+  obtenerColorArea(id_area: string): string {
     const horario = this.horariosGrupo.find(h => h.id_area_academica === id_area);
     if (horario && horario.area_academica_color) {
       return horario.area_academica_color;
@@ -751,7 +751,7 @@ export class CrearGrupoComponent implements OnInit {
     return area?.color || '#FFFFFF';
   }
 
-  obtenerNombreArea(id_area: number): string {
+  obtenerNombreArea(id_area: string): string {
     const area = this.areasAsociadas.find(a => a.id_area_academica === id_area);
     return area?.nombre_area_academica || '';
   }
@@ -1009,8 +1009,8 @@ export class CrearGrupoComponent implements OnInit {
 
     const data = {
       id_grupo: this.model.id,
-      id_producto_matricula: parseInt(this.tarifaActual.id_producto_matricula),
-      id_producto_pension: parseInt(this.tarifaActual.id_producto_pension),
+      id_producto_matricula: this.tarifaActual.id_producto_matricula,
+      id_producto_pension: this.tarifaActual.id_producto_pension,
       valor_matricula: this.tarifaActual.valor_matricula,
       valor_pension: this.tarifaActual.valor_pension,
       anio: parseInt(this.tarifaActual.anio)
@@ -1020,7 +1020,7 @@ export class CrearGrupoComponent implements OnInit {
     console.log('Data a enviar:', data);
 
     if (this.tarifaActual.id) {
-      data.id = parseInt(this.tarifaActual.id);
+      data.id = this.tarifaActual.id;
       console.log('Actualizando tarifa con id:', data.id);
       this.tarifasGruposService.actualizar(data).subscribe({
         next: (response: any) => {

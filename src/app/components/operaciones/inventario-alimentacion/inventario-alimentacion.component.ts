@@ -94,7 +94,7 @@ export class InventarioAlimentacionComponent implements OnInit {
   public inventario: ItemInventario[] = [];
   public ingredientesExtra: IngredienteExtra[] = [];
   public conceptos: any[] = [];
-  public conceptoSeleccionado: number | null = null;
+  public conceptoSeleccionado: string | null = null;
   public observaciones: string = '';
   public registrando: boolean = false;
 

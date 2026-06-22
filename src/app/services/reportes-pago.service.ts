@@ -200,7 +200,7 @@ export class ReportesPagoService {
       catchError(this.handleError),
     );
   }
-  actualizarDocumento(data: { id: number; id_documento_persona: number }) {
+  actualizarDocumento(data: { id: string; id_documento_persona: string }) {
     const body = JSON.stringify(data);
     return this.http
       .put<any>(this.servicio + '/documento', body, httpOptions)

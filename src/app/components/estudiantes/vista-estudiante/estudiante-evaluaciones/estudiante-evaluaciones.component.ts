@@ -39,19 +39,19 @@ interface Calificacion {
     estado_tarea_nombre: string;
     fecha_ejecucion: string;
     nombre_completo_docente: string;
-    id_estudiante: number;
-    id_area_academica: number;
-    id_grupo: number;
+    id_estudiante: string;
+    id_area_academica: string;
+    id_grupo: string;
     descripcion_indicador_logro?: string;
-    id_indicador_logro?: number;
-    id_logro?: number;
+    id_indicador_logro?: string;
+    id_logro?: string;
     logro_nombre?: string;
     [key: string]: any;
     color?: string;
 }
 
 interface CalificacionPromedio {
-    id_area_academica: number;
+    id_area_academica: string;
     area_academica_nombre: string;
     valores: number[];
     promedio: number;
@@ -60,9 +60,9 @@ interface CalificacionPromedio {
 }
 
 interface IndicadorLogroPromedio {
-    id_indicador_logro: number;
+    id_indicador_logro: string;
     descripcion_indicador_logro: string;
-    id_area_academica: number;
+    id_area_academica: string;
     area_academica_nombre: string;
     valores: number[];
     promedio: number;
@@ -71,9 +71,9 @@ interface IndicadorLogroPromedio {
 }
 
 interface LogroPromedio {
-    id_logro: number;
+    id_logro: string;
     logro_nombre: string;
-    id_area_academica: number;
+    id_area_academica: string;
     area_academica_nombre: string;
     valores: number[];
     promedio: number;
@@ -94,23 +94,23 @@ interface ResumenEstudiante {
 }
 
 interface ObservacionEstudiante {
-    id: number;
+    id: string;
     fecha: string;
     fechaFormateada?: string;
     descripcion: string;
-    id_tipo_observacion_estudiante: number;
+    id_tipo_observacion_estudiante: string;
     nombre_tipo_observacion?: string;
-    id_estudiante_afectado?: number;
+    id_estudiante_afectado?: string;
     nombre_estudiante_afectado?: string;
     nombre_usuario?: string;
     firma_informe_padre?: string;
 }
 
 interface MedidaAntropometrica {
-    id: number;
+    id: string;
     fecha: string;
     valor: number;
-    id_medida: number;
+    id_medida: string;
     nombre_medida?: string;
     unidad?: string;
     nombre_usuario?: string;
@@ -482,8 +482,8 @@ export class EstudianteEvaluacionesComponent implements OnInit, OnDestroy {
     }
 
     // Método para obtener el color del tipo de observación
-    getColorTipoObservacion(idTipo: number): string {
-        const coloresTipos: { [key: number]: string } = {
+    getColorTipoObservacion(idTipo: string): string {
+        const coloresTipos: { [key: string]: string } = {
             1: '#3498db',  // Académica - Azul
             2: '#e67e22',  // Disciplinaria - Naranja
             4: '#9b59b6'   // Social - Morado
@@ -492,7 +492,7 @@ export class EstudianteEvaluacionesComponent implements OnInit, OnDestroy {
     }
 
     // Método para obtener las observaciones agrupadas por tipo
-    getObservacionesPorTipo(idTipo: number): ObservacionEstudiante[] {
+    getObservacionesPorTipo(idTipo: string): ObservacionEstudiante[] {
         return this.observaciones.filter(obs => obs.id_tipo_observacion_estudiante === idTipo);
     }
 
@@ -536,7 +536,7 @@ export class EstudianteEvaluacionesComponent implements OnInit, OnDestroy {
         }
 
         // Agrupar por área académica
-        const areas = new Map<number, CalificacionPromedio>();
+        const areas = new Map<string, CalificacionPromedio>();
 
         this.calificacionesFiltradas.forEach(item => {
             if (!item['id_area_academica'] || item['valor_cuantitativo'] === undefined) return;
@@ -669,7 +669,7 @@ export class EstudianteEvaluacionesComponent implements OnInit, OnDestroy {
         }
 
         // Agrupar por logro
-        const logros = new Map<number, LogroPromedio>();
+        const logros = new Map<string, LogroPromedio>();
 
         this.calificacionesFiltradas.forEach(item => {
             if (!item['id_logro'] || !item['id_area_academica'] ||
@@ -708,7 +708,7 @@ export class EstudianteEvaluacionesComponent implements OnInit, OnDestroy {
 
             // Anidar los indicadores que pertenecen a este logro
             // Vinculamos a través de las calificaciones: id_logro <-> id_indicador_logro
-            const indicadoresIdsDelLogro = new Set<number>();
+            const indicadoresIdsDelLogro = new Set<string>();
             this.calificacionesFiltradas.forEach(item => {
                 if (item['id_logro'] === logro.id_logro && item['id_indicador_logro']) {
                     indicadoresIdsDelLogro.add(item['id_indicador_logro']);

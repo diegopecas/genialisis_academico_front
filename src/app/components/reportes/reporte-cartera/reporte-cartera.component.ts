@@ -11,9 +11,9 @@ import { GruposService } from '../../../services/grupos.service';
 
 // Interfaces
 interface EstudianteCartera {
-  id_persona: number;
-  id_estudiante: number;
-  id_colaborador: number;
+  id_persona: string;
+  id_estudiante: string;
+  id_colaborador: string;
   nombre_estudiante: string;
   numero_identificacion: string;
   grupo_estudiante: string;
@@ -27,7 +27,7 @@ interface EstudianteCartera {
   saldoVencido: number;
   saldoPendiente: number;
   tiposPago: { [key: string]: number };
-  valoresMensuales: { [key: number]: any };
+  valoresMensuales: { [key: string]: any };
   clasificaciones: {
     [key: string]: {
       cobrado: number;
@@ -46,14 +46,14 @@ interface EstudianteCarteraConSaldoPendiente extends EstudianteCartera {
 }
 
 interface ValorCartera {
-  id_persona: number;
+  id_persona: string;
   tipo_valor: string;
   valor: number;
   mes: number | null;
 }
 
 interface ClasificacionCartera {
-  id_clasificacion: number;
+  id_clasificacion: string;
   nombre_clasificacion: string;
   total_cobrado: number;
   total_pagado: number;
@@ -72,16 +72,17 @@ interface PagoDiario {
   mes: number;
   nombre_mes: string;
   anio: number;
-  id_tipo_pago: number;
+  id_tipo_pago: string;
+  grupo_cartera: string;
   nombre_tipo_pago: string;
   total_cobrado: number;
   cantidad_cobros: number;
   total_pagado: number;
   total_recibido?: number;
   cantidad_pagos: number;
-  id_estudiante?: number;
-  id_colaborador?: number;
-  id_persona?: number;
+  id_estudiante?: string;
+  id_colaborador?: string;
+  id_persona?: string;
   nombre_estudiante?: string;
   tipo_persona?: string;
 }
@@ -97,9 +98,9 @@ interface DatoMensual {
   porcentajeRecaudo: number;
 }
 interface ProductoCartera {
-  id_producto: number;
+  id_producto: string;
   nombre_producto: string;
-  id_clasificacion: number;
+  id_clasificacion: string;
   nombre_clasificacion: string;
   total_cobrado: number;
   total_cobrado_a_este_mes: number;
@@ -118,21 +119,22 @@ interface MovimientoAnulado {
   nombre_mes: string;
   anio: number;
   tipo_movimiento: string;
-  id_tipo_pago: number;
+  id_tipo_pago: string;
+  grupo_cartera: string;
   nombre_tipo_pago: string;
   fecha_original: string;
-  id_estudiante?: number;
-  id_colaborador?: number;
-  id_persona?: number;
+  id_estudiante?: string;
+  id_colaborador?: string;
+  id_persona?: string;
   nombre_estudiante?: string;
   tipo_persona?: string;
-  id_producto_servicio?: number;
+  id_producto_servicio?: string;
   nombre_producto?: string;
-  id_clasificacion?: number;
+  id_clasificacion?: string;
   nombre_clasificacion?: string;
   valor_anulado: number;
   cantidad_anulaciones: number;
-  id_usuario_anulacion?: number;
+  id_usuario_anulacion?: string;
   nombre_usuario_anulacion?: string;
 }
 @Component({
@@ -247,7 +249,6 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
   public fechaInicioSeleccionada: string = '';
   public fechaFinSeleccionada: string = '';
 
-
   // Variables para paginación y colapso en Movimiento Diario
 
   public paginacionMovimientoDiario = {
@@ -287,14 +288,14 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
   public movimientoCobros: PagoDiario[] = [];
 
   // Propiedades para los filtros de tipo de pago
-  public filtroTipoIngresos: number | '' = '';
-  public filtroTipoDescuentos: number | '' = '';
-  public filtroTipoExtracurricular: number | '' = '';
+  public filtroTipoIngresos: string | '' = '';
+  public filtroTipoDescuentos: string | '' = '';
+  public filtroTipoExtracurricular: string | '' = '';
 
   // Arrays para almacenar los tipos únicos obtenidos de los datos
-  public tiposIngresos: { id: number, nombre: string }[] = [];
-  public tiposDescuentos: { id: number, nombre: string }[] = [];
-  public tiposExtracurricular: { id: number, nombre: string }[] = [];
+  public tiposIngresos: { id: string, nombre: string }[] = [];
+  public tiposDescuentos: { id: string, nombre: string }[] = [];
+  public tiposExtracurricular: { id: string, nombre: string }[] = [];
 
   // Variables para tab de productos
   public datosProductos: ProductoCartera[] = [];
@@ -327,14 +328,14 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
   public fechaFinAnulacion: string = '';
 
   // Filtros de tipo para anulados
-  public filtroTipoAnuladosIngresos: number | '' = '';
-  public filtroTipoAnuladosDescuentos: number | '' = '';
-  public filtroTipoAnuladosExtracurricular: number | '' = '';
+  public filtroTipoAnuladosIngresos: string | '' = '';
+  public filtroTipoAnuladosDescuentos: string | '' = '';
+  public filtroTipoAnuladosExtracurricular: string | '' = '';
 
   // Tipos únicos para anulados
-  public tiposAnuladosIngresos: { id: number, nombre: string }[] = [];
-  public tiposAnuladosDescuentos: { id: number, nombre: string }[] = [];
-  public tiposAnuladosExtracurricular: { id: number, nombre: string }[] = [];
+  public tiposAnuladosIngresos: { id: string, nombre: string }[] = [];
+  public tiposAnuladosDescuentos: { id: string, nombre: string }[] = [];
+  public tiposAnuladosExtracurricular: { id: string, nombre: string }[] = [];
 
   // Paginación para anulados
   public paginacionAnulados = {
@@ -447,7 +448,7 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
   }
 
   procesarDatosCartera(data: any): void {
-    const estudiantesMap = new Map<number, EstudianteCartera>();
+    const estudiantesMap = new Map<string, EstudianteCartera>();
 
     // Inicializar personas (estudiantes + colaboradores) desde reporte_estudiantes
     data.reporte_estudiantes.forEach((est: any) => {
@@ -1941,13 +1942,13 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
   getTotalPagado(): number {
     // Usar movimientoDiarioFiltrado que ya está filtrado por grupo/estado
     return this.movimientoDiarioFiltrado
-      .filter(m => m.id_tipo_pago !== 0)
+      .filter(m => !!m.id_tipo_pago)
       .reduce((sum, m) => sum + m.total_pagado, 0);
   }
 
   getTotalCantidadPagos(): number {
     return this.movimientoDiarioFiltrado
-      .filter(m => m.id_tipo_pago !== 0)
+      .filter(m => !!m.id_tipo_pago)
       .reduce((sum, m) => sum + m.cantidad_pagos, 0);
   }
 
@@ -1957,39 +1958,38 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
   // Total recibido general
   getTotalRecibido(): number {
     return this.movimientoDiarioFiltrado
-      .filter(m => m.id_tipo_pago !== 0)
+      .filter(m => !!m.id_tipo_pago)
       .reduce((sum, m) => sum + (m.total_recibido || 0), 0);
   }
-
 
   // Métodos para separar tipos de pagos
   getTotalPagadoEfectivo(): number {
     return this.movimientoDiarioFiltrado
-      .filter(m => m.id_tipo_pago > 0 && m.id_tipo_pago <= 4) // IDs 1-4 son pagos efectivos
+      .filter(m => m.grupo_cartera === 'EFECTIVO') // IDs 1-4 son pagos efectivos
       .reduce((sum, m) => sum + m.total_pagado, 0);
   }
 
   getTotalRecibidoEfectivo(): number {
     return this.movimientoDiarioFiltrado
-      .filter(m => m.id_tipo_pago > 0 && m.id_tipo_pago <= 4)
+      .filter(m => m.grupo_cartera === 'EFECTIVO')
       .reduce((sum, m) => sum + (m.total_recibido || 0), 0);
   }
 
   getTotalDescuentos(): number {
     return this.movimientoDiarioFiltrado
-      .filter(m => m.id_tipo_pago === 5 || m.id_tipo_pago === 6) // IDs 5 y 6 son descuentos/castigos
+      .filter(m => m.grupo_cartera === 'DESCUENTO') // IDs 5 y 6 son descuentos/castigos
       .reduce((sum, m) => sum + m.total_pagado, 0);
   }
 
   getCantidadPagosEfectivos(): number {
     return this.movimientoDiarioFiltrado
-      .filter(m => m.id_tipo_pago > 0 && m.id_tipo_pago <= 4)
+      .filter(m => m.grupo_cartera === 'EFECTIVO')
       .reduce((sum, m) => sum + m.cantidad_pagos, 0);
   }
 
   getCantidadDescuentos(): number {
     return this.movimientoDiarioFiltrado
-      .filter(m => m.id_tipo_pago === 5 || m.id_tipo_pago === 6)
+      .filter(m => m.grupo_cartera === 'DESCUENTO')
       .reduce((sum, m) => sum + m.cantidad_pagos, 0);
   }
 
@@ -1997,14 +1997,14 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
   getTotalRecibidoReal(): number {
     // Suma el total recibido de todos los tipos de pago
     return this.movimientoDiarioFiltrado
-      .filter(m => m.id_tipo_pago !== 0) // Excluir cobros
+      .filter(m => !!m.id_tipo_pago) // Excluir cobros
       .reduce((total, m) => total + (m.total_recibido || 0), 0);
   }
   // Métodos para los diferentes tipos de pagos
   getTotalIngresos(): number {
     let ingresos = [...this.movimientoIngresos];
     if (this.filtroTipoIngresos !== '') {
-      ingresos = ingresos.filter(m => m.id_tipo_pago === Number(this.filtroTipoIngresos));
+      ingresos = ingresos.filter(m => m.id_tipo_pago === this.filtroTipoIngresos);
     }
     return ingresos.reduce((sum, m) => sum + m.total_pagado, 0);
   }
@@ -2012,7 +2012,7 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
   getTotalDescuentosCastigos(): number {
     let descuentos = [...this.movimientoDescuentos];
     if (this.filtroTipoDescuentos !== '') {
-      descuentos = descuentos.filter(m => m.id_tipo_pago === Number(this.filtroTipoDescuentos));
+      descuentos = descuentos.filter(m => m.id_tipo_pago === this.filtroTipoDescuentos);
     }
     return descuentos.reduce((sum, m) => sum + m.total_pagado, 0);
   }
@@ -2020,13 +2020,13 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
   getTotalExtracurricular(): number {
     let extracurricular = [...this.movimientoExtracurricular];
     if (this.filtroTipoExtracurricular !== '') {
-      extracurricular = extracurricular.filter(m => m.id_tipo_pago === Number(this.filtroTipoExtracurricular));
+      extracurricular = extracurricular.filter(m => m.id_tipo_pago === this.filtroTipoExtracurricular);
     }
     return extracurricular.reduce((sum, m) => sum + m.total_pagado, 0);
   }
 
-  obtenerNombreTipoPago(id: number): string {
-    const nombres: { [key: number]: string } = {
+  obtenerNombreTipoPago(id: string): string {
+    const nombres: { [key: string]: string } = {
       1: 'Efectivo',
       2: 'Nequi',
       3: 'Bancolombia',
@@ -2040,7 +2040,7 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
   getTotalRecibidoIngresos(): number {
     let ingresos = [...this.movimientoIngresos];
     if (this.filtroTipoIngresos !== '') {
-      ingresos = ingresos.filter(m => m.id_tipo_pago === Number(this.filtroTipoIngresos));
+      ingresos = ingresos.filter(m => m.id_tipo_pago === this.filtroTipoIngresos);
     }
     return ingresos.reduce((sum, m) => sum + (m.total_recibido || 0), 0);
   }
@@ -2048,7 +2048,7 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
   getTotalRecibidoDescuentos(): number {
     let descuentos = [...this.movimientoDescuentos];
     if (this.filtroTipoDescuentos !== '') {
-      descuentos = descuentos.filter(m => m.id_tipo_pago === Number(this.filtroTipoDescuentos));
+      descuentos = descuentos.filter(m => m.id_tipo_pago === this.filtroTipoDescuentos);
     }
     return descuentos.reduce((sum, m) => sum + (m.total_recibido || 0), 0);
   }
@@ -2056,7 +2056,7 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
   getTotalRecibidoExtracurricular(): number {
     let extracurricular = [...this.movimientoExtracurricular];
     if (this.filtroTipoExtracurricular !== '') {
-      extracurricular = extracurricular.filter(m => m.id_tipo_pago === Number(this.filtroTipoExtracurricular));
+      extracurricular = extracurricular.filter(m => m.id_tipo_pago === this.filtroTipoExtracurricular);
     }
     return extracurricular.reduce((sum, m) => sum + (m.total_recibido || 0), 0);
   }
@@ -2111,7 +2111,7 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
 
     // Convertir a número para la comparación
     if (this.filtroTipoIngresos !== '') {
-      ingresos = ingresos.filter(m => m.id_tipo_pago === Number(this.filtroTipoIngresos));
+      ingresos = ingresos.filter(m => m.id_tipo_pago === this.filtroTipoIngresos);
     }
 
     if (this.paginacionMovimientoDiario.ingresos.soloConDiferencia) {
@@ -2129,7 +2129,7 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
 
     // Convertir a número para la comparación
     if (this.filtroTipoDescuentos !== '') {
-      descuentos = descuentos.filter(m => m.id_tipo_pago === Number(this.filtroTipoDescuentos));
+      descuentos = descuentos.filter(m => m.id_tipo_pago === this.filtroTipoDescuentos);
     }
 
     if (this.paginacionMovimientoDiario.descuentos.soloConDiferencia) {
@@ -2147,7 +2147,7 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
 
     // Convertir a número para la comparación
     if (this.filtroTipoExtracurricular !== '') {
-      extracurricular = extracurricular.filter(m => m.id_tipo_pago === Number(this.filtroTipoExtracurricular));
+      extracurricular = extracurricular.filter(m => m.id_tipo_pago === this.filtroTipoExtracurricular);
     }
 
     if (this.paginacionMovimientoDiario.extracurricular.soloConDiferencia) {
@@ -2170,7 +2170,7 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
     // Ingresos - usando array global con filtros aplicados
     let ingresosFiltrados = [...this.movimientoIngresos];
     if (this.filtroTipoIngresos !== '') {
-      ingresosFiltrados = ingresosFiltrados.filter(m => m.id_tipo_pago === Number(this.filtroTipoIngresos));
+      ingresosFiltrados = ingresosFiltrados.filter(m => m.id_tipo_pago === this.filtroTipoIngresos);
     }
     if (this.paginacionMovimientoDiario.ingresos.soloConDiferencia) {
       ingresosFiltrados = ingresosFiltrados.filter(m => this.tieneDiferenciaRecibidoAplicado(m));
@@ -2182,7 +2182,7 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
     // Descuentos - usando array global con filtros aplicados
     let descuentosFiltrados = [...this.movimientoDescuentos];
     if (this.filtroTipoDescuentos !== '') {
-      descuentosFiltrados = descuentosFiltrados.filter(m => m.id_tipo_pago === Number(this.filtroTipoDescuentos));
+      descuentosFiltrados = descuentosFiltrados.filter(m => m.id_tipo_pago === this.filtroTipoDescuentos);
     }
     if (this.paginacionMovimientoDiario.descuentos.soloConDiferencia) {
       descuentosFiltrados = descuentosFiltrados.filter(m => this.tieneDiferenciaRecibidoAplicado(m));
@@ -2194,7 +2194,7 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
     // Extracurricular - usando array global con filtros aplicados
     let extracurricularFiltrados = [...this.movimientoExtracurricular];
     if (this.filtroTipoExtracurricular !== '') {
-      extracurricularFiltrados = extracurricularFiltrados.filter(m => m.id_tipo_pago === Number(this.filtroTipoExtracurricular));
+      extracurricularFiltrados = extracurricularFiltrados.filter(m => m.id_tipo_pago === this.filtroTipoExtracurricular);
     }
     if (this.paginacionMovimientoDiario.extracurricular.soloConDiferencia) {
       extracurricularFiltrados = extracurricularFiltrados.filter(m => this.tieneDiferenciaRecibidoAplicado(m));
@@ -2211,26 +2211,25 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
       case 'ingresos':
         movimientos = [...this.movimientoIngresos];
         if (this.filtroTipoIngresos !== '') {
-          movimientos = movimientos.filter(m => m.id_tipo_pago === Number(this.filtroTipoIngresos));
+          movimientos = movimientos.filter(m => m.id_tipo_pago === this.filtroTipoIngresos);
         }
         break;
       case 'descuentos':
         movimientos = [...this.movimientoDescuentos];
         if (this.filtroTipoDescuentos !== '') {
-          movimientos = movimientos.filter(m => m.id_tipo_pago === Number(this.filtroTipoDescuentos));
+          movimientos = movimientos.filter(m => m.id_tipo_pago === this.filtroTipoDescuentos);
         }
         break;
       case 'extracurricular':
         movimientos = [...this.movimientoExtracurricular];
         if (this.filtroTipoExtracurricular !== '') {
-          movimientos = movimientos.filter(m => m.id_tipo_pago === Number(this.filtroTipoExtracurricular));
+          movimientos = movimientos.filter(m => m.id_tipo_pago === this.filtroTipoExtracurricular);
         }
         break;
     }
 
     return movimientos.filter(m => this.tieneDiferenciaRecibidoAplicado(m)).length;
   }
-
 
   getTotalDiferencia(tipo: 'ingresos' | 'descuentos' | 'extracurricular'): number {
     let movimientos: PagoDiario[] = [];
@@ -2239,19 +2238,19 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
       case 'ingresos':
         movimientos = [...this.movimientoIngresos];
         if (this.filtroTipoIngresos !== '') {
-          movimientos = movimientos.filter(m => m.id_tipo_pago === Number(this.filtroTipoIngresos));
+          movimientos = movimientos.filter(m => m.id_tipo_pago === this.filtroTipoIngresos);
         }
         break;
       case 'descuentos':
         movimientos = [...this.movimientoDescuentos];
         if (this.filtroTipoDescuentos !== '') {
-          movimientos = movimientos.filter(m => m.id_tipo_pago === Number(this.filtroTipoDescuentos));
+          movimientos = movimientos.filter(m => m.id_tipo_pago === this.filtroTipoDescuentos);
         }
         break;
       case 'extracurricular':
         movimientos = [...this.movimientoExtracurricular];
         if (this.filtroTipoExtracurricular !== '') {
-          movimientos = movimientos.filter(m => m.id_tipo_pago === Number(this.filtroTipoExtracurricular));
+          movimientos = movimientos.filter(m => m.id_tipo_pago === this.filtroTipoExtracurricular);
         }
         break;
     }
@@ -2281,10 +2280,10 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
   // Método para clasificar movimientos por tipo
   private clasificarMovimientosPorTipo(): void {
     // Clasificar movimientos en arrays globales
-    this.movimientoCobros = this.movimientoDiarioFiltrado.filter(m => m.id_tipo_pago === 0);
-    this.movimientoIngresos = this.movimientoDiarioFiltrado.filter(m => m.id_tipo_pago >= 1 && m.id_tipo_pago <= 3);
-    this.movimientoDescuentos = this.movimientoDiarioFiltrado.filter(m => m.id_tipo_pago === 4 || m.id_tipo_pago === 5);
-    this.movimientoExtracurricular = this.movimientoDiarioFiltrado.filter(m => m.id_tipo_pago === 6);
+    this.movimientoCobros = this.movimientoDiarioFiltrado.filter(m => !m.id_tipo_pago);
+    this.movimientoIngresos = this.movimientoDiarioFiltrado.filter(m => m.grupo_cartera === 'EFECTIVO');
+    this.movimientoDescuentos = this.movimientoDiarioFiltrado.filter(m => m.grupo_cartera === 'DESCUENTO');
+    this.movimientoExtracurricular = this.movimientoDiarioFiltrado.filter(m => m.grupo_cartera === 'EXTRACURRICULAR');
 
     // Generar tipos únicos desde los arrays clasificados
     this.generarTiposUnicos();
@@ -2293,46 +2292,46 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
   // Método para generar tipos únicos desde los arrays clasificados
   private generarTiposUnicos(): void {
     // Obtener tipos únicos de ingresos
-    const tiposIngresosSet = new Set<number>();
+    const tiposIngresosSet = new Set<string>();
     this.movimientoIngresos.forEach(m => tiposIngresosSet.add(m.id_tipo_pago));
 
     this.tiposIngresos = Array.from(tiposIngresosSet)
-      .sort((a, b) => a - b)
+      .sort()
       .map(id => ({
         id: id,
         nombre: this.obtenerNombreTipoPago(id)
       }));
 
     // Obtener tipos únicos de descuentos
-    const tiposDescuentosSet = new Set<number>();
+    const tiposDescuentosSet = new Set<string>();
     this.movimientoDescuentos.forEach(m => tiposDescuentosSet.add(m.id_tipo_pago));
 
     this.tiposDescuentos = Array.from(tiposDescuentosSet)
-      .sort((a, b) => a - b)
+      .sort()
       .map(id => ({
         id: id,
         nombre: this.obtenerNombreTipoPago(id)
       }));
 
     // Obtener tipos únicos de extracurricular
-    const tiposExtracurricularSet = new Set<number>();
+    const tiposExtracurricularSet = new Set<string>();
     this.movimientoExtracurricular.forEach(m => tiposExtracurricularSet.add(m.id_tipo_pago));
 
     this.tiposExtracurricular = Array.from(tiposExtracurricularSet)
-      .sort((a, b) => a - b)
+      .sort()
       .map(id => ({
         id: id,
         nombre: this.obtenerNombreTipoPago(id)
       }));
 
     // Limpiar filtros si el tipo seleccionado ya no existe
-    if (this.filtroTipoIngresos && !tiposIngresosSet.has(this.filtroTipoIngresos as number)) {
+    if (this.filtroTipoIngresos && !tiposIngresosSet.has(this.filtroTipoIngresos)) {
       this.filtroTipoIngresos = '';
     }
-    if (this.filtroTipoDescuentos && !tiposDescuentosSet.has(this.filtroTipoDescuentos as number)) {
+    if (this.filtroTipoDescuentos && !tiposDescuentosSet.has(this.filtroTipoDescuentos)) {
       this.filtroTipoDescuentos = '';
     }
-    if (this.filtroTipoExtracurricular && !tiposExtracurricularSet.has(this.filtroTipoExtracurricular as number)) {
+    if (this.filtroTipoExtracurricular && !tiposExtracurricularSet.has(this.filtroTipoExtracurricular)) {
       this.filtroTipoExtracurricular = '';
     }
   }
@@ -2340,7 +2339,7 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
     this.paginacionMovimientoDiario[seccion].paginaActual = 1;
     this.calcularPaginacionMovimientoDiario();
   }
-  private obtenerPersonasFiltradas(): Set<number> {
+  private obtenerPersonasFiltradas(): Set<string> {
     let filtrados = [...this.estudiantes];
 
     // Aplicar los mismos filtros que en aplicarFiltros()
@@ -2384,8 +2383,7 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
     return this.estudiantesFiltrados.some(est => est.id_persona === movimiento.id_persona);
   }
 
-
-  obtenerNombreClasificacion(idClasificacion: number): string {
+  obtenerNombreClasificacion(idClasificacion: string): string {
     const clasificacion = this.datosClasificaciones.find(c => c.id_clasificacion === idClasificacion);
     return clasificacion ? clasificacion.nombre_clasificacion : 'Sin clasificación';
   }
@@ -2461,7 +2459,6 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
     this.productosSeleccionados = []; // Cambiar a array vacío
     this.filtrarProductos();
   }
-
 
   getSubtotalClasificacionProductos(nombreClasificacion: string, campo: string): number {
     const productos = this.datosProductosAgrupados.get(nombreClasificacion) || [];
@@ -2677,7 +2674,6 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
     this.dropdownProductosAbierto = !this.dropdownProductosAbierto;
   }
 
-
   // Métodos para inicializar fechas de anulados
   private inicializarFechasFiltroAnulados(): void {
     const hoy = new Date();
@@ -2701,13 +2697,13 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
 
     // Clasificar pagos anulados
     this.anuladosIngresos = pagosAnulados.filter(m =>
-      m.id_tipo_pago >= 1 && m.id_tipo_pago <= 3
+      m.grupo_cartera === 'EFECTIVO'
     );
     this.anuladosDescuentos = pagosAnulados.filter(m =>
-      m.id_tipo_pago === 4 || m.id_tipo_pago === 5
+      m.grupo_cartera === 'DESCUENTO'
     );
     this.anuladosExtracurricular = pagosAnulados.filter(m =>
-      m.id_tipo_pago === 6
+      m.grupo_cartera === 'EXTRACURRICULAR'
     );
 
     // Generar tipos únicos
@@ -2717,33 +2713,33 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
   // Generar tipos únicos para anulados
   private generarTiposUnicosAnulados(): void {
     // Tipos únicos de ingresos anulados
-    const tiposIngresosSet = new Set<number>();
+    const tiposIngresosSet = new Set<string>();
     this.anuladosIngresos.forEach(m => tiposIngresosSet.add(m.id_tipo_pago));
 
     this.tiposAnuladosIngresos = Array.from(tiposIngresosSet)
-      .sort((a, b) => a - b)
+      .sort()
       .map(id => ({
         id: id,
         nombre: this.obtenerNombreTipoPago(id)
       }));
 
     // Tipos únicos de descuentos anulados
-    const tiposDescuentosSet = new Set<number>();
+    const tiposDescuentosSet = new Set<string>();
     this.anuladosDescuentos.forEach(m => tiposDescuentosSet.add(m.id_tipo_pago));
 
     this.tiposAnuladosDescuentos = Array.from(tiposDescuentosSet)
-      .sort((a, b) => a - b)
+      .sort()
       .map(id => ({
         id: id,
         nombre: this.obtenerNombreTipoPago(id)
       }));
 
     // Tipos únicos de extracurricular anulados
-    const tiposExtracurricularSet = new Set<number>();
+    const tiposExtracurricularSet = new Set<string>();
     this.anuladosExtracurricular.forEach(m => tiposExtracurricularSet.add(m.id_tipo_pago));
 
     this.tiposAnuladosExtracurricular = Array.from(tiposExtracurricularSet)
-      .sort((a, b) => a - b)
+      .sort()
       .map(id => ({
         id: id,
         nombre: this.obtenerNombreTipoPago(id)
@@ -2800,7 +2796,7 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
     let ingresosFiltrados = [...this.anuladosIngresos];
     if (this.filtroTipoAnuladosIngresos !== '') {
       ingresosFiltrados = ingresosFiltrados.filter(m =>
-        m.id_tipo_pago === Number(this.filtroTipoAnuladosIngresos)
+        m.id_tipo_pago === this.filtroTipoAnuladosIngresos
       );
     }
     this.paginacionAnulados.ingresos.totalPaginas = Math.ceil(
@@ -2811,7 +2807,7 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
     let descuentosFiltrados = [...this.anuladosDescuentos];
     if (this.filtroTipoAnuladosDescuentos !== '') {
       descuentosFiltrados = descuentosFiltrados.filter(m =>
-        m.id_tipo_pago === Number(this.filtroTipoAnuladosDescuentos)
+        m.id_tipo_pago === this.filtroTipoAnuladosDescuentos
       );
     }
     this.paginacionAnulados.descuentos.totalPaginas = Math.ceil(
@@ -2822,7 +2818,7 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
     let extracurricularFiltrados = [...this.anuladosExtracurricular];
     if (this.filtroTipoAnuladosExtracurricular !== '') {
       extracurricularFiltrados = extracurricularFiltrados.filter(m =>
-        m.id_tipo_pago === Number(this.filtroTipoAnuladosExtracurricular)
+        m.id_tipo_pago === this.filtroTipoAnuladosExtracurricular
       );
     }
     this.paginacionAnulados.extracurricular.totalPaginas = Math.ceil(
@@ -2843,7 +2839,7 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
 
     if (this.filtroTipoAnuladosIngresos !== '') {
       ingresos = ingresos.filter(m =>
-        m.id_tipo_pago === Number(this.filtroTipoAnuladosIngresos)
+        m.id_tipo_pago === this.filtroTipoAnuladosIngresos
       );
     }
 
@@ -2858,7 +2854,7 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
 
     if (this.filtroTipoAnuladosDescuentos !== '') {
       descuentos = descuentos.filter(m =>
-        m.id_tipo_pago === Number(this.filtroTipoAnuladosDescuentos)
+        m.id_tipo_pago === this.filtroTipoAnuladosDescuentos
       );
     }
 
@@ -2873,7 +2869,7 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
 
     if (this.filtroTipoAnuladosExtracurricular !== '') {
       extracurricular = extracurricular.filter(m =>
-        m.id_tipo_pago === Number(this.filtroTipoAnuladosExtracurricular)
+        m.id_tipo_pago === this.filtroTipoAnuladosExtracurricular
       );
     }
 
@@ -2896,7 +2892,7 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
     let ingresos = [...this.anuladosIngresos];
     if (this.filtroTipoAnuladosIngresos !== '') {
       ingresos = ingresos.filter(m =>
-        m.id_tipo_pago === Number(this.filtroTipoAnuladosIngresos)
+        m.id_tipo_pago === this.filtroTipoAnuladosIngresos
       );
     }
     return ingresos.reduce((sum, m) => sum + m.valor_anulado, 0);
@@ -2906,7 +2902,7 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
     let descuentos = [...this.anuladosDescuentos];
     if (this.filtroTipoAnuladosDescuentos !== '') {
       descuentos = descuentos.filter(m =>
-        m.id_tipo_pago === Number(this.filtroTipoAnuladosDescuentos)
+        m.id_tipo_pago === this.filtroTipoAnuladosDescuentos
       );
     }
     return descuentos.reduce((sum, m) => sum + m.valor_anulado, 0);
@@ -2916,7 +2912,7 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
     let extracurricular = [...this.anuladosExtracurricular];
     if (this.filtroTipoAnuladosExtracurricular !== '') {
       extracurricular = extracurricular.filter(m =>
-        m.id_tipo_pago === Number(this.filtroTipoAnuladosExtracurricular)
+        m.id_tipo_pago === this.filtroTipoAnuladosExtracurricular
       );
     }
     return extracurricular.reduce((sum, m) => sum + m.valor_anulado, 0);
@@ -3192,7 +3188,7 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
   exportarIngresosExcel(): void {
     let ingresos = [...this.movimientoIngresos];
     if (this.filtroTipoIngresos !== '') {
-      ingresos = ingresos.filter(m => m.id_tipo_pago === Number(this.filtroTipoIngresos));
+      ingresos = ingresos.filter(m => m.id_tipo_pago === this.filtroTipoIngresos);
     }
     const datos = ingresos.map(m => ({
       'Fecha': this.formatearFecha(m.fecha),
@@ -3209,7 +3205,7 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
   exportarDescuentosExcel(): void {
     let descuentos = [...this.movimientoDescuentos];
     if (this.filtroTipoDescuentos !== '') {
-      descuentos = descuentos.filter(m => m.id_tipo_pago === Number(this.filtroTipoDescuentos));
+      descuentos = descuentos.filter(m => m.id_tipo_pago === this.filtroTipoDescuentos);
     }
     const datos = descuentos.map(m => ({
       'Fecha': this.formatearFecha(m.fecha),
@@ -3226,7 +3222,7 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
   exportarExtracurricularExcel(): void {
     let extracurricular = [...this.movimientoExtracurricular];
     if (this.filtroTipoExtracurricular !== '') {
-      extracurricular = extracurricular.filter(m => m.id_tipo_pago === Number(this.filtroTipoExtracurricular));
+      extracurricular = extracurricular.filter(m => m.id_tipo_pago === this.filtroTipoExtracurricular);
     }
     const datos = extracurricular.map(m => ({
       'Fecha': this.formatearFecha(m.fecha),

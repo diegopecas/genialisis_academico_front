@@ -52,7 +52,7 @@ export class WaMensajeriaService {
       );
   }
 
-  obtenerConversacionById(id: number) {
+  obtenerConversacionById(id: string) {
     return this.http
       .get<HttpResponse<Object>>(this.api + `wa-conversaciones/${id}`, { observe: 'response' })
       .pipe(
@@ -69,7 +69,7 @@ export class WaMensajeriaService {
   // MENSAJES (con paginación)
   // =====================================================
 
-  obtenerMensajes(idConversacion: number) {
+  obtenerMensajes(idConversacion: string) {
     return this.http
       .get<HttpResponse<Object>>(this.api + `wa-mensajes/conversacion/${idConversacion}`, silentGetOptions)
       .pipe(
@@ -82,7 +82,7 @@ export class WaMensajeriaService {
       );
   }
 
-  obtenerMensajesAnteriores(idConversacion: number, antesDeId: number) {
+  obtenerMensajesAnteriores(idConversacion: string, antesDeId: string) {
     return this.http
       .get<HttpResponse<Object>>(
         this.api + `wa-mensajes/conversacion/${idConversacion}/anteriores/${antesDeId}`,
@@ -98,7 +98,7 @@ export class WaMensajeriaService {
       );
   }
 
-  obtenerMensajesNuevos(idConversacion: number, desdeId: number) {
+  obtenerMensajesNuevos(idConversacion: string, desdeId: string) {
     return this.http
       .get<HttpResponse<Object>>(this.api + `wa-mensajes/conversacion/${idConversacion}/nuevos/${desdeId}`, silentGetOptions)
       .pipe(
@@ -128,7 +128,7 @@ export class WaMensajeriaService {
   // ENVÍO DE MENSAJES
   // =====================================================
 
-  enviarTexto(numeroDestino: string, mensaje: string, idPersonaRemitente: number) {
+  enviarTexto(numeroDestino: string, mensaje: string, idPersonaRemitente: string) {
     const body = JSON.stringify({
       numero_destino: numeroDestino,
       mensaje,
@@ -157,7 +157,7 @@ export class WaMensajeriaService {
   // ACCIONES
   // =====================================================
 
-  marcarConversacionLeida(idConversacion: number) {
+  marcarConversacionLeida(idConversacion: string) {
     return this.http.put<any>(this.api + `wa-mensajes/conversacion/${idConversacion}/leida`, {}, silentOptions).pipe(
       tap((respuesta: any) => {
         if (respuesta?.error) throw respuesta.error;
@@ -167,7 +167,7 @@ export class WaMensajeriaService {
     );
   }
 
-  cerrarConversacion(id: number) {
+  cerrarConversacion(id: string) {
     const body = JSON.stringify({ id });
     return this.http.put<any>(this.api + 'wa-conversaciones/cerrar', body, httpOptions).pipe(
       tap((respuesta: any) => {
@@ -195,7 +195,7 @@ export class WaMensajeriaService {
       );
   }
 
-  vincularContactoPersona(idContacto: number, idPersona: number) {
+  vincularContactoPersona(idContacto: number, idPersona: string) {
     const body = JSON.stringify({ id: idContacto, id_persona: idPersona });
     return this.http.put<any>(this.api + 'wa-contactos/persona', body, httpOptions).pipe(
       tap((respuesta: any) => {
@@ -226,7 +226,7 @@ export class WaMensajeriaService {
   /**
    * Obtener etiqueta del remitente: [Sobrenombre - Cargo]
    */
-  obtenerEtiquetaRemitente(idPersona: number) {
+  obtenerEtiquetaRemitente(idPersona: string) {
     return this.http
       .get<HttpResponse<Object>>(this.api + `wa-config/etiqueta-remitente/${idPersona}`, silentGetOptions)
       .pipe(
@@ -295,7 +295,7 @@ export class WaMensajeriaService {
     templateName: string,
     languageCode: string,
     components: any[],
-    idPersonaRemitente: number
+    idPersonaRemitente: string
   ) {
     const body = JSON.stringify({
       numero_destino: numeroDestino,

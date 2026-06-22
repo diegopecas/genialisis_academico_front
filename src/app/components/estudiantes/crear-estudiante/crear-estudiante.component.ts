@@ -25,7 +25,7 @@ import { DiasSemanaService } from '../../../services/dias-semana.service';
 import { GradosXGrupoService } from '../../../services/grados-x-grupo.service';
 
 interface EstudianteModel {
-  idPersona: number;
+  idPersona: string;
   tipoIdentificacion: number | string;
   numeroIdentificacion: number | string;
   primerNombre: string;
@@ -49,13 +49,13 @@ interface EstudianteModel {
   grupo: number | string;
   grado: number | string;
   anno: number | string;
-  idEstudiante: number;
+  idEstudiante: string;
   activo: number;
 }
 
 interface HorarioEstudiante {
-  id: number;
-  id_estudiante: number;
+  id: string;
+  id_estudiante: string;
   id_dia_semana: number;
   nombre_dia: string;
   hora_entrada: string;
@@ -63,9 +63,9 @@ interface HorarioEstudiante {
 }
 
 interface ConvenioEstudiante {
-  id: number;
-  id_estudiante: number;
-  id_convenio: number;
+  id: string;
+  id_estudiante: string;
+  id_convenio: string;
   nombre_convenio: string;
   descripcion_convenio: string;
   nombre_producto_servicio: string;
@@ -76,7 +76,7 @@ interface ConvenioEstudiante {
 }
 
 interface DatoDinamico {
-  id_dato: number;
+  id_dato: string;
   nombre: string;
   nombre_tipo: string;
   id_tipo: number;
@@ -179,7 +179,7 @@ export class CrearEstudianteComponent implements OnInit {
   public datosAdicionalesModificados = false;
 
   public model: EstudianteModel = {
-    idPersona: 0,
+    idPersona: '',
     tipoIdentificacion: '',
     numeroIdentificacion: '',
     primerNombre: '',
@@ -203,7 +203,7 @@ export class CrearEstudianteComponent implements OnInit {
     grupo: '',
     grado: '',
     anno: '',
-    idEstudiante: 0,
+    idEstudiante: '',
     activo: 1,
   };
   public estudianteActivoSwitch = true;
@@ -470,9 +470,9 @@ export class CrearEstudianteComponent implements OnInit {
    */
   private armarHorariosDesdeDiasSemana() {
     this.horarios = this.diasSemana.map((d: any) => ({
-      id: 0,
+      id: '',
       id_estudiante: this.model.idEstudiante,
-      id_dia_semana: Number(d.id),
+      id_dia_semana: d.id,
       nombre_dia: d.nombre,
       hora_entrada: d.hora_entrada ? d.hora_entrada.substring(0, 5) : '08:00',
       hora_salida: d.hora_salida ? d.hora_salida.substring(0, 5) : '18:00'
@@ -487,7 +487,7 @@ export class CrearEstudianteComponent implements OnInit {
   private armarHorariosFallback() {
     const ids = [1, 2, 3, 4, 5, 6, 7];
     this.horarios = ids.map(id => ({
-      id: 0,
+      id: '',
       id_estudiante: this.model.idEstudiante,
       id_dia_semana: id,
       nombre_dia: '',
@@ -525,9 +525,9 @@ export class CrearEstudianteComponent implements OnInit {
   // ============ CONVENIOS ============
 
   get conveniosDisponiblesFiltrados(): any[] {
-    const idsAsignados = this.conveniosEstudiante.map(c => Number(c.id_convenio));
+    const idsAsignados = this.conveniosEstudiante.map(c => c.id_convenio);
     return this.listas.conveniosDisponibles.filter((c: any) =>
-      !idsAsignados.includes(Number(c.id)) && Number(c.activo) === 1
+      !idsAsignados.includes(c.id) && Number(c.activo) === 1
     );
   }
 
@@ -703,12 +703,12 @@ export class CrearEstudianteComponent implements OnInit {
     const gruposMap = new Map<number, GrupoDatosDinamicos>();
 
     catalogo.forEach((item: any) => {
-      const idTipo = tipo === 'medicos' ? Number(item.id_tipo_dato_medico) : Number(item.id_tipo_dato_adicional);
-      const valor = valoresMap.get(Number(item.id));
+      const idTipo = tipo === 'medicos' ? item.id_tipo_dato_medico : item.id_tipo_dato_adicional;
+      const valor = valoresMap.get(item.id);
       const opciones = item.opciones ? item.opciones.split(',').map((o: string) => o.trim()) : [];
 
       const dato: DatoDinamico = {
-        id_dato: Number(item.id),
+        id_dato: item.id,
         nombre: item.nombre,
         nombre_tipo: item.nombre_tipo,
         id_tipo: idTipo,
@@ -886,7 +886,7 @@ export class CrearEstudianteComponent implements OnInit {
   }
 
   llenarFormularioPersona(persona: any) {
-    this.model.idPersona = +persona.id;
+    this.model.idPersona = persona.id;
     this.model.tipoIdentificacion = persona.id_tipo_identificacion;
     this.model.numeroIdentificacion = persona.numero_identificacion;
     this.model.primerNombre = persona.primer_nombre;
@@ -1233,7 +1233,7 @@ export class CrearEstudianteComponent implements OnInit {
 
   limpiarFormulario(): void {
     this.model = {
-      idPersona: 0,
+      idPersona: '',
       tipoIdentificacion: '',
       numeroIdentificacion: '',
       primerNombre: '',
@@ -1257,7 +1257,7 @@ export class CrearEstudianteComponent implements OnInit {
       grupo: '',
       grado: '',
       anno: '',
-      idEstudiante: 0,
+      idEstudiante: '',
       activo: 1,
     };
     this.submitted = false;

@@ -14,22 +14,22 @@ import { CuentaPagadaService } from '../../../../services/cuenta-pagada.service'
 import { HorariosAlimentacionService } from '../../../../services/horarios-alimentacion.service';
 
 interface CuentaModel {
-  id: number;
+  id: string;
   id_producto_servicio: string;
   id_persona: string;
   fecha: string;
   valor: number;
   detalle: string;
-  id_usuario: number | null;
-  id_horario_alimentacion: number | null;
+  id_usuario: string | null;
+  id_horario_alimentacion: string | null;
   valor_pagado?: number;
   saldo?: number;
 }
 
 interface PagoAplicado {
-  id: number;
-  id_cuenta_por_cobrar: number;
-  id_pago_recibido: number;
+  id: string;
+  id_cuenta_por_cobrar: string;
+  id_pago_recibido: string;
   valor_aplicado: number;
   fecha_aplicacion: string;
   fecha_pago: string;
@@ -81,7 +81,7 @@ export class CrearColaboradoresProductosServiciosComponent implements OnInit {
   public camposBloqueados = false;
 
   public model: CuentaModel = {
-    id: 0,
+    id: '',
     id_producto_servicio: "",
     id_persona: "",
     fecha: "",
@@ -335,7 +335,7 @@ export class CrearColaboradoresProductosServiciosComponent implements OnInit {
     let currentDate = new Date(year, month, 1);
     while (currentDate <= fechaFin) {
       const nuevaCuenta: CuentaModel = {
-        id: 0,
+        id: '',
         id_producto_servicio: this.model.id_producto_servicio,
         id_persona: this.model.id_persona,
         fecha: currentDate.toISOString().split('T')[0],
@@ -502,7 +502,7 @@ export class CrearColaboradoresProductosServiciosComponent implements OnInit {
 
   limpiarFormulario() {
     this.model = {
-      id: 0,
+      id: '',
       id_producto_servicio: "",
       id_persona: this.colaborador?.id_persona || "",
       fecha: "",
@@ -565,7 +565,7 @@ export class CrearColaboradoresProductosServiciosComponent implements OnInit {
 
   asignarValorSugerido() {
     if (!this.camposBloqueados) {
-      const producto = this.productosFiltrados.find(p => p.id === Number(this.model.id_producto_servicio));
+      const producto = this.productosFiltrados.find(p => p.id === this.model.id_producto_servicio);
       if (producto) {
         this.model.valor = producto.valor_sugerido || 0;
         this.valorFormateado = this.formatearMoneda(this.model.valor);

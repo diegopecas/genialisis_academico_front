@@ -70,8 +70,8 @@ export class CrearColaboradoresComponent implements OnInit {
   public nuevoGrupo = { idGrupo: '', esTitular: false };
   public areasAsignadas: any[] = [];
   public nuevaArea: any = {};
-  public modelUsuario: any = { id: 0, id_persona: 0, usuario: '', correo_electronico: '', clave: '', activo: 1, acceso_institucional: 0, acceso_portal_padres: 0 };
-  public cambiarClaveModel: any = { id: 0, claveNueva: '' };
+  public modelUsuario: any = { id: '', id_persona: '', usuario: '', correo_electronico: '', clave: '', activo: 1, acceso_institucional: 0, acceso_portal_padres: 0 };
+  public cambiarClaveModel: any = { id: '', claveNueva: '' };
   public submittedUsuario = false;
   public intentoCambiarClave = false;
   public mostrarClaveNueva = false;
@@ -291,7 +291,7 @@ export class CrearColaboradoresComponent implements OnInit {
 
   // ========== USUARIO ==========
   cargarUsuario() { this.usuariosService.obtenerPorPersona(this.model.idPersona).subscribe({ next: (r: any) => { const d = r.body; if (d && d.length > 0) { const u = d[0]; this.modelUsuario = { id: u.id, id_persona: u.id_persona, usuario: u.usuario, correo_electronico: u.correo_electronico, clave: '', activo: u.activo, acceso_institucional: u.acceso_institucional, acceso_portal_padres: u.acceso_portal_padres }; } else { this.resetearModeloUsuario(); } }, error: () => this.resetearModeloUsuario() }); }
-  resetearModeloUsuario() { this.modelUsuario = { id: 0, id_persona: this.model.idPersona, usuario: '', correo_electronico: '', clave: '', activo: 1, acceso_institucional: 0, acceso_portal_padres: 0 }; }
+  resetearModeloUsuario() { this.modelUsuario = { id: '', id_persona: this.model.idPersona, usuario: '', correo_electronico: '', clave: '', activo: 1, acceso_institucional: 0, acceso_portal_padres: 0 }; }
   tieneUsuario(): boolean { return !!this.modelUsuario.id; }
   crearUsuario() {
     if (!this.model.idPersona) { Swal.fire({ icon: 'warning', title: 'Advertencia', text: 'Primero debe guardar los datos del colaborador' }); return; }

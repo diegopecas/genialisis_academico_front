@@ -84,7 +84,7 @@ export class ReporteEjecucionTareasComponent implements OnInit {
     if (this.anioSeleccionado) {
       this.sprintsFiltrados = this.sprintsDisponibles.filter((s: any) => {
         const anio = parseInt((s.fecha_inicial || '').substring(0, 4));
-        return anio === parseInt(this.anioSeleccionado);
+        return anio === this.anioSeleccionado;
       });
     } else {
       this.sprintsFiltrados = this.sprintsDisponibles;
@@ -343,7 +343,7 @@ export class ReporteEjecucionTareasComponent implements OnInit {
     this.estudiantesDetalle = [];
   }
 
-  obtenerCalificacionEstudiante(estudiante: any, paramId: number): string {
+  obtenerCalificacionEstudiante(estudiante: any, paramId: string): string {
     const cal = estudiante.calificaciones.find((c: any) => c.id_parametro_calificacion == paramId);
     if (!cal) return '<span style="color:#ccc">-</span>';
     const param = this.parametros.find((p: any) => p.id == paramId);

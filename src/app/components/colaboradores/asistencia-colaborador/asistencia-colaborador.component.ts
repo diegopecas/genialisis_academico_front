@@ -33,7 +33,7 @@ export class AsistenciaColaboradorComponent implements OnInit {
 
   ngOnInit() {
     this.route.params.subscribe((params) => {
-      this.idColaborador = +params['id'];
+      this.idColaborador = params['id'];
       const hoy = new Date();
       const primerDia = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
       this.fechaDesde = primerDia.toISOString().split('T')[0];

@@ -14,8 +14,9 @@ import { ClasificacionProductosServicios, PeriodicidadCobro } from './crear-once
 
 // Interfaces para tipar correctamente
 interface CuentaPorCobrar {
-  id: number;
-  id_clasificacion_productos_servicios: number;
+  id: string;
+  id_clasificacion_productos_servicios: string;
+  clasificacion_codigo: string;
   id_periodicidad_cobro: number;
   fecha: string;
   valor: number;
@@ -105,7 +106,7 @@ export class OncesAlimentacionComponent {
       
       // Filtramos por clasificación ALIMENTACION, periodicidad DIARIO y solo los del día actual
       const productosFiltrados = body.filter((item: CuentaPorCobrar) => 
-        item.id_clasificacion_productos_servicios === ClasificacionProductosServicios.ALIMENTACION && 
+        item.clasificacion_codigo === 'ALIMENTACION' && 
         item.id_periodicidad_cobro === PeriodicidadCobro.DIARIO &&
         item.fecha.substring(0, 10) === fechaActualStr // Comparamos solo el componente YYYY-MM-DD
       );

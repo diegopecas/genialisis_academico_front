@@ -17,7 +17,7 @@ export class HistorialCambiosPersonaService {
 
   constructor(private http: HttpClient) {}
 
-  obtenerPorPersona(idPersona: number) {
+  obtenerPorPersona(idPersona: string) {
     return this.http
       .get<HttpResponse<Object>>(this.servicio + `/${idPersona}`, {
         observe: 'response',
@@ -35,8 +35,8 @@ export class HistorialCambiosPersonaService {
   }
 
   registrar(data: {
-    id_persona: number;
-    id_usuario: number;
+    id_persona: string;
+    id_usuario: string;
     cambios: { campo: string; valor_anterior: string; valor_nuevo: string }[];
   }) {
     const body = JSON.stringify(data);

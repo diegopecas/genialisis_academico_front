@@ -7,8 +7,8 @@ import { AsistenciaEstudiantesService } from '../../../../services/asistencia-es
 
 // Interface para los datos de asistencia
 interface AsistenciaData {
-  id: number;
-  id_estudiante: number;
+  id: string;
+  id_estudiante: string;
   fecha_ingreso: string;
   fecha_salida: string | null;
   observacion_ingreso: string;

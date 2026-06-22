@@ -8,7 +8,7 @@ import { TablasComponent } from '../../../common/tablas/tablas.component';
 import { MovimientosFinancierosService } from '../../../services/movimientos-financieros.service';
 
 interface MovimientoDesagregado {
-  id: number;
+  id: string;
   fecha: string;
   anio: number;
   tipo_movimiento: string;

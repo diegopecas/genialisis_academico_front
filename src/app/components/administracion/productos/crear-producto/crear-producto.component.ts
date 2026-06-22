@@ -11,8 +11,8 @@ import { TiposProductoService } from '../../../../services/tipos-producto.servic
 
 
 interface ProductoModel {
-    id: number;
-    idTipoProducto: number | string;
+    id: string;
+    idTipoProducto: string | string;
     nombre: string;
     descripcion: string;
     idUnidadMedida: number | string;
@@ -67,7 +67,7 @@ export class CrearProductoComponent implements OnInit, OnDestroy {
     }
 
     public model: ProductoModel = {
-        id: 0,
+        id: '',
         idTipoProducto: "",
         nombre: "",
         descripcion: "",
@@ -850,7 +850,7 @@ export class CrearProductoComponent implements OnInit, OnDestroy {
 
     limpiarFormulario(): void {
         this.model = {
-            id: 0,
+            id: '',
             nombre: "",
             descripcion: "",
             idUnidadMedida: "",

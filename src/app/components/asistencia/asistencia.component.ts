@@ -354,7 +354,7 @@ export class AsistenciaComponent implements OnInit {
   private confirmarIngreso(estudiante: any) {
     this.asistenciaEstudiantesService.obtenerNoIngresos().subscribe((response: any) => {
       const body = response.body as any[];
-      const noIngresado = body.some(obj => Number(obj.id) === Number(estudiante.id));
+      const noIngresado = body.some(obj => obj.id === estudiante.id);
       if (noIngresado) {
         this.asistenciaEstudiantesService.registroIngreso(estudiante.id, this.observacionActual).subscribe((response: any) => {
           if (response) {
@@ -381,7 +381,7 @@ export class AsistenciaComponent implements OnInit {
   private confirmarSalida(estudiante: any) {
     this.asistenciaEstudiantesService.obtenerNoSalidas().subscribe((response: any) => {
       const body = response.body as any[];
-      const noSalida = body.some(obj => Number(obj.id_estudiante) === Number(estudiante.id_estudiante));
+      const noSalida = body.some(obj => obj.id_estudiante === estudiante.id_estudiante);
       if (noSalida) {
         this.asistenciaEstudiantesService.registroSalida(estudiante.id, this.observacionActual).subscribe((response: any) => {
           if (response) {
@@ -859,7 +859,7 @@ export class AsistenciaComponent implements OnInit {
    * Después del registro rápido, fuerza la pestaña de ingresos,
    * refresca la lista y abre el panel de cobros con el estudiante recién creado.
    */
-  private abrirIngresoPostRegistro(idEstudiante: number) {
+  private abrirIngresoPostRegistro(idEstudiante: string) {
     this.model.opcion = 'ingresos';
     this.asistenciaEstudiantesService.obtenerNoIngresos().subscribe((response: any) => {
       const body = response.body as any[];
@@ -867,7 +867,7 @@ export class AsistenciaComponent implements OnInit {
       this.listas.noIngresos = body;
 
       const estudianteEncontrado = body.find(
-        (e: any) => Number(e.id) === Number(idEstudiante)
+        (e: any) => e.id === idEstudiante
       );
 
       if (estudianteEncontrado) {

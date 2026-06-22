@@ -28,7 +28,7 @@ export class CrearConvenioComponent implements OnInit {
   };
 
   public model = {
-    id: 0,
+    id: '',
     nombre: '',
     descripcion: '',
     id_producto_servicio: '',
@@ -73,8 +73,8 @@ export class CrearConvenioComponent implements OnInit {
         const todos = response.body || response;
         // Solo clasificación 2 (Extra académico) y categoría 1 (servicios mensuales) activos
         this.listas.productosServicios = todos.filter((p: any) => 
-          Number(p.id_clasificacion_productos_servicios) === 2 && 
-          Number(p.id_categoria_productos_servicios) === 1 && 
+          p.id_clasificacion_productos_servicios === 2 && 
+          p.id_categoria_productos_servicios === 1 && 
           Number(p.disponible) === 1
         );
       },

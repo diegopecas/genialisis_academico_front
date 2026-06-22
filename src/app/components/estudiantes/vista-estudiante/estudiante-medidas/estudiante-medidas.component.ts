@@ -8,7 +8,7 @@ import { CategoriasMedidasService } from '../../../../services/categorias-medida
 import { InstitucionConfigService } from '../../../../services/institucion-config.service';
 
 interface MedidaTipo {
-  id: number;
+  id: string;
   nombre: string;
   id_categoria: number;
   categoria_nombre: string;
@@ -16,11 +16,12 @@ interface MedidaTipo {
   tipo_valor: string;
   color: string;
   activa: boolean;
+  codigo?: string;
 }
 
 interface RegistroMedida {
-  id: number;
-  id_medida: number;
+  id: string;
+  id_medida: string;
   fecha: string;
   valor: number;
   nombre_medida: string;
@@ -61,7 +62,7 @@ export class EstudianteMedidasComponent implements OnInit {
   // Datos
   medidas: RegistroMedida[] = [];
   medidasTipos: MedidaTipo[] = [];
-  categorias: { id: number; nombre: string; icono: string; medidas: MedidaTipo[] }[] = [];
+  categorias: { id: string; nombre: string; icono: string; medidas: MedidaTipo[] }[] = [];
 
   // Medidas filtradas por rango
   medidasFiltradas: RegistroMedida[] = [];
@@ -114,7 +115,8 @@ export class EstudianteMedidasComponent implements OnInit {
               unidad_abreviatura: m.unidad_abreviatura || '',
               tipo_valor: m.tipo_valor || 'numerico',
               color: COLORES_SERIES[colorIndex % COLORES_SERIES.length],
-              activa: false
+              activa: false,
+              codigo: m.codigo
             };
             colorIndex++;
             return medidaTipo;
@@ -126,7 +128,7 @@ export class EstudianteMedidasComponent implements OnInit {
 
         // Activar peso y estatura por defecto
         this.medidasTipos.forEach(m => {
-          if (m.id === 1 || m.id === 2) m.activa = true;
+          if (m.codigo === 'PESO' || m.codigo === 'TALLA') m.activa = true;
         });
 
         this.cargarMedidasEstudiante();
@@ -190,7 +192,7 @@ export class EstudianteMedidasComponent implements OnInit {
     this.actualizarGrafico();
   }
 
-  categoriasFiltradas: { id: number; nombre: string; icono: string; medidas: MedidaTipo[] }[] = [];
+  categoriasFiltradas: { id: string; nombre: string; icono: string; medidas: MedidaTipo[] }[] = [];
 
   private filtrarCategorias(): void {
     if (!this.busquedaMedida.trim()) {
@@ -356,12 +358,12 @@ export class EstudianteMedidasComponent implements OnInit {
       .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
   }
 
-  obtenerColorMedida(idMedida: number): string {
+  obtenerColorMedida(idMedida: string): string {
     const tipo = this.medidasTipos.find(m => m.id === idMedida);
     return tipo ? tipo.color : '#666';
   }
 
-  obtenerUnidad(idMedida: number): string {
+  obtenerUnidad(idMedida: string): string {
     const tipo = this.medidasTipos.find(m => m.id === idMedida);
     return tipo ? tipo.unidad_abreviatura : '';
   }

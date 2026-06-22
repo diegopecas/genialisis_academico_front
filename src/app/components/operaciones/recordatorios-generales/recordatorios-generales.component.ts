@@ -12,29 +12,29 @@ import { InstitucionConfigService } from '../../../services/institucion-config.s
 import { UtilService } from '../../../common/constantes/util.service';
 
 interface AcudienteRecordatorio {
-  id_acudiente: number;
-  id_estudiante: number;
-  id_persona: number;
+  id_acudiente: string;
+  id_estudiante: string;
+  id_persona: string;
   nombre_estudiante: string;
   id_tipo_acudiente: number;
   nombre_tipo_acudiente: string;
-  id_persona_acudiente: number;
+  id_persona_acudiente: string;
   nombre_acudiente: string;
   telefono: string;
   correo_electronico: string;
 }
 
 interface HistorialRecordatorio {
-  id: number;
-  id_estudiante: number;
-  id_persona_acudiente: number | null;
+  id: string;
+  id_estudiante: string;
+  id_persona_acudiente: string | null;
   telefono_usado: string;
   nombre_destinatario: string;
   tipo_recordatorio: string;
   medio_envio: string;
   compromiso: string | null;
   fecha_compromiso: string | null;
-  id_usuario: number | null;
+  id_usuario: string | null;
   fecha_envio: string;
   editando?: boolean;
   compromiso_editado?: string;
@@ -327,7 +327,7 @@ export class RecordatoriosGeneralesComponent implements OnInit, OnDestroy {
     modal.show();
   }
 
-  cargarHistorial(idEstudiante: number): void {
+  cargarHistorial(idEstudiante: string): void {
     this.cargandoHistorial = true;
     const sub = this.historialRecordatoriosService.obtenerPorEstudiante(idEstudiante).subscribe({
       next: (response: any) => {
@@ -516,7 +516,7 @@ export class RecordatoriosGeneralesComponent implements OnInit, OnDestroy {
   // ==================== GUARDADO ====================
 
   private guardarHistorialSilencioso(
-    idPersonaAcudiente: number | null, contactoUsado: string,
+    idPersonaAcudiente: string | null, contactoUsado: string,
     nombreDestinatario: string, medioEnvio: string
   ): void {
     const idUsuario = this.utilService.obtenerIdUsuarioActual();

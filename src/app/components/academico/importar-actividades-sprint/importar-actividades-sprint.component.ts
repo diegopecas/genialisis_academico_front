@@ -23,7 +23,7 @@ export class ImportarActividadesSprintComponent implements OnInit {
   public titulo = 'Importar Actividades desde otro Sprint';
 
   // Listas completas
-  public annos: { id: number; nombre: string }[] = [];
+  public annos: { id: string; nombre: string }[] = [];
   public todosSprints: any[] = [];
   public todosGrupos: any[] = [];
   public todasAsignacionesAreaGrupo: any[] = [];

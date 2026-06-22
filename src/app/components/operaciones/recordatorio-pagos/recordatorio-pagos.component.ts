@@ -13,8 +13,8 @@ import { TareasColaboradoresService } from '../../../services/tareas-colaborador
 import { UtilService } from '../../../common/constantes/util.service';
 
 interface EstudianteCartera {
-  id_persona: number;
-  id_estudiante: number;
+  id_persona: string;
+  id_estudiante: string;
   nombre_estudiante: string;
   numero_identificacion: string;
   grupo_estudiante: string;
@@ -24,20 +24,20 @@ interface EstudianteCartera {
   saldoTotal: number;
   saldoVencido: number;
   saldoPendiente: number;
-  valoresMensuales: { [key: number]: any };
+  valoresMensuales: { [key: string]: any };
   totalSaldoPendiente: number;
   acudientes: AcudientePago[];
   ultimo_recordatorio: string | null;
 }
 
 interface AcudientePago {
-  id_persona: number;
-  id_estudiante: number;
+  id_persona: string;
+  id_estudiante: string;
   nombre_estudiante: string;
-  id_acudiente: number;
+  id_acudiente: string;
   id_tipo_acudiente: number;
   nombre_tipo_acudiente: string;
-  id_persona_acudiente: number;
+  id_persona_acudiente: string;
   nombre_acudiente: string;
   telefono: string;
   correo_electronico: string;
@@ -95,7 +95,7 @@ export class RecordatorioPagosComponent implements OnInit, OnDestroy {
 
   // Tipo de mensaje: 'vencido' | 'seleccion' | 'todos'
   public tipoMensajeSeleccionado: string = 'vencido';
-  public mesesSeleccionados: { [key: number]: boolean } = {};
+  public mesesSeleccionados: { [key: string]: boolean } = {};
   public telefonosEditables: string[] = [];
   public telefonoAdicional: string = '';
   public nombreAdicional: string = '';
@@ -189,7 +189,7 @@ export class RecordatorioPagosComponent implements OnInit, OnDestroy {
   }
 
   procesarDatos(data: any): void {
-    const estudiantesMap = new Map<number, EstudianteCartera>();
+    const estudiantesMap = new Map<string, EstudianteCartera>();
 
     // Inicializar estudiantes
     data.reporte_estudiantes.forEach((est: any) => {
@@ -603,7 +603,7 @@ export class RecordatorioPagosComponent implements OnInit, OnDestroy {
   // Guardar historial de forma silenciosa (sin spinner)
   private guardarHistorialSilencioso(
     estudiante: EstudianteCartera,
-    idPersonaAcudiente: number | null,
+    idPersonaAcudiente: string | null,
     telefono: string,
     nombreDestinatario: string,
     monto: number
@@ -833,7 +833,7 @@ export class RecordatorioPagosComponent implements OnInit, OnDestroy {
           const movimientosAnioActual = movimientosFiltrados
             .filter((item: any) => item.anioMovimiento === anioAcademico)
             .map((item: any, i: number) => ({
-              id: i + 1,
+              id: String(i + 1),
               fecha: this.formatearFechaPDF(item.fecha),
               concepto: item.nombre_producto_servicio || '-',
               valorTotal: item.valorNumerico,
@@ -845,7 +845,7 @@ export class RecordatorioPagosComponent implements OnInit, OnDestroy {
           const movimientosHistoricosPendientes = movimientosFiltrados
             .filter((item: any) => item.anioMovimiento < anioAcademico && item.saldoNumerico > 0)
             .map((item: any, i: number) => ({
-              id: i + 1,
+              id: String(i + 1),
               fecha: this.formatearFechaPDF(item.fecha),
               concepto: item.nombre_producto_servicio || '-',
               valorTotal: item.valorNumerico,

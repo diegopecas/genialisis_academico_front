@@ -14,10 +14,10 @@ import { InstitucionConfigService } from '../../../../services/institucion-confi
 import { ViewChild, ElementRef } from '@angular/core';
 import { lastValueFrom } from 'rxjs';
 interface ProductoLimpiezaModel {
-    id: number;
-    idProducto: number | string;
+    id: string;
+    idProducto: string | string;
     nombreProducto?: string;
-    idTipoProductoLimpieza: number | string;
+    idTipoProductoLimpieza: string | string;
     componentes: string;
     modoUso: string;
 }
@@ -50,7 +50,7 @@ export class CrearProductoLimpiezaComponent implements OnInit {
     public datosProductoCompleto: any = null;
 
     public model: ProductoLimpiezaModel = {
-        id: 0,
+        id: '',
         idProducto: "",
         nombreProducto: "",
         idTipoProductoLimpieza: "",
@@ -443,7 +443,7 @@ export class CrearProductoLimpiezaComponent implements OnInit {
                 try {
                     // Convertir idProducto a número
                     const idProducto = typeof this.model.idProducto === 'string'
-                        ? parseInt(this.model.idProducto, 10)
+                        ? this.model.idProducto
                         : this.model.idProducto;
 
                     // Usar el servicio de productos para obtener la imagen en base64

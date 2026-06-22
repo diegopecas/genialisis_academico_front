@@ -10,7 +10,7 @@ import { ProductosLimpiezaService } from '../../../../services/productos-limpiez
 import { TiposProcesosLimpiezaService } from '../../../../services/tipos-procesos-limpieza.service';
 
 interface ElementoFisicoModel {
-    id: number;
+    id: string;
     nombre: string;
     descripcion: string;
     material: string;
@@ -44,7 +44,7 @@ export class CrearElementoFisicoComponent implements OnInit {
     }
 
     public model: ElementoFisicoModel = {
-        id: 0,
+        id: '',
         nombre: "",
         descripcion: "",
         material: "",
@@ -492,7 +492,7 @@ export class CrearElementoFisicoComponent implements OnInit {
 
                 const datos: any = {
                     productos: productosValidos.map((p: any) => ({
-                        id_producto_limpieza: parseInt(p.id_producto_limpieza),
+                        id_producto_limpieza: p.id_producto_limpieza,
                         cantidad_sugerida: p.cantidad_sugerida || null,
                         instrucciones: p.instrucciones || null
                     }))

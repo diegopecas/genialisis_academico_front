@@ -10,17 +10,17 @@ import { TareasColaboradoresService } from '../../../../services/tareas-colabora
 
 // Interfaces
 interface Colaborador {
-  id: number;
+  id: string;
   nombre_completo: string;
   sobrenombre: string;
-  id_docente: number | null;
+  id_docente: string | null;
   es_docente: boolean;
 }
 
 interface Actividad {
-  id: number;
-  id_colaborador: number;
-  id_tipo_actividad: number;
+  id: string;
+  id_colaborador: string;
+  id_tipo_actividad: string;
   id_estado: number;
   fecha_hora_inicio: string;
   fecha_hora_fin: string;
@@ -39,19 +39,19 @@ interface Actividad {
   color_estado: string;
   nombre_colaborador: string;
   sobrenombre_colaborador: string;
-  id_docente: number | null;
+  id_docente: string | null;
 }
 
 interface Horario {
-  id: number;
-  id_grupo: number;
-  id_area_academica: number;
+  id: string;
+  id_grupo: string;
+  id_area_academica: string;
   id_dia_semana: number;
   hora_inicial: string;
   hora_final: string;
   total_minutos: number;
-  id_docente: number;
-  id_colaborador: number;
+  id_docente: string;
+  id_colaborador: string;
   nombre_docente: string;
   sobrenombre_docente: string;
   nombre_area_academica: string;
@@ -64,10 +64,10 @@ interface Horario {
 }
 
 interface Tarea {
-  id: number;
-  id_colaborador: number;
-  id_estudiante: number | null;
-  id_tipo_tarea: number | null;
+  id: string;
+  id_colaborador: string;
+  id_estudiante: string | null;
+  id_tipo_tarea: string | null;
   nombre_tipo_tarea: string;
   descripcion: string;
   fecha_limite: string;
@@ -77,16 +77,16 @@ interface Tarea {
   nombre_estado: string;
   color_estado: string;
   origen: string;
-  id_historial_origen: number | null;
+  id_historial_origen: string | null;
   observaciones: string;
-  id_usuario_registro: number;
+  id_usuario_registro: string;
   fecha_registro: string;
   nombre_colaborador: string;
   nombre_estudiante: string;
 }
 
 interface Grupo {
-  id: number;
+  id: string;
   nombre: string;
   icono: string;
   color: string;
@@ -151,8 +151,8 @@ export class CalendarioColaboradoresComponent implements OnInit {
   public horasDelDia: number[] = [];
 
   // Filtros
-  public colaboradorSeleccionado: number | null = null;
-  public grupoSeleccionado: number | null = null;
+  public colaboradorSeleccionado: string | null = null;
+  public grupoSeleccionado: string | null = null;
   public categoriaSeleccionada: number | null = null;
   public estadoSeleccionado: number | null = null;
   public mostrarHorarios: boolean = true;
@@ -755,13 +755,13 @@ export class CalendarioColaboradoresComponent implements OnInit {
 
   aplicarFiltroColaborador(event: any) {
     const valor = event.target.value;
-    this.colaboradorSeleccionado = valor === '' ? null : Number(valor);
+    this.colaboradorSeleccionado = valor === '' ? null : valor;
     this.generarCalendario();
   }
 
   aplicarFiltroGrupo(event: any) {
     const valor = event.target.value;
-    this.grupoSeleccionado = valor === '' ? null : Number(valor);
+    this.grupoSeleccionado = valor === '' ? null : valor;
     this.generarCalendario();
   }
 

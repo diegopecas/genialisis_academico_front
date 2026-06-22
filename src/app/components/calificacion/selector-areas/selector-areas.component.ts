@@ -36,7 +36,7 @@ export class SelectorAreasComponent implements OnInit {
   public indiceDiaMovil: number = 0;
   public diasConHorario: any[] = [];
 
-  private idGrupo: number = 0;
+  private idGrupo: string = '';
 
   constructor(
     private route: ActivatedRoute,
@@ -53,7 +53,7 @@ export class SelectorAreasComponent implements OnInit {
     this.nombreDia = this.obtenerNombreDia(this.diaActual);
 
     this.route.params.subscribe(params => {
-      this.idGrupo = +params['idGrupo'];
+      this.idGrupo = params['idGrupo'];
       this.cargarDatos();
     });
 
@@ -175,7 +175,7 @@ export class SelectorAreasComponent implements OnInit {
   }
 
   private obtenerNombreDia(dia: number): string {
-    const dias: { [key: number]: string } = {
+    const dias: { [key: string]: string } = {
       1: 'Lunes', 2: 'Martes', 3: 'Miércoles', 4: 'Jueves',
       5: 'Viernes', 6: 'Sábado', 7: 'Domingo'
     };
@@ -273,12 +273,12 @@ export class SelectorAreasComponent implements OnInit {
     return null;
   }
 
-  obtenerColorArea(id_area: number): string {
+  obtenerColorArea(id_area: string): string {
     const area = this.areasAcademicas.find(a => a.id_area_academica === id_area);
     return area?.color || '#FFFFFF';
   }
 
-  obtenerNombreArea(id_area: number): string {
+  obtenerNombreArea(id_area: string): string {
     const area = this.areasAcademicas.find(a => a.id_area_academica === id_area);
     return area?.nombre_area_academica || '';
   }

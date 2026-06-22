@@ -7,7 +7,7 @@ import { PermisosService } from '../../../../services/permisos.service';
 import Swal from 'sweetalert2';
 
 interface NodoArbol {
-  id: number;
+  id: string;
   nombre: string;
   icono: string | null;
   permisoPrincipal: PermisoNodo | null;
@@ -18,7 +18,7 @@ interface NodoArbol {
 }
 
 interface PermisoNodo {
-  id: number;
+  id: string;
   codigo: string;
   nombre: string;
   seleccionado: boolean;
@@ -43,7 +43,7 @@ export class PermisosRolComponent implements OnInit {
   roles: any[] = [];
   portales: string[] = [];
   portalSeleccionado: string = 'institucional';
-  rolSeleccionado: number | null = null;
+  rolSeleccionado: string | null = null;
   rolNombre: string = '';
   arbol: NodoArbol[] = [];
   cargando = false;

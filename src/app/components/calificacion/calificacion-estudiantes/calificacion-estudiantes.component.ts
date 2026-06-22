@@ -46,9 +46,9 @@ export class CalificacionEstudiantesComponent implements OnInit {
   private huellaDispositivo: string = '';
   private userAgent: string = '';
 
-  public idGrupo: number = 0;
-  public idArea: number = 0;
-  public idTareaSprint: number = 0;
+  public idGrupo: string = '';
+  public idArea: string = '';
+  public idTareaSprint: string = '';
 
   constructor(
     private route: ActivatedRoute,
@@ -69,9 +69,9 @@ export class CalificacionEstudiantesComponent implements OnInit {
     this.generarHuellaDispositivo();
 
     this.route.params.subscribe(params => {
-      this.idGrupo = +params['idGrupo'];
-      this.idArea = +params['idArea'];
-      this.idTareaSprint = +params['idTareaSprint'];
+      this.idGrupo = params['idGrupo'];
+      this.idArea = params['idArea'];
+      this.idTareaSprint = params['idTareaSprint'];
       this.cargarDatos();
     });
   }
@@ -283,7 +283,7 @@ export class CalificacionEstudiantesComponent implements OnInit {
     }
   }
 
-  private actualizarCalificacion(idCalificacion: number, idValorParametro: number): void {
+  private actualizarCalificacion(idCalificacion: string, idValorParametro: string): void {
     this.calificacionesService.actualizarCalificacion(idCalificacion, idValorParametro)
       .subscribe({
         next: () => {},
@@ -291,7 +291,7 @@ export class CalificacionEstudiantesComponent implements OnInit {
       });
   }
 
-  private crearCalificacion(idEstudiante: number, idTareaSprint: number, parametro: any, idValorParametro: number): void {
+  private crearCalificacion(idEstudiante: string, idTareaSprint: string, parametro: any, idValorParametro: string): void {
     this.calificacionesService.calificar(
       idEstudiante,
       idTareaSprint,

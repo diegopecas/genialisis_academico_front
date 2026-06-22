@@ -14,7 +14,7 @@ export class TiposPersonasDocumentosService {
 
   constructor(private http: HttpClient) { }
 
-  obtenerPorTipoDocumento(idTipoDocumento: number) {
+  obtenerPorTipoDocumento(idTipoDocumento: string) {
     return this.http
       .get<HttpResponse<Object>>(this.servicio + `/tipo-documento/${idTipoDocumento}`, { observe: 'response' })
       .pipe(
@@ -29,7 +29,7 @@ export class TiposPersonasDocumentosService {
       );
   }
 
-  guardar(idTipoDocumento: number, asociaciones: any[]) {
+  guardar(idTipoDocumento: string, asociaciones: any[]) {
     const data = {
       id_tipo_documento: idTipoDocumento,
       asociaciones: asociaciones

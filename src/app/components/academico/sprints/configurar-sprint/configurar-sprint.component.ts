@@ -514,7 +514,7 @@ export class ConfigurarSprintComponent implements OnInit {
 
     const nuevaTarea = {
       id: null,
-      id_sprint: parseInt(this.idSprint),
+      id_sprint: this.idSprint,
       id_actividad_academica: actividad.id,
       id_grupo: parseInt(this.filtroGrupo),
       id_area_academica: parseInt(this.filtroArea),
@@ -615,7 +615,7 @@ export class ConfigurarSprintComponent implements OnInit {
     }));
 
     const body = {
-      id_sprint: parseInt(this.idSprint),
+      id_sprint: this.idSprint,
       id_grupo: parseInt(this.filtroGrupo),
       id_area_academica: parseInt(this.filtroArea),
       tareas: estadoFinal

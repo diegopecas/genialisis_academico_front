@@ -197,7 +197,7 @@ export class Tab3ObjecionesComponent implements OnInit, OnChanges {
   // =====================================================
   // MÉTODOS EXISTENTES - Ahora llaman a marcarCambio()
   // =====================================================
-  agregarObjecionEncontrada(idTipoObjecion: number): void {
+  agregarObjecionEncontrada(idTipoObjecion: string): void {
     const yaExiste = this.objecionesEncontradas.find(o => o.id_tipo_objecion === idTipoObjecion);
     if (yaExiste) {
       Swal.fire({
@@ -255,12 +255,12 @@ export class Tab3ObjecionesComponent implements OnInit, OnChanges {
     this.marcarCambio('objeciones');
   }
 
-  obtenerNombreObjecion(idTipoObjecion: number): string {
+  obtenerNombreObjecion(idTipoObjecion: string): string {
     const objecion = this.tiposObjeciones.find(o => o.id === idTipoObjecion);
     return objecion?.nombre || 'Objeción';
   }
 
-  esObjecionRegistrada(idTipoObjecion: number): boolean {
+  esObjecionRegistrada(idTipoObjecion: string): boolean {
     return this.objecionesEncontradas.some(o => o.id_tipo_objecion === idTipoObjecion);
   }
 

@@ -8,7 +8,7 @@ import { HeaderComponent } from '../../../common/header/header.component';
 import { ContabilizacionesService } from '../../../services/contabilizaciones.service';
 
 interface Contabilizacion {
-  id: number;
+  id: string;
   id_tipo_contabilizacion: number;
   tipo_contabilizacion: string;
   fecha_contabilizacion: string;
@@ -25,10 +25,10 @@ interface Contabilizacion {
 
 interface DetalleCruce {
   colaborador: string;
-  id_colaborador: number;
+  id_colaborador: string;
   minutos_cruzados: number;
   // Datos del permiso
-  id_actividad_permiso: number;
+  id_actividad_permiso: string;
   tipo_actividad_permiso: string;
   categoria_permiso: string;
   fecha_permiso: string;
@@ -37,7 +37,7 @@ interface DetalleCruce {
   minutos_totales_permiso: number;
   minutos_restantes_permiso: number;
   // Datos de la hora
-  id_actividad_hora: number;
+  id_actividad_hora: string;
   tipo_actividad_hora: string;
   categoria_hora: string;
   fecha_hora: string;
@@ -49,7 +49,7 @@ interface DetalleCruce {
 
 interface ColaboradorAgrupadoEnContabilizacion {
   nombre: string;
-  id_colaborador: number;
+  id_colaborador: string;
   total_minutos: number;
   cruces: DetalleCruce[];
   expandido: boolean;
@@ -58,7 +58,7 @@ interface ColaboradorAgrupadoEnContabilizacion {
 // Interfaces para el TAB 2 (por colaboradores)
 interface ColaboradorAgrupado {
   nombre: string;
-  id_colaborador: number;
+  id_colaborador: string;
   total_minutos: number;
   total_valor: number;
   contabilizaciones: ContabilizacionDeColaborador[];
@@ -66,7 +66,7 @@ interface ColaboradorAgrupado {
 }
 
 interface ContabilizacionDeColaborador {
-  id_contabilizacion: number;
+  id_contabilizacion: string;
   fecha_contabilizacion: string;
   tipo_contabilizacion: string;
   minutos_contabilizados: number;
@@ -78,7 +78,7 @@ interface ContabilizacionDeColaborador {
 }
 
 interface Colaborador {
-  id: number;
+  id: string;
   nombre: string;
 }
 
@@ -183,7 +183,7 @@ export class ReporteContabilizacionesComponent implements OnInit {
   }
 
   extraerColaboradores() {
-    const colaboradoresMap = new Map<number, string>();
+    const colaboradoresMap = new Map<string, string>();
     
     // Extraer colaboradores de las contabilizaciones
     this.contabilizaciones.forEach(c => {
@@ -318,7 +318,7 @@ export class ReporteContabilizacionesComponent implements OnInit {
   }
 
   agruparPorColaborador(detalle: DetalleCruce[]): ColaboradorAgrupadoEnContabilizacion[] {
-    const grupos: { [key: number]: ColaboradorAgrupadoEnContabilizacion } = {};
+    const grupos: { [key: string]: ColaboradorAgrupadoEnContabilizacion } = {};
     
     detalle.forEach(cruce => {
       if (!grupos[cruce.id_colaborador]) {

@@ -15,7 +15,7 @@ import { UtilService } from '../../../../common/constantes/util.service';
 
 interface ProductoMovimiento {
   // Datos del producto
-  id: number;
+  id: string;
   nombre: string;
   descripcion: string;
   nombre_tipo_producto: string;
@@ -41,7 +41,7 @@ interface ProductoMovimiento {
 }
 
 interface ConceptoMovimiento {
-  id: number;
+  id: string;
   nombre: string;
   tipo: string;
   tipo_descripcion: string;
@@ -65,7 +65,7 @@ export class CrearMovimientoProductoComponent implements OnInit, OnDestroy {
 
   // Controles principales
   fechaMovimiento: string = this.obtenerFechaHoy();
-  conceptoSeleccionado: number | null = null;
+  conceptoSeleccionado: string | null = null;
   tipoProductoSeleccionado: string = '';
   proveedorSeleccionado: number | null = null;
   observaciones: string = '';
@@ -85,7 +85,7 @@ export class CrearMovimientoProductoComponent implements OnInit, OnDestroy {
   requiereProveedor: boolean = false;
 
   // Para edición - guardar productos originales del movimiento
-  productosOriginales: Set<number> = new Set();
+  productosOriginales: Set<string> = new Set();
 
   // Estadísticas
   totalProductosSeleccionados: number = 0;
@@ -418,7 +418,7 @@ export class CrearMovimientoProductoComponent implements OnInit, OnDestroy {
   onConceptoCambiado(): void {
     if (this.conceptoSeleccionado) {
       // Convertir a número para la comparación
-      const conceptoId = Number(this.conceptoSeleccionado);
+      const conceptoId = this.conceptoSeleccionado;
       const concepto = this.conceptos.find(c => c.id === conceptoId);
 
       console.log("onConceptoCambiado - ID seleccionado:", this.conceptoSeleccionado);
@@ -854,7 +854,7 @@ export class CrearMovimientoProductoComponent implements OnInit, OnDestroy {
   }
 
   // Método helper para verificar si un producto es original del movimiento
-  esProductoOriginal(idProducto: number): boolean {
+  esProductoOriginal(idProducto: string): boolean {
     return this.productosOriginales.has(idProducto);
   }
 

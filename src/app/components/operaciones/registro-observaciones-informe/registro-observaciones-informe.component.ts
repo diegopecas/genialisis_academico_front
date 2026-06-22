@@ -16,7 +16,7 @@ import { HistorialInformesEstudiantesService } from '../../../services/historial
 import { TareasColaboradoresService } from '../../../services/tareas-colaboradores.service';
 
 interface TipoObservacionInforme {
-    id: number;
+    id: string;
     nombre: string;
     icono: string | null;
     valida_asistencia: number;
@@ -25,9 +25,9 @@ interface TipoObservacionInforme {
 }
 
 interface AcudienteInforme {
-    id_acudiente: number;
-    id_estudiante: number;
-    id_persona_acudiente: number;
+    id_acudiente: string;
+    id_estudiante: string;
+    id_persona_acudiente: string;
     nombre_acudiente: string;
     tipo_acudiente: string;
     telefono: string | null;
@@ -35,73 +35,73 @@ interface AcudienteInforme {
 }
 
 interface ObservacionExistente {
-    id: number;
-    id_estudiante: number;
-    id_tipo_observacion_estudiante: number;
+    id: string;
+    id_estudiante: string;
+    id_tipo_observacion_estudiante: string;
     descripcion: string;
     fecha: string;
-    id_sprint: number;
+    id_sprint: string;
     para_informe: number;
-    id_usuario: number;
+    id_usuario: string;
     fecha_registro: string;
 }
 
 interface SprintInfo {
-    id: number;
+    id: string;
     anio: number;
     numero_sprint: number;
     nombre_sprint: string;
     fecha_inicial: string;
     fecha_final: string;
     total_dias_habiles: number;
-    id_corte_academico: number | null;
+    id_corte_academico: string | null;
     nombre_corte_academico: string | null;
     actual: number;
     es_evaluacion: number;
 }
 
 interface FilaEstudiante {
-    id_estudiante: number;
-    id_persona: number;
+    id_estudiante: string;
+    id_persona: string;
     nombre_estudiante: string;
     numero_identificacion: string;
     grupo_estudiante: string;
-    id_grupo: number;
-    observacionesPorTipo: { [idTipo: number]: ObservacionExistente | null };
+    id_grupo: string;
+    observacionesPorTipo: { [idTipo: string]: ObservacionExistente | null };
     acudientes: AcudienteInforme[];
 }
 
 interface ModalObservacionModel {
-    id: number;
-    id_estudiante: number;
-    id_tipo_observacion_estudiante: number;
+    id: string;
+    id_estudiante: string;
+    id_tipo_observacion_estudiante: string;
     descripcion: string;
     fecha: string;
     id_estudiante_afectado: string | null;
-    id_sprint: number | null;
+    id_sprint: string | null;
     para_informe: boolean;
     fecha_informe_padre: string | null;
     firma_informe_padre: string | null;
     fecha_informe_padre_afectado: string | null;
     firma_informe_padre_afectado: string | null;
-    id_usuario: number | null;
+    id_usuario: string | null;
     fecha_registro: string | null;
 }
 
 interface HistorialInforme {
-    id: number;
-    id_estudiante: number;
-    id_sprint: number;
+    id: string;
+    id_estudiante: string;
+    id_sprint: string;
     numero_sprint?: number;
     nombre_sprint?: string;
     nombre_corte_academico?: string;
-    id_persona_acudiente: number | null;
+    id_persona_acudiente: string | null;
     contacto_usado: string;
     nombre_destinatario: string;
     medio_envio: string;
     compromiso: string | null;
     fecha_compromiso: string | null;
-    id_usuario: number | null;
+    id_usuario: string | null;
     fecha_envio: string;
     editando?: boolean;
     compromiso_editado?: string;
@@ -127,7 +127,7 @@ export class RegistroObservacionesInformeComponent implements OnInit, OnDestroy 
     public regresar = '/operaciones';
 
     public sprints: SprintInfo[] = [];
-    public idSprintSeleccionado: number | null = null;
+    public idSprintSeleccionado: string | null = null;
     public sprintActual: SprintInfo | null = null;
 
     public tiposInforme: TipoObservacionInforme[] = [];
@@ -221,7 +221,7 @@ export class RegistroObservacionesInformeComponent implements OnInit, OnDestroy 
                     sprintParaSeleccionar = this.sprints[0];
                 }
 
-                this.idSprintSeleccionado = Number(sprintParaSeleccionar.id);
+                this.idSprintSeleccionado = sprintParaSeleccionar.id;
                 this.sprintActual = sprintParaSeleccionar;
                 this.cargarDatos();
             },
@@ -234,7 +234,7 @@ export class RegistroObservacionesInformeComponent implements OnInit, OnDestroy 
     }
 
     onSprintChange(): void {
-        const sprint = this.sprints.find((s: SprintInfo) => Number(s.id) === Number(this.idSprintSeleccionado));
+        const sprint = this.sprints.find((s: SprintInfo) => s.id === this.idSprintSeleccionado);
         this.sprintActual = sprint || null;
         this.cargarDatos();
     }
@@ -257,9 +257,9 @@ export class RegistroObservacionesInformeComponent implements OnInit, OnDestroy 
 
                 this.tiposInforme = data.tipos_observaciones_informe || [];
 
-                const acudientesPorEstudiante = new Map<number, AcudienteInforme[]>();
+                const acudientesPorEstudiante = new Map<string, AcudienteInforme[]>();
                 (data.acudientes || []).forEach((a: AcudienteInforme) => {
-                    const idEst = Number(a.id_estudiante);
+                    const idEst = a.id_estudiante;
                     if (!acudientesPorEstudiante.has(idEst)) acudientesPorEstudiante.set(idEst, []);
                     acudientesPorEstudiante.get(idEst)!.push(a);
                 });
@@ -271,21 +271,21 @@ export class RegistroObservacionesInformeComponent implements OnInit, OnDestroy 
                 });
 
                 this.filas = (data.estudiantes || []).map((e: any) => {
-                    const observacionesPorTipo: { [idTipo: number]: ObservacionExistente | null } = {};
+                    const observacionesPorTipo: { [idTipo: string]: ObservacionExistente | null } = {};
                     this.tiposInforme.forEach((tipo: TipoObservacionInforme) => {
                         const key = `${e.id_estudiante}_${tipo.id}`;
                         observacionesPorTipo[tipo.id] = observacionesPorEstTipo.get(key) || null;
                     });
 
                     return {
-                        id_estudiante: Number(e.id_estudiante),
-                        id_persona: Number(e.id_persona),
+                        id_estudiante: e.id_estudiante,
+                        id_persona: e.id_persona,
                         nombre_estudiante: (e.nombre_estudiante || '').trim().replace(/\s+/g, ' '),
                         numero_identificacion: e.numero_identificacion || '',
                         grupo_estudiante: e.grupo_estudiante || 'Sin grupo',
-                        id_grupo: Number(e.id_grupo) || 0,
+                        id_grupo: e.id_grupo || 0,
                         observacionesPorTipo,
-                        acudientes: acudientesPorEstudiante.get(Number(e.id_estudiante)) || []
+                        acudientes: acudientesPorEstudiante.get(e.id_estudiante) || []
                     } as FilaEstudiante;
                 });
 
@@ -366,13 +366,13 @@ export class RegistroObservacionesInformeComponent implements OnInit, OnDestroy 
 
         if (observacionExistente) {
             this.modeloModal = {
-                id: Number(observacionExistente.id),
+                id: observacionExistente.id,
                 id_estudiante: fila.id_estudiante,
-                id_tipo_observacion_estudiante: Number(observacionExistente.id_tipo_observacion_estudiante),
+                id_tipo_observacion_estudiante: observacionExistente.id_tipo_observacion_estudiante,
                 descripcion: observacionExistente.descripcion || '',
                 fecha: this.formatDateFromString(observacionExistente.fecha),
                 id_estudiante_afectado: null,
-                id_sprint: Number(observacionExistente.id_sprint),
+                id_sprint: observacionExistente.id_sprint,
                 para_informe: true,
                 fecha_informe_padre: null,
                 firma_informe_padre: null,
@@ -383,7 +383,7 @@ export class RegistroObservacionesInformeComponent implements OnInit, OnDestroy 
             };
         } else {
             this.modeloModal = {
-                id: 0,
+                id: '',
                 id_estudiante: fila.id_estudiante,
                 id_tipo_observacion_estudiante: tipo.id,
                 descripcion: '',
@@ -487,16 +487,16 @@ export class RegistroObservacionesInformeComponent implements OnInit, OnDestroy 
                     return;
                 }
 
-                const idObs = esCreacion ? Number(response.id) : Number(this.modeloModal.id);
+                const idObs = esCreacion ? response.id : this.modeloModal.id;
                 const observacionActualizada: ObservacionExistente = {
                     id: idObs,
                     id_estudiante: this.modeloModal.id_estudiante,
                     id_tipo_observacion_estudiante: this.modeloModal.id_tipo_observacion_estudiante,
                     descripcion: this.modeloModal.descripcion,
                     fecha: this.modeloModal.fecha,
-                    id_sprint: Number(this.modeloModal.id_sprint),
+                    id_sprint: this.modeloModal.id_sprint || '',
                     para_informe: 1,
-                    id_usuario: this.modeloModal.id_usuario || 0,
+                    id_usuario: this.modeloModal.id_usuario || '',
                     fecha_registro: this.modeloModal.fecha_registro || ''
                 };
 
@@ -685,7 +685,7 @@ export class RegistroObservacionesInformeComponent implements OnInit, OnDestroy 
 
     private guardarHistorialSilencioso(
         fila: FilaEstudiante,
-        idPersonaAcudiente: number | null,
+        idPersonaAcudiente: string | null,
         contactoUsado: string,
         nombreDestinatario: string,
         medioEnvio: string
@@ -797,9 +797,9 @@ export class RegistroObservacionesInformeComponent implements OnInit, OnDestroy 
 
     private crearModeloVacio(): ModalObservacionModel {
         return {
-            id: 0,
-            id_estudiante: 0,
-            id_tipo_observacion_estudiante: 0,
+            id: '',
+            id_estudiante: '',
+            id_tipo_observacion_estudiante: '',
             descripcion: '',
             fecha: '',
             id_estudiante_afectado: null,
@@ -852,11 +852,11 @@ export class RegistroObservacionesInformeComponent implements OnInit, OnDestroy 
         return telefono.replace(/[\s\-\(\)\+]/g, '').replace(/^57/, '');
     }
 
-    trackByEstudiante(index: number, fila: FilaEstudiante): number {
+    trackByEstudiante(index: number, fila: FilaEstudiante): string {
         return fila.id_estudiante;
     }
 
-    trackByTipo(index: number, tipo: TipoObservacionInforme): number {
+    trackByTipo(index: number, tipo: TipoObservacionInforme): string {
         return tipo.id;
     }
 }

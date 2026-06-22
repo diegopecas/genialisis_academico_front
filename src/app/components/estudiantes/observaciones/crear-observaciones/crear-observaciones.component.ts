@@ -17,7 +17,7 @@ import { SprintsService } from '../../../../services/sprints.service';
 
 // Interfaz para el modelo de observación
 interface ObservacionModel {
-    id: number;
+    id: string;
     id_estudiante: string;
     id_tipo_observacion_estudiante: string;
     descripcion: string;
@@ -29,7 +29,7 @@ interface ObservacionModel {
     firma_informe_padre: string | null;
     fecha_informe_padre_afectado: string | null;
     firma_informe_padre_afectado: string | null;
-    id_usuario: number | null;
+    id_usuario: string | null;
     fecha_registro: string | null;
 }
 
@@ -78,7 +78,7 @@ export class CrearObservacionesComponent implements OnInit {
     }
 
     public model: ObservacionModel = {
-        id: 0,
+        id: '',
         id_estudiante: "",
         id_tipo_observacion_estudiante: "",
         descripcion: "",
@@ -341,7 +341,7 @@ export class CrearObservacionesComponent implements OnInit {
         }
 
         const tipoObservacion = this.listas.tiposObservaciones.find(
-            tipo => tipo.id === Number(this.model.id_tipo_observacion_estudiante)
+            tipo => tipo.id === this.model.id_tipo_observacion_estudiante
         );
 
         if (tipoObservacion) {
@@ -529,7 +529,7 @@ export class CrearObservacionesComponent implements OnInit {
 
     limpiarFormulario() {
         this.model = {
-            id: 0,
+            id: '',
             id_estudiante: this.idEstudiante,
             id_tipo_observacion_estudiante: "",
             descripcion: "",
@@ -735,7 +735,7 @@ export class CrearObservacionesComponent implements OnInit {
         // Agregar información sobre el tipo de observación si está seleccionado
         if (this.model.id_tipo_observacion_estudiante) {
             const tipoObservacion = this.listas.tiposObservaciones.find(
-                tipo => tipo.id === Number(this.model.id_tipo_observacion_estudiante)
+                tipo => tipo.id === this.model.id_tipo_observacion_estudiante
             );
 
             if (tipoObservacion) {

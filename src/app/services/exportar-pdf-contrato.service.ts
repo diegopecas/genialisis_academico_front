@@ -1799,7 +1799,7 @@ export class ExportarPdfContratoService {
     return fecha.toLocaleDateString('es-CO', { month: 'long' });
   }
 
-  private generarNumeroContrato(id: number, anio: number, prefijo: string): string {
+  private generarNumeroContrato(id: string, anio: number, prefijo: string): string {
     return `${prefijo}-${anio}-${String(id).padStart(5, '0')}`;
   }
 

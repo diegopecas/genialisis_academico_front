@@ -10,7 +10,7 @@ import { NominasService } from '../../../../services/nominas.service';
 
 
 interface ColaboradorNomina {
-  id_colaborador: number;
+  id_colaborador: string;
   nombre_completo: string;
   tipo_contrato: string;
   aplica_nomina: boolean;

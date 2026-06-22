@@ -9,7 +9,7 @@ import { AlimentacionService } from '../../../services/alimentacion.service';
 import { MenuMinutasService } from '../../../services/menu-minutas.service';
 
 interface ResumenProducto {
-  id_producto: number;
+  id_producto: string;
   nombre_producto: string;
   detalle_producto: string;
   cantidad_presentes: number;
@@ -23,7 +23,7 @@ interface ResumenProducto {
 interface MinutaCelda {
   semana: number;
   dia: number;
-  id_menu: number | null;
+  id_menu: string | null;
   nombre_menu: string;
   descripcion_menu: string;
 }
@@ -450,7 +450,7 @@ export class ReporteAlimentacionComponent implements OnInit {
         celdas.push({
           semana: numSemana,
           dia: dia.valor,
-          id_menu: registro ? Number(registro.id_menu) : null,
+          id_menu: registro ? registro.id_menu : null,
           nombre_menu: registro ? registro.nombre_menu : '',
           descripcion_menu: registro ? (registro.descripcion_menu || '') : ''
         });

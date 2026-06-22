@@ -17,14 +17,14 @@ import { ClasificacionProductosServicios, PeriodicidadCobro } from './constantes
 
 // Interfaz para el modelo de cuenta actualizada
 interface CuentaModel {
-  id: number;
+  id: string;
   id_producto_servicio: string;
   id_persona: string;
   fecha: string;
   valor: number;
   detalle: string;
-  id_usuario: number | null;
-  id_horario_alimentacion: number | null;
+  id_usuario: string | null;
+  id_horario_alimentacion: string | null;
   // Estas propiedades se calculan en el backend y son de solo lectura
   valor_pagado?: number;
   saldo?: number;
@@ -32,9 +32,9 @@ interface CuentaModel {
 
 // Interfaz para los pagos aplicados
 interface PagoAplicado {
-  id: number;
-  id_cuenta_por_cobrar: number;
-  id_pago_recibido: number;
+  id: string;
+  id_cuenta_por_cobrar: string;
+  id_pago_recibido: string;
   valor_aplicado: number;
   fecha_aplicacion: string;
   fecha_pago: string;
@@ -45,12 +45,13 @@ interface PagoAplicado {
 
 // Interfaz para los productos y servicios
 interface ProductoServicio {
-  id: number;
+  clasificacion_codigo?: string;
+  id: string;
   nombre: string;
-  id_clasificacion_productos_servicios: number;
+  id_clasificacion_productos_servicios: string;
   id_periodicidad_cobro: number;
   valor_sugerido?: number;
-  id_horario_alimentacion_sugerido?: number;
+  id_horario_alimentacion_sugerido?: string;
   detalles?: string;
   disponible?: number;
 }
@@ -100,7 +101,7 @@ export class CrearOncesAlimentacionComponent implements OnInit {
   public camposBloqueados = false;
 
   public model: CuentaModel = {
-    id: 0,
+    id: '',
     id_producto_servicio: "",
     id_persona: "",
     fecha: "",
@@ -228,7 +229,7 @@ export class CrearOncesAlimentacionComponent implements OnInit {
       
       // Filtrar productos de clasificación ALIMENTACION y periodicidad DIARIO
       this.listas.productosServicios = todosProductos.filter((producto: ProductoServicio) => 
-        Number(producto.id_clasificacion_productos_servicios) === ClasificacionProductosServicios.ALIMENTACION &&
+        producto.clasificacion_codigo === 'ALIMENTACION' &&
         Number(producto.id_periodicidad_cobro) === PeriodicidadCobro.DIARIO
       );
       console.log("productosServiciosService", this.listas.productosServicios);
@@ -384,7 +385,7 @@ export class CrearOncesAlimentacionComponent implements OnInit {
 
   limpiarFormulario() {
     this.model = {
-      id: 0,
+      id: '',
       id_producto_servicio: "",
       id_persona: this.estudiante?.id_persona || "",
       fecha: this.model.fecha,
@@ -410,7 +411,7 @@ export class CrearOncesAlimentacionComponent implements OnInit {
 
   asignarValorSugerido() {
     if (!this.camposBloqueados) {
-      const producto = this.listas.productosServicios.find(p => p.id === Number(this.model.id_producto_servicio));
+      const producto = this.listas.productosServicios.find(p => p.id === this.model.id_producto_servicio);
       if (producto) {
         this.model.valor = producto.valor_sugerido || 0;
         this.valorFormateado = this.formatearMoneda(this.model.valor);

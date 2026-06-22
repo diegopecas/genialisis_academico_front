@@ -8,7 +8,7 @@ import { TablasComponent } from '../../../common/tablas/tablas.component';
 import { CuentasPorCobrarService } from '../../../services/cuentas-por-cobrar.service';
 
 interface CobroDesagregado {
-  id: number;
+  id: string;
   fecha: string;
   anio: number;
   nombre_persona: string;

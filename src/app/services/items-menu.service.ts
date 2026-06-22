@@ -105,7 +105,7 @@ export class ItemsMenuService {
       );
   }
 
-  asignarIngredientes(idItem: number, ingredientes: any[]) {
+  asignarIngredientes(idItem: string, ingredientes: any[]) {
     const body = JSON.stringify({ ingredientes: ingredientes });
 
     return this.http.post<any>(

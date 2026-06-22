@@ -70,14 +70,14 @@ export class EstudianteDatosMedicosComponent implements OnInit {
   construirGrupos(catalogo: any[], valores: any[]) {
     const valoresMap = new Map<number, any>();
     valores.forEach((v: any) => {
-      valoresMap.set(Number(v.id_dato_medico), v);
+      valoresMap.set(v.id_dato_medico, v);
     });
 
     const gruposMap = new Map<number, GrupoMedicoVista>();
 
     catalogo.forEach((item: any) => {
-      const idTipo = Number(item.id_tipo_dato_medico);
-      const valor = valoresMap.get(Number(item.id));
+      const idTipo = item.id_tipo_dato_medico;
+      const valor = valoresMap.get(item.id);
 
       if (!valor) return;
 

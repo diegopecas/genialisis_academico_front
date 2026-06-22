@@ -6,21 +6,21 @@ import { Injectable } from '@angular/core';
 export class CalificacionContextService {
 
   private horariosGrupo: any[] = [];
-  private idGrupoActual: number = 0;
+  private idGrupoActual: string = '';
 
-  setHorariosGrupo(idGrupo: number, horarios: any[]): void {
+  setHorariosGrupo(idGrupo: string, horarios: any[]): void {
     this.idGrupoActual = idGrupo;
     this.horariosGrupo = horarios;
   }
 
-  getHorariosGrupo(idGrupo: number): any[] {
+  getHorariosGrupo(idGrupo: string): any[] {
     if (this.idGrupoActual === idGrupo) {
       return this.horariosGrupo;
     }
     return [];
   }
 
-  getHorariosAreaDia(idGrupo: number, idArea: number, idDiaSemana: number): any[] {
+  getHorariosAreaDia(idGrupo: string, idArea: string, idDiaSemana: number): any[] {
     return this.getHorariosGrupo(idGrupo)
       .filter((h: any) => h.id_area_academica == idArea && h.id_dia_semana == idDiaSemana)
       .sort((a: any, b: any) => {
@@ -30,7 +30,7 @@ export class CalificacionContextService {
       });
   }
 
-  getBloqueActual(idGrupo: number, idArea: number): any | null {
+  getBloqueActual(idGrupo: string, idArea: string): any | null {
     const jsDay = new Date().getDay();
     const diaSemana = jsDay === 0 ? 7 : jsDay;
     const bloques = this.getHorariosAreaDia(idGrupo, idArea, diaSemana);

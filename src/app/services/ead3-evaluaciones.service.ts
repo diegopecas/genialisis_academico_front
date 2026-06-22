@@ -172,7 +172,7 @@ export class Ead3EvaluacionesService {
     );
   }
 
-  guardarArea(data: { id_evaluacion: number, area: string, items: any[] }) {
+  guardarArea(data: { id_evaluacion: string, area: string, items: any[] }) {
     const body = JSON.stringify(data);
     return this.http.put<any>(this.servicio + '/guardar-area', body, httpOptions).pipe(
       tap((respuesta: any) => {
@@ -205,7 +205,7 @@ export class Ead3EvaluacionesService {
     );
   }
 
-  actualizarAnalisis(data: { id: number, analisis: string, recomendaciones: string, id_usuario_analisis: number }) {
+  actualizarAnalisis(data: { id: string, analisis: string, recomendaciones: string, id_usuario_analisis: string }) {
     const body = JSON.stringify(data);
     return this.http.put<any>(this.servicio + '/analisis', body, httpOptions).pipe(
       tap((respuesta: any) => {
@@ -216,7 +216,7 @@ export class Ead3EvaluacionesService {
     );
   }
 
-  actualizarItem(data: { id_evaluacion: number, id_detalle: number, cumple: number }) {
+  actualizarItem(data: { id_evaluacion: string, id_detalle: number, cumple: number }) {
     const body = JSON.stringify(data);
     return this.http.put<any>(this.servicio + '/item', body, httpOptions).pipe(
       tap((respuesta: any) => {

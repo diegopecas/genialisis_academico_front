@@ -10,20 +10,20 @@ import { HistorialRecordatoriosAsistenciaService } from '../../../services/histo
 import { UtilService } from '../../../common/constantes/util.service';
 
 interface AcudienteAsistencia {
-  id_estudiante: number;
-  id_persona: number;
-  id_acudiente: number;
+  id_estudiante: string;
+  id_persona: string;
+  id_acudiente: string;
   id_tipo_acudiente: number;
   nombre_tipo_acudiente: string;
-  id_persona_acudiente: number;
+  id_persona_acudiente: string;
   nombre_acudiente: string;
   telefono: string;
   correo_electronico: string;
 }
 
 interface EstudianteIndicador {
-  id_estudiante: number;
-  id_persona: number;
+  id_estudiante: string;
+  id_persona: string;
   id_genero: number | null;
   nombre_completo: string;
   nombre_grupo: string;
@@ -188,7 +188,7 @@ export class SeguimientoAsistenciaComponent implements OnInit, OnDestroy {
     this.subscriptions.push(sub);
   }
 
-  obtenerAcudientesEstudiante(idEstudiante: number): AcudienteAsistencia[] {
+  obtenerAcudientesEstudiante(idEstudiante: string): AcudienteAsistencia[] {
     return this.acudientes.filter(a => a.id_estudiante === idEstudiante);
   }
 
@@ -331,7 +331,7 @@ export class SeguimientoAsistenciaComponent implements OnInit, OnDestroy {
 
   private guardarHistorialSilencioso(
     estudiante: EstudianteIndicador,
-    idPersonaAcudiente: number | null,
+    idPersonaAcudiente: string | null,
     telefono: string,
     nombreDestinatario: string
   ): void {

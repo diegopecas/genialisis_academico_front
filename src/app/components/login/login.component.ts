@@ -9,7 +9,7 @@ import { FormsModule } from '@angular/forms';
 import { InstitucionConfigService } from '../../services/institucion-config.service';
 
 interface Tenant {
-  id: number;
+  id: string;
   codigo: string;
   nombre: string;
   logo_url?: string;

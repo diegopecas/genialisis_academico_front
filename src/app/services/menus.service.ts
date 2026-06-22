@@ -105,7 +105,7 @@ export class MenusService {
       );
   }
 
-  asignarItems(idMenu: number, items: any[]) {
+  asignarItems(idMenu: string, items: any[]) {
     const body = JSON.stringify({ items: items });
 
     return this.http.post<any>(
@@ -142,7 +142,7 @@ export class MenusService {
       );
   }
 
-  asignarProductosServicios(idMenu: number, productos: any[]) {
+  asignarProductosServicios(idMenu: string, productos: any[]) {
     const body = JSON.stringify({ productos: productos });
 
     return this.http.post<any>(

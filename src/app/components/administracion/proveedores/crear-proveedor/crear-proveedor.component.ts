@@ -13,7 +13,7 @@ import { GenerosService } from '../../../../services/generos.service';
 import { CiudadesService } from '../../../../services/ciudades.service';
 
 interface ProveedorModel {
-    idPersona: number;
+    idPersona: string;
     tipoIdentificacion: number | string;
     numeroIdentificacion: number | string;
     razonSocial: string;
@@ -32,7 +32,7 @@ interface ProveedorModel {
     ocupacion: string;
     // Campos específicos de proveedores
     tipoProveedor: number | string;
-    idProveedor: number;
+    idProveedor: string;
     activo: number;
 }
 
@@ -73,7 +73,7 @@ export class CrearProveedorComponent implements OnInit {
     }
 
     public model: ProveedorModel = {
-        idPersona: 0,
+        idPersona: '',
         tipoIdentificacion: "",
         numeroIdentificacion: "",
         razonSocial: "",
@@ -91,7 +91,7 @@ export class CrearProveedorComponent implements OnInit {
         rh: "",
         ocupacion: "Proveedor",
         tipoProveedor: "",
-        idProveedor: 0,
+        idProveedor: '',
         activo: 1
     };
 
@@ -263,7 +263,7 @@ export class CrearProveedorComponent implements OnInit {
     }
 
     llenarFormularioPersona(persona: any) {
-        this.model.idPersona = +persona.id;
+        this.model.idPersona = persona.id;
         this.model.tipoIdentificacion = persona.id_tipo_identificacion;
         this.model.numeroIdentificacion = persona.numero_identificacion;
         this.model.razonSocial = persona.razon_social || "";
@@ -557,7 +557,7 @@ export class CrearProveedorComponent implements OnInit {
 
     limpiarFormulario(): void {
         this.model = {
-            idPersona: 0,
+            idPersona: '',
             tipoIdentificacion: "",
             numeroIdentificacion: "",
             razonSocial: "",
@@ -575,7 +575,7 @@ export class CrearProveedorComponent implements OnInit {
             rh: "",
             ocupacion: "Proveedor",
             tipoProveedor: "",
-            idProveedor: 0,
+            idProveedor: '',
             activo: 1
         };
         this.submitted = false;

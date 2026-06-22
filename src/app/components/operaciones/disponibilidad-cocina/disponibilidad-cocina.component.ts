@@ -109,8 +109,8 @@ export class DisponibilidadCocinaComponent implements OnInit {
     }
 
     if (this.estadoSeleccionado !== '') {
-      const estado = Number(this.estadoSeleccionado);
-      resultado = resultado.filter(p => p.disponible_hoy === estado);
+      const estado = this.estadoSeleccionado;
+      resultado = resultado.filter(p => String(p.disponible_hoy) === estado);
     }
 
     if (this.textoBusqueda.trim()) {

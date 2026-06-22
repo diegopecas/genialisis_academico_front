@@ -218,7 +218,7 @@ export class TareasXSprintsService {
     );
   }
 
-  obtenerResumenClasesPorGrupo(idGrupo: number, idSprint?: number) {
+  obtenerResumenClasesPorGrupo(idGrupo: string, idSprint?: string) {
     let params = new HttpParams();
     if (idSprint) {
       params = params.set('id_sprint', idSprint.toString());
@@ -235,7 +235,7 @@ export class TareasXSprintsService {
       );
   }
 
-  obtenerResumenClasesTodosGrupos(idSprint?: number) {
+  obtenerResumenClasesTodosGrupos(idSprint?: string) {
     let params = new HttpParams();
     if (idSprint) {
       params = params.set('id_sprint', idSprint.toString());

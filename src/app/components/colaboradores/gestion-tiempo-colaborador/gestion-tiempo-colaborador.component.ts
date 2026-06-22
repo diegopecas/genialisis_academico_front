@@ -74,7 +74,7 @@ export class GestionTiempoColaboradorComponent implements OnInit {
     tipoRecurrencia: 'diario' as 'diario' | 'semanal' | 'mensual',
     fecha_desde: '',
     fecha_hasta: '',
-    diasSemana: { 1: false, 2: false, 3: false, 4: false, 5: false, 6: false, 0: false } as { [key: number]: boolean },
+    diasSemana: { 1: false, 2: false, 3: false, 4: false, 5: false, 6: false, 0: false } as { [key: string]: boolean },
     diaMes: 1
   };
 
@@ -93,7 +93,7 @@ export class GestionTiempoColaboradorComponent implements OnInit {
   public valorCalculado = 0;
   
   public model = {
-    id_colaborador: 0,
+    id_colaborador: '',
     id_tipo_actividad: '',
     fecha_inicio: '',
     fecha_fin: '',
@@ -170,7 +170,7 @@ export class GestionTiempoColaboradorComponent implements OnInit {
     if (this.idColaboradorInput) {
       this.modoEmbebido = true;
       this.id = this.idColaboradorInput;
-      this.model.id_colaborador = parseInt(this.id);
+      this.model.id_colaborador = this.id;
       this.cargarColaborador();
       this.cargarCategorias();
       this.cargarTiposActividades();
@@ -185,7 +185,7 @@ export class GestionTiempoColaboradorComponent implements OnInit {
 
     this.route.params.subscribe(params => {
       this.id = params['id'];
-      this.model.id_colaborador = parseInt(this.id);
+      this.model.id_colaborador = this.id;
       
       this.cargarColaborador();
       this.cargarCategorias();
@@ -456,7 +456,7 @@ export class GestionTiempoColaboradorComponent implements OnInit {
 
   limpiarFormulario() {
     this.model = {
-      id_colaborador: parseInt(this.id),
+      id_colaborador: this.id,
       id_tipo_actividad: '',
       fecha_inicio: '',
       fecha_fin: '',
@@ -552,7 +552,7 @@ export class GestionTiempoColaboradorComponent implements OnInit {
   }
 
   cargarTareas() {
-    this.tareasColaboradoresService.obtenerPorColaborador(parseInt(this.id)).subscribe({
+    this.tareasColaboradoresService.obtenerPorColaborador(this.id).subscribe({
       next: (response: any) => {
         const hoy = new Date().toISOString().split('T')[0];
         this.tareas = (response.body || []).map((t: any) => ({
@@ -853,7 +853,7 @@ export class GestionTiempoColaboradorComponent implements OnInit {
         return;
       }
       const tarea: any = {
-        id_colaborador: parseInt(this.id),
+        id_colaborador: this.id,
         id_estudiante: this.modelTarea.id_estudiante || null,
         id_tipo_tarea: this.modelTarea.id_tipo_tarea || null,
         id_clase_tarea: this.modelTarea.id_clase_tarea,
@@ -878,7 +878,7 @@ export class GestionTiempoColaboradorComponent implements OnInit {
     }
   }
 
-  private crearTareasRecurrentes(idUsuario: number | null): void {
+  private crearTareasRecurrentes(idUsuario: string | null): void {
     if (!this.modelTarea.fecha_desde || !this.modelTarea.fecha_hasta) {
       Swal.fire({ icon: 'warning', title: 'Campos requeridos', text: 'Ingrese las fechas de inicio y fin del rango.' });
       return;
@@ -906,7 +906,7 @@ export class GestionTiempoColaboradorComponent implements OnInit {
     }).then((result) => {
       if (result.isConfirmed) {
         const tareas = fechas.map(fecha => ({
-          id_colaborador: parseInt(this.id),
+          id_colaborador: this.id,
           id_estudiante: this.modelTarea.id_estudiante || null,
           id_tipo_tarea: this.modelTarea.id_tipo_tarea || null,
           descripcion: this.modelTarea.descripcion.trim(),

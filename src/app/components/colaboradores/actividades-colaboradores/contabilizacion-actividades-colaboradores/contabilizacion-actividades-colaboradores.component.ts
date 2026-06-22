@@ -10,7 +10,7 @@ import { ActividadesColaboradoresService } from '../../../../services/actividade
 import { ContabilizacionesService } from '../../../../services/contabilizaciones.service';
 
 interface Colaborador {
-  id_colaborador: number;
+  id_colaborador: string;
   nombre_colaborador: string;
   minutos_permisos: number;
   minutos_horas: number;

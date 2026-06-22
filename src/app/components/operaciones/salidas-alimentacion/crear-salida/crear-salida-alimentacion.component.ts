@@ -13,7 +13,7 @@ import { ItemsMenuService } from '../../../../services/items-menu.service';
 import { UtilService } from '../../../../common/constantes/util.service';
 
 interface ProductoAlimentacion {
-  id: number;
+  id: string;
   nombre: string;
   descripcion: string;
   stock_actual: number;
@@ -29,7 +29,7 @@ interface ProductoAlimentacion {
 }
 
 interface MenuSalida {
-  id: number;
+  id: string;
   nombre: string;
   descripcion: string;
   items: any[];
@@ -39,7 +39,7 @@ interface MenuSalida {
 }
 
 interface ItemMenuSalida {
-  id: number;
+  id: string;
   nombre: string;
   porcion: string;
   ingredientes: any[];
@@ -68,7 +68,7 @@ export class CrearSalidaAlimentacionComponent implements OnInit {
 
   // Controles principales
   fechaSalida: string = this.obtenerFechaHoy();
-  clasificacionSeleccionada: number | null = null;
+  clasificacionSeleccionada: string | null = null;
   conceptoSeleccionado: number | null = null;
   observaciones: string = '';
 

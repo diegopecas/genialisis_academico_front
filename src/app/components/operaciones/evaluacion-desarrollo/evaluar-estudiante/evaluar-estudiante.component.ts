@@ -14,7 +14,7 @@ Chart.register(...registerables);
 declare var ClassicEditor: any;
 
 interface ItemEvaluacion {
-  id: number;
+  id: string;
   area: string;
   area_nombre: string;
   id_rango_edad: number;
@@ -39,8 +39,8 @@ export class EvaluarEstudianteComponent implements OnInit, OnDestroy {
   @ViewChild('graficoRadar') graficoRadarCanvas!: ElementRef<HTMLCanvasElement>;
 
   titulo = 'Evaluación EAD-3';
-  idEstudiante: number = 0;
-  idEvaluacion: number | null = null;
+  idEstudiante: string = '';
+  idEvaluacion: string | null = null;
   evaluacionCreada: boolean = false;
   modoRetomar: boolean = false;
 
@@ -102,12 +102,12 @@ export class EvaluarEstudianteComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit() {
-    this.idEstudiante = +this.route.snapshot.params['idEstudiante'];
+    this.idEstudiante = this.route.snapshot.params['idEstudiante'];
     const idRetomar = this.route.snapshot.queryParams['retomar'];
 
     if (idRetomar) {
       this.modoRetomar = true;
-      this.cargarEvaluacionExistente(+idRetomar);
+      this.cargarEvaluacionExistente(idRetomar);
     } else {
       this.cargarDatosEstudiante();
     }
@@ -142,7 +142,7 @@ export class EvaluarEstudianteComponent implements OnInit, OnDestroy {
   }
 
   // --- RETOMAR EVALUACIÓN EXISTENTE ---
-  cargarEvaluacionExistente(idEvaluacion: number) {
+  cargarEvaluacionExistente(idEvaluacion: string) {
     this.ead3EvaluacionesService.retomar(idEvaluacion).subscribe({
       next: (res: any) => {
         const data = res.body;
@@ -216,7 +216,7 @@ export class EvaluarEstudianteComponent implements OnInit, OnDestroy {
     this.ead3ItemsService.obtenerItemsParaEvaluar(this.rangoEdad.id).subscribe({
       next: (res: any) => {
         // Crear mapa de ítems guardados por id_item
-        const mapaGuardados: { [key: number]: number } = {};
+        const mapaGuardados: { [key: string]: number } = {};
         itemsGuardados.forEach(ig => {
           mapaGuardados[ig.id_item] = ig.cumple;
         });

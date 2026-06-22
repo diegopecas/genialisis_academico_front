@@ -45,7 +45,7 @@ export class CrearReglaCobroComponent implements OnInit {
   };
 
   public model = {
-    id: 0,
+    id: '',
     nombre: '',
     id_tipo_evento: '',
     id_producto_servicio: '',
@@ -103,8 +103,8 @@ export class CrearReglaCobroComponent implements OnInit {
         const todosProductos = resProductos.body || resProductos;
         // Solo clasificación 2 (Extra académico) y categoría 2 (servicios extras) activos
         this.listas.productosServicios = todosProductos.filter((p: any) => 
-          Number(p.id_clasificacion_productos_servicios) === 2 && 
-          Number(p.id_categoria_productos_servicios) === 2 && 
+          p.id_clasificacion_productos_servicios === 2 && 
+          p.id_categoria_productos_servicios === 2 && 
           Number(p.disponible) === 1
         );
         this.listas.grupos = resGrupos.body || resGrupos;

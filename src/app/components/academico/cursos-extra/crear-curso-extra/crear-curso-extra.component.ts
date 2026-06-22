@@ -474,7 +474,7 @@ export class CrearCursoExtraComponent implements OnInit {
     }
 
     const data = {
-      id_docente: parseInt(this.idDocenteSeleccionado),
+      id_docente: this.idDocenteSeleccionado,
       id_curso_extra: this.model.id,
       es_titular: this.esTitularSeleccionado ? 1 : 0
     };
@@ -552,7 +552,7 @@ export class CrearCursoExtraComponent implements OnInit {
     }
 
     const data = {
-      id_proveedor: parseInt(this.idProveedorSeleccionado),
+      id_proveedor: this.idProveedorSeleccionado,
       id_curso_extra: this.model.id
     };
 
@@ -739,19 +739,19 @@ export class CrearCursoExtraComponent implements OnInit {
   guardarTarifa() {
     const data = {
       id_curso_extra: this.model.id,
-      id_producto_matricula: this.tarifaActual.id_producto_matricula ? parseInt(this.tarifaActual.id_producto_matricula) : null,
+      id_producto_matricula: this.tarifaActual.id_producto_matricula ? this.tarifaActual.id_producto_matricula : null,
       valor_matricula: this.tarifaActual.valor_matricula || 0,
       cuotas_matricula: this.tarifaActual.cuotas_matricula ? parseInt(this.tarifaActual.cuotas_matricula) : 1,
-      id_producto_pension: this.tarifaActual.id_producto_pension ? parseInt(this.tarifaActual.id_producto_pension) : null,
+      id_producto_pension: this.tarifaActual.id_producto_pension ? this.tarifaActual.id_producto_pension : null,
       valor_pension: this.tarifaActual.valor_pension || 0,
-      id_producto_unico: this.tarifaActual.id_producto_unico ? parseInt(this.tarifaActual.id_producto_unico) : null,
+      id_producto_unico: this.tarifaActual.id_producto_unico ? this.tarifaActual.id_producto_unico : null,
       valor_unico: this.tarifaActual.valor_unico || 0,
       cuotas_unico: this.tarifaActual.cuotas_unico ? parseInt(this.tarifaActual.cuotas_unico) : 1,
       anio: parseInt(this.tarifaActual.anio)
     } as any;
 
     if (this.tarifaActual.id) {
-      data.id = parseInt(this.tarifaActual.id);
+      data.id = this.tarifaActual.id;
       this.tarifasCursosExtraService.actualizar(data).subscribe({
         next: () => {
           Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Tarifa actualizada', showConfirmButton: false, timer: 2000 });

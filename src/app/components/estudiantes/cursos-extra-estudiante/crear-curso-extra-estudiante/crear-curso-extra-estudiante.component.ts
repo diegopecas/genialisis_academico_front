@@ -13,7 +13,7 @@ import { InstitucionConfigService } from '../../../../services/institucion-confi
 import Swal from 'sweetalert2';
 
 interface ValorGenerado {
-  id_producto_servicio: number;
+  id_producto_servicio: string;
   nombre_producto: string;
   fecha: string;
   valor: number;
@@ -416,8 +416,8 @@ export class CrearCursoExtraEstudianteComponent implements OnInit {
     this.guardando = true;
 
     const data = {
-      id_estudiante: parseInt(this.idEstudiante),
-      id_curso_extra: parseInt(this.model.id_curso_extra),
+      id_estudiante: this.idEstudiante,
+      id_curso_extra: this.model.id_curso_extra,
       fecha_inscripcion: new Date().toISOString().split('T')[0],
       anio: this.cursoSeleccionado?.anio || this.institucionConfigService.getAnioAcademicoActual()
     };
@@ -485,7 +485,7 @@ export class CrearCursoExtraEstudianteComponent implements OnInit {
     const data = {
       id_persona: this.estudiante.id_persona,
       id_usuario: idUsuario,
-      id_curso_extra: parseInt(this.model.id_curso_extra),
+      id_curso_extra: this.model.id_curso_extra,
       id_inscripcion: this.idInscripcion,
       valores: this.valores.map(v => ({
         id_producto_servicio: v.id_producto_servicio,

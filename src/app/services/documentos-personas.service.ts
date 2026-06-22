@@ -11,17 +11,17 @@ import { httpOptions } from './http';
 import { InstitucionConfigService } from './institucion-config.service';
 
 export interface DocumentoPersona {
-  id?: number;
-  id_persona: number;
-  id_tipo_documento: number;
-  id_contrato?: number;
+  id?: string;
+  id_persona: string;
+  id_tipo_documento: string;
+  id_contrato?: string;
   nombre_archivo: string;
   ruta_archivo: string;
   tamanio_bytes?: number;
   fecha_subida?: string;
   fecha_vencimiento?: string;
   observaciones?: string;
-  id_usuario_subio?: number;
+  id_usuario_subio?: string;
   activo?: number;
   // Campos de firma digital
   firma_digital_id?: string;
@@ -53,9 +53,9 @@ export class DocumentosPersonasService {
   ) {}
 
   obtenerPorPersona(
-    idPersona: number,
-    idContrato?: number,
-    idTipoDocumento?: number,
+    idPersona: string,
+    idContrato?: string,
+    idTipoDocumento?: string,
   ) {
     let url = this.servicio + `/persona/${idPersona}`;
     const params: string[] = [];
@@ -86,7 +86,7 @@ export class DocumentosPersonasService {
       );
   }
 
-  obtenerPorPersonaTipo(idPersona: number, idTipoDocumento: number) {
+  obtenerPorPersonaTipo(idPersona: string, idTipoDocumento: string) {
     return this.http
       .get<
         HttpResponse<Object>
@@ -143,7 +143,7 @@ export class DocumentosPersonasService {
     );
   }
 
-  eliminar(id: number) {
+  eliminar(id: string) {
     const body = JSON.stringify({ id });
     return this.http
       .request<any>('delete', this.servicio, { body, ...httpOptions })
@@ -156,7 +156,7 @@ export class DocumentosPersonasService {
       );
   }
 
-  obtenerUrlDescarga(id: number): string {
+  obtenerUrlDescarga(id: string): string {
     const tenant = this.institucionConfigService.getJardinCodigo();
     return (
       environment.api +

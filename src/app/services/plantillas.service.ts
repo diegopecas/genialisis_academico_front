@@ -71,7 +71,7 @@ export interface PlantillaContrato {
 }
 
 export interface Plantilla {
-  id?: number;
+  id?: string;
   id_tipo_plantilla: number;
   clave: string;
   titulo: string;
@@ -142,7 +142,7 @@ export class PlantillasService {
       );
   }
 
-  obtenerById(id: number) {
+  obtenerById(id: string) {
     return this.http
       .get<HttpResponse<Object>>(`${this.servicio}/${id}`, {
         observe: 'response',

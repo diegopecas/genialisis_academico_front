@@ -89,7 +89,7 @@ export class WaChatFloatingComponent implements OnInit, OnDestroy, AfterViewChec
   // Polling
   private pollingConversaciones: any;
   private pollingMensajes: any;
-  private ultimoMensajeId = 0;
+  private ultimoMensajeId = '';
   private deberiScrollear = false;
   private routerSub!: Subscription;
 
@@ -148,7 +148,7 @@ export class WaChatFloatingComponent implements OnInit, OnDestroy, AfterViewChec
   // =====================================================
   // USUARIO Y ETIQUETA REMITENTE
   // =====================================================
-  private getIdPersonaRemitente(): number | null {
+  private getIdPersonaRemitente(): string | null {
     const usuario = JSON.parse(sessionStorage.getItem('usuario') || '{}');
     return usuario.id_persona ?? null;
   }
@@ -280,7 +280,7 @@ export class WaChatFloatingComponent implements OnInit, OnDestroy, AfterViewChec
     this.mensajes = [];
     this.textoMensaje = '';
     this.archivoSeleccionado = null;
-    this.ultimoMensajeId = 0;
+    this.ultimoMensajeId = '';
     this.cargandoMensajes = true;
     this.deberiScrollear = true;
     this.hayMasMensajes = true;

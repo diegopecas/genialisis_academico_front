@@ -41,7 +41,7 @@ export interface DatosEvaluacionPDF {
         valor_cualitativo: string;
     }>;
     datosLogros?: Array<{
-        id_logro: number;
+        id_logro: string;
         logro_nombre: string;
         area_academica_nombre: string;
         promedio: number;
@@ -53,11 +53,11 @@ export interface DatosEvaluacionPDF {
         }>;
     }>;
     observaciones?: Array<{
-        id: number;
+        id: string;
         fecha: string;
         fechaFormateada?: string;
         descripcion: string;
-        id_tipo_observacion_estudiante: number;
+        id_tipo_observacion_estudiante: string;
         nombre_tipo_observacion?: string;
         nombre_usuario?: string;
     }>;

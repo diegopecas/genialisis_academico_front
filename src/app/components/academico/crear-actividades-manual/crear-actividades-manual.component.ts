@@ -55,7 +55,7 @@ export class CrearActividadesManualComponent implements OnInit {
     id_tipo_actividad_academica: '' as any,
     id_ambiente: null as any,
     materiales_sugeridos: [] as string[],
-    indicadores_ids: [] as number[],
+    indicadores_ids: [] as string[],
     indicadores: [] as any[]
   };
   public busquedaIndicadorForm: string = '';
@@ -65,7 +65,7 @@ export class CrearActividadesManualComponent implements OnInit {
   public actividadesAgregadas: any[] = [];
   public actividadesSeleccionadas: boolean[] = [];
   public logrosDisponibles: any[] = [];
-  public busquedaIndicador: { [key: number]: string } = {};
+  public busquedaIndicador: { [key: string]: string } = {};
 
   // Modal de producto
   public productoModal: any = null;
@@ -322,8 +322,8 @@ export class CrearActividadesManualComponent implements OnInit {
       nivel_uno: this.formActividad.nivel_uno,
       nivel_dos: this.formActividad.nivel_dos,
       minutos_duracion: this.formActividad.minutos_duracion,
-      id_tipo_actividad_academica: parseInt(this.formActividad.id_tipo_actividad_academica) || parseInt(this.idTipoActividad) || null,
-      id_ambiente: this.formActividad.id_ambiente ? parseInt(this.formActividad.id_ambiente) : null,
+      id_tipo_actividad_academica: this.formActividad.id_tipo_actividad_academica || this.idTipoActividad || null,
+      id_ambiente: this.formActividad.id_ambiente ? this.formActividad.id_ambiente : null,
       materiales_sugeridos: [...this.formActividad.materiales_sugeridos],
       indicadores_ids: [...this.formActividad.indicadores_ids],
       indicadores: [...this.formActividad.indicadores]
@@ -348,7 +348,7 @@ export class CrearActividadesManualComponent implements OnInit {
   }
 
   // Indicadores en el formulario
-  toggleIndicadorForm(indicadorId: number) {
+  toggleIndicadorForm(indicadorId: string) {
     const idx = this.formActividad.indicadores_ids.indexOf(indicadorId);
     if (idx >= 0) {
       this.formActividad.indicadores_ids.splice(idx, 1);
@@ -366,8 +366,8 @@ export class CrearActividadesManualComponent implements OnInit {
     }
   }
 
-  quitarIndicadorForm(indId: number) {
-    this.formActividad.indicadores_ids = this.formActividad.indicadores_ids.filter((id: number) => id !== indId);
+  quitarIndicadorForm(indId: string) {
+    this.formActividad.indicadores_ids = this.formActividad.indicadores_ids.filter((id: string) => id !== indId);
     this.formActividad.indicadores = this.formActividad.indicadores.filter((ind: any) => ind.id !== indId);
   }
 
@@ -396,16 +396,16 @@ export class CrearActividadesManualComponent implements OnInit {
   }
 
   // Indicadores en tarjetas (reutilizado de maquina-actividades)
-  quitarIndicadorDeActividad(actIndex: number, indId: number) {
+  quitarIndicadorDeActividad(actIndex: number, indId: string) {
     const act = this.actividadesAgregadas[actIndex];
-    act.indicadores_ids = act.indicadores_ids.filter((id: number) => id !== indId);
+    act.indicadores_ids = act.indicadores_ids.filter((id: string) => id !== indId);
     act.indicadores = act.indicadores.filter((ind: any) => ind.id !== indId);
   }
-  toggleIndicadorEnActividad(actIndex: number, indicadorId: number) {
+  toggleIndicadorEnActividad(actIndex: number, indicadorId: string) {
     const act = this.actividadesAgregadas[actIndex];
     const yaExiste = act.indicadores_ids.includes(indicadorId);
     if (yaExiste) {
-      act.indicadores_ids = act.indicadores_ids.filter((id: number) => id !== indicadorId);
+      act.indicadores_ids = act.indicadores_ids.filter((id: string) => id !== indicadorId);
       act.indicadores = act.indicadores.filter((ind: any) => ind.id !== indicadorId);
     } else {
       for (const logro of this.logrosDisponibles) {

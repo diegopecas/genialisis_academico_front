@@ -412,7 +412,7 @@ export class RegistroIngresoSalidaComponent implements OnInit, OnDestroy {
           }
         }
 
-        return { id_tipo_registro: parseInt(idTipo), fecha_registro_real: fechaReal, observaciones: observaciones };
+        return { id_tipo_registro: idTipo, fecha_registro_real: fechaReal, observaciones: observaciones };
       },
     }).then((result) => {
       if (result.isConfirmed && result.value) {

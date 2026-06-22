@@ -13,16 +13,16 @@ import { ClasificacionMenusService } from '../../../../../services/clasificacion
 
 
 interface MenuModel {
-    id: number;
+    id: string;
     nombre: string;
     descripcion: string;
     activo: number;
-    id_clasificacion_menu: number | null;
+    id_clasificacion_menu: string | null;
 }
 
 interface ItemMenuAsignado {
-    id?: number;
-    id_item_menu: number;
+    id?: string;
+    id_item_menu: string;
     nombre_item?: string;
     nombre_porcion?: string;
     ingredientes_nombres?: string;
@@ -30,8 +30,8 @@ interface ItemMenuAsignado {
 }
 
 interface ProductoServicioAsignado {
-    id?: number;
-    id_producto_servicio: number;
+    id?: string;
+    id_producto_servicio: string;
     nombre_producto_servicio?: string;
     detalles?: string;
     valor_sugerido?: number;
@@ -90,7 +90,7 @@ export class CrearMenuComponent implements OnInit {
     public minutaCompleta: any[] = [];
 
     public model: MenuModel = {
-        id: 0,
+        id: '',
         nombre: "",
         descripcion: "",
         activo: 1,
@@ -205,7 +205,7 @@ export class CrearMenuComponent implements OnInit {
     actualizarGrilla() {
         this.inicializarGrilla();
 
-        const idMenuActual = Number(this.id);
+        const idMenuActual = this.id;
 
         for (const minuta of this.minutasAsignadas) {
             const indiceSemana = Number(minuta.semana) - 1;
@@ -220,7 +220,7 @@ export class CrearMenuComponent implements OnInit {
             const indiceSemana = Number(minuta.semana) - 1;
             const indiceDia = Number(minuta.dia) - 1;
 
-            if (Number(minuta.id_menu) !== idMenuActual) {
+            if (minuta.id_menu !== idMenuActual) {
                 const celda = this.grillaMinuta[indiceSemana]?.[indiceDia];
                 if (celda && !celda.seleccionado) {
                     celda.menuExistente = minuta.nombre_menu;

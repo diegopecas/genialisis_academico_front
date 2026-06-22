@@ -10,10 +10,10 @@ import { TiposProductoAcademicoService } from '../../../../services/tipos-produc
 import { GradosService } from '../../../../services/grados.service';
 
 interface ProductoAcademicoModel {
-    id: number;
-    idProducto: number | string;
+    id: string;
+    idProducto: string | string;
     nombreProducto?: string;
-    idTipoProductoAcademico: number | string;
+    idTipoProductoAcademico: string | string;
     esConsumible: boolean;
     vidaUtilEstimadaDias: number | null;
     edadMinimaMeses: number | null;
@@ -21,7 +21,7 @@ interface ProductoAcademicoModel {
 }
 
 interface Grado {
-    id: number;
+    id: string;
     nombre: string;
     descripcion: string;
     orden: number;
@@ -50,7 +50,7 @@ export class CrearProductoAcademicoComponent implements OnInit {
     }
 
     public model: ProductoAcademicoModel = {
-        id: 0,
+        id: '',
         idProducto: "",
         nombreProducto: "",
         idTipoProductoAcademico: "",
@@ -463,7 +463,7 @@ export class CrearProductoAcademicoComponent implements OnInit {
         }
     }
 
-    guardarGrados(idProductoAcademico: number) {
+    guardarGrados(idProductoAcademico: string) {
         const idsGrados = this.gradosSeleccionados.map(g => g.id);
 
         this.productosAcademicoService.asignarGrados(idProductoAcademico, idsGrados).subscribe({

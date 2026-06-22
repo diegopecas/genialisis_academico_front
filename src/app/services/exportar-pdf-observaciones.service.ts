@@ -10,14 +10,14 @@ export interface DatosObservacionesPDF {
     anioAcademico?: number;
     subTabActivo?: 'actual' | 'historico';
     observacionesOriginales: Array<{
-        id: number;
+        id: string;
         fecha: string;
         fechaFormateada?: string;
         descripcion: string;
-        id_tipo_observacion_estudiante: number;
+        id_tipo_observacion_estudiante: string;
         nombre_tipo_observacion?: string;
         nombre_usuario?: string;
-        id_estudiante_afectado?: number;
+        id_estudiante_afectado?: string;
         nombre_estudiante_afectado?: string;
     }>;
     observacionesFiltradas: Array<any>;

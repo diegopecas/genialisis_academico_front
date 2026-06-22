@@ -24,12 +24,12 @@ export class InscripcionCursosExtraComponent implements OnInit {
   disponibles: any[] = [];
   disponiblesFiltrados: any[] = [];
   busquedaDisponibles: string = '';
-  seleccionadosDisponibles: Set<number> = new Set();
+  seleccionadosDisponibles: Set<string> = new Set();
 
   inscritos: any[] = [];
   inscritosFiltrados: any[] = [];
   busquedaInscritos: string = '';
-  seleccionadosInscritos: Set<number> = new Set();
+  seleccionadosInscritos: Set<string> = new Set();
 
   constructor(
     private cursosExtraService: CursosExtraService,
@@ -121,7 +121,7 @@ export class InscripcionCursosExtraComponent implements OnInit {
   }
 
   // Selección
-  toggleDisponible(id: number) {
+  toggleDisponible(id: string) {
     if (this.seleccionadosDisponibles.has(id)) {
       this.seleccionadosDisponibles.delete(id);
     } else {
@@ -129,7 +129,7 @@ export class InscripcionCursosExtraComponent implements OnInit {
     }
   }
 
-  toggleInscrito(id: number) {
+  toggleInscrito(id: string) {
     if (this.seleccionadosInscritos.has(id)) {
       this.seleccionadosInscritos.delete(id);
     } else {
@@ -171,10 +171,10 @@ export class InscripcionCursosExtraComponent implements OnInit {
     const fecha_hoy = new Date().toISOString().split('T')[0];
     const promesas: any[] = [];
 
-    this.seleccionadosDisponibles.forEach((idEstudiante: number) => {
+    this.seleccionadosDisponibles.forEach((idEstudiante: string) => {
       const data = {
         id_estudiante: idEstudiante,
-        id_curso_extra: parseInt(this.idCursoSeleccionado),
+        id_curso_extra: this.idCursoSeleccionado,
         fecha_inscripcion: fecha_hoy,
         anio: this.cursoSeleccionado.anio
       };
@@ -208,7 +208,7 @@ export class InscripcionCursosExtraComponent implements OnInit {
     }).then((result) => {
       if (result.isConfirmed) {
         const promesas: any[] = [];
-        this.seleccionadosInscritos.forEach((idEstudiante: number) => {
+        this.seleccionadosInscritos.forEach((idEstudiante: string) => {
           const inscripcion = this.inscritos.find((e: any) => e.id_estudiante == idEstudiante);
           if (inscripcion) {
             promesas.push(this.estudiantesXCursosExtraService.eliminar({ id: inscripcion.id }).toPromise());

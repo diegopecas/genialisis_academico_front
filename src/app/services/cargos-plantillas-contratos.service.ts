@@ -10,10 +10,10 @@ import { catchError, tap } from 'rxjs/operators';
 import { httpOptions } from './http';
 
 export interface CargoPlantillaContrato {
-  id?: number;
-  id_cargo: number;
-  id_tipo_contrato: number;
-  id_plantilla: number;
+  id?: string;
+  id_cargo: string;
+  id_tipo_contrato: string;
+  id_plantilla: string;
   activo?: number;
   // Campos derivados (joins)
   cargo_nombre?: string;

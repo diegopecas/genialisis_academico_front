@@ -193,7 +193,7 @@ export class GaleriaImagenesService {
    * NUEVO: Eliminar múltiples imágenes a la vez
    * @param ids Array de IDs de imágenes a eliminar
    */
-  eliminarMultiples(ids: number[]) {
+  eliminarMultiples(ids: string[]) {
     const body = JSON.stringify({ ids: ids });
     return this.http
       .request<any>('delete', this.servicio + '/bulk', { body: body, ...httpOptions })

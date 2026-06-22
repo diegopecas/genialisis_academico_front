@@ -10,9 +10,9 @@ import { catchError, tap } from 'rxjs/operators';
 import { httpOptions } from './http';
 
 export interface ContratoValor {
-  id?: number;
-  id_contrato_matricula?: number;
-  id_producto_servicio: number;
+  id?: string;
+  id_contrato_matricula?: string;
+  id_producto_servicio: string;
   nombre_producto?: string;
   fecha: string;
   valor: number;
@@ -33,7 +33,7 @@ export interface ResumenValores {
 }
 
 export interface GenerarValoresRequest {
-  id_grupo: number;
+  id_grupo: string;
   anio: number;
   fecha_inicio: string;
   fecha_fin: string;
@@ -60,7 +60,7 @@ export class ContratosMatriculaValoresService {
   /**
    * Obtener todos los valores de un contrato
    */
-  obtenerByContrato(idContrato: number): Observable<HttpResponse<ContratoValor[]>> {
+  obtenerByContrato(idContrato: string): Observable<HttpResponse<ContratoValor[]>> {
     return this.http
       .get<ContratoValor[]>(this.servicio + `/contrato/${idContrato}`, {
         observe: 'response',
@@ -76,7 +76,7 @@ export class ContratosMatriculaValoresService {
   /**
    * Guardar todos los valores de un contrato
    */
-  guardarValores(idContrato: number, valores: ContratoValor[]): Observable<any> {
+  guardarValores(idContrato: string, valores: ContratoValor[]): Observable<any> {
     const body = JSON.stringify({
       id_contrato_matricula: idContrato,
       valores: valores.map(v => ({

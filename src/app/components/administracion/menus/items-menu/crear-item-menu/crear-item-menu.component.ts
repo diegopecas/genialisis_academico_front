@@ -10,14 +10,14 @@ import { ProductosAlimentacionService } from '../../../../../services/productos-
 
 
 interface ItemMenuModel {
-    id: number;
+    id: string;
     nombre: string;
-    idPorcion: number;
+    idPorcion: string;
 }
 
 interface IngredienteModel {
-    id?: number;
-    id_producto_alimentacion: number;
+    id?: string;
+    id_producto_alimentacion: string;
     cantidad: number;
     es_opcional: boolean;
     nombre_producto?: string;
@@ -51,9 +51,9 @@ export class CrearItemMenuComponent implements OnInit {
     }
 
     public model: ItemMenuModel = {
-        id: 0,
+        id: '',
         nombre: "",
-        idPorcion: 0
+        idPorcion: ''
     };
 
     constructor(

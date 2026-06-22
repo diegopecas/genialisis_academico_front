@@ -55,10 +55,10 @@ export class CrearActividadesEvaluacionComponent implements OnInit {
 
   // Paso 2 - Logros
   public logrosDisponibles: any[] = [];
-  public logrosSeleccionados: { [key: number]: boolean } = {};
+  public logrosSeleccionados: { [key: string]: boolean } = {};
   public cargandoLogros: boolean = false;
   // Mapa de actividades existentes por logro: { id_logro: [{id_actividad, titulo, descripcion}] }
-  public actividadesExistentesPorLogro: { [key: number]: any[] } = {};
+  public actividadesExistentesPorLogro: { [key: string]: any[] } = {};
   // Snapshot de la config con la que se cargaron los logros, para detectar cambios al volver al paso 1
   private configCargadaLogros: string = '';
   // Snapshot del set de logros seleccionados con el que se generaron las actividades
@@ -412,19 +412,19 @@ export class CrearActividadesEvaluacionComponent implements OnInit {
   }
 
   // ============ LOGROS ============
-  logroYaCubierto(idLogro: number): boolean {
+  logroYaCubierto(idLogro: string): boolean {
     return !!(this.actividadesExistentesPorLogro[idLogro] && this.actividadesExistentesPorLogro[idLogro].length > 0);
   }
 
-  getActividadesExistentesDelLogro(idLogro: number): any[] {
+  getActividadesExistentesDelLogro(idLogro: string): any[] {
     return this.actividadesExistentesPorLogro[idLogro] || [];
   }
 
-  toggleLogro(idLogro: number) {
+  toggleLogro(idLogro: string) {
     if (this.logroYaCubierto(idLogro)) return; // bloqueado
     this.logrosSeleccionados[idLogro] = !this.logrosSeleccionados[idLogro];
   }
-  isLogroSeleccionado(idLogro: number): boolean {
+  isLogroSeleccionado(idLogro: string): boolean {
     return !!this.logrosSeleccionados[idLogro];
   }
   seleccionarTodosLogros() {
@@ -454,7 +454,7 @@ export class CrearActividadesEvaluacionComponent implements OnInit {
 
   // Agrupa logros por área
   getAreasConLogros(): any[] {
-    const mapa: { [key: number]: any } = {};
+    const mapa: { [key: string]: any } = {};
     this.logrosDisponibles.forEach((l: any) => {
       const idA = l.id_area_academica;
       if (!mapa[idA]) {
@@ -467,7 +467,7 @@ export class CrearActividadesEvaluacionComponent implements OnInit {
 
   // Áreas presentes en los logros seleccionados (para filtro tabs)
   getAreasDeLogrosSeleccionados(): any[] {
-    const mapa: { [key: number]: any } = {};
+    const mapa: { [key: string]: any } = {};
     this.getLogrosSeleccionadosArray().forEach((l: any) => {
       mapa[l.id_area_academica] = { id: l.id_area_academica, nombre: l.area_nombre };
     });

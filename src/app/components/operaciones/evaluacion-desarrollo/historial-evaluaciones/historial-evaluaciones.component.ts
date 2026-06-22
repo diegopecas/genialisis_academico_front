@@ -25,7 +25,7 @@ export class HistorialEvaluacionesComponent implements OnInit, OnDestroy, AfterV
   @ViewChild('graficoRadar') graficoRadarCanvas!: ElementRef<HTMLCanvasElement>;
 
   titulo = 'Historial EAD-3';
-  idEstudiante: number = 0;
+  idEstudiante: string = '';
   nombreEstudiante: string = '';
   evaluaciones: any[] = [];
   evaluacionSeleccionada: any = null;
@@ -91,7 +91,7 @@ export class HistorialEvaluacionesComponent implements OnInit, OnDestroy, AfterV
   ) { }
 
   ngOnInit() {
-    this.idEstudiante = +this.route.snapshot.params['idEstudiante'];
+    this.idEstudiante = this.route.snapshot.params['idEstudiante'];
     this.cargarHistorial();
   }
 

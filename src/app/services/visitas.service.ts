@@ -139,7 +139,7 @@ export class VisitasService {
       );
   }
 
-  actualizarVisitaCompleta(id: number, datosCompletos: any) {
+  actualizarVisitaCompleta(id: string, datosCompletos: any) {
     const body = JSON.stringify(datosCompletos);
     return this.http
       .put<HttpResponse<Object>>(this.servicio + '/' + id + '/actualizar-completa', body, {

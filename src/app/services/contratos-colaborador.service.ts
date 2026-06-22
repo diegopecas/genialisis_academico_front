@@ -10,13 +10,13 @@ import { catchError, tap } from 'rxjs/operators';
 import { httpOptions } from './http';
 
 export interface ContratoColaborador {
-  id?: number;
+  id?: string;
   numero?: number;
   anio: number;
-  id_colaborador: number;
-  id_cargo: number;
-  id_tipo_contrato: number;
-  id_plantilla?: number;
+  id_colaborador: string;
+  id_cargo: string;
+  id_tipo_contrato: string;
+  id_plantilla?: string;
   salario_mensual: number;
   periodo_pago?: string;
   fecha_inicio: string;
@@ -28,7 +28,7 @@ export interface ContratoColaborador {
   fecha_firma?: string;
   representante_firma_digital?: number;
   observaciones?: string;
-  id_usuario_genera?: number;
+  id_usuario_genera?: string;
   fecha_generacion?: string;
   activo?: number;
   firmado?: number;

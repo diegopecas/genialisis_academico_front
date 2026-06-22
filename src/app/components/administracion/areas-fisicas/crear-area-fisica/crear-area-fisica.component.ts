@@ -14,7 +14,7 @@ import { PeriodicidadService } from '../../../../services/periodicidad.service';
 import { ElementosFisicosService } from '../../../../services/elementos-fisicos.service';
 
 interface AreaFisicaModel {
-    id: number;
+    id: string;
     nombre: string;
     descripcion: string;
     ubicacion: string;
@@ -50,7 +50,7 @@ export class CrearAreaFisicaComponent implements OnInit {
     public mostrarInactivos = false;
     public procesosLimpiezaFiltrados: any[] = [];
     public model: AreaFisicaModel = {
-        id: 0,
+        id: '',
         nombre: "",
         descripcion: "",
         ubicacion: "",

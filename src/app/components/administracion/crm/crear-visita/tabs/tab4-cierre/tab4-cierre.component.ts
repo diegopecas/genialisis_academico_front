@@ -55,10 +55,10 @@ export class Tab4CierreComponent implements OnInit, OnChanges {
     tiposInclinacionDecision: any[] = [];
 
     // Datos del formulario
-    resultadoSeleccionado: number | null = null;
+    resultadoSeleccionado: string | null = null;
     notasResultado: string = '';
 
-    serviciosGustaronSeleccionados: number[] = [];
+    serviciosGustaronSeleccionados: string[] = [];
     otrosAspectosPositivos: string = '';
     factorDecisivo: string = '';
 
@@ -70,7 +70,7 @@ export class Tab4CierreComponent implements OnInit, OnChanges {
 
     serviciosNoTenemos: any[] = [];
 
-    aspectosMejorarSeleccionados: number[] = [];
+    aspectosMejorarSeleccionados: string[] = [];
     comentariosMejorar: string = '';
     validezFeedback: number | null = null;
 
@@ -322,7 +322,7 @@ export class Tab4CierreComponent implements OnInit, OnChanges {
         return Math.round((cardsCompletas / totalCards) * 100);
     }
 
-    obtenerNombreResultado(id: number): string {
+    obtenerNombreResultado(id: string): string {
         const resultado = this.tiposResultado.find(r => r.id === id);
         return resultado?.nombre || 'Resultado';
     }
@@ -330,7 +330,7 @@ export class Tab4CierreComponent implements OnInit, OnChanges {
     // =====================================================
     // MÉTODOS EXISTENTES - Ahora llaman a marcarCambio()
     // =====================================================
-    toggleServicioGusto(id: number): void {
+    toggleServicioGusto(id: string): void {
         const index = this.serviciosGustaronSeleccionados.indexOf(id);
         if (index > -1) {
             this.serviciosGustaronSeleccionados.splice(index, 1);
@@ -340,7 +340,7 @@ export class Tab4CierreComponent implements OnInit, OnChanges {
         this.marcarCambio('serviciosGustaron');
     }
 
-    toggleAspectoMejorar(id: number): void {
+    toggleAspectoMejorar(id: string): void {
         const index = this.aspectosMejorarSeleccionados.indexOf(id);
         if (index > -1) {
             this.aspectosMejorarSeleccionados.splice(index, 1);
@@ -350,7 +350,7 @@ export class Tab4CierreComponent implements OnInit, OnChanges {
         this.marcarCambio('feedbackMejorar');
     }
 
-    isServicioGustoSeleccionado(id: number): boolean {
+    isServicioGustoSeleccionado(id: string): boolean {
         return this.serviciosGustaronSeleccionados.includes(id);
     }
 
@@ -372,7 +372,7 @@ export class Tab4CierreComponent implements OnInit, OnChanges {
         this.marcarCambio('serviciosNoTenemos');
     }
 
-    isAspectoMejorarSeleccionado(id: number): boolean {
+    isAspectoMejorarSeleccionado(id: string): boolean {
         return this.aspectosMejorarSeleccionados.includes(id);
     }
 
@@ -464,12 +464,12 @@ export class Tab4CierreComponent implements OnInit, OnChanges {
         this.datosActualizados.emit(datosCompletos);
     }
 
-    obtenerNombreServicioFaltante(id: number): string {
+    obtenerNombreServicioFaltante(id: string): string {
         const servicio = this.serviciosFaltantes.find(s => s.id === id);
         return servicio?.nombre || 'Servicio';
     }
 
-    toggleServicioNoTenemos(id: number): void {
+    toggleServicioNoTenemos(id: string): void {
         const index = this.serviciosNoTenemos.findIndex(s => s.id_servicio_faltante === id);
 
         if (index > -1) {
@@ -488,7 +488,7 @@ export class Tab4CierreComponent implements OnInit, OnChanges {
         this.marcarCambio('serviciosNoTenemos');
     }
 
-    isServicioNoTenemosSeleccionado(id: number): boolean {
+    isServicioNoTenemosSeleccionado(id: string): boolean {
         return this.serviciosNoTenemos.some(s => s.id_servicio_faltante === id);
     }
 }

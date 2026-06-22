@@ -17,7 +17,7 @@ import { DocumentosPersonaComponent } from '../../../../common/documentos-person
 import { FotoPersonaComponent } from '../../../../common/foto-persona/foto-persona.component';
 
 interface AcudienteModel {
-  idPersona: number;
+  idPersona: string;
   tipoIdentificacion: number | string;
   numeroIdentificacion: number | string;
   primerNombre: string;
@@ -38,7 +38,7 @@ interface AcudienteModel {
   autorizadoRecoger: boolean;
   autorizadoSistema: boolean;
   activo: boolean;
-  idAcudiente: number;
+  idAcudiente: string;
 }
 
 @Component({
@@ -85,8 +85,8 @@ export class CrearAcudienteComponent implements OnInit {
   public usuarioExistente: any = null;
 
   public modelUsuario: any = {
-    id: 0,
-    id_persona: 0,
+    id: '',
+    id_persona: '',
     usuario: '',
     correo_electronico: '',
     clave: '',
@@ -96,7 +96,7 @@ export class CrearAcudienteComponent implements OnInit {
   };
 
   public cambiarClaveModel: any = {
-    id: 0,
+    id: '',
     claveNueva: '',
   };
 
@@ -105,7 +105,7 @@ export class CrearAcudienteComponent implements OnInit {
   public mostrarClaveNueva = false;
 
   public model: AcudienteModel = {
-    idPersona: 0,
+    idPersona: '',
     tipoIdentificacion: "",
     numeroIdentificacion: "",
     primerNombre: "",
@@ -126,7 +126,7 @@ export class CrearAcudienteComponent implements OnInit {
     autorizadoRecoger: false,
     autorizadoSistema: false,
     activo: true,
-    idAcudiente: 0
+    idAcudiente: ''
   };
 
   constructor(
@@ -266,7 +266,7 @@ export class CrearAcudienteComponent implements OnInit {
   }
 
   llenarFormularioPersona(persona: any) {
-    this.model.idPersona = +persona.id;
+    this.model.idPersona = persona.id;
     this.model.tipoIdentificacion = persona.id_tipo_identificacion;
     this.model.numeroIdentificacion = persona.numero_identificacion;
     this.model.primerNombre = persona.primer_nombre;
@@ -621,7 +621,7 @@ export class CrearAcudienteComponent implements OnInit {
 
   limpiarFormulario(): void {
     this.model = {
-      idPersona: 0,
+      idPersona: '',
       tipoIdentificacion: "",
       numeroIdentificacion: "",
       primerNombre: "",
@@ -642,7 +642,7 @@ export class CrearAcudienteComponent implements OnInit {
       autorizadoRecoger: false,
       autorizadoSistema: false,
       activo: true,
-      idAcudiente: 0
+      idAcudiente: ''
     };
     this.submitted = false;
     this.documentoEncontrado = false;
@@ -851,7 +851,7 @@ export class CrearAcudienteComponent implements OnInit {
 
   resetearModeloUsuario() {
     this.modelUsuario = {
-      id: 0,
+      id: '',
       id_persona: this.model.idPersona,
       usuario: '',
       correo_electronico: this.model.correoElectronico || '',

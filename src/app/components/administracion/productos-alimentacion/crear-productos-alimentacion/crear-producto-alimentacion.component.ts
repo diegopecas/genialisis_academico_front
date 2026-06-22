@@ -11,15 +11,15 @@ import { TiposProductosAlimentacionService } from '../../../../services/tipos-pr
 import { ClasificacionProductosAlimentacionService } from '../../../../services/clasificacion-productos-alimentacion.service';
 
 interface ProductoAlimentacionModel {
-    id: number;
-    idProducto: number | string;
+    id: string;
+    idProducto: string | string;
     nombreProducto?: string;
-    idTipoProductoAlimentacion: number | string;
+    idTipoProductoAlimentacion: string | string;
     diasVidaUtil: number;
 }
 
 interface Clasificacion {
-    id: number;
+    id: string;
     nombre: string;
     selected?: boolean;
 }
@@ -47,7 +47,7 @@ export class CrearProductoAlimentacionComponent implements OnInit {
     }
 
     public model: ProductoAlimentacionModel = {
-        id: 0,
+        id: '',
         idProducto: "",
         nombreProducto: "",
         idTipoProductoAlimentacion: "",
@@ -452,7 +452,7 @@ export class CrearProductoAlimentacionComponent implements OnInit {
         }
     }
 
-    guardarClasificaciones(idProductoAlimentacion: number) {
+    guardarClasificaciones(idProductoAlimentacion: string) {
         const idsClasificaciones = this.clasificacionesSeleccionadas.map(c => c.id);
         
         this.productosAlimentacionService.asignarClasificaciones(idProductoAlimentacion, idsClasificaciones).subscribe({

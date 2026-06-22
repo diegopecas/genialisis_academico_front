@@ -38,7 +38,7 @@ export class AsignacionOncesService {
     id_horario: string;
     id_producto_servicio: string;
     valor: number;
-    id_usuario: number | null;
+    id_usuario: string | null;
     detalle: string;
     estudiantes: string[];
   }) {

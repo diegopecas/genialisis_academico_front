@@ -153,7 +153,7 @@ export class ContactosPortalComponent implements OnInit {
     }
   }
 
-  verDetalle(id: number) {
+  verDetalle(id: string) {
     console.log("Navegando a consultar, ID:", id);
     this.router.navigate(['administracion/crm/contactos-portal/consultar', id]);
   }

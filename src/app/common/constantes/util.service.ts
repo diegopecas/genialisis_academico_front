@@ -11,7 +11,7 @@ export class UtilService {
      * Obtiene el ID del usuario almacenado en sessionStorage.
      * @returns {number | null} ID del usuario o null si no existe.
      */
-    obtenerIdUsuarioActual(): number | null {
+    obtenerIdUsuarioActual(): string | null {
         let usuario = sessionStorage.getItem('usuario');
         // Si no hay usuario en sessionStorage, redirigir al login
         if (!usuario) {

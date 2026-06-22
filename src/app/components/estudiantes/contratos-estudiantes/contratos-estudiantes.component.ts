@@ -188,7 +188,7 @@ export class ContratosEstudiantesComponent {
     });
   }
 
-  async descargarPDF(idContrato: number) {
+  async descargarPDF(idContrato: string) {
     // Obtener el contrato para acceder al id_persona
     this.contratosMatriculaService.obtenerById(idContrato).subscribe({
       next: (contratoResponse: any) => {

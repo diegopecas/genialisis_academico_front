@@ -97,9 +97,9 @@ export class CrearContratoComponent implements OnInit {
   public generandoCuentas: boolean = false;
 
   public model: ContratoMatricula = {
-    id_estudiante: 0,
+    id_estudiante: '',
     anio: new Date().getFullYear(),
-    id_grupo: 0,
+    id_grupo: '',
     valor_matricula: 0,
     valor_pension: 0,
     numero_cuotas: 0,
@@ -192,7 +192,7 @@ export class CrearContratoComponent implements OnInit {
       .subscribe((response: any) => {
         const body = response.body as any[];
         this.estudiante = body[0];
-        this.model.id_estudiante = parseInt(this.idEstudiante);
+        this.model.id_estudiante = this.idEstudiante;
         this.model.id_grupo = this.estudiante.id_grupo;
 
         this.nombre_estudiante = [
@@ -345,7 +345,7 @@ export class CrearContratoComponent implements OnInit {
       });
   }
 
-  cargarValoresContrato(idContrato: number) {
+  cargarValoresContrato(idContrato: string) {
     this.contratosMatriculaValoresService
       .obtenerByContrato(idContrato)
       .subscribe({
@@ -895,7 +895,7 @@ export class CrearContratoComponent implements OnInit {
       });
   }
 
-  toggleAcudiente(idAcudiente: number) {
+  toggleAcudiente(idAcudiente: string) {
     if (!this.model.acudientes) {
       this.model.acudientes = [];
     }
@@ -907,7 +907,7 @@ export class CrearContratoComponent implements OnInit {
     }
   }
 
-  isAcudienteSeleccionado(idAcudiente: number): boolean {
+  isAcudienteSeleccionado(idAcudiente: string): boolean {
     return this.model.acudientes?.includes(idAcudiente) || false;
   }
 

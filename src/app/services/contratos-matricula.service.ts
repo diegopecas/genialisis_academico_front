@@ -10,10 +10,10 @@ import { catchError, tap } from 'rxjs/operators';
 import { httpOptions } from './http';
 
 export interface ContratoMatricula {
-  id?: number;
-  id_estudiante: number;
+  id?: string;
+  id_estudiante: string;
   anio: number;
-  id_grupo: number;
+  id_grupo: string;
   valor_matricula: number;
   valor_pension: number;
   valor_primera_cuota?: number;
@@ -26,8 +26,8 @@ export interface ContratoMatricula {
   autoriza_imagenes: number;
   autoriza_pagare?: number;
   observaciones?: string;
-  id_usuario_genera?: number;
-  acudientes?: number[];
+  id_usuario_genera?: string;
+  acudientes?: string[];
   firmado?: number;
   ruta_documento_firmado?: string;
 }
@@ -159,7 +159,7 @@ export class ContratosMatriculaService {
     );
   }
 
-  verificarExistente(idEstudiante: number, anio: number) {
+  verificarExistente(idEstudiante: string, anio: number) {
     const body = JSON.stringify({ id_estudiante: idEstudiante, anio });
 
     return this.http.post<any>(this.servicio + '/verificar-existente', body, httpOptions).pipe(
@@ -185,7 +185,7 @@ export class ContratosMatriculaService {
   }
 
 
-  marcarFirmado(id: number, rutaDocumentoFirmado?: string) {
+  marcarFirmado(id: string, rutaDocumentoFirmado?: string) {
     const body = JSON.stringify({ 
       id, 
       firmado: 1, 
@@ -201,7 +201,7 @@ export class ContratosMatriculaService {
   }
 
 
-  desmarcarFirmado(id: number) {
+  desmarcarFirmado(id: string) {
     const body = JSON.stringify({ id });
     return this.http.put<any>(this.servicio + '/desmarcar-firmado', body, httpOptions).pipe(
       tap((respuesta: any) => {
@@ -211,7 +211,7 @@ export class ContratosMatriculaService {
       catchError(this.handleError)
     );
   }
-  anular(id: number) {
+  anular(id: string) {
     const body = JSON.stringify({ id });
     return this.http.put<any>(this.servicio + '/anular', body, httpOptions).pipe(
       tap((respuesta: any) => {

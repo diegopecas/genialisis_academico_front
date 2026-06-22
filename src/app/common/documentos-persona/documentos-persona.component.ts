@@ -23,10 +23,10 @@ import { TipoDocumento, TiposDocumentosService } from '../../services/tipos-docu
   imports: [CommonModule, FormsModule],
 })
 export class DocumentosPersonaComponent implements OnInit {
-  @Input() idPersona!: number;
+  @Input() idPersona!: string;
   @Input() tipoPersona!: string;
   @Input() nombrePersona?: string;
-  @Input() idContrato?: number;
+  @Input() idContrato?: string;
   @Input() soloContratoFirmado = false;
   @Input() soloLectura = false;
   @Input() emailsFirmantes: string[] = [];
@@ -36,7 +36,7 @@ export class DocumentosPersonaComponent implements OnInit {
   @Output() documentoSubido = new EventEmitter<{
     codigo_tipo: string;
     nombre_archivo: string;
-    id_documento: number;
+    id_documento: string;
     tipo_documento: any;
     eliminado?: boolean;
   }>();
@@ -326,7 +326,7 @@ export class DocumentosPersonaComponent implements OnInit {
             this.documentoSubido.emit({
               codigo_tipo: tipoDoc?.codigo || '',
               nombre_archivo: documento.nombre_documento || '',
-              id_documento: documento.id || 0,
+              id_documento: documento.id || '',
               tipo_documento: tipoDoc,
               eliminado: true,
             });
@@ -399,11 +399,11 @@ export class DocumentosPersonaComponent implements OnInit {
     return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
   }
 
-  tieneDocumento(idTipoDocumento: number): boolean {
+  tieneDocumento(idTipoDocumento: string): boolean {
     return this.documentos.some((d) => d.id_tipo_documento === idTipoDocumento);
   }
 
-  obtenerDocumentosPorTipo(idTipoDocumento: number): DocumentoPersona[] {
+  obtenerDocumentosPorTipo(idTipoDocumento: string): DocumentoPersona[] {
     return this.documentos.filter(
       (d) => d.id_tipo_documento === idTipoDocumento,
     );

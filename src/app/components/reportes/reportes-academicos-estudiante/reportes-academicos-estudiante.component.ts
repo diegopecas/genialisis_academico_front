@@ -113,8 +113,8 @@ export class ReportesAcademicosEstudianteComponent {
 
   filtrarDatos() {
     this.datosFiltrados = this.datos.filter(item =>
-      (this.grupoSeleccionado === "" || Number(item.id_grupo) === Number(this.grupoSeleccionado)) &&
-      (this.estudianteSeleccionado === "" || Number(item.id_estudiante) === Number(this.estudianteSeleccionado)) &&
+      (this.grupoSeleccionado === "" || item.id_grupo === this.grupoSeleccionado) &&
+      (this.estudianteSeleccionado === "" || item.id_estudiante === this.estudianteSeleccionado) &&
       (this.filtrarIncluirInactivos || item.activo === 1) // Solo mostrar activos si no se marca incluir inactivos
     );
   }

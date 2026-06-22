@@ -91,7 +91,7 @@ export class GaleriasXGruposService {
   /**
    * Asignar múltiples grupos a una galería
    */
-  asignarGrupos(idGaleria: any, grupos: number[]) {
+  asignarGrupos(idGaleria: any, grupos: string[]) {
     const body = JSON.stringify({ id_galeria: idGaleria, grupos: grupos });
     return this.http.post<any>(this.servicio + '/assign', body, httpOptions).pipe(
       tap((respuesta: any) => {

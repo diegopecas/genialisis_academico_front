@@ -15,17 +15,17 @@ import { InstitucionConfigService } from '../../../services/institucion-config.s
 import { UtilService } from '../../../common/constantes/util.service';
 
 interface MedidaCatalogo {
-  id: number;
+  id: string;
   nombre: string;
   id_categoria: number;
   unidad_abreviatura: string;
   tipo_valor: string;
-  opciones?: { id: number; valor_numerico: number; etiqueta: string }[];
+  opciones?: { id: string; valor_numerico: number; etiqueta: string }[];
   seleccionada: boolean;
 }
 
 interface CategoriaMedida {
-  id: number;
+  id: string;
   nombre: string;
   icono: string;
   medidas: MedidaCatalogo[];
@@ -34,18 +34,18 @@ interface CategoriaMedida {
 }
 
 interface MedidaEstudiante {
-  id_medida: number;
+  id_medida: string;
   valor: number | null;
   id_registro: number | null;
-  id_documento_persona: number | null;
+  id_documento_persona: string | null;
   valor_anterior: number | null;
   fecha_anterior: string | null;
   prellenado_ia: boolean;
 }
 
 interface EstudianteFila {
-  id: number;
-  id_persona: number;
+  id: string;
+  id_persona: string;
   primer_nombre: string;
   segundo_nombre: string;
   primer_apellido: string;
@@ -54,11 +54,11 @@ interface EstudianteFila {
   nombre_grupo: string;
   icono: string;
   color: string;
-  medidas: Map<number, MedidaEstudiante>;
+  medidas: Map<string, MedidaEstudiante>;
   archivo: File | null;
   imagenUrl: string | null;
   analizandoIA: boolean;
-  id_documento_persona: number | null;
+  id_documento_persona: string | null;
   visible: boolean;
 }
 
@@ -277,7 +277,7 @@ export class RegistroMedidasComponent implements OnInit, OnDestroy {
           nombre_grupo: est.nombre_grupo || 'Sin grupo',
           icono: est.icono || '/assets/images/estudiante-default.png',
           color: est.color || '#007bff',
-          medidas: new Map<number, MedidaEstudiante>(),
+          medidas: new Map<string, MedidaEstudiante>(),
           archivo: null,
           imagenUrl: null,
           analizandoIA: false,
@@ -384,11 +384,11 @@ export class RegistroMedidasComponent implements OnInit, OnDestroy {
   // VALORES
   // ============================================
 
-  obtenerValorMedida(estudiante: EstudianteFila, idMedida: number): number | null {
+  obtenerValorMedida(estudiante: EstudianteFila, idMedida: string): number | null {
     return estudiante.medidas.get(idMedida)?.valor ?? null;
   }
 
-  onValorCambiado(estudiante: EstudianteFila, idMedida: number, event: any): void {
+  onValorCambiado(estudiante: EstudianteFila, idMedida: string, event: any): void {
     const medida = estudiante.medidas.get(idMedida);
     if (!medida) return;
     const valor = parseFloat(event.target.value);
@@ -396,7 +396,7 @@ export class RegistroMedidasComponent implements OnInit, OnDestroy {
     medida.prellenado_ia = false;
   }
 
-  onSelectCambiado(estudiante: EstudianteFila, idMedida: number, event: any): void {
+  onSelectCambiado(estudiante: EstudianteFila, idMedida: string, event: any): void {
     const medida = estudiante.medidas.get(idMedida);
     if (!medida) return;
     const valor = parseFloat(event.target.value);
@@ -404,18 +404,18 @@ export class RegistroMedidasComponent implements OnInit, OnDestroy {
     medida.prellenado_ia = false;
   }
 
-  onSelectModelCambiado(estudiante: EstudianteFila, idMedida: number, valor: any): void {
+  onSelectModelCambiado(estudiante: EstudianteFila, idMedida: string, valor: any): void {
     const medida = estudiante.medidas.get(idMedida);
     if (!medida) return;
     medida.valor = valor !== null && valor !== undefined ? Number(valor) : null;
     medida.prellenado_ia = false;
   }
 
-  esPrellenadoIA(estudiante: EstudianteFila, idMedida: number): boolean {
+  esPrellenadoIA(estudiante: EstudianteFila, idMedida: string): boolean {
     return estudiante.medidas.get(idMedida)?.prellenado_ia || false;
   }
 
-  obtenerValorAnterior(estudiante: EstudianteFila, idMedida: number): MedidaEstudiante | null {
+  obtenerValorAnterior(estudiante: EstudianteFila, idMedida: string): MedidaEstudiante | null {
     const medida = estudiante.medidas.get(idMedida);
     return medida && medida.valor_anterior !== null ? medida : null;
   }
@@ -595,9 +595,9 @@ export class RegistroMedidasComponent implements OnInit, OnDestroy {
     }
   }
 
-  private subirDocumento(estudiante: EstudianteFila): Promise<number> {
+  private subirDocumento(estudiante: EstudianteFila): Promise<string> {
     return new Promise((resolve, reject) => {
-      if (!estudiante.archivo) { resolve(0); return; }
+      if (!estudiante.archivo) { resolve(''); return; }
       const formData = new FormData();
       formData.append('archivo', estudiante.archivo);
       formData.append('id_persona', estudiante.id_persona.toString());
@@ -617,8 +617,8 @@ export class RegistroMedidasComponent implements OnInit, OnDestroy {
   // UTILIDADES
   // ============================================
 
-  trackByEstudiante(index: number, est: EstudianteFila): number { return est.id; }
-  trackByMedida(index: number, medida: MedidaCatalogo): number { return medida.id; }
+  trackByEstudiante(index: number, est: EstudianteFila): string { return est.id; }
+  trackByMedida(index: number, medida: MedidaCatalogo): string { return medida.id; }
 
   formatearFecha(fecha: string | null): string {
     if (!fecha) return '';

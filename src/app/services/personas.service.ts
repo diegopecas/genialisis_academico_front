@@ -103,7 +103,7 @@ export class PersonasService {
     return throwError(() => error);
   }
 
-  subirFoto(idPersona: number, archivo: File) {
+  subirFoto(idPersona: string, archivo: File) {
     const formData = new FormData();
     formData.append('foto', archivo);
 
@@ -120,7 +120,7 @@ export class PersonasService {
       );
   }
 
-  eliminarFoto(idPersona: number) {
+  eliminarFoto(idPersona: string) {
     return this.http.delete<any>(`${this.servicio}/${idPersona}/foto`).pipe(
       tap((respuesta: any) => {
         if (respuesta.error) {
@@ -132,7 +132,7 @@ export class PersonasService {
     );
   }
 
-  obtenerFoto(idPersona: number) {
+  obtenerFoto(idPersona: string) {
     return this.http
       .get<HttpResponse<Object>>(`${this.servicio}/${idPersona}/foto`, {
         observe: 'response',

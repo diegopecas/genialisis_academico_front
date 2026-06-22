@@ -16,7 +16,7 @@ export class InstitucionConfigService {
   private institucionResolucion: string = '';
   private fechaInicioSistema: string = '';
   private anioAcademicoActual: number = new Date().getFullYear();
-  private annosEscolares: { id: number; nombre: string }[] = [];
+  private annosEscolares: { id: string; nombre: string }[] = [];
   private configuracionCargada: boolean = false;
 
   private readonly FONDO_FALLBACK: string = '/assets/images/fondo.png';
@@ -115,7 +115,7 @@ export class InstitucionConfigService {
     this.annosEscolares = [];
     for (let anno = annoInicio; anno <= annoActual; anno++) {
       this.annosEscolares.push({
-        id: anno,
+        id: anno.toString(),
         nombre: anno.toString()
       });
     }
@@ -193,7 +193,7 @@ export class InstitucionConfigService {
     return this.institucionResolucion;
   }
 
-  getAnnosEscolares(): { id: number; nombre: string }[] {
+  getAnnosEscolares(): { id: string; nombre: string }[] {
     return this.annosEscolares;
   }
 

@@ -121,7 +121,7 @@ export class ProductosAlimentacionService {
       );
   }
 
-  asignarClasificaciones(idProductoAlimentacion: number, clasificaciones: number[]) {
+  asignarClasificaciones(idProductoAlimentacion: string, clasificaciones: string[]) {
     const body = JSON.stringify({ clasificaciones: clasificaciones });
 
     return this.http.post<any>(
@@ -140,7 +140,7 @@ export class ProductosAlimentacionService {
     );
   }
 
-  eliminarClasificacion(idProductoAlimentacion: number, idClasificacion: number) {
+  eliminarClasificacion(idProductoAlimentacion: string, idClasificacion: string) {
     return this.http.delete<any>(
       this.servicio + `/${idProductoAlimentacion}/clasificaciones/${idClasificacion}`,
       httpOptions
@@ -152,7 +152,7 @@ export class ProductosAlimentacionService {
       catchError(this.handleError)
     );
   }
-  obtenerProductosPorClasificacionConStock(idClasificacion: number) {
+  obtenerProductosPorClasificacionConStock(idClasificacion: string) {
     return this.http
       .get<HttpResponse<Object>>(
         this.servicio + `/clasificacion/${idClasificacion}/con-stock`,

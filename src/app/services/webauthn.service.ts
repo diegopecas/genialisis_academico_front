@@ -113,7 +113,7 @@ export class WebAuthnService {
     );
   }
 
-  eliminarCredencial(id: number): Observable<any> {
+  eliminarCredencial(id: string): Observable<any> {
     return this.http.request<any>('delete', `${this.endpoint}/credenciales`, {
       body: JSON.stringify({ id }),
       headers: httpOptions.headers

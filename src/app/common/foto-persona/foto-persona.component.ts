@@ -11,7 +11,7 @@ import { PersonasService } from '../../services/personas.service';
   imports: [CommonModule],
 })
 export class FotoPersonaComponent implements OnInit, OnDestroy {
-  @Input() idPersona!: number;
+  @Input() idPersona!: string;
   @Input() nombrePersona?: string;
   @Input() soloLectura = false;
   @Input() fotoActual?: string;

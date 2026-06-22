@@ -31,7 +31,7 @@ export class TareasColaboradoresService {
       );
   }
 
-  obtenerPorColaborador(idColaborador: number) {
+  obtenerPorColaborador(idColaborador: string) {
     return this.http
       .get<HttpResponse<Object>>(this.servicio + `/colaborador/${idColaborador}`, { observe: 'response' })
       .pipe(
@@ -44,7 +44,7 @@ export class TareasColaboradoresService {
       );
   }
 
-  obtenerById(id: number) {
+  obtenerById(id: string) {
     return this.http
       .get<HttpResponse<Object>>(this.servicio + `/${id}`, { observe: 'response' })
       .pipe(
@@ -116,7 +116,7 @@ export class TareasColaboradoresService {
    * @param id - ID de la tarea
    * @param idEstado - ID del nuevo estado
    */
-  cambiarEstado(id: number, idEstado: number) {
+  cambiarEstado(id: string, idEstado: number) {
     const body = JSON.stringify({ id: id, id_estado: idEstado });
     return this.http.put<any>(this.servicio + '/estado', body, httpOptions).pipe(
       tap((respuesta: any) => {
@@ -127,7 +127,7 @@ export class TareasColaboradoresService {
     );
   }
 
-  eliminar(id: number) {
+  eliminar(id: string) {
     const body = JSON.stringify({ id: id });
     return this.http.request<any>('DELETE', this.servicio, {
       body,

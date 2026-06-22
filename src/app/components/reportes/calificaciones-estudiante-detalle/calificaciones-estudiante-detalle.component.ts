@@ -46,17 +46,17 @@ interface Calificacion {
     estado_tarea_nombre: string;
     fecha_ejecucion: string;
     nombre_completo_docente: string;
-    id_estudiante: number;
-    id_area_academica: number;
-    id_grupo: number;
+    id_estudiante: string;
+    id_area_academica: string;
+    id_grupo: string;
     descripcion_indicador_logro?: string;
-    id_indicador_logro?: number;
+    id_indicador_logro?: string;
     [key: string]: any;
     color?: string;
 }
 
 interface CalificacionPromedio {
-    id_area_academica: number;
+    id_area_academica: string;
     area_academica_nombre: string;
     valores: number[];
     promedio: number;
@@ -65,9 +65,9 @@ interface CalificacionPromedio {
 }
 
 interface IndicadorLogroPromedio {
-    id_indicador_logro: number;
+    id_indicador_logro: string;
     descripcion_indicador_logro: string;
-    id_area_academica: number;
+    id_area_academica: string;
     area_academica_nombre: string;
     valores: number[];
     promedio: number;
@@ -455,7 +455,7 @@ export class CalificacionesEstudianteDetalleComponent implements OnInit {
         }
 
         // Agrupar por área académica
-        const areas = new Map<number, CalificacionPromedio>();
+        const areas = new Map<string, CalificacionPromedio>();
 
         this.calificacionesFiltradas.forEach(item => {
             if (!item['id_area_academica'] || item['valor_cuantitativo'] === undefined) return;

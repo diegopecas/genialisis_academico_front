@@ -57,7 +57,7 @@ export class MaquinaActividadesComponent implements OnInit {
   public cargandoIA: boolean = false;
   public proveedorIA: string = '';
   public tiempoIA: number = 0;
-  public busquedaIndicador: { [key: number]: string } = {};
+  public busquedaIndicador: { [key: string]: string } = {};
 
   // Modal de producto
   public productoModal: any = null;
@@ -323,20 +323,20 @@ export class MaquinaActividadesComponent implements OnInit {
   }
 
   // Quitar un indicador de una actividad
-  quitarIndicadorDeActividad(actIndex: number, indId: number) {
+  quitarIndicadorDeActividad(actIndex: number, indId: string) {
     const act = this.actividadesGeneradas[actIndex];
-    act.indicadores_ids = act.indicadores_ids.filter((id: number) => id !== indId);
+    act.indicadores_ids = act.indicadores_ids.filter((id: string) => id !== indId);
     act.indicadores = act.indicadores.filter((ind: any) => ind.id !== indId);
   }
 
   // Toggle indicador: agrega o quita
-  toggleIndicadorEnActividad(actIndex: number, indicadorId: number) {
+  toggleIndicadorEnActividad(actIndex: number, indicadorId: string) {
     const act = this.actividadesGeneradas[actIndex];
     const yaExiste = act.indicadores_ids.includes(indicadorId);
 
     if (yaExiste) {
       // Quitar
-      act.indicadores_ids = act.indicadores_ids.filter((id: number) => id !== indicadorId);
+      act.indicadores_ids = act.indicadores_ids.filter((id: string) => id !== indicadorId);
       act.indicadores = act.indicadores.filter((ind: any) => ind.id !== indicadorId);
     } else {
       // Agregar
@@ -358,7 +358,7 @@ export class MaquinaActividadesComponent implements OnInit {
   }
 
   // Agregar indicador a una actividad (mantener por compatibilidad)
-  agregarIndicadorAActividad(actIndex: number, indicadorId: number) {
+  agregarIndicadorAActividad(actIndex: number, indicadorId: string) {
     this.toggleIndicadorEnActividad(actIndex, indicadorId);
   }
 

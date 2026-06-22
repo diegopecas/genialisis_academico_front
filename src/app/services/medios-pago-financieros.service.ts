@@ -27,7 +27,7 @@ export class MediosPagoFinancierosService {
       );
   }
 
-  obtenerPorId(id: number) {
+  obtenerPorId(id: string) {
     return this.http
       .get<HttpResponse<Object>>(`${this.servicio}/${id}`, { observe: 'response' })
       .pipe(
@@ -87,7 +87,7 @@ export class MediosPagoFinancierosService {
       );
   }
 
-  eliminar(id: number) {
+  eliminar(id: string) {
     return this.http
       .delete<HttpResponse<Object>>(this.servicio, { body: { id }, observe: 'response' })
       .pipe(

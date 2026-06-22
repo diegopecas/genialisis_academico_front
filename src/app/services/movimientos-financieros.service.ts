@@ -27,7 +27,7 @@ export class MovimientosFinancierosService {
       );
   }
 
-  obtenerPorId(id: number) {
+  obtenerPorId(id: string) {
     return this.http
       .get<HttpResponse<Object>>(`${this.servicio}/${id}`, { observe: 'response' })
       .pipe(
@@ -154,7 +154,7 @@ export class MovimientosFinancierosService {
       );
   }
 
-  aprobar(id: number, idUsuarioAprobacion: number) {
+  aprobar(id: string, idUsuarioAprobacion: string) {
     return this.http
       .put<HttpResponse<Object>>(`${this.servicio}/aprobar`,
         { id: id, id_usuario_aprobacion: idUsuarioAprobacion },
@@ -186,7 +186,7 @@ export class MovimientosFinancierosService {
       );
   }
 
-  anular(id: number, idUsuarioAnulacion: number) {
+  anular(id: string, idUsuarioAnulacion: string) {
     return this.http
       .put<HttpResponse<Object>>(`${this.servicio}/anular`,
         { id: id, id_usuario_anulacion: idUsuarioAnulacion },
@@ -203,7 +203,7 @@ export class MovimientosFinancierosService {
       );
   }
 
-  eliminar(id: number) {
+  eliminar(id: string) {
     return this.http
       .delete<HttpResponse<Object>>(this.servicio, { body: { id }, observe: 'response' })
       .pipe(

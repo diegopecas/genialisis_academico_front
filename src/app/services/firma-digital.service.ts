@@ -14,7 +14,7 @@ export class FirmaDigitalService {
 
   constructor(private http: HttpClient) { }
 
-  enviarAFirmar(idDocumento: number, emailsFirmantes: string[]): Observable<any> {
+  enviarAFirmar(idDocumento: string, emailsFirmantes: string[]): Observable<any> {
     const body = JSON.stringify({ emails_firmantes: emailsFirmantes });
     
     return this.http.post<any>(
@@ -30,7 +30,7 @@ export class FirmaDigitalService {
     );
   }
 
-  consultarEstado(idDocumento: number): Observable<any> {
+  consultarEstado(idDocumento: string): Observable<any> {
     return this.http.get<any>(
       `${this.servicio}/${idDocumento}/estado-firma`
     ).pipe(
@@ -42,7 +42,7 @@ export class FirmaDigitalService {
     );
   }
 
-  descargarFirmado(idDocumento: number): Observable<any> {
+  descargarFirmado(idDocumento: string): Observable<any> {
     return this.http.post<any>(
       `${this.servicio}/${idDocumento}/descargar-firmado`,
       {},
@@ -56,7 +56,7 @@ export class FirmaDigitalService {
     );
   }
 
-  reenviarCorreo(idDocumento: number, emailsFirmantes?: string[]): Observable<any> {
+  reenviarCorreo(idDocumento: string, emailsFirmantes?: string[]): Observable<any> {
     const body: any = {};
     if (emailsFirmantes && emailsFirmantes.length > 0) {
       body.emails_firmantes = emailsFirmantes;

@@ -13,7 +13,7 @@ import { CuentaPagadaService } from '../../../../services/cuenta-pagada.service'
 
 // Interfaz para el modelo de pago
 interface PagoModel {
-  id: number;
+  id: string;
   fecha: string;
   id_colaborador: string;
   id_acudiente: string | null;
@@ -22,13 +22,13 @@ interface PagoModel {
   saldo: number;
   observaciones: string;
   referencia_bancaria: string;
-  id_usuario_registro: number | null;
+  id_usuario_registro: string | null;
   fecha_registro?: string;
   fecha_contabilizacion?: string | null;
-  id_usuario_contable?: number | null;
+  id_usuario_contable?: string | null;
   anulado?: number;
   fecha_anulacion?: string | null;
-  id_usuario_anulacion?: number | null;
+  id_usuario_anulacion?: string | null;
   nombre_completo_usuario_registro?: string;
   nombre_completo_usuario_contable?: string;
   nombre_completo_usuario_anulacion?: string;
@@ -37,18 +37,18 @@ interface PagoModel {
 
 // Interfaz para el modelo de cuenta aplicada
 interface CuentaAplicadaModel {
-  id: number;
-  id_cuenta_por_cobrar: number;
-  id_pago_recibido: number | null;
+  id: string;
+  id_cuenta_por_cobrar: string;
+  id_pago_recibido: string | null;
   valor_aplicado: number;
   fecha: string;
 }
 
 // Interfaz para las cuentas pagadas
 interface CuentaPagada {
-  id: number;
-  id_cuenta_por_cobrar: number;
-  id_pago_recibido: number;
+  id: string;
+  id_cuenta_por_cobrar: string;
+  id_pago_recibido: string;
   valor_aplicado: number;
   fecha: string;
   nombre_producto_servicio: string;
@@ -76,7 +76,7 @@ export class CrearColaboradoresPagosRecibidosComponent implements OnInit {
 
   // Propiedades para el manejo de cuentas y pagos
   public cuentasPorCobrar: any[] = [];
-  public cuentasSeleccionadas: number[] = [];
+  public cuentasSeleccionadas: string[] = [];
   public valorPorAplicar = 0;
   public valorRestante = 0;
 
@@ -90,7 +90,7 @@ export class CrearColaboradoresPagosRecibidosComponent implements OnInit {
 
   // Modelo de datos principal
   public model: PagoModel = {
-    id: 0,
+    id: '',
     fecha: "",
     id_colaborador: "",
     id_acudiente: null,
@@ -104,7 +104,7 @@ export class CrearColaboradoresPagosRecibidosComponent implements OnInit {
   };
 
   public pagoContabilizado = false;
-  public valoresAplicadosFormateados: { [key: number]: string } = {};
+  public valoresAplicadosFormateados: { [key: string]: string } = {};
 
   constructor(
     private route: ActivatedRoute,
@@ -227,7 +227,7 @@ export class CrearColaboradoresPagosRecibidosComponent implements OnInit {
               next: (respuesta: any) => {
                 const cuentasObtenidas = respuesta.body;
 
-                const mapaCuentas = new Map<number, any>();
+                const mapaCuentas = new Map<string, any>();
                 cuentasObtenidas.forEach((cuenta: any) => {
                   mapaCuentas.set(cuenta.id, cuenta);
                 });
@@ -313,7 +313,7 @@ export class CrearColaboradoresPagosRecibidosComponent implements OnInit {
     });
   }
 
-  toggleSeleccionCuenta(idCuenta: number) {
+  toggleSeleccionCuenta(idCuenta: string) {
     const cuenta = this.cuentasPorCobrar.find(c => c.id === idCuenta);
     console.log("toggleSeleccionCuenta", cuenta);
     
@@ -341,7 +341,7 @@ export class CrearColaboradoresPagosRecibidosComponent implements OnInit {
           this.model.cuentas_aplicadas[indexCuentaAplicada].valor_aplicado = valorAplicar;
         } else {
           this.model.cuentas_aplicadas.push({
-            id: 0,
+            id: '',
             id_cuenta_por_cobrar: idCuenta,
             id_pago_recibido: this.model.id || null,
             valor_aplicado: valorAplicar,
@@ -397,7 +397,7 @@ export class CrearColaboradoresPagosRecibidosComponent implements OnInit {
     this.actualizarTotales();
   }
 
-  formatearValorAplicado(idCuenta: number, valor: number) {
+  formatearValorAplicado(idCuenta: string, valor: number) {
     if (valor === null || valor === undefined) {
       this.valoresAplicadosFormateados[idCuenta] = '';
       return;
@@ -412,7 +412,7 @@ export class CrearColaboradoresPagosRecibidosComponent implements OnInit {
     this.valoresAplicadosFormateados[idCuenta] = parteDecimal ? `${parteEntera}.${parteDecimal}` : parteEntera;
   }
 
-  onInputValorAplicado(idCuenta: number, event: any) {
+  onInputValorAplicado(idCuenta: string, event: any) {
     const cuenta = this.cuentasPorCobrar.find(c => c.id === idCuenta);
     if (cuenta && cuenta.ya_aplicada) {
       this.formatearValorAplicado(idCuenta, cuenta.valor_aplicado_en_este_pago);
@@ -432,7 +432,7 @@ export class CrearColaboradoresPagosRecibidosComponent implements OnInit {
     }
   }
 
-  getValorAplicadoFormateado(idCuenta: number): string {
+  getValorAplicadoFormateado(idCuenta: string): string {
     if (!this.valoresAplicadosFormateados[idCuenta]) {
       if ((this.accion === 'consultar' || this.accion === 'editar') && this.cuentasPorCobrar) {
         const cuenta = this.cuentasPorCobrar.find(c => c.id === idCuenta);
@@ -450,7 +450,7 @@ export class CrearColaboradoresPagosRecibidosComponent implements OnInit {
     return this.valoresAplicadosFormateados[idCuenta];
   }
 
-  actualizarValorAplicado(idCuenta: number, nuevoValor: number) {
+  actualizarValorAplicado(idCuenta: string, nuevoValor: number) {
     const cuenta = this.cuentasPorCobrar.find(c => c.id === idCuenta);
     if (!cuenta) return;
 
@@ -469,7 +469,7 @@ export class CrearColaboradoresPagosRecibidosComponent implements OnInit {
       this.model.cuentas_aplicadas[index].valor_aplicado = nuevoValor;
     } else {
       this.model.cuentas_aplicadas.push({
-        id: 0,
+        id: '',
         id_cuenta_por_cobrar: idCuenta,
         id_pago_recibido: this.model.id || null,
         valor_aplicado: nuevoValor,
@@ -531,7 +531,7 @@ export class CrearColaboradoresPagosRecibidosComponent implements OnInit {
       totalAplicado += valorAplicar;
 
       this.model.cuentas_aplicadas.push({
-        id: 0,
+        id: '',
         id_cuenta_por_cobrar: cuenta.id,
         id_pago_recibido: this.model.id || null,
         valor_aplicado: valorAplicar,
@@ -568,7 +568,7 @@ export class CrearColaboradoresPagosRecibidosComponent implements OnInit {
     this.actualizarTotales();
   }
 
-  getCuentaAplicadaValor(idCuenta: number): number {
+  getCuentaAplicadaValor(idCuenta: string): number {
     const cuentaAplicada = this.model.cuentas_aplicadas.find(ca => ca.id_cuenta_por_cobrar === idCuenta);
     return cuentaAplicada ? cuentaAplicada.valor_aplicado : 0;
   }
@@ -757,7 +757,7 @@ export class CrearColaboradoresPagosRecibidosComponent implements OnInit {
     });
   }
 
-  procesarCuentasAplicadas(idPagoRecibido: number, cuentasAplicadas: CuentaAplicadaModel[]) {
+  procesarCuentasAplicadas(idPagoRecibido: string, cuentasAplicadas: CuentaAplicadaModel[]) {
     if (cuentasAplicadas.length === 0) {
       this.mostrarMensajeExito();
       return;
@@ -810,7 +810,7 @@ export class CrearColaboradoresPagosRecibidosComponent implements OnInit {
 
   limpiarFormulario() {
     this.model = {
-      id: 0,
+      id: '',
       fecha: "",
       id_colaborador: "",
       id_acudiente: null,

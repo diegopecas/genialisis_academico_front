@@ -126,7 +126,7 @@ export class ExportarPdfContratoColaboradorService {
    * Carga las cláusulas aplicables al contrato desde contratos_clausulas:
    * las globales más las del cargo, ya ordenadas (orden, numero, subnumero).
    */
-  private async cargarClausulas(idCargo: number): Promise<
+  private async cargarClausulas(idCargo: string): Promise<
     Array<{
       numero: number;
       subnumero?: number | null;

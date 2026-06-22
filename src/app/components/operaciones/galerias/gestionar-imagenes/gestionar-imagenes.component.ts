@@ -16,12 +16,12 @@ interface ImagenPreview {
   uploading: boolean;
   uploaded: boolean;
   error: boolean;
-  id?: number;
+  id?: string;
   guid?: string;
 }
 
 interface ImagenSubida {
-  id: number;
+  id: string;
   guid: string;
   url: string;
   alt: string;
@@ -43,7 +43,7 @@ export class GestionarImagenesComponent implements OnInit {
   titulo = "Gestionar Imágenes";
   regresar = "/operaciones/galerias";
   
-  idGaleria!: number;
+  idGaleria!: string;
   galeria: any = null;
   
   // Upload
@@ -75,7 +75,7 @@ export class GestionarImagenesComponent implements OnInit {
       return;
     }
 
-    this.idGaleria = parseInt(id);
+    this.idGaleria = id;
     this.cargarGaleria();
     this.cargarImagenes();
   }

@@ -51,7 +51,7 @@ export class EditarConfiguracionGlobalComponent implements OnInit {
     });
   }
 
-  cargarConfiguracion(id: number) {
+  cargarConfiguracion(id: string) {
     this.configuracionService.obtenerById(id).subscribe((response: any) => {
       const config = response.body[0];
       console.log("Configuración cargada", config);

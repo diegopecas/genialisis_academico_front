@@ -7,8 +7,8 @@ import { AyudaService } from '../../services/ayuda.service';
 import { AyudaModalService } from '../../services/ayuda-modal.service';
 
 interface NodoAyuda {
-  id: number;
-  id_padre: number | null;
+  id: string;
+  id_padre: string | null;
   nombre: string;
   ruta: string | null;
   ruta_principal: string | null;

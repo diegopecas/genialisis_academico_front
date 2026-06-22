@@ -511,7 +511,7 @@ export class CrearActividadesAcademicasComponent implements OnInit, OnDestroy, A
     this.sincronizarCampoMateriales();
   }
 
-  isMaterialProductoAgregado(idProducto: number): boolean {
+  isMaterialProductoAgregado(idProducto: string): boolean {
     return this.materialesLista.some((m: any) => m.id_producto === idProducto);
   }
 
@@ -1153,10 +1153,10 @@ export class CrearActividadesAcademicasComponent implements OnInit, OnDestroy, A
 
   private crearTareaSprint() {
     const body = {
-      id_sprint: parseInt(this.sprintModalData.id_sprint),
+      id_sprint: this.sprintModalData.id_sprint,
       id_actividad_academica: this.model.id,
-      id_grupo: parseInt(this.sprintModalData.id_grupo),
-      id_area_academica: parseInt(this.sprintModalData.id_area_academica),
+      id_grupo: this.sprintModalData.id_grupo,
+      id_area_academica: this.sprintModalData.id_area_academica,
       id_estado_tarea: 1,
       fecha_registro: new Date().toISOString().slice(0, 19).replace('T', ' ')
     };

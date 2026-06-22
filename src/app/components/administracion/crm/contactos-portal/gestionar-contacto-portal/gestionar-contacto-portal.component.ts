@@ -22,18 +22,18 @@ export class GestionarContactoPortalComponent implements OnInit {
   editable = false;
 
   public model = {
-    id: 0,
+    id: '',
     nombre_padre: '',
     email: '',
     telefono: '',
     edad_nino: null,
     mensaje: '',
     como_conocio_detalle: '',
-    id_tipo_consulta: 0,
+    id_tipo_consulta: '',
     tipo_consulta: '',
-    id_como_conocio: 0,
+    id_como_conocio: '',
     como_conocio: '',
-    id_programa_interes: 0,
+    id_programa_interes: '',
     programa_interes: '',
     id_estado: 0,
     estado: '',
@@ -74,7 +74,7 @@ export class GestionarContactoPortalComponent implements OnInit {
     
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
-      this.obtenerContacto(parseInt(id));
+      this.obtenerContacto(id);
     }
   }
 
@@ -90,7 +90,7 @@ export class GestionarContactoPortalComponent implements OnInit {
     });
   }
 
-  obtenerContacto(id: number) {
+  obtenerContacto(id: string) {
     this.contactosPortalService.obtenerPorId(id).subscribe({
       next: (response: any) => {
         const body = response.body as any[];

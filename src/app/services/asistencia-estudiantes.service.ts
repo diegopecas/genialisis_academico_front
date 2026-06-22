@@ -127,7 +127,7 @@ export class AsistenciaEstudiantesService {
       catchError(this.handleError)
     );
   }
-  obtenerResumenAsistenciaPorGrupo(idGrupo: number, fechaInicio: string, fechaFin: string) {
+  obtenerResumenAsistenciaPorGrupo(idGrupo: string, fechaInicio: string, fechaFin: string) {
     const params = new HttpParams()
       .set('fecha_inicio', fechaInicio)
       .set('fecha_fin', fechaFin);

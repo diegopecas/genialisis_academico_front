@@ -29,8 +29,8 @@ export class CrearColaboradoresPrestamosComponent implements OnInit {
   public Math = Math; // Para usar Math.abs en el template
 
   public prestamo: any = {
-    id_colaborador: 0,
-    id_tipo_prestamo: 0,
+    id_colaborador: '',
+    id_tipo_prestamo: '',
     fecha_prestamo: '',
     fecha_inicio_cobro: '',
     monto_prestado: 0,
@@ -375,7 +375,7 @@ export class CrearColaboradoresPrestamosComponent implements OnInit {
     }
   }
 
-  crearCuotas(idPrestamo: number) {
+  crearCuotas(idPrestamo: string) {
     const body = {
       id_prestamo: idPrestamo,
       cuotas: this.cuotas
@@ -635,7 +635,7 @@ export class CrearColaboradoresPrestamosComponent implements OnInit {
       confirmButtonText: 'Cerrar',
       didOpen: () => {
         // Configurar evento para anular pago
-        (window as any).anularPago = (idPago: number) => {
+        (window as any).anularPago = (idPago: string) => {
           Swal.close();
           this.anularPago(idPago, cuota);
         };
@@ -646,7 +646,7 @@ export class CrearColaboradoresPrestamosComponent implements OnInit {
   /**
    * Anular un pago
    */
-  anularPago(idPago: number, cuota: any) {
+  anularPago(idPago: string, cuota: any) {
     Swal.fire({
       title: '⚠️ Eliminar Pago',
       html: `

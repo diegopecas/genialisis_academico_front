@@ -26,11 +26,11 @@ export class ListaMenusComponent implements OnInit {
   private semanaHoy: number = 0;
   private diaHoy: number = 0;
 
-  private diasNombres: { [key: number]: string } = {
+  private diasNombres: { [key: string]: string } = {
     1: 'Lunes', 2: 'Martes', 3: 'Miércoles', 4: 'Jueves', 5: 'Viernes', 6: 'Sábado'
   };
 
-  private diasCortos: { [key: number]: string } = {
+  private diasCortos: { [key: string]: string } = {
     1: 'Lun', 2: 'Mar', 3: 'Mié', 4: 'Jue', 5: 'Vie', 6: 'Sáb'
   };
 
@@ -306,7 +306,7 @@ export class ListaMenusComponent implements OnInit {
     }
   }
 
-  private duplicarProductos(menuOriginal: any, nuevoMenuId: number) {
+  private duplicarProductos(menuOriginal: any, nuevoMenuId: string) {
     if (menuOriginal.total_productos > 0) {
       this.menusService.obtenerProductosServiciosPorMenu(menuOriginal.id).subscribe({
         next: (prodResponse: any) => {

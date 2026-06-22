@@ -25,7 +25,7 @@ export class CrearGaleriaComponent implements OnInit {
   submitted = false;
 
   model = {
-    id: null as number | null,
+    id: null as string | null,
     nombre: '',
     descripcion: '',
     thumbnail: '',
@@ -36,7 +36,7 @@ export class CrearGaleriaComponent implements OnInit {
   };
 
   grupos: any[] = [];
-  gruposSeleccionados: number[] = [];
+  gruposSeleccionados: string[] = [];
 
   constructor(
     private router: Router,
@@ -57,12 +57,12 @@ export class CrearGaleriaComponent implements OnInit {
     if (accion === 'editar' && id && id !== '0') {
       this.accion = "editar";
       this.titulo = "Editar Galería"; // Título temporal mientras carga
-      this.cargarGaleria(parseInt(id));
+      this.cargarGaleria(id);
     } else if (accion === 'consultar' && id && id !== '0') {
       this.accion = "consultar";
       this.titulo = "Consultar Galería";
       this.editable = false;
-      this.cargarGaleria(parseInt(id));
+      this.cargarGaleria(id);
     }
   }
 
@@ -77,7 +77,7 @@ export class CrearGaleriaComponent implements OnInit {
     });
   }
 
-  cargarGaleria(id: number) {
+  cargarGaleria(id: string) {
     this.galeriasService.obtenerById(id).subscribe({
       next: (response: any) => {
         const galeria = response.body;
@@ -110,7 +110,7 @@ export class CrearGaleriaComponent implements OnInit {
     });
   }
 
-  cargarGruposAsignados(idGaleria: number) {
+  cargarGruposAsignados(idGaleria: string) {
     this.galeriasXGruposService.obtenerPorGaleria(idGaleria).subscribe({
       next: (response: any) => {
         const grupos = response.body || [];
@@ -122,7 +122,7 @@ export class CrearGaleriaComponent implements OnInit {
     });
   }
 
-  toggleGrupo(idGrupo: number) {
+  toggleGrupo(idGrupo: string) {
     const index = this.gruposSeleccionados.indexOf(idGrupo);
     if (index > -1) {
       this.gruposSeleccionados.splice(index, 1);
@@ -131,7 +131,7 @@ export class CrearGaleriaComponent implements OnInit {
     }
   }
 
-  isGrupoSeleccionado(idGrupo: number): boolean {
+  isGrupoSeleccionado(idGrupo: string): boolean {
     return this.gruposSeleccionados.includes(idGrupo);
   }
 
@@ -195,7 +195,7 @@ export class CrearGaleriaComponent implements OnInit {
     }
   }
 
-  asignarGrupos(idGaleria: number) {
+  asignarGrupos(idGaleria: string) {
     this.galeriasXGruposService.asignarGrupos(idGaleria, this.gruposSeleccionados).subscribe({
       next: () => {
         Swal.fire('Éxito', 'Galería guardada y grupos asignados correctamente', 'success');

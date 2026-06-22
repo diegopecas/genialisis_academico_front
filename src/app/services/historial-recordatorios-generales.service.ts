@@ -31,7 +31,7 @@ export class HistorialRecordatoriosGeneralesService {
       );
   }
 
-  obtenerPorEstudiante(idEstudiante: number) {
+  obtenerPorEstudiante(idEstudiante: string) {
     return this.http
       .get<HttpResponse<Object>>(this.servicio + `/estudiante/${idEstudiante}`, { observe: 'response' })
       .pipe(

@@ -10,9 +10,9 @@ import { catchError, tap } from 'rxjs/operators';
 import { httpOptions } from './http';
 
 export interface ContratoClausula {
-  id?: number;
+  id?: string;
   tipo: string;
-  id_cargo?: number | null;
+  id_cargo?: string | null;
   numero: number;
   subnumero?: number | null;
   titulo?: string;

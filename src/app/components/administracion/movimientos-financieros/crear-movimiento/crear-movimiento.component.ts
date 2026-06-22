@@ -23,7 +23,7 @@ export class CrearMovimientoComponent implements OnInit {
   titulo = 'Movimientos Financieros';
   formulario!: FormGroup;
   accion: string = 'crear';
-  idMovimiento: number = 0;
+  idMovimiento: string = '';
   regresar = '/administracion/financiero/movimientos-financieros';
 
   tiposMovimiento: any[] = [];
@@ -68,7 +68,7 @@ export class CrearMovimientoComponent implements OnInit {
       this.route.params.subscribe(params => {
         const id = params['id'];
         if (id) {
-          this.idMovimiento = +id;
+          this.idMovimiento = id;
           // Primero cargar los catálogos, luego el movimiento
           this.cargarDatosParaEdicion();
         }
@@ -81,7 +81,7 @@ export class CrearMovimientoComponent implements OnInit {
       this.route.params.subscribe(params => {
         const id = params['id'];
         if (id) {
-          this.idMovimiento = +id;
+          this.idMovimiento = id;
           // Primero cargar los catálogos, luego el movimiento
           this.cargarDatosParaEdicion();
         }
@@ -214,7 +214,7 @@ export class CrearMovimientoComponent implements OnInit {
     });
   }
 
-  cargarMovimiento(id: number): void {
+  cargarMovimiento(id: string): void {
     console.log('Cargando movimiento con ID:', id);
 
     this.movimientosService.obtenerPorId(id).subscribe({
@@ -300,20 +300,20 @@ export class CrearMovimientoComponent implements OnInit {
 
   filtrarCategoriasPorTipo(idTipo: number): void {
     this.categoriasFiltradas = this.categorias.filter(
-      categoria => categoria.id_tipo_movimiento === Number(idTipo)
+      categoria => categoria.id_tipo_movimiento === idTipo
     );
     console.log(`Categorías filtradas para tipo ${idTipo}:`, this.categoriasFiltradas);
   }
 
   filtrarConceptosPorCategoria(idCategoria: number): void {
     this.conceptosFiltrados = this.conceptos.filter(
-      concepto => concepto.id_categoria_movimiento_financiero === Number(idCategoria)
+      concepto => concepto.id_categoria_movimiento_financiero === idCategoria
     );
     console.log(`Conceptos filtrados para categoría ${idCategoria}:`, this.conceptosFiltrados);
   }
 
   validarRequisitosConcepto(idConcepto: number): void {
-    this.conceptoSeleccionado = this.conceptos.find(c => c.id === Number(idConcepto));
+    this.conceptoSeleccionado = this.conceptos.find(c => c.id === idConcepto);
 
     if (this.conceptoSeleccionado) {
       this.requiereDetalle = this.conceptoSeleccionado.requiere_detalle === 1;

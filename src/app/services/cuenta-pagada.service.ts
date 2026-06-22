@@ -132,7 +132,7 @@ export class CuentaPagadaService {
       );
   }
 
-  crearEnLote(idPagoRecibido: number, cuentas: any[]) {
+  crearEnLote(idPagoRecibido: string, cuentas: any[]) {
     const body = JSON.stringify({
       id_pago_recibido: idPagoRecibido,
       cuentas: cuentas

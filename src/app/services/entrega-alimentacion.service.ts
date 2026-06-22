@@ -25,7 +25,7 @@ export class EntregaAlimentacionService {
   registrarBatch(
     ids_cuentas: string[],
     id_horario: string,
-    id_usuario: number | null,
+    id_usuario: string | null,
     cuentas_menus?: { id_cuenta: string; id_menu_programado: string | null; id_menu_servido: string | null }[]
   ) {
     const body = JSON.stringify({ ids_cuentas, id_horario, id_usuario, cuentas_menus: cuentas_menus || [] });
@@ -35,7 +35,7 @@ export class EntregaAlimentacionService {
     );
   }
 
-  anularBatch(ids_cuentas: string[], id_horario: string, id_usuario: number | null) {
+  anularBatch(ids_cuentas: string[], id_horario: string, id_usuario: string | null) {
     const body = JSON.stringify({ ids_cuentas, id_horario, id_usuario });
     return this.http.post<any>(this.servicio + '/anular-batch', body, httpOptions).pipe(
       tap((r: any) => { if (r?.error) throw r.error; }),
@@ -80,8 +80,8 @@ export class EntregaAlimentacionService {
   registrarConInventario(data: {
     ids_cuentas: string[];
     id_horario: string;
-    id_concepto_movimiento: number;
-    id_usuario: number | null;
+    id_concepto_movimiento: string;
+    id_usuario: string | null;
     observaciones: string;
     detalle: {
       id_producto: string;

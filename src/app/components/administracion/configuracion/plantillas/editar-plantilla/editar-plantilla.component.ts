@@ -28,7 +28,7 @@ export class EditarPlantillaComponent implements OnInit {
   submitted = false;
 
   model: Plantilla = {
-    id: 0,
+    id: '',
     id_tipo_plantilla: 0,
     clave: '',
     titulo: '',
@@ -71,7 +71,7 @@ export class EditarPlantillaComponent implements OnInit {
     });
   }
 
-  cargarPlantilla(id: number) {
+  cargarPlantilla(id: string) {
     this.plantillasService.obtenerById(id).subscribe((response: any) => {
       const plantilla = response.body;
       

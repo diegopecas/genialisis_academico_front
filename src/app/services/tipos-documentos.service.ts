@@ -7,7 +7,7 @@ import { httpOptions } from './http';
 
 // Interfaz original - NO MODIFICAR (usada por DocumentosPersonaComponent y otros)
 export interface TipoDocumento {
-  id: number;
+  id: string;
   codigo: string;
   nombre: string;
   descripcion?: string;
@@ -22,7 +22,7 @@ export interface TipoDocumento {
 
 // Interfaz para el CRUD de tipos de documentos
 export interface TipoDocumentoCrud {
-  id?: number;
+  id?: string;
   codigo: string;
   nombre: string;
   descripcion?: string;
@@ -73,7 +73,7 @@ export class TiposDocumentosService {
       );
   }
 
-  obtenerById(id: number) {
+  obtenerById(id: string) {
     return this.http
       .get<HttpResponse<Object>>(this.servicio + `/${id}`, { observe: 'response' })
       .pipe(
@@ -90,7 +90,7 @@ export class TiposDocumentosService {
 
   // --- Métodos nuevos para CRUD ---
 
-  obtenerPorId(id: number) {
+  obtenerPorId(id: string) {
     return this.obtenerById(id);
   }
 
@@ -122,7 +122,7 @@ export class TiposDocumentosService {
       );
   }
 
-  eliminar(id: number) {
+  eliminar(id: string) {
     return this.http
       .request<HttpResponse<Object>>('delete', this.servicio, {
         ...httpOptions,

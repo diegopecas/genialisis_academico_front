@@ -10,12 +10,12 @@ import { MedidasXEstudianteService } from '../../../../services/medidas-x-estudi
 import { CategoriasMedidasService } from '../../../../services/categorias-medidas.service';
 
 interface MedidaModel {
-  id: number;
+  id: string;
   id_medida: string;
   id_estudiante: string;
   fecha: string;
   valor: number;
-  id_usuario: number | null;
+  id_usuario: string | null;
 }
 
 interface ValorAnterior {
@@ -25,15 +25,15 @@ interface ValorAnterior {
 }
 
 interface MedidaCatalogo {
-  id: number;
+  id: string;
   nombre: string;
   unidad_abreviatura: string;
   tipo_valor: string;
-  opciones?: { id: number; valor_numerico: number; etiqueta: string }[];
+  opciones?: { id: string; valor_numerico: number; etiqueta: string }[];
 }
 
 interface CategoriaMedidas {
-  id: number;
+  id: string;
   nombre: string;
   icono: string;
   medidas: MedidaCatalogo[];
@@ -72,7 +72,7 @@ export class CrearMedidasComponent implements OnInit {
   public cargandoValorAnterior = false;
 
   public model: MedidaModel = {
-    id: 0,
+    id: '',
     id_medida: "",
     id_estudiante: "",
     fecha: "",
@@ -157,10 +157,10 @@ export class CrearMedidasComponent implements OnInit {
     }
 
     this.cargandoValorAnterior = true;
-    const idMedida = parseInt(this.model.id_medida);
+    const idMedida = this.model.id_medida;
 
     this.medidasXEstudianteService.obtenerMedidasMultiplesEstudiantes(
-      [parseInt(this.model.id_estudiante)],
+      [this.model.id_estudiante],
       this.model.fecha,
       [idMedida]
     ).subscribe({
@@ -283,7 +283,7 @@ export class CrearMedidasComponent implements OnInit {
 
   limpiarFormulario() {
     this.model = {
-      id: 0,
+      id: '',
       id_medida: "",
       id_estudiante: this.idEstudiante,
       fecha: "",
@@ -328,13 +328,13 @@ export class CrearMedidasComponent implements OnInit {
 
   obtenerUnidadMedida(): string {
     if (!this.model.id_medida) return '';
-    const medida = this.listas.medidas.find(m => m.id == parseInt(this.model.id_medida));
+    const medida = this.listas.medidas.find(m => m.id == this.model.id_medida);
     return medida ? medida.unidad_abreviatura : '';
   }
 
   obtenerMedidaSeleccionada(): MedidaCatalogo | null {
     if (!this.model.id_medida) return null;
-    return this.listas.medidas.find(m => m.id == parseInt(this.model.id_medida)) || null;
+    return this.listas.medidas.find(m => m.id == this.model.id_medida) || null;
   }
 
   obtenerEtiquetaValor(valor: number): string {

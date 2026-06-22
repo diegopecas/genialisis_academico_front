@@ -32,55 +32,55 @@ interface Calificacion {
   estado_tarea_nombre: string;
   fecha_ejecucion: string;
   nombre_completo_docente: string;
-  id_estudiante: number;
-  id_area_academica: number;
-  id_grupo: number;
+  id_estudiante: string;
+  id_area_academica: string;
+  id_grupo: string;
   // Campos de parámetros posibles
-  id_parametro_calificacion?: number;
-  parametro_calificacion_id?: number;
+  id_parametro_calificacion?: string;
+  parametro_calificacion_id?: string;
   id_parametro?: number;
   // Campos para indicador de logro
-  id_indicador_logro?: number;
+  id_indicador_logro?: string;
   descripcion_indicador_logro?: string;
   [key: string]: any; // Índice dinámico para acceder a propiedades por nombre
   color?: string;
 }
 
 interface CalificacionPromedio {
-  id_estudiante: number;
+  id_estudiante: string;
   nombre_completo_estudiante: string;
-  id_area_academica: number;
+  id_area_academica: string;
   area_academica_nombre: string;
   valores: number[];
   promedio: number;
   valor_cualitativo: string;
   nombre_grupo?: string;
-  id_grupo?: number;
+  id_grupo?: string;
   color?: string;
 }
 
 interface CalificacionPromedioGrupo {
-  id_grupo: number;
+  id_grupo: string;
   nombre_grupo: string;
-  id_area_academica: number;
+  id_area_academica: string;
   area_academica_nombre: string;
   valores: number[];
   promedio: number;
   valor_cualitativo: string;
   num_estudiantes: number;
-  estudiantes?: Set<number>; // Para contar estudiantes únicos
+  estudiantes?: Set<string>; // Para contar estudiantes únicos
   color?: string;
 }
 
 // Nueva interfaz para indicadores de logro agrupados
 interface IndicadorLogroAgrupado {
-  id_estudiante: number;
+  id_estudiante: string;
   nombre_completo_estudiante: string;
-  id_area_academica: number;
+  id_area_academica: string;
   area_academica_nombre: string;
   nombre_grupo: string;
-  id_grupo: number;
-  id_indicador_logro: number;
+  id_grupo: string;
+  id_indicador_logro: string;
   descripcion_indicador_logro: string;
   valores: number[];
   promedio: number;
@@ -671,7 +671,7 @@ export class CalificacionesSprintEstudiantesComponent implements OnInit {
           promedio: 0,
           valor_cualitativo: '',
           num_estudiantes: 0,
-          estudiantes: new Set<number>() // Para contar estudiantes únicos
+          estudiantes: new Set<string>() // Para contar estudiantes únicos
         };
       }
       
@@ -893,7 +893,7 @@ export class CalificacionesSprintEstudiantesComponent implements OnInit {
   // Genera un gráfico que compara el promedio general por grupo
   generarGraficoComparativoGrupos() {
     // Agrupar datos por grupo para calcular un promedio general
-    const promediosPorGrupo = new Map<string, { total: number, count: number, estudiantes: Set<number> }>();
+    const promediosPorGrupo = new Map<string, { total: number, count: number, estudiantes: Set<string> }>();
     
     // Calcular promedio general por grupo
     this.datosPromedioGrupo.forEach(dato => {
@@ -902,7 +902,7 @@ export class CalificacionesSprintEstudiantesComponent implements OnInit {
         promediosPorGrupo.set(grupo, { 
           total: 0, 
           count: 0,
-          estudiantes: new Set<number>()
+          estudiantes: new Set<string>()
         });
       }
       

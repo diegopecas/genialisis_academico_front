@@ -24,8 +24,8 @@ Chart.register(...registerables);
 declare var bootstrap: any;
 
 interface AnalisisLogrosResponse {
-  sprint_id?: number;
-  corte_id?: number;
+  sprint_id?: string;
+  corte_id?: string;
   total_logros: number;
   logros_atendidos: number;
   porcentaje_cobertura: number;
@@ -33,8 +33,8 @@ interface AnalisisLogrosResponse {
 }
 
 interface AnalisisAreasResponse {
-  sprint_id?: number;
-  corte_id?: number;
+  sprint_id?: string;
+  corte_id?: string;
   total_logros: number;
   total_logros_atendidos: number;
   porcentaje_cobertura: number;
@@ -129,7 +129,7 @@ export class CrearSprintsComponent implements OnInit, AfterViewInit {
   public limitesConfig: any = {};
   
   // Filtrado de áreas en horarios
-  public areasSeleccionadasFiltroHorarios: { [key: number]: boolean } = {};
+  public areasSeleccionadasFiltroHorarios: { [key: string]: boolean } = {};
 
   // Control de capacidad
   public ordenCapacidad = {
@@ -449,7 +449,7 @@ export class CrearSprintsComponent implements OnInit, AfterViewInit {
         this.model.total_dias_habiles = diasHabiles.length;
 
         const diasSemana = ['', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
-        const conteo: { [key: number]: number } = {};
+        const conteo: { [key: string]: number } = {};
 
         for (let i = 1; i <= 7; i++) {
           conteo[i] = 0;
@@ -2355,7 +2355,7 @@ export class CrearSprintsComponent implements OnInit, AfterViewInit {
     });
   }
 
-  toggleAreaFiltroHorario(idArea: number) {
+  toggleAreaFiltroHorario(idArea: string) {
     this.areasSeleccionadasFiltroHorarios[idArea] = !this.areasSeleccionadasFiltroHorarios[idArea];
   }
 

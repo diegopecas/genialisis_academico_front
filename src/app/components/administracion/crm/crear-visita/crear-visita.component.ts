@@ -35,7 +35,7 @@ export class CrearVisitaComponent implements OnInit, OnDestroy {
 
   titulo = "Registro de Visita";
   accion = 'crear';
-  idVisita: number | null = null;
+  idVisita: string | null = null;
 
   tabActivo = 1;
   totalTabs = 4;
@@ -87,7 +87,7 @@ export class CrearVisitaComponent implements OnInit, OnDestroy {
 
     this.route.params.pipe(takeUntil(this.destroy$)).subscribe(params => {
       this.accion = params['accion'] || 'crear';
-      this.idVisita = params['id'] ? parseInt(params['id']) : null;
+      this.idVisita = params['id'] || null;
 
       if (this.accion === 'editar' || this.accion === 'ver') {
         this.cargarVisita();

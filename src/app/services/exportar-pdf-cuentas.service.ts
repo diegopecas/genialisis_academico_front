@@ -16,7 +16,7 @@ export interface DatosCuentasPDF {
     };
     tabActiva: 'movimientos' | 'pagos';
     movimientos?: Array<{
-        id: number;
+        id: string;
         fecha: string;
         concepto: string;
         valorTotal: number;
@@ -25,7 +25,7 @@ export interface DatosCuentasPDF {
         estado: string;
     }>;
     movimientosHistoricosPendientes?: Array<{
-        id: number;
+        id: string;
         fecha: string;
         concepto: string;
         valorTotal: number;
@@ -34,7 +34,7 @@ export interface DatosCuentasPDF {
         estado: string;
     }>;
     pagos?: Array<{
-        id: number;
+        id: string;
         fecha: string;
         acudiente: string;
         tipoPago: string;
@@ -44,7 +44,7 @@ export interface DatosCuentasPDF {
         estado: string;
     }>;
     pagosHistoricos?: Array<{
-        id: number;
+        id: string;
         fecha: string;
         acudiente: string;
         tipoPago: string;

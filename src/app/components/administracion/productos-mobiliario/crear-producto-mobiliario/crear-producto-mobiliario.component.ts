@@ -13,10 +13,10 @@ import { TiposProductosLimpiezaService } from '../../../../services/tipos-produc
 import { TiposProcesosLimpiezaService } from '../../../../services/tipos-procesos-limpieza.service';
 
 interface ProductoMobiliarioModel {
-    id: number;
-    idProducto: number | string;
+    id: string;
+    idProducto: string | string;
     nombreProducto?: string;
-    idTipoProductoMobiliario: number | string;
+    idTipoProductoMobiliario: string | string;
     requiereLimpieza: number;
     requiereDesinfeccion: number;
     fechaAdquisicion: string;
@@ -51,7 +51,7 @@ export class CrearProductoMobiliarioComponent implements OnInit {
     }
 
     public model: ProductoMobiliarioModel = {
-        id: 0,
+        id: '',
         idProducto: "",
         nombreProducto: "",
         idTipoProductoMobiliario: "",
@@ -1320,7 +1320,7 @@ export class CrearProductoMobiliarioComponent implements OnInit {
 
                         const datos: any = {
                             productos: productosValidos.map((p: any) => ({
-                                id_asignacion: parseInt(p.id_asignacion),
+                                id_asignacion: p.id_asignacion,
                                 cantidad_sugerida: p.cantidad_sugerida || null,
                                 instrucciones: p.instrucciones || null
                             }))
@@ -1757,7 +1757,7 @@ export class CrearProductoMobiliarioComponent implements OnInit {
             return total + (proceso.productos ? proceso.productos.length : 0);
         }, 0);
     }
-    productoEstaEnProcesos(idAsignacion: number): boolean {
+    productoEstaEnProcesos(idAsignacion: string): boolean {
         return this.procesosLimpiezaAsignados.some(proceso =>
             proceso.productos &&
             proceso.productos.some((p: any) => p.id_asignacion === idAsignacion)

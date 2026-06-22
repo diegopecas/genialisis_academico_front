@@ -112,7 +112,7 @@ export class DashboardOperativoComponent implements OnInit, OnChanges, OnDestroy
     registros: [] as any[]
   };
   public gruposDetalleAsistencia: any[] = [];
-  public gruposExpandidos: { [id: number]: boolean } = {};
+  public gruposExpandidos: { [id: string]: boolean } = {};
 
   public columnaOrdenAsistencia: ColumnaAsistencia = 'nombre_completo';
   public direccionOrdenAsistencia: DireccionOrden = 'asc';
@@ -293,7 +293,7 @@ export class DashboardOperativoComponent implements OnInit, OnChanges, OnDestroy
   }
 
   private agruparAsistencia() {
-    const mapa: { [idGrupo: number]: any } = {};
+    const mapa: { [idGrupo: string]: any } = {};
     (this.detalleAsistencia.registros || []).forEach((r: any) => {
       if (!mapa[r.id_grupo]) {
         mapa[r.id_grupo] = {
@@ -326,7 +326,7 @@ export class DashboardOperativoComponent implements OnInit, OnChanges, OnDestroy
     }
   }
 
-  toggleGrupoDetalle(idGrupo: number) {
+  toggleGrupoDetalle(idGrupo: string) {
     this.gruposExpandidos[idGrupo] = !this.gruposExpandidos[idGrupo];
   }
 

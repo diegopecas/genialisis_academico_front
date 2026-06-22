@@ -59,12 +59,12 @@ export class ListaActividadesComponent implements OnInit {
     minutos_duracion: 45,
     id_tipo_actividad_academica: '' as any,
     id_ambiente: null as any,
-    indicadores_ids: [] as number[],
+    indicadores_ids: [] as string[],
     indicadores: [] as any[]
   };
 
-  public idGrupo: number = 0;
-  public idArea: number = 0;
+  public idGrupo: string = '';
+  public idArea: string = '';
 
   // Touch drag state
   private touchStartY: number = 0;
@@ -89,8 +89,8 @@ export class ListaActividadesComponent implements OnInit {
 
   ngOnInit(): void {
     this.route.params.subscribe(params => {
-      this.idGrupo = +params['idGrupo'];
-      this.idArea = +params['idArea'];
+      this.idGrupo = params['idGrupo'];
+      this.idArea = params['idArea'];
       this.cargarDatosIniciales();
     });
   }
@@ -426,7 +426,7 @@ export class ListaActividadesComponent implements OnInit {
     });
   }
 
-  toggleIndicadorForm(indicadorId: number): void {
+  toggleIndicadorForm(indicadorId: string): void {
     const idx = this.formActividad.indicadores_ids.indexOf(indicadorId);
     if (idx >= 0) {
       this.formActividad.indicadores_ids.splice(idx, 1);
@@ -444,8 +444,8 @@ export class ListaActividadesComponent implements OnInit {
     }
   }
 
-  quitarIndicadorForm(indId: number): void {
-    this.formActividad.indicadores_ids = this.formActividad.indicadores_ids.filter((id: number) => id !== indId);
+  quitarIndicadorForm(indId: string): void {
+    this.formActividad.indicadores_ids = this.formActividad.indicadores_ids.filter((id: string) => id !== indId);
     this.formActividad.indicadores = this.formActividad.indicadores.filter((ind: any) => ind.id !== indId);
   }
 
@@ -487,8 +487,8 @@ export class ListaActividadesComponent implements OnInit {
         nivel_uno: this.formActividad.nivel_uno,
         nivel_dos: this.formActividad.nivel_dos,
         minutos_duracion: this.formActividad.minutos_duracion,
-        id_tipo_actividad_academica: parseInt(this.formActividad.id_tipo_actividad_academica) || null,
-        id_ambiente: this.formActividad.id_ambiente ? parseInt(this.formActividad.id_ambiente) : null,
+        id_tipo_actividad_academica: this.formActividad.id_tipo_actividad_academica || null,
+        id_ambiente: this.formActividad.id_ambiente ? this.formActividad.id_ambiente : null,
         indicadores_ids: this.formActividad.indicadores_ids,
         materiales: []
       }]

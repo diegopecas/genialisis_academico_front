@@ -13,17 +13,17 @@ import { PagosRecibidosService } from '../../../services/pagos-recibidos.service
 
 
 interface EstudianteRapido {
-  id_estudiante: number;
-  id_persona: number;
+  id_estudiante: string;
+  id_persona: string;
   nombre_estudiante: string;
   numero_identificacion: string;
   grupo_estudiante: string;
 }
 
 interface CuentaPorCobrar {
-  id: number;
-  id_persona: number;
-  id_estudiante: number;
+  id: string;
+  id_persona: string;
+  id_estudiante: string;
   fecha: string;
   valor: number;
   detalle: string;
@@ -33,9 +33,9 @@ interface CuentaPorCobrar {
 }
 
 interface AcudienteResponsable {
-  id_acudiente: number;
-  id_estudiante: number;
-  id_persona_acudiente: number;
+  id_acudiente: string;
+  id_estudiante: string;
+  id_persona_acudiente: string;
   nombre_acudiente: string;
   tipo_acudiente: string;
   telefono: string | null;
@@ -43,7 +43,7 @@ interface AcudienteResponsable {
 }
 
 interface TipoPago {
-  id: number;
+  id: string;
   nombre: string;
   requiere_documento: number;
 }
@@ -55,7 +55,7 @@ interface DatosComprobante {
 }
 
 interface CuentaAplicada {
-  id_cuenta_por_cobrar: number;
+  id_cuenta_por_cobrar: string;
   valor_aplicado: number;
 }
 
@@ -72,8 +72,8 @@ interface FilaPago {
   saldoTotal: number;
   cuentasPendientes: CuentaPorCobrar[];
   acudientes: AcudienteResponsable[];
-  id_acudiente: number | null;
-  id_tipo_pago: number | null;
+  id_acudiente: string | null;
+  id_tipo_pago: string | null;
   archivo: File | null;
   analizandoIA: boolean;
   datosIA: DatosComprobante | null;
@@ -83,11 +83,11 @@ interface FilaPago {
   valor_recibido_formateado: string;
   valor_comprobante: number | null;
   observaciones: string;
-  id_documento_persona: number | null;
+  id_documento_persona: string | null;
   modoDistribucion: 'auto' | 'manual';
   cuentasAplicadasManual: CuentaAplicada[];
   registrado: boolean;
-  idPagoRegistrado: number | null;
+  idPagoRegistrado: string | null;
   mensajeWA: string;
   telefonoWA: string;
 }
@@ -163,7 +163,7 @@ export class RegistroPagosRapidoComponent implements OnInit, OnDestroy {
         if (data) {
           this.tiposPago = data.tipos_pagos || [];
 
-          const acudientesPorEstudiante = new Map<number, AcudienteResponsable[]>();
+          const acudientesPorEstudiante = new Map<string, AcudienteResponsable[]>();
           (data.acudientes || []).forEach((a: AcudienteResponsable) => {
             if (!acudientesPorEstudiante.has(a.id_estudiante)) {
               acudientesPorEstudiante.set(a.id_estudiante, []);
@@ -171,9 +171,9 @@ export class RegistroPagosRapidoComponent implements OnInit, OnDestroy {
             acudientesPorEstudiante.get(a.id_estudiante)!.push(a);
           });
 
-          const cuentasPorEstudiante = new Map<number, CuentaPorCobrar[]>();
+          const cuentasPorEstudiante = new Map<string, CuentaPorCobrar[]>();
           (data.cuentas_por_cobrar || []).forEach((c: any) => {
-            const idEst = Number(c.id_estudiante);
+            const idEst = c.id_estudiante;
             if (!cuentasPorEstudiante.has(idEst)) {
               cuentasPorEstudiante.set(idEst, []);
             }
@@ -265,7 +265,7 @@ export class RegistroPagosRapidoComponent implements OnInit, OnDestroy {
   // ============================================
 
   onTipoPagoChange(fila: FilaPago): void {
-    const tipoPago = this.tiposPago.find((tp: TipoPago) => tp.id === Number(fila.id_tipo_pago));
+    const tipoPago = this.tiposPago.find((tp: TipoPago) => tp.id === fila.id_tipo_pago);
     if (tipoPago && !tipoPago.requiere_documento) {
       fila.archivo = null; fila.datosIA = null; fila.valor_comprobante = null;
     }
@@ -273,7 +273,7 @@ export class RegistroPagosRapidoComponent implements OnInit, OnDestroy {
 
   requiereDocumento(fila: FilaPago): boolean {
     if (!fila.id_tipo_pago) return false;
-    const tipoPago = this.tiposPago.find((tp: TipoPago) => tp.id === Number(fila.id_tipo_pago));
+    const tipoPago = this.tiposPago.find((tp: TipoPago) => tp.id === fila.id_tipo_pago);
     return tipoPago ? tipoPago.requiere_documento === 1 : false;
   }
 
@@ -560,7 +560,7 @@ export class RegistroPagosRapidoComponent implements OnInit, OnDestroy {
       const filasARegistrar = [...this.filasSeleccionadas];
       const pagos = filasARegistrar.map((fila: FilaPago) => ({
         id_estudiante: fila.estudiante.id_estudiante, id_acudiente: fila.id_acudiente,
-        id_tipo_pago: Number(fila.id_tipo_pago), fecha: fila.fecha,
+        id_tipo_pago: fila.id_tipo_pago, fecha: fila.fecha,
         referencia_bancaria: fila.referencia_bancaria, valor_recibido: fila.valor_recibido,
         valor_comprobante: fila.valor_comprobante || undefined,
         observaciones: fila.observaciones || 'Registro rápido de pago',
@@ -602,9 +602,9 @@ export class RegistroPagosRapidoComponent implements OnInit, OnDestroy {
     } catch (error: any) { this.registrando = false; Swal.fire('Error', 'Error inesperado', 'error'); }
   }
 
-  private subirDocumento(fila: FilaPago): Promise<number> {
+  private subirDocumento(fila: FilaPago): Promise<string> {
     return new Promise((resolve, reject) => {
-      if (!fila.archivo) { resolve(0); return; }
+      if (!fila.archivo) { resolve(''); return; }
       const formData = new FormData();
       formData.append('archivo', fila.archivo);
       formData.append('id_persona', fila.estudiante.id_persona.toString());
@@ -788,7 +788,7 @@ export class RegistroPagosRapidoComponent implements OnInit, OnDestroy {
     this.cargarDatos();
   }
 
-  trackByEstudiante(index: number, fila: FilaPago): number {
+  trackByEstudiante(index: number, fila: FilaPago): string {
     return fila.estudiante.id_estudiante;
   }
 }

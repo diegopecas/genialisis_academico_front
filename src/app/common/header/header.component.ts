@@ -37,7 +37,7 @@ export class HeaderComponent implements OnChanges, OnInit {
 
   public esTrackeable = false;
   public esFijado = false;
-  private accesoId: number | null = null;
+  private accesoId: string | null = null;
   private rutaActual = '';
   private labelAcceso = '';
   private iconoAcceso = '';

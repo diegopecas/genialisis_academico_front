@@ -10,8 +10,8 @@ import { OpcionesSistemaService } from '../../../services/opciones-sistema.servi
 declare var ClassicEditor: any;
 
 interface NodoDocumentacion {
-  id: number;
-  id_padre: number | null;
+  id: string;
+  id_padre: string | null;
   nombre: string;
   ruta: string | null;
   ruta_principal: string | null;
@@ -133,7 +133,7 @@ export class DocumentacionSistemaComponent implements OnInit, OnDestroy {
   }
 
   private construirArbol(nodos: NodoDocumentacion[]): NodoDocumentacion[] {
-    const mapa = new Map<number, NodoDocumentacion>();
+    const mapa = new Map<string, NodoDocumentacion>();
     nodos.forEach(n => mapa.set(n.id, n));
 
     const raices: NodoDocumentacion[] = [];

@@ -36,11 +36,11 @@ export class IaChatFloatingComponent implements OnInit, OnDestroy, AfterViewChec
 
   mensajes: any[] = [];
   conversaciones: any[] = [];
-  idConversacionActual: number | null = null;
+  idConversacionActual: string | null = null;
 
   nombreUsuario = '';
   nombreAsistente = 'Lumi';
-  idPersona: number = 0;
+  idPersona: string = '';
   tieneAcceso: boolean = false;
   private deberiScrollear = false;
   private routerSub!: Subscription;
@@ -148,7 +148,7 @@ export class IaChatFloatingComponent implements OnInit, OnDestroy, AfterViewChec
   }
 
   private resetearChat(): void {
-    this.idPersona = 0;
+    this.idPersona = '';
     this.nombreUsuario = '';
     this.tieneAcceso = false;
     this.chatAbierto = false;

@@ -15,23 +15,23 @@ declare var bootstrap: any;
 
 // Interfaz para el modelo del indicador
 interface IndicadorLogroModel {
-  id: number;
+  id: string;
   nombre: string;
-  id_logro: number;
+  id_logro: string;
   nombre_logro: string;
-  id_grado: number;
+  id_grado: string;
   nombre_grado: string;
-  id_area_academica: number;
+  id_area_academica: string;
   area_academica_nombre: string;
-  id_eje_curricular: number;
+  id_eje_curricular: string;
   eje_curricular_nombre: string;
-  id_esfera_desarrollo: number;
+  id_esfera_desarrollo: string;
   esfera_desarrollo_nombre: string;
-  id_competencia_cognitiva: number;
+  id_competencia_cognitiva: string;
   competencia_cognitiva_nombre: string;
-  id_estandar_basico: number;
+  id_estandar_basico: string;
   estandar_basico_nombre: string;
-  id_corte_academico: number;
+  id_corte_academico: string;
   corte_academico_nombre: string;
 }
 
@@ -66,23 +66,23 @@ export class EditarIndicadoresLogrosComponent implements OnInit, OnDestroy {
   public datosActividadesAcademicas: any[] = [];
 
   public model: IndicadorLogroModel = {
-    id: 0,
+    id: '',
     nombre: "",
-    id_logro: 0,
+    id_logro: '',
     nombre_logro: "",
-    id_grado: 0,
+    id_grado: '',
     nombre_grado: "",
-    id_area_academica: 0,
+    id_area_academica: '',
     area_academica_nombre: "",
-    id_eje_curricular: 0,
+    id_eje_curricular: '',
     eje_curricular_nombre: "",
-    id_esfera_desarrollo: 0,
+    id_esfera_desarrollo: '',
     esfera_desarrollo_nombre: "",
-    id_competencia_cognitiva: 0,
+    id_competencia_cognitiva: '',
     competencia_cognitiva_nombre: "",
-    id_estandar_basico: 0,
+    id_estandar_basico: '',
     estandar_basico_nombre: "",
-    id_corte_academico: 0,
+    id_corte_academico: '',
     corte_academico_nombre: ""
   };
 
@@ -98,23 +98,23 @@ export class EditarIndicadoresLogrosComponent implements OnInit, OnDestroy {
   // Método helper para crear un modelo con valores por defecto
   private crearModeloVacio(): IndicadorLogroModel {
     return {
-      id: 0,
+      id: '',
       nombre: "",
-      id_logro: 0,
+      id_logro: '',
       nombre_logro: "",
-      id_grado: 0,
+      id_grado: '',
       nombre_grado: "",
-      id_area_academica: 0,
+      id_area_academica: '',
       area_academica_nombre: "",
-      id_eje_curricular: 0,
+      id_eje_curricular: '',
       eje_curricular_nombre: "",
-      id_esfera_desarrollo: 0,
+      id_esfera_desarrollo: '',
       esfera_desarrollo_nombre: "",
-      id_competencia_cognitiva: 0,
+      id_competencia_cognitiva: '',
       competencia_cognitiva_nombre: "",
-      id_estandar_basico: 0,
+      id_estandar_basico: '',
       estandar_basico_nombre: "",
-      id_corte_academico: 0,
+      id_corte_academico: '',
       corte_academico_nombre: ""
     };
   }

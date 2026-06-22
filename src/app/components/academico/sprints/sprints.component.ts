@@ -280,7 +280,7 @@ export class SprintsComponent implements OnInit {
     }
   }
   // Agregar el método finalizarSprint:
-  finalizarSprint(id: number, sprint: any): void {
+  finalizarSprint(id: string, sprint: any): void {
 
     if (sprint.actual !== 1) {
       Swal.fire({
@@ -300,7 +300,7 @@ export class SprintsComponent implements OnInit {
     }
   }
 
-  private procesarFinalizacion(id: number, sprint: any): void {
+  private procesarFinalizacion(id: string, sprint: any): void {
     const tareasPendientes = sprint.tareas_pendientes || 0;
 
     Swal.fire({

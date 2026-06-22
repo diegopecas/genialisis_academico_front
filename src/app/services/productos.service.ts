@@ -137,7 +137,7 @@ export class ProductosService {
     );
   }
 
-  verificarDuplicados(nombre: string, id?: number) {
+  verificarDuplicados(nombre: string, id?: string) {
     const body = JSON.stringify({
       nombre: nombre,
       id: id || 0
@@ -181,7 +181,7 @@ export class ProductosService {
     );
   }
 
-  quitarProveedor(idProducto: number, idProveedor: number) {
+  quitarProveedor(idProducto: string, idProveedor: string) {
     const body = JSON.stringify({
       id_producto: idProducto,
       id_proveedor: idProveedor
@@ -212,7 +212,7 @@ export class ProductosService {
       );
   }
 
-  subirImagen(file: File, idProducto?: number): Observable<any> {
+  subirImagen(file: File, idProducto?: string): Observable<any> {
     const formData = new FormData();
     formData.append('imagen', file);
     if (idProducto) {
@@ -251,7 +251,7 @@ export class ProductosService {
     return environment.api + imagen;
   }
 
-  obtenerImagenBase64(id: number): Observable<any> {
+  obtenerImagenBase64(id: string): Observable<any> {
     return this.http
       .get<HttpResponse<Object>>(environment.api + `productos-imagen-base64/${id}`, {
         observe: 'response',

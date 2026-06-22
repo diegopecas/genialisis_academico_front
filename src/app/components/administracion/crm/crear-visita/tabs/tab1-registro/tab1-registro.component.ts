@@ -57,7 +57,7 @@ export class Tab1RegistroComponent implements OnInit, OnChanges {
 
   visitantes: any[] = [];
   ninos: any[] = [];
-  razonesBusquedaSeleccionadas: number[] = [];
+  razonesBusquedaSeleccionadas: string[] = [];
   preferencias_seguimiento: number[] = [];
 
 
@@ -78,7 +78,7 @@ export class Tab1RegistroComponent implements OnInit, OnChanges {
   otroParentesco: string = '';
   observacionesDiscExpandido: number | null = null;
   puntajesDiscPorVisitante: any = {};
-  otroParentescoPorVisitante: { [key: number]: string } = {};
+  otroParentescoPorVisitante: { [key: string]: string } = {};
   grupos: any[] = [];
   tiposNecesidadesEspeciales: any[] = [];
   constructor(
@@ -694,7 +694,7 @@ export class Tab1RegistroComponent implements OnInit, OnChanges {
     this.emitirCambios();
   }
 
-  toggleRazonBusqueda(idRazon: number): void {
+  toggleRazonBusqueda(idRazon: string): void {
     const index = this.razonesBusquedaSeleccionadas.indexOf(idRazon);
     if (index > -1) {
       this.razonesBusquedaSeleccionadas.splice(index, 1);
@@ -705,7 +705,7 @@ export class Tab1RegistroComponent implements OnInit, OnChanges {
     this.marcarCambio('razonesBusqueda');
   }
 
-  esRazonSeleccionada(idRazon: number): boolean {
+  esRazonSeleccionada(idRazon: string): boolean {
     return this.razonesBusquedaSeleccionadas.includes(idRazon);
   }
 
@@ -750,7 +750,7 @@ export class Tab1RegistroComponent implements OnInit, OnChanges {
     this.categoriasDisc.forEach(categoria => {
       const idsSeleccionados = observaciones[categoria.codigo] || [];
 
-      idsSeleccionados.forEach((id: number) => {
+      idsSeleccionados.forEach((id: string) => {
         const parametro = categoria.parametros.find((p: any) => p.id === id);
         if (parametro) {
           puntajes[parametro.perfil_asociado as keyof typeof puntajes] += parametro.peso || 1;
@@ -1039,7 +1039,7 @@ export class Tab1RegistroComponent implements OnInit, OnChanges {
   // GESTIÓN DE COMPROMISOS INDIVIDUALES
   // =====================================================
 
-  agregarCompromiso(idTipoCompromiso: number): void {
+  agregarCompromiso(idTipoCompromiso: string): void {
     const existe = this.compromisos.find(c => c.id_tipo_compromiso === idTipoCompromiso);
 
     if (existe) {
@@ -1060,14 +1060,14 @@ export class Tab1RegistroComponent implements OnInit, OnChanges {
     this.emitirCambios();
   }
 
-  esCompromisoSeleccionado(idTipoCompromiso: number): boolean {
+  esCompromisoSeleccionado(idTipoCompromiso: string): boolean {
     return this.compromisos.some(c => c.id_tipo_compromiso === idTipoCompromiso);
   }
 
-  obtenerCompromiso(idTipoCompromiso: number): any {
+  obtenerCompromiso(idTipoCompromiso: string): any {
     return this.compromisos.find(c => c.id_tipo_compromiso === idTipoCompromiso);
   }
-  obtenerNombreCompromiso(idTipoCompromiso: number): string {
+  obtenerNombreCompromiso(idTipoCompromiso: string): string {
     const tipo = this.tiposCompromisos.find(t => t.id === idTipoCompromiso);
     return tipo?.nombre || '';
   }
@@ -1084,7 +1084,7 @@ export class Tab1RegistroComponent implements OnInit, OnChanges {
     this.seccionesModificadas.clear();
     console.log('🧹 TAB 1 - Cambios limpiados');
   }
-  toggleNecesidadNino(indexNino: number, idNecesidad: number): void {
+  toggleNecesidadNino(indexNino: number, idNecesidad: string): void {
     if (!this.ninos[indexNino].necesidades) {
       this.ninos[indexNino].necesidades = [];
     }
@@ -1099,12 +1099,12 @@ export class Tab1RegistroComponent implements OnInit, OnChanges {
     this.emitirCambios();
   }
 
-  esNecesidadSeleccionada(indexNino: number, idNecesidad: number): boolean {
+  esNecesidadSeleccionada(indexNino: number, idNecesidad: string): boolean {
     if (!this.ninos[indexNino] || !this.ninos[indexNino].necesidades) return false;
     return this.ninos[indexNino].necesidades.some((n: any) => n.id_tipo_necesidad === idNecesidad);
   }
 
-  actualizarDetalleNecesidad(indexNino: number, idNecesidad: number, detalle: string): void {
+  actualizarDetalleNecesidad(indexNino: number, idNecesidad: string, detalle: string): void {
     const necesidad = this.ninos[indexNino].necesidades.find((n: any) => n.id_tipo_necesidad === idNecesidad);
     if (necesidad) {
       necesidad.detalle = detalle;
@@ -1113,7 +1113,7 @@ export class Tab1RegistroComponent implements OnInit, OnChanges {
     }
   }
 
-  obtenerDetalleNecesidad(indexNino: number, idNecesidad: number): string {
+  obtenerDetalleNecesidad(indexNino: number, idNecesidad: string): string {
     const necesidad = this.ninos[indexNino].necesidades?.find((n: any) => n.id_tipo_necesidad === idNecesidad);
     return necesidad?.detalle || '';
   }

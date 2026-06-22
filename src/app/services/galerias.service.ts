@@ -98,7 +98,7 @@ export class GaleriasService {
    * @param idPersona ID de la persona
    * @param idDocente ID del docente (0 si no es docente)
    */
-  obtenerPorUsuario(idPersona: number, idDocente: number) {
+  obtenerPorUsuario(idPersona: string, idDocente: string) {
     return this.http
       .get<HttpResponse<Object>>(this.servicio + `/usuario/${idPersona}/${idDocente}`, { observe: 'response' })
       .pipe(
@@ -139,7 +139,7 @@ export class GaleriasService {
    * @param idPersona ID de la persona
    * @param idDocente ID del docente (0 si no es docente)
    */
-  obtenerGaleriaCompletaUsuario(idGaleria: number, idPersona: number, idDocente: number) {
+  obtenerGaleriaCompletaUsuario(idGaleria: string, idPersona: string, idDocente: string) {
     return this.http
       .get<HttpResponse<Object>>(this.servicio + `/full/${idGaleria}/${idPersona}/${idDocente}`, { observe: 'response' })
       .pipe(

@@ -28,7 +28,7 @@ export class SeguridadPerfilComponent implements OnInit {
   public cargandoCredenciales: boolean = false;
   public registrandoHuella: boolean = false;
 
-  private idUsuario: number = 0;
+  private idUsuario: string = '';
 
   constructor(
     private usuariosService: UsuariosService,

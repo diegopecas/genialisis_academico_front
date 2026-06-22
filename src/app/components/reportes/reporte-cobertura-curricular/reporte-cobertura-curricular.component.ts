@@ -232,7 +232,7 @@ export class ReporteCoberturaCurricularComponent implements OnInit, OnDestroy {
           // Respuesta single-área (con id_area seleccionada)
           this.analisisPorArea = [{
             id_area: this.areaSeleccionada,
-            nombre_area: this.getNombreArea(Number(this.areaSeleccionada)),
+            nombre_area: this.getNombreArea(this.areaSeleccionada),
             analisis: response.analisis,
             proveedor: response.proveedor,
             tiempo_ms: response.tiempo_ms,
@@ -241,7 +241,7 @@ export class ReporteCoberturaCurricularComponent implements OnInit, OnDestroy {
         } else if (response.analisis_texto) {
           this.analisisPorArea = [{
             id_area: this.areaSeleccionada,
-            nombre_area: this.getNombreArea(Number(this.areaSeleccionada)),
+            nombre_area: this.getNombreArea(this.areaSeleccionada),
             analisis_texto: response.analisis_texto,
             proveedor: response.proveedor,
             tiempo_ms: response.tiempo_ms,
@@ -261,7 +261,7 @@ export class ReporteCoberturaCurricularComponent implements OnInit, OnDestroy {
     this.subscriptions.push(sub);
   }
 
-  getNombreArea(idArea: number): string {
+  getNombreArea(idArea: string): string {
     const area = this.areas.find(a => a.id === idArea);
     return area ? area.nombre : 'Área ' + idArea;
   }
@@ -416,11 +416,11 @@ export class ReporteCoberturaCurricularComponent implements OnInit, OnDestroy {
 
   getDescripcionFiltros(): string {
     const partes: string[] = [];
-    const grupo = this.grupos.find(g => g.id == Number(this.grupoSeleccionado));
+    const grupo = this.grupos.find(g => g.id == this.grupoSeleccionado);
     if (grupo) partes.push(grupo.nombre);
-    const corte = this.cortes.find(c => c.id == Number(this.corteSeleccionado));
+    const corte = this.cortes.find(c => c.id == this.corteSeleccionado);
     if (corte) partes.push(corte.nombre);
-    if (this.areaSeleccionada) { const area = this.areas.find(a => a.id == Number(this.areaSeleccionada)); if (area) partes.push(area.nombre); }
+    if (this.areaSeleccionada) { const area = this.areas.find(a => a.id == this.areaSeleccionada); if (area) partes.push(area.nombre); }
     return partes.length > 0 ? partes.join(' · ') : '';
   }
 
