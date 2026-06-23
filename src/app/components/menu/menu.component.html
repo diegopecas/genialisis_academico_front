@@ -106,50 +106,80 @@
   </section>
   <!-- ====== FIN ACCESOS RÁPIDOS ====== -->
 
-  <!-- Grid de círculos ordenados -->
-  <main class="menu-circles">
-    <!-- Colaboradores -->
-    <div class="circle-option circle-3" (click)="selectOption('/gestion-colaboradores')">
-      <div class="circle-content">
-        <img src="/assets/images/colaboradores.png" alt="Colaboradores" />
-        <span>Colaboradores</span>
-      </div>
+  <!-- ====== MENÚ EN ÁRBOL CON BUSCADOR ====== -->
+  <main class="menu-arbol">
+
+    <!-- Buscador -->
+    <div class="menu-buscador">
+      <span class="buscador-icono">🔍</span>
+      <input
+        type="text"
+        class="buscador-input"
+        placeholder="Buscar una opción del menú..."
+        [value]="terminoBusqueda"
+        (input)="onBuscar($event)"
+        autocomplete="off"
+        autofocus
+      />
+      <button
+        class="buscador-limpiar"
+        *ngIf="terminoBusqueda.length > 0"
+        (click)="limpiarBusqueda()"
+        title="Limpiar"
+      >✕</button>
     </div>
 
-    <!-- Reportes -->
-    <div class="circle-option circle-4" (click)="selectOption('/reportes')" *ngIf="permisosService.tienePermiso('reportes.ver')">
-      <div class="circle-content">
-        <img src="/assets/images/detalle.png" alt="Reportes" />
-        <span>Reportes</span>
-      </div>
-    </div>
-    <!-- Operaciones -->
-    <div class="circle-option circle-6" (click)="selectOption('/operaciones')">
-      <div class="circle-content">
-        <img src="/assets/images/operaciones.png" alt="Operaciones" />
-        <span>Operaciones</span>
-      </div>
+    <!-- Mensaje sin resultados -->
+    <div class="menu-sin-resultados" *ngIf="enBusqueda && arbolVisible.length === 0">
+      No se encontraron opciones para "{{ terminoBusqueda }}"
     </div>
 
-    <!-- Administración -->
-    <div class="circle-option circle-7" (click)="selectOption('/administracion')" *ngIf="permisosService.tienePermiso('administracion.ver')">
-      <div class="circle-content">
-        <img src="/assets/images/administracion.png" alt="Administración" />
-        <span>Administración</span>
-      </div>
-    </div>
+    <!-- Grilla de secciones raíz (tarjetas de vidrio) -->
+    <div class="menu-secciones">
+      <ng-container *ngFor="let seccion of arbolVisible; trackBy: trackByNodo">
+        <div class="menu-seccion-card" [class.es-link]="!esGrupo(seccion)">
 
-    <!-- Círculos del dominio del producto (vacío en el núcleo) -->
-    <ng-container *ngFor="let circulo of circulosDominio">
-      <div class="circle-option" [ngClass]="circulo.clase" (click)="selectOption(circulo.ruta)" *ngIf="tienePermisoCirculo(circulo)">
-        <div class="circle-content">
-          <img [src]="circulo.imagen" [alt]="circulo.label" />
-          <span>{{ circulo.label }}</span>
+          <!-- Cabecera de la sección -->
+          <div class="seccion-header" (click)="seleccionarNodo(seccion)">
+            <span class="seccion-icono">{{ seccion.icono }}</span>
+            <span class="seccion-titulo" [innerHTML]="resaltar(seccion.label)"></span>
+            <span class="seccion-chevron" *ngIf="esGrupo(seccion)" [class.abierto]="estaExpandido(seccion)">▸</span>
+          </div>
+
+          <!-- Hijos de la sección -->
+          <div class="seccion-hijos" *ngIf="esGrupo(seccion) && estaExpandido(seccion)">
+            <ng-container *ngTemplateOutlet="nodoTpl; context: { $implicit: seccion.hijos, nivel: 1 }"></ng-container>
+          </div>
+
         </div>
-      </div>
-    </ng-container>
+      </ng-container>
+    </div>
 
   </main>
+  <!-- ====== FIN MENÚ EN ÁRBOL ====== -->
+
+  <!-- Plantilla recursiva para los nodos hijos -->
+  <ng-template #nodoTpl let-nodos let-nivel="nivel">
+    <ul class="arbol-lista" [style.--nivel]="nivel">
+      <li *ngFor="let nodo of nodos; trackBy: trackByNodo" class="arbol-item">
+
+        <div
+          class="arbol-nodo"
+          [class.es-grupo]="esGrupo(nodo)"
+          (click)="seleccionarNodo(nodo)"
+        >
+          <span class="nodo-icono">{{ nodo.icono }}</span>
+          <span class="nodo-label" [innerHTML]="resaltar(nodo.label)"></span>
+          <span class="nodo-chevron" *ngIf="esGrupo(nodo)" [class.abierto]="estaExpandido(nodo)">▸</span>
+        </div>
+
+        <div class="arbol-subnivel" *ngIf="esGrupo(nodo) && estaExpandido(nodo)">
+          <ng-container *ngTemplateOutlet="nodoTpl; context: { $implicit: nodo.hijos, nivel: nivel + 1 }"></ng-container>
+        </div>
+
+      </li>
+    </ul>
+  </ng-template>
 
   <app-daily-message></app-daily-message>
 

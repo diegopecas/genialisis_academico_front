@@ -747,164 +747,241 @@ $confetti-colors: #FF6B6B, #FFD93D, #6BCB77, #4D96FF, #FF6BD6, #FF8C42, #A66CFF,
 }
 
 // ============================================
-// CÍRCULOS (GRID ORDENADO)
+// MENÚ EN ÁRBOL + BUSCADOR
 // ============================================
-.menu-circles {
+.menu-arbol {
   position: relative;
   z-index: 2;
   flex: 1;
   width: 100%;
-  max-width: 1100px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 60px 40px;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 40px;
-  align-content: center;
+  padding: 28px 40px 60px 40px;
+  animation: fadeInUp 0.6s ease-out forwards;
 
   @media (max-width: 1024px) {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 32px;
-    padding: 40px 24px;
+    padding: 24px 24px 40px 24px;
   }
 
   @media (max-width: 768px) {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 24px;
-    padding: 32px 20px;
-  }
-
-  @media (max-width: 480px) {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
+    padding: 20px 20px 32px 20px;
   }
 }
 
-.circle-option {
-  aspect-ratio: 1;
-  background: $ivory;
-  border-radius: 50%;
+// ---- Buscador ----
+.menu-buscador {
+  position: relative;
+  display: flex;
+  align-items: center;
+  max-width: 640px;
+  margin: 0 auto 28px auto;
+  background: rgba(255, 255, 255, 0.95);
+  border: 2px solid $gold-primary;
+  border-radius: 16px;
+  padding: 4px 14px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.2), 0 0 0 4px rgba(255, 193, 7, 0.12);
+  transition: $transition-base;
+
+  &:focus-within {
+    box-shadow: 0 8px 32px rgba(255, 193, 7, 0.35), 0 0 0 4px rgba(255, 193, 7, 0.2);
+    transform: translateY(-1px);
+  }
+}
+
+.buscador-icono {
+  font-size: 20px;
+  line-height: 1;
+  margin-right: 8px;
+  opacity: 0.8;
+}
+
+.buscador-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  padding: 14px 4px;
+  font-size: 16px;
+  font-weight: 500;
+  color: $black-primary;
+
+  &::placeholder {
+    color: rgba(0, 0, 0, 0.4);
+    font-weight: 400;
+  }
+}
+
+.buscador-limpiar {
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.06);
+  color: #666;
+  font-size: 14px;
   cursor: pointer;
   transition: $transition-base;
-  box-shadow: $shadow-md;
-  position: relative;
-  overflow: visible;
 
-  // Bordes de colores pastel vibrantes
-  &.circle-1 { 
-    border: 4px solid $pastel-pink;
-    box-shadow: 0 4px 16px rgba(255, 179, 217, 0.4), 0 0 0 0 rgba(255, 179, 217, 0.6);
-  }
-  &.circle-2 { 
-    border: 4px solid $pastel-peach;
-    box-shadow: 0 4px 16px rgba(255, 203, 164, 0.4), 0 0 0 0 rgba(255, 203, 164, 0.6);
-  }
-  &.circle-3 { 
-    border: 4px solid $pastel-yellow;
-    box-shadow: 0 4px 16px rgba(255, 244, 163, 0.4), 0 0 0 0 rgba(255, 244, 163, 0.6);
-  }
-  &.circle-4 { 
-    border: 4px solid $pastel-mint;
-    box-shadow: 0 4px 16px rgba(179, 245, 217, 0.4), 0 0 0 0 rgba(179, 245, 217, 0.6);
-  }
-  &.circle-5 { 
-    border: 4px solid $pastel-sky;
-    box-shadow: 0 4px 16px rgba(163, 213, 255, 0.4), 0 0 0 0 rgba(163, 213, 255, 0.6);
-  }
-  &.circle-6 { 
-    border: 4px solid $pastel-lavender;
-    box-shadow: 0 4px 16px rgba(212, 186, 255, 0.4), 0 0 0 0 rgba(212, 186, 255, 0.6);
-  }
-  &.circle-7 { 
-    border: 4px solid $pastel-coral;
-    box-shadow: 0 4px 16px rgba(255, 179, 167, 0.4), 0 0 0 0 rgba(255, 179, 167, 0.6);
-  }
-  &.circle-8 { 
-    border: 4px solid $pastel-lime;
-    box-shadow: 0 4px 16px rgba(212, 255, 159, 0.4), 0 0 0 0 rgba(212, 255, 159, 0.6);
-  }
-
-  // Hover con efecto de pulso de color
   &:hover {
-    transform: scale(1.1) translateY(-5px);
-
-    &.circle-1 { box-shadow: 0 8px 24px rgba(255, 179, 217, 0.6), 0 0 30px rgba(255, 179, 217, 0.4); }
-    &.circle-2 { box-shadow: 0 8px 24px rgba(255, 203, 164, 0.6), 0 0 30px rgba(255, 203, 164, 0.4); }
-    &.circle-3 { box-shadow: 0 8px 24px rgba(255, 244, 163, 0.6), 0 0 30px rgba(255, 244, 163, 0.4); }
-    &.circle-4 { box-shadow: 0 8px 24px rgba(179, 245, 217, 0.6), 0 0 30px rgba(179, 245, 217, 0.4); }
-    &.circle-5 { box-shadow: 0 8px 24px rgba(163, 213, 255, 0.6), 0 0 30px rgba(163, 213, 255, 0.4); }
-    &.circle-6 { box-shadow: 0 8px 24px rgba(212, 186, 255, 0.6), 0 0 30px rgba(212, 186, 255, 0.4); }
-    &.circle-7 { box-shadow: 0 8px 24px rgba(255, 179, 167, 0.6), 0 0 30px rgba(255, 179, 167, 0.4); }
-    &.circle-8 { box-shadow: 0 8px 24px rgba(212, 255, 159, 0.6), 0 0 30px rgba(212, 255, 159, 0.4); }
-
-    .circle-content img {
-      transform: scale(1.15);
-    }
-  }
-
-  &:active {
-    transform: scale(1.05) translateY(-2px);
+    background: $gold-primary;
+    color: $black-primary;
   }
 }
 
-.circle-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
+.menu-sin-resultados {
   text-align: center;
-  padding: 20px;
-  width: 100%;
-  height: 100%;
+  color: $ivory;
+  font-size: 16px;
+  font-weight: 500;
+  padding: 32px;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
 
-  img {
-    width: 50px;
-    height: 50px;
-    object-fit: contain;
-    transition: $transition-base;
+// ---- Grilla de secciones raíz ----
+.menu-secciones {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+  align-items: start;
 
-    @media (max-width: 768px) {
-      width: 40px;
-      height: 40px;
-    }
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+.menu-seccion-card {
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 193, 7, 0.25);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+
+  &:hover {
+    border-color: rgba(255, 193, 7, 0.5);
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18);
   }
 
-  span {
-    font-size: 14px;
+  &.es-link .seccion-header:hover {
+    background: rgba(255, 193, 7, 0.18);
+  }
+}
+
+.seccion-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 20px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.08);
+  }
+}
+
+.seccion-icono {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.seccion-titulo {
+  flex: 1;
+  font-size: 17px;
+  font-weight: 700;
+  color: $ivory;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+}
+
+.seccion-chevron {
+  font-size: 16px;
+  color: $gold-primary;
+  transition: transform 0.25s ease;
+
+  &.abierto {
+    transform: rotate(90deg);
+  }
+}
+
+.seccion-hijos {
+  padding: 0 12px 14px 12px;
+}
+
+// ---- Listas anidadas del árbol ----
+.arbol-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.arbol-item {
+  position: relative;
+}
+
+.arbol-nodo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  margin: 2px 0;
+  border-radius: 10px;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.85);
+  transition: $transition-base;
+
+  &:hover {
+    background: $white;
+    transform: translateX(3px);
+    box-shadow: 0 3px 12px rgba(255, 193, 7, 0.25);
+  }
+
+  &.es-grupo {
+    background: rgba(255, 255, 255, 0.55);
     font-weight: 700;
-    color: $gold-text-dark;
-    line-height: 1.2;
-
-    @media (max-width: 768px) {
-      font-size: 12px;
-    }
   }
 }
 
-// Animación entrada escalonada
-.circle-option {
-  animation: fadeInScale 0.5s cubic-bezier(0.4, 0, 0.2, 1) backwards;
+.nodo-icono {
+  font-size: 17px;
+  line-height: 1;
+}
 
-  @for $i from 1 through 8 {
-    &.circle-#{$i} {
-      animation-delay: #{$i * 0.08}s;
-    }
+.nodo-label {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 600;
+  color: $gold-text-dark;
+  line-height: 1.2;
+}
+
+.nodo-chevron {
+  font-size: 13px;
+  color: $gold-text-medium;
+  transition: transform 0.25s ease;
+
+  &.abierto {
+    transform: rotate(90deg);
   }
 }
 
-@keyframes fadeInScale {
-  from {
-    opacity: 0;
-    transform: scale(0.8);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
+// Indentación progresiva por nivel mediante guía vertical
+.arbol-subnivel {
+  margin-left: 14px;
+  padding-left: 10px;
+  border-left: 2px solid rgba(255, 193, 7, 0.35);
+}
+
+// Resaltado de coincidencias de búsqueda
+::ng-deep .menu-highlight {
+  background: $gold-primary;
+  color: $black-primary;
+  border-radius: 3px;
+  padding: 0 2px;
+  font-weight: 700;
 }
 
 // ============================================

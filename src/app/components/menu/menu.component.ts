@@ -1,14 +1,15 @@
 import { Component, OnInit } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import Swal from 'sweetalert2';
 import { InstitucionConfigService } from '../../services/institucion-config.service';
 import { PersonasService } from '../../services/personas.service';
 import { PermisosService } from '../../services/permisos.service';
 import { AyudaModalService } from '../../services/ayuda-modal.service';
 import { AccesosRapidosService, AccesoRapido } from '../../services/accesos-rapidos.service';
+import { MenuArbolService, MenuNodo } from '../../services/menu-arbol.service';
 import { DailyMessageComponent } from '../daily-message/daily-message.component';
-import { dominioMenuCirculos, MenuCirculo } from '../../dominio-menu';
 
 interface CumpleaneroInfo {
   nombre: string;
@@ -44,7 +45,15 @@ export class MenuComponent implements OnInit {
 
   public accesosRapidos: AccesoRapido[] = [];
 
-  public circulosDominio: MenuCirculo[] = dominioMenuCirculos;
+  // Árbol de menú ya filtrado por permisos (fuente para render y búsqueda)
+  public arbolMenu: MenuNodo[] = [];
+  // Árbol visible en pantalla (igual a arbolMenu, o el subconjunto que coincide con la búsqueda)
+  public arbolVisible: MenuNodo[] = [];
+  public terminoBusqueda: string = '';
+  public enBusqueda: boolean = false;
+
+  // Ids de grupos expandidos manualmente (cuando NO hay búsqueda activa)
+  private expandidos: Set<string> = new Set<string>();
 
   constructor(
     private router: Router,
@@ -53,6 +62,8 @@ export class MenuComponent implements OnInit {
     public permisosService: PermisosService,
     private ayudaModalService: AyudaModalService,
     private accesosRapidosService: AccesosRapidosService,
+    private menuArbolService: MenuArbolService,
+    private sanitizer: DomSanitizer,
   ) {}
 
   ngOnInit(): void {
@@ -63,6 +74,7 @@ export class MenuComponent implements OnInit {
     this.cargarNombreUsuario();
     this.verificarCumpleanos();
     this.cargarAccesosRapidos();
+    this.cargarArbolMenu();
   }
 
   private cargarFondoTenant(): void {
@@ -112,6 +124,150 @@ export class MenuComponent implements OnInit {
         console.error('Error al fijar/desfijar acceso');
       }
     });
+  }
+
+  // ============================================
+  // ÁRBOL DE MENÚ + BÚSQUEDA
+  // ============================================
+
+  private cargarArbolMenu(): void {
+    const arbolCompleto = this.menuArbolService.getArbol();
+    this.arbolMenu = this.filtrarPorPermiso(arbolCompleto);
+    this.arbolVisible = this.arbolMenu;
+  }
+
+  /**
+   * Devuelve una copia del árbol conservando solo los nodos visibles según permisos.
+   * Reglas: un nodo con `permiso` se conserva si el usuario lo tiene; los nodos sin
+   * `permiso` se muestran siempre; un grupo se conserva solo si le queda al menos un hijo visible.
+   */
+  private filtrarPorPermiso(nodos: MenuNodo[]): MenuNodo[] {
+    const resultado: MenuNodo[] = [];
+
+    for (const nodo of nodos) {
+      if (nodo.permiso && !this.permisosService.tienePermiso(nodo.permiso)) {
+        continue;
+      }
+
+      if (nodo.hijos && nodo.hijos.length > 0) {
+        const hijosVisibles = this.filtrarPorPermiso(nodo.hijos);
+        if (hijosVisibles.length === 0) {
+          continue;
+        }
+        resultado.push({ ...nodo, hijos: hijosVisibles });
+      } else {
+        resultado.push({ ...nodo });
+      }
+    }
+
+    return resultado;
+  }
+
+  onBuscar(event: Event): void {
+    const valor = (event.target as HTMLInputElement).value || '';
+    this.terminoBusqueda = valor;
+    const termino = valor.trim().toLowerCase();
+
+    if (termino.length === 0) {
+      this.enBusqueda = false;
+      this.arbolVisible = this.arbolMenu;
+      return;
+    }
+
+    this.enBusqueda = true;
+    this.arbolVisible = this.filtrarPorTexto(this.arbolMenu, termino);
+  }
+
+  limpiarBusqueda(): void {
+    this.terminoBusqueda = '';
+    this.enBusqueda = false;
+    this.arbolVisible = this.arbolMenu;
+  }
+
+  /**
+   * Filtra el árbol dejando los nodos cuyo label coincide con el término y la cadena
+   * de ancestros necesaria para llegar a ellos. Si un grupo coincide por sí mismo,
+   * se conserva con todos sus hijos.
+   */
+  private filtrarPorTexto(nodos: MenuNodo[], termino: string): MenuNodo[] {
+    const resultado: MenuNodo[] = [];
+
+    for (const nodo of nodos) {
+      const coincide = nodo.label.toLowerCase().includes(termino);
+
+      if (nodo.hijos && nodo.hijos.length > 0) {
+        if (coincide) {
+          resultado.push({ ...nodo });
+          continue;
+        }
+        const hijosCoinciden = this.filtrarPorTexto(nodo.hijos, termino);
+        if (hijosCoinciden.length > 0) {
+          resultado.push({ ...nodo, hijos: hijosCoinciden });
+        }
+      } else if (coincide) {
+        resultado.push({ ...nodo });
+      }
+    }
+
+    return resultado;
+  }
+
+  esGrupo(nodo: MenuNodo): boolean {
+    return !!(nodo.hijos && nodo.hijos.length > 0);
+  }
+
+  estaExpandido(nodo: MenuNodo): boolean {
+    // Durante la búsqueda todos los grupos del resultado se muestran expandidos
+    if (this.enBusqueda) {
+      return true;
+    }
+    return this.expandidos.has(nodo.id);
+  }
+
+  toggleNodo(nodo: MenuNodo): void {
+    if (this.enBusqueda) {
+      return;
+    }
+    if (this.expandidos.has(nodo.id)) {
+      this.expandidos.delete(nodo.id);
+    } else {
+      this.expandidos.add(nodo.id);
+    }
+  }
+
+  seleccionarNodo(nodo: MenuNodo): void {
+    if (this.esGrupo(nodo)) {
+      this.toggleNodo(nodo);
+    } else if (nodo.ruta) {
+      this.selectOption(nodo.ruta);
+    }
+  }
+
+  trackByNodo(_index: number, nodo: MenuNodo): string {
+    return nodo.id;
+  }
+
+  /**
+   * Resalta el término buscado dentro del label (envuelve la coincidencia en <mark>).
+   * Las etiquetas del menú son estáticas, por eso es seguro renderizar el HTML resultante.
+   */
+  resaltar(label: string): SafeHtml {
+    const termino = this.terminoBusqueda.trim();
+    if (!this.enBusqueda || termino.length === 0) {
+      return label;
+    }
+
+    const indice = label.toLowerCase().indexOf(termino.toLowerCase());
+    if (indice < 0) {
+      return label;
+    }
+
+    const antes = label.substring(0, indice);
+    const match = label.substring(indice, indice + termino.length);
+    const despues = label.substring(indice + termino.length);
+    return this.sanitizer.bypassSecurityTrustHtml(
+      `${antes}<mark class="menu-highlight">${match}</mark>${despues}`
+    );
   }
 
   private cargarNombreUsuario(): void {
@@ -296,10 +452,6 @@ export class MenuComponent implements OnInit {
 
   cerrarBannerCumple(): void {
     this.mostrarBannerCumple = false;
-  }
-
-  tienePermisoCirculo(circulo: MenuCirculo): boolean {
-    return !circulo.permiso || this.permisosService.tienePermiso(circulo.permiso);
   }
 
   selectOption(path: string): void {
