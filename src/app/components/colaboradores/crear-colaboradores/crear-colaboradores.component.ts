@@ -55,7 +55,7 @@ export class CrearColaboradoresComponent implements OnInit {
   };
 
   public model = {
-    idPersona: 0 as any, idColaborador: 0 as any, idDocente: 0 as any,
+    idPersona: '' as any, idColaborador: '' as any, idDocente: '' as any,
     tipoIdentificacion: '' as any, numeroIdentificacion: '' as any,
     primerNombre: '' as any, segundoNombre: '' as any, primerApellido: '' as any, segundoApellido: '' as any,
     fechaNacimiento: '' as any, genero: '' as any, direccion: '' as any, correoElectronico: '' as any,
@@ -69,7 +69,11 @@ export class CrearColaboradoresComponent implements OnInit {
   public gruposAsignados: any[] = [];
   public nuevoGrupo = { idGrupo: '', esTitular: false };
   public areasAsignadas: any[] = [];
+  public areasOcupadasPorGrupo: { [idGrupo: string]: any[] } = {};
   public nuevaArea: any = {};
+  public gruposCargados = false;
+  public areasCargadas = false;
+  public usuarioCargado = false;
   public modelUsuario: any = { id: '', id_persona: '', usuario: '', correo_electronico: '', clave: '', activo: 1, acceso_institucional: 0, acceso_portal_padres: 0 };
   public cambiarClaveModel: any = { id: '', claveNueva: '' };
   public submittedUsuario = false;
@@ -185,10 +189,10 @@ export class CrearColaboradoresComponent implements OnInit {
 
   cambiarSeccion(seccion: 'datos-personales' | 'datos-colaborador' | 'grupos' | 'areas' | 'usuario' | 'documentos' | 'horarios') {
     this.seccionActiva = seccion; this.cerrarSidebar();
-    if (seccion === 'grupos' && !!this.model.idDocente) this.consultarGruposAsignados();
-    if (seccion === 'areas' && !!this.model.idDocente) this.consultarAreasAcademicas();
-    if (seccion === 'usuario' && !!this.model.idPersona) this.cargarUsuario();
-    if (seccion === 'horarios' && !!this.model.idColaborador) this.cargarHorarios();
+    if (seccion === 'grupos' && !!this.model.idDocente && !this.gruposCargados) this.consultarGruposAsignados();
+    if (seccion === 'areas' && !!this.model.idDocente && !this.areasCargadas) this.consultarAreasAcademicas();
+    if (seccion === 'usuario' && !!this.model.idPersona && !this.usuarioCargado) this.cargarUsuario();
+    if (seccion === 'horarios' && !!this.model.idColaborador && !this.horariosCargados) this.cargarHorarios();
   }
 
   consultarListas() {
@@ -217,7 +221,7 @@ export class CrearColaboradoresComponent implements OnInit {
   }
 
   llenarFormularioColaborador(c: any) {
-    this.model.idColaborador = c.id; this.model.idPersona = c.id_persona; this.model.idDocente = c.id_docente || 0;
+    this.model.idColaborador = c.id; this.model.idPersona = c.id_persona; this.model.idDocente = c.id_docente || '';
     this.model.tipoIdentificacion = c.id_tipo_identificacion; this.model.numeroIdentificacion = c.numero_identificacion;
     this.model.primerNombre = c.primer_nombre; this.model.segundoNombre = c.segundo_nombre || '';
     this.model.primerApellido = c.primer_apellido; this.model.segundoApellido = c.segundo_apellido || '';
@@ -237,8 +241,8 @@ export class CrearColaboradoresComponent implements OnInit {
     this.titulo = `${this.accion === 'editar' ? 'Editar' : 'Ver'} Colaborador: ${this.nombreColaborador}`;
   }
 
-  consultarGruposAsignados() { this.docentesService.obtenerGruposDocente(this.model.idDocente).subscribe({ next: (r: any) => { this.gruposAsignados = r.body || []; }, error: (e: any) => console.error('Error', e) }); }
-  consultarAreasAcademicas() { this.areaAcademicaXGrupoService.obtenerPorDocente(this.model.idDocente).subscribe({ next: (r: any) => { this.areasAsignadas = r.body || []; }, error: (e: any) => console.error('Error', e) }); }
+  consultarGruposAsignados() { this.gruposCargados = true; this.docentesService.obtenerGruposDocente(this.model.idDocente).subscribe({ next: (r: any) => { this.gruposAsignados = r.body || []; this.cargarAreasOcupadasGrupos(); }, error: (e: any) => console.error('Error', e) }); }
+  consultarAreasAcademicas() { this.areasCargadas = true; this.areaAcademicaXGrupoService.obtenerPorDocente(this.model.idDocente).subscribe({ next: (r: any) => { this.areasAsignadas = r.body || []; }, error: (e: any) => console.error('Error', e) }); }
   onColaboradorActivoChange() { this.model.activo = this.colaboradorActivoSwitch ? 1 : 0; }
   cambiarEstadoColaborador() { this.model.activo = this.colaboradorActivoSwitch ? 1 : 0; }
 
@@ -284,13 +288,16 @@ export class CrearColaboradoresComponent implements OnInit {
   toggleEstadoGrupo(grupo: any) { const svc = grupo.activo ? this.docentesService.desactivarAsignacion(grupo.id) : this.docentesService.activarAsignacion(grupo.id); svc.subscribe(() => { Swal.fire({ icon: 'success', title: grupo.activo ? 'Desactivado' : 'Activado', timer: 2000, showConfirmButton: false }); this.consultarGruposAsignados(); }, (e: any) => Swal.fire({ icon: 'error', title: 'Error', text: e.error?.error || 'Error' })); }
 
   // ========== ÁREAS ==========
-  asignarArea(idGrupo: any) { if (!this.nuevaArea[idGrupo]) return; this.areaAcademicaXGrupoService.crear({ id_area_academica: this.nuevaArea[idGrupo], id_grupo: idGrupo, id_docente: this.model.idDocente }).subscribe(() => { Swal.fire({ icon: 'success', title: 'Área asignada', timer: 2000, showConfirmButton: false }); this.consultarAreasAcademicas(); this.nuevaArea[idGrupo] = ''; }, (e: any) => Swal.fire({ icon: 'error', title: 'Error', text: e.error?.error || 'Error' })); }
-  areaYaAsignada(idArea: any, idGrupo: any): boolean { return this.areasAsignadas.some((a: any) => a.id_area_academica == idArea && a.id_grupo == idGrupo); }
+  asignarArea(idGrupo: any) { if (!this.nuevaArea[idGrupo]) return; this.areaAcademicaXGrupoService.crear({ id_area_academica: this.nuevaArea[idGrupo], id_grupo: idGrupo, id_docente: this.model.idDocente }).subscribe(() => { Swal.fire({ icon: 'success', title: 'Área asignada', timer: 2000, showConfirmButton: false }); this.consultarAreasAcademicas(); this.cargarAreasOcupadasGrupo(idGrupo); this.nuevaArea[idGrupo] = ''; }, (e: any) => Swal.fire({ icon: 'error', title: 'Error', text: e.error?.error || 'Error' })); }
+  areaYaAsignada(idArea: any, idGrupo: any): boolean { return (this.areasOcupadasPorGrupo[idGrupo] || []).some((a: any) => a.id_area_academica == idArea); }
   obtenerAreasGrupo(idGrupo: any): any[] { return this.areasAsignadas.filter((a: any) => a.id_grupo == idGrupo); }
-  quitarArea(idAsignacion: any) { Swal.fire({ title: '¿Está seguro?', text: 'Eliminará la asignación del área', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Sí, eliminar', cancelButtonText: 'Cancelar' }).then((r) => { if (r.isConfirmed) { this.areaAcademicaXGrupoService.eliminar({ id: idAsignacion }).subscribe(() => { Swal.fire({ icon: 'success', title: 'Eliminada', timer: 2000, showConfirmButton: false }); this.consultarAreasAcademicas(); }, () => Swal.fire({ icon: 'error', title: 'Error', text: 'Error al eliminar' })); } }); }
+  cargarAreasOcupadasGrupos() { (this.gruposAsignados || []).forEach((g: any) => this.cargarAreasOcupadasGrupo(g.id_grupo)); }
+  cargarAreasOcupadasGrupo(idGrupo: any) { this.areaAcademicaXGrupoService.obtenerPorGrupo(idGrupo).subscribe({ next: (r: any) => { this.areasOcupadasPorGrupo[idGrupo] = r.body || []; }, error: () => { this.areasOcupadasPorGrupo[idGrupo] = []; } }); }
+  infoAreaOcupada(idArea: any, idGrupo: any): string { const fila = (this.areasOcupadasPorGrupo[idGrupo] || []).find((a: any) => a.id_area_academica == idArea); if (!fila) return ''; return fila.id_docente == this.model.idDocente ? '(Ya asignada)' : '(Docente: ' + (fila.nombre_docente || 'Sin docente') + ')'; }
+  quitarArea(idAsignacion: any) { Swal.fire({ title: '¿Está seguro?', text: 'Eliminará la asignación del área', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Sí, eliminar', cancelButtonText: 'Cancelar' }).then((r) => { if (r.isConfirmed) { this.areaAcademicaXGrupoService.eliminar(idAsignacion).subscribe(() => { Swal.fire({ icon: 'success', title: 'Eliminada', timer: 2000, showConfirmButton: false }); this.consultarAreasAcademicas(); this.cargarAreasOcupadasGrupos(); }, () => Swal.fire({ icon: 'error', title: 'Error', text: 'Error al eliminar' })); } }); }
 
   // ========== USUARIO ==========
-  cargarUsuario() { this.usuariosService.obtenerPorPersona(this.model.idPersona).subscribe({ next: (r: any) => { const d = r.body; if (d && d.length > 0) { const u = d[0]; this.modelUsuario = { id: u.id, id_persona: u.id_persona, usuario: u.usuario, correo_electronico: u.correo_electronico, clave: '', activo: u.activo, acceso_institucional: u.acceso_institucional, acceso_portal_padres: u.acceso_portal_padres }; } else { this.resetearModeloUsuario(); } }, error: () => this.resetearModeloUsuario() }); }
+  cargarUsuario() { this.usuarioCargado = true; this.usuariosService.obtenerPorPersona(this.model.idPersona).subscribe({ next: (r: any) => { const d = r.body; if (d && d.length > 0) { const u = d[0]; this.modelUsuario = { id: u.id, id_persona: u.id_persona, usuario: u.usuario, correo_electronico: u.correo_electronico, clave: '', activo: u.activo, acceso_institucional: u.acceso_institucional, acceso_portal_padres: u.acceso_portal_padres }; } else { this.resetearModeloUsuario(); } }, error: () => this.resetearModeloUsuario() }); }
   resetearModeloUsuario() { this.modelUsuario = { id: '', id_persona: this.model.idPersona, usuario: '', correo_electronico: '', clave: '', activo: 1, acceso_institucional: 0, acceso_portal_padres: 0 }; }
   tieneUsuario(): boolean { return !!this.modelUsuario.id; }
   crearUsuario() {
