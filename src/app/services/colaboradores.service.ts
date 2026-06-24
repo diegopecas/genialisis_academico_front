@@ -1,6 +1,7 @@
 import {
   HttpClient,
   HttpErrorResponse,
+  HttpParams,
   HttpResponse,
 } from '@angular/common/http';
 import { Injectable } from '@angular/core';
@@ -22,6 +23,37 @@ export class ColaboradoresService {
   obtenerTodos() {
     return this.http
       .get<HttpResponse<Object>>(this.servicio, { observe: 'response' })
+      .pipe(
+        tap((response: HttpResponse<Object>) => {
+          let respuesta: any = response.body;
+          if (respuesta.error) {
+            throw respuesta.error;
+          }
+          return response;
+        }),
+        catchError(this.handleError)
+      );
+  }
+
+  // Listado filtrado. Solo se envían los filtros con valor; sin filtros trae todos.
+  obtenerPorFiltros(filtros: { id_rol?: any; id_casa?: any; estado?: any; nombre?: any }) {
+    let params = new HttpParams();
+
+    if (filtros.id_rol) {
+      params = params.set('id_rol', filtros.id_rol);
+    }
+    if (filtros.id_casa) {
+      params = params.set('id_casa', filtros.id_casa);
+    }
+    if (filtros.estado) {
+      params = params.set('estado', filtros.estado);
+    }
+    if (filtros.nombre) {
+      params = params.set('nombre', filtros.nombre);
+    }
+
+    return this.http
+      .get<HttpResponse<Object>>(this.servicio + '-filtros', { observe: 'response', params })
       .pipe(
         tap((response: HttpResponse<Object>) => {
           let respuesta: any = response.body;

@@ -1,0 +1,27 @@
+<div class="modulo">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="false"
+    [raiz]="'/colaboradores-opciones'"
+    [regresar]="'/colaboradores'"
+    [iconoTitulo]="'/assets/images/colaboradores.png'"
+  ></app-header>
+
+  <!-- Opciones agrupadas por categoría -->
+  <div class="categorias">
+    <section class="categoria" *ngFor="let categoria of categorias">
+      <h3 class="categoria-titulo">{{ categoria.nombre }}</h3>
+      <div class="opciones-grid">
+        <button
+          *ngFor="let opcion of categoria.opciones"
+          class="opcion-card"
+          [class.peligro]="opcion.id === 'eliminar'"
+          (click)="ejecutar(opcion)"
+        >
+          <img [src]="opcion.icono" [alt]="opcion.label">
+          <span>{{ opcion.label }}</span>
+        </button>
+      </div>
+    </section>
+  </div>
+</div>

@@ -1,0 +1,108 @@
+$tablet: 768px;
+
+.modulo {
+  width: 100%;
+  min-height: 100vh;
+  background-color: #f5f5f7;
+}
+
+.filtros-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  padding: 16px;
+  background: white;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+
+  .filtro-campo {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 160px;
+
+    label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #555;
+    }
+
+    select,
+    input {
+      padding: 9px 10px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      background: #fafafa;
+
+      &:focus {
+        outline: none;
+        border-color: #d4af37;
+        background: white;
+        box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
+      }
+    }
+  }
+
+  .filtro-nombre {
+    flex: 1;
+    min-width: 200px;
+  }
+
+  .filtro-acciones {
+    display: flex;
+    gap: 8px;
+
+    button {
+      padding: 10px 18px;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s ease;
+
+      &:disabled {
+        opacity: 0.6;
+        cursor: default;
+      }
+    }
+
+    .btn-buscar {
+      background: #d4af37;
+      color: #1a1a1a;
+    }
+
+    .btn-limpiar {
+      background: #eee;
+      color: #444;
+    }
+  }
+
+  @media (max-width: $tablet) {
+    .filtro-campo {
+      min-width: 100%;
+    }
+
+    .filtro-acciones {
+      width: 100%;
+
+      button {
+        flex: 1;
+      }
+    }
+  }
+}
+
+.estado-inicial {
+  padding: 40px 16px;
+  text-align: center;
+  color: #777;
+  font-size: 0.95rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  .modulo {
+    background-color: #1a1a1a;
+  }
+}

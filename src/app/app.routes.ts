@@ -11,6 +11,7 @@ export const routes: Routes = [
   // Colaboradores
   { path: 'gestion-colaboradores', loadComponent: () => import('./components/colaboradores/gestion-colaboradores/gestion-colaboradores.component').then(m => m.GestionColaboradoresComponent), canActivate: [AuthGuard], data: { trackear: true, labelAcceso: 'Gestión Colaboradores', iconoAcceso: '👥' } },
   { path: 'colaboradores', loadComponent: () => import('./components/colaboradores/colaboradores.component').then(m => m.ColaboradoresComponent), canActivate: [AuthGuard], data: { trackear: true, labelAcceso: 'Colaboradores', iconoAcceso: '🧑‍💼' } },
+  { path: 'colaboradores-opciones/:id', loadComponent: () => import('./components/colaboradores/opciones-colaborador/opciones-colaborador.component').then(m => m.OpcionesColaboradorComponent), canActivate: [AuthGuard] },
   { path: 'colaboradores/:accion/:id', loadComponent: () => import('./components/colaboradores/crear-colaboradores/crear-colaboradores.component').then(m => m.CrearColaboradoresComponent), canActivate: [AuthGuard] },
   { path: 'colaboradores-gestion-tiempo/:id', loadComponent: () => import('./components/colaboradores/gestion-tiempo-colaborador/gestion-tiempo-colaborador.component').then(m => m.GestionTiempoColaboradorComponent), canActivate: [AuthGuard] },
   { path: 'colaboradores-productos-servicios/:id', loadComponent: () => import('./components/colaboradores/productos-servicios/colaboradores-productos-servicios.component').then(m => m.ColaboradoresProductosServiciosComponent), canActivate: [AuthGuard] },

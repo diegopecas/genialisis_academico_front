@@ -1,20 +1,71 @@
 <div class="modulo">
-  <app-header 
-    [tituloModulo]="titulo" 
-    [mostrarCrear]="true" 
-    [accion]="'ConsultarTodos'" 
-    [raiz]="'/colaboradores'" 
-    [regresar]="'/gestion-colaboradores'" 
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="true"
+    [accion]="'ConsultarTodos'"
+    [raiz]="'/colaboradores'"
+    [regresar]="'/gestion-colaboradores'"
     [iconoTitulo]="'/assets/images/colaboradores.png'">
   </app-header>
-  
-  <app-tablas 
-    [titulos]="titulos" 
-    [datos]="datosFiltrados" 
-    [raiz]="'/colaboradores'" 
-    [accionVer]="true" 
-    [accionEditar]="true" 
-    [accionEliminar]="true"
+
+  <!-- Barra de filtros (se envían al backend) -->
+  <div class="filtros-bar">
+    <div class="filtro-campo">
+      <label>Rol</label>
+      <select [(ngModel)]="filtroRol">
+        <option value="">Todos</option>
+        <option *ngFor="let rol of roles" [value]="rol.id">{{ rol.nombre }}</option>
+      </select>
+    </div>
+
+    <div class="filtro-campo">
+      <label>Casa</label>
+      <select [(ngModel)]="filtroCasa">
+        <option value="">Todas</option>
+        <option *ngFor="let casa of casas" [value]="casa.id">{{ casa.nombre }}</option>
+      </select>
+    </div>
+
+    <div class="filtro-campo">
+      <label>Estado</label>
+      <select [(ngModel)]="filtroEstado">
+        <option value="">Todos</option>
+        <option value="activo">Activo</option>
+        <option value="inactivo">Inactivo</option>
+      </select>
+    </div>
+
+    <div class="filtro-campo filtro-nombre">
+      <label>Nombre</label>
+      <input
+        type="search"
+        placeholder="Parte del nombre..."
+        [(ngModel)]="filtroNombre"
+        (keyup.enter)="buscar()"
+      >
+    </div>
+
+    <div class="filtro-acciones">
+      <button class="btn-buscar" (click)="buscar()" [disabled]="cargando">
+        {{ cargando ? 'Buscando...' : 'Buscar' }}
+      </button>
+      <button class="btn-limpiar" (click)="limpiar()" [disabled]="cargando">
+        Limpiar
+      </button>
+    </div>
+  </div>
+
+  <!-- Mensaje inicial antes de la primera búsqueda -->
+  <div *ngIf="!busquedaRealizada && !cargando" class="estado-inicial">
+    <p>Selecciona filtros y presiona <strong>Buscar</strong>. Sin filtros se traen todos los colaboradores.</p>
+  </div>
+
+  <app-tablas
+    *ngIf="busquedaRealizada"
+    [titulos]="titulos"
+    [datos]="datos"
+    [raiz]="'/colaboradores'"
+    [accionEditar]="true"
     [acciones]="acciones"
     (clicAccion)="accionTabla($event)">
   </app-tablas>
