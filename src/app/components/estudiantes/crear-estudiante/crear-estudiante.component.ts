@@ -178,6 +178,13 @@ export class CrearEstudianteComponent implements OnInit {
   public gruposDatosAdicionales: GrupoDatosDinamicos[] = [];
   public datosAdicionalesModificados = false;
 
+  // Control de carga perezosa por sección (solo en edición/consulta).
+  // Una vez cargada una sección no se vuelve a consultar al regresar a ella.
+  private horariosCargados = false;
+  private conveniosCargados = false;
+  private datosMedicosCargados = false;
+  private datosAdicionalesCargados = false;
+
   public model: EstudianteModel = {
     idPersona: '',
     tipoIdentificacion: '',
@@ -248,6 +255,7 @@ export class CrearEstudianteComponent implements OnInit {
           this.documentoEncontrado = true;
           this.nuevo = false;
           this.titulo = 'Editar estudiante';
+          this.regresar = '/estudiantes-opciones/' + this.id;
           this.obtenerEstudiante(this.id);
           break;
         case 'consultar':
@@ -256,6 +264,7 @@ export class CrearEstudianteComponent implements OnInit {
           this.documentoEncontrado = true;
           this.nuevo = false;
           this.titulo = 'Consultar estudiante';
+          this.regresar = '/estudiantes-opciones/' + this.id;
           this.obtenerEstudiante(this.id);
           break;
         default:
@@ -281,7 +290,44 @@ export class CrearEstudianteComponent implements OnInit {
 
   cambiarSeccion(seccion: 'datos-personales' | 'datos-academicos' | 'horarios' | 'convenios' | 'datos-medicos' | 'datos-adicionales' | 'documentos'): void {
     this.seccionActiva = seccion;
+    this.cargarSeccionSiNecesario(seccion);
     this.cerrarSidebar();
+  }
+
+  // Carga la data de una sección la primera vez que se abre (solo si el estudiante
+  // ya existe). El flag evita volver a consultar al regresar a la misma pestaña.
+  private cargarSeccionSiNecesario(seccion: string): void {
+    const idEstudiante = this.model.idEstudiante;
+    if (!idEstudiante || idEstudiante === '0') {
+      return;
+    }
+
+    switch (seccion) {
+      case 'horarios':
+        if (!this.horariosCargados) {
+          this.horariosCargados = true;
+          this.cargarHorarios(idEstudiante);
+        }
+        break;
+      case 'convenios':
+        if (!this.conveniosCargados) {
+          this.conveniosCargados = true;
+          this.cargarConvenios(idEstudiante);
+        }
+        break;
+      case 'datos-medicos':
+        if (!this.datosMedicosCargados) {
+          this.datosMedicosCargados = true;
+          this.cargarDatosMedicos(idEstudiante);
+        }
+        break;
+      case 'datos-adicionales':
+        if (!this.datosAdicionalesCargados) {
+          this.datosAdicionalesCargados = true;
+          this.cargarDatosAdicionales(idEstudiante);
+        }
+        break;
+    }
   }
 
   toggleSidebar(): void {
@@ -949,10 +995,9 @@ export class CrearEstudianteComponent implements OnInit {
                 this.estudianteActivoSwitch = estudiante.activo == 1 || estudiante.activo === '1';
 
                 this.obtenerGrupoEstudiante(estudiante.id);
-                this.cargarHorarios(estudiante.id);
-                this.cargarConvenios(estudiante.id);
-                this.cargarDatosMedicos(estudiante.id);
-                this.cargarDatosAdicionales(estudiante.id);
+                // Las secciones pesadas (horarios, convenios, datos médicos y
+                // datos adicionales) se cargan de forma perezosa al abrir su
+                // pestaña, no todas al entrar. Ver cargarSeccionSiNecesario().
               },
               error: (error: any) => {
                 console.error('Error al obtener persona', error);
@@ -1271,6 +1316,10 @@ export class CrearEstudianteComponent implements OnInit {
     this.gruposDatosAdicionales = [];
     this.datosMedicosModificados = false;
     this.datosAdicionalesModificados = false;
+    this.horariosCargados = false;
+    this.conveniosCargados = false;
+    this.datosMedicosCargados = false;
+    this.datosAdicionalesCargados = false;
     this.listas.grados = [];
     this.nuevoConvenio = {
       id_convenio: '',
@@ -1281,7 +1330,11 @@ export class CrearEstudianteComponent implements OnInit {
   }
 
   volver(): void {
-    this.router.navigate(['/estudiantes']);
+    if (this.model.idEstudiante && this.model.idEstudiante !== '0') {
+      this.router.navigate(['/estudiantes-opciones/' + this.model.idEstudiante]);
+    } else {
+      this.router.navigate(['/estudiantes']);
+    }
   }
 
   establecerValoresPorDefecto(): void {

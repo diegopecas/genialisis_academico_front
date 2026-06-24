@@ -1,6 +1,6 @@
 <div class="modulo">
   <app-header-anidado [tituloModulo]="titulo" [path]="path" [mostrarCrear]="puedeAdministrar" [accion]="'ConsultarTodos'"
-    [raiz]="'/estudiantes-productos-servicios'" [regresar]="'/estudiantes'"
+    [raiz]="'/estudiantes-productos-servicios'" [regresar]="'/estudiantes-opciones/' + idEstudiante"
     [iconoTitulo]="'/assets/images/productos.png'"></app-header-anidado>
   <app-tablas [titulos]="titulos" [datos]="datos" [raiz]="'/estudiantes-productos-servicios'" [accionVer]="puedeAdministrar"
     [accionEditar]="puedeAdministrar" [accionEliminar]="puedeAdministrar" [columnasFiltro]="columnasFiltro"

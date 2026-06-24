@@ -7,114 +7,109 @@
     [regresar]="'/menu'"
     [iconoTitulo]="'/assets/images/estudiantes.png'"
   ></app-header>
-  
-  <!-- Vista de tabla para desktop/tablet -->
-  <app-tablas
-    *ngIf="!isMobile"
-    [titulos]="titulos"
-    [datos]="datos"
-    [raiz]="'/estudiantes'"
-    [acciones]="acciones"
-    [accionEditar]="puedeAdministrar" 
-    [mostrarBuscar]="true"
-    [columnasFiltro]="columnasFiltro" 
-    (clicAccion)="clicAccion($event)"
-  ></app-tablas>
-  
-  <!-- Vista móvil -->
-  <div *ngIf="isMobile" class="lista-estudiantes-movil">
-    <!-- Buscador móvil mejorado -->
-    <div class="buscador-movil">
-      <div class="search-container">
-        <input 
-          type="search" 
-          placeholder="Buscar estudiante..." 
-          [(ngModel)]="busquedaMovil"
-          (input)="filtrarEstudiantes()"
-        >
-        <span class="search-icon">🔍</span>
-      </div>
-      <div class="filtros-rapidos">
-        <button 
-          class="filtro-chip" 
-          [class.active]="filtroActivo === 'todos'"
-          (click)="aplicarFiltro('todos')"
-        >
-          Todos
-        </button>
-        <button 
-          class="filtro-chip" 
-          [class.active]="filtroActivo === 'activos'"
-          (click)="aplicarFiltro('activos')"
-        >
-          Activos
-        </button>
-        <button 
-          class="filtro-chip" 
-          [class.active]="filtroActivo === 'inactivos'"
-          (click)="aplicarFiltro('inactivos')"
-        >
-          Inactivos
-        </button>
-        <button 
-          *ngFor="let grupo of grupos" 
-          class="filtro-chip"
-          [class.active]="filtroActivo === grupo.nombre"
-          (click)="aplicarFiltro(grupo.nombre)"
-        >
-          {{ grupo.nombre }}
-        </button>
-      </div>
+
+  <!-- Barra de filtros (se envían al backend) -->
+  <div class="filtros-bar">
+    <div class="filtro-campo">
+      <label>Grupo</label>
+      <select [(ngModel)]="filtroGrupo">
+        <option value="">Todos</option>
+        <option *ngFor="let grupo of grupos" [value]="grupo.id">{{ grupo.nombre }}</option>
+      </select>
     </div>
-    
-    <!-- Tarjetas de estudiantes -->
-    <div 
-      *ngFor="let estudiante of datosFiltrados" 
-      class="estudiante-card"
-      [class.inactivo]="estudiante.activo === 0"
-      (click)="mostrarOpcionesEstudiante(estudiante)"
-    >
-      <div class="card-header">
-        <div class="estudiante-info">
-          <div class="nombre">{{ estudiante.nombre_completo }}</div>
-          <div class="grupo">{{ estudiante.nombre_grupo }}</div>
-        </div>
-        <span 
-          class="estado-badge" 
-          [class.activo]="estudiante.activo === 1"
-          [class.inactivo]="estudiante.activo === 0"
-        >
-          {{ estudiante.estado }}
-        </span>
-      </div>
-      <div class="card-actions">
-        <a [routerLink]="['/estudiantes-vista', estudiante.id_estudiante]" class="ver-mas">
-          Ver más
-        </a>
-        <div class="acciones-rapidas">
-          <button *ngIf="puedeAdministrar" (click)="editarMovil($event, estudiante)">Editar</button>
-          <button *ngIf="puedeCambiarGrupo" (click)="cambiarGrupoMovil($event, estudiante)">Grupo</button>
-        </div>
-      </div>
+
+    <div class="filtro-campo">
+      <label>Estado</label>
+      <select [(ngModel)]="filtroEstado">
+        <option value="">Todos</option>
+        <option value="activo">Activo</option>
+        <option value="inactivo">Inactivo</option>
+      </select>
     </div>
-    
-    <!-- Mensaje cuando no hay resultados -->
-    <div *ngIf="datosFiltrados.length === 0" class="no-resultados">
-      <p>No se encontraron estudiantes</p>
+
+    <div class="filtro-campo">
+      <label>Permanente</label>
+      <select [(ngModel)]="filtroPermanente">
+        <option value="">Todos</option>
+        <option value="1">Sí</option>
+        <option value="0">No</option>
+      </select>
     </div>
-  </div>
-  
-  <!-- Menú de acciones flotante para móvil -->
-  <div *ngIf="isMobile && estudianteSeleccionado" class="acciones-movil">
-    <div class="acciones-scroll">
-      <div 
-        *ngFor="let accion of acciones" 
-        class="accion-item"
-        (click)="ejecutarAccionMovil(accion.id)"
+
+    <div class="filtro-campo filtro-nombre">
+      <label>Nombre</label>
+      <input
+        type="search"
+        placeholder="Parte del nombre..."
+        [(ngModel)]="filtroNombre"
+        (keyup.enter)="buscar()"
       >
-        <img [src]="accion.icono" [alt]="accion.label">
-        <span>{{ accion.label }}</span>
-      </div>
+    </div>
+
+    <div class="filtro-acciones">
+      <button class="btn-buscar" (click)="buscar()" [disabled]="cargando">
+        {{ cargando ? 'Buscando...' : 'Buscar' }}
+      </button>
+      <button class="btn-limpiar" (click)="limpiar()" [disabled]="cargando">
+        Limpiar
+      </button>
     </div>
   </div>
+
+  <!-- Mensaje inicial antes de la primera búsqueda -->
+  <div *ngIf="!busquedaRealizada && !cargando" class="estado-inicial">
+    <p>Selecciona filtros y presiona <strong>Buscar</strong>. Sin filtros se traen todos los estudiantes.</p>
+  </div>
+
+  <ng-container *ngIf="busquedaRealizada">
+    <!-- Vista de tabla para desktop/tablet (sin buscador propio: el filtro va en la barra) -->
+    <app-tablas
+      *ngIf="!isMobile"
+      [titulos]="titulos"
+      [datos]="datos"
+      [raiz]="'/estudiantes'"
+      [acciones]="acciones"
+      [accionEditar]="puedeAdministrar"
+      [mostrarBuscar]="false"
+      (clicAccion)="clicAccion($event)"
+    ></app-tablas>
+
+    <!-- Vista móvil -->
+    <div *ngIf="isMobile" class="lista-estudiantes-movil">
+      <!-- Tarjetas de estudiantes -->
+      <div
+        *ngFor="let estudiante of datos"
+        class="estudiante-card"
+        [class.inactivo]="estudiante.activo === 0"
+        (click)="opcionesMovil($event, estudiante)"
+      >
+        <div class="card-header">
+          <div class="estudiante-info">
+            <div class="nombre">{{ estudiante.nombre_completo }}</div>
+            <div class="grupo">{{ estudiante.nombre_grupo }}</div>
+          </div>
+          <span
+            class="estado-badge"
+            [class.activo]="estudiante.activo === 1"
+            [class.inactivo]="estudiante.activo === 0"
+          >
+            {{ estudiante.estado }}
+          </span>
+        </div>
+        <div class="card-actions">
+          <button class="btn-opciones" (click)="opcionesMovil($event, estudiante)">
+            Opciones
+          </button>
+          <button *ngIf="puedeAdministrar" class="btn-editar" (click)="editarMovil($event, estudiante)">
+            Editar
+          </button>
+        </div>
+      </div>
+
+      <!-- Mensaje cuando no hay resultados -->
+      <div *ngIf="datos.length === 0" class="no-resultados">
+        <p>No se encontraron estudiantes</p>
+      </div>
+    </div>
+  </ng-container>
 </div>

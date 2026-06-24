@@ -1,6 +1,6 @@
 <div class="modulo">
     <app-header-anidado [tituloModulo]="titulo" [path]="path" [mostrarCrear]="puedeAdministrar" [accion]="'ConsultarTodos'"
-      [raiz]="'/estudiantes-acudientes'" [regresar]="'/estudiantes'"
+      [raiz]="'/estudiantes-acudientes'" [regresar]="'/estudiantes-opciones/' + idEstudiante"
       [iconoTitulo]="'/assets/images/familia.png'"
       ></app-header-anidado>
     <app-tablas [titulos]="titulos" [datos]="datos" [raiz]="'/estudiantes-acudientes'" [accionVer]="puedeAdministrar"
