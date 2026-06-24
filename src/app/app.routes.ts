@@ -131,11 +131,6 @@ export const routes: Routes = [
   { path: 'administracion/configuracion-geofence', loadComponent: () => import('./components/administracion/configuracion-geofence/configuracion-geofence.component').then(m => m.ConfiguracionGeofenceComponent), canActivate: [AuthGuard], data: { trackear: true, labelAcceso: 'Configuración Geofence', iconoAcceso: '📍' } },
 
   // Rutas del dominio del producto
-  // Colaboradores
-  { path: 'gestion-docentes', loadComponent: () => import('./components/docentes/gestion-docentes/gestion-docentes.component').then(m => m.GestionDocentesComponent), canActivate: [AuthGuard], data: { trackear: true, labelAcceso: 'Gestión Docentes', iconoAcceso: '👩‍🏫' } },
-  { path: 'docentes', loadComponent: () => import('./components/docentes/docentes.component').then(m => m.DocentesComponent), canActivate: [AuthGuard], data: { trackear: true, labelAcceso: 'Docentes', iconoAcceso: '👨‍🏫' } },
-  { path: 'docentes/:accion/:id', loadComponent: () => import('./components/docentes/crear-docentes/crear-docentes.component').then(m => m.CrearDocentesComponent), canActivate: [AuthGuard] },
-  { path: 'casas-docentes', loadComponent: () => import('./components/casas-docentes/casas-docentes.component').then(m => m.CasasDocentesComponent), canActivate: [AuthGuard], data: { trackear: true, labelAcceso: 'Casas Docentes', iconoAcceso: '🏠' } },
 
   // Estudiantes
   { path: 'estudiantes', loadComponent: () => import('./components/estudiantes/estudiantes.component').then(m => m.EstudiantesComponent), canActivate: [AuthGuard, PermisosGuard], data: { permiso: 'estudiantes.listado', trackear: true, labelAcceso: 'Estudiantes', iconoAcceso: '🎓' } },

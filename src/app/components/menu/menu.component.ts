@@ -272,7 +272,7 @@ export class MenuComponent implements OnInit {
    * Resalta el término buscado dentro del label (envuelve la coincidencia en <mark>).
    * Las etiquetas del menú son estáticas, por eso es seguro renderizar el HTML resultante.
    */
-  resaltar(label: string): SafeHtml {
+  resaltar(label: string): SafeHtml | string {
     const termino = this.terminoBusqueda.trim();
     if (!this.enBusqueda || termino.length === 0) {
       return label;
