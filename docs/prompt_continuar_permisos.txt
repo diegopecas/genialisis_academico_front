@@ -1,0 +1,138 @@
+CONTEXTO DEL PROYECTO GENIALISIS - Sistema de Permisos y Documentación
+========================================================================
+
+Soy Diego, desarrollo GENIALISIS, un SaaS multi-tenant para gestión de instituciones educativas (jardines infantiles).
+
+STACK TÉCNICO:
+- Frontend: Angular 19, standalone components, Materialize CSS, SweetAlert2
+- Backend: PHP Flight framework, MySQL, multi-database por tenant
+- Autenticación: JWT con permisos incluidos en el payload
+- Hosting: GoDaddy shared hosting
+- Paleta: gold/negro, glassmorphism
+
+REGLAS DE TRABAJO (MUY IMPORTANTE):
+- NO iniciar codificación sin autorización explícita
+- NO asumir nada sobre componentes existentes, preguntar y pedir que se compartan
+- Leer COMPLETAMENTE todos los archivos proporcionados antes de proponer soluciones
+- Generar archivos COMPLETOS, nunca parciales ni con "// aquí el código existente"
+- Si vas a eliminar un método de una clase, pedir confirmación
+- NO generar documentos .md ni documentación innecesaria
+- Usar buenas prácticas de desarrollo
+
+ARQUITECTURA DE PERMISOS IMPLEMENTADA:
+
+1. TABLAS EN BD (ya creadas en cada tenant):
+   - modulos_sistema: árbol recursivo de la app (id, id_padre, nombre, ruta, descripcion TEXT, descripcion_texto TEXT, componente, icono, orden, imagenes JSON, activo)
+   - permisos: catálogo de permisos (id, id_modulo, codigo, nombre, descripcion TEXT, activo)
+   - permisos_x_rol: asignación many-to-many (id, id_rol, id_permiso)
+   - usuarios: tiene campo super_admin TINYINT(1)
+   - roles: (id, nombre) — Administrativo(1), Docente(2), Asistente Administrativo(3)
+   - roles_x_usuario: (id, id_usuario, id_rol)
+
+2. BACKEND (PHP):
+   - jwt.service.php: genera JWT con permisos incluidos en el payload (segundo parámetro $permisos en generarToken). El JWT contiene: id, id_persona, usuario, primer_nombre, primer_apellido, super_admin, permisos[]
+   - permisos.service.php: valida permisos DESDE EL JWT sin consultar BD. Métodos: validar($userData, $codigoPermiso) y validarAlguno($userData, $codigosPermisos). Si es super_admin o tiene ['*'], permite todo.
+   - usuarios.service.php: en getUsuarioByUsuarioAndClave() obtiene permisos del usuario, los pasa a generarToken() y los incluye en la respuesta JSON
+   - Para proteger un endpoint: $userData = JWTService::requerirAutenticacion(); PermisosService::validar($userData, 'codigo.permiso');
+
+3. FRONTEND (Angular):
+   - permisos.service.ts: lee permisos de sessionStorage. Métodos: tienePermiso(codigo), tieneAlgunPermiso(codigos[]), tieneTodosLosPermisos(codigos[]), esSuperAdmin()
+   - permisos.guard.ts: guard independiente del AuthGuard. Si la ruta tiene data.permiso lo valida, si no lo tiene pasa. Si es super_admin pasa siempre. Redirige a /menu con Swal si no tiene permiso.
+   - En app.routes.ts: canActivate: [AuthGuard, PermisosGuard], data: { permiso: 'codigo.permiso' }
+   - En menús/submenús HTML: *ngIf="permisosService.tienePermiso('codigo')"
+   
+   PERMISOS EN COMPONENTES CON TABLA (app-tablas):
+   - Se controlan desde el componente HOST, NO desde el TablasComponent
+   - En el TS del host: inyectar PermisosService, crear variables (puedeCrear, puedeEditar, puedeEliminar) y configurar en ngOnInit con permisosService.tienePermiso('codigo')
+   - Las acciones custom se agregan condicionalmente al array acciones[] según permisos
+   - En el HTML del host pasar: [mostrarCrear]="puedeCrear" [accionEditar]="puedeEditar" [accionEliminar]="puedeEliminar"
+   - El botón Crear del header se controla con [mostrarCrear]="puedeCrear"
+   
+   Ejemplo:
+   ```typescript
+   // En el TS
+   configurarPermisos(): void {
+       this.puedeCrear = this.permisosService.tienePermiso('admin.productos.crear');
+       this.puedeEditar = this.permisosService.tienePermiso('admin.productos.editar');
+       this.puedeEliminar = this.permisosService.tienePermiso('admin.productos.eliminar');
+       if (this.permisosService.tienePermiso('admin.productos.movimientos')) {
+           this.acciones.push({ id: 'movimientos', label: 'Movimientos', icono: '/assets/images/producto.png' });
+       }
+   }
+   ```
+   ```html
+   <!-- En el HTML -->
+   <app-header [mostrarCrear]="puedeCrear" ...></app-header>
+   <app-tablas [accionEditar]="puedeEditar" [accionEliminar]="puedeEliminar" [acciones]="acciones" ...></app-tablas>
+   ```
+
+   - auth.interceptor.ts: ya envía Bearer token en cada request
+   - login.component.ts: guarda token en sessionStorage.setItem('token') y usuario completo (con permisos) en sessionStorage.setItem('usuario')
+
+DOCUMENTACIÓN EN modulos_sistema:
+
+La tabla tiene DOS campos de descripción:
+- descripcion (TEXT): versión HTML con formato visual. Usa tags básicos: <b>, <u>, <br>, guiones (-) para listas. Para mostrar en la app.
+- descripcion_texto (TEXT): versión texto plano sin HTML. Mismo contenido pero sin tags. Para enviar como contexto a una IA.
+
+La documentación se genera LEYENDO EL CÓDIGO (TS + HTML + PHP), NO describiendo imágenes. Para formularios debe ser campo por campo indicando: nombre del campo, tipo de input, si es obligatorio, de dónde se cargan los datos (tabla, servicio), validaciones.
+
+Campo imagenes (JSON): array de rutas relativas a assets/images/. Ejemplo:
+'["documentacion/productos-listado.png", "documentacion/productos-editar.png", "documentacion/productos-movimientos.png"]'
+
+Las imágenes las proporciona Diego. Yo (la IA) le indico el nombre exacto con que debe guardarlas en assets/images/documentacion/. Convención de nombres: nombre-del-modulo-vista.png (ej: productos-listado.png, productos-editar.png, datos-maestros-catalogos.png)
+
+CHECKLIST POR CADA MÓDULO QUE SE ME PASE:
+
+1. Leer código completo (TS + HTML del componente principal)
+2. Verificar si hay formularios/modales — Si los hay, solicitar el código (TS + HTML + PHP del service backend) de cada uno
+3. Generar archivos modificados (PermisosService + control de acciones/visibilidad)
+4. Actualizar app.routes.ts (PermisosGuard + data.permiso si aplica)
+5. SQL documentación (UPDATE modulos_sistema con AMBOS campos: descripcion HTML + descripcion_texto plano + imagenes JSON). La documentación se genera leyendo el código campo por campo.
+6. SQL permisos por rol (INSERT permisos_x_rol según lo que confirme Diego)
+7. SQL crear permisos nuevos si no existen en el catálogo
+8. Darle a Diego el nombre exacto de las imágenes para que las guarde en assets/images/documentacion/
+9. Evaluar si hay cambios en el back — Si los hay, solicitar código PHP del service
+10. Generar archivos back modificados si aplica (agregar JWTService::requerirAutenticacion() + PermisosService::validar())
+
+CONVENCIÓN DE PERMISOS:
+- Menú principal: menu.estudiantes, menu.calificaciones, menu.colaboradores, etc.
+- Submenús: administracion.datos_maestros, administracion.crm, administracion.financiero, etc.
+- Acciones de datos maestros: admin.productos, admin.proveedores, admin.areas_fisicas, etc.
+- Acciones CRUD: admin.productos.crear, admin.productos.editar, admin.productos.eliminar
+- Acciones custom: admin.productos.movimientos
+- Los permisos se asignan por nivel: primero menú, luego submenú, luego acciones. No asignar CRUD hasta que se documente el módulo específico.
+
+ROLES Y PERMISOS ACTUALES:
+- Administrativo (id=1): tiene acceso a los 8 menús + todas las tarjetas de administración + todos los permisos de datos maestros + CRUD productos + movimientos productos
+- Docente (id=2): 6 menús (sin reportes, sin administración). Sin permisos de detalle aún.
+- Asistente Administrativo (id=3): 7 menús (sin calificaciones) + todas las tarjetas de administración + todos los permisos de datos maestros + CRUD productos + movimientos productos
+
+NOTA IMPORTANTE: Para conocer los permisos actuales en BD (ya que esta conversación no los tiene), pedirle a Diego que ejecute y comparta los resultados de:
+```sql
+SELECT p.codigo, p.nombre FROM permisos p ORDER BY p.codigo;
+SELECT r.nombre, p.codigo FROM permisos_x_rol pxr INNER JOIN roles r ON pxr.id_rol = r.id INNER JOIN permisos p ON pxr.id_permiso = p.id ORDER BY r.nombre, p.codigo;
+```
+
+MÓDULOS YA DOCUMENTADOS (NO repetir):
+- Menú Principal (id=1) ✅
+- Administración (id=70) ✅
+- Datos Maestros (id=701) ✅
+- Productos (id=7012) ✅
+
+MÓDULOS PENDIENTES:
+- Todos los demás hijos de Datos Maestros (proveedores, áreas físicas, elementos físicos, productos mobiliario, productos limpieza, productos alimentación, productos académico, productos y servicios, menús alimentación, items menú, lista menús, configuración global, plantillas, cargos, tipos documentos, configuración IA)
+- CRM y sus hijos (visitas, dashboard, contactos portal)
+- Financiero y sus hijos (movimientos financieros, aprobación múltiple, gestión pagos, registro rápido)
+- Gestionar Colaboradores admin y sus hijos (aprobación actividades, contabilización, reporte, historial, calendario, nóminas)
+- Auditoría de Registros
+- Contabilización Múltiple
+- Operaciones y sus hijos (registro medidas, movimientos productos, salidas alimentación, registros limpieza, galerías, actualización datos, evaluación EAD-3)
+- Académico y sus hijos (actividades, indicadores logros, logros, sprints, grados, grupos, áreas académicas, parámetros calificaciones, cortes académicos)
+- Reportes y sus hijos (11 reportes)
+- Estudiantes y sus hijos (crear/editar, vista, servicios, productos, medidas, pagos, observaciones, acudientes, onces, contratos)
+- Colaboradores y sus hijos (listado, crear/editar, gestión tiempo, productos, pagos, préstamos, docentes, casas docentes)
+- Calificaciones
+- Asistencia
+- Usuarios
+- Configuración
