@@ -141,7 +141,8 @@
 
           <!-- Cabecera de la sección -->
           <div class="seccion-header" (click)="seleccionarNodo(seccion)">
-            <span class="seccion-icono">{{ seccion.icono }}</span>
+            <img *ngIf="seccion.imagen" class="seccion-icono-img" [src]="seccion.imagen" [alt]="seccion.label" />
+            <span class="seccion-icono" *ngIf="!seccion.imagen">{{ seccion.icono }}</span>
             <span class="seccion-titulo" [innerHTML]="resaltar(seccion.label)"></span>
             <span class="seccion-chevron" *ngIf="esGrupo(seccion)" [class.abierto]="estaExpandido(seccion)">▸</span>
           </div>
@@ -168,7 +169,8 @@
           [class.es-grupo]="esGrupo(nodo)"
           (click)="seleccionarNodo(nodo)"
         >
-          <span class="nodo-icono">{{ nodo.icono }}</span>
+          <img *ngIf="nodo.imagen" class="nodo-icono-img" [src]="nodo.imagen" [alt]="nodo.label" />
+          <span class="nodo-icono" *ngIf="!nodo.imagen">{{ nodo.icono }}</span>
           <span class="nodo-label" [innerHTML]="resaltar(nodo.label)"></span>
           <span class="nodo-chevron" *ngIf="esGrupo(nodo)" [class.abierto]="estaExpandido(nodo)">▸</span>
         </div>

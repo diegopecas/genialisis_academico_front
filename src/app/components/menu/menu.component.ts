@@ -193,7 +193,7 @@ export class MenuComponent implements OnInit {
     const resultado: MenuNodo[] = [];
 
     for (const nodo of nodos) {
-      const coincide = nodo.label.toLowerCase().includes(termino);
+      const coincide = this.coincideTexto(nodo, termino);
 
       if (nodo.hijos && nodo.hijos.length > 0) {
         if (coincide) {
@@ -210,6 +210,27 @@ export class MenuComponent implements OnInit {
     }
 
     return resultado;
+  }
+
+  /**
+   * Quita tildes y pasa a minúsculas para comparar de forma insensible a acentos.
+   */
+  private normalizar(texto: string): string {
+    return texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  }
+
+  /**
+   * Un nodo coincide si el término está en su label o en alguno de sus keywords.
+   */
+  private coincideTexto(nodo: MenuNodo, termino: string): boolean {
+    const t = this.normalizar(termino);
+    if (this.normalizar(nodo.label).includes(t)) {
+      return true;
+    }
+    if (nodo.keywords) {
+      return nodo.keywords.some((k) => this.normalizar(k).includes(t));
+    }
+    return false;
   }
 
   esGrupo(nodo: MenuNodo): boolean {

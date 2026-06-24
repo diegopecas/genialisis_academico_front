@@ -889,6 +889,14 @@ $confetti-colors: #FF6B6B, #FFD93D, #6BCB77, #4D96FF, #FF6BD6, #FF8C42, #A66CFF,
   line-height: 1;
 }
 
+.seccion-icono-img {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+  flex-shrink: 0;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.4));
+}
+
 .seccion-titulo {
   flex: 1;
   font-size: 17px;
@@ -948,6 +956,13 @@ $confetti-colors: #FF6B6B, #FFD93D, #6BCB77, #4D96FF, #FF6BD6, #FF8C42, #A66CFF,
 .nodo-icono {
   font-size: 17px;
   line-height: 1;
+}
+
+.nodo-icono-img {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 
 .nodo-label {
