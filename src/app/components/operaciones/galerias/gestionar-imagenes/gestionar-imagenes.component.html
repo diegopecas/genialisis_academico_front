@@ -105,7 +105,7 @@
           Imágenes de la Galería ({{ imagenesSubidas.length }})
         </h5>
         
-        <!-- NUEVO: Botones de selección múltiple -->
+        <!-- Botones de selección múltiple -->
         <div class="selection-controls" *ngIf="imagenesSubidas.length > 0">
           <button 
             class="btn btn-sm me-2"
@@ -117,7 +117,6 @@
             {{ modoSeleccion ? 'Cancelar Selección' : 'Seleccionar' }}
           </button>
           
-          <!-- Controles visibles solo en modo selección -->
           <ng-container *ngIf="modoSeleccion">
             <button 
               class="btn btn-sm btn-outline-secondary me-2"
@@ -137,11 +136,11 @@
               <span *ngIf="eliminandoMultiple" class="spinner-border spinner-border-sm ms-1"></span>
             </button>
 
-            <!-- NUEVO: Publicar en el feed -->
+            <!-- Publicar en el feed (máx. 10) -->
             <button 
               class="btn btn-sm btn-warning me-2"
               (click)="publicarEnInstagram()"
-              [disabled]="!puedePublicarInstagram || publicandoInstagram"
+              [disabled]="!puedePublicarFeed || publicandoInstagram"
               title="Publicar las imágenes seleccionadas como carrusel en el feed (máx. 10)"
             >
               <i class="fab fa-instagram me-1"></i>
@@ -149,12 +148,12 @@
               <span *ngIf="publicandoInstagram" class="spinner-border spinner-border-sm ms-1"></span>
             </button>
 
-            <!-- NUEVO: Publicar en historias -->
+            <!-- Publicar en historias (sin tope) -->
             <button 
               class="btn btn-sm btn-outline-warning"
               (click)="publicarEnHistoria()"
-              [disabled]="!puedePublicarInstagram || publicandoInstagram"
-              title="Publicar las imágenes seleccionadas como historias, una por imagen (máx. 10)"
+              [disabled]="!puedePublicarHistoria || publicandoInstagram"
+              title="Publicar las imágenes seleccionadas como historias, una por imagen"
             >
               <i class="far fa-clock me-1"></i>
               Publicar en historias ({{ cantidadSeleccionadas }})
@@ -192,17 +191,35 @@
             Miniatura
           </div>
 
-          <!-- NUEVO: Checkbox de selección -->
+          <!-- Checkbox de selección -->
           <div class="selection-checkbox" *ngIf="modoSeleccion">
             <i class="fas" [class.fa-check-square]="imagen.seleccionada" [class.fa-square]="!imagen.seleccionada"></i>
           </div>
 
-          <div class="image-wrapper">
+          <div class="image-wrapper" style="position: relative;">
             <img [src]="imagen.urlThumb" [alt]="imagen.alt" loading="lazy" />
+
+            <!-- Etiqueta sutil: publicada en feed / historia -->
+            <div
+              *ngIf="imagen.publicadoFeed || imagen.publicadoHistoria"
+              style="position:absolute; bottom:6px; left:6px; display:flex; gap:4px; z-index:3;"
+            >
+              <span
+                *ngIf="imagen.publicadoFeed"
+                style="background:rgba(0,0,0,0.6); color:#fff; font-size:10px; line-height:1; padding:3px 7px; border-radius:10px; display:inline-flex; align-items:center; gap:4px;"
+              >
+                <i class="fab fa-instagram"></i> Feed
+              </span>
+              <span
+                *ngIf="imagen.publicadoHistoria"
+                style="background:rgba(0,0,0,0.6); color:#fff; font-size:10px; line-height:1; padding:3px 7px; border-radius:10px; display:inline-flex; align-items:center; gap:4px;"
+              >
+                <i class="far fa-clock"></i> Historia
+              </span>
+            </div>
             
             <!-- Acciones solo visibles cuando NO está en modo selección -->
             <div class="image-actions" *ngIf="!modoSeleccion">
-              <!-- Botón establecer como miniatura -->
               <button 
                 class="btn-action btn-thumbnail"
                 (click)="establecerComoMiniatura(imagen)"
@@ -212,7 +229,6 @@
                 <i class="fas fa-star"></i>
               </button>
               
-              <!-- Botón eliminar -->
               <button 
                 class="btn-action btn-delete"
                 (click)="eliminarImagen(imagen)"
@@ -224,7 +240,6 @@
           </div>
 
           <div class="image-info">
-            <span class="image-name">{{ imagen.alt }}</span>
             <span class="image-orden">Orden: {{ imagen.orden }}</span>
           </div>
         </div>

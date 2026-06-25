@@ -20,10 +20,15 @@ export class InstagramService {
   }
 
   /**
+   * Mapa de imágenes ya publicadas de una galería y en qué tipos.
+   * Respuesta body: { "<id_imagen>": ["feed","historia"], ... }
+   */
+  obtenerImagenesPublicadas(idGaleria: string): Observable<HttpResponse<any>> {
+    return this.http.get(`${this.base}/imagenes-publicadas/${idGaleria}`, { observe: 'response' });
+  }
+
+  /**
    * Publica un carrusel (o imagen única) en el FEED.
-   * @param idGaleria UUID de la galería
-   * @param ids       UUID de las imágenes seleccionadas (1..10)
-   * @param caption   Texto del post
    */
   publicar(idGaleria: string, ids: string[], caption: string): Observable<HttpResponse<any>> {
     const body = {
@@ -35,10 +40,7 @@ export class InstagramService {
   }
 
   /**
-   * Publica HISTORIAS: una historia por cada imagen seleccionada (1..10).
-   * Las historias no llevan caption.
-   * @param idGaleria UUID de la galería
-   * @param ids       UUID de las imágenes seleccionadas (1..10)
+   * Publica HISTORIAS: una historia por cada imagen seleccionada (sin tope).
    */
   publicarHistoria(idGaleria: string, ids: string[]): Observable<HttpResponse<any>> {
     const body = {

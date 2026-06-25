@@ -29,7 +29,9 @@ interface ImagenSubida {
   orden: number;
   urlThumb: string;
   esMiniatura?: boolean;
-  seleccionada?: boolean;  // NUEVO: Para selección múltiple
+  seleccionada?: boolean;
+  publicadoFeed?: boolean;       // NUEVO
+  publicadoHistoria?: boolean;   // NUEVO
 }
 
 @Component({
@@ -56,13 +58,14 @@ export class GestionarImagenesComponent implements OnInit {
   imagenesSubidas: ImagenSubida[] = [];
   cargandoImagenes = false;
 
-  // NUEVO: Modo selección múltiple
+  // Modo selección múltiple
   modoSeleccion = false;
   eliminandoMultiple = false;
 
-  // NUEVO: Publicación en Instagram
+  // Publicación en Instagram
   publicandoInstagram = false;
-  readonly maxImagenesInstagram = 10;
+  readonly maxImagenesFeed = 10;   // tope real de Instagram para carrusel
+  // Las historias NO tienen tope.
 
   constructor(
     private router: Router,
@@ -91,7 +94,6 @@ export class GestionarImagenesComponent implements OnInit {
       next: (response: any) => {
         this.galeria = response.body;
         this.titulo = `Imágenes de: ${this.galeria.nombre}`;
-        // Marcar la imagen que es miniatura
         this.marcarMiniatura();
       },
       error: (error) => {
@@ -115,15 +117,39 @@ export class GestionarImagenesComponent implements OnInit {
           orden: img.orden,
           urlThumb: this.galeriaImagenesService.obtenerUrlThumb(img.guid),
           esMiniatura: false,
-          seleccionada: false  // NUEVO
+          seleccionada: false,
+          publicadoFeed: false,
+          publicadoHistoria: false
         }));
         this.cargandoImagenes = false;
-        // Marcar la imagen que es miniatura
         this.marcarMiniatura();
+        this.cargarEstadoPublicacion();
       },
       error: (error) => {
         console.error("Error al cargar imágenes:", error);
         this.cargandoImagenes = false;
+      }
+    });
+  }
+
+  /**
+   * Carga qué imágenes ya se publicaron y en qué tipo, y marca cada tarjeta.
+   */
+  private cargarEstadoPublicacion(): void {
+    if (!this.imagenesSubidas.length) return;
+
+    this.instagramService.obtenerImagenesPublicadas(this.idGaleria).subscribe({
+      next: (response: any) => {
+        const mapa = response.body || {};
+        this.imagenesSubidas.forEach(img => {
+          const tipos: string[] = mapa[img.id] || [];
+          img.publicadoFeed = tipos.indexOf('feed') !== -1;
+          img.publicadoHistoria = tipos.indexOf('historia') !== -1;
+        });
+      },
+      error: (error) => {
+        // No es crítico: si falla, simplemente no se muestran las etiquetas.
+        console.error("Error al cargar estado de publicación:", error);
       }
     });
   }
@@ -134,10 +160,8 @@ export class GestionarImagenesComponent implements OnInit {
   private marcarMiniatura(): void {
     if (!this.galeria || !this.imagenesSubidas.length) return;
 
-    // Limpiar todas las marcas
     this.imagenesSubidas.forEach(img => img.esMiniatura = false);
 
-    // El thumbnail ahora es el GUID de la imagen
     const thumbnailGuid = this.galeria.thumbnail;
     if (thumbnailGuid) {
       const imagenMiniatura = this.imagenesSubidas.find(img => img.guid === thumbnailGuid);
@@ -148,61 +172,39 @@ export class GestionarImagenesComponent implements OnInit {
   }
 
   // ==========================================
-  // SELECCIÓN MÚLTIPLE - NUEVO
+  // SELECCIÓN MÚLTIPLE
   // ==========================================
 
-  /**
-   * Activa/desactiva el modo selección
-   */
   toggleModoSeleccion(): void {
     this.modoSeleccion = !this.modoSeleccion;
     if (!this.modoSeleccion) {
-      // Al salir del modo selección, deseleccionar todas
       this.imagenesSubidas.forEach(img => img.seleccionada = false);
     }
   }
 
-  /**
-   * Selecciona o deselecciona una imagen
-   */
   toggleSeleccion(imagen: ImagenSubida): void {
     if (this.modoSeleccion) {
       imagen.seleccionada = !imagen.seleccionada;
     }
   }
 
-  /**
-   * Selecciona todas las imágenes
-   */
   seleccionarTodas(): void {
     this.imagenesSubidas.forEach(img => img.seleccionada = true);
   }
 
-  /**
-   * Deselecciona todas las imágenes
-   */
   deseleccionarTodas(): void {
     this.imagenesSubidas.forEach(img => img.seleccionada = false);
   }
 
-  /**
-   * Cuenta las imágenes seleccionadas
-   */
   get cantidadSeleccionadas(): number {
     return this.imagenesSubidas.filter(img => img.seleccionada).length;
   }
 
-  /**
-   * Verifica si todas están seleccionadas
-   */
   get todasSeleccionadas(): boolean {
     return this.imagenesSubidas.length > 0 && 
            this.imagenesSubidas.every(img => img.seleccionada);
   }
 
-  /**
-   * Toggle seleccionar/deseleccionar todas
-   */
   toggleSeleccionarTodas(): void {
     if (this.todasSeleccionadas) {
       this.deseleccionarTodas();
@@ -211,9 +213,6 @@ export class GestionarImagenesComponent implements OnInit {
     }
   }
 
-  /**
-   * Elimina las imágenes seleccionadas
-   */
   async eliminarSeleccionadas(): Promise<void> {
     const seleccionadas = this.imagenesSubidas.filter(img => img.seleccionada);
     
@@ -261,19 +260,26 @@ export class GestionarImagenesComponent implements OnInit {
   }
 
   // ==========================================
-  // PUBLICAR EN INSTAGRAM - NUEVO
+  // PUBLICAR EN INSTAGRAM
   // ==========================================
 
   /**
-   * Indica si se puede disparar la publicación (1..10 seleccionadas).
+   * Feed: 1..10 imágenes.
    */
-  get puedePublicarInstagram(): boolean {
+  get puedePublicarFeed(): boolean {
     const n = this.cantidadSeleccionadas;
-    return n >= 1 && n <= this.maxImagenesInstagram;
+    return n >= 1 && n <= this.maxImagenesFeed;
   }
 
   /**
-   * Publica las imágenes seleccionadas como carrusel en el FEED.
+   * Historias: 1 o más (sin tope superior).
+   */
+  get puedePublicarHistoria(): boolean {
+    return this.cantidadSeleccionadas >= 1;
+  }
+
+  /**
+   * Publica las imágenes seleccionadas como carrusel en el FEED (máx. 10).
    * Caption por defecto: la descripción de la galería (editable).
    */
   async publicarEnInstagram(): Promise<void> {
@@ -283,10 +289,10 @@ export class GestionarImagenesComponent implements OnInit {
       Swal.fire('Aviso', 'Selecciona al menos una imagen para publicar', 'info');
       return;
     }
-    if (seleccionadas.length > this.maxImagenesInstagram) {
+    if (seleccionadas.length > this.maxImagenesFeed) {
       Swal.fire(
         'Demasiadas imágenes',
-        `Instagram permite máximo ${this.maxImagenesInstagram} imágenes por publicación. Tienes ${seleccionadas.length} seleccionadas.`,
+        `El feed permite máximo ${this.maxImagenesFeed} imágenes por publicación. Tienes ${seleccionadas.length} seleccionadas. Para más, usa historias.`,
         'warning'
       );
       return;
@@ -335,6 +341,7 @@ export class GestionarImagenesComponent implements OnInit {
 
         this.modoSeleccion = false;
         this.deseleccionarTodas();
+        this.cargarEstadoPublicacion();
       },
       error: (error) => {
         this.publicandoInstagram = false;
@@ -344,8 +351,7 @@ export class GestionarImagenesComponent implements OnInit {
   }
 
   /**
-   * Publica las imágenes seleccionadas como HISTORIAS (una por imagen).
-   * Las historias no llevan caption.
+   * Publica las imágenes seleccionadas como HISTORIAS (una por imagen, sin tope).
    */
   async publicarEnHistoria(): Promise<void> {
     const seleccionadas = this.imagenesSubidas.filter(img => img.seleccionada);
@@ -354,18 +360,10 @@ export class GestionarImagenesComponent implements OnInit {
       Swal.fire('Aviso', 'Selecciona al menos una imagen para publicar', 'info');
       return;
     }
-    if (seleccionadas.length > this.maxImagenesInstagram) {
-      Swal.fire(
-        'Demasiadas imágenes',
-        `Máximo ${this.maxImagenesInstagram} historias por publicación. Tienes ${seleccionadas.length} seleccionadas.`,
-        'warning'
-      );
-      return;
-    }
 
     const result = await Swal.fire({
       title: 'Publicar en historias',
-      html: `Se publicarán <strong>${seleccionadas.length}</strong> historia(s), una por cada imagen.<br>Recuerda que las historias desaparecen a las 24 horas.`,
+      html: `Se publicarán <strong>${seleccionadas.length}</strong> historia(s), una por cada imagen.<br>Las historias desaparecen a las 24 horas.`,
       icon: 'question',
       showCancelButton: true,
       confirmButtonColor: '#f39c12',
@@ -386,18 +384,22 @@ export class GestionarImagenesComponent implements OnInit {
     this.instagramService.publicarHistoria(this.idGaleria, ids).subscribe({
       next: (response: any) => {
         this.publicandoInstagram = false;
-        const cantidad = response.body && response.body.historias_publicadas
-          ? response.body.historias_publicadas
-          : ids.length;
+        const body = response.body || {};
+        const cantidad = body.historias_publicadas ? body.historias_publicadas : ids.length;
+
+        const html = body.parcial
+          ? `Se publicaron ${cantidad} de ${ids.length} historias. ${body.detalle || ''}`
+          : `Se publicaron ${cantidad} historia(s) correctamente.`;
 
         Swal.fire({
-          title: '¡Publicado!',
-          html: `Se publicaron ${cantidad} historia(s) correctamente.`,
-          icon: 'success'
+          title: body.parcial ? 'Publicación parcial' : '¡Publicado!',
+          html: html,
+          icon: body.parcial ? 'warning' : 'success'
         });
 
         this.modoSeleccion = false;
         this.deseleccionarTodas();
+        this.cargarEstadoPublicacion();
       },
       error: (error) => {
         this.publicandoInstagram = false;
@@ -406,9 +408,6 @@ export class GestionarImagenesComponent implements OnInit {
     });
   }
 
-  /**
-   * Muestra el modal de carga (bloqueante) reutilizable.
-   */
   private mostrarCargando(titulo: string): void {
     Swal.fire({
       title: titulo,
@@ -421,9 +420,6 @@ export class GestionarImagenesComponent implements OnInit {
     });
   }
 
-  /**
-   * Extrae el mensaje de error del backend.
-   */
   private extraerError(error: any): string {
     if (error && error.error && error.error.error) {
       return error.error.error;
@@ -528,10 +524,8 @@ export class GestionarImagenesComponent implements OnInit {
 
     this.isUploading = false;
     
-    // Limpiar imágenes subidas exitosamente
     this.imagenesPreview = this.imagenesPreview.filter(img => !img.uploaded);
     
-    // Recargar lista
     this.cargarImagenes();
     
     Swal.fire('Éxito', 'Imágenes subidas correctamente', 'success');
@@ -547,7 +541,6 @@ export class GestionarImagenesComponent implements OnInit {
       this.http.post(`${environment.api}upload/galeria-imagen`, formData).subscribe({
         next: (response: any) => {
           if (response.ruta) {
-            // Guardar registro en BD
             const ordenActual = this.imagenesSubidas.length;
             const nuevaImagen = {
               id_galeria: this.idGaleria,
@@ -591,11 +584,8 @@ export class GestionarImagenesComponent implements OnInit {
     });
 
     if (result.isConfirmed) {
-      // Guardar el GUID de la imagen como thumbnail
-      // El frontend construirá la URL completa con token cuando la necesite
       const thumbnailGuid = imagen.guid;
 
-      // Actualizar la galería con el GUID del thumbnail
       const galeriaActualizada = {
         ...this.galeria,
         thumbnail: thumbnailGuid
