@@ -20,7 +20,7 @@ export class InstagramService {
   }
 
   /**
-   * Publica un carrusel (o imagen única) en Instagram.
+   * Publica un carrusel (o imagen única) en el FEED.
    * @param idGaleria UUID de la galería
    * @param ids       UUID de las imágenes seleccionadas (1..10)
    * @param caption   Texto del post
@@ -32,5 +32,19 @@ export class InstagramService {
       caption: caption
     };
     return this.http.post(`${this.base}/publicar`, body, { observe: 'response' });
+  }
+
+  /**
+   * Publica HISTORIAS: una historia por cada imagen seleccionada (1..10).
+   * Las historias no llevan caption.
+   * @param idGaleria UUID de la galería
+   * @param ids       UUID de las imágenes seleccionadas (1..10)
+   */
+  publicarHistoria(idGaleria: string, ids: string[]): Observable<HttpResponse<any>> {
+    const body = {
+      id_galeria: idGaleria,
+      ids: ids
+    };
+    return this.http.post(`${this.base}/publicar-historia`, body, { observe: 'response' });
   }
 }

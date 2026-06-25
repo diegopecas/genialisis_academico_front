@@ -273,9 +273,8 @@ export class GestionarImagenesComponent implements OnInit {
   }
 
   /**
-   * Publica las imágenes seleccionadas como carrusel en Instagram.
-   * Reutiliza el modo selección existente. Caption por defecto: la
-   * descripción de la galería (editable antes de publicar).
+   * Publica las imágenes seleccionadas como carrusel en el FEED.
+   * Caption por defecto: la descripción de la galería (editable).
    */
   async publicarEnInstagram(): Promise<void> {
     const seleccionadas = this.imagenesSubidas.filter(img => img.seleccionada);
@@ -298,7 +297,7 @@ export class GestionarImagenesComponent implements OnInit {
       : (this.galeria && this.galeria.nombre ? this.galeria.nombre : '');
 
     const result = await Swal.fire({
-      title: 'Publicar en Instagram',
+      title: 'Publicar en el feed',
       input: 'textarea',
       inputLabel: `Se publicarán ${seleccionadas.length} imagen(es). Puedes editar el texto del post:`,
       inputValue: captionDefecto,
@@ -321,15 +320,7 @@ export class GestionarImagenesComponent implements OnInit {
     const ids = seleccionadas.map(img => img.id);
 
     this.publicandoInstagram = true;
-    Swal.fire({
-      title: 'Publicando en Instagram...',
-      html: 'Esto puede tardar unos segundos.',
-      allowOutsideClick: false,
-      allowEscapeKey: false,
-      didOpen: () => {
-        Swal.showLoading();
-      }
-    });
+    this.mostrarCargando('Publicando en el feed...');
 
     this.instagramService.publicar(this.idGaleria, ids, caption).subscribe({
       next: (response: any) => {
@@ -340,24 +331,104 @@ export class GestionarImagenesComponent implements OnInit {
           ? `La publicación se creó correctamente.<br><a href="${permalink}" target="_blank" rel="noopener">Ver en Instagram</a>`
           : 'La publicación se creó correctamente.';
 
-        Swal.fire({
-          title: '¡Publicado!',
-          html: htmlExito,
-          icon: 'success'
-        });
+        Swal.fire({ title: '¡Publicado!', html: htmlExito, icon: 'success' });
 
-        // Salir del modo selección
         this.modoSeleccion = false;
         this.deseleccionarTodas();
       },
       error: (error) => {
         this.publicandoInstagram = false;
-        const mensaje = error && error.error && error.error.error
-          ? error.error.error
-          : 'No se pudo publicar en Instagram.';
-        Swal.fire('Error', mensaje, 'error');
+        Swal.fire('Error', this.extraerError(error), 'error');
       }
     });
+  }
+
+  /**
+   * Publica las imágenes seleccionadas como HISTORIAS (una por imagen).
+   * Las historias no llevan caption.
+   */
+  async publicarEnHistoria(): Promise<void> {
+    const seleccionadas = this.imagenesSubidas.filter(img => img.seleccionada);
+
+    if (seleccionadas.length === 0) {
+      Swal.fire('Aviso', 'Selecciona al menos una imagen para publicar', 'info');
+      return;
+    }
+    if (seleccionadas.length > this.maxImagenesInstagram) {
+      Swal.fire(
+        'Demasiadas imágenes',
+        `Máximo ${this.maxImagenesInstagram} historias por publicación. Tienes ${seleccionadas.length} seleccionadas.`,
+        'warning'
+      );
+      return;
+    }
+
+    const result = await Swal.fire({
+      title: 'Publicar en historias',
+      html: `Se publicarán <strong>${seleccionadas.length}</strong> historia(s), una por cada imagen.<br>Recuerda que las historias desaparecen a las 24 horas.`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#f39c12',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'Publicar historias',
+      cancelButtonText: 'Cancelar'
+    });
+
+    if (!result.isConfirmed) {
+      return;
+    }
+
+    const ids = seleccionadas.map(img => img.id);
+
+    this.publicandoInstagram = true;
+    this.mostrarCargando('Publicando historias...');
+
+    this.instagramService.publicarHistoria(this.idGaleria, ids).subscribe({
+      next: (response: any) => {
+        this.publicandoInstagram = false;
+        const cantidad = response.body && response.body.historias_publicadas
+          ? response.body.historias_publicadas
+          : ids.length;
+
+        Swal.fire({
+          title: '¡Publicado!',
+          html: `Se publicaron ${cantidad} historia(s) correctamente.`,
+          icon: 'success'
+        });
+
+        this.modoSeleccion = false;
+        this.deseleccionarTodas();
+      },
+      error: (error) => {
+        this.publicandoInstagram = false;
+        Swal.fire('Error', this.extraerError(error), 'error');
+      }
+    });
+  }
+
+  /**
+   * Muestra el modal de carga (bloqueante) reutilizable.
+   */
+  private mostrarCargando(titulo: string): void {
+    Swal.fire({
+      title: titulo,
+      html: 'Esto puede tardar unos segundos.',
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
+  }
+
+  /**
+   * Extrae el mensaje de error del backend.
+   */
+  private extraerError(error: any): string {
+    if (error && error.error && error.error.error) {
+      return error.error.error;
+    }
+    return 'No se pudo completar la publicación en Instagram.';
   }
 
   // ==========================================

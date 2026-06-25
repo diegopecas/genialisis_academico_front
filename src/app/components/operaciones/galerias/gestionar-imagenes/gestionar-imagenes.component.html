@@ -137,15 +137,27 @@
               <span *ngIf="eliminandoMultiple" class="spinner-border spinner-border-sm ms-1"></span>
             </button>
 
-            <!-- NUEVO: Publicar en Instagram -->
+            <!-- NUEVO: Publicar en el feed -->
             <button 
-              class="btn btn-sm btn-warning"
+              class="btn btn-sm btn-warning me-2"
               (click)="publicarEnInstagram()"
               [disabled]="!puedePublicarInstagram || publicandoInstagram"
-              title="Publicar las imágenes seleccionadas en Instagram (máx. 10)"
+              title="Publicar las imágenes seleccionadas como carrusel en el feed (máx. 10)"
             >
               <i class="fab fa-instagram me-1"></i>
-              Publicar en Instagram ({{ cantidadSeleccionadas }})
+              Publicar en feed ({{ cantidadSeleccionadas }})
+              <span *ngIf="publicandoInstagram" class="spinner-border spinner-border-sm ms-1"></span>
+            </button>
+
+            <!-- NUEVO: Publicar en historias -->
+            <button 
+              class="btn btn-sm btn-outline-warning"
+              (click)="publicarEnHistoria()"
+              [disabled]="!puedePublicarInstagram || publicandoInstagram"
+              title="Publicar las imágenes seleccionadas como historias, una por imagen (máx. 10)"
+            >
+              <i class="far fa-clock me-1"></i>
+              Publicar en historias ({{ cantidadSeleccionadas }})
               <span *ngIf="publicandoInstagram" class="spinner-border spinner-border-sm ms-1"></span>
             </button>
           </ng-container>
