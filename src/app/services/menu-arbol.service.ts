@@ -220,7 +220,7 @@ export class MenuArbolService {
         label: 'Colaboradores',
         icono: '🧑‍💼',
         imagen: '/assets/images/colaboradores.png',
-        keywords: ['empleados', 'personal', 'profes', 'trabajadores', 'staff'],
+        keywords: ['empleados', 'personal', 'trabajadores', 'staff'],
         hijos: [
           {
             id: 'colaboradores-gestion',
@@ -230,17 +230,6 @@ export class MenuArbolService {
             hijos: [
               { id: 'colaboradores-gestion-colab', label: 'Gestión Colaboradores', icono: '👥', ruta: '/gestion-colaboradores', keywords: ['empleados', 'personal', 'staff'] },
               { id: 'colaboradores-listado', label: 'Colaboradores', icono: '🧑‍💼', ruta: '/colaboradores', keywords: ['empleados', 'personal'] }
-            ]
-          },
-          {
-            id: 'colaboradores-docentes',
-            label: 'Docentes',
-            icono: '👩‍🏫',
-            keywords: ['profes', 'maestros', 'profesores'],
-            hijos: [
-              { id: 'colaboradores-gestion-docentes', label: 'Gestión Docentes', icono: '👩‍🏫', ruta: '/gestion-docentes', keywords: ['profes', 'maestros'] },
-              { id: 'colaboradores-docentes-listado', label: 'Docentes', icono: '👨‍🏫', ruta: '/docentes', keywords: ['profes', 'profesores'] },
-              { id: 'colaboradores-casas-docentes', label: 'Casas Docentes', icono: '🏠', ruta: '/casas-docentes', keywords: ['hogares'] }
             ]
           },
           {
