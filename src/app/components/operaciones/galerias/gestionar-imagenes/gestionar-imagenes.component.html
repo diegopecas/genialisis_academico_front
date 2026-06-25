@@ -128,13 +128,25 @@
             </button>
             
             <button 
-              class="btn btn-sm btn-danger"
+              class="btn btn-sm btn-danger me-2"
               (click)="eliminarSeleccionadas()"
               [disabled]="cantidadSeleccionadas === 0 || eliminandoMultiple"
             >
               <i class="fas fa-trash me-1"></i>
               Eliminar ({{ cantidadSeleccionadas }})
               <span *ngIf="eliminandoMultiple" class="spinner-border spinner-border-sm ms-1"></span>
+            </button>
+
+            <!-- NUEVO: Publicar en Instagram -->
+            <button 
+              class="btn btn-sm btn-warning"
+              (click)="publicarEnInstagram()"
+              [disabled]="!puedePublicarInstagram || publicandoInstagram"
+              title="Publicar las imágenes seleccionadas en Instagram (máx. 10)"
+            >
+              <i class="fab fa-instagram me-1"></i>
+              Publicar en Instagram ({{ cantidadSeleccionadas }})
+              <span *ngIf="publicandoInstagram" class="spinner-border spinner-border-sm ms-1"></span>
             </button>
           </ng-container>
         </div>

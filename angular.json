@@ -12,7 +12,7 @@
     }
   },
   "projects": {
-    "lumen_academico": {
+    "genialisis_academico": {
       "projectType": "application",
       "schematics": {},
       "root": "",
@@ -22,7 +22,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:application",
           "options": {
-            "outputPath": "dist/lumen_academico",
+            "outputPath": "dist/genialisis_academico",
             "index": "src/index.html",
             "browser": "src/main.ts",
             "polyfills": [
@@ -117,10 +117,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "lumen_academico:build:production"
+              "buildTarget": "genialisis_academico:build:production"
             },
             "development": {
-              "buildTarget": "lumen_academico:build:development"
+              "buildTarget": "genialisis_academico:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -128,7 +128,7 @@
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "buildTarget": "lumen_academico:build"
+            "buildTarget": "genialisis_academico:build"
           }
         },
         "test": {

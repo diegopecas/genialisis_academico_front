@@ -8,6 +8,7 @@ import { environment } from '../../../../../environments/environment';
 import { HeaderComponent } from '../../../../common/header/header.component';
 import { GaleriaImagenesService } from '../../../../services/galeria-imagenes.service';
 import { GaleriasService } from '../../../../services/galerias.service';
+import { InstagramService } from '../../../../services/instagram.service';
 
 
 interface ImagenPreview {
@@ -59,11 +60,16 @@ export class GestionarImagenesComponent implements OnInit {
   modoSeleccion = false;
   eliminandoMultiple = false;
 
+  // NUEVO: Publicación en Instagram
+  publicandoInstagram = false;
+  readonly maxImagenesInstagram = 10;
+
   constructor(
     private router: Router,
     private route: ActivatedRoute,
     private galeriasService: GaleriasService,
     private galeriaImagenesService: GaleriaImagenesService,
+    private instagramService: InstagramService,
     private http: HttpClient
   ) { }
 
@@ -252,6 +258,106 @@ export class GestionarImagenesComponent implements OnInit {
         }
       });
     }
+  }
+
+  // ==========================================
+  // PUBLICAR EN INSTAGRAM - NUEVO
+  // ==========================================
+
+  /**
+   * Indica si se puede disparar la publicación (1..10 seleccionadas).
+   */
+  get puedePublicarInstagram(): boolean {
+    const n = this.cantidadSeleccionadas;
+    return n >= 1 && n <= this.maxImagenesInstagram;
+  }
+
+  /**
+   * Publica las imágenes seleccionadas como carrusel en Instagram.
+   * Reutiliza el modo selección existente. Caption por defecto: la
+   * descripción de la galería (editable antes de publicar).
+   */
+  async publicarEnInstagram(): Promise<void> {
+    const seleccionadas = this.imagenesSubidas.filter(img => img.seleccionada);
+
+    if (seleccionadas.length === 0) {
+      Swal.fire('Aviso', 'Selecciona al menos una imagen para publicar', 'info');
+      return;
+    }
+    if (seleccionadas.length > this.maxImagenesInstagram) {
+      Swal.fire(
+        'Demasiadas imágenes',
+        `Instagram permite máximo ${this.maxImagenesInstagram} imágenes por publicación. Tienes ${seleccionadas.length} seleccionadas.`,
+        'warning'
+      );
+      return;
+    }
+
+    const captionDefecto = (this.galeria && this.galeria.descripcion)
+      ? this.galeria.descripcion
+      : (this.galeria && this.galeria.nombre ? this.galeria.nombre : '');
+
+    const result = await Swal.fire({
+      title: 'Publicar en Instagram',
+      input: 'textarea',
+      inputLabel: `Se publicarán ${seleccionadas.length} imagen(es). Puedes editar el texto del post:`,
+      inputValue: captionDefecto,
+      inputAttributes: {
+        'aria-label': 'Texto de la publicación',
+        rows: '6'
+      },
+      showCancelButton: true,
+      confirmButtonColor: '#f39c12',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'Publicar',
+      cancelButtonText: 'Cancelar'
+    });
+
+    if (!result.isConfirmed) {
+      return;
+    }
+
+    const caption = result.value || '';
+    const ids = seleccionadas.map(img => img.id);
+
+    this.publicandoInstagram = true;
+    Swal.fire({
+      title: 'Publicando en Instagram...',
+      html: 'Esto puede tardar unos segundos.',
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
+
+    this.instagramService.publicar(this.idGaleria, ids, caption).subscribe({
+      next: (response: any) => {
+        this.publicandoInstagram = false;
+        const permalink = response.body && response.body.permalink ? response.body.permalink : null;
+
+        const htmlExito = permalink
+          ? `La publicación se creó correctamente.<br><a href="${permalink}" target="_blank" rel="noopener">Ver en Instagram</a>`
+          : 'La publicación se creó correctamente.';
+
+        Swal.fire({
+          title: '¡Publicado!',
+          html: htmlExito,
+          icon: 'success'
+        });
+
+        // Salir del modo selección
+        this.modoSeleccion = false;
+        this.deseleccionarTodas();
+      },
+      error: (error) => {
+        this.publicandoInstagram = false;
+        const mensaje = error && error.error && error.error.error
+          ? error.error.error
+          : 'No se pudo publicar en Instagram.';
+        Swal.fire('Error', mensaje, 'error');
+      }
+    });
   }
 
   // ==========================================
