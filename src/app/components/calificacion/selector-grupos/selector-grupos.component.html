@@ -16,7 +16,7 @@
           (click)="seleccionarGrupo(grupo)"
         >
           <div class="imagen-container">
-            <img [src]="grupo.icono" [alt]="grupo.nombre" />
+            <img [src]="grupo.icono" [alt]="grupo.nombre" loading="lazy" decoding="async" />
           </div>
           <p class="nombre-item">{{ grupo.nombre }}</p>
         </div>

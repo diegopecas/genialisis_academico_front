@@ -21,7 +21,7 @@ export class InstagramService {
 
   /**
    * Mapa de imágenes ya publicadas de una galería y en qué tipos.
-   * Respuesta body: { "<id_imagen>": ["feed","historia"], ... }
+   * Respuesta body: { "<id_imagen>": ["feed","historia","reel"], ... }
    */
   obtenerImagenesPublicadas(idGaleria: string): Observable<HttpResponse<any>> {
     return this.http.get(`${this.base}/imagenes-publicadas/${idGaleria}`, { observe: 'response' });
@@ -48,5 +48,20 @@ export class InstagramService {
       ids: ids
     };
     return this.http.post(`${this.base}/publicar-historia`, body, { observe: 'response' });
+  }
+
+  /**
+   * Publica un VIDEO como Reel (sale en Reels y, con share_to_feed, también en el feed).
+   * @param idGaleria UUID de la galería
+   * @param idVideo   UUID de la imagen tipo 'video'
+   * @param caption   Texto del Reel
+   */
+  publicarReel(idGaleria: string, idVideo: string, caption: string): Observable<HttpResponse<any>> {
+    const body = {
+      id_galeria: idGaleria,
+      id_video: idVideo,
+      caption: caption
+    };
+    return this.http.post(`${this.base}/publicar-reel`, body, { observe: 'response' });
   }
 }

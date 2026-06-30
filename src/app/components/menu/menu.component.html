@@ -10,9 +10,9 @@
       
       <!-- Logos (izquierda) -->
       <div class="header-logos">
-        <img [src]="logoGenialisis" alt="Genialisis" class="genialisis-logo" />
+        <img [src]="logoGenialisis" alt="Genialisis" class="genialisis-logo" decoding="async" />
         <div class="logo-divider"></div>
-        <img [src]="logoBasicoUrl" [alt]="nombreInstitucion" class="institution-logo" />
+        <img [src]="logoBasicoUrl" [alt]="nombreInstitucion" class="institution-logo" decoding="async" />
       </div>
 
       <!-- Nombre institución (centro) -->
@@ -25,14 +25,14 @@
       <div class="header-user">
         <span class="user-greeting" *ngIf="nombreUsuario">Hola, {{ nombreUsuario }}</span>
         <button class="profile-button" (click)="irAMiPerfil()">
-          <img src="/assets/images/colaboradores.png" alt="Mi Perfil" />
+          <img src="/assets/images/colaboradores.png" alt="Mi Perfil" decoding="async" />
           <span>Mi Perfil</span>
         </button>
         <button class="help-button" (click)="abrirAyuda()">
           <span>?</span>
         </button>
         <button class="logout-button" (click)="salir()">
-          <img src="/assets/images/salir.png" alt="Salir" />
+          <img src="/assets/images/salir.png" alt="Salir" decoding="async" />
           <span>Salir</span>
         </button>
       </div>
@@ -63,7 +63,7 @@
         
         <!-- Imagen de cumpleaños -->
         <div class="birthday-image-container">
-          <img src="/assets/images/cumpleanos.png" alt="Feliz Cumpleaños" class="birthday-image" />
+          <img src="/assets/images/cumpleanos.png" alt="Feliz Cumpleaños" class="birthday-image" loading="lazy" decoding="async" />
         </div>
         
         <!-- Mensaje -->
@@ -141,7 +141,7 @@
 
           <!-- Cabecera de la sección -->
           <div class="seccion-header" (click)="seleccionarNodo(seccion)">
-            <img *ngIf="seccion.imagen" class="seccion-icono-img" [src]="seccion.imagen" [alt]="seccion.label" />
+            <img *ngIf="seccion.imagen" class="seccion-icono-img" [src]="seccion.imagen" [alt]="seccion.label" loading="lazy" decoding="async" />
             <span class="seccion-icono" *ngIf="!seccion.imagen">{{ seccion.icono }}</span>
             <span class="seccion-titulo" [innerHTML]="resaltar(seccion.label)"></span>
             <span class="seccion-chevron" *ngIf="esGrupo(seccion)" [class.abierto]="estaExpandido(seccion)">▸</span>
@@ -169,7 +169,7 @@
           [class.es-grupo]="esGrupo(nodo)"
           (click)="seleccionarNodo(nodo)"
         >
-          <img *ngIf="nodo.imagen" class="nodo-icono-img" [src]="nodo.imagen" [alt]="nodo.label" />
+          <img *ngIf="nodo.imagen" class="nodo-icono-img" [src]="nodo.imagen" [alt]="nodo.label" loading="lazy" decoding="async" />
           <span class="nodo-icono" *ngIf="!nodo.imagen">{{ nodo.icono }}</span>
           <span class="nodo-label" [innerHTML]="resaltar(nodo.label)"></span>
           <span class="nodo-chevron" *ngIf="esGrupo(nodo)" [class.abierto]="estaExpandido(nodo)">▸</span>
@@ -183,6 +183,6 @@
     </ul>
   </ng-template>
 
-  <app-daily-message></app-daily-message>
+  <!-- <app-daily-message></app-daily-message> -->
 
 </div>

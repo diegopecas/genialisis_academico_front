@@ -31,7 +31,7 @@
           (click)="seleccionarArea(areaDestacada)"
         >
           <div class="imagen-container-area">
-            <img [src]="areaDestacada.icono" [alt]="areaDestacada.nombre_area_academica" />
+            <img [src]="areaDestacada.icono" [alt]="areaDestacada.nombre_area_academica" loading="lazy" decoding="async" />
           </div>
           <p class="nombre-item">{{ areaDestacada.nombre_area_academica | titlecase }}</p>
           <span class="horario-badge" *ngIf="areaDestacada.horarioTexto">🕐 {{ areaDestacada.horarioTexto }}</span>
@@ -100,7 +100,7 @@
             (click)="seleccionarArea(area)"
           >
             <div class="imagen-container-area">
-              <img [src]="area.icono" [alt]="area.nombre_area_academica" />
+              <img [src]="area.icono" [alt]="area.nombre_area_academica" loading="lazy" decoding="async" />
             </div>
             <p class="nombre-item">{{ area.nombre_area_academica | titlecase }}</p>
             <span class="horario-badge" *ngIf="obtenerHorarioTextoArea(area) as horTxt">🕐 {{ horTxt }}</span>
@@ -120,7 +120,7 @@
             (click)="seleccionarArea(area)"
           >
             <div class="imagen-container-area">
-              <img [src]="area.icono" [alt]="area.nombre_area_academica" />
+              <img [src]="area.icono" [alt]="area.nombre_area_academica" loading="lazy" decoding="async" />
             </div>
             <p class="nombre-item">{{ area.nombre_area_academica | titlecase }}</p>
             <span class="fuera-horario-badge">Fuera del horario de hoy</span>

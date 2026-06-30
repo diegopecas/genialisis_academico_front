@@ -14,12 +14,12 @@
     <div class="upload-section">
       <h5 class="mb-3">
         <i class="fas fa-cloud-upload-alt me-2"></i>
-        Subir Imágenes
+        Subir Imágenes y Videos
       </h5>
 
       <!-- Drag & Drop Zone -->
-      <div 
-        class="drop-zone" 
+      <div
+        class="drop-zone"
         [class.dragging]="isDragging"
         (click)="fileInput.click()"
         (dragover)="onDragOver($event)"
@@ -29,50 +29,58 @@
         <input
           #fileInput
           type="file"
-          accept="image/*"
+          accept="image/*,video/mp4,video/quicktime"
           multiple
           style="display: none"
           (change)="onFileSelected($event)"
         />
-        
+
         <div class="drop-zone-content">
-          <i class="fas fa-images drop-icon"></i>
-          <p class="drop-text">Arrastra imágenes aquí o haz clic para seleccionar</p>
-          <p class="drop-hint">Soporta: JPG, PNG, GIF, WEBP (Máx. 10MB)</p>
+          <i class="fas fa-photo-video drop-icon"></i>
+          <p class="drop-text">Arrastra imágenes o videos aquí o haz clic para seleccionar</p>
+          <p class="drop-hint">Imágenes: JPG, PNG, GIF, WEBP (máx. 10MB) · Videos: MP4, MOV</p>
         </div>
       </div>
 
-      <!-- Preview de imágenes a subir -->
+      <!-- Preview de archivos a subir -->
       <div *ngIf="imagenesPreview.length > 0" class="preview-section mt-4">
         <div class="d-flex justify-content-between align-items-center mb-3">
-          <h6 class="mb-0">Imágenes a subir ({{ imagenesPreview.length }})</h6>
-          <button 
+          <h6 class="mb-0">Archivos a subir ({{ imagenesPreview.length }})</h6>
+          <button
             class="btn btn-warning"
             (click)="subirImagenes()"
             [disabled]="isUploading"
           >
             <i class="fas fa-upload me-2"></i>
-            {{ isUploading ? 'Subiendo...' : 'Subir Todas' }}
+            {{ isUploading ? 'Subiendo...' : 'Subir Todos' }}
           </button>
         </div>
 
         <div class="preview-grid">
-          <div 
+          <div
             *ngFor="let imagen of imagenesPreview; let i = index"
             class="preview-item"
             [class.uploading]="imagen.uploading"
             [class.uploaded]="imagen.uploaded"
             [class.error]="imagen.error"
           >
-            <img [src]="imagen.preview" [alt]="imagen.file.name" />
-            
+            <!-- Imagen: vista previa real. Video: placeholder con play -->
+            <img *ngIf="!imagen.esVideo" [src]="imagen.preview" [alt]="imagen.file.name" />
+            <div
+              *ngIf="imagen.esVideo"
+              style="width:100%; aspect-ratio:1/1; background:#1A1A1A; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#C9A961;"
+            >
+              <i class="fas fa-play-circle" style="font-size:42px;"></i>
+              <span style="font-size:11px; margin-top:6px;">Video</span>
+            </div>
+
             <div class="preview-overlay">
               <div class="preview-info">
                 <span class="preview-name">{{ imagen.file.name }}</span>
                 <span class="preview-size">{{ (imagen.file.size / 1024).toFixed(2) }} KB</span>
               </div>
-              
-              <button 
+
+              <button
                 *ngIf="!imagen.uploading && !imagen.uploaded"
                 class="btn-delete-preview"
                 (click)="eliminarPreview(i)"
@@ -97,17 +105,17 @@
       </div>
     </div>
 
-    <!-- Imágenes subidas -->
+    <!-- Elementos subidos -->
     <div class="uploaded-section mt-5">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h5 class="mb-0">
           <i class="fas fa-image me-2"></i>
-          Imágenes de la Galería ({{ imagenesSubidas.length }})
+          Galería ({{ imagenesSubidas.length }})
         </h5>
-        
+
         <!-- Botones de selección múltiple -->
         <div class="selection-controls" *ngIf="imagenesSubidas.length > 0">
-          <button 
+          <button
             class="btn btn-sm me-2"
             [class.btn-outline-primary]="!modoSeleccion"
             [class.btn-primary]="modoSeleccion"
@@ -116,17 +124,17 @@
             <i class="fas fa-check-square me-1"></i>
             {{ modoSeleccion ? 'Cancelar Selección' : 'Seleccionar' }}
           </button>
-          
+
           <ng-container *ngIf="modoSeleccion">
-            <button 
+            <button
               class="btn btn-sm btn-outline-secondary me-2"
               (click)="toggleSeleccionarTodas()"
             >
               <i class="fas" [class.fa-check-double]="!todasSeleccionadas" [class.fa-times]="todasSeleccionadas"></i>
               {{ todasSeleccionadas ? 'Deseleccionar Todas' : 'Seleccionar Todas' }}
             </button>
-            
-            <button 
+
+            <button
               class="btn btn-sm btn-danger me-2"
               (click)="eliminarSeleccionadas()"
               [disabled]="cantidadSeleccionadas === 0 || eliminandoMultiple"
@@ -136,27 +144,39 @@
               <span *ngIf="eliminandoMultiple" class="spinner-border spinner-border-sm ms-1"></span>
             </button>
 
-            <!-- Publicar en el feed (máx. 10) -->
-            <button 
+            <!-- Publicar en el feed (máx. 10, solo imágenes) -->
+            <button
               class="btn btn-sm btn-warning me-2"
               (click)="publicarEnInstagram()"
               [disabled]="!puedePublicarFeed || publicandoInstagram"
               title="Publicar las imágenes seleccionadas como carrusel en el feed (máx. 10)"
             >
               <i class="fab fa-instagram me-1"></i>
-              Publicar en feed ({{ cantidadSeleccionadas }})
+              Publicar en feed ({{ imagenesSeleccionadasCount }})
               <span *ngIf="publicandoInstagram" class="spinner-border spinner-border-sm ms-1"></span>
             </button>
 
-            <!-- Publicar en historias (sin tope) -->
-            <button 
-              class="btn btn-sm btn-outline-warning"
+            <!-- Publicar en historias (sin tope, solo imágenes) -->
+            <button
+              class="btn btn-sm btn-outline-warning me-2"
               (click)="publicarEnHistoria()"
               [disabled]="!puedePublicarHistoria || publicandoInstagram"
               title="Publicar las imágenes seleccionadas como historias, una por imagen"
             >
               <i class="far fa-clock me-1"></i>
-              Publicar en historias ({{ cantidadSeleccionadas }})
+              Publicar en historias ({{ imagenesSeleccionadasCount }})
+              <span *ngIf="publicandoInstagram" class="spinner-border spinner-border-sm ms-1"></span>
+            </button>
+
+            <!-- Publicar como Reel (1 video) -->
+            <button
+              class="btn btn-sm btn-outline-warning"
+              (click)="publicarComoReel()"
+              [disabled]="!puedePublicarReel || publicandoInstagram"
+              title="Publicar el video seleccionado como Reel (sale en Reels y en el feed)"
+            >
+              <i class="fas fa-film me-1"></i>
+              Publicar como Reel
               <span *ngIf="publicandoInstagram" class="spinner-border spinner-border-sm ms-1"></span>
             </button>
           </ng-container>
@@ -165,19 +185,19 @@
 
       <div *ngIf="cargandoImagenes" class="text-center py-5">
         <div class="spinner-border text-warning"></div>
-        <p class="mt-2">Cargando imágenes...</p>
+        <p class="mt-2">Cargando...</p>
       </div>
 
-      <div 
+      <div
         *ngIf="!cargandoImagenes && imagenesSubidas.length === 0"
         class="alert alert-info"
       >
         <i class="fas fa-info-circle me-2"></i>
-        No hay imágenes en esta galería. Sube algunas para comenzar.
+        No hay elementos en esta galería. Sube imágenes o videos para comenzar.
       </div>
 
       <div *ngIf="!cargandoImagenes && imagenesSubidas.length > 0" class="images-grid">
-        <div 
+        <div
           *ngFor="let imagen of imagenesSubidas"
           class="image-card"
           [class.is-thumbnail]="imagen.esMiniatura"
@@ -197,39 +217,47 @@
           </div>
 
           <div class="image-wrapper" style="position: relative;">
-            <img [src]="imagen.urlThumb" [alt]="imagen.alt" loading="lazy" />
-
-            <!-- Etiqueta sutil: publicada en feed / historia -->
+            <!-- Imagen: thumb real. Video: placeholder con play -->
+            <img *ngIf="imagen.tipoMedia !== 'video'" [src]="imagen.urlThumb" [alt]="imagen.alt" loading="lazy" />
             <div
-              *ngIf="imagen.publicadoFeed || imagen.publicadoHistoria"
-              style="position:absolute; bottom:6px; left:6px; display:flex; gap:4px; z-index:3;"
+              *ngIf="imagen.tipoMedia === 'video'"
+              style="width:100%; aspect-ratio:1/1; background:#1A1A1A; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#C9A961;"
             >
-              <span
-                *ngIf="imagen.publicadoFeed"
-                style="background:rgba(0,0,0,0.6); color:#fff; font-size:10px; line-height:1; padding:3px 7px; border-radius:10px; display:inline-flex; align-items:center; gap:4px;"
-              >
+              <i class="fas fa-play-circle" style="font-size:46px;"></i>
+              <span style="font-size:11px; margin-top:6px;">Video</span>
+            </div>
+
+            <!-- Etiqueta sutil: publicado en feed / historia / reel -->
+            <div
+              *ngIf="imagen.publicadoFeed || imagen.publicadoHistoria || imagen.publicadoReel"
+              style="position:absolute; bottom:6px; left:6px; display:flex; gap:4px; flex-wrap:wrap; z-index:3;"
+            >
+              <span *ngIf="imagen.publicadoFeed"
+                style="background:rgba(0,0,0,0.6); color:#fff; font-size:10px; line-height:1; padding:3px 7px; border-radius:10px; display:inline-flex; align-items:center; gap:4px;">
                 <i class="fab fa-instagram"></i> Feed
               </span>
-              <span
-                *ngIf="imagen.publicadoHistoria"
-                style="background:rgba(0,0,0,0.6); color:#fff; font-size:10px; line-height:1; padding:3px 7px; border-radius:10px; display:inline-flex; align-items:center; gap:4px;"
-              >
+              <span *ngIf="imagen.publicadoHistoria"
+                style="background:rgba(0,0,0,0.6); color:#fff; font-size:10px; line-height:1; padding:3px 7px; border-radius:10px; display:inline-flex; align-items:center; gap:4px;">
                 <i class="far fa-clock"></i> Historia
               </span>
+              <span *ngIf="imagen.publicadoReel"
+                style="background:rgba(0,0,0,0.6); color:#fff; font-size:10px; line-height:1; padding:3px 7px; border-radius:10px; display:inline-flex; align-items:center; gap:4px;">
+                <i class="fas fa-film"></i> Reel
+              </span>
             </div>
-            
+
             <!-- Acciones solo visibles cuando NO está en modo selección -->
             <div class="image-actions" *ngIf="!modoSeleccion">
-              <button 
+              <button
                 class="btn-action btn-thumbnail"
                 (click)="establecerComoMiniatura(imagen)"
                 title="Usar como miniatura"
-                *ngIf="!imagen.esMiniatura"
+                *ngIf="!imagen.esMiniatura && imagen.tipoMedia !== 'video'"
               >
                 <i class="fas fa-star"></i>
               </button>
-              
-              <button 
+
+              <button
                 class="btn-action btn-delete"
                 (click)="eliminarImagen(imagen)"
                 title="Eliminar"

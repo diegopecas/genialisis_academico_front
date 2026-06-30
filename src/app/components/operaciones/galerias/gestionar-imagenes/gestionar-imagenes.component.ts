@@ -9,11 +9,13 @@ import { HeaderComponent } from '../../../../common/header/header.component';
 import { GaleriaImagenesService } from '../../../../services/galeria-imagenes.service';
 import { GaleriasService } from '../../../../services/galerias.service';
 import { InstagramService } from '../../../../services/instagram.service';
+import { ConfiguracionGlobalService } from '../../../../services/configuracion-global.service';
 
 
 interface ImagenPreview {
   file: File;
   preview: string;
+  esVideo: boolean;
   uploading: boolean;
   uploaded: boolean;
   error: boolean;
@@ -25,13 +27,15 @@ interface ImagenSubida {
   id: string;
   guid: string;
   url: string;
+  tipoMedia: string;             // 'imagen' | 'video'
   alt: string;
   orden: number;
   urlThumb: string;
   esMiniatura?: boolean;
   seleccionada?: boolean;
-  publicadoFeed?: boolean;       // NUEVO
-  publicadoHistoria?: boolean;   // NUEVO
+  publicadoFeed?: boolean;
+  publicadoHistoria?: boolean;
+  publicadoReel?: boolean;
 }
 
 @Component({
@@ -45,15 +49,15 @@ export class GestionarImagenesComponent implements OnInit {
 
   titulo = "Gestionar Imágenes";
   regresar = "/operaciones/galerias";
-  
+
   idGaleria!: string;
   galeria: any = null;
-  
+
   // Upload
   imagenesPreview: ImagenPreview[] = [];
   isDragging = false;
   isUploading = false;
-  
+
   // Imágenes ya subidas
   imagenesSubidas: ImagenSubida[] = [];
   cargandoImagenes = false;
@@ -64,8 +68,17 @@ export class GestionarImagenesComponent implements OnInit {
 
   // Publicación en Instagram
   publicandoInstagram = false;
-  readonly maxImagenesFeed = 10;   // tope real de Instagram para carrusel
-  // Las historias NO tienen tope.
+  readonly maxImagenesFeed = 10;          // tope real de Instagram para carrusel
+  // Las historias NO tienen tope. Los Reels son de 1 video.
+
+  // Límite de tamaño de video (MB). Se lee de configuracion_global
+  // (galeria_video_max_mb); el backend valida el mismo número. Default 32.
+  maxVideoMb = 32;
+  private readonly tiposVideo = ['video/mp4', 'video/quicktime'];
+
+  private get maxVideoClienteBytes(): number {
+    return this.maxVideoMb * 1024 * 1024;
+  }
 
   constructor(
     private router: Router,
@@ -73,6 +86,7 @@ export class GestionarImagenesComponent implements OnInit {
     private galeriasService: GaleriasService,
     private galeriaImagenesService: GaleriaImagenesService,
     private instagramService: InstagramService,
+    private configuracionGlobalService: ConfiguracionGlobalService,
     private http: HttpClient
   ) { }
 
@@ -87,6 +101,26 @@ export class GestionarImagenesComponent implements OnInit {
     this.idGaleria = id;
     this.cargarGaleria();
     this.cargarImagenes();
+    this.cargarLimiteVideo();
+  }
+
+  /**
+   * Lee galeria_video_max_mb de configuracion_global para validar el tamaño
+   * de video en el cliente con el mismo número que usa el backend.
+   */
+  private cargarLimiteVideo(): void {
+    this.configuracionGlobalService.obtenerMultiples(['galeria_video_max_mb']).subscribe({
+      next: (resp: any) => {
+        const cfg = resp && resp['galeria_video_max_mb'] ? resp['galeria_video_max_mb'] : null;
+        const valor = cfg && cfg.valor_numero ? Number(cfg.valor_numero) : 0;
+        if (valor > 0) {
+          this.maxVideoMb = valor;
+        }
+      },
+      error: () => {
+        // Si falla, queda el default (32MB); el backend valida igual.
+      }
+    });
   }
 
   cargarGaleria() {
@@ -113,13 +147,15 @@ export class GestionarImagenesComponent implements OnInit {
           id: img.id,
           guid: img.guid,
           url: img.url,
+          tipoMedia: img.tipo_media || 'imagen',
           alt: img.alt,
           orden: img.orden,
           urlThumb: this.galeriaImagenesService.obtenerUrlThumb(img.guid),
           esMiniatura: false,
           seleccionada: false,
           publicadoFeed: false,
-          publicadoHistoria: false
+          publicadoHistoria: false,
+          publicadoReel: false
         }));
         this.cargandoImagenes = false;
         this.marcarMiniatura();
@@ -145,18 +181,15 @@ export class GestionarImagenesComponent implements OnInit {
           const tipos: string[] = mapa[img.id] || [];
           img.publicadoFeed = tipos.indexOf('feed') !== -1;
           img.publicadoHistoria = tipos.indexOf('historia') !== -1;
+          img.publicadoReel = tipos.indexOf('reel') !== -1;
         });
       },
       error: (error) => {
-        // No es crítico: si falla, simplemente no se muestran las etiquetas.
         console.error("Error al cargar estado de publicación:", error);
       }
     });
   }
 
-  /**
-   * Marca cuál imagen es la miniatura actual de la galería
-   */
   private marcarMiniatura(): void {
     if (!this.galeria || !this.imagenesSubidas.length) return;
 
@@ -196,12 +229,16 @@ export class GestionarImagenesComponent implements OnInit {
     this.imagenesSubidas.forEach(img => img.seleccionada = false);
   }
 
+  get seleccionadas(): ImagenSubida[] {
+    return this.imagenesSubidas.filter(img => img.seleccionada);
+  }
+
   get cantidadSeleccionadas(): number {
-    return this.imagenesSubidas.filter(img => img.seleccionada).length;
+    return this.seleccionadas.length;
   }
 
   get todasSeleccionadas(): boolean {
-    return this.imagenesSubidas.length > 0 && 
+    return this.imagenesSubidas.length > 0 &&
            this.imagenesSubidas.every(img => img.seleccionada);
   }
 
@@ -214,46 +251,46 @@ export class GestionarImagenesComponent implements OnInit {
   }
 
   async eliminarSeleccionadas(): Promise<void> {
-    const seleccionadas = this.imagenesSubidas.filter(img => img.seleccionada);
-    
+    const seleccionadas = this.seleccionadas;
+
     if (seleccionadas.length === 0) {
       Swal.fire('Aviso', 'No hay imágenes seleccionadas', 'warning');
       return;
     }
 
     const result = await Swal.fire({
-      title: '¿Eliminar imágenes?',
-      html: `Se eliminarán <strong>${seleccionadas.length}</strong> imágenes.<br>Esta acción no se puede deshacer.`,
+      title: '¿Eliminar elementos?',
+      html: `Se eliminarán <strong>${seleccionadas.length}</strong> elementos.<br>Esta acción no se puede deshacer.`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#d33',
       cancelButtonColor: '#6c757d',
-      confirmButtonText: 'Sí, eliminar todas',
+      confirmButtonText: 'Sí, eliminar todos',
       cancelButtonText: 'Cancelar'
     });
 
     if (result.isConfirmed) {
       this.eliminandoMultiple = true;
-      
+
       const ids = seleccionadas.map(img => img.id);
-      
+
       this.galeriaImagenesService.eliminarMultiples(ids).subscribe({
         next: (response: any) => {
           this.eliminandoMultiple = false;
           this.modoSeleccion = false;
-          
+
           Swal.fire(
-            'Eliminadas', 
-            `Se eliminaron ${response.eliminados} imágenes correctamente`, 
+            'Eliminados',
+            `Se eliminaron ${response.eliminados} elementos correctamente`,
             'success'
           );
-          
+
           this.cargarImagenes();
         },
         error: (error) => {
           this.eliminandoMultiple = false;
-          console.error("Error al eliminar imágenes:", error);
-          Swal.fire('Error', 'No se pudieron eliminar las imágenes', 'error');
+          console.error("Error al eliminar:", error);
+          Swal.fire('Error', 'No se pudieron eliminar los elementos', 'error');
         }
       });
     }
@@ -263,36 +300,50 @@ export class GestionarImagenesComponent implements OnInit {
   // PUBLICAR EN INSTAGRAM
   // ==========================================
 
-  /**
-   * Feed: 1..10 imágenes.
-   */
-  get puedePublicarFeed(): boolean {
-    const n = this.cantidadSeleccionadas;
-    return n >= 1 && n <= this.maxImagenesFeed;
+  /** Cuántos de los seleccionados son video. */
+  get videosSeleccionados(): number {
+    return this.seleccionadas.filter(img => img.tipoMedia === 'video').length;
   }
 
-  /**
-   * Historias: 1 o más (sin tope superior).
-   */
+  /** Cuántos de los seleccionados son imagen. */
+  get imagenesSeleccionadasCount(): number {
+    return this.seleccionadas.filter(img => img.tipoMedia === 'imagen').length;
+  }
+
+  /** Feed: 1..10, solo imágenes (sin videos en la selección). */
+  get puedePublicarFeed(): boolean {
+    const n = this.cantidadSeleccionadas;
+    return n >= 1 && n <= this.maxImagenesFeed && this.videosSeleccionados === 0;
+  }
+
+  /** Historias: 1 o más, solo imágenes (sin videos en la selección). */
   get puedePublicarHistoria(): boolean {
-    return this.cantidadSeleccionadas >= 1;
+    return this.cantidadSeleccionadas >= 1 && this.videosSeleccionados === 0;
+  }
+
+  /** Reel: exactamente 1 seleccionado y que sea video. */
+  get puedePublicarReel(): boolean {
+    return this.cantidadSeleccionadas === 1 && this.videosSeleccionados === 1;
   }
 
   /**
    * Publica las imágenes seleccionadas como carrusel en el FEED (máx. 10).
-   * Caption por defecto: la descripción de la galería (editable).
    */
   async publicarEnInstagram(): Promise<void> {
-    const seleccionadas = this.imagenesSubidas.filter(img => img.seleccionada);
+    const seleccionadas = this.seleccionadas;
 
     if (seleccionadas.length === 0) {
       Swal.fire('Aviso', 'Selecciona al menos una imagen para publicar', 'info');
       return;
     }
+    if (this.videosSeleccionados > 0) {
+      Swal.fire('Aviso', 'El feed solo admite imágenes. Para video usa "Publicar como Reel".', 'info');
+      return;
+    }
     if (seleccionadas.length > this.maxImagenesFeed) {
       Swal.fire(
         'Demasiadas imágenes',
-        `El feed permite máximo ${this.maxImagenesFeed} imágenes por publicación. Tienes ${seleccionadas.length} seleccionadas. Para más, usa historias.`,
+        `El feed permite máximo ${this.maxImagenesFeed} imágenes. Tienes ${seleccionadas.length}. Para más, usa historias.`,
         'warning'
       );
       return;
@@ -307,10 +358,7 @@ export class GestionarImagenesComponent implements OnInit {
       input: 'textarea',
       inputLabel: `Se publicarán ${seleccionadas.length} imagen(es). Puedes editar el texto del post:`,
       inputValue: captionDefecto,
-      inputAttributes: {
-        'aria-label': 'Texto de la publicación',
-        rows: '6'
-      },
+      inputAttributes: { 'aria-label': 'Texto de la publicación', rows: '6' },
       showCancelButton: true,
       confirmButtonColor: '#f39c12',
       cancelButtonColor: '#6c757d',
@@ -318,9 +366,7 @@ export class GestionarImagenesComponent implements OnInit {
       cancelButtonText: 'Cancelar'
     });
 
-    if (!result.isConfirmed) {
-      return;
-    }
+    if (!result.isConfirmed) return;
 
     const caption = result.value || '';
     const ids = seleccionadas.map(img => img.id);
@@ -332,13 +378,10 @@ export class GestionarImagenesComponent implements OnInit {
       next: (response: any) => {
         this.publicandoInstagram = false;
         const permalink = response.body && response.body.permalink ? response.body.permalink : null;
-
         const htmlExito = permalink
           ? `La publicación se creó correctamente.<br><a href="${permalink}" target="_blank" rel="noopener">Ver en Instagram</a>`
           : 'La publicación se creó correctamente.';
-
         Swal.fire({ title: '¡Publicado!', html: htmlExito, icon: 'success' });
-
         this.modoSeleccion = false;
         this.deseleccionarTodas();
         this.cargarEstadoPublicacion();
@@ -354,10 +397,14 @@ export class GestionarImagenesComponent implements OnInit {
    * Publica las imágenes seleccionadas como HISTORIAS (una por imagen, sin tope).
    */
   async publicarEnHistoria(): Promise<void> {
-    const seleccionadas = this.imagenesSubidas.filter(img => img.seleccionada);
+    const seleccionadas = this.seleccionadas;
 
     if (seleccionadas.length === 0) {
       Swal.fire('Aviso', 'Selecciona al menos una imagen para publicar', 'info');
+      return;
+    }
+    if (this.videosSeleccionados > 0) {
+      Swal.fire('Aviso', 'Las historias aquí admiten imágenes. Para video usa "Publicar como Reel".', 'info');
       return;
     }
 
@@ -372,9 +419,7 @@ export class GestionarImagenesComponent implements OnInit {
       cancelButtonText: 'Cancelar'
     });
 
-    if (!result.isConfirmed) {
-      return;
-    }
+    if (!result.isConfirmed) return;
 
     const ids = seleccionadas.map(img => img.id);
 
@@ -386,17 +431,71 @@ export class GestionarImagenesComponent implements OnInit {
         this.publicandoInstagram = false;
         const body = response.body || {};
         const cantidad = body.historias_publicadas ? body.historias_publicadas : ids.length;
-
         const html = body.parcial
           ? `Se publicaron ${cantidad} de ${ids.length} historias. ${body.detalle || ''}`
           : `Se publicaron ${cantidad} historia(s) correctamente.`;
-
         Swal.fire({
           title: body.parcial ? 'Publicación parcial' : '¡Publicado!',
           html: html,
           icon: body.parcial ? 'warning' : 'success'
         });
+        this.modoSeleccion = false;
+        this.deseleccionarTodas();
+        this.cargarEstadoPublicacion();
+      },
+      error: (error) => {
+        this.publicandoInstagram = false;
+        Swal.fire('Error', this.extraerError(error), 'error');
+      }
+    });
+  }
 
+  /**
+   * Publica el video seleccionado como Reel (sale en Reels y en el feed).
+   */
+  async publicarComoReel(): Promise<void> {
+    const seleccionadas = this.seleccionadas;
+
+    if (seleccionadas.length !== 1 || seleccionadas[0].tipoMedia !== 'video') {
+      Swal.fire('Aviso', 'Selecciona un solo video para publicar como Reel.', 'info');
+      return;
+    }
+
+    const video = seleccionadas[0];
+
+    const captionDefecto = (this.galeria && this.galeria.descripcion)
+      ? this.galeria.descripcion
+      : (this.galeria && this.galeria.nombre ? this.galeria.nombre : '');
+
+    const result = await Swal.fire({
+      title: 'Publicar como Reel',
+      input: 'textarea',
+      inputLabel: 'Saldrá en Reels y en el feed. Puedes editar el texto:',
+      inputValue: captionDefecto,
+      inputAttributes: { 'aria-label': 'Texto del Reel', rows: '5' },
+      showCancelButton: true,
+      confirmButtonColor: '#f39c12',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'Publicar Reel',
+      cancelButtonText: 'Cancelar',
+      footer: 'El video debe cumplir el formato de Reel (hasta 90s, vertical 9:16, MP4/MOV). Si no, Instagram lo rechaza.'
+    });
+
+    if (!result.isConfirmed) return;
+
+    const caption = result.value || '';
+
+    this.publicandoInstagram = true;
+    this.mostrarCargando('Publicando Reel... el video puede tardar varios minutos en procesar.');
+
+    this.instagramService.publicarReel(this.idGaleria, video.id, caption).subscribe({
+      next: (response: any) => {
+        this.publicandoInstagram = false;
+        const permalink = response.body && response.body.permalink ? response.body.permalink : null;
+        const htmlExito = permalink
+          ? `El Reel se publicó correctamente.<br><a href="${permalink}" target="_blank" rel="noopener">Ver en Instagram</a>`
+          : 'El Reel se publicó correctamente.';
+        Swal.fire({ title: '¡Publicado!', html: htmlExito, icon: 'success' });
         this.modoSeleccion = false;
         this.deseleccionarTodas();
         this.cargarEstadoPublicacion();
@@ -414,9 +513,7 @@ export class GestionarImagenesComponent implements OnInit {
       html: 'Esto puede tardar unos segundos.',
       allowOutsideClick: false,
       allowEscapeKey: false,
-      didOpen: () => {
-        Swal.showLoading();
-      }
+      didOpen: () => { Swal.showLoading(); }
     });
   }
 
@@ -463,24 +560,33 @@ export class GestionarImagenesComponent implements OnInit {
   }
 
   procesarArchivos(files: File[]) {
-    const imagenesValidas = files.filter(file => {
-      if (!file.type.startsWith('image/')) {
-        Swal.fire('Error', `${file.name} no es una imagen válida`, 'error');
+    const validos = files.filter(file => {
+      const esImagen = file.type.startsWith('image/');
+      const esVideo = this.tiposVideo.indexOf(file.type) !== -1;
+
+      if (!esImagen && !esVideo) {
+        Swal.fire('Error', `${file.name} no es una imagen ni un video permitido (MP4/MOV)`, 'error');
         return false;
       }
-      if (file.size > 10 * 1024 * 1024) {
-        Swal.fire('Error', `${file.name} supera el tamaño máximo de 10MB`, 'error');
+      if (esImagen && file.size > 10 * 1024 * 1024) {
+        Swal.fire('Error', `${file.name} supera el tamaño máximo de imagen (10MB)`, 'error');
+        return false;
+      }
+      if (esVideo && file.size > this.maxVideoClienteBytes) {
+        Swal.fire('Video muy grande', `${file.name} supera el máximo permitido (${this.maxVideoMb}MB).`, 'error');
         return false;
       }
       return true;
     });
 
-    imagenesValidas.forEach(file => {
+    validos.forEach(file => {
+      const esVideo = this.tiposVideo.indexOf(file.type) !== -1;
       const reader = new FileReader();
       reader.onload = (e: any) => {
         this.imagenesPreview.push({
           file,
           preview: e.target.result,
+          esVideo,
           uploading: false,
           uploaded: false,
           error: false
@@ -495,46 +601,65 @@ export class GestionarImagenesComponent implements OnInit {
   }
 
   // ==========================================
-  // SUBIR IMÁGENES
+  // SUBIR ARCHIVOS
   // ==========================================
 
   async subirImagenes() {
     if (this.imagenesPreview.length === 0) {
-      Swal.fire('Error', 'No hay imágenes para subir', 'error');
+      Swal.fire('Error', 'No hay archivos para subir', 'error');
       return;
     }
 
     this.isUploading = true;
-    
-    for (const imagen of this.imagenesPreview) {
-      if (imagen.uploaded) continue;
-      
-      imagen.uploading = true;
-      
+
+    let exitosos = 0;
+    let fallidos = 0;
+
+    for (const item of this.imagenesPreview) {
+      if (item.uploaded) continue;
+      item.uploading = true;
       try {
-        await this.subirImagen(imagen);
-        imagen.uploaded = true;
-        imagen.uploading = false;
+        await this.subirArchivo(item);
+        item.uploaded = true;
+        item.uploading = false;
+        exitosos++;
       } catch (error) {
-        console.error("Error al subir imagen:", error);
-        imagen.error = true;
-        imagen.uploading = false;
+        console.error("Error al subir archivo:", error);
+        item.error = true;
+        item.uploading = false;
+        fallidos++;
       }
     }
 
     this.isUploading = false;
-    
     this.imagenesPreview = this.imagenesPreview.filter(img => !img.uploaded);
-    
-    this.cargarImagenes();
-    
-    Swal.fire('Éxito', 'Imágenes subidas correctamente', 'success');
+
+    if (exitosos > 0) {
+      this.cargarImagenes();
+    }
+
+    if (fallidos === 0) {
+      Swal.fire('Éxito', 'Archivos subidos correctamente', 'success');
+    } else if (exitosos === 0) {
+      Swal.fire('No se pudo subir', this.mensajeFalloUpload(), 'error');
+    } else {
+      Swal.fire(
+        'Subida parcial',
+        `Se subieron ${exitosos}, fallaron ${fallidos}. ${this.mensajeFalloUpload()}`,
+        'warning'
+      );
+    }
   }
 
-  private subirImagen(imagen: ImagenPreview): Promise<any> {
+  /** Mensaje de ayuda para fallos de subida (revisar tamaño/tipo). */
+  private mensajeFalloUpload(): string {
+    return `Revisa que el video no supere ${this.maxVideoMb}MB y que sea MP4/MOV, o que la imagen no pase de 10MB.`;
+  }
+
+  private subirArchivo(item: ImagenPreview): Promise<any> {
     return new Promise((resolve, reject) => {
       const formData = new FormData();
-      formData.append('imagen', imagen.file);
+      formData.append('imagen', item.file);
       formData.append('id_galeria', this.idGaleria.toString());
       formData.append('carpeta', 'galerias');
 
@@ -546,20 +671,21 @@ export class GestionarImagenesComponent implements OnInit {
               id_galeria: this.idGaleria,
               id_subgaleria: null,
               url: response.ruta,
-              alt: imagen.file.name,
+              tipo_media: response.tipo_media || (item.esVideo ? 'video' : 'imagen'),
+              alt: item.file.name,
               orden: ordenActual
             };
 
             this.galeriaImagenesService.crear(nuevaImagen).subscribe({
               next: (resp: any) => {
-                imagen.id = resp.id;
-                imagen.guid = resp.guid;
+                item.id = resp.id;
+                item.guid = resp.guid;
                 resolve(resp);
               },
               error: (error) => reject(error)
             });
           } else {
-            reject(new Error('No se recibió ruta de imagen'));
+            reject(new Error('No se recibió ruta del archivo'));
           }
         },
         error: (error) => reject(error)
@@ -572,6 +698,11 @@ export class GestionarImagenesComponent implements OnInit {
   // ==========================================
 
   async establecerComoMiniatura(imagen: ImagenSubida) {
+    if (imagen.tipoMedia === 'video') {
+      Swal.fire('Aviso', 'La miniatura debe ser una imagen, no un video.', 'info');
+      return;
+    }
+
     const result = await Swal.fire({
       title: '¿Usar como miniatura?',
       text: 'Esta imagen será la portada de la galería',
@@ -585,11 +716,7 @@ export class GestionarImagenesComponent implements OnInit {
 
     if (result.isConfirmed) {
       const thumbnailGuid = imagen.guid;
-
-      const galeriaActualizada = {
-        ...this.galeria,
-        thumbnail: thumbnailGuid
-      };
+      const galeriaActualizada = { ...this.galeria, thumbnail: thumbnailGuid };
 
       this.galeriasService.actualizar(galeriaActualizada).subscribe({
         next: () => {
@@ -606,7 +733,7 @@ export class GestionarImagenesComponent implements OnInit {
   }
 
   // ==========================================
-  // ELIMINAR IMAGEN (individual)
+  // ELIMINAR (individual)
   // ==========================================
 
   async eliminarImagen(imagen: ImagenSubida) {
@@ -624,12 +751,12 @@ export class GestionarImagenesComponent implements OnInit {
     if (result.isConfirmed) {
       this.galeriaImagenesService.eliminar(imagen.id).subscribe({
         next: () => {
-          Swal.fire('Eliminado', 'Imagen eliminada correctamente', 'success');
+          Swal.fire('Eliminado', 'Elemento eliminado correctamente', 'success');
           this.cargarImagenes();
         },
         error: (error) => {
-          console.error("Error al eliminar imagen:", error);
-          Swal.fire('Error', 'No se pudo eliminar la imagen', 'error');
+          console.error("Error al eliminar:", error);
+          Swal.fire('Error', 'No se pudo eliminar', 'error');
         }
       });
     }
