@@ -134,14 +134,15 @@
             </div>
 
             <!-- Referencia bancaria -->
-            <div class="col-sm-12 col-md-4" *ngIf="model.id_tipo_pago == '2' || model.id_tipo_pago == '3'">
+            <div class="col-sm-12 col-md-4" *ngIf="tipoPagoRequiereReferencia()">
                 <label class="form-label">Referencia <span class="text-danger">*</span></label>
                 <input type="text" class="form-control form-control-lg" [(ngModel)]="model.referencia_bancaria"
-                    [ngClass]="{'is-invalid': !model.referencia_bancaria && (model.id_tipo_pago == '2' || model.id_tipo_pago == '3') && submitted}">
+                    (blur)="verificarReferenciaExistente()"
+                    [ngClass]="{'is-invalid': !model.referencia_bancaria && tipoPagoRequiereReferencia() && submitted}">
             </div>
 
             <!-- Valor restante (saldo) -->
-            <div [ngClass]="{'col-sm-12 col-md-4': model.id_tipo_pago == '2' || model.id_tipo_pago == '3', 'col-sm-12 col-md-8': !(model.id_tipo_pago == '2' || model.id_tipo_pago == '3')}"
+            <div [ngClass]="{'col-sm-12 col-md-4': tipoPagoRequiereReferencia(), 'col-sm-12 col-md-8': !tipoPagoRequiereReferencia()}"
                 *ngIf="model.id_tipo_pago">
                 <label class="form-label">Saldo restante</label>
                 <div class="input-group input-group-lg">

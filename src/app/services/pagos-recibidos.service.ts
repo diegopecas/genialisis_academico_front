@@ -282,6 +282,20 @@ export class PagosRecibidosService {
     );
   }
 
+  verificarDuplicado(elemento: any) {
+    var body = JSON.stringify(elemento);
+    return this.http.post<any>(this.servicio + '/verificar-duplicado', body, httpOptions).pipe(
+      tap((respuesta: any) => {
+        if (respuesta.error) {
+          console.log(respuesta);
+          throw respuesta.error;
+        }
+        return respuesta;
+      }),
+      catchError(this.handleError)
+    );
+  }
+
   private handleError(error: HttpErrorResponse) {
     return throwError(() => error);
   }

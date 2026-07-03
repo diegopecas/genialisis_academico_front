@@ -9,7 +9,7 @@ GENIALISIS es un SaaS multi-tenant para instituciones educativas. Varios tenants
 **Stack:** Angular 19 (front) + PHP/Flight (back) + MariaDB 10.11 (GoDaddy). Auth con JWT + header `X-Tenant`.
 
 ## 2. Modelo de datos
-
+ah
 Las tablas se dividen en dos grupos:
 
 | Grupo | PK `id` | `id_tenant` | Descripción |

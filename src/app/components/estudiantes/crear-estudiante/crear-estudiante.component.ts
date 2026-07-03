@@ -79,7 +79,7 @@ interface DatoDinamico {
   id_dato: string;
   nombre: string;
   nombre_tipo: string;
-  id_tipo: number;
+  id_tipo: string;
   orden_tipo: number;
   orden_dato: number;
   es_numero: boolean;
@@ -97,7 +97,7 @@ interface DatoDinamico {
 interface GrupoDatosDinamicos {
   nombre_tipo: string;
   icono: string;
-  id_tipo: number;
+  id_tipo: string;
   orden_tipo: number;
   datos: DatoDinamico[];
 }
@@ -741,12 +741,12 @@ export class CrearEstudianteComponent implements OnInit {
 
   construirGruposDinamicos(catalogo: any[], valores: any[], tipo: 'medicos' | 'adicionales') {
     const campoIdDato = tipo === 'medicos' ? 'id_dato_medico' : 'id_dato_adicional';
-    const valoresMap = new Map<number, any>();
+    const valoresMap = new Map<string, any>();
     valores.forEach((v: any) => {
-      valoresMap.set(Number(v[campoIdDato]), v);
+      valoresMap.set(v[campoIdDato], v);
     });
 
-    const gruposMap = new Map<number, GrupoDatosDinamicos>();
+    const gruposMap = new Map<string, GrupoDatosDinamicos>();
 
     catalogo.forEach((item: any) => {
       const idTipo = tipo === 'medicos' ? item.id_tipo_dato_medico : item.id_tipo_dato_adicional;

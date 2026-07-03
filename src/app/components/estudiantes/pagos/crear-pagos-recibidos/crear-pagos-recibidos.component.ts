@@ -91,6 +91,10 @@ export class CrearPagosRecibidosComponent implements OnInit {
     acudientes: [] as any[]
   }
 
+  // Bandera para evitar disparar la verificación de referencia repetidamente
+  // sobre el mismo valor ya verificado.
+  private ultimaReferenciaVerificada = "";
+
   // Modelo de datos principal
   public model: PagoModel = {
     id: '',
@@ -751,7 +755,7 @@ export class CrearPagosRecibidosComponent implements OnInit {
       }
     }
 
-    if ((this.model.id_tipo_pago === '2' || this.model.id_tipo_pago === '3') && !this.model.referencia_bancaria) {
+    if (this.tipoPagoRequiereReferencia() && !this.model.referencia_bancaria) {
       errores.push("Debe ingresar una referencia bancaria para este tipo de pago");
     }
 
@@ -759,6 +763,80 @@ export class CrearPagosRecibidosComponent implements OnInit {
       valido: errores.length === 0,
       mensajes: errores
     };
+  }
+
+  // Determina si el tipo de pago seleccionado exige referencia/comprobante,
+  // basándose en la columna requiere_documento del tipo (no en ids fijos).
+  tipoPagoRequiereReferencia(): boolean {
+    if (!this.model.id_tipo_pago) return false;
+    const tipo = this.listas.tiposPago.find((tp: any) => String(tp.id) === String(this.model.id_tipo_pago));
+    return tipo ? Number(tipo.requiere_documento) === 1 : false;
+  }
+
+  // ============================================
+  // MÉTODOS DE VERIFICACIÓN DE DUPLICADOS
+  // ============================================
+
+  // Arma el payload para el endpoint de verificación. En editar se envía el id
+  // del pago actual para que no se compare consigo mismo.
+  private construirDatosVerificacion(soloReferencia: boolean): any {
+    const datos: any = {
+      referencia_bancaria: this.model.referencia_bancaria || ''
+    };
+    if (!soloReferencia) {
+      datos.id_estudiante = this.model.id_estudiante;
+      datos.id_tipo_pago = this.model.id_tipo_pago;
+      datos.valor_recibido = this.model.valor_recibido;
+      datos.fecha = this.model.fecha;
+    }
+    if (this.accion === 'editar' && this.model.id) {
+      datos.id_pago_excluir = this.model.id;
+    }
+    return datos;
+  }
+
+  // Verificación en tiempo real al salir del campo de referencia (evento blur).
+  // Solo advierte; no bloquea el registro (los hermanos comparten comprobante).
+  verificarReferenciaExistente(): void {
+    const referencia = (this.model.referencia_bancaria || '').trim();
+
+    if (!referencia || referencia === this.ultimaReferenciaVerificada) {
+      return;
+    }
+    this.ultimaReferenciaVerificada = referencia;
+
+    this.pagosService.verificarDuplicado(this.construirDatosVerificacion(true)).subscribe({
+      next: (respuesta: any) => {
+        const existentes = (respuesta && respuesta.referencia_existente) ? respuesta.referencia_existente : [];
+        if (existentes.length > 0) {
+          Swal.fire({
+            title: 'Referencia ya registrada',
+            html: this.construirHtmlCoincidencias(
+              `La referencia <strong>${referencia}</strong> ya aparece en ${existentes.length} pago(s):`,
+              existentes
+            ),
+            icon: 'warning',
+            confirmButtonText: 'Entendido'
+          });
+        }
+      },
+      error: (error: any) => {
+        console.error('Error al verificar la referencia:', error);
+      }
+    });
+  }
+
+  // Construye el HTML del listado de coincidencias para los avisos.
+  private construirHtmlCoincidencias(encabezado: string, coincidencias: any[]): string {
+    let html = `<div style="text-align:left;">${encabezado}<ul style="max-height:250px;overflow-y:auto;">`;
+    coincidencias.forEach((c: any) => {
+      const nombre = c.nombre_estudiante ? c.nombre_estudiante : 'Estudiante';
+      const tipo = c.tipo_pago ? c.tipo_pago : '';
+      html += `<li>${nombre} — $${this.formatearMoneda(Number(c.valor_recibido))}` +
+        ` — ${c.fecha}${tipo ? ' — ' + tipo : ''}</li>`;
+    });
+    html += `</ul></div>`;
+    return html;
   }
 
   formularioValido(): boolean {
@@ -811,6 +889,57 @@ export class CrearPagosRecibidosComponent implements OnInit {
       }));
     }
 
+    // Antes de confirmar, verificar posibles duplicados (referencia ya usada y/o
+    // pago idéntico). Es solo advertencia: si el usuario acepta, continúa el flujo.
+    this.pagosService.verificarDuplicado(this.construirDatosVerificacion(false)).subscribe({
+      next: (respuesta: any) => {
+        const referenciaExistente = (respuesta && respuesta.referencia_existente) ? respuesta.referencia_existente : [];
+        const posibleDuplicado = (respuesta && respuesta.posible_duplicado) ? respuesta.posible_duplicado : [];
+
+        if (referenciaExistente.length > 0 || posibleDuplicado.length > 0) {
+          let html = '';
+          if (posibleDuplicado.length > 0) {
+            html += this.construirHtmlCoincidencias(
+              `Ya existe ${posibleDuplicado.length} pago(s) con el mismo estudiante, tipo, valor y fecha:`,
+              posibleDuplicado
+            );
+          }
+          if (referenciaExistente.length > 0) {
+            html += this.construirHtmlCoincidencias(
+              `La referencia <strong>${this.model.referencia_bancaria}</strong> ya está en ${referenciaExistente.length} pago(s):`,
+              referenciaExistente
+            );
+          }
+          html += `<p style="text-align:left;margin-top:10px;">¿Desea registrar el pago de todas formas?</p>`;
+
+          Swal.fire({
+            title: 'Posible pago duplicado',
+            html: html,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Registrar de todas formas',
+            cancelButtonText: 'Cancelar',
+            width: '600px'
+          }).then((result) => {
+            if (result.isConfirmed) {
+              this.confirmarYGuardar(datosPago, cuentasNuevasAplicadas);
+            }
+          });
+        } else {
+          this.confirmarYGuardar(datosPago, cuentasNuevasAplicadas);
+        }
+      },
+      error: (error: any) => {
+        // Si la verificación falla, no se bloquea el registro: se continúa con la confirmación normal.
+        console.error('Error al verificar duplicados:', error);
+        this.confirmarYGuardar(datosPago, cuentasNuevasAplicadas);
+      }
+    });
+  }
+
+  // Muestra la confirmación final y ejecuta el registro/actualización del pago.
+  // Extraído de grabar() para reutilizarlo tras la verificación de duplicados.
+  private confirmarYGuardar(datosPago: any, cuentasNuevasAplicadas: CuentaAplicadaModel[]) {
     let mensaje = this.accion === 'crear'
       ? `¿Está seguro de registrar este pago por ${this.formatearMoneda(this.model.valor_recibido)}?`
       : `¿Está seguro de actualizar este pago?`;
@@ -854,7 +983,7 @@ export class CrearPagosRecibidosComponent implements OnInit {
             },
             error: (error: any) => {
               console.error('Error al registrar el pago:', error);
-              Swal.fire('Error', `Hubo un problema al registrar el pago: ${error.message || 'Error desconocido'}`, 'error');
+              Swal.fire('Error', 'No se pudo registrar el pago. Verifique los datos e intente nuevamente.', 'error');
             }
           });
         } else {
@@ -880,7 +1009,7 @@ export class CrearPagosRecibidosComponent implements OnInit {
             },
             error: (error: any) => {
               console.error('Error al actualizar el pago:', error);
-              Swal.fire('Error', `Hubo un problema al actualizar el pago: ${error.message || 'Error desconocido'}`, 'error');
+              Swal.fire('Error', 'No se pudo actualizar el pago. Verifique los datos e intente nuevamente.', 'error');
             }
           });
         }
@@ -1007,12 +1136,14 @@ export class CrearPagosRecibidosComponent implements OnInit {
     };
     const hoy = new Date();
     this.model.fecha = hoy.toISOString().split('T')[0];
+    this.model.id_estudiante = this.idEstudiante;
     this.model.id_usuario_registro = this.utilService.obtenerIdUsuarioActual();
     this.cuentasSeleccionadas = [];
     this.submitted = false;
     this.valorRestante = 0;
     this.valorRecibidoFormateado = '';
     this.valoresAplicadosFormateados = {};
+    this.ultimaReferenciaVerificada = "";
     this.reporteSeleccionado = null;
     this.reportesPendientes = [];
     this.cargarReportesPendientes();
