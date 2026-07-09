@@ -217,7 +217,7 @@
         <div class="row justify-content-center">
           <div class="col-sm-6 col-md-3 text-center">
             <label class="docente-label">
-              Docente: {{ usuario.id_genero == 1 ? 'Miss' : 'Mr' }} {{ usuario.primer_nombre }}
+              {{ usuario.id_genero == 1 ? 'Miss' : 'Mr' }} {{ nombreDocente() }}
             </label>
             <button
               *ngIf="actividadAcademica.id_docente_inicia == null && usuario.id_docente"

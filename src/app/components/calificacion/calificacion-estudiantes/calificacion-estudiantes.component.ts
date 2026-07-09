@@ -305,6 +305,12 @@ export class CalificacionEstudiantesComponent implements OnInit {
     });
   }
 
+  /** Nombre a mostrar del docente: el sobrenombre si existe, si no el primer nombre. */
+  nombreDocente(): string {
+    const sobrenombre = (this.usuario?.sobrenombre || '').trim();
+    return sobrenombre || this.usuario?.primer_nombre || '';
+  }
+
   iniciarTarea(): void {
     this.tareasXSprintsService.iniciarTarea(
       this.actividadAcademica.id_tarea_x_sprint,

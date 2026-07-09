@@ -465,6 +465,14 @@ $color-star-checked: rgb(101, 245, 209);
   font-weight: 500;
 }
 
+.campo-aviso {
+  display: block;
+  color: #8D6E63;
+  font-size: 0.72em;
+  margin-top: 3px;
+  font-weight: 500;
+}
+
 .form-crear-row {
   display: flex;
   gap: 10px;

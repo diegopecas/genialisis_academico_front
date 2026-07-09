@@ -100,6 +100,7 @@
           <div class="form-crear-campo">
             <label>📋 Indicadores de Logro <span *ngIf="logrosDisponibles.length > 0" class="text-danger">*</span></label>
             <small class="campo-error" *ngIf="intentoCrear && formRequiereIndicador()">Debes asociar al menos un indicador de logro</small>
+            <small class="campo-aviso" *ngIf="areaSinLogros()">Esta área no tiene logros cargados, la actividad se creará sin indicadores.</small>
             <div class="form-crear-indicadores" *ngIf="formActividad.indicadores.length > 0">
               <div *ngFor="let ind of formActividad.indicadores" class="indicador-chip-cal">
                 <span class="indicador-logro-cal">{{ ind.logro_nombre }}</span>
@@ -107,7 +108,7 @@
                 <span class="indicador-remove-cal" (click)="quitarIndicadorForm(ind.id)">✕</span>
               </div>
             </div>
-            <details class="agregar-indicador-panel-cal">
+            <details class="agregar-indicador-panel-cal" *ngIf="logrosDisponibles.length > 0">
               <summary>➕ Agregar indicador</summary>
               <input type="text" [(ngModel)]="busquedaIndicadorForm" placeholder="🔍 Buscar indicador..." class="buscador-indicador-cal">
               <div class="indicadores-disponibles-cal">

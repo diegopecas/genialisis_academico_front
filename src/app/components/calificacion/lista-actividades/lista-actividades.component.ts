@@ -47,6 +47,7 @@ export class ListaActividadesComponent implements OnInit {
   public tiposActividad: any[] = [];
   public sprintActual: any = null;
   public logrosDisponibles: any[] = [];
+  public logrosCargados: boolean = false;
   public sugiriendoIA: boolean = false;
   public busquedaIndicadorForm: string = '';
   public intentoCrear: boolean = false;
@@ -361,12 +362,38 @@ export class ListaActividadesComponent implements OnInit {
   }
 
   private cargarLogrosParaCrear(): void {
+    this.logrosCargados = false;
     if (!this.grupo || !this.area) return;
     this.logrosService.obtenerByGrupoAreaConIndicadores(this.grupo.id, this.area.id_area_academica)
       .subscribe({
-        next: (resp: any) => { this.logrosDisponibles = resp.body || []; },
-        error: () => { this.logrosDisponibles = []; }
+        next: (resp: any) => {
+          this.logrosDisponibles = resp.body || [];
+          this.logrosCargados = true;
+        },
+        error: () => {
+          this.logrosDisponibles = [];
+          this.logrosCargados = true;
+        }
       });
+  }
+
+  /**
+   * Ids de todos los indicadores realmente existentes para el grupo y área actuales.
+   * Sirve como filtro contra ids inventados por la IA.
+   */
+  private idsIndicadoresDisponibles(): string[] {
+    const ids: string[] = [];
+    for (const logro of this.logrosDisponibles) {
+      for (const ind of (logro.indicadores || [])) {
+        ids.push(ind.id);
+      }
+    }
+    return ids;
+  }
+
+  /** El área está cargada y no tiene ningún logro asociado. */
+  areaSinLogros(): boolean {
+    return this.logrosCargados && this.logrosDisponibles.length === 0;
   }
 
   formActividadValido(): boolean {
@@ -413,8 +440,12 @@ export class ListaActividadesComponent implements OnInit {
             this.formActividad.id_tipo_actividad_academica = s.id_tipo_actividad_academica;
           }
           if (s.indicadores_ids && this.formActividad.indicadores_ids.length === 0) {
-            this.formActividad.indicadores_ids = s.indicadores_ids;
-            this.formActividad.indicadores = s.indicadores || [];
+            // Solo se aceptan indicadores que existan en los logros cargados desde la BD.
+            const disponibles = this.idsIndicadoresDisponibles();
+            this.formActividad.indicadores_ids = (s.indicadores_ids as string[])
+              .filter((id: string) => disponibles.includes(id));
+            this.formActividad.indicadores = (s.indicadores || [])
+              .filter((ind: any) => this.formActividad.indicadores_ids.includes(ind.id));
           }
           Swal.fire({ title: '🪄 Sugerencias aplicadas', icon: 'success', timer: 1500, showConfirmButton: false });
         }
@@ -512,8 +543,9 @@ export class ListaActividadesComponent implements OnInit {
           Swal.fire('Error', resp.error || 'No se pudo crear.', 'error');
         }
       },
-      error: () => {
-        Swal.fire('Error', 'No se pudo crear la actividad.', 'error');
+      error: (err: any) => {
+        const mensaje = err?.error?.error || 'No se pudo crear la actividad.';
+        Swal.fire('Error', mensaje, 'error');
       }
     });
   }

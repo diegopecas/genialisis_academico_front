@@ -482,7 +482,8 @@ export class MaquinaActividadesComponent implements OnInit {
       },
       error: (err: any) => {
         console.error('Error grabando actividades', err);
-        Swal.fire('Error', 'No se pudieron grabar las actividades. Intente nuevamente.', 'error');
+        const mensaje = err?.error?.error || 'No se pudieron grabar las actividades. Intente nuevamente.';
+        Swal.fire('Error', mensaje, 'error');
       }
     });
   }

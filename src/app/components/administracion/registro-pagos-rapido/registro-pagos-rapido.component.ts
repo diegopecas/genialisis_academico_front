@@ -608,7 +608,7 @@ export class RegistroPagosRapidoComponent implements OnInit, OnDestroy {
       const formData = new FormData();
       formData.append('archivo', fila.archivo);
       formData.append('id_persona', fila.estudiante.id_persona.toString());
-      formData.append('id_tipo_documento', '32');
+      formData.append('codigo_tipo_documento', 'comprobante_pago');
       formData.append('observaciones', `Comprobante de pago - Ref: ${fila.referencia_bancaria || 'N/A'}`);
       const idUsuario = this.utilService.obtenerIdUsuarioActual();
       if (idUsuario) formData.append('id_usuario_subio', idUsuario.toString());
