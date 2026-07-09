@@ -10,6 +10,7 @@ import { PagosRecibidosService } from '../../../services/pagos-recibidos.service
 import { UtilService } from '../../../common/constantes/util.service';
 import { InstitucionConfigService } from '../../../services/institucion-config.service';
 import { PermisosService } from '../../../services/permisos.service';
+import { DocumentosPersonasService } from '../../../services/documentos-personas.service';
 
 
 @Component({
@@ -66,7 +67,8 @@ export class PagosRecibidosComponent implements OnInit {
     private pagosRecibidosService: PagosRecibidosService,
     private utilService: UtilService,
     private institucionConfigService: InstitucionConfigService,
-    private permisosService: PermisosService
+    private permisosService: PermisosService,
+    private documentosService: DocumentosPersonasService
   ) { }
 
   ngOnInit() {
@@ -217,6 +219,16 @@ export class PagosRecibidosComponent implements OnInit {
       },
 
       {
+        clave: 'id_documento_persona',
+        alias: 'Comprobante',
+        alinear: 'centrado',
+        tipo: 'boton',
+        icono: '/assets/images/comprobante_pago.png',
+        accionId: 'descargar-comprobante',
+        tooltip: 'Descargar comprobante'
+      },
+
+      {
         clave: 'valor_recibido',
         alias: 'Valor Recibido',
         alinear: 'derecha',
@@ -316,7 +328,50 @@ export class PagosRecibidosComponent implements OnInit {
       this.contablilziarPago(event.id, event.registro);
     } else if (event.accion === 'imprimir') {
       this.imprimir(event.id, event.registro);
+    } else if (event.accion === 'descargar-comprobante') {
+      this.descargarComprobante(event.registro);
     }
+  }
+
+  descargarComprobante(registro: any) {
+    if (!registro || !registro.id_documento_persona) {
+      Swal.fire({
+        title: 'Sin comprobante',
+        text: 'Este pago no tiene un comprobante asociado.',
+        icon: 'info',
+        confirmButtonText: 'Aceptar'
+      });
+      return;
+    }
+
+    this.documentosService.descargarDocumento(registro.id_documento_persona).subscribe({
+      next: (response: any) => {
+        const blob = response.body as Blob;
+
+        // Intentar obtener el nombre del archivo desde el header Content-Disposition.
+        let nombreArchivo = 'comprobante';
+        const contentDisposition = response.headers?.get('Content-Disposition');
+        if (contentDisposition) {
+          const match = /filename="?([^"]+)"?/.exec(contentDisposition);
+          if (match && match[1]) {
+            nombreArchivo = match[1];
+          }
+        }
+
+        const url = window.URL.createObjectURL(blob);
+        const enlace = document.createElement('a');
+        enlace.href = url;
+        enlace.download = nombreArchivo;
+        document.body.appendChild(enlace);
+        enlace.click();
+        document.body.removeChild(enlace);
+        window.URL.revokeObjectURL(url);
+      },
+      error: (error: any) => {
+        console.error('Error al descargar el comprobante:', error);
+        Swal.fire('Error', 'No se pudo descargar el comprobante. Intente nuevamente.', 'error');
+      }
+    });
   }
 
   anularPago(id: any, registro: any) {

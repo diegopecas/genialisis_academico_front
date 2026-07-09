@@ -156,6 +156,15 @@ export class DocumentosPersonasService {
       );
   }
 
+  descargarDocumento(id: string) {
+    return this.http.get(this.servicio + '/download/' + id, {
+      responseType: 'blob',
+      observe: 'response'
+    }).pipe(
+      catchError(this.handleError)
+    );
+  }
+
   obtenerUrlDescarga(id: string): string {
     const tenant = this.institucionConfigService.getJardinCodigo();
     return (

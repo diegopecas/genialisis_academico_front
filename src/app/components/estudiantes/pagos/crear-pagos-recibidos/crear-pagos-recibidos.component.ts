@@ -12,6 +12,7 @@ import { AcudientesService } from '../../../../services/acudientes.service';
 import { UtilService } from '../../../../common/constantes/util.service';
 import { CuentaPagadaService } from '../../../../services/cuenta-pagada.service';
 import { ReportesPagoService } from '../../../../services/reportes-pago.service';
+import { DocumentosPersonasService } from '../../../../services/documentos-personas.service';
 import { environment } from '../../../../../environments/environment';
 
 
@@ -36,6 +37,7 @@ interface PagoModel {
   nombre_completo_usuario_registro?: string;
   nombre_completo_usuario_contable?: string;
   nombre_completo_usuario_anulacion?: string;
+  id_documento_persona?: string | null;
   cuentas_aplicadas: CuentaAplicadaModel[];
 }
 
@@ -91,10 +93,6 @@ export class CrearPagosRecibidosComponent implements OnInit {
     acudientes: [] as any[]
   }
 
-  // Bandera para evitar disparar la verificación de referencia repetidamente
-  // sobre el mismo valor ya verificado.
-  private ultimaReferenciaVerificada = "";
-
   // Modelo de datos principal
   public model: PagoModel = {
     id: '',
@@ -117,6 +115,15 @@ export class CrearPagosRecibidosComponent implements OnInit {
   public reporteSeleccionado: any = null;
   public reporteAsociado: any = null;
 
+  // Comprobante de pago (archivo) y datos extraídos por IA
+  public archivoComprobante: File | null = null;
+  public analizandoIA = false;
+  public bancoDetectadoIA: string | null = null;
+  public idDocumentoPersona: string | null = null;
+  // Código (estable) del tipo de documento para comprobantes de pago.
+  // El back lo resuelve a su UUID por código dentro del tenant.
+  private readonly CODIGO_TIPO_DOCUMENTO_COMPROBANTE = 'comprobante_pago';
+
 
   constructor(
     private route: ActivatedRoute,
@@ -128,6 +135,7 @@ export class CrearPagosRecibidosComponent implements OnInit {
     private acudientesService: AcudientesService,
     private cuentaPagadaService: CuentaPagadaService,
     private reportesPagoService: ReportesPagoService,
+    private documentosService: DocumentosPersonasService,
     private utilService: UtilService
   ) { }
 
@@ -774,68 +782,213 @@ export class CrearPagosRecibidosComponent implements OnInit {
   }
 
   // ============================================
+  // COMPROBANTE DE PAGO + IA
+  // ============================================
+
+  // Selección del archivo de comprobante. Solo valida y lo guarda en memoria;
+  // el análisis con IA se dispara con el botón "Procesar con IA".
+  onArchivoComprobanteSeleccionado(event: any): void {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      Swal.fire('Error', 'El archivo no puede superar 10MB', 'error');
+      event.target.value = '';
+      return;
+    }
+
+    const extension = file.name.split('.').pop()?.toLowerCase();
+    if (!extension || !['pdf', 'jpg', 'jpeg', 'png'].includes(extension)) {
+      Swal.fire('Error', 'Solo se permiten archivos PDF, JPG, JPEG o PNG', 'error');
+      event.target.value = '';
+      return;
+    }
+
+    this.archivoComprobante = file;
+    // Al cambiar de archivo se reinicia el documento subido previamente.
+    this.idDocumentoPersona = null;
+    this.bancoDetectadoIA = null;
+  }
+
+  // Quita el comprobante seleccionado y limpia el estado asociado.
+  quitarComprobante(): void {
+    this.archivoComprobante = null;
+    this.idDocumentoPersona = null;
+    this.bancoDetectadoIA = null;
+    const input = document.getElementById('archivoComprobante') as HTMLInputElement;
+    if (input) input.value = '';
+  }
+
+  // Indica si el pago cargado (editar/consultar) tiene un comprobante asociado.
+  tieneComprobante(): boolean {
+    return !!this.model.id_documento_persona;
+  }
+
+  // Descarga el comprobante asociado al pago usando HttpClient (pasa por el
+  // interceptor, con token y tenant) y fuerza la descarga del archivo.
+  descargarComprobante(): void {
+    if (!this.model.id_documento_persona) return;
+
+    this.documentosService.descargarDocumento(this.model.id_documento_persona).subscribe({
+      next: (response: any) => {
+        const blob = response.body as Blob;
+
+        // Intentar obtener el nombre del archivo desde el header Content-Disposition.
+        let nombreArchivo = 'comprobante';
+        const contentDisposition = response.headers?.get('Content-Disposition');
+        if (contentDisposition) {
+          const match = /filename="?([^"]+)"?/.exec(contentDisposition);
+          if (match && match[1]) {
+            nombreArchivo = match[1];
+          }
+        }
+
+        const url = window.URL.createObjectURL(blob);
+        const enlace = document.createElement('a');
+        enlace.href = url;
+        enlace.download = nombreArchivo;
+        document.body.appendChild(enlace);
+        enlace.click();
+        document.body.removeChild(enlace);
+        window.URL.revokeObjectURL(url);
+      },
+      error: (error: any) => {
+        console.error('Error al descargar el comprobante:', error);
+        Swal.fire('Error', 'No se pudo descargar el comprobante. Intente nuevamente.', 'error');
+      }
+    });
+  }
+
+  // Procesa el comprobante con IA y rellena valor, referencia y fecha.
+  // Además compara el banco detectado contra el tipo de pago seleccionado.
+  procesarComprobanteIA(): void {
+    if (!this.archivoComprobante) {
+      Swal.fire('Atención', 'Primero seleccione el archivo del comprobante', 'warning');
+      return;
+    }
+
+    this.analizandoIA = true;
+    this.pagosService.analizarComprobante(this.archivoComprobante).subscribe({
+      next: (respuesta: any) => {
+        this.analizandoIA = false;
+        if (respuesta && respuesta.success && respuesta.datos) {
+          const datos = respuesta.datos;
+
+          if (datos.valor) {
+            this.model.valor_recibido = Number(datos.valor);
+            this.formatearValorRecibido(this.model.valor_recibido);
+            this.actualizarTotales();
+          }
+          if (datos.referencia) {
+            this.model.referencia_bancaria = String(datos.referencia);
+          }
+          if (datos.fecha) {
+            this.model.fecha = datos.fecha;
+          }
+          this.bancoDetectadoIA = datos.banco ? String(datos.banco) : null;
+
+          this.validarBancoContraTipoPago();
+        } else {
+          Swal.fire('Advertencia', 'No se pudieron extraer los datos del comprobante. Puede ingresar los datos manualmente.', 'warning');
+        }
+      },
+      error: (error: any) => {
+        this.analizandoIA = false;
+        console.error('Error al analizar el comprobante:', error);
+        Swal.fire('Advertencia', 'No se pudo procesar el comprobante con IA. Puede ingresar los datos manualmente.', 'warning');
+      }
+    });
+  }
+
+  // Compara el banco detectado por la IA contra el nombre del tipo de pago
+  // seleccionado. Solo advierte (no bloquea) si no parecen coincidir.
+  private validarBancoContraTipoPago(): void {
+    if (!this.bancoDetectadoIA || !this.model.id_tipo_pago) return;
+
+    const tipo = this.listas.tiposPago.find((tp: any) => String(tp.id) === String(this.model.id_tipo_pago));
+    if (!tipo || !tipo.nombre) return;
+
+    const normalizar = (texto: string): string =>
+      texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+
+    const banco = normalizar(this.bancoDetectadoIA);
+    const nombreTipo = normalizar(tipo.nombre);
+
+    // Coincide si alguno contiene al otro (ej. "Nequi" vs "Nequi", "Bancolombia" vs "Bancolombia S.A.")
+    const coincide = banco.includes(nombreTipo) || nombreTipo.includes(banco);
+
+    if (!coincide) {
+      Swal.fire({
+        title: 'Verifique el tipo de pago',
+        html: `<div style="text-align:left;">`
+          + `El comprobante parece ser de <strong>${this.bancoDetectadoIA}</strong>, `
+          + `pero el tipo de pago seleccionado es <strong>${tipo.nombre}</strong>.<br><br>`
+          + `Verifique que el tipo de pago sea el correcto.`
+          + `</div>`,
+        icon: 'warning',
+        confirmButtonText: 'Entendido'
+      });
+    }
+  }
+
+  // Sube el archivo de comprobante y devuelve el id del documento creado.
+  // Si no hay archivo, resuelve con null. Replica el patrón del registro rápido.
+  private subirComprobante(): Promise<string | null> {
+    return new Promise((resolve, reject) => {
+      if (!this.archivoComprobante) {
+        resolve(null);
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('archivo', this.archivoComprobante);
+      formData.append('id_persona', this.estudiante?.id_persona?.toString() || '');
+      formData.append('codigo_tipo_documento', this.CODIGO_TIPO_DOCUMENTO_COMPROBANTE);
+      formData.append('observaciones', `Comprobante de pago - Ref: ${this.model.referencia_bancaria || 'N/A'}`);
+      const idUsuario = this.utilService.obtenerIdUsuarioActual();
+      if (idUsuario) formData.append('id_usuario_subio', idUsuario.toString());
+
+      this.documentosService.subirDocumento(formData).subscribe({
+        next: (response: any) => resolve(response.id || response.body?.id || null),
+        error: (error: any) => reject(error)
+      });
+    });
+  }
+
+  // ============================================
   // MÉTODOS DE VERIFICACIÓN DE DUPLICADOS
   // ============================================
 
   // Arma el payload para el endpoint de verificación. En editar se envía el id
   // del pago actual para que no se compare consigo mismo.
-  private construirDatosVerificacion(soloReferencia: boolean): any {
+  private construirDatosVerificacion(): any {
     const datos: any = {
-      referencia_bancaria: this.model.referencia_bancaria || ''
+      referencia_bancaria: this.model.referencia_bancaria || '',
+      id_estudiante: this.model.id_estudiante,
+      id_tipo_pago: this.model.id_tipo_pago,
+      valor_recibido: this.model.valor_recibido,
+      fecha: this.model.fecha
     };
-    if (!soloReferencia) {
-      datos.id_estudiante = this.model.id_estudiante;
-      datos.id_tipo_pago = this.model.id_tipo_pago;
-      datos.valor_recibido = this.model.valor_recibido;
-      datos.fecha = this.model.fecha;
-    }
     if (this.accion === 'editar' && this.model.id) {
       datos.id_pago_excluir = this.model.id;
     }
     return datos;
   }
 
-  // Verificación en tiempo real al salir del campo de referencia (evento blur).
-  // Solo advierte; no bloquea el registro (los hermanos comparten comprobante).
-  verificarReferenciaExistente(): void {
-    const referencia = (this.model.referencia_bancaria || '').trim();
-
-    if (!referencia || referencia === this.ultimaReferenciaVerificada) {
-      return;
-    }
-    this.ultimaReferenciaVerificada = referencia;
-
-    this.pagosService.verificarDuplicado(this.construirDatosVerificacion(true)).subscribe({
-      next: (respuesta: any) => {
-        const existentes = (respuesta && respuesta.referencia_existente) ? respuesta.referencia_existente : [];
-        if (existentes.length > 0) {
-          Swal.fire({
-            title: 'Referencia ya registrada',
-            html: this.construirHtmlCoincidencias(
-              `La referencia <strong>${referencia}</strong> ya aparece en ${existentes.length} pago(s):`,
-              existentes
-            ),
-            icon: 'warning',
-            confirmButtonText: 'Entendido'
-          });
-        }
-      },
-      error: (error: any) => {
-        console.error('Error al verificar la referencia:', error);
-      }
-    });
-  }
-
-  // Construye el HTML del listado de coincidencias para los avisos.
-  private construirHtmlCoincidencias(encabezado: string, coincidencias: any[]): string {
-    let html = `<div style="text-align:left;">${encabezado}<ul style="max-height:250px;overflow-y:auto;">`;
+  // Construye el HTML del listado de coincidencias para el aviso de duplicados.
+  private construirHtmlCoincidencias(coincidencias: any[]): string {
+    let html = '<ul style="margin:6px 0 0 0;padding-left:18px;text-align:left;">';
     coincidencias.forEach((c: any) => {
       const nombre = c.nombre_estudiante ? c.nombre_estudiante : 'Estudiante';
+      const valor = '$' + this.formatearMoneda(Number(c.valor_recibido));
+      const fecha = c.fecha ? String(c.fecha).substring(0, 10) : '';
       const tipo = c.tipo_pago ? c.tipo_pago : '';
-      html += `<li>${nombre} — $${this.formatearMoneda(Number(c.valor_recibido))}` +
-        ` — ${c.fecha}${tipo ? ' — ' + tipo : ''}</li>`;
+      html += `<li style="margin-bottom:4px;">`
+        + `<strong>${nombre}</strong><br>`
+        + `<span style="color:#555;">${valor}${fecha ? ' &middot; ' + fecha : ''}${tipo ? ' &middot; ' + tipo : ''}</span>`
+        + `</li>`;
     });
-    html += `</ul></div>`;
+    html += '</ul>';
     return html;
   }
 
@@ -868,7 +1021,8 @@ export class CrearPagosRecibidosComponent implements OnInit {
       fecha_registro: new Date().toISOString().replace('T', ' ').substring(0, 19),
       id_usuario_registro: this.model.id_usuario_registro,
       fecha_contabilizacion: null,
-      id_usuario_contable: null
+      id_usuario_contable: null,
+      id_documento_persona: null as string | null
     };
 
     let cuentasNuevasAplicadas: CuentaAplicadaModel[] = [];
@@ -891,26 +1045,32 @@ export class CrearPagosRecibidosComponent implements OnInit {
 
     // Antes de confirmar, verificar posibles duplicados (referencia ya usada y/o
     // pago idéntico). Es solo advertencia: si el usuario acepta, continúa el flujo.
-    this.pagosService.verificarDuplicado(this.construirDatosVerificacion(false)).subscribe({
+    this.pagosService.verificarDuplicado(this.construirDatosVerificacion()).subscribe({
       next: (respuesta: any) => {
         const referenciaExistente = (respuesta && respuesta.referencia_existente) ? respuesta.referencia_existente : [];
         const posibleDuplicado = (respuesta && respuesta.posible_duplicado) ? respuesta.posible_duplicado : [];
 
         if (referenciaExistente.length > 0 || posibleDuplicado.length > 0) {
-          let html = '';
+          let html = '<div style="text-align:left;">';
+
           if (posibleDuplicado.length > 0) {
-            html += this.construirHtmlCoincidencias(
-              `Ya existe ${posibleDuplicado.length} pago(s) con el mismo estudiante, tipo, valor y fecha:`,
-              posibleDuplicado
-            );
+            html += `<div style="margin-bottom:12px;">`
+              + `<div style="font-weight:600;color:#d9822b;">⚠ Pago idéntico ya registrado</div>`
+              + `<div style="color:#555;font-size:.9em;">Mismo estudiante, tipo, valor y fecha (${posibleDuplicado.length}):</div>`
+              + this.construirHtmlCoincidencias(posibleDuplicado)
+              + `</div>`;
           }
+
           if (referenciaExistente.length > 0) {
-            html += this.construirHtmlCoincidencias(
-              `La referencia <strong>${this.model.referencia_bancaria}</strong> ya está en ${referenciaExistente.length} pago(s):`,
-              referenciaExistente
-            );
+            html += `<div style="margin-bottom:12px;">`
+              + `<div style="font-weight:600;color:#d9822b;">⚠ Referencia ya registrada</div>`
+              + `<div style="color:#555;font-size:.9em;">La referencia "${this.model.referencia_bancaria}" aparece en ${referenciaExistente.length} pago(s):</div>`
+              + this.construirHtmlCoincidencias(referenciaExistente)
+              + `</div>`;
           }
-          html += `<p style="text-align:left;margin-top:10px;">¿Desea registrar el pago de todas formas?</p>`;
+
+          html += `<div style="margin-top:8px;">¿Desea registrar el pago de todas formas?</div>`;
+          html += `</div>`;
 
           Swal.fire({
             title: 'Posible pago duplicado',
@@ -919,7 +1079,7 @@ export class CrearPagosRecibidosComponent implements OnInit {
             showCancelButton: true,
             confirmButtonText: 'Registrar de todas formas',
             cancelButtonText: 'Cancelar',
-            width: '600px'
+            width: '520px'
           }).then((result) => {
             if (result.isConfirmed) {
               this.confirmarYGuardar(datosPago, cuentasNuevasAplicadas);
@@ -970,22 +1130,33 @@ export class CrearPagosRecibidosComponent implements OnInit {
         console.log('Datos a enviar:', datosPago);
 
         if (this.accion === 'crear') {
-          this.pagosService.crear(datosPago).subscribe({
-            next: (respuesta: any) => {
-              console.log('Respuesta del servicio:', respuesta);
-              if (respuesta && respuesta.id) {
-                const idPagoRecibido = respuesta.id;
-                this.asociarReporteAlPago(idPagoRecibido);
-                this.procesarCuentasAplicadas(idPagoRecibido, cuentasNuevasAplicadas);
-              } else {
-                Swal.fire('Error', 'No se pudo registrar el pago correctamente', 'error');
-              }
-            },
-            error: (error: any) => {
-              console.error('Error al registrar el pago:', error);
-              Swal.fire('Error', 'No se pudo registrar el pago. Verifique los datos e intente nuevamente.', 'error');
-            }
-          });
+          // Si hay comprobante, subirlo primero y adjuntar su id al pago.
+          this.subirComprobante()
+            .then((idDocumento: string | null) => {
+              this.idDocumentoPersona = idDocumento;
+              datosPago.id_documento_persona = idDocumento;
+
+              this.pagosService.crear(datosPago).subscribe({
+                next: (respuesta: any) => {
+                  console.log('Respuesta del servicio:', respuesta);
+                  if (respuesta && respuesta.id) {
+                    const idPagoRecibido = respuesta.id;
+                    this.asociarReporteAlPago(idPagoRecibido);
+                    this.procesarCuentasAplicadas(idPagoRecibido, cuentasNuevasAplicadas);
+                  } else {
+                    Swal.fire('Error', 'No se pudo registrar el pago correctamente', 'error');
+                  }
+                },
+                error: (error: any) => {
+                  console.error('Error al registrar el pago:', error);
+                  Swal.fire('Error', 'No se pudo registrar el pago. Verifique los datos e intente nuevamente.', 'error');
+                }
+              });
+            })
+            .catch((error: any) => {
+              console.error('Error al subir el comprobante:', error);
+              Swal.fire('Error', 'No se pudo subir el comprobante. Intente nuevamente.', 'error');
+            });
         } else {
           // Modo editar
           this.pagosService.actualizar(datosPago).subscribe({
@@ -1143,9 +1314,14 @@ export class CrearPagosRecibidosComponent implements OnInit {
     this.valorRestante = 0;
     this.valorRecibidoFormateado = '';
     this.valoresAplicadosFormateados = {};
-    this.ultimaReferenciaVerificada = "";
     this.reporteSeleccionado = null;
     this.reportesPendientes = [];
+    this.archivoComprobante = null;
+    this.idDocumentoPersona = null;
+    this.bancoDetectadoIA = null;
+    this.analizandoIA = false;
+    const inputComprobante = document.getElementById('archivoComprobante') as HTMLInputElement;
+    if (inputComprobante) inputComprobante.value = '';
     this.cargarReportesPendientes();
     this.obtenerCuentasPorCobrar();
 

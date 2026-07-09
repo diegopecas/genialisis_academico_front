@@ -137,7 +137,6 @@
             <div class="col-sm-12 col-md-4" *ngIf="tipoPagoRequiereReferencia()">
                 <label class="form-label">Referencia <span class="text-danger">*</span></label>
                 <input type="text" class="form-control form-control-lg" [(ngModel)]="model.referencia_bancaria"
-                    (blur)="verificarReferenciaExistente()"
                     [ngClass]="{'is-invalid': !model.referencia_bancaria && tipoPagoRequiereReferencia() && submitted}">
             </div>
 
@@ -163,6 +162,51 @@
             <div class="col-sm-12">
                 <label class="form-label">Observaciones</label>
                 <textarea class="form-control form-control-lg" rows="3" [(ngModel)]="model.observaciones"></textarea>
+            </div>
+        </div>
+
+        <!-- Comprobante de pago + procesamiento con IA (solo al crear) -->
+        <div class="row mt-3" *ngIf="accion === 'crear'">
+            <div class="col-sm-12">
+                <label class="form-label">Comprobante de pago</label>
+                <div class="d-flex flex-column flex-md-row gap-2 align-items-start">
+                    <input type="file" id="archivoComprobante" class="form-control form-control-lg"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        (change)="onArchivoComprobanteSeleccionado($event)">
+
+                    <button type="button" class="btn btn-lg btn-outline-primary text-nowrap"
+                        (click)="procesarComprobanteIA()"
+                        [disabled]="!archivoComprobante || analizandoIA">
+                        <span *ngIf="!analizandoIA">Procesar con IA</span>
+                        <span *ngIf="analizandoIA">Procesando...</span>
+                    </button>
+
+                    <button type="button" class="btn btn-lg btn-outline-secondary text-nowrap"
+                        (click)="quitarComprobante()"
+                        *ngIf="archivoComprobante">
+                        Quitar
+                    </button>
+                </div>
+
+                <small class="text-muted d-block mt-1">
+                    Puede subir el comprobante y digitar los datos, o usar "Procesar con IA" para llenarlos automáticamente.
+                </small>
+
+                <small class="text-info d-block mt-1" *ngIf="bancoDetectadoIA">
+                    Entidad detectada en el comprobante: <strong>{{ bancoDetectadoIA }}</strong>
+                </small>
+            </div>
+        </div>
+
+        <!-- Descarga del comprobante asociado (al editar o consultar) -->
+        <div class="row mt-3" *ngIf="(accion === 'editar' || accion === 'consultar') && tieneComprobante()">
+            <div class="col-sm-12">
+                <label class="form-label">Comprobante de pago</label>
+                <div>
+                    <button type="button" class="btn btn-lg btn-outline-primary" (click)="descargarComprobante()">
+                        Descargar comprobante
+                    </button>
+                </div>
             </div>
         </div>
 

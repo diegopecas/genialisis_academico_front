@@ -1,6 +1,6 @@
 export const environment = {
   production: true,
-  api: "https://api.genialisis.com/",
+  api: "https://qa-api.genialisis.com/",
   claudeApiUrl: 'https://api.anthropic.com/v1/messages',
   claudeApiKey: 'tu-api-key-aquí',
   geminiApiUrl: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent',

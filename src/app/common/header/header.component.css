@@ -1,4 +1,18 @@
 /* ============================================
+   HOST DEL HEADER
+   Asegura que el encabezado se pinte por encima
+   de capas de fondo posicionadas (ej. .background-overlay
+   con z-index: 1 en mi-cuenta y galeria).
+   display: block -> el host deja de ser inline.
+   position + z-index -> lo sube sobre el overlay.
+   ============================================ */
+:host {
+  display: block;
+  position: relative;
+  z-index: 2;
+}
+
+/* ============================================
    HEADER CON 3 SECCIONES Y BORDE NARANJA
    ============================================ */
 .franja-titulo {
