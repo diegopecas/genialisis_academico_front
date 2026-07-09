@@ -481,16 +481,6 @@ export class EstudianteEvaluacionesComponent implements OnInit, OnDestroy {
         return `${dia}/${mes}/${anio}`;
     }
 
-    // Método para obtener el color del tipo de observación
-    getColorTipoObservacion(idTipo: string): string {
-        const coloresTipos: { [key: string]: string } = {
-            1: '#3498db',  // Académica - Azul
-            2: '#e67e22',  // Disciplinaria - Naranja
-            4: '#9b59b6'   // Social - Morado
-        };
-        return coloresTipos[idTipo] || '#6c757d';
-    }
-
     // Método para obtener las observaciones agrupadas por tipo
     getObservacionesPorTipo(idTipo: string): ObservacionEstudiante[] {
         return this.observaciones.filter(obs => obs.id_tipo_observacion_estudiante === idTipo);

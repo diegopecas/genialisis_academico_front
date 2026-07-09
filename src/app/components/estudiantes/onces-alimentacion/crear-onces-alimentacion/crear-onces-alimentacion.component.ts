@@ -13,7 +13,7 @@ import { UtilService } from '../../../../common/constantes/util.service';
 import { AsistenciaEstudiantesService } from '../../../../services/asistencia-estudiantes.service';
 import { CuentaPagadaService } from '../../../../services/cuenta-pagada.service';
 import { HorariosAlimentacionService } from '../../../../services/horarios-alimentacion.service';
-import { ClasificacionProductosServicios, PeriodicidadCobro } from './constantes';
+import { PeriodicidadCobro } from './constantes';
 
 // Interfaz para el modelo de cuenta actualizada
 interface CuentaModel {

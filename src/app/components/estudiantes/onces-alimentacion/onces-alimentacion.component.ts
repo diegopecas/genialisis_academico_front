@@ -9,7 +9,7 @@ import Swal from 'sweetalert2';
 import { CuentasPorCobrarService } from '../../../services/cuentas-por-cobrar.service';
 import { UtilService } from '../../../common/constantes/util.service';
 import { PermisosService } from '../../../services/permisos.service';
-import { ClasificacionProductosServicios, PeriodicidadCobro } from './crear-onces-alimentacion/constantes';
+import { PeriodicidadCobro } from './crear-onces-alimentacion/constantes';
 
 
 // Interfaces para tipar correctamente
@@ -107,7 +107,7 @@ export class OncesAlimentacionComponent {
       // Filtramos por clasificación ALIMENTACION, periodicidad DIARIO y solo los del día actual
       const productosFiltrados = body.filter((item: CuentaPorCobrar) => 
         item.clasificacion_codigo === 'ALIMENTACION' && 
-        item.id_periodicidad_cobro === PeriodicidadCobro.DIARIO &&
+        Number(item.id_periodicidad_cobro) === PeriodicidadCobro.DIARIO &&
         item.fecha.substring(0, 10) === fechaActualStr // Comparamos solo el componente YYYY-MM-DD
       );
       

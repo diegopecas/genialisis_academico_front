@@ -127,8 +127,8 @@ export class ReporteCoberturaCurricularComponent implements OnInit, OnDestroy {
       esferas: this.esferasDesarrolloService.obtenerTodos()
     }).subscribe({
       next: (response: any) => {
-        this.grupos = (response.grupos.body || []).sort((a: any, b: any) => (a.orden || a.id) - (b.orden || b.id));
-        this.cortes = (response.cortes.body || []).sort((a: any, b: any) => (a.orden || a.id) - (b.orden || b.id));
+        this.grupos = (response.grupos.body || []).sort((a: any, b: any) => (a.orden ?? Number.MAX_SAFE_INTEGER) - (b.orden ?? Number.MAX_SAFE_INTEGER));
+        this.cortes = (response.cortes.body || []).sort((a: any, b: any) => (a.orden ?? Number.MAX_SAFE_INTEGER) - (b.orden ?? Number.MAX_SAFE_INTEGER));
         this.areas = response.areas.body || [];
         this.esferas = response.esferas.body || [];
         this.cargando = false;

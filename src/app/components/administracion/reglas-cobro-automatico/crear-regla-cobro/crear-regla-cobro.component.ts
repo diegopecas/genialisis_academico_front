@@ -101,10 +101,9 @@ export class CrearReglaCobroComponent implements OnInit {
       tap(([resTipos, resProductos, resGrupos, resConvenios]: any[]) => {
         this.listas.tiposEvento = resTipos.body || resTipos;
         const todosProductos = resProductos.body || resProductos;
-        // Solo clasificación 2 (Extra académico) y categoría 2 (servicios extras) activos
         this.listas.productosServicios = todosProductos.filter((p: any) => 
-          p.id_clasificacion_productos_servicios === 2 && 
-          p.id_categoria_productos_servicios === 2 && 
+          p.clasificacion_codigo === 'EXTRA_ACADEMICO' && 
+          p.categoria_codigo === 'EXTRA' && 
           Number(p.disponible) === 1
         );
         this.listas.grupos = resGrupos.body || resGrupos;

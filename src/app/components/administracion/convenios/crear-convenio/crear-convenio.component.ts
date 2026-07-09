@@ -71,10 +71,9 @@ export class CrearConvenioComponent implements OnInit {
     this.productosServiciosService.obtenerTodos().subscribe({
       next: (response: any) => {
         const todos = response.body || response;
-        // Solo clasificación 2 (Extra académico) y categoría 1 (servicios mensuales) activos
         this.listas.productosServicios = todos.filter((p: any) => 
-          p.id_clasificacion_productos_servicios === 2 && 
-          p.id_categoria_productos_servicios === 1 && 
+          p.clasificacion_codigo === 'EXTRA_ACADEMICO' && 
+          p.categoria_codigo === 'MENSUAL' && 
           Number(p.disponible) === 1
         );
       },

@@ -2025,16 +2025,18 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
     return extracurricular.reduce((sum, m) => sum + m.total_pagado, 0);
   }
 
+  private nombresTipoPago = new Map<string, string>();
+
+  private indexarNombresTipoPago(): void {
+    [...this.movimientoDiarioFiltrado, ...this.anuladosFiltrados].forEach(m => {
+      if (m.id_tipo_pago && m.nombre_tipo_pago) {
+        this.nombresTipoPago.set(m.id_tipo_pago, m.nombre_tipo_pago);
+      }
+    });
+  }
+
   obtenerNombreTipoPago(id: string): string {
-    const nombres: { [key: string]: string } = {
-      1: 'Efectivo',
-      2: 'Nequi',
-      3: 'Bancolombia',
-      4: 'Descuento',
-      5: 'Castigo Cartera',
-      6: 'Efectivo Extra'
-    };
-    return nombres[id] || 'Otro';
+    return this.nombresTipoPago.get(id) || 'Otro';
   }
 
   getTotalRecibidoIngresos(): number {
@@ -2279,6 +2281,7 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
   }
   // Método para clasificar movimientos por tipo
   private clasificarMovimientosPorTipo(): void {
+    this.indexarNombresTipoPago();
     // Clasificar movimientos en arrays globales
     this.movimientoCobros = this.movimientoDiarioFiltrado.filter(m => !m.id_tipo_pago);
     this.movimientoIngresos = this.movimientoDiarioFiltrado.filter(m => m.grupo_cartera === 'EFECTIVO');
@@ -2685,6 +2688,7 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
 
   // Clasificar anulados por tipo
   private clasificarAnuladosPorTipo(): void {
+    this.indexarNombresTipoPago();
     // Filtrar cobros anulados
     this.anuladosCobros = this.anuladosFiltrados.filter(m =>
       m.tipo_movimiento === 'COBRO'

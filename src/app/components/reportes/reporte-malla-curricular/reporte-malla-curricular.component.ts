@@ -106,8 +106,8 @@ export class ReporteMallaCurricularComponent implements OnInit, OnDestroy {
   public direccionOrden: 'asc' | 'desc' = 'asc';
 
   // Mapas de orden de catálogos (para orden por defecto)
-  private ordenGrados: Map<number, number> = new Map();
-  private ordenCortes: Map<number, number> = new Map();
+  private ordenGrados: Map<string, number> = new Map();
+  private ordenCortes: Map<string, number> = new Map();
 
   constructor(
     private logrosService: LogrosService,
@@ -142,9 +142,9 @@ export class ReporteMallaCurricularComponent implements OnInit, OnDestroy {
       esferas: this.esferasDesarrolloService.obtenerTodos()
     }).subscribe({
       next: (response: any) => {
-        this.grados = (response.grados.body || []).sort((a: any, b: any) => (a.orden || a.id) - (b.orden || b.id));
+        this.grados = (response.grados.body || []).sort((a: any, b: any) => (a.orden ?? Number.MAX_SAFE_INTEGER) - (b.orden ?? Number.MAX_SAFE_INTEGER));
         this.areas = response.areas.body || [];
-        this.cortes = (response.cortes.body || []).sort((a: any, b: any) => (a.orden || a.id) - (b.orden || b.id));
+        this.cortes = (response.cortes.body || []).sort((a: any, b: any) => (a.orden ?? Number.MAX_SAFE_INTEGER) - (b.orden ?? Number.MAX_SAFE_INTEGER));
         this.esferas = response.esferas.body || [];
 
         // Guardar mapas de orden para el sort por defecto

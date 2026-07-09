@@ -101,7 +101,7 @@ export class ContabilizacionActividadesColaboradoresComponent implements OnInit 
 
         // Separar por categoría
         colaborador.permisos = actividadesColaborador
-          .filter((act: any) => act.id_categoria === 1)
+          .filter((act: any) => act.categoria_codigo === 'PERMISO')
           .map((act: any) => ({
             ...act,
             seleccionado: true, // Por defecto seleccionadas para modo automático
@@ -110,7 +110,7 @@ export class ContabilizacionActividadesColaboradoresComponent implements OnInit 
           }));
 
         colaborador.horas = actividadesColaborador
-          .filter((act: any) => act.id_categoria === 2)
+          .filter((act: any) => act.categoria_codigo === 'HORA_ADICIONAL')
           .map((act: any) => {
             const valorCalculado = act.valor_hora ? 
               (act.minutos_disponibles / 60) * act.valor_hora : 0;
@@ -382,10 +382,10 @@ export class ContabilizacionActividadesColaboradoresComponent implements OnInit 
           return {
             id_colaborador: colaborador.id_colaborador,
             ids_permisos: actividadesColaborador
-              .filter((act: any) => act.id_categoria === 1)
+              .filter((act: any) => act.categoria_codigo === 'PERMISO')
               .map((act: any) => act.id),
             ids_horas: actividadesColaborador
-              .filter((act: any) => act.id_categoria === 2)
+              .filter((act: any) => act.categoria_codigo === 'HORA_ADICIONAL')
               .map((act: any) => act.id)
           };
         }).filter(c => c.ids_permisos.length > 0 && c.ids_horas.length > 0);
