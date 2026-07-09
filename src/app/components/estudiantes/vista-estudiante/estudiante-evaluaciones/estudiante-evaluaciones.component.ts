@@ -100,6 +100,10 @@ interface ObservacionEstudiante {
     descripcion: string;
     id_tipo_observacion_estudiante: string;
     nombre_tipo_observacion?: string;
+    seccion_observacion?: string;
+    color_seccion?: string;
+    orden_seccion?: number;
+    icono_seccion?: string;
     id_estudiante_afectado?: string;
     nombre_estudiante_afectado?: string;
     nombre_usuario?: string;
@@ -482,8 +486,36 @@ export class EstudianteEvaluacionesComponent implements OnInit, OnDestroy {
     }
 
     // Método para obtener las observaciones agrupadas por tipo
-    getObservacionesPorTipo(idTipo: string): ObservacionEstudiante[] {
-        return this.observaciones.filter(obs => obs.id_tipo_observacion_estudiante === idTipo);
+    get seccionesObservaciones(): { nombre: string; color: string; icono: string; observaciones: ObservacionEstudiante[] }[] {
+        const mapa = new Map<string, { orden: number; color: string; icono: string; observaciones: ObservacionEstudiante[] }>();
+
+        this.observaciones.forEach(obs => {
+            const seccion = obs.seccion_observacion;
+            if (!seccion) {
+                return;
+            }
+            if (!mapa.has(seccion)) {
+                mapa.set(seccion, {
+                    orden: obs.orden_seccion ?? Number.MAX_SAFE_INTEGER,
+                    color: obs.color_seccion || '#6c757d',
+                    icono: obs.icono_seccion || 'fa-comment-alt',
+                    observaciones: []
+                });
+            }
+            mapa.get(seccion)!.observaciones.push(obs);
+        });
+
+        return Array.from(mapa.entries())
+            .sort((a, b) => {
+                const diff = a[1].orden - b[1].orden;
+                return diff !== 0 ? diff : a[0].localeCompare(b[0]);
+            })
+            .map(([nombre, datos]) => ({
+                nombre,
+                color: datos.color,
+                icono: datos.icono,
+                observaciones: datos.observaciones
+            }));
     }
 
     // Método para filtrar calificaciones por parámetro 3

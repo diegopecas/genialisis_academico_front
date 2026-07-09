@@ -302,57 +302,13 @@
                                 </h6>
                             </div>
                             <div class="card-body">
-                                <!-- Observaciones Académicas -->
-                                <div class="observaciones-tipo mb-4" *ngIf="getObservacionesPorTipo('1').length > 0">
-                                    <h6 class="text-primary mb-3">
-                                        <i class="fas fa-book me-2"></i>Observaciones Académicas
+                                <!-- Secciones definidas en tipos_observaciones_estudiantes -->
+                                <div class="observaciones-tipo mb-4" *ngFor="let seccion of seccionesObservaciones">
+                                    <h6 class="mb-3" [style.color]="seccion.color">
+                                        <i class="fas me-2" [ngClass]="seccion.icono"></i>Observaciones {{ seccion.nombre }}
                                     </h6>
                                     <div class="observaciones-lista">
-                                        <div *ngFor="let obs of getObservacionesPorTipo('1')"
-                                            class="observacion-item mb-3">
-                                            <div class="observacion-fecha">
-                                                <small class="text-muted">{{ obs.fechaFormateada }}</small>
-                                            </div>
-                                            <div class="observacion-contenido">
-                                                {{ obs.descripcion }}
-                                            </div>
-                                            <div class="observacion-autor" *ngIf="obs.nombre_usuario">
-                                                <small class="text-muted">Registrado por: Miss {{ obs.nombre_usuario
-                                                    }}</small>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Observaciones Disciplinarias -->
-                                <div class="observaciones-tipo mb-4" *ngIf="getObservacionesPorTipo('2').length > 0">
-                                    <h6 class="text-orange mb-3">
-                                        <i class="fas fa-exclamation-triangle me-2"></i>Observaciones Disciplinarias
-                                    </h6>
-                                    <div class="observaciones-lista">
-                                        <div *ngFor="let obs of getObservacionesPorTipo('2')"
-                                            class="observacion-item mb-3">
-                                            <div class="observacion-fecha">
-                                                <small class="text-muted">{{ obs.fechaFormateada }}</small>
-                                            </div>
-                                            <div class="observacion-contenido">
-                                                {{ obs.descripcion }}
-                                            </div>
-                                            <div class="observacion-autor" *ngIf="obs.nombre_usuario">
-                                                <small class="text-muted">Registrado por: Miss {{ obs.nombre_usuario
-                                                    }}</small>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Observaciones Sociales -->
-                                <div class="observaciones-tipo mb-4" *ngIf="getObservacionesPorTipo('4').length > 0">
-                                    <h6 class="text-purple mb-3">
-                                        <i class="fas fa-users me-2"></i>Observaciones Sociales
-                                    </h6>
-                                    <div class="observaciones-lista">
-                                        <div *ngFor="let obs of getObservacionesPorTipo('4')"
+                                        <div *ngFor="let obs of seccion.observaciones"
                                             class="observacion-item mb-3">
                                             <div class="observacion-fecha">
                                                 <small class="text-muted">{{ obs.fechaFormateada }}</small>

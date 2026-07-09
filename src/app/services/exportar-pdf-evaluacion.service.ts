@@ -59,6 +59,9 @@ export interface DatosEvaluacionPDF {
         descripcion: string;
         id_tipo_observacion_estudiante: string;
         nombre_tipo_observacion?: string;
+        seccion_observacion?: string;
+        color_seccion?: string;
+        orden_seccion?: number;
         nombre_usuario?: string;
     }>;
     medidasAntropometricas?: {
@@ -948,33 +951,42 @@ export class ExportarPdfEvaluacionService {
         // Verificar espacio necesario
         this.verificarNuevaPagina(40);
 
+        // Agrupar por la seccion declarada en tipos_observaciones_estudiantes
+        const secciones = new Map<string, { orden: number; color: string; items: any[] }>();
+
+        observaciones.forEach(o => {
+            const seccion = o.seccion_observacion;
+            if (!seccion) {
+                return;
+            }
+            if (!secciones.has(seccion)) {
+                secciones.set(seccion, {
+                    orden: o.orden_seccion ?? Number.MAX_SAFE_INTEGER,
+                    color: o.color_seccion || this.colors.darkGray,
+                    items: []
+                });
+            }
+            secciones.get(seccion)!.items.push(o);
+        });
+
+        const seccionesOrdenadas = Array.from(secciones.entries()).sort((a, b) => {
+            const diff = a[1].orden - b[1].orden;
+            return diff !== 0 ? diff : a[0].localeCompare(b[0]);
+        });
+
         // Título de la sección
-        this.generarTituloSeccion('Observaciones Académicas, Disciplinarias y Sociales');
+        const nombresSecciones = seccionesOrdenadas.map(([nombre]) => nombre);
+        this.generarTituloSeccion(
+            nombresSecciones.length > 0
+                ? `Observaciones ${nombresSecciones.join(', ')}`
+                : 'Observaciones'
+        );
 
-        // Agrupar observaciones por tipo
-        const observacionesAcademicas = observaciones.filter(o => o.id_tipo_observacion_estudiante === 1);
-        const observacionesDisciplinarias = observaciones.filter(o => o.id_tipo_observacion_estudiante === 2);
-        const observacionesSociales = observaciones.filter(o => o.id_tipo_observacion_estudiante === 4);
+        const hayObservaciones = seccionesOrdenadas.length > 0;
 
-        let hayObservaciones = false;
-
-        // Observaciones Académicas
-        if (observacionesAcademicas.length > 0) {
-            hayObservaciones = true;
-            this.generarSubseccionObservaciones('Observaciones Académicas', observacionesAcademicas, '#3498db');
-        }
-
-        // Observaciones Disciplinarias
-        if (observacionesDisciplinarias.length > 0) {
-            hayObservaciones = true;
-            this.generarSubseccionObservaciones('Observaciones Disciplinarias', observacionesDisciplinarias, '#e67e22');
-        }
-
-        // Observaciones Sociales
-        if (observacionesSociales.length > 0) {
-            hayObservaciones = true;
-            this.generarSubseccionObservaciones('Observaciones Sociales', observacionesSociales, '#9b59b6');
-        }
+        seccionesOrdenadas.forEach(([nombre, datos]) => {
+            this.generarSubseccionObservaciones(`Observaciones ${nombre}`, datos.items, datos.color);
+        });
 
         // Si no hay observaciones
         if (!hayObservaciones) {
