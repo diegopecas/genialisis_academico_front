@@ -485,7 +485,7 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
         !valor.tipo_valor.startsWith('Clasificacion_Pagado_') &&
         !valor.tipo_valor.startsWith('Clasificacion_AEsteMes_') &&
         !valor.tipo_valor.startsWith('Clasificacion_Futuro_')) {
-        const match = valor.tipo_valor.match(/Clasificacion_(\d+)_(.+)/);
+        const match = valor.tipo_valor.match(/^Clasificacion_([^_]+)_(.+)$/);
         if (match) {
           const idClasificacion = match[1];
           if (!estudiante.clasificaciones[idClasificacion]) {
@@ -501,7 +501,7 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
       }
       // Procesar clasificaciones pagadas
       else if (valor.tipo_valor.startsWith('Clasificacion_Pagado_')) {
-        const match = valor.tipo_valor.match(/Clasificacion_Pagado_(\d+)_(.+)/);
+        const match = valor.tipo_valor.match(/^Clasificacion_Pagado_([^_]+)_(.+)$/);
         if (match) {
           const idClasificacion = match[1];
           if (!estudiante.clasificaciones[idClasificacion]) {
@@ -517,7 +517,7 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
       }
       // Procesar clasificaciones cobrado a este mes
       else if (valor.tipo_valor.startsWith('Clasificacion_AEsteMes_')) {
-        const match = valor.tipo_valor.match(/Clasificacion_AEsteMes_(\d+)_(.+)/);
+        const match = valor.tipo_valor.match(/^Clasificacion_AEsteMes_([^_]+)_(.+)$/);
         if (match) {
           const idClasificacion = match[1];
           if (!estudiante.clasificaciones[idClasificacion]) {
@@ -533,7 +533,7 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
       }
       // Procesar clasificaciones cobrado futuro
       else if (valor.tipo_valor.startsWith('Clasificacion_Futuro_')) {
-        const match = valor.tipo_valor.match(/Clasificacion_Futuro_(\d+)_(.+)/);
+        const match = valor.tipo_valor.match(/^Clasificacion_Futuro_([^_]+)_(.+)$/);
         if (match) {
           const idClasificacion = match[1];
           if (!estudiante.clasificaciones[idClasificacion]) {
@@ -549,7 +549,7 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
       }
       // Procesar productos cobrados
       else if (valor.tipo_valor.startsWith('Producto_') && !valor.tipo_valor.startsWith('Producto_Pagado_')) {
-        const match = valor.tipo_valor.match(/Producto_(\d+)_(.+)/);
+        const match = valor.tipo_valor.match(/^Producto_([^_]+)_(.+)$/);
         if (match) {
           const idProducto = match[1];
           if (!estudiante.productos[idProducto]) {
@@ -560,7 +560,7 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
       }
       // Procesar productos pagados
       else if (valor.tipo_valor.startsWith('Producto_Pagado_')) {
-        const match = valor.tipo_valor.match(/Producto_Pagado_(\d+)_(.+)/);
+        const match = valor.tipo_valor.match(/^Producto_Pagado_([^_]+)_(.+)$/);
         if (match) {
           const idProducto = match[1];
           if (!estudiante.productos[idProducto]) {
