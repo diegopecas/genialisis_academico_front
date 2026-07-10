@@ -34,6 +34,9 @@ interface AcudienteModel {
   ocupacion: string;
   rh: string;
   tipoAcudiente: number | string;
+  empresa: string;
+  cargo: string;
+  telefonoOficina: string;
   responsablePago: boolean;
   autorizadoRecoger: boolean;
   autorizadoSistema: boolean;
@@ -122,6 +125,9 @@ export class CrearAcudienteComponent implements OnInit {
     ocupacion: "",
     rh: "",
     tipoAcudiente: "",
+    empresa: "",
+    cargo: "",
+    telefonoOficina: "",
     responsablePago: false,
     autorizadoRecoger: false,
     autorizadoSistema: false,
@@ -315,6 +321,9 @@ export class CrearAcudienteComponent implements OnInit {
 
                 this.model.idAcudiente = acudiente.id;
                 this.model.tipoAcudiente = acudiente.id_tipo_acudiente;
+                this.model.empresa = acudiente.empresa || '';
+                this.model.cargo = acudiente.cargo || '';
+                this.model.telefonoOficina = acudiente.telefono_oficina || '';
                 this.model.responsablePago = acudiente.es_responsable_pago === 1;
                 this.model.autorizadoRecoger = acudiente.autorizado_recoger === 1;
                 this.model.autorizadoSistema = acudiente.autorizado_sistema === 1;
@@ -474,6 +483,9 @@ export class CrearAcudienteComponent implements OnInit {
       id_estudiante: this.idEstudiante,
       id_persona: acudiente.idPersona,
       id_tipo_acudiente: acudiente.tipoAcudiente,
+      empresa: acudiente.empresa || null,
+      cargo: acudiente.cargo || null,
+      telefono_oficina: acudiente.telefonoOficina || null,
       es_responsable_pago: acudiente.responsablePago ? 1 : 0,
       autorizado_recoger: acudiente.autorizadoRecoger ? 1 : 0,
       autorizado_sistema: acudiente.autorizadoSistema ? 1 : 0,
@@ -638,6 +650,9 @@ export class CrearAcudienteComponent implements OnInit {
       ocupacion: "",
       rh: "",
       tipoAcudiente: "",
+      empresa: "",
+      cargo: "",
+      telefonoOficina: "",
       responsablePago: false,
       autorizadoRecoger: false,
       autorizadoSistema: false,
@@ -760,6 +775,9 @@ export class CrearAcudienteComponent implements OnInit {
       id: this.model.idAcudiente,
       id_persona: this.model.idPersona,
       id_tipo_acudiente: this.model.tipoAcudiente,
+      empresa: this.model.empresa || null,
+      cargo: this.model.cargo || null,
+      telefono_oficina: this.model.telefonoOficina || null,
       es_responsable_pago: this.model.responsablePago ? 1 : 0,
       autorizado_recoger: this.model.autorizadoRecoger ? 1 : 0,
       autorizado_sistema: this.model.autorizadoSistema ? 1 : 0,
