@@ -344,34 +344,7 @@ export class PagosRecibidosComponent implements OnInit {
       return;
     }
 
-    this.documentosService.descargarDocumento(registro.id_documento_persona).subscribe({
-      next: (response: any) => {
-        const blob = response.body as Blob;
-
-        // Intentar obtener el nombre del archivo desde el header Content-Disposition.
-        let nombreArchivo = 'comprobante';
-        const contentDisposition = response.headers?.get('Content-Disposition');
-        if (contentDisposition) {
-          const match = /filename="?([^"]+)"?/.exec(contentDisposition);
-          if (match && match[1]) {
-            nombreArchivo = match[1];
-          }
-        }
-
-        const url = window.URL.createObjectURL(blob);
-        const enlace = document.createElement('a');
-        enlace.href = url;
-        enlace.download = nombreArchivo;
-        document.body.appendChild(enlace);
-        enlace.click();
-        document.body.removeChild(enlace);
-        window.URL.revokeObjectURL(url);
-      },
-      error: (error: any) => {
-        console.error('Error al descargar el comprobante:', error);
-        Swal.fire('Error', 'No se pudo descargar el comprobante. Intente nuevamente.', 'error');
-      }
-    });
+    this.documentosService.descargarDocumentoArchivo(registro.id_documento_persona, 'comprobante');
   }
 
   anularPago(id: any, registro: any) {

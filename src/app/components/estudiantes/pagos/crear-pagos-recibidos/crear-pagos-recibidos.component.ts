@@ -824,39 +824,12 @@ export class CrearPagosRecibidosComponent implements OnInit {
     return !!this.model.id_documento_persona;
   }
 
-  // Descarga el comprobante asociado al pago usando HttpClient (pasa por el
-  // interceptor, con token y tenant) y fuerza la descarga del archivo.
+  // Descarga el comprobante asociado al pago. La descarga (blob por HttpClient,
+  // con token y tenant via interceptor) está centralizada en el servicio.
   descargarComprobante(): void {
     if (!this.model.id_documento_persona) return;
 
-    this.documentosService.descargarDocumento(this.model.id_documento_persona).subscribe({
-      next: (response: any) => {
-        const blob = response.body as Blob;
-
-        // Intentar obtener el nombre del archivo desde el header Content-Disposition.
-        let nombreArchivo = 'comprobante';
-        const contentDisposition = response.headers?.get('Content-Disposition');
-        if (contentDisposition) {
-          const match = /filename="?([^"]+)"?/.exec(contentDisposition);
-          if (match && match[1]) {
-            nombreArchivo = match[1];
-          }
-        }
-
-        const url = window.URL.createObjectURL(blob);
-        const enlace = document.createElement('a');
-        enlace.href = url;
-        enlace.download = nombreArchivo;
-        document.body.appendChild(enlace);
-        enlace.click();
-        document.body.removeChild(enlace);
-        window.URL.revokeObjectURL(url);
-      },
-      error: (error: any) => {
-        console.error('Error al descargar el comprobante:', error);
-        Swal.fire('Error', 'No se pudo descargar el comprobante. Intente nuevamente.', 'error');
-      }
-    });
+    this.documentosService.descargarDocumentoArchivo(this.model.id_documento_persona, 'comprobante');
   }
 
   // Procesa el comprobante con IA y rellena valor, referencia y fecha.

@@ -226,9 +226,8 @@ export class ContratosEstudiantesComponent {
                     const documentos = docResponse.body || [];
                     
                     if (documentos.length > 0 && documentos[0].id) {
-                      // Usar el servicio para obtener la URL correcta
-                      const url = this.documentosPersonasService.obtenerUrlDescarga(documentos[0].id);
-                      window.open(url, '_blank');
+                      // Descarga blob centralizada en el servicio (token en header)
+                      this.documentosPersonasService.descargarDocumentoArchivo(documentos[0].id);
                     } else {
                       Swal.fire('Error', 'No se encontró el documento firmado', 'error');
                     }

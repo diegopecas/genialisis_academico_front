@@ -1,12 +1,13 @@
 import {
   HttpClient,
   HttpErrorResponse,
+  HttpHeaders,
   HttpResponse,
 } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from '../../environments/environment';
 import { Observable, throwError } from 'rxjs';
-import { catchError, tap } from 'rxjs/operators';
+import { catchError, map, tap } from 'rxjs/operators';
 import { httpOptions } from './http';
 import { InstitucionConfigService } from './institucion-config.service';
 
@@ -156,13 +157,87 @@ export class DocumentosPersonasService {
       );
   }
 
-  descargarDocumento(id: string) {
-    return this.http.get(this.servicio + '/download/' + id, {
-      responseType: 'blob',
-      observe: 'response'
-    }).pipe(
-      catchError(this.handleError)
-    );
+  /**
+   * Pide al backend un token efímero (5 min) y arma la URL de descarga con ese
+   * token. El token de sesion nunca viaja en la URL: la peticion del token va
+   * por HttpClient (con Authorization y X-Tenant via interceptores) y solo el
+   * token efímero, acotado a este documento, queda en la URL resultante.
+   *
+   * @param id id del documento
+   * @param silencioso si true, la peticion no activa el spinner global (para
+   *        miniaturas <img>, donde antes la URL era sincrona y sin spinner)
+   */
+  obtenerUrlDescargaConToken(id: string, silencioso = false): Observable<string> {
+    const opciones = silencioso
+      ? { headers: new HttpHeaders({ 'X-Silent': 'true' }) }
+      : {};
+
+    return this.http
+      .get<any>(this.servicio + '/download-token/' + id, opciones)
+      .pipe(
+        map((respuesta: any) => {
+          const tenant = this.institucionConfigService.getJardinCodigo();
+          return (
+            environment.api +
+            'documentos-personas/download/' +
+            id +
+            '?token=' +
+            respuesta.token +
+            '&tenant=' +
+            tenant
+          );
+        }),
+        catchError(this.handleError),
+      );
+  }
+
+  /**
+   * Descarga un documento como blob a traves de HttpClient. Pasa por los
+   * interceptores (Authorization y X-Tenant), asi que el token viaja en el
+   * header y nunca en la URL. Devuelve la respuesta completa para poder leer
+   * el blob y las cabeceras.
+   */
+  descargarDocumento(id: string): Observable<HttpResponse<Blob>> {
+    return this.http
+      .get(this.servicio + '/download/' + id, {
+        observe: 'response',
+        responseType: 'blob',
+      })
+      .pipe(catchError(this.handleError));
+  }
+
+  /**
+   * Descarga directa (fire-and-forget): baja el archivo como blob y lo guarda
+   * en el equipo. Centraliza el armado del enlace para los componentes que solo
+   * necesitan disparar la descarga. Ante error, el interceptor global notifica.
+   */
+  descargarDocumentoArchivo(id: string, nombrePorDefecto = 'documento'): void {
+    this.descargarDocumento(id).subscribe({
+      next: (response: HttpResponse<Blob>) => {
+        const blob = response.body as Blob;
+
+        let nombreArchivo = nombrePorDefecto;
+        const contentDisposition = response.headers?.get('Content-Disposition');
+        if (contentDisposition) {
+          const match = /filename="?([^"]+)"?/.exec(contentDisposition);
+          if (match && match[1]) {
+            nombreArchivo = match[1];
+          }
+        }
+
+        const url = window.URL.createObjectURL(blob);
+        const enlace = document.createElement('a');
+        enlace.href = url;
+        enlace.download = nombreArchivo;
+        document.body.appendChild(enlace);
+        enlace.click();
+        document.body.removeChild(enlace);
+        window.URL.revokeObjectURL(url);
+      },
+      error: (error: any) => {
+        console.error('Error al descargar el documento:', error);
+      },
+    });
   }
 
   obtenerUrlDescarga(id: string): string {

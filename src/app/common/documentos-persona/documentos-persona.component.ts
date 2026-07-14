@@ -296,8 +296,8 @@ export class DocumentosPersonaComponent implements OnInit {
   }
 
   descargarDocumento(documento: DocumentoPersona) {
-    const url = this.documentosService.obtenerUrlDescarga(documento.id!);
-    window.open(url, '_blank');
+    if (!documento.id) return;
+    this.documentosService.descargarDocumentoArchivo(documento.id);
   }
 
   eliminarDocumento(documento: DocumentoPersona) {

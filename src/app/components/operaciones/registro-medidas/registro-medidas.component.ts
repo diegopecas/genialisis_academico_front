@@ -321,10 +321,15 @@ export class RegistroMedidasComponent implements OnInit, OnDestroy {
           (response.estudiantes || []).forEach((estData: any) => {
             const estudiante = this.estudiantes.find(e => e.id == estData.id_estudiante);
             if (!estudiante) return;
-            // Imagen del reporte guardada previamente
+            // Imagen del reporte guardada previamente.
+            // Token efímero silencioso (no activa el spinner, como antes que la
+            // URL era síncrona). Si falla, la miniatura simplemente no se muestra.
             if (estData.id_documento_persona) {
               estudiante.id_documento_persona = estData.id_documento_persona;
-              estudiante.imagenUrl = this.documentosService.obtenerUrlDescarga(estData.id_documento_persona);
+              this.documentosService.obtenerUrlDescargaConToken(estData.id_documento_persona, true).subscribe({
+                next: (url: string) => { estudiante.imagenUrl = url; },
+                error: () => { /* miniatura opcional */ }
+              });
             }
             (estData.medidas || []).forEach((medData: any) => {
               const medida = estudiante.medidas.get(medData.id_medida);
@@ -490,12 +495,23 @@ export class RegistroMedidasComponent implements OnInit, OnDestroy {
   }
 
   abrirImagenModal(estudiante: EstudianteFila): void {
-    if (estudiante.imagenUrl) {
-      this.imagenModalUrl = estudiante.imagenUrl;
-      this.imagenModalNombre = estudiante.nombre_completo;
-      this.imagenModalDescargarUrl = estudiante.id_documento_persona
-        ? this.documentosService.obtenerUrlDescarga(estudiante.id_documento_persona)
-        : null;
+    if (!estudiante.imagenUrl) return;
+
+    this.imagenModalNombre = estudiante.nombre_completo;
+    // Provisional: la miniatura ya cargada. Si el documento tiene id, se pide
+    // un token fresco (el de la miniatura pudo expirar a los 5 min) que sirve
+    // tanto para ver la imagen completa como para descargarla.
+    this.imagenModalUrl = estudiante.imagenUrl;
+    this.imagenModalDescargarUrl = null;
+
+    if (estudiante.id_documento_persona) {
+      this.documentosService.obtenerUrlDescargaConToken(estudiante.id_documento_persona).subscribe({
+        next: (url: string) => {
+          this.imagenModalUrl = url;
+          this.imagenModalDescargarUrl = url;
+        },
+        error: () => { /* se conserva la miniatura provisional */ }
+      });
     }
   }
 
