@@ -43,6 +43,15 @@ export class InstitucionConfigService {
         return;
       }
 
+      // Sin token no se puede pedir la configuracion: el backend responde 401.
+      // Pasa cuando queda una sesion a medias (institucion guardada pero token
+      // limpiado). Tras el login no aplica: alli se llama directo a
+      // cargarConfiguracionTenant(), con el token ya en sesion.
+      if (!sessionStorage.getItem('token')) {
+        console.log('ℹ️ No hay token, esperando login');
+        return;
+      }
+
       await this.cargarConfiguracionTenant();
 
     } catch (error: any) {

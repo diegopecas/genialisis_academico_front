@@ -140,6 +140,18 @@ export class GestionarImagenesComponent implements OnInit {
 
   cargarImagenes() {
     this.cargandoImagenes = true;
+    // El token efímero debe estar listo antes de armar las URLs de <img>:
+    // obtenerUrlThumb es sincrona y sin token la miniatura daria 401.
+    this.galeriaImagenesService.inicializarTokenImagenes().subscribe({
+      next: () => this.obtenerImagenes(),
+      error: (error) => {
+        console.error("Error al obtener el token de imágenes:", error);
+        this.cargandoImagenes = false;
+      }
+    });
+  }
+
+  private obtenerImagenes() {
     this.galeriaImagenesService.obtenerPorGaleria(this.idGaleria).subscribe({
       next: (response: any) => {
         const imagenes = response.body || [];
