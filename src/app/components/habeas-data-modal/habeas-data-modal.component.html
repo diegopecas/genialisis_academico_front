@@ -1,0 +1,91 @@
+<div class="habeas-overlay">
+  <div class="habeas-modal">
+
+    <!-- Header del modal -->
+    <div class="habeas-header">
+      <div class="habeas-icon">
+        <i class="fas fa-shield-alt"></i>
+      </div>
+      <h2 *ngIf="plantilla">{{ plantilla.titulo }}</h2>
+      <h2 *ngIf="!plantilla">Política de Tratamiento de Datos</h2>
+      <p *ngIf="plantilla">{{ plantilla.subtitulo }}</p>
+    </div>
+
+    <!-- Loader -->
+    <div *ngIf="cargando" class="habeas-loading">
+      <div class="spinner-border text-warning" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+      <p>Cargando política de tratamiento de datos...</p>
+    </div>
+
+    <!-- Fallo de red al cargar. Sin salida: solo reintentar. -->
+    <div *ngIf="!cargando && !plantilla" class="habeas-loading">
+      <p>{{ errorRegistro }}</p>
+      <button class="btn-autorizar" (click)="cargarPlantilla()">
+        <i class="fas fa-redo"></i> Reintentar
+      </button>
+    </div>
+
+    <!-- Contenido de la política -->
+    <div *ngIf="!cargando && plantilla" class="habeas-body" (scroll)="onScroll($event)">
+
+      <div *ngFor="let seccion of plantilla.secciones" class="habeas-seccion">
+        <h3>{{ seccion.titulo }}</h3>
+        <div class="seccion-contenido">
+          <p *ngFor="let parrafo of seccion.contenido.split('\n')"
+             [innerHTML]="parrafo"></p>
+        </div>
+      </div>
+
+      <!-- Declaración final -->
+      <div class="habeas-declaracion">
+        <p>{{ plantilla.declaracion_final }}</p>
+      </div>
+
+      <!-- Indicador de scroll -->
+      <div class="scroll-indicator" *ngIf="!scrollCompleto">
+        <i class="fas fa-chevron-down"></i>
+        <span>Desplázate hacia abajo para leer toda la política</span>
+      </div>
+
+    </div>
+
+    <!-- Footer con checkbox y botón -->
+    <div *ngIf="!cargando && plantilla" class="habeas-footer">
+      <div class="habeas-checkbox-container" [class.disabled]="!scrollCompleto">
+        <label class="habeas-checkbox-label">
+          <input
+            type="checkbox"
+            [(ngModel)]="aceptado"
+            [disabled]="!scrollCompleto"
+            class="habeas-checkbox"
+          />
+          <span class="checkmark"></span>
+          <span class="checkbox-text">{{ plantilla.texto_checkbox }}</span>
+        </label>
+        <small *ngIf="!scrollCompleto" class="scroll-hint">
+          <i class="fas fa-info-circle"></i> Debes leer toda la política antes de aceptar
+        </small>
+      </div>
+
+      <small *ngIf="errorRegistro" class="scroll-hint">
+        <i class="fas fa-exclamation-triangle"></i> {{ errorRegistro }}
+      </small>
+
+      <button
+        class="btn-autorizar"
+        (click)="aceptarPolitica()"
+        [disabled]="!aceptado || !scrollCompleto || guardando"
+      >
+        <span *ngIf="!guardando">
+          <i class="fas fa-check-circle"></i> Autorizar Tratamiento de Datos
+        </span>
+        <span *ngIf="guardando">
+          <span class="spinner-border spinner-border-sm"></span> Registrando...
+        </span>
+      </button>
+    </div>
+
+  </div>
+</div>

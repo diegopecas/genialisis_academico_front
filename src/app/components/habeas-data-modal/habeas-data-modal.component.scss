@@ -1,0 +1,370 @@
+$gold: #FFC107;
+$gold-dark: #f0b429;
+$gold-text: #8B6914;
+$gold-light: rgba(255, 193, 7, 0.1);
+$black: #222;
+$ivory: #FAF8F3;
+$white: #fff;
+
+.habeas-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.habeas-modal {
+  background: $white;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 720px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  animation: modalIn 0.3s ease;
+}
+
+@keyframes modalIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+// Header
+.habeas-header {
+  background: linear-gradient(135deg, #1A1A1A 0%, #2d2d2d 100%);
+  padding: 28px 32px;
+  text-align: center;
+  flex-shrink: 0;
+
+  .habeas-icon {
+    width: 56px;
+    height: 56px;
+    background: $gold;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+
+    i {
+      font-size: 24px;
+      color: $black;
+    }
+  }
+
+  h2 {
+    color: $ivory;
+    font-size: 20px;
+    font-weight: 700;
+    margin: 0 0 6px 0;
+  }
+
+  p {
+    color: rgba($ivory, 0.7);
+    font-size: 14px;
+    margin: 0;
+  }
+}
+
+// Loading
+.habeas-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 60px 20px;
+  gap: 16px;
+
+  p {
+    color: #666;
+    font-size: 14px;
+  }
+}
+
+// Error state
+.habeas-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48px 32px;
+  text-align: center;
+
+  .error-icon {
+    width: 64px;
+    height: 64px;
+    background: #FFF3E0;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+
+    i {
+      font-size: 28px;
+      color: #F57C00;
+    }
+  }
+
+  h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: $black;
+    margin: 0 0 12px 0;
+  }
+
+  p {
+    font-size: 14px;
+    color: #666;
+    line-height: 1.6;
+    margin: 0 0 8px 0;
+  }
+
+  .error-hint {
+    font-size: 13px;
+    color: #999;
+    font-style: italic;
+    margin-bottom: 24px;
+  }
+}
+
+.btn-cerrar-error {
+  padding: 12px 32px;
+  background: #f5f5f5;
+  color: $black;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  &:hover {
+    background: #eee;
+  }
+}
+
+// Body scrolleable
+.habeas-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 28px 32px;
+  position: relative;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: $gold;
+    border-radius: 3px;
+  }
+}
+
+// Secciones
+.habeas-seccion {
+  margin-bottom: 24px;
+
+  h3 {
+    font-size: 15px;
+    font-weight: 700;
+    color: $gold-text;
+    margin: 0 0 10px 0;
+    padding-bottom: 8px;
+    border-bottom: 2px solid $gold-light;
+  }
+
+  .seccion-contenido {
+    p {
+      font-size: 14px;
+      line-height: 1.7;
+      color: #444;
+      margin: 0 0 6px 0;
+
+      &:empty {
+        display: none;
+      }
+    }
+  }
+}
+
+// Declaración final
+.habeas-declaracion {
+  background: $ivory;
+  border-left: 4px solid $gold;
+  padding: 18px 20px;
+  border-radius: 0 8px 8px 0;
+  margin-top: 20px;
+
+  p {
+    font-size: 14px;
+    line-height: 1.7;
+    color: $black;
+    margin: 0;
+    font-style: italic;
+  }
+}
+
+// Indicador de scroll
+.scroll-indicator {
+  text-align: center;
+  padding: 16px 0;
+  color: $gold-dark;
+  font-size: 13px;
+  animation: bounce 1.5s infinite;
+
+  i {
+    display: block;
+    font-size: 20px;
+    margin-bottom: 4px;
+  }
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(6px); }
+}
+
+// Footer
+.habeas-footer {
+  padding: 20px 32px;
+  border-top: 1px solid #eee;
+  background: #fafafa;
+  flex-shrink: 0;
+}
+
+// Checkbox personalizado
+.habeas-checkbox-container {
+  margin-bottom: 16px;
+
+  &.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+}
+
+.habeas-checkbox-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  cursor: pointer;
+  position: relative;
+  padding-left: 0;
+
+  .habeas-checkbox {
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    accent-color: $gold;
+    cursor: pointer;
+    margin-top: 2px;
+  }
+
+  .checkbox-text {
+    font-size: 14px;
+    color: $black;
+    line-height: 1.5;
+    font-weight: 500;
+  }
+}
+
+.scroll-hint {
+  display: block;
+  margin-top: 8px;
+  padding-left: 32px;
+  color: #999;
+  font-size: 12px;
+
+  i {
+    color: $gold;
+    margin-right: 4px;
+  }
+}
+
+// Botón autorizar
+.btn-autorizar {
+  width: 100%;
+  padding: 14px 24px;
+  background: linear-gradient(135deg, $gold-dark 0%, $gold 100%);
+  color: $black;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-shadow: 0 4px 14px rgba($gold, 0.3);
+
+  i {
+    font-size: 18px;
+  }
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba($gold, 0.45);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+}
+
+// Responsive
+@media (max-width: 576px) {
+  .habeas-overlay {
+    padding: 10px;
+  }
+
+  .habeas-modal {
+    max-height: 95vh;
+    border-radius: 12px;
+  }
+
+  .habeas-header {
+    padding: 20px;
+
+    h2 { font-size: 17px; }
+  }
+
+  .habeas-body {
+    padding: 20px 16px;
+  }
+
+  .habeas-footer {
+    padding: 16px;
+  }
+
+  .btn-autorizar {
+    font-size: 14px;
+    padding: 12px 20px;
+  }
+}

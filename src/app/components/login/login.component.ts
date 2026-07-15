@@ -7,6 +7,10 @@ import Swal from 'sweetalert2';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { InstitucionConfigService } from '../../services/institucion-config.service';
+import { environment } from '../../../environments/environment';
+import { AuthService } from '../../services/auth.service';
+import { AutorizacionesHabeasDataService } from '../../services/autorizaciones-habeas-data.service';
+import { HabeasDataModalComponent } from '../habeas-data-modal/habeas-data-modal.component';
 
 interface Tenant {
   id: string;
@@ -20,7 +24,7 @@ interface Tenant {
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, HabeasDataModalComponent],
 })
 export class LoginComponent implements OnInit {
   public usuario: string = '';
@@ -44,20 +48,28 @@ export class LoginComponent implements OnInit {
   public webAuthnSoportado: boolean = false;
   public pendienteBiometrico: boolean = false;
 
+  // Habeas data
+  public mostrarHabeasData: boolean = false;
+  private usuarioLogueado: any = null;
+  private continuarTrasHabeasData: (() => void) | null = null;
+
   constructor(
     private usuariosService: UsuariosService,
     private authMasterService: AuthMasterService,
     private webAuthnService: WebAuthnService,
     private router: Router,
-    private institucionConfigService: InstitucionConfigService
+    private institucionConfigService: InstitucionConfigService,
+    private authService: AuthService,
+    private autorizacionesHabeasDataService: AutorizacionesHabeasDataService
   ) {}
 
   ngOnInit(): void {
-    sessionStorage.removeItem('usuario');
-    sessionStorage.removeItem('token');
-    sessionStorage.removeItem('institucion_actual');
+    this.authService.limpiarSesion();
 
-    this.webAuthnSoportado = this.webAuthnService.soportado();
+    // Pausado por configuracion: environment.webauthnActivo debe coincidir con
+    // WEBAUTHN_ACTIVO del backend. En false, el boton de huella no se pinta y
+    // ofrecerRegistroBiometrico() sale temprano.
+    this.webAuthnSoportado = environment.webauthnActivo && this.webAuthnService.soportado();
     this.cargarFondoUltimoTenant();
   }
 
@@ -171,6 +183,7 @@ export class LoginComponent implements OnInit {
     const credenciales = {
       usuario: this.usuario,
       clave: this.password,
+      portal: 'institucional',
     };
 
     this.usuariosService.autenticacion(credenciales).subscribe({
@@ -191,18 +204,17 @@ export class LoginComponent implements OnInit {
 
         if (data) {
           if (data.acceso_institucional === 1) {
+            // El token si se guarda: el interceptor lo necesita para llamar a
+            // los endpoints de habeas data. El 'usuario' NO, porque es lo unico
+            // que mira AuthGuard: sin esa clave, el boton atras, la URL directa
+            // y el recargar quedan cerrados hasta resolver la autorizacion.
             if (data.token) {
-              sessionStorage.setItem('token', data.token);
+              this.authService.reemplazarToken(data.token);
             }
             data.portal = 'institucional';
-            sessionStorage.setItem('usuario', JSON.stringify(data));
-            
-            this.ofrecerRegistroBiometrico(() => {
-              this.institucionConfigService.cargarConfiguracionTenant().then(() => {
-                this.router.navigate(['/menu']);
-              }).catch(() => {
-                this.router.navigate(['/menu']);
-              });
+
+            this.resolverHabeasData(data, () => {
+              this.ofrecerRegistroBiometrico(() => this.entrarAlMenu());
             });
           } else {
             Swal.fire({
@@ -280,16 +292,11 @@ export class LoginComponent implements OnInit {
 
         if (data.acceso_institucional === 1) {
           if (data.token) {
-            sessionStorage.setItem('token', data.token);
+            this.authService.reemplazarToken(data.token);
           }
           data.portal = 'institucional';
-          sessionStorage.setItem('usuario', JSON.stringify(data));
-          
-          this.institucionConfigService.cargarConfiguracionTenant().then(() => {
-            this.router.navigate(['/menu']);
-          }).catch(() => {
-            this.router.navigate(['/menu']);
-          });
+
+          this.resolverHabeasData(data, () => this.entrarAlMenu());
         } else {
           Swal.fire({
             title: 'Acceso Denegado',
@@ -360,16 +367,11 @@ export class LoginComponent implements OnInit {
 
             if (data && data.acceso_institucional === 1) {
               if (data.token) {
-                sessionStorage.setItem('token', data.token);
+                this.authService.reemplazarToken(data.token);
               }
               data.portal = 'institucional';
-              sessionStorage.setItem('usuario', JSON.stringify(data));
-              
-              this.institucionConfigService.cargarConfiguracionTenant().then(() => {
-                this.router.navigate(['/menu']);
-              }).catch(() => {
-                this.router.navigate(['/menu']);
-              });
+
+              this.resolverHabeasData(data, () => this.entrarAlMenu());
             } else {
               Swal.fire({
                 title: 'Acceso Denegado',
@@ -534,5 +536,86 @@ export class LoginComponent implements OnInit {
     this.tenantSeleccionado = null;
     this.tenantsDisponibles = [];
     this.pendienteBiometrico = false;
+  }
+
+  /**
+   * Punto unico de decision de habeas data para los tres caminos de login
+   * (contrasena, biometrico directo y biometrico con tenant).
+   *
+   * El backend decide si la politica es exigible; el front solo obedece.
+   * Ante un error tecnico NO se deja pasar: se aborta el login.
+   *
+   * @param usuario Datos del usuario ya autenticado (aun sin persistir).
+   * @param alContinuar Que hacer una vez la autorizacion este resuelta.
+   */
+  private resolverHabeasData(usuario: any, alContinuar: () => void): void {
+    this.usuarioLogueado = usuario;
+    this.continuarTrasHabeasData = alContinuar;
+
+    this.autorizacionesHabeasDataService.verificar().subscribe({
+      next: (response: any) => {
+        const data: any = response.body;
+
+        if (data.requiere_autorizacion) {
+          this.mostrarHabeasData = true;
+          return;
+        }
+
+        this.iniciarSesion();
+      },
+      error: (error: any) => {
+        console.error('Error al verificar habeas data:', error);
+        this.abortarLogin(
+          'No se pudo verificar la política de tratamiento de datos. Intenta de nuevo.'
+        );
+      },
+    });
+  }
+
+  /**
+   * El modal emite el token nuevo, que ya trae el pasaporte hd_ok firmado.
+   */
+  onHabeasDataAutorizado(tokenNuevo: string): void {
+    this.authService.reemplazarToken(tokenNuevo);
+    this.mostrarHabeasData = false;
+    this.iniciarSesion();
+  }
+
+  /**
+   * Unico punto donde la sesion queda establecida.
+   */
+  private iniciarSesion(): void {
+    this.authService.guardarSesion(this.usuarioLogueado);
+
+    const continuar = this.continuarTrasHabeasData;
+    this.continuarTrasHabeasData = null;
+
+    if (continuar) {
+      continuar();
+    } else {
+      this.entrarAlMenu();
+    }
+  }
+
+  private entrarAlMenu(): void {
+    this.institucionConfigService
+      .cargarConfiguracionTenant()
+      .then(() => this.router.navigate(['/menu']))
+      .catch(() => this.router.navigate(['/menu']));
+  }
+
+  private abortarLogin(mensaje: string): void {
+    this.mostrarHabeasData = false;
+    this.usuarioLogueado = null;
+    this.continuarTrasHabeasData = null;
+    this.authService.limpiarSesion();
+    this.limpiarCampos();
+    Swal.fire({
+      title: 'No pudimos continuar',
+      text: mensaje,
+      icon: 'error',
+      confirmButtonText: 'Entendido',
+      confirmButtonColor: '#FFC107',
+    });
   }
 }

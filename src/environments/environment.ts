@@ -19,5 +19,9 @@ export const environment = {
     appId: '1992075778404246',
     configId: '1009442331644081',
     graphVersion: 'v23.0'
-  }
+  },
+
+  // Login biometrico (WebAuthn). Pausado: debe coincidir con WEBAUTHN_ACTIVO
+  // del backend (config/jwt.env.php). En false oculta el boton de huella.
+  webauthnActivo: false
 };
