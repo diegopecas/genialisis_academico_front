@@ -38,7 +38,7 @@
         <div class="drop-zone-content">
           <i class="fas fa-photo-video drop-icon"></i>
           <p class="drop-text">Arrastra imágenes o videos aquí o haz clic para seleccionar</p>
-          <p class="drop-hint">Imágenes: JPG, PNG, GIF, WEBP (máx. 10MB) · Videos: MP4, MOV</p>
+          <p class="drop-hint">Imágenes: JPG, PNG, GIF, WEBP (máx. {{ maxImagenMb }}MB) · Videos: MP4, MOV (máx. {{ maxVideoMb }}MB)</p>
         </div>
       </div>
 
@@ -143,6 +143,20 @@
               Eliminar ({{ cantidadSeleccionadas }})
               <span *ngIf="eliminandoMultiple" class="spinner-border spinner-border-sm ms-1"></span>
             </button>
+
+            <button
+              class="btn btn-sm btn-outline-secondary me-2"
+              (click)="rotarSeleccionadas()"
+              [disabled]="!puedeRotar || rotando"
+              title="Girar 90° las imágenes seleccionadas. Se aplica sobre el archivo."
+            >
+              <i class="fas fa-redo me-1"></i>
+              Girar 90° ({{ cantidadSeleccionadas }})
+              <span *ngIf="rotando" class="spinner-border spinner-border-sm ms-1"></span>
+            </button>
+
+            <!-- Separador: arriba acciones sobre las imágenes, abajo publicación -->
+            <span class="vr mx-2"></span>
 
             <!-- Publicar en el feed (máx. 10, solo imágenes) -->
             <button

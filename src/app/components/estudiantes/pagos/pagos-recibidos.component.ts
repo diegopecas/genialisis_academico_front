@@ -54,7 +54,7 @@ export class PagosRecibidosComponent implements OnInit {
 
   public acciones = [
     { id: 'contabilizar', label: 'Contabilizar', icono: '/assets/images/contabilizar.png' },
-    { id: 'imprimir', label: 'Imprimir', icono: '/assets/images/comprobante_pago.png' }
+    { id: 'imprimir', label: 'Imprimir recibo', icono: '/assets/images/comprobante_pago.png' }
   ] as any[];
 
   // Variables de permisos

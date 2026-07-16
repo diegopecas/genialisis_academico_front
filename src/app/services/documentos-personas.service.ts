@@ -206,6 +206,46 @@ export class DocumentosPersonasService {
       .pipe(catchError(this.handleError));
   }
 
+  // Extension por MIME. Solo se usa como red de seguridad cuando el nombre no
+  // llega en Content-Disposition; refleja lo que el backend acepta al subir.
+  private readonly EXTENSIONES_POR_MIME: { [mime: string]: string } = {
+    'application/pdf': 'pdf',
+    'image/jpeg': 'jpg',
+    'image/png': 'png',
+    'application/msword': 'doc',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
+      'docx',
+    'application/vnd.ms-excel': 'xls',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'xlsx',
+  };
+
+  /**
+   * Lee el nombre del archivo desde Content-Disposition. Prioriza filename*=
+   * (RFC 5987), que trae el nombre real codificado en UTF-8, y cae a filename=
+   * si no viene. Devuelve null si el header no llega o no trae nombre; ojo que
+   * el navegador solo expone este header si el backend lo lista en
+   * Access-Control-Expose-Headers.
+   */
+  private extraerNombreArchivo(contentDisposition: string | null): string | null {
+    if (!contentDisposition) return null;
+
+    const extendido = /filename\*=UTF-8''([^;]+)/i.exec(contentDisposition);
+    if (extendido && extendido[1]) {
+      try {
+        return decodeURIComponent(extendido[1].trim());
+      } catch {
+        // Nombre mal codificado: se ignora y se intenta con filename=.
+      }
+    }
+
+    const simple = /filename="?([^";]+)"?/i.exec(contentDisposition);
+    if (simple && simple[1]) {
+      return simple[1].trim();
+    }
+
+    return null;
+  }
+
   /**
    * Descarga directa (fire-and-forget): baja el archivo como blob y lo guarda
    * en el equipo. Centraliza el armado del enlace para los componentes que solo
@@ -216,12 +256,17 @@ export class DocumentosPersonasService {
       next: (response: HttpResponse<Blob>) => {
         const blob = response.body as Blob;
 
-        let nombreArchivo = nombrePorDefecto;
-        const contentDisposition = response.headers?.get('Content-Disposition');
-        if (contentDisposition) {
-          const match = /filename="?([^"]+)"?/.exec(contentDisposition);
-          if (match && match[1]) {
-            nombreArchivo = match[1];
+        let nombreArchivo = this.extraerNombreArchivo(
+          response.headers?.get('Content-Disposition'),
+        );
+
+        if (!nombreArchivo) {
+          // Sin nombre del backend: se usa el por defecto y se le pega la
+          // extension deducida del MIME para no bajar un archivo sin extension.
+          nombreArchivo = nombrePorDefecto;
+          const extension = this.EXTENSIONES_POR_MIME[blob.type];
+          if (extension && !nombreArchivo.toLowerCase().endsWith('.' + extension)) {
+            nombreArchivo = nombreArchivo + '.' + extension;
           }
         }
 

@@ -9,7 +9,6 @@ import { HeaderComponent } from '../../../../common/header/header.component';
 import { GaleriaImagenesService } from '../../../../services/galeria-imagenes.service';
 import { GaleriasService } from '../../../../services/galerias.service';
 import { InstagramService } from '../../../../services/instagram.service';
-import { ConfiguracionGlobalService } from '../../../../services/configuracion-global.service';
 
 
 interface ImagenPreview {
@@ -71,10 +70,18 @@ export class GestionarImagenesComponent implements OnInit {
   readonly maxImagenesFeed = 10;          // tope real de Instagram para carrusel
   // Las historias NO tienen tope. Los Reels son de 1 video.
 
-  // Límite de tamaño de video (MB). Se lee de configuracion_global
-  // (galeria_video_max_mb); el backend valida el mismo número. Default 32.
+  // Límites de tamaño (MB). Los define configuracion_global
+  // (galeria_imagen_max_mb / galeria_video_max_mb), pero el backend los recorta
+  // a lo que el servidor puede recibir de verdad. Estos son los defaults que
+  // aplican mientras cargarLimites() responde.
+  maxImagenMb = 10;
   maxVideoMb = 32;
+  rotando = false;
   private readonly tiposVideo = ['video/mp4', 'video/quicktime'];
+
+  private get maxImagenClienteBytes(): number {
+    return this.maxImagenMb * 1024 * 1024;
+  }
 
   private get maxVideoClienteBytes(): number {
     return this.maxVideoMb * 1024 * 1024;
@@ -86,7 +93,6 @@ export class GestionarImagenesComponent implements OnInit {
     private galeriasService: GaleriasService,
     private galeriaImagenesService: GaleriaImagenesService,
     private instagramService: InstagramService,
-    private configuracionGlobalService: ConfiguracionGlobalService,
     private http: HttpClient
   ) { }
 
@@ -101,24 +107,27 @@ export class GestionarImagenesComponent implements OnInit {
     this.idGaleria = id;
     this.cargarGaleria();
     this.cargarImagenes();
-    this.cargarLimiteVideo();
+    this.cargarLimites();
   }
 
   /**
-   * Lee galeria_video_max_mb de configuracion_global para validar el tamaño
-   * de video en el cliente con el mismo número que usa el backend.
+   * Pide al backend los límites vigentes de la galería. No se leen directo de
+   * configuracion_global a propósito: el backend los recorta contra
+   * upload_max_filesize / post_max_size, así que el número que anunciamos aquí
+   * es el mismo que el servidor va a cumplir.
    */
-  private cargarLimiteVideo(): void {
-    this.configuracionGlobalService.obtenerMultiples(['galeria_video_max_mb']).subscribe({
+  private cargarLimites(): void {
+    this.http.get<any>(`${environment.api}upload/limites-galeria`).subscribe({
       next: (resp: any) => {
-        const cfg = resp && resp['galeria_video_max_mb'] ? resp['galeria_video_max_mb'] : null;
-        const valor = cfg && cfg.valor_numero ? Number(cfg.valor_numero) : 0;
-        if (valor > 0) {
-          this.maxVideoMb = valor;
+        if (resp && resp.imagen_max_mb > 0) {
+          this.maxImagenMb = resp.imagen_max_mb;
+        }
+        if (resp && resp.video_max_mb > 0) {
+          this.maxVideoMb = resp.video_max_mb;
         }
       },
       error: () => {
-        // Si falla, queda el default (32MB); el backend valida igual.
+        // Si falla, quedan los defaults; el backend valida igual al subir.
       }
     });
   }
@@ -262,6 +271,60 @@ export class GestionarImagenesComponent implements OnInit {
     }
   }
 
+  /**
+   * Gira 90 grados las imagenes seleccionadas, en disco.
+   *
+   * Al volver hay que refrescar el src: enviarArchivo() manda
+   * Cache-Control: max-age=86400, asi que el navegador no vuelve a pedir la
+   * miniatura en 24h aunque el ETag haya cambiado. El parametro ?v= la fuerza
+   * a ser una URL distinta.
+   */
+  rotarSeleccionadas(): void {
+    const seleccionadas = this.seleccionadas;
+
+    if (seleccionadas.length === 0) {
+      Swal.fire('Aviso', 'No hay imágenes seleccionadas', 'warning');
+      return;
+    }
+
+    this.rotando = true;
+    const ids = seleccionadas.map(img => img.id);
+
+    this.galeriaImagenesService.rotar(ids, 90).subscribe({
+      next: (response: any) => {
+        this.rotando = false;
+
+        const rotadas: string[] = response.rotadas || [];
+        const version = Date.now();
+
+        // Solo se toca el src de las que rotaron. El ngFor no usa trackBy, asi
+        // que reemplazar los objetos recargaria todas las miniaturas.
+        this.imagenesSubidas.forEach((img: ImagenSubida) => {
+          if (!rotadas.includes(img.id)) {
+            return;
+          }
+          const base = this.galeriaImagenesService.obtenerUrlThumb(img.guid);
+          const separador = base.includes('?') ? '&' : '?';
+          img.urlThumb = `${base}${separador}v=${version}`;
+        });
+
+        const errores = response.errores || [];
+        if (errores.length > 0) {
+          Swal.fire({
+            title: 'Rotación parcial',
+            html: `Se giraron <strong>${rotadas.length}</strong> de <strong>${ids.length}</strong>.<br>` +
+                  `No se pudieron girar ${errores.length}.`,
+            icon: 'warning'
+          });
+        }
+      },
+      error: (error: any) => {
+        this.rotando = false;
+        Swal.fire('Error', typeof error === 'string' ? error : 'No se pudieron girar las imágenes', 'error');
+      }
+    });
+  }
+
   async eliminarSeleccionadas(): Promise<void> {
     const seleccionadas = this.seleccionadas;
 
@@ -334,6 +397,14 @@ export class GestionarImagenesComponent implements OnInit {
   }
 
   /** Reel: exactamente 1 seleccionado y que sea video. */
+  /**
+   * Girar aplica solo a imagenes: GD no procesa video.
+   * Misma forma que puedePublicarFeed.
+   */
+  get puedeRotar(): boolean {
+    return this.cantidadSeleccionadas >= 1 && this.videosSeleccionados === 0;
+  }
+
   get puedePublicarReel(): boolean {
     return this.cantidadSeleccionadas === 1 && this.videosSeleccionados === 1;
   }
@@ -580,8 +651,8 @@ export class GestionarImagenesComponent implements OnInit {
         Swal.fire('Error', `${file.name} no es una imagen ni un video permitido (MP4/MOV)`, 'error');
         return false;
       }
-      if (esImagen && file.size > 10 * 1024 * 1024) {
-        Swal.fire('Error', `${file.name} supera el tamaño máximo de imagen (10MB)`, 'error');
+      if (esImagen && file.size > this.maxImagenClienteBytes) {
+        Swal.fire('Error', `${file.name} supera el tamaño máximo de imagen (${this.maxImagenMb}MB)`, 'error');
         return false;
       }
       if (esVideo && file.size > this.maxVideoClienteBytes) {
@@ -665,7 +736,7 @@ export class GestionarImagenesComponent implements OnInit {
 
   /** Mensaje de ayuda para fallos de subida (revisar tamaño/tipo). */
   private mensajeFalloUpload(): string {
-    return `Revisa que el video no supere ${this.maxVideoMb}MB y que sea MP4/MOV, o que la imagen no pase de 10MB.`;
+    return `Revisa que el video no supere ${this.maxVideoMb}MB y que sea MP4/MOV, o que la imagen no pase de ${this.maxImagenMb}MB.`;
   }
 
   private subirArchivo(item: ImagenPreview): Promise<any> {

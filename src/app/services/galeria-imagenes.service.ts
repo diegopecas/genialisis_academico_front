@@ -221,6 +221,26 @@ export class GaleriaImagenesService {
     );
   }
 
+  /**
+   * Rota en disco las imagenes indicadas y borra su cache de miniaturas.
+   * Los videos que vengan en la lista se ignoran del lado del backend.
+   *
+   * @param ids     ids de galeria_imagenes
+   * @param grados  90, 180 o 270 en sentido horario
+   */
+  rotar(ids: string[], grados: number = 90) {
+    const body = JSON.stringify({ ids: ids, grados: grados });
+    return this.http.post<any>(this.servicio + '/rotar', body, httpOptions).pipe(
+      tap((respuesta: any) => {
+        if (respuesta.error) {
+          throw respuesta.error;
+        }
+        return respuesta;
+      }),
+      catchError(this.handleError)
+    );
+  }
+
   crearBulk(imagenes: any[]) {
     const body = JSON.stringify({ imagenes: imagenes });
     return this.http.post<any>(this.servicio + '/bulk', body, httpOptions).pipe(
