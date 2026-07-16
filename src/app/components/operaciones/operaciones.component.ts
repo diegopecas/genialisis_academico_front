@@ -38,6 +38,9 @@ export class OperacionesComponent {
       case 'registros-limpieza':
         this.router.navigate(['/operaciones/registros-limpieza']);
         break;
+      case 'registro-rapido-limpieza':
+        this.router.navigate(['/operaciones/registro-rapido-limpieza']);
+        break;
       case 'disponibilidad-cocina':
         this.router.navigate(['/operaciones/disponibilidad-cocina']);
         break;

@@ -202,6 +202,47 @@ export class RegistrosLimpiezaService {
       );
   }
 
+  obtenerPreviewRapido(idProceso: any) {
+    return this.http
+      .get<HttpResponse<Object>>(
+        this.servicio + '/rapido-preview',
+        {
+          params: {
+            id_proceso: idProceso.toString()
+          },
+          observe: 'response'
+        }
+      )
+      .pipe(
+        tap((response: HttpResponse<Object>) => {
+          let respuesta: any = response.body;
+          if (respuesta?.error) {
+            throw respuesta.error;
+          }
+          return response;
+        }),
+        catchError(this.handleError)
+      );
+  }
+
+  crearRapido(datos: any) {
+    return this.http
+      .post<HttpResponse<Object>>(this.servicio + '/rapido', datos, {
+        ...httpOptions,
+        observe: 'response',
+      })
+      .pipe(
+        tap((response: HttpResponse<Object>) => {
+          let respuesta: any = response.body;
+          if (respuesta?.error) {
+            throw respuesta.error;
+          }
+          return response;
+        }),
+        catchError(this.handleError)
+      );
+  }
+
   private handleError(error: HttpErrorResponse) {
     return throwError(() => error);
   }

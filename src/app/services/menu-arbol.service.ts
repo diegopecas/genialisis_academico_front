@@ -185,7 +185,8 @@ export class MenuArbolService {
             keywords: ['inventario', 'stock', 'bodega'],
             hijos: [
               { id: 'operaciones-mov-productos', label: 'Movimientos Productos', icono: '📦', ruta: '/operaciones/movimientos-productos', keywords: ['inventario', 'stock', 'bodega'] },
-              { id: 'operaciones-registros-limpieza', label: 'Registros Limpieza', icono: '🧼', ruta: '/operaciones/registros-limpieza', keywords: ['aseo', 'limpieza'] }
+              { id: 'operaciones-registros-limpieza', label: 'Registros Limpieza', icono: '🧼', ruta: '/operaciones/registros-limpieza', keywords: ['aseo', 'limpieza'] },
+              { id: 'operaciones-registro-rapido-limpieza', label: 'Registro Rápido de Aseo', icono: '⚡', ruta: '/operaciones/registro-rapido-limpieza', keywords: ['aseo', 'limpieza', 'rapido', 'express'] }
             ]
           },
           {

@@ -1,0 +1,206 @@
+<div class="modulo">
+    <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [raiz]="'/operaciones/registros-limpieza'"
+        [regresar]="'/operaciones/registros-limpieza'"
+        [iconoTitulo]="'/assets/images/registro_limpieza_rapido.png'">
+    </app-header>
+
+    <div class="container-fluid mt-3">
+
+        <!-- Proceso, fecha y horas -->
+        <div class="card mb-3 config-card">
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-12 col-md-4">
+                        <label class="form-label">
+                            <i class="fas fa-broom"></i> Tipo de Proceso *
+                        </label>
+                        <select class="form-select form-select-lg" [(ngModel)]="idProceso"
+                            (change)="onProcesoChange()" [disabled]="guardando">
+                            <option value="">Seleccione un proceso</option>
+                            <option *ngFor="let proceso of procesos" [value]="proceso.id">
+                                {{proceso.nombre}}
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="col-12 col-md-4">
+                        <label class="form-label">
+                            <i class="fas fa-calendar"></i> Fecha *
+                        </label>
+                        <input type="date" class="form-control form-control-lg" [(ngModel)]="fecha"
+                            [max]="fechaMaxima" [disabled]="guardando">
+                    </div>
+
+                    <div class="col-6 col-md-2">
+                        <label class="form-label">
+                            <i class="fas fa-play"></i> Inicio *
+                        </label>
+                        <input type="time" class="form-control form-control-lg" [(ngModel)]="horaInicio"
+                            (change)="onHoraInicioChange()" [disabled]="guardando">
+                    </div>
+
+                    <div class="col-6 col-md-2">
+                        <label class="form-label">
+                            <i class="fas fa-flag-checkered"></i> Fin *
+                        </label>
+                        <input type="time" class="form-control form-control-lg" [(ngModel)]="horaFin"
+                            (change)="onHoraFinChange()" [disabled]="guardando">
+                    </div>
+                </div>
+
+                <!-- Duración: automática por tiempos estimados, o ajustada a mano -->
+                <div class="duracion-row mt-3">
+                    <span class="duracion-label">Duración</span>
+
+                    <button *ngFor="let minutos of chipsDuracion" type="button" class="chip"
+                        [class.activo]="chipActivo === minutos" (click)="aplicarChip(minutos)"
+                        [disabled]="guardando">
+                        {{ minutos < 60 ? minutos + "'" : (minutos / 60) + 'h' }}
+                    </button>
+
+                    <span class="duracion-actual">{{duracionTexto}}</span>
+
+                    <span *ngIf="!duracionManual && minutosEstimados > 0" class="duracion-nota">
+                        <i class="fas fa-wand-magic-sparkles"></i> calculada con los tiempos estimados
+                    </span>
+
+                    <button *ngIf="duracionManual" type="button" class="btn btn-link btn-sm p-0 duracion-reset"
+                        (click)="reactivarCalculoAutomatico()" [disabled]="guardando">
+                        <i class="fas fa-rotate-left"></i> recalcular
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Áreas -->
+        <div class="card mb-3" *ngIf="idProceso">
+            <div class="card-header">
+                <div class="areas-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-building"></i> Áreas
+                        <span class="badge bg-primary">{{areasSeleccionadas.length}}/{{areas.length}}</span>
+                    </h5>
+
+                    <div class="areas-acciones" *ngIf="areas.length > 0">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" (click)="marcarTodas()"
+                            [disabled]="guardando">Todas</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" (click)="marcarSoloHoy()"
+                            *ngIf="hayAreasDeHoy" [disabled]="guardando">Solo hoy</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" (click)="marcarNinguna()"
+                            [disabled]="guardando">Ninguna</button>
+                    </div>
+                </div>
+                <small class="text-muted" *ngIf="ultimaFecha">
+                    Premarcadas según el último registro de este proceso ({{ultimaFecha | date:'dd/MM/yyyy'}})
+                </small>
+                <small class="text-muted" *ngIf="!ultimaFecha && areas.length > 0">
+                    Este proceso no se ha registrado antes; se premarcaron las áreas que aplican hoy
+                </small>
+            </div>
+
+            <div class="card-body">
+                <div *ngIf="cargandoAreas" class="text-center text-muted py-4">
+                    <i class="fas fa-spinner fa-spin"></i> Cargando áreas...
+                </div>
+
+                <div *ngIf="!cargandoAreas && areas.length === 0" class="alert alert-info mb-0">
+                    <i class="fas fa-info-circle"></i>
+                    No hay áreas configuradas para este proceso. Configúralas en Áreas Físicas.
+                </div>
+
+                <div class="areas-grid" *ngIf="!cargandoAreas && areas.length > 0">
+                    <div *ngFor="let area of areas" class="area-item" [class.seleccionada]="area.seleccionada"
+                        (click)="toggleArea(area)">
+                        <div class="area-check">
+                            <i class="fas" [ngClass]="area.seleccionada ? 'fa-square-check' : 'fa-square'"></i>
+                        </div>
+
+                        <div class="area-info">
+                            <div class="area-nombre">
+                                {{area.nombre}}
+                                <span *ngIf="area.aplica_hoy" class="badge-hoy">Hoy</span>
+                            </div>
+                            <small class="area-ubicacion" *ngIf="area.ubicacion">{{area.ubicacion}}</small>
+                            <div class="area-meta">
+                                <span *ngIf="area.tiempo_estimado_minutos > 0">
+                                    <i class="fas fa-clock"></i> {{area.tiempo_estimado_minutos}} min
+                                </span>
+                                <span>
+                                    <i class="fas fa-check-square"></i>
+                                    {{area.total_elementos + area.total_mobiliario}}
+                                </span>
+                                <span *ngIf="area.productos.length > 0">
+                                    <i class="fas fa-spray-can"></i> {{area.productos.length}}
+                                </span>
+                                <span *ngIf="area.productos.length === 0" class="text-muted">
+                                    sin consumo
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Consumo consolidado -->
+        <div class="card mb-3" *ngIf="areasSeleccionadas.length > 0">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-spray-can"></i> Productos a descontar
+                    <span class="badge bg-info">{{consumoConsolidado.length}}</span>
+                </h5>
+            </div>
+            <div class="card-body">
+                <div *ngIf="consumoConsolidado.length === 0" class="text-muted small mb-0">
+                    Las áreas marcadas no tienen productos configurados: se registra el aseo sin consumo.
+                </div>
+
+                <div class="consumo-lista" *ngIf="consumoConsolidado.length > 0">
+                    <div *ngFor="let producto of consumoConsolidado" class="consumo-item">
+                        <span class="consumo-nombre">{{producto.nombre}}</span>
+                        <span class="consumo-cantidad">
+                            {{producto.cantidad}} {{producto.abreviatura}}
+                            <small *ngIf="!producto.tiene_stock" class="aviso-stock"
+                                [title]="'Stock disponible: ' + producto.stock_actual + ' ' + producto.abreviatura">
+                                <i class="fas fa-triangle-exclamation"></i> stock {{producto.stock_actual}}
+                            </small>
+                        </span>
+                    </div>
+                </div>
+
+                <small class="text-muted d-block mt-2" *ngIf="areasSinConsumo > 0 && consumoConsolidado.length > 0">
+                    {{areasSinConsumo}} área(s) marcadas no consumen productos.
+                </small>
+            </div>
+        </div>
+
+        <!-- Observaciones -->
+        <div class="card mb-3" *ngIf="idProceso">
+            <div class="card-body">
+                <label class="form-label">Observaciones</label>
+                <textarea class="form-control" [(ngModel)]="observaciones" rows="2"
+                    placeholder="Observaciones opcionales..." [disabled]="guardando"></textarea>
+            </div>
+        </div>
+
+        <!-- Barra de acción -->
+        <div class="action-bar">
+            <div class="resumen">
+                <strong>{{areasSeleccionadas.length}}</strong> área(s) ·
+                <strong>{{consumoConsolidado.length}}</strong> producto(s) ·
+                {{duracionTexto}}
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-secondary" (click)="cancelar()" [disabled]="guardando">
+                    <i class="fas fa-arrow-left"></i> Regresar
+                </button>
+                <button type="button" class="btn btn-success btn-lg" [disabled]="!puedeRegistrar"
+                    (click)="registrar()">
+                    <i class="fas" [ngClass]="guardando ? 'fa-spinner fa-spin' : 'fa-check'"></i>
+                    Registrar aseo
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
