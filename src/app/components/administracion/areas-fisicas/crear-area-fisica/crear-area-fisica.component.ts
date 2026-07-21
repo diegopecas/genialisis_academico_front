@@ -12,6 +12,7 @@ import { ConceptosMovimientoService } from '../../../../services/conceptos-movim
 import { TiposProcesosLimpiezaService } from '../../../../services/tipos-procesos-limpieza.service';
 import { PeriodicidadService } from '../../../../services/periodicidad.service';
 import { ElementosFisicosService } from '../../../../services/elementos-fisicos.service';
+import { AreasFisicasXProcesosLimpiezaConsumoService } from '../../../../services/areas-fisicas-x-procesos-limpieza-consumo.service';
 
 interface AreaFisicaModel {
     id: string;
@@ -38,6 +39,12 @@ export class CrearAreaFisicaComponent implements OnInit {
     public titulo = "Registro de área física";
     public regresar = '/administracion/areas-fisicas';
     public tabActivo = 'datos-generales';
+
+    // Consumo general por área/proceso (respaldo cuando el área no tiene elementos)
+    public consumoGeneral: any[] = [];
+    public productosLimpiezaDisponibles: any[] = [];
+    public unidadesConsumo: any[] = [];
+    public procesoConsumoSeleccionado: string = '';
 
     public mobiliarioAsignado: any[] = [];
     public mobiliarioDisponible: any[] = [];
@@ -70,7 +77,8 @@ export class CrearAreaFisicaComponent implements OnInit {
         private conceptosService: ConceptosMovimientoService,
         private tiposProcesosLimpiezaService: TiposProcesosLimpiezaService,
         private periodicidadService: PeriodicidadService,
-        private elementosFisicosService: ElementosFisicosService
+        private elementosFisicosService: ElementosFisicosService,
+        private consumoGeneralService: AreasFisicasXProcesosLimpiezaConsumoService
     ) { }
 
     ngOnInit(): void {
@@ -1834,5 +1842,201 @@ export class CrearAreaFisicaComponent implements OnInit {
         });
 
         return Object.values(resumen).filter((r: any) => r.cantidad > 0);
+    }
+
+    // ============================================================
+    //  Consumo general por área y proceso
+    // ============================================================
+
+    cargarProductosConsumo() {
+        this.consumoGeneralService.obtenerProductosDisponibles().subscribe({
+            next: (response: any) => {
+                this.productosLimpiezaDisponibles = response.body || [];
+            },
+            error: (error: any) => {
+                console.error("Error al cargar productos de limpieza", error);
+            }
+        });
+    }
+
+    onProcesoConsumoChange() {
+        this.consumoGeneral = [];
+        if (!this.procesoConsumoSeleccionado) {
+            return;
+        }
+        this.cargarConsumoGeneral();
+    }
+
+    cargarConsumoGeneral() {
+        this.consumoGeneralService
+            .obtenerPorAreaProceso(this.id, this.procesoConsumoSeleccionado)
+            .subscribe({
+                next: (response: any) => {
+                    this.consumoGeneral = response.body || [];
+                },
+                error: (error: any) => {
+                    console.error("Error al cargar consumo general", error);
+                    this.consumoGeneral = [];
+                }
+            });
+    }
+
+    abrirModalAgregarConsumo() {
+        if (!this.procesoConsumoSeleccionado) {
+            Swal.fire('Atención', 'Seleccione primero un proceso de limpieza', 'warning');
+            return;
+        }
+
+        // Solo se ofrecen los productos que aún no están configurados para este proceso
+        const yaConfigurados = this.consumoGeneral.map(c => c.id_producto_limpieza);
+        const disponibles = this.productosLimpiezaDisponibles.filter(
+            p => !yaConfigurados.includes(p.id_producto_limpieza)
+        );
+
+        if (disponibles.length === 0) {
+            Swal.fire('Atención', 'Ya agregó todos los productos disponibles para este proceso', 'info');
+            return;
+        }
+
+        const opcionesProducto = disponibles
+            .map(p => `<option value="${p.id_producto_limpieza}"
+                        data-unidad="${p.id_unidad_medida}"
+                        data-abrev="${p.abreviatura}">${p.nombre} (${p.abreviatura})</option>`)
+            .join('');
+
+        Swal.fire({
+            title: 'Agregar consumo',
+            html: `
+                <div class="text-start">
+                    <label class="form-label">Producto</label>
+                    <select id="swal-producto" class="form-select mb-3">
+                        <option value="">Seleccione un producto</option>
+                        ${opcionesProducto}
+                    </select>
+                    <label class="form-label">Cantidad</label>
+                    <input id="swal-cantidad" type="number" min="0" step="0.01"
+                        class="form-control" placeholder="0.00">
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonColor: '#ffbd31',
+            confirmButtonText: 'Agregar',
+            cancelButtonText: 'Cancelar',
+            preConfirm: () => {
+                const sel = document.getElementById('swal-producto') as HTMLSelectElement;
+                const cant = document.getElementById('swal-cantidad') as HTMLInputElement;
+                const idProducto = sel.value;
+                const cantidad = parseFloat(cant.value);
+
+                if (!idProducto) {
+                    Swal.showValidationMessage('Seleccione un producto');
+                    return false;
+                }
+                if (isNaN(cantidad) || cantidad <= 0) {
+                    Swal.showValidationMessage('La cantidad debe ser mayor que cero');
+                    return false;
+                }
+
+                const opcion = sel.options[sel.selectedIndex];
+                return {
+                    id_producto_limpieza: idProducto,
+                    cantidad: cantidad,
+                    id_unidad_medida: opcion.getAttribute('data-unidad')
+                };
+            }
+        }).then((result) => {
+            if (result.isConfirmed && result.value) {
+                this.guardarConsumo(result.value);
+            }
+        });
+    }
+
+    guardarConsumo(datos: any) {
+        const payload = {
+            id_area_fisica: this.id,
+            id_tipo_proceso_limpieza: this.procesoConsumoSeleccionado,
+            id_producto_limpieza: datos.id_producto_limpieza,
+            cantidad: datos.cantidad,
+            id_unidad_medida: datos.id_unidad_medida
+        };
+
+        this.consumoGeneralService.crear(payload).subscribe({
+            next: () => {
+                Swal.fire('Guardado', 'Consumo agregado correctamente', 'success');
+                this.cargarConsumoGeneral();
+            },
+            error: (error: any) => {
+                const mensaje = error.error?.error || 'No se pudo guardar el consumo';
+                Swal.fire('Error', mensaje, 'error');
+            }
+        });
+    }
+
+    editarConsumo(item: any) {
+        Swal.fire({
+            title: 'Editar cantidad',
+            html: `
+                <div class="text-start">
+                    <p class="mb-2"><strong>${item.nombre_producto}</strong></p>
+                    <label class="form-label">Cantidad (${item.abreviatura})</label>
+                    <input id="swal-cantidad" type="number" min="0" step="0.01"
+                        class="form-control" value="${item.cantidad}">
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonColor: '#ffbd31',
+            confirmButtonText: 'Guardar',
+            cancelButtonText: 'Cancelar',
+            preConfirm: () => {
+                const cant = document.getElementById('swal-cantidad') as HTMLInputElement;
+                const cantidad = parseFloat(cant.value);
+                if (isNaN(cantidad) || cantidad <= 0) {
+                    Swal.showValidationMessage('La cantidad debe ser mayor que cero');
+                    return false;
+                }
+                return cantidad;
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                this.consumoGeneralService.actualizar({
+                    id: item.id,
+                    cantidad: result.value,
+                    id_unidad_medida: item.id_unidad_medida
+                }).subscribe({
+                    next: () => {
+                        Swal.fire('Actualizado', 'Cantidad actualizada', 'success');
+                        this.cargarConsumoGeneral();
+                    },
+                    error: (error: any) => {
+                        Swal.fire('Error', error.error?.error || 'No se pudo actualizar', 'error');
+                    }
+                });
+            }
+        });
+    }
+
+    eliminarConsumo(item: any) {
+        Swal.fire({
+            title: '¿Eliminar consumo?',
+            text: `Se quitará ${item.nombre_producto} de este proceso`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                this.consumoGeneralService.eliminar(item.id).subscribe({
+                    next: () => {
+                        Swal.fire('Eliminado', 'Consumo eliminado', 'success');
+                        this.cargarConsumoGeneral();
+                    },
+                    error: (error: any) => {
+                        Swal.fire('Error', error.error?.error || 'No se pudo eliminar', 'error');
+                    }
+                });
+            }
+        });
     }
 }

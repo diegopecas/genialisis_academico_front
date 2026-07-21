@@ -6,6 +6,7 @@ import Swal from 'sweetalert2';
 import { HeaderComponent } from '../../../../common/header/header.component';
 import { RegistrosLimpiezaService } from '../../../../services/registros-limpieza.service';
 import { TiposProcesosLimpiezaService } from '../../../../services/tipos-procesos-limpieza.service';
+import { UsuariosService } from '../../../../services/usuarios.service';
 import { UtilService } from '../../../../common/constantes/util.service';
 
 @Component({
@@ -24,6 +25,10 @@ export class RegistroRapidoLimpiezaComponent implements OnInit {
 
   procesos: any[] = [];
   idProceso: string = '';
+
+  usuarios: any[] = [];
+  idEjecutor: string = '';
+  idSupervisor: string = '';
 
   areas: any[] = [];
   ultimaFecha: string | null = null;
@@ -44,11 +49,13 @@ export class RegistroRapidoLimpiezaComponent implements OnInit {
     private router: Router,
     private registrosService: RegistrosLimpiezaService,
     private procesosService: TiposProcesosLimpiezaService,
+    private usuariosService: UsuariosService,
     private utilService: UtilService
   ) { }
 
   ngOnInit(): void {
     this.cargarProcesos();
+    this.cargarUsuarios();
   }
 
   cargarProcesos() {
@@ -60,6 +67,48 @@ export class RegistroRapidoLimpiezaComponent implements OnInit {
         Swal.fire('Error', 'No se pudieron cargar los tipos de proceso', 'error');
       }
     });
+  }
+
+  cargarUsuarios() {
+    this.usuariosService.obtenerTodos().subscribe({
+      next: (response: any) => {
+        // Solo personal institucional activo: se excluyen inactivos y usuarios de portal de padres
+        this.usuarios = (response.body || [])
+          .filter((u: any) => Number(u.activo) === 1 && Number(u.acceso_institucional) === 1)
+          .map((u: any) => ({ ...u, nombre_completo: this.armarNombre(u) }))
+          .sort((a: any, b: any) => a.nombre_completo.localeCompare(b.nombre_completo));
+
+        // El ejecutor arranca en el usuario logueado, pero se puede cambiar
+        const idActual = this.utilService.obtenerIdUsuarioActual();
+        if (idActual && this.usuarios.some((u: any) => u.id === idActual)) {
+          this.idEjecutor = idActual;
+        }
+      },
+      error: () => {
+        Swal.fire('Error', 'No se pudieron cargar los usuarios', 'error');
+      }
+    });
+  }
+
+  private armarNombre(usuario: any): string {
+    const nombre = [
+      usuario.primer_nombre,
+      usuario.segundo_nombre,
+      usuario.primer_apellido,
+      usuario.segundo_apellido
+    ].filter(Boolean).join(' ').trim();
+
+    return nombre || usuario.usuario;
+  }
+
+  /** Autosupervisarse no se bloquea, pero se avisa */
+  get mismoEjecutorYSupervisor(): boolean {
+    return !!this.idSupervisor && this.idSupervisor === this.idEjecutor;
+  }
+
+  /** Sin supervisor el registro queda pendiente de supervisión */
+  get estadoResultante(): string {
+    return this.idSupervisor ? 'Supervisado' : 'Realizado';
   }
 
   onProcesoChange() {
@@ -200,6 +249,7 @@ export class RegistroRapidoLimpiezaComponent implements OnInit {
 
   get puedeRegistrar(): boolean {
     return !!this.idProceso
+      && !!this.idEjecutor
       && this.areasSeleccionadas.length > 0
       && !!this.horaInicio
       && !!this.horaFin
@@ -255,6 +305,13 @@ export class RegistroRapidoLimpiezaComponent implements OnInit {
         .join('')
       : '<li class="text-muted">Sin consumo de productos</li>';
 
+    const avisoSupervisor = this.mismoEjecutorYSupervisor
+      ? `<div class="text-start small text-warning-emphasis mt-2">
+          <i class="fas fa-triangle-exclamation"></i>
+          El ejecutor y el supervisor son la misma persona.
+        </div>`
+      : '';
+
     const result = await Swal.fire({
       title: '¿Registrar el aseo?',
       html: `
@@ -262,10 +319,12 @@ export class RegistroRapidoLimpiezaComponent implements OnInit {
           <p class="mb-2">
             <strong>${this.areasSeleccionadas.length}</strong> área(s) ·
             ${this.horaInicio} a ${this.horaFin} (${this.duracionTexto})
+            <br>Quedará en estado <strong>${this.estadoResultante}</strong>.
           </p>
           <p class="mb-1">Se descontará del inventario:</p>
           <ul class="mb-0 ps-3">${listaConsumo}</ul>
           ${avisoStock}
+          ${avisoSupervisor}
         </div>
       `,
       icon: 'question',
@@ -285,7 +344,8 @@ export class RegistroRapidoLimpiezaComponent implements OnInit {
       hora_inicio: this.normalizarHora(this.horaInicio),
       hora_fin: this.normalizarHora(this.horaFin),
       observaciones: this.observaciones || null,
-      id_usuario_ejecutor: this.utilService.obtenerIdUsuarioActual(),
+      id_usuario_ejecutor: this.idEjecutor,
+      id_usuario_supervisor: this.idSupervisor || null,
       areas: this.areasSeleccionadas.map(a => a.id)
     };
 
@@ -302,10 +362,12 @@ export class RegistroRapidoLimpiezaComponent implements OnInit {
 
         this.guardando = false;
 
+        const estado = body.id_estado === 4 ? 'Supervisado' : 'Realizado';
+
         Swal.fire({
           title: 'Aseo registrado',
           html: `
-            ${body.total_registros} registro(s) creado(s)
+            ${body.total_registros} registro(s) en estado <strong>${estado}</strong>
             ${body.id_movimiento ? '<br>Inventario descontado' : ''}
             ${detalleAjustes}
           `,

@@ -243,6 +243,47 @@ export class RegistrosLimpiezaService {
       );
   }
 
+  obtenerPendientesSupervision(filtros: any = {}) {
+    let params: any = {};
+    if (filtros.fecha_desde) params.fecha_desde = filtros.fecha_desde;
+    if (filtros.fecha_hasta) params.fecha_hasta = filtros.fecha_hasta;
+    if (filtros.id_proceso) params.id_proceso = filtros.id_proceso;
+
+    return this.http
+      .get<HttpResponse<Object>>(
+        this.servicio + '/pendientes-supervision',
+        { params, observe: 'response' }
+      )
+      .pipe(
+        tap((response: HttpResponse<Object>) => {
+          let respuesta: any = response.body;
+          if (respuesta?.error) {
+            throw respuesta.error;
+          }
+          return response;
+        }),
+        catchError(this.handleError)
+      );
+  }
+
+  supervisarLote(datos: any) {
+    return this.http
+      .post<HttpResponse<Object>>(this.servicio + '/supervisar-lote', datos, {
+        ...httpOptions,
+        observe: 'response',
+      })
+      .pipe(
+        tap((response: HttpResponse<Object>) => {
+          let respuesta: any = response.body;
+          if (respuesta?.error) {
+            throw respuesta.error;
+          }
+          return response;
+        }),
+        catchError(this.handleError)
+      );
+  }
+
   private handleError(error: HttpErrorResponse) {
     return throwError(() => error);
   }

@@ -46,6 +46,32 @@ $mobile-breakpoint: 768px;
   }
 }
 
+// Estado resultante segun haya o no supervisor
+.estado-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.85rem;
+  font-size: 0.85rem;
+  color: #555;
+
+  .estado-supervisado {
+    color: $success-color;
+  }
+
+  .estado-nota {
+    font-size: 0.75rem;
+    color: #888;
+  }
+
+  // Aviso sutil: no bloquea el registro
+  .estado-aviso {
+    font-size: 0.75rem;
+    color: #b8860b;
+  }
+}
+
 // Duración
 .duracion-row {
   display: flex;

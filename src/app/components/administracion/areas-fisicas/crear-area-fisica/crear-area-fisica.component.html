@@ -43,6 +43,13 @@
                     </span>
                 </button>
             </li>
+            <li class="nav-item" role="presentation" *ngIf="accion !== 'crear'">
+                <button class="nav-link" id="consumo-tab" data-bs-toggle="tab" data-bs-target="#consumo"
+                    type="button" role="tab" aria-controls="consumo" aria-selected="false"
+                    (click)="tabActivo = 'consumo'">
+                    <i class="fas fa-spray-can"></i> Consumo General
+                </button>
+            </li>
         </ul>
 
         <!-- Contenido de los Tabs -->
@@ -520,6 +527,88 @@
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Consumo General -->
+            <div class="tab-pane fade" id="consumo" role="tabpanel" aria-labelledby="consumo-tab"
+                *ngIf="accion !== 'crear'">
+
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                            <h5 class="mb-0">
+                                <i class="fas fa-spray-can"></i> Consumo General por Proceso
+                            </h5>
+                            <button class="btn btn-info btn-sm" (click)="abrirModalAgregarConsumo()"
+                                [disabled]="!editable || !procesoConsumoSeleccionado">
+                                <i class="fas fa-plus"></i> Agregar Producto
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-secondary">
+                            <i class="fas fa-info-circle"></i>
+                            Estas cantidades se descuentan cuando el área NO tiene elementos físicos
+                            configurados para el proceso. Si el área tiene elementos, se usa el cálculo
+                            por elementos.
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Proceso de limpieza</label>
+                            <select class="form-select" [(ngModel)]="procesoConsumoSeleccionado"
+                                (change)="onProcesoConsumoChange()" [disabled]="!editable">
+                                <option value="">Seleccione un proceso</option>
+                                <option *ngFor="let proceso of tiposProcesos" [value]="proceso.id">
+                                    {{ proceso.nombre }}
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="alert alert-info" *ngIf="procesoConsumoSeleccionado && consumoGeneral.length === 0">
+                            <i class="fas fa-info-circle"></i> No hay consumo configurado para este proceso
+                        </div>
+
+                        <div class="table-responsive" *ngIf="consumoGeneral.length > 0">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Producto</th>
+                                        <th class="text-center">Cantidad</th>
+                                        <th class="text-center">Stock actual</th>
+                                        <th class="text-center" *ngIf="editable">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr *ngFor="let item of consumoGeneral">
+                                        <td><strong>{{ item.nombre_producto }}</strong></td>
+                                        <td class="text-center">
+                                            <span class="badge bg-primary">
+                                                {{ item.cantidad }} {{ item.abreviatura }}
+                                            </span>
+                                        </td>
+                                        <td class="text-center">
+                                            <small class="text-muted">
+                                                {{ item.stock_actual }} {{ item.abreviatura }}
+                                            </small>
+                                        </td>
+                                        <td class="text-center" *ngIf="editable">
+                                            <div class="btn-group btn-group-sm">
+                                                <button class="btn btn-outline-secondary"
+                                                    (click)="editarConsumo(item)" title="Editar">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="btn btn-outline-danger"
+                                                    (click)="eliminarConsumo(item)" title="Eliminar">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>

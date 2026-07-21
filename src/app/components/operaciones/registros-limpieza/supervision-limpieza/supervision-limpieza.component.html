@@ -1,0 +1,177 @@
+<div class="modulo">
+    <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [raiz]="'/operaciones/registros-limpieza'"
+        [regresar]="'/operaciones/registros-limpieza'"
+        [iconoTitulo]="'/assets/images/supervision_limpieza.png'">
+    </app-header>
+
+    <div class="container-fluid mt-3">
+
+        <!-- Filtros -->
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="row g-3 align-items-end">
+                    <div class="col-6 col-md-3">
+                        <label class="form-label">
+                            <i class="fas fa-calendar"></i> Desde
+                        </label>
+                        <input type="date" class="form-control" [(ngModel)]="fechaDesde"
+                            (change)="cargarPendientes()" [disabled]="guardando">
+                    </div>
+
+                    <div class="col-6 col-md-3">
+                        <label class="form-label">
+                            <i class="fas fa-calendar"></i> Hasta
+                        </label>
+                        <input type="date" class="form-control" [(ngModel)]="fechaHasta"
+                            (change)="cargarPendientes()" [disabled]="guardando">
+                    </div>
+
+                    <div class="col-12 col-md-4">
+                        <label class="form-label">
+                            <i class="fas fa-broom"></i> Proceso
+                        </label>
+                        <select class="form-select" [(ngModel)]="filtroProceso"
+                            (change)="cargarPendientes()" [disabled]="guardando">
+                            <option value="">Todos los procesos</option>
+                            <option *ngFor="let proceso of procesos" [value]="proceso.id">
+                                {{proceso.nombre}}
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="col-12 col-md-2">
+                        <button type="button" class="btn btn-outline-secondary w-100"
+                            (click)="limpiarFiltros()" [disabled]="guardando">
+                            <i class="fas fa-eraser"></i> Limpiar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Supervisor y observaciones -->
+        <div class="card mb-3" *ngIf="totalPendientes > 0">
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-12 col-md-5">
+                        <label class="form-label">
+                            <i class="fas fa-user-check"></i> Supervisó *
+                        </label>
+                        <select class="form-select" [(ngModel)]="idSupervisor" [disabled]="guardando">
+                            <option value="">Seleccione el supervisor</option>
+                            <option *ngFor="let usuario of usuarios" [value]="usuario.id">
+                                {{usuario.nombre_completo}}
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="col-12 col-md-7">
+                        <label class="form-label">
+                            Observaciones <small class="text-muted">(opcional, aplica a todo el lote)</small>
+                        </label>
+                        <input type="text" class="form-control" [(ngModel)]="observaciones"
+                            placeholder="Observaciones de la supervisión..." [disabled]="guardando">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Jornadas pendientes -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <div class="jornadas-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-clipboard-check"></i> Pendientes de supervisión
+                        <span class="badge bg-primary">{{idsSeleccionados.length}}/{{totalPendientes}}</span>
+                    </h5>
+
+                    <div class="jornadas-acciones" *ngIf="totalPendientes > 0">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" (click)="marcarTodos()"
+                            [disabled]="guardando">Todos</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" (click)="marcarNinguno()"
+                            [disabled]="guardando">Ninguno</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-body">
+                <div *ngIf="cargando" class="text-center text-muted py-4">
+                    <i class="fas fa-spinner fa-spin"></i> Cargando...
+                </div>
+
+                <div *ngIf="!cargando && grupos.length === 0" class="alert alert-success mb-0">
+                    <i class="fas fa-check-circle"></i>
+                    No hay registros pendientes de supervisión.
+                </div>
+
+                <div class="grupos" *ngIf="!cargando && grupos.length > 0">
+                    <div *ngFor="let grupo of grupos" class="grupo"
+                        [class.grupo-activo]="seleccionadosDe(grupo) > 0">
+
+                        <div class="grupo-header" (click)="toggleExpandir(grupo)">
+                            <span class="grupo-check" (click)="toggleGrupo(grupo, $event)">
+                                <i class="fas" [ngClass]="grupoCompleto(grupo) ? 'fa-square-check'
+                                    : (grupoParcial(grupo) ? 'fa-square-minus' : 'fa-square')"></i>
+                            </span>
+
+                            <div class="grupo-info">
+                                <span class="grupo-fecha">{{grupo.fecha | date:'dd/MM/yyyy'}}</span>
+                                <span class="grupo-proceso">{{grupo.proceso}}</span>
+                                <span class="grupo-conteo">
+                                    {{seleccionadosDe(grupo)}}/{{grupo.registros.length}} áreas
+                                </span>
+                            </div>
+
+                            <i class="fas grupo-chevron"
+                                [ngClass]="grupo.expandido ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+                        </div>
+
+                        <div class="grupo-detalle" *ngIf="grupo.expandido">
+                            <div *ngFor="let registro of grupo.registros" class="registro"
+                                [class.seleccionado]="registro.seleccionado" (click)="toggleRegistro(registro)">
+                                <span class="registro-check">
+                                    <i class="fas"
+                                        [ngClass]="registro.seleccionado ? 'fa-square-check' : 'fa-square'"></i>
+                                </span>
+
+                                <div class="registro-info">
+                                    <span class="registro-area">{{registro.area}}</span>
+                                    <div class="registro-meta">
+                                        <span *ngIf="registro.hora_inicio">
+                                            <i class="fas fa-clock"></i>
+                                            {{registro.hora_inicio}} - {{registro.hora_fin}}
+                                        </span>
+                                        <span *ngIf="registro.ejecutor">
+                                            <i class="fas fa-user"></i> {{registro.ejecutor}}
+                                        </span>
+                                        <span *ngIf="registro.total_elementos > 0">
+                                            <i class="fas fa-check-square"></i> {{registro.total_elementos}}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Barra de acción -->
+        <div class="action-bar" *ngIf="totalPendientes > 0">
+            <div class="resumen">
+                <strong>{{idsSeleccionados.length}}</strong> de {{totalPendientes}} registro(s) seleccionado(s)
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-secondary" (click)="regresar()" [disabled]="guardando">
+                    <i class="fas fa-arrow-left"></i> Regresar
+                </button>
+                <button type="button" class="btn btn-success btn-lg" [disabled]="!puedeSupervisar"
+                    (click)="supervisar()">
+                    <i class="fas" [ngClass]="guardando ? 'fa-spinner fa-spin' : 'fa-user-check'"></i>
+                    Supervisar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -46,6 +46,45 @@
                         <input type="time" class="form-control form-control-lg" [(ngModel)]="horaFin"
                             (change)="onHoraFinChange()" [disabled]="guardando">
                     </div>
+
+                    <div class="col-12 col-md-6">
+                        <label class="form-label">
+                            <i class="fas fa-user"></i> Ejecutó *
+                        </label>
+                        <select class="form-select" [(ngModel)]="idEjecutor" [disabled]="guardando">
+                            <option value="">Seleccione quién hizo el aseo</option>
+                            <option *ngFor="let usuario of usuarios" [value]="usuario.id">
+                                {{usuario.nombre_completo}}
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <label class="form-label">
+                            <i class="fas fa-user-check"></i> Supervisó
+                            <small class="text-muted">(opcional)</small>
+                        </label>
+                        <select class="form-select" [(ngModel)]="idSupervisor" [disabled]="guardando">
+                            <option value="">Sin supervisar por ahora</option>
+                            <option *ngFor="let usuario of usuarios" [value]="usuario.id">
+                                {{usuario.nombre_completo}}
+                            </option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="estado-row">
+                    <span class="estado-texto">
+                        Quedará en estado
+                        <strong [class.estado-supervisado]="idSupervisor">{{estadoResultante}}</strong>
+                    </span>
+                    <span *ngIf="!idSupervisor" class="estado-nota">
+                        <i class="fas fa-circle-info"></i> se podrá supervisar después
+                    </span>
+                    <span *ngIf="mismoEjecutorYSupervisor" class="estado-aviso">
+                        <i class="fas fa-triangle-exclamation"></i>
+                        el ejecutor y el supervisor son la misma persona
+                    </span>
                 </div>
 
                 <!-- Duración: automática por tiempos estimados, o ajustada a mano -->
