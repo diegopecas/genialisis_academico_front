@@ -215,6 +215,10 @@ export class ReporteAseoComponent implements OnInit {
 
   resumenMobiliario(registro: any): string {
     if (!registro.resumen_tipos || registro.resumen_tipos.length === 0) {
+      // Sin mobiliario formal: usar la descripción libre del área si existe
+      if (registro.mobiliario_general && registro.mobiliario_general.trim()) {
+        return registro.mobiliario_general.trim();
+      }
       return 'Mobiliario dentro del área';
     }
     return registro.resumen_tipos.map((t: any) => `${t.tipo} (${t.conteo})`).join(', ');

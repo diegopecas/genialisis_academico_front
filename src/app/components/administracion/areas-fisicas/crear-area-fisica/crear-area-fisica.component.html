@@ -96,6 +96,13 @@
                                     [(ngModel)]="model.descripcion" [disabled]="!editable"
                                     placeholder="Descripción del área..." rows="3"></textarea>
                             </div>
+                            <div class="col-sm-12 col-md-6">
+                                <label for="mobiliario_general" class="form-label">Mobiliario general</label>
+                                <textarea class="form-control form-control-lg" id="mobiliario_general"
+                                    [(ngModel)]="model.mobiliario_general" [disabled]="!editable"
+                                    placeholder="Describe el mobiliario del área (ej: mesas, sillas, estantes...). Se usa en el reporte de aseo cuando el área no tiene mobiliario asignado."
+                                    rows="3"></textarea>
+                            </div>
                         </div>
 
                         <div class="row mt-3">

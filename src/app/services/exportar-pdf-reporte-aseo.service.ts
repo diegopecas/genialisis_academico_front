@@ -116,7 +116,7 @@ export class ExportarPdfReporteAseoService {
                 f.area,
                 this.formatearFecha(f.fecha),
                 f.horario,
-                f.mobiliario || 'Mobiliario dentro del área',
+                f.mobiliario,
                 f.ejecutor || '\u2014',
                 f.supervisor || '\u2014'
             ]);
@@ -179,7 +179,7 @@ export class ExportarPdfReporteAseoService {
                 }
                 body.push([
                     f.area,
-                    f.mobiliario || 'Mobiliario dentro del área',
+                    f.mobiliario,
                     f.ejecutor || '\u2014',
                     f.supervisor || '\u2014'
                 ]);

@@ -34,7 +34,7 @@ export class ExportarExcelReporteAseoService {
                 fila['Horario'] = f.horario;
                 fila['Área'] = f.area;
             }
-            fila['Mobiliario aseado'] = f.mobiliario || 'Mobiliario dentro del área';
+            fila['Mobiliario aseado'] = f.mobiliario;
             fila['Ejecutó'] = f.ejecutor || '';
             fila['Supervisó'] = f.supervisor || '';
             return fila;

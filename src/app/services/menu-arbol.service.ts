@@ -308,7 +308,8 @@ export class MenuArbolService {
               { id: 'administracion-prod-limpieza', label: 'Productos Limpieza', icono: '🧹', ruta: '/administracion/productos-limpieza', keywords: ['aseo'] },
               { id: 'administracion-proveedores', label: 'Proveedores', icono: '🚚', ruta: '/administracion/proveedores', keywords: ['compras'] },
               { id: 'administracion-areas-fisicas', label: 'Áreas Físicas', icono: '🏗️', ruta: '/administracion/areas-fisicas', keywords: ['espacios', 'salones'] },
-              { id: 'administracion-elementos-fisicos', label: 'Elementos Físicos', icono: '🔧', ruta: '/administracion/elementos-fisicos', keywords: ['activos'] }
+              { id: 'administracion-elementos-fisicos', label: 'Elementos Físicos', icono: '🔧', ruta: '/administracion/elementos-fisicos', keywords: ['activos'] },
+              { id: 'administracion-config-aseo', label: 'Configuración de Aseo', icono: '🧹', ruta: '/administracion/config-aseo', keywords: ['aseo', 'limpieza', 'procesos', 'configurar', 'masiva', 'tiempos', 'dias'] }
             ]
           },
           {

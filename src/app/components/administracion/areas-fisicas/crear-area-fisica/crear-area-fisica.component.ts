@@ -20,6 +20,7 @@ interface AreaFisicaModel {
     descripcion: string;
     ubicacion: string;
     capacidad: number | null;
+    mobiliario_general: string;
     activo: number;
 }
 
@@ -62,6 +63,7 @@ export class CrearAreaFisicaComponent implements OnInit {
         descripcion: "",
         ubicacion: "",
         capacidad: null,
+        mobiliario_general: "",
         activo: 1
     };
     // Variables para elementos físicos
@@ -116,6 +118,7 @@ export class CrearAreaFisicaComponent implements OnInit {
                         this.model.descripcion = area.descripcion || '';
                         this.model.ubicacion = area.ubicacion || '';
                         this.model.capacidad = area.capacidad;
+                        this.model.mobiliario_general = area.mobiliario_general || '';
                         this.model.activo = area.activo;
 
                         if (this.accion === 'editar') {
@@ -664,6 +667,7 @@ export class CrearAreaFisicaComponent implements OnInit {
             descripcion: this.model.descripcion || null,
             ubicacion: this.model.ubicacion || null,
             capacidad: this.model.capacidad || null,
+            mobiliario_general: this.model.mobiliario_general || null,
             activo: this.model.activo
         };
     }
