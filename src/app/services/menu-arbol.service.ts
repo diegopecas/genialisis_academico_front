@@ -360,7 +360,9 @@ export class MenuArbolService {
               { id: 'administracion-config-google', label: 'Configuración Google', icono: '📅', ruta: '/administracion/configuracion-google', keywords: ['google', 'calendar', 'calendario'] },
               { id: 'administracion-config-geofence', label: 'Configuración Geofence', icono: '📍', ruta: '/administracion/configuracion-geofence', keywords: ['ubicacion', 'zonas', 'gps'] },
               { id: 'administracion-cargos', label: 'Cargos', icono: '💼', ruta: '/administracion/cargos', keywords: ['puestos', 'roles'] },
-              { id: 'administracion-tipos-documentos', label: 'Tipos Documentos', icono: '📄', ruta: '/administracion/tipos-documentos', keywords: ['documentos'] }
+              { id: 'administracion-tipos-documentos', label: 'Tipos Documentos', icono: '📄', ruta: '/administracion/tipos-documentos', keywords: ['documentos'] },
+              { id: 'administracion-entes-control', label: 'Entes de Control', icono: '🏛️', ruta: '/administracion/entes-control', keywords: ['entes', 'control', 'vigilancia', 'secretaria', 'icbf'] },
+              { id: 'administracion-institucion', label: 'Institución', icono: '🏫', ruta: '/administracion/institucion', keywords: ['institucion', 'documentos institucionales', 'plan de emergencia'] }
             ]
           },
           {
