@@ -284,6 +284,49 @@ export class RegistrosLimpiezaService {
       );
   }
 
+  obtenerReporteAseo(filtros: any) {
+    let params: any = {
+      fecha_desde: filtros.fecha_desde,
+      fecha_hasta: filtros.fecha_hasta,
+      id_proceso: filtros.id_proceso,
+    };
+    if (filtros.id_area) params.id_area = filtros.id_area;
+
+    return this.http
+      .get<HttpResponse<Object>>(this.servicio + '/reporte-aseo', {
+        params,
+        observe: 'response',
+      })
+      .pipe(
+        tap((response: HttpResponse<Object>) => {
+          let respuesta: any = response.body;
+          if (respuesta?.error) {
+            throw respuesta.error;
+          }
+          return response;
+        }),
+        catchError(this.handleError)
+      );
+  }
+
+  obtenerProductosModoUso(idProceso: any, areas: any[]) {
+    return this.http
+      .post<HttpResponse<Object>>(this.servicio + '/productos-modo-uso',
+        { id_proceso: idProceso, areas: areas },
+        { ...httpOptions, observe: 'response' }
+      )
+      .pipe(
+        tap((response: HttpResponse<Object>) => {
+          let respuesta: any = response.body;
+          if (respuesta?.error) {
+            throw respuesta.error;
+          }
+          return response;
+        }),
+        catchError(this.handleError)
+      );
+  }
+
   private handleError(error: HttpErrorResponse) {
     return throwError(() => error);
   }

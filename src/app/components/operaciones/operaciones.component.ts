@@ -44,6 +44,9 @@ export class OperacionesComponent {
       case 'supervision-limpieza':
         this.router.navigate(['/operaciones/supervision-limpieza']);
         break;
+      case 'reporte-aseo':
+        this.router.navigate(['/operaciones/reporte-aseo']);
+        break;
       case 'disponibilidad-cocina':
         this.router.navigate(['/operaciones/disponibilidad-cocina']);
         break;

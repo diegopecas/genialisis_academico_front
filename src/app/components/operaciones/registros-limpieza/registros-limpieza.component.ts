@@ -18,7 +18,14 @@ import { UtilService } from '../../../common/constantes/util.service';
 export class RegistrosLimpiezaComponent implements OnInit {
 
   titulo = "Registros de Limpieza";
-  public columnasFiltro = ['Fecha', 'Área', 'Proceso', 'Estado', 'Ejecutor'];
+  public columnasFiltro: (string | { columna: string, tipoFiltro?: 'fecha' | 'normal' | 'rango' })[] = [
+    { columna: 'F. Registro', tipoFiltro: 'fecha' },
+    { columna: 'F. Programada', tipoFiltro: 'fecha' },
+    'Área',
+    'Proceso',
+    'Estado',
+    'Ejecutor'
+  ];
   public titulos = [] as any[];
   public datos = [] as any[];
   public estados = [] as any[];
@@ -124,14 +131,16 @@ export class RegistrosLimpiezaComponent implements OnInit {
         alinear: 'centrado',
       },
       {
-        clave: 'fecha_programada_formateada',
+        clave: 'fecha_programada',
         alias: 'F. Programada',
         alinear: 'centrado',
+        tipo: 'date',
       },
       {
-        clave: 'fecha_formateada',
+        clave: 'fecha',
         alias: 'F. Registro',
         alinear: 'centrado',
+        tipo: 'date',
       },
       {
         clave: 'nombre_area',
@@ -370,7 +379,13 @@ export class RegistrosLimpiezaComponent implements OnInit {
     }
 
     try {
-      const date = new Date(fecha);
+      // La fecha viene como 'YYYY-MM-DD' (o con hora). Se construye como fecha
+      // LOCAL para que no se corra un día por la conversión a UTC.
+      const soloFecha = fecha.split('T')[0].split(' ')[0];
+      const partes = soloFecha.split('-');
+      const date = partes.length === 3
+        ? new Date(Number(partes[0]), Number(partes[1]) - 1, Number(partes[2]))
+        : new Date(fecha);
 
       // Verificar si la fecha es válida
       if (isNaN(date.getTime())) {

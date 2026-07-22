@@ -256,6 +256,62 @@ export class RegistroRapidoLimpiezaComponent implements OnInit {
       && !this.guardando;
   }
 
+  /** Hay áreas y proceso: se puede consultar qué productos se usan y su modo de uso */
+  get puedeVerProductos(): boolean {
+    return !!this.idProceso && this.areasSeleccionadas.length > 0;
+  }
+
+  /**
+   * Abre un modal con los productos que se usarán en las áreas seleccionadas para
+   * el proceso, junto con su modo de uso (sin cantidades).
+   */
+  verProductosModoUso() {
+    if (!this.puedeVerProductos) return;
+
+    const areas = this.areasSeleccionadas.map(a => a.id);
+
+    Swal.fire({
+      title: 'Productos y modo de uso',
+      html: '<div class="text-center py-3"><i class="fas fa-spinner fa-spin"></i> Cargando...</div>',
+      didOpen: () => {
+        this.registrosService.obtenerProductosModoUso(this.idProceso, areas).subscribe({
+          next: (response: any) => {
+            const productos = response.body || [];
+            Swal.update({ html: this.armarHtmlProductos(productos) });
+          },
+          error: () => {
+            Swal.update({
+              html: '<div class="text-danger py-3">No se pudieron cargar los productos</div>'
+            });
+          }
+        });
+      },
+      confirmButtonColor: '#C98A00',
+      confirmButtonText: 'Cerrar',
+      width: '620px'
+    });
+  }
+
+  private armarHtmlProductos(productos: any[]): string {
+    if (!productos || productos.length === 0) {
+      return '<div class="text-muted py-3">No hay productos configurados para estas áreas</div>';
+    }
+
+    const items = productos.map(p => {
+      const modo = p.modo_uso
+        ? `<div style="font-size:0.75rem;color:#6B6357;margin-top:2px;line-height:1.35">${p.modo_uso}</div>`
+        : '';
+      return `
+        <div style="text-align:left;padding:0.6rem 0.75rem;border:1px solid #E5DCC8;
+                    border-radius:10px;margin-bottom:0.5rem;background:#FCFAF5">
+          <div style="font-weight:600;color:#2A2620">${p.producto}</div>
+          ${modo}
+        </div>`;
+    }).join('');
+
+    return `<div style="max-height:60vh;overflow-y:auto">${items}</div>`;
+  }
+
   aplicarChip(minutos: number) {
     this.duracionManual = true;
     this.chipActivo = minutos;

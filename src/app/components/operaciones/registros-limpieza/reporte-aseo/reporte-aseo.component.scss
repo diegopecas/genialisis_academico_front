@@ -1,0 +1,334 @@
+// Paleta cálida de Genialisis
+$crema:        #FAF8F3;
+$crema-2:      #F3EFE6;
+$dorado:       #FFC107;
+$dorado-hi:    #FFD93D;
+$ambar-deep:   #C98A00;
+$tinta:        #2A2620;
+$tinta-suave:  #6B6357;
+$rojo-pdf:     #C0392B;
+$borde-vidrio: rgba(255, 255, 255, 0.85);
+$borde-sutil:  rgba(180, 160, 120, 0.28);
+$vidrio:       rgba(255, 255, 255, 0.55);
+$vidrio-hover: rgba(255, 255, 255, 0.72);
+$sombra:       0 8px 32px rgba(120, 95, 40, 0.12);
+
+$mobile-breakpoint: 768px;
+
+.modulo {
+  min-height: 100vh;
+  overflow-x: hidden;
+  background:
+    radial-gradient(1100px 520px at 12% -8%, rgba(255, 217, 61, 0.18), transparent 60%),
+    radial-gradient(900px 480px at 108% 12%, rgba(255, 193, 7, 0.12), transparent 55%),
+    linear-gradient(160deg, $crema 0%, $crema-2 100%);
+  background-attachment: fixed;
+}
+
+.container-fluid {
+  max-width: 1280px;
+  padding-bottom: 108px;
+
+  @media (max-width: $mobile-breakpoint) {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+}
+
+.card {
+  border: 1px solid $borde-vidrio;
+  border-radius: 16px;
+  background: $vidrio;
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  box-shadow: $sombra;
+
+  .card-header {
+    background: transparent;
+    border-bottom: 1px solid $borde-sutil;
+    border-radius: 16px 16px 0 0;
+    padding: 0.85rem 1.1rem;
+  }
+}
+
+label.form-label {
+  color: $tinta-suave;
+  font-weight: 600;
+  font-size: 0.8rem;
+
+  i { color: $ambar-deep; margin-right: 0.2rem; }
+}
+
+.form-control,
+.form-select {
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid $borde-sutil;
+  border-radius: 10px;
+  color: $tinta;
+
+  &:focus {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: $dorado;
+    box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.22);
+  }
+
+  @media (max-width: $mobile-breakpoint) { font-size: 16px; }
+}
+
+.btn-primary {
+  border: none;
+  background: linear-gradient(135deg, $dorado-hi, $dorado);
+  color: $tinta;
+  font-weight: 700;
+  border-radius: 10px;
+
+  &:hover:not(:disabled) { filter: brightness(1.05); color: $tinta; }
+  &:disabled { background: rgba(200, 185, 150, 0.4); color: rgba(107, 99, 87, 0.6); }
+}
+
+.btn-secondary {
+  border: 1px solid $borde-sutil;
+  background: rgba(255, 255, 255, 0.55);
+  color: $tinta;
+  border-radius: 10px;
+
+  &:hover:not(:disabled) { background: $vidrio-hover; color: $tinta; }
+}
+
+// Barra del reporte con toggle de agrupación
+.reporte-barra {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding: 0 0.25rem;
+
+  .rb-info {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+
+    h4 { color: $tinta; font-weight: 700; margin: 0; }
+    .periodo { font-size: 0.85rem; color: $tinta-suave; }
+  }
+
+  .rb-controles {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .agrupar-label {
+    font-size: 0.8rem;
+    color: $tinta-suave;
+    font-weight: 600;
+  }
+
+  // Toggle segmentado
+  .toggle {
+    display: inline-flex;
+    background: rgba(255, 255, 255, 0.6);
+    border: 1px solid $borde-sutil;
+    border-radius: 10px;
+    padding: 2px;
+
+    button {
+      border: none;
+      background: transparent;
+      color: $tinta-suave;
+      font-size: 0.82rem;
+      font-weight: 600;
+      padding: 0.3rem 0.9rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+
+      &.activo {
+        background: linear-gradient(135deg, $dorado-hi, $dorado);
+        color: $tinta;
+      }
+    }
+  }
+
+  .conteo {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: $ambar-deep;
+    background: rgba(255, 193, 7, 0.15);
+    border: 1px solid rgba(255, 193, 7, 0.4);
+    padding: 0.25rem 0.7rem;
+    border-radius: 20px;
+  }
+}
+
+// Fila-título de grupo dentro de la tabla
+.tabla-reporte .fila-grupo {
+  cursor: pointer;
+  background: rgba(255, 193, 7, 0.1) !important;
+
+  &:hover { background: rgba(255, 193, 7, 0.16) !important; }
+
+  td {
+    border-color: $borde-sutil;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .grupo-titulo {
+    font-weight: 700;
+    color: $tinta;
+  }
+
+  .grupo-conteo {
+    font-size: 0.75rem;
+    color: $tinta-suave;
+    margin-left: 0.6rem;
+  }
+}
+
+// Tabla
+.tabla-reporte {
+  font-size: 0.85rem;
+
+  thead th {
+    background: rgba(255, 193, 7, 0.12);
+    color: $tinta;
+    font-weight: 600;
+    border-color: $borde-sutil;
+    white-space: nowrap;
+  }
+
+  tbody tr {
+    cursor: pointer;
+    transition: background 0.12s ease;
+
+    &:hover { background: rgba(255, 255, 255, 0.5); }
+
+    &.no-seleccionado {
+      opacity: 0.45;
+
+      td { text-decoration: line-through; text-decoration-color: rgba(150, 130, 90, 0.4); }
+    }
+
+    td {
+      color: $tinta;
+      border-color: rgba(180, 160, 120, 0.18);
+      vertical-align: middle;
+
+      &.text-nowrap { white-space: nowrap; }
+
+      i.fa-square { color: rgba(150, 130, 90, 0.4); }
+      i.check-on { color: $ambar-deep; }
+    }
+
+    // La celda tachada no aplica al checkbox
+    &.no-seleccionado td:first-child { text-decoration: none; }
+  }
+
+  .celda-mob { min-width: 200px; }
+  .celda-consumo { min-width: 180px; font-size: 0.8rem; color: $tinta-suave; }
+}
+
+// Panel de productos utilizados
+.card-productos {
+  .productos-titulo {
+    color: $tinta;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+    font-size: 0.95rem;
+
+    i { color: $ambar-deep; margin-right: 0.3rem; }
+  }
+
+  .productos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 0.6rem;
+  }
+
+  .producto-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    padding: 0.5rem 0.7rem;
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid $borde-sutil;
+    border-radius: 10px;
+  }
+
+  .producto-nombre {
+    font-weight: 600;
+    color: $tinta;
+    font-size: 0.85rem;
+  }
+
+  // Modo de uso: letra chica, como pediste
+  .producto-modo {
+    font-size: 0.7rem;
+    color: $tinta-suave;
+    line-height: 1.3;
+  }
+}
+
+// Barra de acción
+.action-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  border: 1px solid $borde-vidrio;
+  border-radius: 16px;
+  background: $vidrio-hover;
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  box-shadow: $sombra;
+  padding: 0.85rem 1.1rem;
+  margin-bottom: 1rem;
+
+  .resumen {
+    font-size: 0.9rem;
+    color: $tinta;
+    strong { color: $ambar-deep; }
+  }
+
+  .btn { min-height: 44px; border-radius: 10px; }
+
+  // Excel: verde sobrio
+  .btn-excel {
+    border: none;
+    background: linear-gradient(135deg, #2FA36B, #1E7D4F);
+    color: #fff;
+    font-weight: 700;
+    box-shadow: 0 5px 14px rgba(30, 125, 79, 0.28);
+
+    &:hover:not(:disabled) { filter: brightness(1.05); color: #fff; }
+    &:disabled { background: rgba(200, 185, 150, 0.4); color: rgba(107, 99, 87, 0.6); box-shadow: none; }
+  }
+
+  // PDF: rojo sobrio
+  .btn-pdf {
+    border: none;
+    background: linear-gradient(135deg, #E05545, $rojo-pdf);
+    color: #fff;
+    font-weight: 700;
+    box-shadow: 0 5px 14px rgba(192, 57, 43, 0.28);
+
+    &:hover:not(:disabled) { filter: brightness(1.05); color: #fff; }
+    &:disabled { background: rgba(200, 185, 150, 0.4); color: rgba(107, 99, 87, 0.6); box-shadow: none; }
+  }
+
+  @media (max-width: $mobile-breakpoint) {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    z-index: 1030;
+    border-radius: 16px 16px 0 0;
+    margin-bottom: 0;
+
+    .resumen { width: 100%; font-size: 0.8rem; }
+    .d-flex { width: 100%; .btn { flex: 1; } }
+  }
+}

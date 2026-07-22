@@ -1,0 +1,168 @@
+<div class="modulo">
+    <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [raiz]="'/operaciones'"
+        [regresar]="'/operaciones'"
+        [iconoTitulo]="'/assets/images/reporte_aseo.png'">
+    </app-header>
+
+    <div class="container-fluid mt-3">
+
+        <!-- Filtros -->
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="row g-3 align-items-end">
+                    <div class="col-6 col-md-2">
+                        <label class="form-label"><i class="fas fa-calendar"></i> Desde</label>
+                        <input type="date" class="form-control" [(ngModel)]="fechaDesde" [disabled]="cargando">
+                    </div>
+                    <div class="col-6 col-md-2">
+                        <label class="form-label"><i class="fas fa-calendar"></i> Hasta</label>
+                        <input type="date" class="form-control" [(ngModel)]="fechaHasta" [disabled]="cargando">
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <label class="form-label"><i class="fas fa-broom"></i> Proceso *</label>
+                        <select class="form-select" [(ngModel)]="idProceso" [disabled]="cargando">
+                            <option value="">Seleccione</option>
+                            <option *ngFor="let p of procesos" [value]="p.id">{{p.nombre}}</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <label class="form-label"><i class="fas fa-building"></i> Área</label>
+                        <select class="form-select" [(ngModel)]="idArea" [disabled]="cargando">
+                            <option value="">Todas las áreas</option>
+                            <option *ngFor="let a of areas" [value]="a.id">{{a.nombre}}</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-2">
+                        <button type="button" class="btn btn-primary w-100" [disabled]="!puedeConsultar"
+                            (click)="consultar()">
+                            <i class="fas" [ngClass]="cargando ? 'fa-spinner fa-spin' : 'fa-search'"></i>
+                            Consultar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cargando / vacío -->
+        <div *ngIf="cargando" class="text-center text-muted py-5">
+            <i class="fas fa-spinner fa-spin fa-2x"></i>
+            <p class="mt-2">Generando reporte...</p>
+        </div>
+
+        <div *ngIf="!cargando && yaConsulto && registros.length === 0" class="card">
+            <div class="card-body">
+                <div class="alert alert-info mb-0">
+                    <i class="fas fa-info-circle"></i>
+                    No hay registros de aseo para los filtros seleccionados.
+                </div>
+            </div>
+        </div>
+
+        <!-- Resultado -->
+        <div *ngIf="!cargando && registros.length > 0">
+
+            <!-- Cabecera del reporte + toggle de agrupación -->
+            <div class="reporte-barra">
+                <div class="rb-info">
+                    <h4>{{nombreProceso}}</h4>
+                    <span class="periodo">{{fechaDesde | date:'dd/MM/yyyy'}} — {{fechaHasta | date:'dd/MM/yyyy'}}</span>
+                </div>
+
+                <div class="rb-controles">
+                    <span class="agrupar-label">Agrupar por</span>
+                    <div class="toggle">
+                        <button type="button" [class.activo]="agruparPor === 'area'"
+                            (click)="cambiarAgrupacion('area')">Área</button>
+                        <button type="button" [class.activo]="agruparPor === 'fecha'"
+                            (click)="cambiarAgrupacion('fecha')">Fecha</button>
+                    </div>
+                    <span class="conteo">{{totalSeleccionados}}/{{totalRegistros}}</span>
+                </div>
+            </div>
+
+            <!-- Productos usados en el periodo, con su modo de uso (sin cantidades) -->
+            <div class="card mb-3 card-productos" *ngIf="productosUsados.length > 0">
+                <div class="card-body">
+                    <h6 class="productos-titulo">
+                        <i class="fas fa-flask"></i> Productos utilizados
+                    </h6>
+                    <div class="productos-grid">
+                        <div class="producto-item" *ngFor="let prod of productosUsados">
+                            <span class="producto-nombre">{{prod.producto}}</span>
+                            <span class="producto-modo" *ngIf="prod.modo_uso">{{prod.modo_uso}}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabla única continua, con filas-título por grupo -->
+            <div class="card">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table tabla-reporte mb-0">
+                            <thead>
+                                <tr>
+                                    <th style="width:34px"></th>
+                                    <th>{{ agruparPor === 'area' ? 'Fecha' : 'Área' }}</th>
+                                    <th *ngIf="agruparPor === 'area'">Horario</th>
+                                    <th>Mobiliario aseado</th>
+                                    <th>Ejecutó</th>
+                                    <th>Supervisó</th>
+                                </tr>
+                            </thead>
+                            <tbody *ngFor="let grupo of grupos">
+                                <!-- Fila-título del grupo -->
+                                <tr class="fila-grupo" (click)="toggleGrupo(grupo)">
+                                    <td class="text-center">
+                                        <i class="fas"
+                                            [ngClass]="grupoCompleto(grupo) ? 'fa-square-check check-on' : 'fa-square'"></i>
+                                    </td>
+                                    <td [attr.colspan]="agruparPor === 'area' ? 6 : 5">
+                                        <span class="grupo-titulo">{{grupo.titulo}}</span>
+                                        <span class="grupo-conteo">{{seleccionadosDe(grupo)}}/{{grupo.registros.length}}</span>
+                                    </td>
+                                </tr>
+                                <!-- Filas del grupo -->
+                                <tr *ngFor="let r of grupo.registros"
+                                    [class.no-seleccionado]="!r.seleccionado"
+                                    (click)="toggleRegistro(r)">
+                                    <td class="text-center">
+                                        <i class="fas"
+                                            [ngClass]="r.seleccionado ? 'fa-square-check check-on' : 'fa-square'"></i>
+                                    </td>
+                                    <td class="text-nowrap">
+                                        {{ agruparPor === 'area' ? (r.fecha | date:'dd/MM/yyyy') : r.area }}
+                                    </td>
+                                    <td class="text-nowrap" *ngIf="agruparPor === 'area'">{{hm(r.hora_inicio)}} - {{hm(r.hora_fin)}}</td>
+                                    <td class="celda-mob">{{resumenMobiliario(r)}}</td>
+                                    <td>{{r.ejecutor || '—'}}</td>
+                                    <td>{{r.supervisor || '—'}}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Barra de acción -->
+            <div class="action-bar">
+                <div class="resumen">
+                    <strong>{{totalSeleccionados}}</strong> de {{totalRegistros}} registro(s) para el reporte
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-secondary" (click)="regresar()">
+                        <i class="fas fa-arrow-left"></i> Regresar
+                    </button>
+                    <button type="button" class="btn btn-excel" [disabled]="totalSeleccionados === 0"
+                        (click)="exportarExcel()">
+                        <i class="fas fa-file-excel"></i> Excel
+                    </button>
+                    <button type="button" class="btn btn-pdf" [disabled]="totalSeleccionados === 0"
+                        (click)="exportarPDF()">
+                        <i class="fas fa-file-pdf"></i> PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

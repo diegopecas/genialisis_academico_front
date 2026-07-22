@@ -187,7 +187,8 @@ export class MenuArbolService {
               { id: 'operaciones-mov-productos', label: 'Movimientos Productos', icono: '📦', ruta: '/operaciones/movimientos-productos', keywords: ['inventario', 'stock', 'bodega'] },
               { id: 'operaciones-registros-limpieza', label: 'Registros Limpieza', icono: '🧼', ruta: '/operaciones/registros-limpieza', keywords: ['aseo', 'limpieza'] },
               { id: 'operaciones-registro-rapido-limpieza', label: 'Registro Rápido de Aseo', icono: '⚡', ruta: '/operaciones/registro-rapido-limpieza', keywords: ['aseo', 'limpieza', 'rapido', 'express'] },
-              { id: 'operaciones-supervision-limpieza', label: 'Supervisión de Aseo', icono: '✅', ruta: '/operaciones/supervision-limpieza', keywords: ['aseo', 'limpieza', 'supervisar', 'supervision', 'aprobar'] }
+              { id: 'operaciones-supervision-limpieza', label: 'Supervisión de Aseo', icono: '✅', ruta: '/operaciones/supervision-limpieza', keywords: ['aseo', 'limpieza', 'supervisar', 'supervision', 'aprobar'] },
+              { id: 'operaciones-reporte-aseo', label: 'Reporte de Aseo', icono: '📄', ruta: '/operaciones/reporte-aseo', keywords: ['aseo', 'limpieza', 'reporte', 'informe', 'pdf'] }
             ]
           },
           {

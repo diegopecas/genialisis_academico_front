@@ -121,6 +121,10 @@
                     </h5>
 
                     <div class="areas-acciones" *ngIf="areas.length > 0">
+                        <button type="button" class="btn btn-sm btn-ver-productos" (click)="verProductosModoUso()"
+                            *ngIf="puedeVerProductos" [disabled]="guardando">
+                            <i class="fas fa-flask"></i> Ver productos
+                        </button>
                         <button type="button" class="btn btn-sm btn-outline-secondary" (click)="marcarTodas()"
                             [disabled]="guardando">Todas</button>
                         <button type="button" class="btn btn-sm btn-outline-secondary" (click)="marcarSoloHoy()"
@@ -158,6 +162,10 @@
                             <div class="area-nombre">
                                 {{area.nombre}}
                                 <span *ngIf="area.aplica_hoy" class="badge-hoy">Hoy</span>
+                                <span *ngIf="!area.tiene_config" class="badge-sin-config"
+                                    title="Esta área no tiene tiempos ni días configurados para este proceso">
+                                    sin configurar
+                                </span>
                             </div>
                             <small class="area-ubicacion" *ngIf="area.ubicacion">{{area.ubicacion}}</small>
                             <div class="area-meta">

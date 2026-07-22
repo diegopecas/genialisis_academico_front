@@ -100,6 +100,7 @@ export const routes: Routes = [
   { path: 'operaciones/registros-limpieza', loadComponent: () => import('./components/operaciones/registros-limpieza/registros-limpieza.component').then(m => m.RegistrosLimpiezaComponent), canActivate: [AuthGuard], data: { trackear: true, labelAcceso: 'Registros Limpieza', iconoAcceso: '🧼' } },
   { path: 'operaciones/registro-rapido-limpieza', loadComponent: () => import('./components/operaciones/registros-limpieza/registro-rapido-limpieza/registro-rapido-limpieza.component').then(m => m.RegistroRapidoLimpiezaComponent), canActivate: [AuthGuard], data: { trackear: true, labelAcceso: 'Registro Rápido de Aseo', iconoAcceso: '⚡' } },
   { path: 'operaciones/supervision-limpieza', loadComponent: () => import('./components/operaciones/registros-limpieza/supervision-limpieza/supervision-limpieza.component').then(m => m.SupervisionLimpiezaComponent), canActivate: [AuthGuard], data: { trackear: true, labelAcceso: 'Supervisión de Aseo', iconoAcceso: '✅' } },
+  { path: 'operaciones/reporte-aseo', loadComponent: () => import('./components/operaciones/registros-limpieza/reporte-aseo/reporte-aseo.component').then(m => m.ReporteAseoComponent), canActivate: [AuthGuard], data: { trackear: true, labelAcceso: 'Reporte de Aseo', iconoAcceso: '📄' } },
   { path: 'operaciones/registros-limpieza/:accion/:id', loadComponent: () => import('./components/operaciones/registros-limpieza/crear-registro-limpieza/crear-registro-limpieza.component').then(m => m.CrearRegistroLimpiezaComponent), canActivate: [AuthGuard] },
 
   // Nóminas
