@@ -54,6 +54,9 @@ export class DatosMaestrosComponent {
       case 'elementos-fisicos':
         this.router.navigate(['/administracion/elementos-fisicos']);
         break;
+      case 'config-aseo':
+        this.router.navigate(['/administracion/config-aseo']);
+        break;
       case 'menus':
         this.router.navigate(['/administracion/menus']);
         break;

@@ -20,6 +20,12 @@ export class FotoPersonaComponent implements OnInit, OnDestroy {
   @ViewChild('videoElement') videoElement?: ElementRef<HTMLVideoElement>;
   @ViewChild('canvasElement') canvasElement?: ElementRef<HTMLCanvasElement>;
 
+  // Parametros de salida de la foto capturada. Como es foto de perfil (se ve en
+  // un circulo pequeno), 1024px en el lado mayor sobra; la calidad se mantiene
+  // un poco mas alta que en documentos porque el rostro lo agradece.
+  private readonly FOTO_DIMENSION_MAX = 1024;
+  private readonly FOTO_CALIDAD_JPG = 0.85;
+
   public cargando = false;
   public subiendoFoto = false;
   public mostrarModal = false;
@@ -263,15 +269,30 @@ export class FotoPersonaComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Establecer dimensiones del canvas
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    
+    // Redimensionar por el lado mas largo para no guardar una imagen gigante.
+    // Mantiene la proporcion original y sirve tanto en vertical como horizontal.
+    const anchoOriginal = video.videoWidth;
+    const altoOriginal = video.videoHeight;
+    const ladoMayor = Math.max(anchoOriginal, altoOriginal);
+
+    let ancho = anchoOriginal;
+    let alto = altoOriginal;
+
+    if (ladoMayor > this.FOTO_DIMENSION_MAX) {
+      const escala = this.FOTO_DIMENSION_MAX / ladoMayor;
+      ancho = Math.round(anchoOriginal * escala);
+      alto = Math.round(altoOriginal * escala);
+    }
+
+    // Establecer dimensiones del canvas (ya redimensionadas)
+    canvas.width = ancho;
+    canvas.height = alto;
+
     // Dibujar el frame actual del video en el canvas
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    context.drawImage(video, 0, 0, ancho, alto);
 
     // Obtener la imagen como dataURL inmediatamente
-    const imageDataUrl = canvas.toDataURL('image/jpeg', 0.95);
+    const imageDataUrl = canvas.toDataURL('image/jpeg', this.FOTO_CALIDAD_JPG);
     this.previewUrl = imageDataUrl;
     
     // Convertir dataURL a Blob de forma síncrona

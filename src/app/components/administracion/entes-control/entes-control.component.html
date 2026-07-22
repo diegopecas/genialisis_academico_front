@@ -1,0 +1,55 @@
+<div class="modulo">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="false"
+    [raiz]="'/'"
+    [regresar]="'/administracion/datos-maestros'"
+    [iconoTitulo]="'/assets/images/configuracion.png'">
+  </app-header>
+
+  <div class="container-fluid mt-4">
+    <div class="d-flex justify-content-end mb-3">
+      <button class="btn btn-lg btn-warning" (click)="crear()">
+        <i class="fas fa-plus"></i> Nuevo Ente de Control
+      </button>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-hover align-middle">
+        <thead>
+          <tr>
+            <th>Ente de Control</th>
+            <th>Identificación</th>
+            <th>Correo</th>
+            <th>Teléfono</th>
+            <th class="text-center">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="cargando">
+            <td colspan="5" class="text-center text-muted py-4">Cargando...</td>
+          </tr>
+          <tr *ngIf="!cargando && datos.length === 0">
+            <td colspan="5" class="text-center text-muted py-4">
+              No hay entes de control registrados.
+            </td>
+          </tr>
+          <tr *ngFor="let ente of datos">
+            <td>{{ ente.nombre_ente }}</td>
+            <td>{{ ente.numero_identificacion }}</td>
+            <td>{{ ente.correo_electronico }}</td>
+            <td>{{ ente.telefono }}</td>
+            <td class="text-center">
+              <button class="btn btn-sm btn-outline-primary me-2" (click)="editar(ente)" title="Editar">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="btn btn-sm btn-outline-danger" (click)="eliminar(ente)" title="Eliminar">
+                <i class="fas fa-trash"></i>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

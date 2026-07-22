@@ -287,39 +287,113 @@
           </button>
         </div>
         <div class="modal-body">
-          <div class="form-group mb-3">
-            <label class="form-label">Archivo</label>
-            <input
-              type="file"
-              class="form-control"
-              (change)="onFileSelected($event)"
-              accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx"
-            />
-            <small class="text-muted"
-              >Formatos: PDF, JPG, PNG, DOC, XLS. Máximo 10MB</small
+
+          <!-- MODO CÁMARA: captura de foto del documento -->
+          <div *ngIf="modoCamara" class="camara-container">
+            <div class="video-wrapper">
+              <video
+                #videoElement
+                autoplay
+                playsinline
+                class="video-elemento"
+              ></video>
+              <canvas #canvasElement style="display: none;"></canvas>
+            </div>
+
+            <div class="camara-controles">
+              <button
+                type="button"
+                class="btn-camara-control"
+                (click)="volverASeleccion()"
+                [disabled]="subiendoArchivo"
+              >
+                <i class="fas fa-arrow-left"></i>
+                Volver
+              </button>
+              <button
+                type="button"
+                class="btn-capturar"
+                (click)="capturarFoto()"
+                [disabled]="!camaraActiva || subiendoArchivo"
+              >
+                <i class="fas fa-camera"></i>
+              </button>
+              <button
+                type="button"
+                class="btn-camara-control"
+                (click)="cambiarCamara()"
+                [disabled]="!camaraActiva || subiendoArchivo"
+              >
+                <i class="fas fa-sync-alt"></i>
+                Voltear
+              </button>
+            </div>
+          </div>
+
+          <!-- MODO SELECCIÓN / PREVIEW -->
+          <div *ngIf="!modoCamara">
+
+            <!-- Preview de la foto tomada con la cámara -->
+            <div *ngIf="previewUrl" class="form-group mb-3">
+              <label class="form-label">Foto capturada</label>
+              <div class="preview-documento">
+                <img [src]="previewUrl" alt="Foto del documento" class="preview-documento-img" />
+              </div>
+              <button
+                type="button"
+                class="btn-repetir-toma"
+                (click)="repetirToma()"
+                [disabled]="subiendoArchivo"
+              >
+                <i class="fas fa-redo"></i> Repetir toma
+              </button>
+            </div>
+
+            <!-- Selección de archivo + tomar foto (cuando no hay foto capturada) -->
+            <div *ngIf="!previewUrl" class="form-group mb-3">
+              <label class="form-label">Archivo</label>
+              <input
+                type="file"
+                class="form-control"
+                (change)="onFileSelected($event)"
+                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx"
+              />
+              <small class="text-muted"
+                >Formatos: PDF, JPG, PNG, DOC, XLS. Máximo 10MB</small
+              >
+
+              <button
+                *ngIf="camaraDisponible"
+                type="button"
+                class="btn-tomar-foto"
+                (click)="activarCamara()"
+                [disabled]="subiendoArchivo"
+              >
+                <i class="fas fa-camera"></i> Tomar foto al documento
+              </button>
+            </div>
+
+            <div
+              class="form-group mb-3"
+              *ngIf="tipoDocumentoSeleccionado?.requiere_vencimiento"
             >
-          </div>
+              <label class="form-label">Fecha de Vencimiento</label>
+              <input
+                type="date"
+                class="form-control"
+                [(ngModel)]="fechaVencimiento"
+              />
+            </div>
 
-          <div
-            class="form-group mb-3"
-            *ngIf="tipoDocumentoSeleccionado?.requiere_vencimiento"
-          >
-            <label class="form-label">Fecha de Vencimiento</label>
-            <input
-              type="date"
-              class="form-control"
-              [(ngModel)]="fechaVencimiento"
-            />
-          </div>
-
-          <div class="form-group mb-3">
-            <label class="form-label">Observaciones (opcional)</label>
-            <textarea
-              class="form-control"
-              [(ngModel)]="observaciones"
-              rows="3"
-              placeholder="Notas adicionales sobre el documento..."
-            ></textarea>
+            <div class="form-group mb-3">
+              <label class="form-label">Observaciones (opcional)</label>
+              <textarea
+                class="form-control"
+                [(ngModel)]="observaciones"
+                rows="3"
+                placeholder="Notas adicionales sobre el documento..."
+              ></textarea>
+            </div>
           </div>
         </div>
         <div class="modal-footer">
@@ -332,6 +406,7 @@
             Cancelar
           </button>
           <button
+            *ngIf="!modoCamara"
             type="button"
             class="btn-primary"
             (click)="subirDocumento()"

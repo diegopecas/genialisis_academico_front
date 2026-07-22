@@ -1,0 +1,87 @@
+<div class="modulo">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="false"
+    [raiz]="'/'"
+    [regresar]="regresar"
+    [iconoTitulo]="'/assets/images/configuracion.png'">
+  </app-header>
+
+  <div class="container-fluid mt-4">
+    <div class="row">
+      <!-- Navegación de secciones -->
+      <div class="col-md-3 mb-3">
+        <div class="list-group">
+          <a class="list-group-item list-group-item-action"
+             [class.active]="seccionActiva === 'datos'"
+             (click)="cambiarSeccion('datos')">
+            <i class="fas fa-school"></i> Datos de la Institución
+          </a>
+          <a class="list-group-item list-group-item-action"
+             [class.active]="seccionActiva === 'documentos'"
+             [class.disabled]="!model.idPersona"
+             (click)="model.idPersona && cambiarSeccion('documentos')">
+            <i class="fas fa-file-alt"></i> Documentos
+          </a>
+        </div>
+      </div>
+
+      <!-- Contenido -->
+      <div class="col-md-9">
+        <!-- Sección datos -->
+        <div *ngIf="seccionActiva === 'datos'">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Tipo de identificación <span class="text-danger">*</span></label>
+              <select class="form-select" [(ngModel)]="model.tipoIdentificacion">
+                <option value="">Seleccione...</option>
+                <option *ngFor="let t of tiposIdentificacion" [value]="t.id">{{ t.nombre }}</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Número de identificación (NIT) <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" [(ngModel)]="model.numeroIdentificacion">
+            </div>
+
+            <div class="col-12">
+              <label class="form-label">Razón social <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" [(ngModel)]="model.razonSocial"
+                     placeholder="Nombre de la institución">
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Correo electrónico</label>
+              <input type="email" class="form-control" [(ngModel)]="model.correoElectronico">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Teléfono</label>
+              <input type="text" class="form-control" [(ngModel)]="model.telefono">
+            </div>
+            <div class="col-12">
+              <label class="form-label">Dirección</label>
+              <input type="text" class="form-control" [(ngModel)]="model.direccion">
+            </div>
+          </div>
+
+          <div class="row mt-4">
+            <div class="col-sm-6">
+              <button class="btn btn-lg btn-warning w-100" (click)="guardar()">Grabar</button>
+            </div>
+            <div class="col-sm-6">
+              <button class="btn btn-lg btn-secondary w-100" (click)="volver()">Volver</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sección documentos -->
+        <div *ngIf="seccionActiva === 'documentos' && model.idPersona">
+          <app-documentos-persona
+            [idPersona]="model.idPersona"
+            [tipoPersona]="'institucion'"
+            [nombrePersona]="model.razonSocial">
+          </app-documentos-persona>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

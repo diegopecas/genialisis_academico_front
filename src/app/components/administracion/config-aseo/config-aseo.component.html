@@ -1,0 +1,183 @@
+<div class="modulo">
+    <app-header [tituloModulo]="titulo" [mostrarCrear]="false"
+        [raiz]="'/administracion/datos-maestros'"
+        [regresar]="'/administracion/datos-maestros'"
+        [iconoTitulo]="'/assets/images/config_aseo.png'">
+    </app-header>
+
+    <div class="container-fluid mt-3">
+
+        <!-- Selección de proceso -->
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="row g-3 align-items-end">
+                    <div class="col-12 col-md-6">
+                        <label class="form-label"><i class="fas fa-broom"></i> Proceso a configurar *</label>
+                        <select class="form-select" [(ngModel)]="idProceso" (change)="onProcesoChange()"
+                            [disabled]="cargando || guardando">
+                            <option value="">Seleccione un proceso</option>
+                            <option *ngFor="let p of procesos" [value]="p.id">{{p.nombre}}</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-6" *ngIf="idProceso">
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle"></i>
+                            Selecciona las áreas, define la configuración y aplícala en lote.
+                            Sobrescribe lo existente en las áreas marcadas.
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div *ngIf="cargando" class="text-center text-muted py-5">
+            <i class="fas fa-spinner fa-spin fa-2x"></i>
+            <p class="mt-2">Cargando áreas...</p>
+        </div>
+
+        <div class="row" *ngIf="!cargando && idProceso && areas.length > 0">
+
+            <!-- Panel de configuración -->
+            <div class="col-12 col-lg-4 mb-3">
+                <div class="card card-config">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="fas fa-sliders-h"></i> Configuración a aplicar</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">Periodicidad</label>
+                            <select class="form-select" [(ngModel)]="config.id_periodicidad">
+                                <option *ngFor="let per of periodicidades" [ngValue]="per.id">{{per.nombre}}</option>
+                            </select>
+                            <small class="text-muted">Ej: Diario, Semanal, Mensual...</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Tiempo estimado (min)</label>
+                            <input type="number" min="0" class="form-control" [(ngModel)]="config.tiempo_estimado_minutos">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Veces por día</label>
+                            <input type="number" min="1" class="form-control" [(ngModel)]="config.veces_por_dia">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Prioridad</label>
+                            <select class="form-select" [(ngModel)]="config.prioridad">
+                                <option [ngValue]="1">Baja</option>
+                                <option [ngValue]="2">Media</option>
+                                <option [ngValue]="3">Alta</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Hora sugerida (opcional)</label>
+                            <input type="time" class="form-control" [(ngModel)]="config.hora_sugerida">
+                        </div>
+
+                        <div class="mb-2">
+                            <label class="form-label">Días</label>
+                            <div class="dias-rapidos">
+                                <button type="button" class="btn btn-sm btn-outline-secondary" (click)="aplicarEntreSemana()">Entre semana</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" (click)="aplicarTodos()">Todos</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" (click)="aplicarNinguno()">Ninguno</button>
+                            </div>
+                            <div class="dias-checks">
+                                <label class="dia-check" *ngFor="let d of diasSemana"
+                                    [class.activo]="getDia(d.clave)">
+                                    <input type="checkbox" [checked]="getDia(d.clave)"
+                                        (change)="toggleDia(d.clave)">
+                                    <span>{{d.label}}</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lista de áreas -->
+            <div class="col-12 col-lg-8 mb-3">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="areas-header">
+                            <h6 class="mb-0">
+                                <i class="fas fa-building"></i> Áreas
+                                <span class="badge bg-primary">{{totalSeleccionadas}}/{{areas.length}}</span>
+                            </h6>
+                            <div class="areas-acciones">
+                                <button type="button" class="btn btn-sm btn-outline-secondary" (click)="marcarTodas()">Todas</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" (click)="marcarSinConfig()">Sin configurar</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" (click)="marcarNinguna()">Ninguna</button>
+                            </div>
+                        </div>
+                        <div class="buscador-areas">
+                            <i class="fas fa-search"></i>
+                            <input type="text" class="form-control form-control-sm" placeholder="Buscar área..."
+                                [(ngModel)]="busqueda">
+                            <i class="fas fa-times clear-busqueda" *ngIf="busqueda" (click)="busqueda = ''"></i>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="lista-areas">
+                            <div class="area-fila" *ngFor="let area of areasFiltradas"
+                                [class.seleccionada]="area.seleccionada"
+                                (click)="toggleArea(area)">
+                                <div class="area-check">
+                                    <i class="fas" [ngClass]="area.seleccionada ? 'fa-square-check' : 'fa-square'"></i>
+                                </div>
+                                <div class="area-info">
+                                    <div class="area-nombre">
+                                        {{area.area}}
+                                        <span *ngIf="!area.tiene_config" class="badge-sin-config">sin configurar</span>
+                                    </div>
+                                    <div class="area-detalle" *ngIf="area.tiene_config">
+                                        <span><i class="fas fa-clock"></i> {{area.tiempo_estimado_minutos || 0}} min</span>
+                                        <span><i class="fas fa-calendar-week"></i> {{resumenDias(area)}}</span>
+                                        <span *ngIf="area.periodicidad"><i class="fas fa-sync"></i> {{area.periodicidad}}</span>
+                                        <span *ngIf="area.veces_por_dia > 1"><i class="fas fa-redo"></i> {{area.veces_por_dia}}x/día</span>
+                                    </div>
+                                    <div class="area-detalle sin-config-text" *ngIf="!area.tiene_config">
+                                        No configurada para este proceso
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="sin-resultados" *ngIf="areasFiltradas.length === 0">
+                                <i class="fas fa-search"></i> No hay áreas que coincidan con "{{busqueda}}"
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mensaje si no hay áreas -->
+        <div *ngIf="!cargando && idProceso && areas.length === 0" class="card">
+            <div class="card-body">
+                <div class="alert alert-info mb-0">
+                    <i class="fas fa-info-circle"></i> No hay áreas activas para configurar.
+                </div>
+            </div>
+        </div>
+
+        <!-- Barra de acción -->
+        <div class="action-bar" *ngIf="!cargando && idProceso && areas.length > 0">
+            <div class="resumen">
+                <strong>{{totalSeleccionadas}}</strong> área(s) seleccionada(s)
+            </div>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-secondary" (click)="regresar()">
+                    <i class="fas fa-arrow-left"></i> Regresar
+                </button>
+                <button type="button" class="btn btn-quitar" [disabled]="totalSeleccionadas === 0 || guardando"
+                    (click)="quitar()">
+                    <i class="fas fa-times-circle"></i> Quitar del proceso
+                </button>
+                <button type="button" class="btn btn-aplicar" [disabled]="!puedeAplicar"
+                    (click)="aplicar()">
+                    <i class="fas" [ngClass]="guardando ? 'fa-spinner fa-spin' : 'fa-check'"></i> Aplicar a seleccionadas
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

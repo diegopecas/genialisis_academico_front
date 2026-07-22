@@ -1,0 +1,313 @@
+// Paleta cálida de Genialisis
+$crema:        #FAF8F3;
+$crema-2:      #F3EFE6;
+$dorado:       #FFC107;
+$dorado-hi:    #FFD93D;
+$ambar-deep:   #C98A00;
+$tinta:        #2A2620;
+$tinta-suave:  #6B6357;
+$rojo:         #C0392B;
+$borde-vidrio: rgba(255, 255, 255, 0.85);
+$borde-sutil:  rgba(180, 160, 120, 0.28);
+$vidrio:       rgba(255, 255, 255, 0.55);
+$vidrio-hover: rgba(255, 255, 255, 0.72);
+$sombra:       0 8px 32px rgba(120, 95, 40, 0.12);
+
+$mobile: 768px;
+
+.modulo {
+  min-height: 100vh;
+  overflow-x: hidden;
+  background:
+    radial-gradient(1100px 520px at 12% -8%, rgba(255, 217, 61, 0.18), transparent 60%),
+    radial-gradient(900px 480px at 108% 12%, rgba(255, 193, 7, 0.12), transparent 55%),
+    linear-gradient(160deg, $crema 0%, $crema-2 100%);
+  background-attachment: fixed;
+}
+
+.container-fluid {
+  max-width: 1200px;
+  padding-bottom: 108px;
+
+  @media (max-width: $mobile) {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+}
+
+.card {
+  border: 1px solid $borde-vidrio;
+  border-radius: 16px;
+  background: $vidrio;
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  box-shadow: $sombra;
+
+  .card-header {
+    background: transparent;
+    border-bottom: 1px solid $borde-sutil;
+    border-radius: 16px 16px 0 0;
+    padding: 0.85rem 1.1rem;
+
+    h6 { color: $tinta; font-weight: 700; i { color: $ambar-deep; } }
+  }
+}
+
+label.form-label {
+  color: $tinta-suave;
+  font-weight: 600;
+  font-size: 0.82rem;
+  i { color: $ambar-deep; margin-right: 0.2rem; }
+}
+
+.form-control,
+.form-select {
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid $borde-sutil;
+  border-radius: 10px;
+  color: $tinta;
+
+  &:focus {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: $dorado;
+    box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.22);
+  }
+
+  @media (max-width: $mobile) { font-size: 16px; }
+}
+
+// --- Panel de configuración ---
+.card-config {
+  position: sticky;
+  top: 1rem;
+
+  .dias-rapidos {
+    display: flex;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.6rem;
+
+    .btn { border-radius: 8px; font-size: 0.72rem; }
+  }
+
+  .dias-checks {
+    display: flex;
+    gap: 0.3rem;
+    flex-wrap: wrap;
+  }
+
+  .dia-check {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.3rem 0.5rem;
+    border: 1px solid $borde-sutil;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.78rem;
+    color: $tinta-suave;
+    user-select: none;
+    background: rgba(255, 255, 255, 0.5);
+    transition: all 0.12s ease;
+
+    input { cursor: pointer; accent-color: $ambar-deep; }
+
+    &.activo {
+      background: rgba(255, 193, 7, 0.18);
+      border-color: rgba(201, 138, 0, 0.45);
+      color: $ambar-deep;
+      font-weight: 600;
+    }
+  }
+}
+
+// --- Lista de áreas ---
+.areas-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+
+  .badge { font-weight: 600; }
+
+  .areas-acciones {
+    display: flex;
+    gap: 0.35rem;
+    .btn { border-radius: 8px; font-size: 0.75rem; }
+  }
+}
+
+.buscador-areas {
+  position: relative;
+  margin-top: 0.6rem;
+
+  input {
+    background: rgba(255, 255, 255, 0.6);
+    border: 1px solid $borde-sutil;
+    border-radius: 10px;
+    color: $tinta;
+    padding-left: 2.1rem;
+
+    &:focus {
+      background: rgba(255, 255, 255, 0.9);
+      border-color: $dorado;
+      box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.22);
+    }
+  }
+
+  .fa-search {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: $ambar-deep;
+    font-size: 0.8rem;
+    pointer-events: none;
+  }
+
+  .clear-busqueda {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: $tinta-suave;
+    font-size: 0.8rem;
+    cursor: pointer;
+
+    &:hover { color: $tinta; }
+  }
+}
+
+.sin-resultados {
+  padding: 1.5rem 1.1rem;
+  text-align: center;
+  color: $tinta-suave;
+  font-size: 0.85rem;
+
+  i { color: rgba(150, 130, 90, 0.5); margin-right: 0.3rem; }
+}
+
+.lista-areas {
+  max-height: 62vh;
+  overflow-y: auto;
+}
+
+.area-fila {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 1.1rem;
+  border-bottom: 1px solid rgba(180, 160, 120, 0.18);
+  cursor: pointer;
+  transition: background 0.12s ease;
+
+  &:hover { background: rgba(255, 255, 255, 0.5); }
+  &:last-child { border-bottom: none; }
+
+  &.seleccionada { background: rgba(255, 193, 7, 0.1); }
+
+  .area-check {
+    font-size: 1.2rem;
+    color: rgba(150, 130, 90, 0.4);
+    .fa-square-check { color: $ambar-deep; }
+  }
+
+  .area-info { flex: 1; min-width: 0; }
+
+  .area-nombre {
+    font-weight: 600;
+    color: $tinta;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+  }
+
+  .area-detalle {
+    font-size: 0.76rem;
+    color: $tinta-suave;
+    display: flex;
+    gap: 0.9rem;
+    flex-wrap: wrap;
+    margin-top: 0.15rem;
+
+    i { color: $ambar-deep; margin-right: 0.15rem; }
+
+    &.sin-config-text { color: rgba(150, 130, 90, 0.7); font-style: italic; }
+  }
+}
+
+.badge-sin-config {
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: #8a6d00;
+  background: rgba(255, 193, 7, 0.16);
+  border: 1px solid rgba(201, 138, 0, 0.35);
+  border-radius: 10px;
+  padding: 0.05rem 0.4rem;
+}
+
+// --- Botones ---
+.btn-secondary {
+  border: 1px solid $borde-sutil;
+  background: rgba(255, 255, 255, 0.55);
+  color: $tinta;
+  border-radius: 10px;
+  &:hover:not(:disabled) { background: $vidrio-hover; color: $tinta; }
+}
+
+.btn-outline-secondary {
+  border: 1px solid $borde-sutil;
+  color: $tinta-suave;
+  background: rgba(255, 255, 255, 0.5);
+  &:hover:not(:disabled) { background: rgba(255, 193, 7, 0.14); color: $ambar-deep; border-color: rgba(201,138,0,.35); }
+}
+
+// --- Barra de acción ---
+.action-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  border: 1px solid $borde-vidrio;
+  border-radius: 16px;
+  background: $vidrio-hover;
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  box-shadow: $sombra;
+  padding: 0.85rem 1.1rem;
+  margin-top: 0.5rem;
+
+  .resumen { font-size: 0.9rem; color: $tinta; strong { color: $ambar-deep; } }
+
+  .btn { min-height: 44px; border-radius: 10px; font-weight: 700; }
+
+  .btn-aplicar {
+    border: none;
+    background: linear-gradient(135deg, $dorado-hi, $dorado);
+    color: $tinta;
+    &:hover:not(:disabled) { filter: brightness(1.05); }
+    &:disabled { background: rgba(200, 185, 150, 0.4); color: rgba(107, 99, 87, 0.6); }
+  }
+
+  .btn-quitar {
+    border: 1px solid rgba(192, 57, 43, 0.4);
+    background: rgba(192, 57, 43, 0.08);
+    color: $rojo;
+    &:hover:not(:disabled) { background: rgba(192, 57, 43, 0.16); }
+    &:disabled { opacity: 0.5; }
+  }
+
+  @media (max-width: $mobile) {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    z-index: 1030;
+    border-radius: 16px 16px 0 0;
+    margin: 0;
+
+    .resumen { width: 100%; font-size: 0.8rem; }
+    .d-flex { width: 100%; .btn { flex: 1; font-size: 0.8rem; } }
+  }
+}

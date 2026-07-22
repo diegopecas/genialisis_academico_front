@@ -1,0 +1,114 @@
+<div class="modulo">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="false"
+    [accion]="accion"
+    [raiz]="'/administracion/entes-control'"
+    [regresar]="regresar"
+    [iconoTitulo]="'/assets/images/configuracion.png'">
+  </app-header>
+
+  <div class="container-fluid mt-4">
+    <div class="row">
+      <!-- Navegación de secciones -->
+      <div class="col-md-3 mb-3">
+        <div class="list-group">
+          <a class="list-group-item list-group-item-action"
+             [class.active]="seccionActiva === 'datos'"
+             (click)="cambiarSeccion('datos')">
+            <i class="fas fa-building"></i> Datos del Ente
+          </a>
+          <a class="list-group-item list-group-item-action"
+             [class.active]="seccionActiva === 'documentos'"
+             [class.disabled]="!model.idPersona"
+             (click)="model.idPersona && cambiarSeccion('documentos')">
+            <i class="fas fa-file-alt"></i> Documentos
+          </a>
+        </div>
+      </div>
+
+      <!-- Contenido -->
+      <div class="col-md-9">
+        <!-- Sección datos -->
+        <div *ngIf="seccionActiva === 'datos'">
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label">Tipo de identificación <span class="text-danger">*</span></label>
+              <select class="form-select"
+                      [(ngModel)]="model.tipoIdentificacion"
+                      [disabled]="!editable || !!model.idPersona">
+                <option value="">Seleccione...</option>
+                <option *ngFor="let t of tiposIdentificacion" [value]="t.id">{{ t.nombre }}</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Número de identificación <span class="text-danger">*</span></label>
+              <input type="text" class="form-control"
+                     [(ngModel)]="model.numeroIdentificacion"
+                     [disabled]="!editable || !!model.idPersona">
+            </div>
+            <div class="col-md-4 d-flex align-items-end" *ngIf="editable && accion === 'crear' && !model.idPersona">
+              <button class="btn btn-outline-primary w-100" (click)="verificarDocumento()">
+                <i class="fas fa-search"></i> Verificar
+              </button>
+            </div>
+
+            <div class="col-12" [ngClass]="{ 'opacity-50': !camposHabilitados && editable }">
+              <label class="form-label">Nombre del ente / Razón social <span class="text-danger">*</span></label>
+              <input type="text" class="form-control"
+                     [(ngModel)]="model.razonSocial"
+                     placeholder="Ej: Secretaría de Educación, ICBF..."
+                     [disabled]="!editable || (!camposHabilitados && editable)">
+            </div>
+
+            <div class="col-md-6" [ngClass]="{ 'opacity-50': !camposHabilitados && editable }">
+              <label class="form-label">Correo electrónico</label>
+              <input type="email" class="form-control"
+                     [(ngModel)]="model.correoElectronico"
+                     [disabled]="!editable || (!camposHabilitados && editable)">
+            </div>
+            <div class="col-md-6" [ngClass]="{ 'opacity-50': !camposHabilitados && editable }">
+              <label class="form-label">Teléfono</label>
+              <input type="text" class="form-control"
+                     [(ngModel)]="model.telefono"
+                     [disabled]="!editable || (!camposHabilitados && editable)">
+            </div>
+            <div class="col-12" [ngClass]="{ 'opacity-50': !camposHabilitados && editable }">
+              <label class="form-label">Dirección</label>
+              <input type="text" class="form-control"
+                     [(ngModel)]="model.direccion"
+                     [disabled]="!editable || (!camposHabilitados && editable)">
+            </div>
+
+            <div class="col-12" [ngClass]="{ 'opacity-50': !camposHabilitados && editable }">
+              <label class="form-label">Funciones / Marco legal</label>
+              <textarea class="form-control" rows="4"
+                        [(ngModel)]="model.funciones"
+                        placeholder="Funciones o competencias del ente de control..."
+                        [disabled]="!editable || (!camposHabilitados && editable)"></textarea>
+            </div>
+          </div>
+
+          <div class="row mt-4">
+            <div class="col-sm-6" *ngIf="editable">
+              <button class="btn btn-lg btn-warning w-100" (click)="guardar()">Grabar</button>
+            </div>
+            <div class="col-sm-6">
+              <button class="btn btn-lg btn-secondary w-100" (click)="volver()">Volver</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sección documentos -->
+        <div *ngIf="seccionActiva === 'documentos' && model.idPersona">
+          <app-documentos-persona
+            [idPersona]="model.idPersona"
+            [tipoPersona]="'ente_control'"
+            [nombrePersona]="model.razonSocial"
+            [soloLectura]="accion === 'consultar'">
+          </app-documentos-persona>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

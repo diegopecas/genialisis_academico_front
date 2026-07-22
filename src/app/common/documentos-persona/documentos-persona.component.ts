@@ -4,7 +4,10 @@ import {
   Output,
   EventEmitter,
   OnInit,
+  OnDestroy,
   HostListener,
+  ViewChild,
+  ElementRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -22,7 +25,7 @@ import { TipoDocumento, TiposDocumentosService } from '../../services/tipos-docu
   standalone: true,
   imports: [CommonModule, FormsModule],
 })
-export class DocumentosPersonaComponent implements OnInit {
+export class DocumentosPersonaComponent implements OnInit, OnDestroy {
   @Input() idPersona!: string;
   @Input() tipoPersona!: string;
   @Input() nombrePersona?: string;
@@ -40,6 +43,9 @@ export class DocumentosPersonaComponent implements OnInit {
     tipo_documento: any;
     eliminado?: boolean;
   }>();
+
+  @ViewChild('videoElement') videoElement?: ElementRef<HTMLVideoElement>;
+  @ViewChild('canvasElement') canvasElement?: ElementRef<HTMLCanvasElement>;
 
   public documentos: DocumentoPersona[] = [];
   public tiposDocumentos: TipoDocumento[] = [];
@@ -62,6 +68,21 @@ export class DocumentosPersonaComponent implements OnInit {
   public documentoRecienSubido: any = null;
   public descargandoFirmado = false;
 
+  // Cámara para tomar foto del documento
+  public modoCamara = false;
+  public camaraActiva = false;
+  public stream?: MediaStream;
+  public camaraDisponible = false;
+  // previewUrl solo se usa para la foto tomada con la camara (no para archivos
+  // seleccionados por el input, que pueden ser PDF/Word/Excel y no se previsualizan).
+  public previewUrl?: string;
+
+  // Parametros de salida de la foto capturada. Un documento fotografiado necesita
+  // resolucion para que el texto quede legible, pero 1600px en el lado mayor y
+  // calidad 0.8 dan un archivo liviano y perfectamente legible.
+  private readonly DOCUMENTO_DIMENSION_MAX = 1600;
+  private readonly DOCUMENTO_CALIDAD_JPG = 0.8;
+
   constructor(
     private documentosService: DocumentosPersonasService,
     private tiposDocumentosService: TiposDocumentosService,
@@ -69,6 +90,7 @@ export class DocumentosPersonaComponent implements OnInit {
     private firmaDigitalService: FirmaDigitalService,
   ) {
     this.ajustarMaxLengthNombre();
+    this.verificarCamara();
   }
 
   @HostListener('window:resize', ['$event'])
@@ -95,6 +117,10 @@ export class DocumentosPersonaComponent implements OnInit {
 
     this.cargarTiposDocumentos();
     this.cargarDocumentos();
+  }
+
+  ngOnDestroy() {
+    this.detenerCamara();
   }
 
   cargarTiposDocumentos() {
@@ -181,15 +207,21 @@ export class DocumentosPersonaComponent implements OnInit {
     this.archivoSeleccionado = undefined;
     this.fechaVencimiento = undefined;
     this.observaciones = '';
+    // Reset del estado de camara/preview al abrir
+    this.modoCamara = false;
+    this.previewUrl = undefined;
     this.mostrarModal = true;
   }
 
   cerrarModal() {
+    this.detenerCamara();
     this.mostrarModal = false;
     this.tipoDocumentoSeleccionado = undefined;
     this.archivoSeleccionado = undefined;
     this.fechaVencimiento = undefined;
     this.observaciones = '';
+    this.modoCamara = false;
+    this.previewUrl = undefined;
   }
 
   abrirModalDetalles(documento: DocumentoPersona) {
@@ -221,6 +253,9 @@ export class DocumentosPersonaComponent implements OnInit {
         return;
       }
 
+      // Si el archivo entra por el input, no hay preview de imagen (puede ser
+      // PDF/Word/Excel). Se limpia cualquier preview previo de la camara.
+      this.previewUrl = undefined;
       this.archivoSeleccionado = file;
     }
   }
@@ -429,6 +464,183 @@ export class DocumentosPersonaComponent implements OnInit {
     return (
       nombreSinExtension.substring(0, caracteresDisponibles) + '...' + extension
     );
+  }
+
+  // ============================================
+  // MÉTODOS DE CÁMARA (foto del documento)
+  // ============================================
+
+  verificarCamara() {
+    this.camaraDisponible = !!(navigator.mediaDevices?.getUserMedia);
+  }
+
+  activarCamara() {
+    this.modoCamara = true;
+    this.archivoSeleccionado = undefined;
+    this.previewUrl = undefined;
+
+    // Para documentos arranca en la camara trasera (environment); el boton
+    // "Voltear" permite cambiar a la frontal si hace falta.
+    const constraints = {
+      video: {
+        facingMode: 'environment',
+        width: { ideal: 1280 },
+        height: { ideal: 720 },
+      },
+    };
+
+    navigator.mediaDevices
+      .getUserMedia(constraints)
+      .then((stream) => {
+        this.stream = stream;
+
+        setTimeout(() => {
+          if (this.videoElement) {
+            const video = this.videoElement.nativeElement;
+            video.srcObject = stream;
+
+            // Esperar a que el video esté listo
+            video.onloadedmetadata = () => {
+              video
+                .play()
+                .then(() => {
+                  this.camaraActiva = true;
+                })
+                .catch((error) => {
+                  console.error('Error al reproducir video:', error);
+                });
+            };
+          }
+        }, 100);
+      })
+      .catch((error) => {
+        console.error('Error al acceder a la cámara:', error);
+        Swal.fire('Error', 'No se pudo acceder a la cámara', 'error');
+        this.modoCamara = false;
+      });
+  }
+
+  detenerCamara() {
+    if (this.stream) {
+      this.stream.getTracks().forEach((track) => track.stop());
+      this.stream = undefined;
+    }
+    this.camaraActiva = false;
+  }
+
+  capturarFoto() {
+    if (!this.videoElement || !this.canvasElement) return;
+
+    const video = this.videoElement.nativeElement;
+    const canvas = this.canvasElement.nativeElement;
+    const context = canvas.getContext('2d');
+
+    if (!context) return;
+
+    // Verificar que el video tenga dimensiones válidas
+    if (video.videoWidth === 0 || video.videoHeight === 0) {
+      Swal.fire('Error', 'La cámara no está lista. Intenta de nuevo.', 'error');
+      return;
+    }
+
+    // Redimensionar por el lado mas largo para no guardar una imagen gigante.
+    // Mantiene la proporcion original y sirve tanto en vertical como horizontal.
+    const anchoOriginal = video.videoWidth;
+    const altoOriginal = video.videoHeight;
+    const ladoMayor = Math.max(anchoOriginal, altoOriginal);
+
+    let ancho = anchoOriginal;
+    let alto = altoOriginal;
+
+    if (ladoMayor > this.DOCUMENTO_DIMENSION_MAX) {
+      const escala = this.DOCUMENTO_DIMENSION_MAX / ladoMayor;
+      ancho = Math.round(anchoOriginal * escala);
+      alto = Math.round(altoOriginal * escala);
+    }
+
+    // Establecer dimensiones del canvas (ya redimensionadas)
+    canvas.width = ancho;
+    canvas.height = alto;
+
+    // Dibujar el frame actual del video en el canvas
+    context.drawImage(video, 0, 0, ancho, alto);
+
+    // Obtener la imagen como dataURL inmediatamente
+    const imageDataUrl = canvas.toDataURL('image/jpeg', this.DOCUMENTO_CALIDAD_JPG);
+    this.previewUrl = imageDataUrl;
+
+    // Convertir dataURL a Blob de forma síncrona
+    const arr = imageDataUrl.split(',');
+    const mime = arr[0].match(/:(.*?);/)?.[1];
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+    const blob = new Blob([u8arr], { type: mime });
+
+    // Crear archivo
+    const file = new File([blob], `documento_${Date.now()}.jpg`, {
+      type: 'image/jpeg',
+    });
+    this.archivoSeleccionado = file;
+
+    // Ahora sí detener la cámara
+    this.detenerCamara();
+    this.modoCamara = false;
+  }
+
+  cambiarCamara() {
+    if (!this.stream) return;
+
+    const videoTrack = this.stream.getVideoTracks()[0];
+    const currentFacingMode = videoTrack.getSettings().facingMode;
+
+    this.detenerCamara();
+
+    const constraints = {
+      video: {
+        facingMode: currentFacingMode === 'user' ? 'environment' : 'user',
+        width: { ideal: 1280 },
+        height: { ideal: 720 },
+      },
+    };
+
+    navigator.mediaDevices
+      .getUserMedia(constraints)
+      .then((stream) => {
+        this.stream = stream;
+
+        if (this.videoElement) {
+          const video = this.videoElement.nativeElement;
+          video.srcObject = stream;
+
+          video.onloadedmetadata = () => {
+            video.play().then(() => {
+              this.camaraActiva = true;
+            });
+          };
+        }
+      })
+      .catch((error) => {
+        console.error('Error al cambiar cámara:', error);
+        this.activarCamara();
+      });
+  }
+
+  volverASeleccion() {
+    this.detenerCamara();
+    this.modoCamara = false;
+    this.archivoSeleccionado = undefined;
+    this.previewUrl = undefined;
+  }
+
+  // Descartar la foto tomada y volver a la seleccion (input + tomar foto)
+  repetirToma() {
+    this.archivoSeleccionado = undefined;
+    this.previewUrl = undefined;
+    this.activarCamara();
   }
 
   // ============================================
