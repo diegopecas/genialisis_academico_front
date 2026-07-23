@@ -85,13 +85,18 @@
 
         <!-- Información del pago -->
         <div class="row">
-            <!-- Fecha de Pago -->
+            <!-- Tipo de pago -->
             <div class="col-sm-12 col-md-4">
-                <label class="form-label">Fecha de Pago <span class="text-danger">*</span></label>
-                <input type="date" class="form-control form-control-lg" [(ngModel)]="model.fecha" required
-                    [ngClass]="{'is-invalid': !model.fecha && submitted}">
+                <label class="form-label">Tipo de pago <span class="text-danger">*</span></label>
+                <select class="form-select form-select-lg" [(ngModel)]="model.id_tipo_pago" required
+                    (ngModelChange)="onTipoPagoCambiado()"
+                    [ngClass]="{'is-invalid': !model.id_tipo_pago && submitted}">
+                    <option value="">Seleccionar</option>
+                    <ng-container *ngFor="let tp of listas.tiposPago">
+                        <option [value]="tp.id">{{ tp.nombre }}</option>
+                    </ng-container>
+                </select>
             </div>
-
             <!-- Acudiente -->
             <div class="col-sm-12 col-md-4">
                 <label class="form-label">Acudiente <span class="text-danger">*</span></label>
@@ -107,16 +112,45 @@
                 </div>
             </div>
 
-            <!-- Tipo de pago -->
+            <!-- Fecha de Pago -->
             <div class="col-sm-12 col-md-4">
-                <label class="form-label">Tipo de pago <span class="text-danger">*</span></label>
-                <select class="form-select form-select-lg" [(ngModel)]="model.id_tipo_pago" required
-                    [ngClass]="{'is-invalid': !model.id_tipo_pago && submitted}">
-                    <option value="">Seleccionar</option>
-                    <ng-container *ngFor="let tp of listas.tiposPago">
-                        <option [value]="tp.id">{{ tp.nombre }}</option>
-                    </ng-container>
-                </select>
+                <label class="form-label">Fecha de Pago <span class="text-danger">*</span></label>
+                <input type="date" class="form-control form-control-lg" [(ngModel)]="model.fecha" required
+                    [ngClass]="{'is-invalid': !model.fecha && submitted}">
+            </div>
+
+        </div>
+
+        <!-- Comprobante de pago + procesamiento con IA (solo al crear) -->
+        <div class="row mt-3" *ngIf="accion === 'crear' && tipoPagoRequiereReferencia()">
+            <div class="col-sm-12">
+                <label class="form-label">Comprobante de pago</label>
+                <div class="d-flex flex-column flex-md-row gap-2 align-items-start">
+                    <input type="file" id="archivoComprobante" class="form-control form-control-lg"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        (change)="onArchivoComprobanteSeleccionado($event)">
+
+                    <button type="button" class="btn btn-lg btn-outline-primary text-nowrap"
+                        (click)="procesarComprobanteIA()"
+                        [disabled]="!archivoComprobante || analizandoIA">
+                        <span *ngIf="!analizandoIA">Procesar con IA</span>
+                        <span *ngIf="analizandoIA">Procesando...</span>
+                    </button>
+
+                    <button type="button" class="btn btn-lg btn-outline-secondary text-nowrap"
+                        (click)="quitarComprobante()"
+                        *ngIf="archivoComprobante">
+                        Quitar
+                    </button>
+                </div>
+
+                <small class="text-muted d-block mt-1">
+                    Puede subir el comprobante y digitar los datos, o usar "Procesar con IA" para llenarlos automáticamente.
+                </small>
+
+                <small class="text-info d-block mt-1" *ngIf="bancoDetectadoIA">
+                    Entidad detectada en el comprobante: <strong>{{ bancoDetectadoIA }}</strong>
+                </small>
             </div>
         </div>
 
@@ -162,39 +196,6 @@
             <div class="col-sm-12">
                 <label class="form-label">Observaciones</label>
                 <textarea class="form-control form-control-lg" rows="3" [(ngModel)]="model.observaciones"></textarea>
-            </div>
-        </div>
-
-        <!-- Comprobante de pago + procesamiento con IA (solo al crear) -->
-        <div class="row mt-3" *ngIf="accion === 'crear'">
-            <div class="col-sm-12">
-                <label class="form-label">Comprobante de pago</label>
-                <div class="d-flex flex-column flex-md-row gap-2 align-items-start">
-                    <input type="file" id="archivoComprobante" class="form-control form-control-lg"
-                        accept=".pdf,.jpg,.jpeg,.png"
-                        (change)="onArchivoComprobanteSeleccionado($event)">
-
-                    <button type="button" class="btn btn-lg btn-outline-primary text-nowrap"
-                        (click)="procesarComprobanteIA()"
-                        [disabled]="!archivoComprobante || analizandoIA">
-                        <span *ngIf="!analizandoIA">Procesar con IA</span>
-                        <span *ngIf="analizandoIA">Procesando...</span>
-                    </button>
-
-                    <button type="button" class="btn btn-lg btn-outline-secondary text-nowrap"
-                        (click)="quitarComprobante()"
-                        *ngIf="archivoComprobante">
-                        Quitar
-                    </button>
-                </div>
-
-                <small class="text-muted d-block mt-1">
-                    Puede subir el comprobante y digitar los datos, o usar "Procesar con IA" para llenarlos automáticamente.
-                </small>
-
-                <small class="text-info d-block mt-1" *ngIf="bancoDetectadoIA">
-                    Entidad detectada en el comprobante: <strong>{{ bancoDetectadoIA }}</strong>
-                </small>
             </div>
         </div>
 

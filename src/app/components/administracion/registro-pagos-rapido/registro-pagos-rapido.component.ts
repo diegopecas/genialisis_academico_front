@@ -52,6 +52,7 @@ interface DatosComprobante {
   valor: number | null;
   referencia: string | null;
   fecha: string | null;
+  banco: string | null;
 }
 
 interface CuentaAplicada {
@@ -268,7 +269,11 @@ export class RegistroPagosRapidoComponent implements OnInit, OnDestroy {
     const tipoPago = this.tiposPago.find((tp: TipoPago) => tp.id === fila.id_tipo_pago);
     if (tipoPago && !tipoPago.requiere_documento) {
       fila.archivo = null; fila.datosIA = null; fila.valor_comprobante = null;
+      return;
     }
+    // El comprobante puede haberse procesado antes de elegir el tipo de pago,
+    // por eso la comparacion tambien se hace al cambiarlo.
+    this.validarBancoContraTipoPago(fila);
   }
 
   requiereDocumento(fila: FilaPago): boolean {
@@ -303,6 +308,7 @@ export class RegistroPagosRapidoComponent implements OnInit, OnDestroy {
             fila.valor_comprobante = respuesta.datos.valor;
             this.formatearValor(fila);
           }
+          this.validarBancoContraTipoPago(fila);
         }
       },
       error: (error: any) => {
@@ -310,6 +316,40 @@ export class RegistroPagosRapidoComponent implements OnInit, OnDestroy {
         Swal.fire('Advertencia', 'No se pudieron extraer los datos del comprobante. Puede ingresar los datos manualmente.', 'warning');
       },
     });
+  }
+
+  // Compara el banco detectado por la IA en el comprobante contra el nombre del
+  // tipo de pago elegido en esa fila. Solo advierte (no bloquea) si no coinciden.
+  // El mensaje nombra al estudiante porque el listado maneja muchas filas.
+  private validarBancoContraTipoPago(fila: FilaPago): void {
+    const bancoDetectado = fila.datosIA?.banco;
+    if (!bancoDetectado || !fila.id_tipo_pago) return;
+
+    const tipo = this.tiposPago.find((tp: TipoPago) => tp.id === fila.id_tipo_pago);
+    if (!tipo || !tipo.nombre) return;
+
+    const normalizar = (texto: string): string =>
+      texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+
+    const banco = normalizar(String(bancoDetectado));
+    const nombreTipo = normalizar(tipo.nombre);
+
+    // Coincide si alguno contiene al otro (ej. "Bancolombia" vs "Bancolombia S.A.")
+    const coincide = banco.includes(nombreTipo) || nombreTipo.includes(banco);
+
+    if (!coincide) {
+      Swal.fire({
+        title: 'Verifique el tipo de pago',
+        html: `<div style="text-align:left;">`
+          + `Estudiante: <strong>${fila.estudiante.nombre_estudiante}</strong><br><br>`
+          + `El comprobante parece ser de <strong>${bancoDetectado}</strong>, `
+          + `pero el tipo de pago seleccionado es <strong>${tipo.nombre}</strong>.<br><br>`
+          + `Verifique que el tipo de pago sea el correcto.`
+          + `</div>`,
+        icon: 'warning',
+        confirmButtonText: 'Entendido'
+      });
+    }
   }
 
   eliminarArchivo(fila: FilaPago): void {

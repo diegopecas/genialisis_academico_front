@@ -873,6 +873,19 @@ export class CrearPagosRecibidosComponent implements OnInit {
     });
   }
 
+  // Reacciona al cambio de tipo de pago. Dos cosas:
+  // 1) Si el nuevo tipo no exige comprobante (ej. efectivo), se descarta el
+  //    archivo cargado: el bloque se oculta en la vista y no debe subirse.
+  // 2) Revalida el banco detectado por la IA, porque el usuario puede procesar
+  //    el comprobante antes o despues de elegir el tipo de pago.
+  onTipoPagoCambiado(): void {
+    if (!this.tipoPagoRequiereReferencia()) {
+      this.quitarComprobante();
+      return;
+    }
+    this.validarBancoContraTipoPago();
+  }
+
   // Compara el banco detectado por la IA contra el nombre del tipo de pago
   // seleccionado. Solo advierte (no bloquea) si no parecen coincidir.
   private validarBancoContraTipoPago(): void {
