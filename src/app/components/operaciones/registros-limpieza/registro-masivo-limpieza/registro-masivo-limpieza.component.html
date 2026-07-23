@@ -1,0 +1,167 @@
+<div class="modulo">
+    <app-header [tituloModulo]="titulo" [mostrarCrear]="false"
+        [raiz]="'/operaciones'" [regresar]="'/operaciones'"
+        [iconoTitulo]="'/assets/images/registro_masivo_limpieza.png'">
+    </app-header>
+
+    <div class="container-fluid mt-3">
+
+        <!-- Configuración general -->
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-12 col-md-4">
+                        <label class="form-label"><i class="fas fa-broom"></i> Proceso *</label>
+                        <select class="form-select" [(ngModel)]="idProceso" [disabled]="guardando">
+                            <option value="">Seleccione</option>
+                            <option *ngFor="let p of procesos" [value]="p.id">{{p.nombre}}</option>
+                        </select>
+                    </div>
+                    <div class="col-6 col-md-4">
+                        <label class="form-label"><i class="fas fa-calendar"></i> Desde *</label>
+                        <input type="date" class="form-control" [(ngModel)]="fechaDesde" [disabled]="guardando">
+                    </div>
+                    <div class="col-6 col-md-4">
+                        <label class="form-label"><i class="fas fa-calendar"></i> Hasta *</label>
+                        <input type="date" class="form-control" [(ngModel)]="fechaHasta" [disabled]="guardando">
+                    </div>
+
+                    <div class="col-6 col-md-3">
+                        <label class="form-label"><i class="fas fa-play"></i> Hora inicio *</label>
+                        <input type="time" class="form-control" [(ngModel)]="horaInicio" [disabled]="guardando">
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <label class="form-label"><i class="fas fa-flag-checkered"></i> Hora fin *</label>
+                        <input type="time" class="form-control" [(ngModel)]="horaFin" [disabled]="guardando">
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <label class="form-label"><i class="fas fa-user"></i> Ejecutó *</label>
+                        <select class="form-select" [(ngModel)]="idEjecutor" [disabled]="guardando">
+                            <option value="">Seleccione</option>
+                            <option *ngFor="let u of usuarios" [value]="u.id">{{u.nombre_completo}}</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <label class="form-label"><i class="fas fa-user-check"></i> Supervisó</label>
+                        <select class="form-select" [(ngModel)]="idSupervisor" [disabled]="guardando">
+                            <option value="">Sin supervisar por ahora</option>
+                            <option *ngFor="let u of usuarios" [value]="u.id">{{u.nombre_completo}}</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row mt-2">
+                    <div class="col-12">
+                        <button type="button" class="btn btn-primary" [disabled]="!puedeConsultar" (click)="consultar()">
+                            <i class="fas" [ngClass]="cargandoPreview ? 'fa-spinner fa-spin' : 'fa-search'"></i>
+                            Ver qué se registrará
+                        </button>
+                        <small class="text-muted ms-2">
+                            Se registran solo los días laborales del rango que coincidan con los días configurados de cada área.
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cargando -->
+        <div *ngIf="cargandoPreview" class="text-center text-muted py-5">
+            <i class="fas fa-spinner fa-spin fa-2x"></i>
+            <p class="mt-2">Calculando días...</p>
+        </div>
+
+        <!-- Preview -->
+        <div *ngIf="!cargandoPreview && yaConsulto && areas.length > 0">
+
+            <div class="resumen-preview">
+                <div class="rp-item">
+                    <span class="rp-num">{{totalDiasLaborales}}</span>
+                    <span class="rp-label">días laborales en el rango</span>
+                </div>
+                <div class="rp-item">
+                    <span class="rp-num">{{areasSeleccionadas.length}}</span>
+                    <span class="rp-label">áreas seleccionadas</span>
+                </div>
+                <div class="rp-item destacado">
+                    <span class="rp-num">{{totalRegistros}}</span>
+                    <span class="rp-label">registros a crear</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="areas-header">
+                        <h6 class="mb-0"><i class="fas fa-building"></i> Áreas</h6>
+                        <div class="areas-acciones">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" (click)="marcarTodas()">Todas</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" (click)="marcarNinguna()">Ninguna</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="lista-areas">
+                        <div class="area-fila" *ngFor="let area of areas"
+                            [class.seleccionada]="area.seleccionada"
+                            [class.deshabilitada]="area.sin_dias"
+                            (click)="toggleArea(area)">
+                            <div class="area-check">
+                                <i class="fas" [ngClass]="area.seleccionada ? 'fa-square-check' : 'fa-square'"
+                                    *ngIf="!area.sin_dias"></i>
+                                <i class="fas fa-ban" *ngIf="area.sin_dias"></i>
+                            </div>
+                            <div class="area-info">
+                                <div class="area-nombre">{{area.area}}</div>
+                                <div class="area-detalle">
+                                    <span *ngIf="!area.sin_dias">
+                                        <i class="fas fa-calendar-check"></i> {{area.dias_aplicables}} día(s) en el rango
+                                    </span>
+                                    <span *ngIf="area.sin_dias" class="sin-dias-text">
+                                        <i class="fas fa-exclamation-triangle"></i> Sin días configurados — no se registrará
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="area-badge" *ngIf="!area.sin_dias && area.seleccionada">
+                                {{area.dias_aplicables}}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="alert-sin-dias" *ngIf="hayAreasSinDias">
+                <i class="fas fa-info-circle"></i>
+                Las áreas marcadas con <i class="fas fa-ban"></i> no tienen días configurados para este proceso.
+                Configúralas en <strong>Configuración de Aseo</strong> si quieres incluirlas.
+            </div>
+
+            <div class="mt-3">
+                <label class="form-label"><i class="fas fa-comment"></i> Observaciones</label>
+                <textarea class="form-control" rows="2" [(ngModel)]="observaciones"
+                    placeholder="Observaciones opcionales (se aplican a todos los registros)..."></textarea>
+            </div>
+        </div>
+
+        <div *ngIf="!cargandoPreview && yaConsulto && areas.length === 0" class="card">
+            <div class="card-body">
+                <div class="alert alert-info mb-0">
+                    <i class="fas fa-info-circle"></i> No hay áreas configuradas para este proceso.
+                </div>
+            </div>
+        </div>
+
+        <!-- Barra de acción -->
+        <div class="action-bar" *ngIf="!cargandoPreview && areas.length > 0">
+            <div class="resumen">
+                <strong>{{totalRegistros}}</strong> registro(s) en {{areasSeleccionadas.length}} área(s)
+            </div>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-secondary" (click)="regresar()">
+                    <i class="fas fa-arrow-left"></i> Regresar
+                </button>
+                <button type="button" class="btn btn-registrar" [disabled]="!puedeRegistrar" (click)="registrar()">
+                    <i class="fas" [ngClass]="guardando ? 'fa-spinner fa-spin' : 'fa-check'"></i> Registrar aseo
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

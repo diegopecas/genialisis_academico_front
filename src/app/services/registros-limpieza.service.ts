@@ -327,6 +327,46 @@ export class RegistrosLimpiezaService {
       );
   }
 
+  obtenerMasivoPreview(idProceso: any, fechaDesde: string, fechaHasta: string) {
+    return this.http
+      .get<HttpResponse<Object>>(this.servicio + '/masivo-preview', {
+        params: {
+          id_proceso: idProceso.toString(),
+          fecha_desde: fechaDesde,
+          fecha_hasta: fechaHasta,
+        },
+        observe: 'response',
+      })
+      .pipe(
+        tap((response: HttpResponse<Object>) => {
+          let respuesta: any = response.body;
+          if (respuesta?.error) {
+            throw respuesta.error;
+          }
+          return response;
+        }),
+        catchError(this.handleError)
+      );
+  }
+
+  crearMasivo(datos: any) {
+    return this.http
+      .post<HttpResponse<Object>>(this.servicio + '/masivo', datos, {
+        ...httpOptions,
+        observe: 'response',
+      })
+      .pipe(
+        tap((response: HttpResponse<Object>) => {
+          let respuesta: any = response.body;
+          if (respuesta?.error) {
+            throw respuesta.error;
+          }
+          return response;
+        }),
+        catchError(this.handleError)
+      );
+  }
+
   private handleError(error: HttpErrorResponse) {
     return throwError(() => error);
   }

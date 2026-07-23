@@ -99,6 +99,8 @@ export class InstitucionComponent implements OnInit {
           this.model.direccion = institucion.direccion || '';
           this.model.telefono = institucion.telefono || '';
           this.model.correoElectronico = institucion.correo_electronico || '';
+          // El encabezado muestra la razón social, no el UUID.
+          this.titulo = 'Institución: ' + (institucion.razon_social || '');
         }
         this.cargando = false;
       },

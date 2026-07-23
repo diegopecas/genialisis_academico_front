@@ -24,7 +24,7 @@ import { TiposIdentificacionService } from '../../../../services/tipos-identific
 })
 export class CrearEnteControlComponent implements OnInit {
 
-  titulo = 'Crear Ente de Control';
+  titulo = 'Ente de Control';
   accion = '';
   public id = '0';
 
@@ -69,14 +69,14 @@ export class CrearEnteControlComponent implements OnInit {
 
       switch (this.accion) {
         case 'crear':
-          this.titulo = 'Crear Ente de Control';
+          this.titulo = 'Ente de Control';
           this.editable = true;
           this.nuevo = true;
           this.camposHabilitados = false;
           this.consultarListas();
           break;
         case 'editar':
-          this.titulo = 'Editar Ente de Control';
+          this.titulo = 'Ente de Control';
           this.editable = true;
           this.camposHabilitados = true;
           this.documentoEncontrado = true;
@@ -85,7 +85,7 @@ export class CrearEnteControlComponent implements OnInit {
           break;
         case 'ver':
         case 'consultar':
-          this.titulo = 'Ver Ente de Control';
+          this.titulo = 'Ente de Control';
           this.editable = false;
           this.camposHabilitados = false;
           this.documentoEncontrado = true;
@@ -93,7 +93,7 @@ export class CrearEnteControlComponent implements OnInit {
           this.consultarEnteControl();
           break;
         default:
-          this.titulo = 'Crear Ente de Control';
+          this.titulo = 'Ente de Control';
           this.editable = true;
           this.nuevo = true;
           this.camposHabilitados = false;
@@ -145,6 +145,8 @@ export class CrearEnteControlComponent implements OnInit {
           this.model.correoElectronico = ente.correo_electronico || '';
           this.model.funciones = ente.funciones || '';
           this.model.activo = ente.activo;
+          // El encabezado muestra el nombre del ente, no el UUID.
+          this.titulo = 'Ente de Control: ' + (ente.razon_social || '');
         }
       },
       error: (error: any) => {
@@ -278,7 +280,7 @@ export class CrearEnteControlComponent implements OnInit {
           // Pasa a modo edición para habilitar las pestañas (documentos).
           this.nuevo = false;
           this.accion = 'editar';
-          this.titulo = 'Editar Ente de Control';
+          this.titulo = 'Ente de Control: ' + (this.model.razonSocial || '');
           Swal.fire({ title: 'Éxito', text: 'Ente de control creado. Ya puede adjuntar documentos.', icon: 'success', confirmButtonText: 'Aceptar' });
         },
         error: (error: any) => {
