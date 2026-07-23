@@ -141,6 +141,7 @@
                 </td>
                 <td class="align-middle">
                   <input type="text" class="form-control form-control-sm" [(ngModel)]="fila.referencia_bancaria"
+                    (blur)="verificarReferencia(fila)"
                     [disabled]="!fila.seleccionado" placeholder="Ref." [class.campo-prellenado]="fila.datosIA?.referencia" />
                 </td>
                 <td class="text-end align-middle">

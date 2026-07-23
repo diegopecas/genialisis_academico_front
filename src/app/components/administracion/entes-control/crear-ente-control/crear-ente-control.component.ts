@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -19,21 +19,27 @@ import { TiposIdentificacionService } from '../../../../services/tipos-identific
     FormsModule,
     RouterModule,
     HeaderComponent,
-    DocumentosPersonaComponent,
-  ],
+    DocumentosPersonaComponent
+  ]
 })
 export class CrearEnteControlComponent implements OnInit {
+
   titulo = 'Crear Ente de Control';
   accion = '';
-  id: string | null = null;
-  regresar = '/administracion/entes-control';
+  public id = '0';
+
+  public nuevo = false;
+  public seccionActiva: 'datos-ente' | 'documentos' = 'datos-ente';
 
   public editable = true;
+  public documentoEncontrado = false;
   public camposHabilitados = false;
   public submitted = false;
-  public seccionActiva: 'datos' | 'documentos' = 'datos';
+  public sidebarAbierto = false;
 
-  public tiposIdentificacion: any[] = [];
+  public listas = {
+    tiposIdentificacion: [] as any[]
+  };
 
   public model: any = {
     idEnte: null,
@@ -45,7 +51,7 @@ export class CrearEnteControlComponent implements OnInit {
     telefono: '',
     correoElectronico: '',
     funciones: '',
-    activo: 1,
+    activo: 1
   };
 
   constructor(
@@ -54,151 +60,147 @@ export class CrearEnteControlComponent implements OnInit {
     private tiposIdentificacionService: TiposIdentificacionService,
     private route: ActivatedRoute,
     private router: Router
-  ) {}
+  ) { }
 
   ngOnInit(): void {
-    this.cargarTiposIdentificacion();
-
-    this.route.params.subscribe((params) => {
+    this.route.params.subscribe(params => {
       this.accion = params['accion'];
-      this.id = params['id'];
+      this.id = params['id'] || '0';
 
       switch (this.accion) {
         case 'crear':
           this.titulo = 'Crear Ente de Control';
           this.editable = true;
+          this.nuevo = true;
           this.camposHabilitados = false;
+          this.consultarListas();
           break;
         case 'editar':
           this.titulo = 'Editar Ente de Control';
           this.editable = true;
           this.camposHabilitados = true;
-          this.cargarEnte(this.id);
+          this.documentoEncontrado = true;
+          this.consultarListas();
+          this.consultarEnteControl();
           break;
+        case 'ver':
         case 'consultar':
-          this.titulo = 'Consultar Ente de Control';
+          this.titulo = 'Ver Ente de Control';
           this.editable = false;
-          this.camposHabilitados = true;
-          this.cargarEnte(this.id);
+          this.camposHabilitados = false;
+          this.documentoEncontrado = true;
+          this.consultarListas();
+          this.consultarEnteControl();
           break;
         default:
           this.titulo = 'Crear Ente de Control';
           this.editable = true;
+          this.nuevo = true;
           this.camposHabilitados = false;
+          this.consultarListas();
           break;
       }
     });
   }
 
-  cargarTiposIdentificacion() {
+  toggleSidebar() { this.sidebarAbierto = !this.sidebarAbierto; }
+  cerrarSidebar() { this.sidebarAbierto = false; }
+  @HostListener('document:keydown.escape') onEscape() { this.cerrarSidebar(); }
+
+  obtenerNombreSeccion(): string {
+    const n: any = { 'datos-ente': 'Datos del Ente', 'documentos': 'Documentos' };
+    return n[this.seccionActiva] || '';
+  }
+
+  obtenerIconoSeccion(): string {
+    const i: any = { 'datos-ente': 'fas fa-landmark', 'documentos': 'fas fa-file-alt' };
+    return i[this.seccionActiva] || 'fas fa-circle';
+  }
+
+  cambiarSeccion(seccion: 'datos-ente' | 'documentos') {
+    this.seccionActiva = seccion;
+    this.cerrarSidebar();
+  }
+
+  consultarListas() {
     this.tiposIdentificacionService.obtenerTodos().subscribe({
-      next: (response: any) => {
-        this.tiposIdentificacion = response.body || [];
-      },
-      error: (error: any) =>
-        console.error('Error al cargar tipos de identificación', error),
+      next: (response: any) => { this.listas.tiposIdentificacion = response.body || []; },
+      error: (error: any) => console.error('Error al obtener tipos de identificación', error)
     });
   }
 
-  cargarEnte(id: any) {
-    this.entesControlService.obtenerPorId(id).subscribe({
+  consultarEnteControl() {
+    this.entesControlService.obtenerPorId(this.id).subscribe({
       next: (response: any) => {
-        const body = response.body;
+        const body = response.body as any[];
         if (body && body.length > 0) {
-          const e = body[0];
-          this.model.idEnte = e.id;
-          this.model.idPersona = e.id_persona;
-          this.model.tipoIdentificacion = e.id_tipo_identificacion || '';
-          this.model.numeroIdentificacion = e.numero_identificacion || '';
-          this.model.razonSocial = e.razon_social || '';
-          this.model.direccion = e.direccion || '';
-          this.model.telefono = e.telefono || '';
-          this.model.correoElectronico = e.correo_electronico || '';
-          this.model.funciones = e.funciones || '';
-          this.model.activo = e.activo;
-          this.titulo =
-            (this.accion === 'consultar' ? 'Consultar' : 'Editar') +
-            ' Ente de Control: ' +
-            (e.razon_social || '');
+          const ente = body[0];
+          this.model.idEnte = ente.id;
+          this.model.idPersona = ente.id_persona;
+          this.model.tipoIdentificacion = ente.id_tipo_identificacion || '';
+          this.model.numeroIdentificacion = ente.numero_identificacion || '';
+          this.model.razonSocial = ente.razon_social || '';
+          this.model.direccion = ente.direccion || '';
+          this.model.telefono = ente.telefono || '';
+          this.model.correoElectronico = ente.correo_electronico || '';
+          this.model.funciones = ente.funciones || '';
+          this.model.activo = ente.activo;
         }
       },
       error: (error: any) => {
-        console.error('Error al cargar ente de control', error);
-        Swal.fire('Error', 'No se pudo cargar el ente de control', 'error');
-      },
+        console.error('Error al consultar el ente de control', error);
+        Swal.fire({ title: 'Error', text: 'No se pudo cargar el ente de control', icon: 'error', confirmButtonText: 'Aceptar' });
+      }
     });
   }
 
-  cambiarSeccion(seccion: 'datos' | 'documentos') {
-    this.seccionActiva = seccion;
-  }
-
-  // Busca una persona por identificación; si existe la reutiliza, si no habilita
+  // Busca la persona por identificación: si existe la reutiliza, si no habilita
   // los campos para capturarla nueva.
-  verificarDocumento() {
+  consultaPersona() {
     if (!this.model.tipoIdentificacion || !this.model.numeroIdentificacion) {
-      Swal.fire(
-        'Campos incompletos',
-        'Ingrese tipo y número de identificación para verificar',
-        'warning'
-      );
+      Swal.fire({ title: 'Campos incompletos', text: 'Por favor ingrese tipo y número de documento para verificar', icon: 'warning', confirmButtonText: 'Aceptar' });
       return;
     }
 
-    this.personasService
-      .obtenerByIdentificacion(
-        this.model.tipoIdentificacion,
-        this.model.numeroIdentificacion
-      )
-      .subscribe({
-        next: (response: any) => {
-          const datos = response.body;
-          if (datos && datos.length > 0) {
-            const persona = datos[0];
-            this.entesControlService
-              .verificarDuplicados(persona.id)
-              .subscribe({
-                next: (r: any) => {
-                  if (r.body?.existe) {
-                    Swal.fire(
-                      'Ente existente',
-                      'Esta persona ya está registrada como ente de control',
-                      'warning'
-                    );
-                    return;
-                  }
-                  this.llenarFormularioPersona(persona);
-                  this.camposHabilitados = true;
-                  Swal.fire(
-                    'Persona encontrada',
-                    'Se encontró una persona con esta identificación',
-                    'success'
-                  );
-                },
-                error: () =>
-                  Swal.fire('Error', 'Error al verificar duplicados', 'error'),
-              });
-          } else {
-            this.camposHabilitados = true;
-            Swal.fire(
-              'Persona no encontrada',
-              'No existe una persona con esta identificación. Puede ingresar los datos.',
-              'info'
-            );
-          }
-        },
-        error: () =>
-          Swal.fire('Error', 'Error al consultar la persona', 'error'),
-      });
+    if (!this.editable) { return; }
+
+    this.personasService.obtenerByIdentificacion(this.model.tipoIdentificacion, this.model.numeroIdentificacion).subscribe({
+      next: (response: any) => {
+        const datos = response.body as any[];
+        if (datos && datos.length > 0) {
+          const persona = datos[0];
+          this.entesControlService.verificarDuplicados(persona.id).subscribe({
+            next: (respuesta: any) => {
+              if (respuesta.body?.existe) {
+                Swal.fire({ title: 'Ente existente', text: 'Esta persona ya está registrada como ente de control', icon: 'warning', confirmButtonText: 'Aceptar' });
+                return;
+              }
+              this.llenarFormularioPersona(persona);
+              this.documentoEncontrado = true;
+              this.camposHabilitados = true;
+              Swal.fire({ title: 'Persona encontrada', text: 'Se encontró una persona con esta identificación', icon: 'success', confirmButtonText: 'Aceptar' });
+            },
+            error: (error: any) => {
+              console.error('Error al verificar duplicados', error);
+              Swal.fire({ title: 'Error', text: 'Error al verificar duplicados', icon: 'error', confirmButtonText: 'Aceptar' });
+            }
+          });
+        } else {
+          this.documentoEncontrado = true;
+          this.camposHabilitados = true;
+          Swal.fire({ title: 'Persona no encontrada', text: 'No se encontró ninguna persona con esta identificación. Ahora puede ingresar los datos.', icon: 'info', confirmButtonText: 'Aceptar' });
+        }
+      },
+      error: (error: any) => {
+        console.error('Error al consultar la persona', error);
+        Swal.fire({ title: 'Error', text: 'Error al consultar la persona', icon: 'error', confirmButtonText: 'Aceptar' });
+      }
+    });
   }
 
   llenarFormularioPersona(persona: any) {
     this.model.idPersona = persona.id;
-    this.model.razonSocial =
-      persona.razon_social ||
-      [persona.primer_nombre, persona.primer_apellido]
-        .filter(Boolean)
-        .join(' ');
+    this.model.razonSocial = persona.razon_social || [persona.primer_nombre, persona.primer_apellido].filter(Boolean).join(' ');
     this.model.direccion = persona.direccion || '';
     this.model.telefono = persona.telefono || '';
     this.model.correoElectronico = persona.correo_electronico || '';
@@ -212,44 +214,38 @@ export class CrearEnteControlComponent implements OnInit {
       razon_social: this.model.razonSocial,
       direccion: this.model.direccion || null,
       telefono: this.model.telefono || null,
-      correo_electronico: this.model.correoElectronico || null,
+      correo_electronico: this.model.correoElectronico || null
     };
   }
 
   guardar() {
     this.submitted = true;
 
-    if (
-      !this.model.tipoIdentificacion ||
-      !this.model.numeroIdentificacion ||
-      !this.model.razonSocial
-    ) {
-      Swal.fire(
-        'Campos incompletos',
-        'Tipo/número de identificación y nombre del ente son obligatorios',
-        'warning'
-      );
+    if (!this.model.tipoIdentificacion || !this.model.numeroIdentificacion || !this.model.razonSocial) {
+      Swal.fire({ title: 'Campos incompletos', text: 'Tipo, número de identificación y nombre del ente son obligatorios', icon: 'warning', confirmButtonText: 'Aceptar' });
       return;
     }
 
     const personaData = this.prepararDatosPersona();
 
     if (this.model.idPersona) {
-      // Persona ya existe: actualizar y luego crear/actualizar el ente.
       this.personasService.actualizar(personaData).subscribe({
         next: () => this.guardarEnte(),
-        error: (e: any) =>
-          Swal.fire('Error', e.error?.error || 'Error al actualizar la persona', 'error'),
+        error: (error: any) => {
+          console.error('Error al actualizar la persona', error);
+          Swal.fire({ title: 'Error', text: error.error?.error || 'Error al actualizar la persona', icon: 'error', confirmButtonText: 'Aceptar' });
+        }
       });
     } else {
-      // Persona nueva: crearla y luego el ente.
       this.personasService.crear(personaData).subscribe({
-        next: (r: any) => {
-          this.model.idPersona = r.id;
+        next: (response: any) => {
+          this.model.idPersona = response.id;
           this.guardarEnte();
         },
-        error: (e: any) =>
-          Swal.fire('Error', e.error?.error || 'Error al crear la persona', 'error'),
+        error: (error: any) => {
+          console.error('Error al crear la persona', error);
+          Swal.fire({ title: 'Error', text: error.error?.error || 'Error al crear la persona', icon: 'error', confirmButtonText: 'Aceptar' });
+        }
       });
     }
   }
@@ -259,38 +255,41 @@ export class CrearEnteControlComponent implements OnInit {
       const data = {
         id: this.model.idEnte,
         funciones: this.model.funciones || null,
-        activo: this.model.activo,
+        activo: this.model.activo
       };
       this.entesControlService.actualizar(data).subscribe({
         next: () => {
-          Swal.fire('Éxito', 'Ente de control actualizado correctamente', 'success');
-          this.router.navigate([this.regresar]);
+          Swal.fire({ title: 'Éxito', text: 'Ente de control actualizado correctamente', icon: 'success', confirmButtonText: 'Aceptar' });
         },
-        error: (e: any) =>
-          Swal.fire('Error', e.error?.error || 'Error al actualizar el ente', 'error'),
+        error: (error: any) => {
+          console.error('Error al actualizar el ente de control', error);
+          Swal.fire({ title: 'Error', text: error.error?.error || 'Error al actualizar el ente de control', icon: 'error', confirmButtonText: 'Aceptar' });
+        }
       });
     } else {
       const data = {
         id_persona: this.model.idPersona,
         funciones: this.model.funciones || null,
-        activo: this.model.activo,
+        activo: this.model.activo
       };
       this.entesControlService.crear(data).subscribe({
-        next: (r: any) => {
-          this.model.idEnte = r.id;
-          Swal.fire(
-            'Éxito',
-            'Ente de control creado. Ya puede adjuntar documentos.',
-            'success'
-          );
+        next: (response: any) => {
+          this.model.idEnte = response.id;
+          // Pasa a modo edición para habilitar las pestañas (documentos).
+          this.nuevo = false;
+          this.accion = 'editar';
+          this.titulo = 'Editar Ente de Control';
+          Swal.fire({ title: 'Éxito', text: 'Ente de control creado. Ya puede adjuntar documentos.', icon: 'success', confirmButtonText: 'Aceptar' });
         },
-        error: (e: any) =>
-          Swal.fire('Error', e.error?.error || 'Error al crear el ente', 'error'),
+        error: (error: any) => {
+          console.error('Error al crear el ente de control', error);
+          Swal.fire({ title: 'Error', text: error.error?.error || 'Error al crear el ente de control', icon: 'error', confirmButtonText: 'Aceptar' });
+        }
       });
     }
   }
 
   volver() {
-    this.router.navigate([this.regresar]);
+    this.router.navigate(['/administracion/entes-control']);
   }
 }

@@ -119,6 +119,9 @@ export class CrearPagosRecibidosComponent implements OnInit {
   public archivoComprobante: File | null = null;
   public analizandoIA = false;
   public bancoDetectadoIA: string | null = null;
+  // Valor total leído del comprobante. Se conserva aparte de valor_recibido
+  // porque un mismo comprobante puede repartirse entre varios estudiantes.
+  public valorComprobanteIA: number | null = null;
   public idDocumentoPersona: string | null = null;
   // Código (estable) del tipo de documento para comprobantes de pago.
   // El back lo resuelve a su UUID por código dentro del tenant.
@@ -815,6 +818,7 @@ export class CrearPagosRecibidosComponent implements OnInit {
     this.archivoComprobante = null;
     this.idDocumentoPersona = null;
     this.bancoDetectadoIA = null;
+    this.valorComprobanteIA = null;
     const input = document.getElementById('archivoComprobante') as HTMLInputElement;
     if (input) input.value = '';
   }
@@ -849,6 +853,7 @@ export class CrearPagosRecibidosComponent implements OnInit {
 
           if (datos.valor) {
             this.model.valor_recibido = Number(datos.valor);
+            this.valorComprobanteIA = Number(datos.valor);
             this.formatearValorRecibido(this.model.valor_recibido);
             this.actualizarTotales();
           }
@@ -1038,6 +1043,9 @@ export class CrearPagosRecibidosComponent implements OnInit {
 
         if (referenciaExistente.length > 0 || posibleDuplicado.length > 0) {
           let html = '<div style="text-align:left;">';
+          // Excede el comprobante: no es una duda, es un error de valores.
+          // En ese caso no se ofrece continuar.
+          let excedeComprobante = false;
 
           if (posibleDuplicado.length > 0) {
             html += `<div style="margin-bottom:12px;">`
@@ -1048,11 +1056,49 @@ export class CrearPagosRecibidosComponent implements OnInit {
           }
 
           if (referenciaExistente.length > 0) {
+            const totalRegistrado = Number(respuesta.total_referencia || 0);
+            // Un mismo comprobante puede repartirse entre varios estudiantes, por
+            // eso se muestra el acumulado y, si la IA leyó el valor, cuánto queda.
+            const valorComprobante = Number(this.valorComprobanteIA || 0);
+            let detalleTope = '';
+            if (valorComprobante > 0) {
+              const disponible = valorComprobante - totalRegistrado;
+              const nuevoTotal = totalRegistrado + Number(this.model.valor_recibido || 0);
+              detalleTope = `<div style="color:#555;font-size:.9em;">`
+                + `Comprobante por $${this.formatearMoneda(valorComprobante)} · `
+                + `ya registrado $${this.formatearMoneda(totalRegistrado)} · `
+                + `disponible $${this.formatearMoneda(disponible)}</div>`;
+              if (nuevoTotal > valorComprobante) {
+                excedeComprobante = true;
+                detalleTope += `<div style="color:#c0392b;font-weight:600;">`
+                  + `Con este pago sumaría $${this.formatearMoneda(nuevoTotal)} y excede el comprobante en `
+                  + `$${this.formatearMoneda(nuevoTotal - valorComprobante)}.</div>`;
+              }
+            } else {
+              detalleTope = `<div style="color:#555;font-size:.9em;">`
+                + `Total ya registrado con esa referencia: $${this.formatearMoneda(totalRegistrado)}</div>`;
+            }
+
             html += `<div style="margin-bottom:12px;">`
               + `<div style="font-weight:600;color:#d9822b;">⚠ Referencia ya registrada</div>`
               + `<div style="color:#555;font-size:.9em;">La referencia "${this.model.referencia_bancaria}" aparece en ${referenciaExistente.length} pago(s):</div>`
+              + detalleTope
               + this.construirHtmlCoincidencias(referenciaExistente)
               + `</div>`;
+          }
+
+          // Con exceso se bloquea: solo queda corregir el valor.
+          if (excedeComprobante) {
+            html += `<div style="margin-top:8px;">Corrija el valor recibido para continuar.</div>`;
+            html += `</div>`;
+            Swal.fire({
+              title: 'El comprobante no alcanza',
+              html: html,
+              icon: 'error',
+              confirmButtonText: 'Entendido',
+              width: '520px'
+            });
+            return;
           }
 
           html += `<div style="margin-top:8px;">¿Desea registrar el pago de todas formas?</div>`;

@@ -80,6 +80,9 @@ interface FilaPago {
   datosIA: DatosComprobante | null;
   fecha: string;
   referencia_bancaria: string;
+  referenciaVerificada: string | null;
+  // Total ya registrado en BD para esa referencia (lo llena verificarReferencia).
+  totalReferenciaBD: number;
   valor_recibido: number;
   valor_recibido_formateado: string;
   valor_comprobante: number | null;
@@ -197,7 +200,7 @@ export class RegistroPagosRapidoComponent implements OnInit, OnDestroy {
             return {
               seleccionado: false, estudiante: est, saldoTotal, cuentasPendientes: cuentas, acudientes,
               id_acudiente: primerAcudiente, id_tipo_pago: null, archivo: null, analizandoIA: false,
-              datosIA: null, fecha: hoy, referencia_bancaria: '', valor_recibido: 0,
+              datosIA: null, fecha: hoy, referencia_bancaria: '', referenciaVerificada: null, totalReferenciaBD: 0, valor_recibido: 0,
               valor_recibido_formateado: '', valor_comprobante: null, observaciones: '',
               id_documento_persona: null, modoDistribucion: 'auto' as const,
               cuentasAplicadasManual: [], registrado: false, idPagoRegistrado: null,
@@ -309,6 +312,9 @@ export class RegistroPagosRapidoComponent implements OnInit, OnDestroy {
             this.formatearValor(fila);
           }
           this.validarBancoContraTipoPago(fila);
+          // La referencia la llena la IA, asi que el usuario nunca pasa por el
+          // campo: se verifica aqui para que no se cuele sin revisar.
+          this.verificarReferencia(fila);
         }
       },
       error: (error: any) => {
@@ -350,6 +356,86 @@ export class RegistroPagosRapidoComponent implements OnInit, OnDestroy {
         confirmButtonText: 'Entendido'
       });
     }
+  }
+
+  // ============================================
+  // VERIFICACION DE REFERENCIA
+  // ============================================
+
+  // Verifica una referencia al salir del campo o tras el analisis con IA.
+  // La referencia repetida NO es un error: un mismo comprobante puede repartirse
+  // entre varios estudiantes (hermanos). Lo que se controla es que la suma de lo
+  // ya registrado en BD mas lo asignado en este listado no supere el valor del
+  // comprobante. Solo advierte; nunca bloquea el registro.
+  verificarReferencia(fila: FilaPago): void {
+    const referencia = (fila.referencia_bancaria || '').trim();
+    if (!referencia || !fila.seleccionado) {
+      fila.referenciaVerificada = null;
+      fila.totalReferenciaBD = 0;
+      return;
+    }
+
+    // Evita repetir la consulta si la referencia no cambio desde la ultima.
+    if (fila.referenciaVerificada === referencia) return;
+    fila.referenciaVerificada = referencia;
+
+    // Solo se envia la referencia: el chequeo de "posible duplicado" del backend
+    // no aplica aqui y asi la consulta es mas liviana.
+    this.pagosRecibidosService.verificarDuplicado({ referencia_bancaria: referencia }).subscribe({
+      next: (respuesta: any) => {
+        const pagosPrevios = respuesta?.referencia_existente || [];
+        const totalRegistrado = Number(respuesta?.total_referencia || 0);
+        // Se guarda en la fila para que la validacion previa al registro lo sume.
+        fila.totalReferenciaBD = totalRegistrado;
+
+        // Lo asignado en este listado a la misma referencia (incluye esta fila).
+        const totalEnPantalla = this.filas
+          .filter(f => f.seleccionado && (f.referencia_bancaria || '').trim() === referencia)
+          .reduce((suma, f) => suma + Number(f.valor_recibido || 0), 0);
+
+        const valorComprobante = Number(fila.valor_comprobante || 0);
+        const totalAcumulado = totalRegistrado + totalEnPantalla;
+
+        // Con comprobante leido por IA se puede comparar contra su valor.
+        if (valorComprobante > 0 && totalAcumulado > valorComprobante) {
+          const exceso = totalAcumulado - valorComprobante;
+          Swal.fire({
+            title: 'El comprobante no alcanza',
+            html: `<div style="text-align:left;">`
+              + `Comprobante <strong>${referencia}</strong> por <strong>$${this.formatearMoneda(valorComprobante)}</strong>.<br><br>`
+              + `Ya registrado: <strong>$${this.formatearMoneda(totalRegistrado)}</strong><br>`
+              + `En este listado: <strong>$${this.formatearMoneda(totalEnPantalla)}</strong><br>`
+              + `Total: <strong>$${this.formatearMoneda(totalAcumulado)}</strong><br><br>`
+              + `Excede en <strong>$${this.formatearMoneda(exceso)}</strong>. Verifique los valores.`
+              + `</div>`,
+            icon: 'warning',
+            confirmButtonText: 'Entendido'
+          });
+          return;
+        }
+
+        // Sin valor de comprobante solo se informa que la referencia ya se uso.
+        if (pagosPrevios.length > 0) {
+          const nombres = pagosPrevios
+            .map((p: any) => `${p.nombre_estudiante || 'N/A'} ($${this.formatearMoneda(Number(p.valor_recibido || 0))})`)
+            .join('<br>');
+          Swal.fire({
+            title: 'Referencia ya utilizada',
+            html: `<div style="text-align:left;">`
+              + `La referencia <strong>${referencia}</strong> ya tiene pagos registrados por `
+              + `<strong>$${this.formatearMoneda(totalRegistrado)}</strong>:<br><br>${nombres}<br><br>`
+              + `Si el comprobante cubre a varios estudiantes puede continuar.`
+              + `</div>`,
+            icon: 'info',
+            confirmButtonText: 'Entendido'
+          });
+        }
+      },
+      error: (error: any) => {
+        // La verificacion es informativa: si falla, no se interrumpe el registro.
+        console.error('Error al verificar la referencia:', error);
+      }
+    });
   }
 
   eliminarArchivo(fila: FilaPago): void {
@@ -535,19 +621,31 @@ export class RegistroPagosRapidoComponent implements OnInit, OnDestroy {
       if (this.requiereDocumento(fila) && !fila.referencia_bancaria) errores.push(`${nombre}: Debe ingresar la referencia bancaria`);
     });
 
-    const porReferencia = new Map<string, { total: number; valorComprobante: number; nombres: string[] }>();
+    // Tope del comprobante: la suma de lo ya registrado en BD con esa referencia
+    // mas lo asignado en este listado no puede superar el valor del comprobante.
+    const porReferencia = new Map<string, { total: number; totalBD: number; valorComprobante: number; nombres: string[] }>();
     filasParaValidar.forEach((fila: FilaPago) => {
       if (fila.referencia_bancaria && fila.valor_comprobante) {
         const ref = String(fila.referencia_bancaria).trim();
-        if (!porReferencia.has(ref)) porReferencia.set(ref, { total: 0, valorComprobante: fila.valor_comprobante, nombres: [] });
+        if (!porReferencia.has(ref)) porReferencia.set(ref, { total: 0, totalBD: 0, valorComprobante: fila.valor_comprobante, nombres: [] });
         const datos = porReferencia.get(ref)!;
         datos.total += fila.valor_recibido;
+        // El total en BD es el mismo para toda la referencia: se toma el mayor
+        // conocido entre las filas (algunas pueden no haberse verificado aun).
+        datos.totalBD = Math.max(datos.totalBD, Number(fila.totalReferenciaBD || 0));
         datos.nombres.push(fila.estudiante.nombre_estudiante);
       }
     });
     porReferencia.forEach((datos: any, ref: string) => {
-      if (datos.total > datos.valorComprobante)
-        errores.push(`Ref "${ref}": Suma ($${this.formatearMoneda(datos.total)}) excede comprobante ($${this.formatearMoneda(datos.valorComprobante)})`);
+      const acumulado = datos.total + datos.totalBD;
+      if (acumulado > datos.valorComprobante) {
+        let detalle = `Ref "${ref}": suma $${this.formatearMoneda(acumulado)}`;
+        if (datos.totalBD > 0) {
+          detalle += ` (ya registrado $${this.formatearMoneda(datos.totalBD)} + este listado $${this.formatearMoneda(datos.total)})`;
+        }
+        detalle += ` y excede el comprobante ($${this.formatearMoneda(datos.valorComprobante)})`;
+        errores.push(detalle);
+      }
     });
     return { valido: errores.length === 0, errores };
   }

@@ -1,87 +1,59 @@
 <div class="modulo">
-  <app-header
-    [tituloModulo]="titulo"
-    [mostrarCrear]="false"
-    [raiz]="'/'"
-    [regresar]="regresar"
-    [iconoTitulo]="'/assets/images/configuracion.png'">
-  </app-header>
+  <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [accion]="'editar'" [raiz]="'/administracion/institucion'" [regresar]="'/administracion/datos-maestros'" [iconoTitulo]="'/assets/images/institucion.png'"></app-header>
 
-  <div class="container-fluid mt-4">
-    <div class="row">
-      <!-- Navegación de secciones -->
-      <div class="col-md-3 mb-3">
-        <div class="list-group">
-          <a class="list-group-item list-group-item-action"
-             [class.active]="seccionActiva === 'datos'"
-             (click)="cambiarSeccion('datos')">
-            <i class="fas fa-school"></i> Datos de la Institución
-          </a>
-          <a class="list-group-item list-group-item-action"
-             [class.active]="seccionActiva === 'documentos'"
-             [class.disabled]="!model.idPersona"
-             (click)="model.idPersona && cambiarSeccion('documentos')">
-            <i class="fas fa-file-alt"></i> Documentos
-          </a>
-        </div>
-      </div>
+  <div class="layout-container mt-3">
 
-      <!-- Contenido -->
-      <div class="col-md-9">
-        <!-- Sección datos -->
-        <div *ngIf="seccionActiva === 'datos'">
-          <div class="row g-3">
-            <div class="col-md-6">
-              <label class="form-label">Tipo de identificación <span class="text-danger">*</span></label>
-              <select class="form-select" [(ngModel)]="model.tipoIdentificacion">
-                <option value="">Seleccione...</option>
-                <option *ngFor="let t of tiposIdentificacion" [value]="t.id">{{ t.nombre }}</option>
-              </select>
-            </div>
-            <div class="col-md-6">
-              <label class="form-label">Número de identificación (NIT) <span class="text-danger">*</span></label>
-              <input type="text" class="form-control" [(ngModel)]="model.numeroIdentificacion">
-            </div>
+    <!-- SIDEBAR DESKTOP -->
+    <aside class="sidebar-desktop">
+      <nav class="sidebar-nav">
+        <a class="sidebar-link" [class.active]="seccionActiva === 'datos-institucion'" (click)="cambiarSeccion('datos-institucion')"><i class="fas fa-school"></i> <span>Datos de la Institución</span></a>
+        <a class="sidebar-link" *ngIf="model.idPersona" [class.active]="seccionActiva === 'documentos'" (click)="cambiarSeccion('documentos')"><i class="fas fa-file-alt"></i> <span>Documentos</span></a>
+      </nav>
+    </aside>
 
-            <div class="col-12">
-              <label class="form-label">Razón social <span class="text-danger">*</span></label>
-              <input type="text" class="form-control" [(ngModel)]="model.razonSocial"
-                     placeholder="Nombre de la institución">
-            </div>
-
-            <div class="col-md-6">
-              <label class="form-label">Correo electrónico</label>
-              <input type="email" class="form-control" [(ngModel)]="model.correoElectronico">
-            </div>
-            <div class="col-md-6">
-              <label class="form-label">Teléfono</label>
-              <input type="text" class="form-control" [(ngModel)]="model.telefono">
-            </div>
-            <div class="col-12">
-              <label class="form-label">Dirección</label>
-              <input type="text" class="form-control" [(ngModel)]="model.direccion">
-            </div>
-          </div>
-
-          <div class="row mt-4">
-            <div class="col-sm-6">
-              <button class="btn btn-lg btn-warning w-100" (click)="guardar()">Grabar</button>
-            </div>
-            <div class="col-sm-6">
-              <button class="btn btn-lg btn-secondary w-100" (click)="volver()">Volver</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Sección documentos -->
-        <div *ngIf="seccionActiva === 'documentos' && model.idPersona">
-          <app-documentos-persona
-            [idPersona]="model.idPersona"
-            [tipoPersona]="'institucion'"
-            [nombrePersona]="model.razonSocial">
-          </app-documentos-persona>
-        </div>
-      </div>
+    <!-- MOBILE HEADER -->
+    <div class="mobile-header-bar">
+      <button class="btn-seccion-mobile" (click)="toggleSidebar()">
+        <i [class]="obtenerIconoSeccion()"></i> <span>{{ obtenerNombreSeccion() }}</span> <i class="fas fa-bars ms-auto"></i>
+      </button>
     </div>
+
+    <!-- SIDEBAR MOBILE OVERLAY -->
+    <div class="sidebar-overlay" *ngIf="sidebarAbierto" (click)="cerrarSidebar()"></div>
+    <aside class="sidebar-mobile" [class.abierto]="sidebarAbierto">
+      <div class="sidebar-mobile-header"><h6><i class="fas fa-th-list me-2"></i>Secciones</h6><button class="btn-cerrar-sidebar" (click)="cerrarSidebar()"><i class="fas fa-times"></i></button></div>
+      <nav class="sidebar-nav">
+        <a class="sidebar-link" [class.active]="seccionActiva === 'datos-institucion'" (click)="cambiarSeccion('datos-institucion')"><i class="fas fa-school"></i> <span>Datos de la Institución</span></a>
+        <a class="sidebar-link" *ngIf="model.idPersona" [class.active]="seccionActiva === 'documentos'" (click)="cambiarSeccion('documentos')"><i class="fas fa-file-alt"></i> <span>Documentos</span></a>
+      </nav>
+    </aside>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="contenido-principal con-sidebar">
+
+      <!-- ==================== DATOS DE LA INSTITUCIÓN ==================== -->
+      <div [hidden]="seccionActiva !== 'datos-institucion'">
+        <div class="row mb-4">
+          <div class="col-sm-12 col-md-6"><label for="tipoDocumento" class="form-label">Tipo de documento <span class="text-danger">*</span></label><select class="form-select form-select-lg" id="tipoDocumento" [(ngModel)]="model.tipoIdentificacion" required [ngClass]="{ 'is-invalid': !model.tipoIdentificacion && submitted }"><option value="">Seleccionar</option><ng-container *ngFor="let ti of listas.tiposIdentificacion"><option [value]="ti.id">{{ ti.nombre }}</option></ng-container></select></div>
+          <div class="col-sm-12 col-md-6"><label for="numeroDocumento" class="form-label">Número de documento (NIT) <span class="text-danger">*</span></label><input class="form-control form-control-lg" type="text" id="numeroDocumento" [(ngModel)]="model.numeroIdentificacion" required [ngClass]="{ 'is-invalid': !model.numeroIdentificacion && submitted }" /></div>
+        </div>
+        <hr />
+        <div class="row"><div class="col-sm-12"><label for="razonSocial" class="form-label">Razón social <span class="text-danger">*</span></label><input class="form-control form-control-lg" type="text" id="razonSocial" [(ngModel)]="model.razonSocial" required placeholder="Nombre de la institución" [ngClass]="{ 'is-invalid': !model.razonSocial && submitted }" /></div></div>
+        <div class="row mt-3"><div class="col-sm-12 col-md-6"><label for="correoElectronico" class="form-label">Correo electrónico</label><input class="form-control form-control-lg" type="email" id="correoElectronico" [(ngModel)]="model.correoElectronico" placeholder="ejemplo@correo.com" /></div><div class="col-sm-12 col-md-6"><label for="telefono" class="form-label">Teléfono</label><input class="form-control form-control-lg" type="text" id="telefono" [(ngModel)]="model.telefono" placeholder="Ej: 3001234567" /></div></div>
+        <div class="row mt-3"><div class="col-sm-12"><label for="direccion" class="form-label">Dirección</label><input class="form-control form-control-lg" type="text" id="direccion" [(ngModel)]="model.direccion" /></div></div>
+
+        <div class="row mt-4"><div class="col-12 d-flex gap-2"><button class="btn-save" (click)="guardar()"><i class="fas fa-save"></i> Guardar</button><button class="btn-cancel" (click)="volver()"><i class="fas fa-times-circle"></i> Cancelar</button></div></div>
+      </div>
+
+      <!-- ==================== DOCUMENTOS ==================== -->
+      <div *ngIf="model.idPersona" [hidden]="seccionActiva !== 'documentos'">
+        <app-documentos-persona
+          [idPersona]="model.idPersona"
+          [tipoPersona]="'institucion'"
+          [nombrePersona]="model.razonSocial">
+        </app-documentos-persona>
+      </div>
+
+    </main>
   </div>
 </div>
