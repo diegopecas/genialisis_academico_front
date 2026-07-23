@@ -44,6 +44,9 @@ export class OperacionesComponent {
       case 'registro-masivo-limpieza':
         this.router.navigate(['/operaciones/registro-masivo-limpieza']);
         break;
+      case 'edicion-masiva-limpieza':
+        this.router.navigate(['/operaciones/edicion-masiva-limpieza']);
+        break;
       case 'supervision-limpieza':
         this.router.navigate(['/operaciones/supervision-limpieza']);
         break;

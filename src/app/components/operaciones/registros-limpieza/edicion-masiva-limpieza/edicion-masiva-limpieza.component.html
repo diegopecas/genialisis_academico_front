@@ -1,0 +1,216 @@
+<div class="modulo">
+    <app-header [tituloModulo]="titulo" [mostrarCrear]="false"
+        [raiz]="'/operaciones'" [regresar]="'/operaciones'"
+        [iconoTitulo]="'/assets/images/edicion_masiva_limpieza.png'">
+    </app-header>
+
+    <div class="container-fluid mt-3">
+
+        <!-- Filtros -->
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-6 col-md-3">
+                        <label class="form-label"><i class="fas fa-calendar"></i> Desde *</label>
+                        <input type="date" class="form-control" [(ngModel)]="fechaDesde" [disabled]="guardando">
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <label class="form-label"><i class="fas fa-calendar"></i> Hasta *</label>
+                        <input type="date" class="form-control" [(ngModel)]="fechaHasta" [disabled]="guardando">
+                    </div>
+                    <div class="col-12 col-md-2">
+                        <label class="form-label"><i class="fas fa-broom"></i> Proceso</label>
+                        <select class="form-select" [(ngModel)]="idProceso" [disabled]="guardando">
+                            <option value="">Todos</option>
+                            <option *ngFor="let p of procesos" [value]="p.id">{{p.nombre}}</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-2">
+                        <label class="form-label"><i class="fas fa-building"></i> Área</label>
+                        <select class="form-select" [(ngModel)]="idArea" [disabled]="guardando">
+                            <option value="">Todas</option>
+                            <option *ngFor="let a of areasFisicas" [value]="a.id">{{a.nombre}}</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-2">
+                        <label class="form-label"><i class="fas fa-flag"></i> Estado</label>
+                        <select class="form-select" [(ngModel)]="idEstado" [disabled]="guardando">
+                            <option value="">Todos</option>
+                            <option *ngFor="let e of estados" [value]="e.id">{{e.nombre}}</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row mt-2">
+                    <div class="col-12">
+                        <button type="button" class="btn btn-primary" [disabled]="!puedeBuscar" (click)="buscar()">
+                            <i class="fas" [ngClass]="cargando ? 'fa-spinner fa-spin' : 'fa-search'"></i>
+                            Buscar registros
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div *ngIf="cargando" class="text-center text-muted py-5">
+            <i class="fas fa-spinner fa-spin fa-2x"></i>
+            <p class="mt-2">Buscando registros...</p>
+        </div>
+
+        <div class="row" *ngIf="!cargando && yaConsulto && registros.length > 0">
+
+            <!-- Panel de cambios -->
+            <div class="col-12 col-lg-4 mb-3">
+                <div class="card card-cambios">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="fas fa-pen-to-square"></i> Cambios a aplicar</h6>
+                    </div>
+                    <div class="card-body">
+                        <p class="ayuda-cambios">
+                            Marque solo los campos que quiera modificar. Los demás quedan como están.
+                        </p>
+
+                        <div class="campo-cambio">
+                            <label class="switch-campo">
+                                <input type="checkbox" [(ngModel)]="aplicar.fecha">
+                                <span>Fecha</span>
+                            </label>
+                            <input type="date" class="form-control form-control-sm"
+                                [(ngModel)]="nuevos.fecha" [disabled]="!aplicar.fecha">
+                        </div>
+
+                        <div class="campo-cambio">
+                            <label class="switch-campo">
+                                <input type="checkbox" [(ngModel)]="aplicar.hora_inicio">
+                                <span>Hora inicio</span>
+                            </label>
+                            <input type="time" class="form-control form-control-sm"
+                                [(ngModel)]="nuevos.hora_inicio" [disabled]="!aplicar.hora_inicio">
+                        </div>
+
+                        <div class="campo-cambio">
+                            <label class="switch-campo">
+                                <input type="checkbox" [(ngModel)]="aplicar.hora_fin">
+                                <span>Hora fin</span>
+                            </label>
+                            <input type="time" class="form-control form-control-sm"
+                                [(ngModel)]="nuevos.hora_fin" [disabled]="!aplicar.hora_fin">
+                        </div>
+
+                        <div class="campo-cambio">
+                            <label class="switch-campo">
+                                <input type="checkbox" [(ngModel)]="aplicar.id_estado">
+                                <span>Estado</span>
+                            </label>
+                            <select class="form-select form-select-sm"
+                                [(ngModel)]="nuevos.id_estado" [disabled]="!aplicar.id_estado">
+                                <option value="">Seleccione</option>
+                                <option *ngFor="let e of estados" [value]="e.id">{{e.nombre}}</option>
+                            </select>
+                        </div>
+
+                        <div class="campo-cambio">
+                            <label class="switch-campo">
+                                <input type="checkbox" [(ngModel)]="aplicar.id_usuario_ejecutor">
+                                <span>Ejecutó</span>
+                            </label>
+                            <select class="form-select form-select-sm"
+                                [(ngModel)]="nuevos.id_usuario_ejecutor" [disabled]="!aplicar.id_usuario_ejecutor">
+                                <option value="">Seleccione</option>
+                                <option *ngFor="let u of usuarios" [value]="u.id">{{u.nombre_completo}}</option>
+                            </select>
+                        </div>
+
+                        <div class="campo-cambio">
+                            <label class="switch-campo">
+                                <input type="checkbox" [(ngModel)]="aplicar.id_usuario_supervisor">
+                                <span>Supervisó</span>
+                            </label>
+                            <select class="form-select form-select-sm"
+                                [(ngModel)]="nuevos.id_usuario_supervisor" [disabled]="!aplicar.id_usuario_supervisor">
+                                <option value="">Sin supervisor</option>
+                                <option *ngFor="let u of usuarios" [value]="u.id">{{u.nombre_completo}}</option>
+                            </select>
+                        </div>
+
+                        <div class="nota-inventario">
+                            <i class="fas fa-circle-info"></i>
+                            Estos cambios no afectan el inventario ni el consumo de productos.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Listado de registros -->
+            <div class="col-12 col-lg-8 mb-3">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="registros-header">
+                            <h6 class="mb-0">
+                                <i class="fas fa-list"></i> Registros
+                                <span class="badge bg-primary">{{seleccionados.length}}/{{registros.length}}</span>
+                            </h6>
+                            <div class="registros-acciones">
+                                <button type="button" class="btn btn-sm btn-outline-secondary" (click)="marcarTodos()">Todos</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" (click)="marcarNinguno()">Ninguno</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="lista-registros">
+                            <div class="registro-fila" *ngFor="let r of registros"
+                                [class.seleccionado]="r.seleccionado"
+                                (click)="toggleRegistro(r)">
+                                <div class="registro-check">
+                                    <i class="fas" [ngClass]="r.seleccionado ? 'fa-square-check' : 'fa-square'"></i>
+                                </div>
+                                <div class="registro-info">
+                                    <div class="registro-titulo">
+                                        {{r.area}}
+                                        <span class="chip-estado">{{r.estado}}</span>
+                                    </div>
+                                    <div class="registro-detalle">
+                                        <span><i class="fas fa-calendar-day"></i> {{formatearFecha(r.fecha)}}</span>
+                                        <span><i class="fas fa-clock"></i> {{hm(r.hora_inicio)}} - {{hm(r.hora_fin)}}</span>
+                                        <span><i class="fas fa-broom"></i> {{r.proceso}}</span>
+                                    </div>
+                                    <div class="registro-detalle">
+                                        <span><i class="fas fa-user"></i> {{r.ejecutor || 'Sin asignar'}}</span>
+                                        <span *ngIf="r.supervisor"><i class="fas fa-user-check"></i> {{r.supervisor}}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div *ngIf="!cargando && yaConsulto && registros.length === 0" class="card">
+            <div class="card-body">
+                <div class="alert alert-info mb-0">
+                    <i class="fas fa-info-circle"></i> No hay registros que coincidan con el filtro.
+                </div>
+            </div>
+        </div>
+
+        <!-- Barra de acción -->
+        <div class="action-bar" *ngIf="!cargando && registros.length > 0">
+            <div class="resumen">
+                <strong>{{seleccionados.length}}</strong> registro(s) seleccionado(s)
+            </div>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-secondary" (click)="regresar()">
+                    <i class="fas fa-arrow-left"></i> Regresar
+                </button>
+                <button type="button" class="btn btn-eliminar"
+                    [disabled]="seleccionados.length === 0 || guardando" (click)="eliminar()">
+                    <i class="fas fa-trash"></i> Eliminar
+                </button>
+                <button type="button" class="btn btn-aplicar" [disabled]="!puedeAplicar" (click)="aplicarCambios()">
+                    <i class="fas" [ngClass]="guardando ? 'fa-spinner fa-spin' : 'fa-check'"></i> Aplicar cambios
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

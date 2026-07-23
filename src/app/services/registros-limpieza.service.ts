@@ -367,6 +367,74 @@ export class RegistrosLimpiezaService {
       );
   }
 
+  obtenerEdicionMasivaPreview(filtros: any) {
+    const params: any = {
+      fecha_desde: filtros.fecha_desde,
+      fecha_hasta: filtros.fecha_hasta,
+    };
+    if (filtros.id_proceso) {
+      params.id_proceso = filtros.id_proceso;
+    }
+    if (filtros.id_area) {
+      params.id_area = filtros.id_area;
+    }
+    if (filtros.id_estado) {
+      params.id_estado = filtros.id_estado.toString();
+    }
+
+    return this.http
+      .get<HttpResponse<Object>>(this.servicio + '/edicion-masiva-preview', {
+        params: params,
+        observe: 'response',
+      })
+      .pipe(
+        tap((response: HttpResponse<Object>) => {
+          let respuesta: any = response.body;
+          if (respuesta?.error) {
+            throw respuesta.error;
+          }
+          return response;
+        }),
+        catchError(this.handleError)
+      );
+  }
+
+  editarLote(datos: any) {
+    return this.http
+      .post<HttpResponse<Object>>(this.servicio + '/editar-lote', datos, {
+        ...httpOptions,
+        observe: 'response',
+      })
+      .pipe(
+        tap((response: HttpResponse<Object>) => {
+          let respuesta: any = response.body;
+          if (respuesta?.error) {
+            throw respuesta.error;
+          }
+          return response;
+        }),
+        catchError(this.handleError)
+      );
+  }
+
+  eliminarLote(datos: any) {
+    return this.http
+      .post<HttpResponse<Object>>(this.servicio + '/eliminar-lote', datos, {
+        ...httpOptions,
+        observe: 'response',
+      })
+      .pipe(
+        tap((response: HttpResponse<Object>) => {
+          let respuesta: any = response.body;
+          if (respuesta?.error) {
+            throw respuesta.error;
+          }
+          return response;
+        }),
+        catchError(this.handleError)
+      );
+  }
+
   private handleError(error: HttpErrorResponse) {
     return throwError(() => error);
   }

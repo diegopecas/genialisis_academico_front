@@ -188,6 +188,7 @@ export class MenuArbolService {
               { id: 'operaciones-registros-limpieza', label: 'Registros Limpieza', icono: '🧼', ruta: '/operaciones/registros-limpieza', keywords: ['aseo', 'limpieza'] },
               { id: 'operaciones-registro-rapido-limpieza', label: 'Registro Rápido de Aseo', icono: '⚡', ruta: '/operaciones/registro-rapido-limpieza', keywords: ['aseo', 'limpieza', 'rapido', 'express'] },
               { id: 'operaciones-registro-masivo-limpieza', label: 'Registro Masivo de Aseo', icono: '📅', ruta: '/operaciones/registro-masivo-limpieza', keywords: ['aseo', 'limpieza', 'masivo', 'rango', 'fechas', 'varios dias', 'lote'] },
+              { id: 'operaciones-edicion-masiva-limpieza', label: 'Edición Masiva de Aseo', icono: '✏️', ruta: '/operaciones/edicion-masiva-limpieza', keywords: ['aseo', 'limpieza', 'editar', 'edicion', 'masiva', 'lote', 'corregir', 'eliminar', 'borrar'] },
               { id: 'operaciones-supervision-limpieza', label: 'Supervisión de Aseo', icono: '✅', ruta: '/operaciones/supervision-limpieza', keywords: ['aseo', 'limpieza', 'supervisar', 'supervision', 'aprobar'] },
               { id: 'operaciones-reporte-aseo', label: 'Reporte de Aseo', icono: '📄', ruta: '/operaciones/reporte-aseo', keywords: ['aseo', 'limpieza', 'reporte', 'informe', 'pdf'] }
             ]
