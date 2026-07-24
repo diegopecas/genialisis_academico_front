@@ -5,6 +5,7 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import Swal from 'sweetalert2';
 import { HeaderComponent } from '../../../../common/header/header.component';
 import { DocumentosPersonaComponent } from '../../../../common/documentos-persona/documentos-persona.component';
+import { RecursosEnteControlComponent } from './recursos-ente-control/recursos-ente-control.component';
 import { EntesControlService } from '../../../../services/entes-control.service';
 import { PersonasService } from '../../../../services/personas.service';
 import { TiposIdentificacionService } from '../../../../services/tipos-identificacion.service';
@@ -19,7 +20,8 @@ import { TiposIdentificacionService } from '../../../../services/tipos-identific
     FormsModule,
     RouterModule,
     HeaderComponent,
-    DocumentosPersonaComponent
+    DocumentosPersonaComponent,
+    RecursosEnteControlComponent
   ]
 })
 export class CrearEnteControlComponent implements OnInit {
@@ -29,7 +31,7 @@ export class CrearEnteControlComponent implements OnInit {
   public id = '0';
 
   public nuevo = false;
-  public seccionActiva: 'datos-ente' | 'documentos' = 'datos-ente';
+  public seccionActiva: 'datos-ente' | 'documentos' | 'recursos' = 'datos-ente';
 
   public editable = true;
   public documentoEncontrado = false;
@@ -108,16 +110,16 @@ export class CrearEnteControlComponent implements OnInit {
   @HostListener('document:keydown.escape') onEscape() { this.cerrarSidebar(); }
 
   obtenerNombreSeccion(): string {
-    const n: any = { 'datos-ente': 'Datos del Ente', 'documentos': 'Documentos' };
+    const n: any = { 'datos-ente': 'Datos del Ente', 'documentos': 'Documentos', 'recursos': 'Recursos' };
     return n[this.seccionActiva] || '';
   }
 
   obtenerIconoSeccion(): string {
-    const i: any = { 'datos-ente': 'fas fa-landmark', 'documentos': 'fas fa-file-alt' };
+    const i: any = { 'datos-ente': 'fas fa-landmark', 'documentos': 'fas fa-file-alt', 'recursos': 'fas fa-list-check' };
     return i[this.seccionActiva] || 'fas fa-circle';
   }
 
-  cambiarSeccion(seccion: 'datos-ente' | 'documentos') {
+  cambiarSeccion(seccion: 'datos-ente' | 'documentos' | 'recursos') {
     this.seccionActiva = seccion;
     this.cerrarSidebar();
   }

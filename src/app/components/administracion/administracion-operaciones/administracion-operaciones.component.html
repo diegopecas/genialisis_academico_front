@@ -1,0 +1,47 @@
+<div class="modulo">
+    <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [raiz]="'/'" [regresar]="'/administracion'"></app-header>
+
+    <div class="container-fluid mt-5">
+        <!-- Título descriptivo -->
+        <div class="text-center mb-5">
+            <h2 class="titulo-seccion">¿Qué deseas gestionar?</h2>
+            <p class="subtitulo-seccion">Selecciona una opción para comenzar</p>
+        </div>
+
+        <!-- Tarjetas de opciones -->
+        <div class="row justify-content-center">
+            <!-- Entes de Control -->
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card-opcion" (click)="seleccionarOpcion('entes-control')">
+                    <div class="card-opcion-content">
+                        <div class="icono-container entes-control">
+                            <img [src]="'/assets/images/entes-control.png'" alt="Entes de Control" />
+                        </div>
+                        <h3 class="card-titulo">Entes de Control</h3>
+                        <p class="card-descripcion">Registra los entes de control y configura qué puede ver cada uno</p>
+                        <div class="card-footer-custom">
+                            <span class="link-accion">Configurar <i class="fas fa-arrow-right"></i></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Consulta Entes de Control -->
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card-opcion" (click)="seleccionarOpcion('consulta-entes-control')">
+                    <div class="card-opcion-content">
+                        <div class="icono-container consulta-entes-control">
+                            <img [src]="'/assets/images/consulta-entes-control.png'" alt="Consulta Entes de Control" />
+                        </div>
+                        <h3 class="card-titulo">Consulta Entes de Control</h3>
+                        <p class="card-descripcion">Consulta los documentos y reportes autorizados para cada ente</p>
+                        <div class="card-footer-custom">
+                            <span class="link-accion">Consultar <i class="fas fa-arrow-right"></i></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>

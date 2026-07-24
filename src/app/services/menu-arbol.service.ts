@@ -282,6 +282,17 @@ export class MenuArbolService {
           { id: 'administracion-inicio', label: 'Administración', icono: '🏛️', ruta: '/administracion', permiso: 'administracion.ver' },
           { id: 'administracion-datos-maestros', label: 'Datos Maestros', icono: '🗃️', ruta: '/administracion/datos-maestros', permiso: 'administracion.datos_maestros', keywords: ['catalogos', 'parametros'] },
           {
+            id: 'administracion-operaciones',
+            label: 'Operaciones',
+            icono: '⚙️',
+            keywords: ['operaciones', 'entes', 'control'],
+            hijos: [
+              { id: 'administracion-oper-inicio', label: 'Operaciones', icono: '⚙️', ruta: '/administracion/operaciones' },
+              { id: 'administracion-entes-control', label: 'Entes de Control', icono: '🏛️', ruta: '/administracion/entes-control', keywords: ['entes', 'control', 'vigilancia', 'secretaria', 'icbf'] },
+              { id: 'administracion-consulta-entes-control', label: 'Consulta Entes de Control', icono: '🔎', ruta: '/administracion/consulta-entes-control', keywords: ['consulta', 'entes', 'control', 'visita', 'documentos', 'reportes'] }
+            ]
+          },
+          {
             id: 'administracion-financiero',
             label: 'Financiero',
             icono: '💵',
@@ -363,7 +374,6 @@ export class MenuArbolService {
               { id: 'administracion-config-geofence', label: 'Configuración Geofence', icono: '📍', ruta: '/administracion/configuracion-geofence', keywords: ['ubicacion', 'zonas', 'gps'] },
               { id: 'administracion-cargos', label: 'Cargos', icono: '💼', ruta: '/administracion/cargos', keywords: ['puestos', 'roles'] },
               { id: 'administracion-tipos-documentos', label: 'Tipos Documentos', icono: '📄', ruta: '/administracion/tipos-documentos', keywords: ['documentos'] },
-              { id: 'administracion-entes-control', label: 'Entes de Control', icono: '🏛️', ruta: '/administracion/entes-control', keywords: ['entes', 'control', 'vigilancia', 'secretaria', 'icbf'] },
               { id: 'administracion-institucion', label: 'Institución', icono: '🏫', ruta: '/administracion/institucion', keywords: ['institucion', 'documentos institucionales', 'plan de emergencia'] }
             ]
           },

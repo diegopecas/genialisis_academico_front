@@ -33,6 +33,9 @@ export class AdministracionComponent {
       case 'contabilizacion-multiple':
         this.router.navigate(['/administracion/contabilizacion-multiple']);
         break;
+      case 'operaciones':
+        this.router.navigate(['/administracion/operaciones']);
+        break;
       case 'auditoria-registros':
         this.router.navigate(['/administracion/auditoria-registros']);
         break;

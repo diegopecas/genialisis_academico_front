@@ -96,9 +96,6 @@ export class DatosMaestrosComponent {
       case 'documentacion-sistema':
         this.router.navigate(['/administracion/documentacion-sistema']);
         break;
-      case 'entes-control':
-        this.router.navigate(['/administracion/entes-control']);
-        break;
       case 'institucion':
         this.router.navigate(['/administracion/institucion']);
         break;

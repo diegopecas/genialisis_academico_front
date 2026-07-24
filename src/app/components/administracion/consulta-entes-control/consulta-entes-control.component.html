@@ -1,0 +1,112 @@
+<div class="modulo">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="false"
+    [raiz]="'/'"
+    [regresar]="'/administracion/operaciones'"
+    [iconoTitulo]="'/assets/images/consulta-entes-control.png'"
+  ></app-header>
+
+  <div class="container-fluid mt-4">
+
+    <!-- SELECCIÓN DEL ENTE -->
+    <div class="card-selector">
+      <div class="row g-3 align-items-end">
+        <div class="col-sm-12 col-md-6">
+          <label class="form-label">Ente de control</label>
+          <select class="form-select form-select-lg" [(ngModel)]="idEnteSeleccionado" (change)="cambiarEnte()">
+            <option value="">Seleccionar...</option>
+            <option *ngFor="let e of entes" [value]="e.id">{{ e.nombre_ente }}</option>
+          </select>
+        </div>
+        <div class="col-sm-12 col-md-6" *ngIf="consultado && totalDocumentos() > 0">
+          <label class="form-label">Buscar</label>
+          <input type="text" class="form-control form-control-lg" [(ngModel)]="filtro"
+                 placeholder="Nombre, identificación o archivo..." />
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="cargando" class="text-center text-muted py-5">Cargando...</div>
+
+    <div *ngIf="!cargando && !idEnteSeleccionado" class="text-center text-muted py-5">
+      Seleccione un ente de control para ver los documentos y reportes que tiene autorizados.
+    </div>
+
+    <div *ngIf="!cargando && consultado && grupos.length === 0 && reportes.length === 0"
+         class="text-center text-muted py-5">
+      Este ente de control no tiene recursos configurados.
+    </div>
+
+    <!-- REPORTES -->
+    <div *ngIf="!cargando && reportes.length > 0" class="bloque mt-4">
+      <h5 class="titulo-bloque"><i class="fas fa-chart-bar me-2"></i>Reportes</h5>
+      <div class="row g-3">
+        <div class="col-sm-12 col-md-6 col-lg-4" *ngFor="let r of reportes">
+          <div class="tarjeta-reporte" (click)="abrirReporte(r)">
+            <div class="icono"><i class="fas fa-file-invoice"></i></div>
+            <div class="texto">
+              <span class="nombre">{{ r.nombre }}</span>
+              <small class="tipo">{{ r.nombre_tipo_reporte }}</small>
+            </div>
+            <i class="fas fa-arrow-right flecha"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DOCUMENTOS -->
+    <div *ngIf="!cargando && grupos.length > 0" class="bloque mt-4">
+      <h5 class="titulo-bloque"><i class="fas fa-folder-open me-2"></i>Documentos</h5>
+
+      <div class="grupo" *ngFor="let g of grupos">
+        <div class="grupo-header">
+          <span class="badge-origen">{{ g.tipo_persona }}</span>
+          <span class="nombre-doc">{{ g.tipo_documento }}</span>
+          <span class="conteo">{{ documentosFiltrados(g).length }}</span>
+        </div>
+
+        <div class="table-responsive" *ngIf="documentosFiltrados(g).length > 0">
+          <table class="table table-hover align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Persona</th>
+                <th>Identificación</th>
+                <th>Archivo</th>
+                <th class="text-center">Vencimiento</th>
+                <th class="text-center">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let d of documentosFiltrados(g)">
+                <td>{{ d.nombre_persona }}</td>
+                <td>{{ d.numero_identificacion }}</td>
+                <td class="archivo">{{ d.nombre_archivo }}</td>
+                <td class="text-center">
+                  <span *ngIf="d.fecha_vencimiento" [class.vencido]="estaVencido(d)">
+                    {{ d.fecha_vencimiento | date: 'dd/MM/yyyy' }}
+                  </span>
+                  <span *ngIf="!d.fecha_vencimiento" class="text-muted">—</span>
+                </td>
+                <td class="text-center">
+                  <button class="btn btn-sm btn-outline-primary me-2" (click)="verDocumento(d)" title="Ver">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                  <button class="btn btn-sm btn-outline-secondary" (click)="descargarDocumento(d)" title="Descargar">
+                    <i class="fas fa-download"></i>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="sin-documentos" *ngIf="documentosFiltrados(g).length === 0">
+          <span *ngIf="filtro">Ningún documento coincide con la búsqueda.</span>
+          <span *ngIf="!filtro">Aún no hay documentos cargados de este tipo.</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

@@ -8,6 +8,7 @@
       <nav class="sidebar-nav">
         <a class="sidebar-link" [class.active]="seccionActiva === 'datos-ente'" (click)="cambiarSeccion('datos-ente')"><i class="fas fa-landmark"></i> <span>Datos del Ente</span></a>
         <a class="sidebar-link" *ngIf="model.idPersona" [class.active]="seccionActiva === 'documentos'" (click)="cambiarSeccion('documentos')"><i class="fas fa-file-alt"></i> <span>Documentos</span></a>
+        <a class="sidebar-link" *ngIf="model.idEnte" [class.active]="seccionActiva === 'recursos'" (click)="cambiarSeccion('recursos')"><i class="fas fa-list-check"></i> <span>Recursos</span></a>
       </nav>
     </aside>
 
@@ -25,6 +26,7 @@
       <nav class="sidebar-nav">
         <a class="sidebar-link" [class.active]="seccionActiva === 'datos-ente'" (click)="cambiarSeccion('datos-ente')"><i class="fas fa-landmark"></i> <span>Datos del Ente</span></a>
         <a class="sidebar-link" *ngIf="model.idPersona" [class.active]="seccionActiva === 'documentos'" (click)="cambiarSeccion('documentos')"><i class="fas fa-file-alt"></i> <span>Documentos</span></a>
+        <a class="sidebar-link" *ngIf="model.idEnte" [class.active]="seccionActiva === 'recursos'" (click)="cambiarSeccion('recursos')"><i class="fas fa-list-check"></i> <span>Recursos</span></a>
       </nav>
     </aside>
 
@@ -46,6 +48,15 @@
           <div class="row mt-3"><div class="col-sm-12"><label for="funciones" class="form-label">Funciones / Marco legal</label><textarea class="form-control form-control-lg" id="funciones" rows="4" [(ngModel)]="model.funciones" placeholder="Funciones o competencias del ente de control..." [disabled]="!camposHabilitados && editable"></textarea></div></div>
         </div>
         <div class="row mt-4" *ngIf="editable"><div class="col-12 d-flex gap-2"><button class="btn-save" (click)="guardar()" [disabled]="!camposHabilitados"><i class="fas fa-save"></i> Guardar</button><button class="btn-cancel" (click)="volver()"><i class="fas fa-times-circle"></i> Cancelar</button></div></div>
+      </div>
+
+      <!-- ==================== RECURSOS ==================== -->
+      <div *ngIf="!nuevo && model.idEnte" [hidden]="seccionActiva !== 'recursos'">
+        <app-recursos-ente-control
+          [idEnteControl]="model.idEnte"
+          [nombreEnte]="model.razonSocial"
+          [soloLectura]="!editable">
+        </app-recursos-ente-control>
       </div>
 
       <!-- ==================== DOCUMENTOS ==================== -->
