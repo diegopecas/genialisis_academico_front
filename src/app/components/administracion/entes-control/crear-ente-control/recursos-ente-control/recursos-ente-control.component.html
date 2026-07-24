@@ -1,117 +1,64 @@
 <div class="recursos-ente">
 
-  <!-- FORMULARIO DE ASIGNACIÓN -->
-  <div class="card-asignar" *ngIf="!soloLectura">
-    <h6 class="titulo-bloque"><i class="fas fa-plus-circle me-2"></i>Asignar recurso</h6>
+  <!-- BARRA DE FILTROS -->
+  <div class="barra-filtros">
+    <div class="filtro-origenes">
+      <button class="chip-filtro" [class.activo]="filtroOrigen === 'TODOS'" (click)="filtroOrigen = 'TODOS'">
+        Todos
+      </button>
+      <button class="chip-filtro" *ngFor="let o of origenes"
+              [class.activo]="filtroOrigen === o" (click)="filtroOrigen = o">
+        {{ o }}
+      </button>
+    </div>
 
-    <div class="row g-3 align-items-end">
-      <div class="col-sm-12 col-md-3">
-        <label class="form-label">Tipo de recurso</label>
-        <select class="form-select" [(ngModel)]="nuevo.tipoRecurso" (change)="cambiarTipoRecurso()">
-          <option value="documento">Documentos</option>
-          <option value="reporte">Reporte</option>
-        </select>
-      </div>
-
-      <!-- DOCUMENTO -->
-      <ng-container *ngIf="nuevo.tipoRecurso === 'documento'">
-        <div class="col-sm-12 col-md-4">
-          <label class="form-label">Origen</label>
-          <select class="form-select" [(ngModel)]="nuevo.idTipoPersona" (change)="cambiarTipoPersona()">
-            <option value="">Seleccionar</option>
-            <option *ngFor="let tp of tiposPersonas" [value]="tp.id">{{ tp.nombre }}</option>
-          </select>
-        </div>
-        <div class="col-sm-12 col-md-4">
-          <label class="form-label">Tipo de documento</label>
-          <select class="form-select" [(ngModel)]="nuevo.idTipoDocumento" [disabled]="!nuevo.idTipoPersona">
-            <option value="">Seleccionar</option>
-            <option *ngFor="let td of tiposDocumentos" [value]="td.id">{{ td.nombre }}</option>
-          </select>
-          <small class="text-muted" *ngIf="nuevo.idTipoPersona && tiposDocumentos.length === 0">
-            Este origen no tiene tipos de documento asociados.
-          </small>
-        </div>
-      </ng-container>
-
-      <!-- REPORTE -->
-      <ng-container *ngIf="nuevo.tipoRecurso === 'reporte'">
-        <div class="col-sm-12 col-md-8">
-          <label class="form-label">Reporte</label>
-          <select class="form-select" [(ngModel)]="nuevo.idReporte">
-            <option value="">Seleccionar</option>
-            <option *ngFor="let r of reportes" [value]="r.id">{{ r.nombre }} ({{ r.nombre_tipo_reporte }})</option>
-          </select>
-        </div>
-      </ng-container>
-
-      <div class="col-sm-12 col-md-1">
-        <button class="btn btn-warning w-100" (click)="agregar()" title="Agregar">
-          <i class="fas fa-plus"></i>
-        </button>
-      </div>
+    <div class="buscador">
+      <i class="fas fa-search"></i>
+      <input type="text" [(ngModel)]="busqueda" placeholder="Buscar documento o reporte..." />
     </div>
   </div>
 
-  <!-- LISTADO CONFIGURADO -->
-  <div class="mt-4">
-    <div *ngIf="cargando" class="text-center text-muted py-4">Cargando...</div>
-
-    <div *ngIf="!cargando && recursos.length === 0" class="text-center text-muted py-4">
-      Este ente de control no tiene recursos asignados.
+  <!-- ACCIONES -->
+  <div class="barra-acciones" *ngIf="!soloLectura">
+    <div class="acciones-seleccion">
+      <button class="btn-link" (click)="seleccionarVisibles(true)">
+        <i class="fas fa-check-double"></i> Seleccionar visibles
+      </button>
+      <button class="btn-link" (click)="seleccionarVisibles(false)">
+        <i class="fas fa-eraser"></i> Quitar visibles
+      </button>
     </div>
+    <div class="contador">
+      <span class="badge-total">{{ totalSeleccionados }}</span> seleccionados
+      <button class="btn-guardar" (click)="guardar()" [disabled]="guardando">
+        <i class="fas fa-save"></i> {{ guardando ? 'Guardando...' : 'Guardar selección' }}
+      </button>
+    </div>
+  </div>
 
-    <!-- Documentos -->
-    <div *ngIf="recursosDocumentos.length > 0" class="mb-4">
-      <h6 class="titulo-bloque"><i class="fas fa-file-alt me-2"></i>Documentos</h6>
-      <div class="table-responsive">
-        <table class="table table-hover align-middle">
-          <thead>
-            <tr>
-              <th>Origen</th>
-              <th>Tipo de documento</th>
-              <th class="text-center" *ngIf="!soloLectura">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let r of recursosDocumentos">
-              <td><span class="badge-origen">{{ r.nombre_tipo_persona }}</span></td>
-              <td>{{ r.nombre_tipo_documento }}</td>
-              <td class="text-center" *ngIf="!soloLectura">
-                <button class="btn btn-sm btn-outline-danger" (click)="eliminar(r)" title="Quitar">
-                  <i class="fas fa-trash"></i>
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+  <!-- ESTADOS -->
+  <div *ngIf="cargando" class="text-center text-muted py-5">Cargando...</div>
+  <div *ngIf="!cargando && items.length === 0" class="text-center text-muted py-5">
+    No hay documentos ni reportes disponibles para asignar.
+  </div>
+  <div *ngIf="!cargando && items.length > 0 && itemsFiltrados.length === 0" class="text-center text-muted py-5">
+    Ningún recurso coincide con el filtro.
+  </div>
+
+  <!-- GRILLA DE TARJETAS -->
+  <div class="grilla" *ngIf="!cargando">
+    <div class="tarjeta"
+         *ngFor="let item of itemsFiltrados"
+         [class.seleccionada]="item.seleccionado"
+         [class.solo-lectura]="soloLectura"
+         (click)="toggle(item)">
+      <div class="check">
+        <i class="fas" [class.fa-check-circle]="item.seleccionado" [class.fa-circle]="!item.seleccionado"></i>
       </div>
-    </div>
-
-    <!-- Reportes -->
-    <div *ngIf="recursosReportes.length > 0">
-      <h6 class="titulo-bloque"><i class="fas fa-chart-bar me-2"></i>Reportes</h6>
-      <div class="table-responsive">
-        <table class="table table-hover align-middle">
-          <thead>
-            <tr>
-              <th>Reporte</th>
-              <th>Ruta</th>
-              <th class="text-center" *ngIf="!soloLectura">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let r of recursosReportes">
-              <td>{{ r.nombre_reporte }}</td>
-              <td><code class="ruta">{{ r.ruta_reporte }}</code></td>
-              <td class="text-center" *ngIf="!soloLectura">
-                <button class="btn btn-sm btn-outline-danger" (click)="eliminar(r)" title="Quitar">
-                  <i class="fas fa-trash"></i>
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+      <div class="cuerpo">
+        <span class="chip-origen" [class.reporte]="item.tipo === 'reporte'">{{ item.origen }}</span>
+        <span class="titulo">{{ item.titulo }}</span>
+        <small class="subtitulo" *ngIf="item.subtitulo">{{ item.subtitulo }}</small>
       </div>
     </div>
   </div>

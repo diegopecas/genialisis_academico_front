@@ -28,9 +28,6 @@ export class ConsultaEntesControlComponent implements OnInit {
   public grupos: any[] = [];
   public reportes: any[] = [];
 
-  // Filtro de texto sobre los documentos resueltos
-  public filtro = '';
-
   constructor(
     private entesControlService: EntesControlService,
     private entesControlRecursosService: EntesControlRecursosService,
@@ -56,7 +53,6 @@ export class ConsultaEntesControlComponent implements OnInit {
     this.consultado = false;
     this.grupos = [];
     this.reportes = [];
-    this.filtro = '';
     this.enteSeleccionado = this.entes.find((e: any) => e.id === this.idEnteSeleccionado) || null;
 
     if (this.idEnteSeleccionado) {
@@ -69,7 +65,12 @@ export class ConsultaEntesControlComponent implements OnInit {
     this.entesControlRecursosService.resolver(this.idEnteSeleccionado).subscribe({
       next: (response: any) => {
         const body = response.body || {};
-        this.grupos = body.documentos || [];
+        // Cada grupo arranca colapsado y con su propio filtro de texto.
+        this.grupos = (body.documentos || []).map((g: any) => ({
+          ...g,
+          abierto: false,
+          filtro: ''
+        }));
         this.reportes = body.reportes || [];
         this.cargando = false;
         this.consultado = true;
@@ -83,14 +84,18 @@ export class ConsultaEntesControlComponent implements OnInit {
     });
   }
 
-  // Filtra los documentos de un grupo por nombre de persona o de archivo.
+  toggleGrupo(grupo: any) {
+    grupo.abierto = !grupo.abierto;
+  }
+
+  // Filtra los documentos de un grupo por su propio buscador.
   documentosFiltrados(grupo: any): any[] {
-    if (!this.filtro) { return grupo.documentos; }
-    const texto = this.filtro.toLowerCase();
+    if (!grupo.filtro) { return grupo.documentos; }
+    const texto = grupo.filtro.toLowerCase();
     return grupo.documentos.filter((d: any) =>
-      (d.nombre_persona || '').toLowerCase().includes(texto) ||
-      (d.nombre_archivo || '').toLowerCase().includes(texto) ||
-      (d.numero_identificacion || '').toLowerCase().includes(texto)
+      String(d.nombre_persona || '').toLowerCase().includes(texto) ||
+      String(d.nombre_archivo || '').toLowerCase().includes(texto) ||
+      String(d.numero_identificacion || '').toLowerCase().includes(texto)
     );
   }
 
@@ -98,7 +103,6 @@ export class ConsultaEntesControlComponent implements OnInit {
     return this.grupos.reduce((total: number, g: any) => total + (g.documentos?.length || 0), 0);
   }
 
-  // Abre el documento en una pestaña nueva usando el token efímero.
   verDocumento(documento: any) {
     this.documentosPersonasService.obtenerUrlDescargaConToken(documento.id).subscribe({
       next: (url: string) => { window.open(url, '_blank'); },

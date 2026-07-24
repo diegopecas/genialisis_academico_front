@@ -3,9 +3,6 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import Swal from 'sweetalert2';
 import { EntesControlRecursosService } from '../../../../../services/entes-control-recursos.service';
-import { CatalogoReportesService } from '../../../../../services/catalogo-reportes.service';
-import { TiposPersonasService } from '../../../../../services/tipos-personas.service';
-import { TiposDocumentosService } from '../../../../../services/tipos-documentos.service';
 
 @Component({
   selector: 'app-recursos-ente-control',
@@ -21,151 +18,123 @@ export class RecursosEnteControlComponent implements OnInit, OnChanges {
   @Input() soloLectura: boolean = false;
 
   public cargando = false;
-  public recursos: any[] = [];
-  public tiposPersonas: any[] = [];
-  public tiposDocumentos: any[] = [];
-  public reportes: any[] = [];
+  public guardando = false;
 
-  // Formulario de asignación
-  public nuevo: any = {
-    tipoRecurso: 'documento',
-    idTipoPersona: '',
-    idTipoDocumento: '',
-    idReporte: ''
-  };
+  // Cada item: { tipo, key, id_tipo_persona?, id_tipo_documento?, id_reporte?,
+  //              origen, titulo, seleccionado }
+  public items: any[] = [];
+
+  // Filtros
+  public origenes: string[] = [];
+  public filtroOrigen = 'TODOS';
+  public busqueda = '';
 
   constructor(
-    private entesControlRecursosService: EntesControlRecursosService,
-    private catalogoReportesService: CatalogoReportesService,
-    private tiposPersonasService: TiposPersonasService,
-    private tiposDocumentosService: TiposDocumentosService
+    private entesControlRecursosService: EntesControlRecursosService
   ) { }
 
   ngOnInit(): void {
-    this.consultarListas();
     if (this.idEnteControl) {
-      this.consultarRecursos();
+      this.cargar();
     }
   }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['idEnteControl'] && !changes['idEnteControl'].firstChange && this.idEnteControl) {
-      this.consultarRecursos();
+      this.cargar();
     }
   }
 
-  consultarListas() {
-    this.tiposPersonasService.obtenerTodos().subscribe({
-      next: (response: any) => { this.tiposPersonas = response.body || []; },
-      error: (error: any) => console.error('Error al obtener tipos de persona', error)
-    });
-
-    this.catalogoReportesService.obtenerParaEntesControl().subscribe({
-      next: (response: any) => { this.reportes = response.body || []; },
-      error: (error: any) => console.error('Error al obtener reportes', error)
-    });
-  }
-
-  consultarRecursos() {
+  cargar() {
     this.cargando = true;
-    this.entesControlRecursosService.obtenerPorEnte(this.idEnteControl).subscribe({
+    this.entesControlRecursosService.obtenerDisponibles(this.idEnteControl).subscribe({
       next: (response: any) => {
-        this.recursos = response.body || [];
+        const body = response.body || {};
+        const items: any[] = [];
+
+        (body.documentos || []).forEach((d: any) => {
+          items.push({
+            tipo: 'documento',
+            key: `d|${d.id_tipo_persona}|${d.id_tipo_documento}`,
+            id_tipo_persona: d.id_tipo_persona,
+            id_tipo_documento: d.id_tipo_documento,
+            origen: d.nombre_tipo_persona,
+            titulo: d.nombre_tipo_documento,
+            seleccionado: !!d.asignado
+          });
+        });
+
+        (body.reportes || []).forEach((r: any) => {
+          items.push({
+            tipo: 'reporte',
+            key: `r|${r.id_reporte}`,
+            id_reporte: r.id_reporte,
+            origen: 'Reportes',
+            titulo: r.nombre_reporte,
+            subtitulo: r.nombre_tipo_reporte,
+            seleccionado: !!r.asignado
+          });
+        });
+
+        this.items = items;
+        this.origenes = Array.from(new Set(items.map(i => i.origen)));
         this.cargando = false;
       },
       error: (error: any) => {
-        console.error('Error al obtener los recursos del ente', error);
+        console.error('Error al cargar los recursos disponibles', error);
         this.cargando = false;
       }
     });
   }
 
-  // Al elegir el tipo de persona se cargan sus tipos de documento asociados.
-  cambiarTipoPersona() {
-    this.nuevo.idTipoDocumento = '';
-    this.tiposDocumentos = [];
-
-    const tipoPersona = this.tiposPersonas.find((tp: any) => tp.id === this.nuevo.idTipoPersona);
-    if (!tipoPersona) { return; }
-
-    this.tiposDocumentosService.obtenerPorTipoPersona(tipoPersona.codigo).subscribe({
-      next: (response: any) => { this.tiposDocumentos = response.body || []; },
-      error: (error: any) => console.error('Error al obtener tipos de documento', error)
+  get itemsFiltrados(): any[] {
+    const texto = this.busqueda.toLowerCase().trim();
+    return this.items.filter(i => {
+      const coincideOrigen = this.filtroOrigen === 'TODOS' || i.origen === this.filtroOrigen;
+      const coincideTexto = !texto ||
+        i.titulo.toLowerCase().includes(texto) ||
+        i.origen.toLowerCase().includes(texto);
+      return coincideOrigen && coincideTexto;
     });
   }
 
-  cambiarTipoRecurso() {
-    this.nuevo.idTipoPersona = '';
-    this.nuevo.idTipoDocumento = '';
-    this.nuevo.idReporte = '';
-    this.tiposDocumentos = [];
+  get totalSeleccionados(): number {
+    return this.items.filter(i => i.seleccionado).length;
   }
 
-  agregar() {
-    if (this.nuevo.tipoRecurso === 'documento') {
-      if (!this.nuevo.idTipoPersona || !this.nuevo.idTipoDocumento) {
-        Swal.fire({ title: 'Campos incompletos', text: 'Seleccione el origen y el tipo de documento', icon: 'warning', confirmButtonText: 'Aceptar' });
-        return;
-      }
-    } else {
-      if (!this.nuevo.idReporte) {
-        Swal.fire({ title: 'Campos incompletos', text: 'Seleccione el reporte', icon: 'warning', confirmButtonText: 'Aceptar' });
-        return;
-      }
-    }
+  toggle(item: any) {
+    if (this.soloLectura) { return; }
+    item.seleccionado = !item.seleccionado;
+  }
 
-    const data = {
-      id_ente_control: this.idEnteControl,
-      tipo_recurso: this.nuevo.tipoRecurso,
-      id_tipo_persona: this.nuevo.tipoRecurso === 'documento' ? this.nuevo.idTipoPersona : null,
-      id_tipo_documento: this.nuevo.tipoRecurso === 'documento' ? this.nuevo.idTipoDocumento : null,
-      id_reporte: this.nuevo.tipoRecurso === 'reporte' ? this.nuevo.idReporte : null
-    };
+  // Marca/desmarca todo lo que hay visible según los filtros actuales.
+  seleccionarVisibles(valor: boolean) {
+    if (this.soloLectura) { return; }
+    this.itemsFiltrados.forEach(i => i.seleccionado = valor);
+  }
 
-    this.entesControlRecursosService.crear(data).subscribe({
+  guardar() {
+    if (this.soloLectura) { return; }
+    this.guardando = true;
+
+    const recursos = this.items
+      .filter(i => i.seleccionado)
+      .map(i => i.tipo === 'documento'
+        ? { tipo_recurso: 'documento', id_tipo_persona: i.id_tipo_persona, id_tipo_documento: i.id_tipo_documento }
+        : { tipo_recurso: 'reporte', id_reporte: i.id_reporte });
+
+    const data = { id_ente_control: this.idEnteControl, recursos: recursos };
+
+    this.entesControlRecursosService.sincronizar(data).subscribe({
       next: () => {
-        this.cambiarTipoRecurso();
-        this.consultarRecursos();
+        this.guardando = false;
+        Swal.fire({ title: 'Guardado', text: 'Los recursos del ente se actualizaron', icon: 'success', confirmButtonText: 'Aceptar' });
       },
       error: (error: any) => {
-        console.error('Error al asignar el recurso', error);
-        Swal.fire({ title: 'Error', text: error.error?.error || 'No se pudo asignar el recurso', icon: 'error', confirmButtonText: 'Aceptar' });
+        this.guardando = false;
+        console.error('Error al guardar los recursos', error);
+        Swal.fire({ title: 'Error', text: error.error?.error || 'No se pudieron guardar los recursos', icon: 'error', confirmButtonText: 'Aceptar' });
       }
     });
-  }
-
-  async eliminar(recurso: any) {
-    const descripcion = recurso.tipo_recurso === 'reporte'
-      ? recurso.nombre_reporte
-      : `${recurso.nombre_tipo_documento} (${recurso.nombre_tipo_persona})`;
-
-    const result = await Swal.fire({
-      title: '¿Está seguro?',
-      text: `¿Desea quitar "${descripcion}" de este ente de control?`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Sí, quitar',
-      cancelButtonText: 'Cancelar'
-    });
-
-    if (result.isConfirmed) {
-      this.entesControlRecursosService.eliminar(recurso.id).subscribe({
-        next: () => this.consultarRecursos(),
-        error: (error: any) => {
-          console.error('Error al quitar el recurso', error);
-          Swal.fire({ title: 'Error', text: 'No se pudo quitar el recurso', icon: 'error', confirmButtonText: 'Aceptar' });
-        }
-      });
-    }
-  }
-
-  get recursosDocumentos(): any[] {
-    return this.recursos.filter((r: any) => r.tipo_recurso === 'documento');
-  }
-
-  get recursosReportes(): any[] {
-    return this.recursos.filter((r: any) => r.tipo_recurso === 'reporte');
   }
 }

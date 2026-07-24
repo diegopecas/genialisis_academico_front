@@ -31,6 +31,39 @@ export class EntesControlRecursosService {
       );
   }
 
+  // Todo lo que se le puede asignar al ente (marca lo ya asignado).
+  obtenerDisponibles(idEnteControl: string) {
+    return this.http
+      .get<HttpResponse<Object>>(`${this.servicio}/${idEnteControl}/disponibles`, {
+        observe: 'response',
+      })
+      .pipe(
+        tap((response: HttpResponse<Object>) => {
+          let respuesta: any = response.body;
+          if (respuesta.error) {
+            throw respuesta.error;
+          }
+          return response;
+        }),
+        catchError(this.handleError)
+      );
+  }
+
+  // Asignación masiva: manda la selección completa en un solo arreglo.
+  sincronizar(data: any) {
+    return this.http
+      .post<HttpResponse<Object>>(`${this.servicio}/sincronizar`, data, httpOptions)
+      .pipe(
+        tap((response: any) => {
+          if (response.error) {
+            throw response.error;
+          }
+          return response;
+        }),
+        catchError(this.handleError)
+      );
+  }
+
   // Consulta: documentos y reportes ya resueltos para mostrar al funcionario.
   resolver(idEnteControl: string) {
     return this.http
