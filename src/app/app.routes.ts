@@ -144,6 +144,8 @@ export const routes: Routes = [
   // Rutas del dominio del producto
 
   // Estudiantes
+  { path: 'gestion-estudiantes', loadComponent: () => import('./components/estudiantes/gestion-estudiantes/gestion-estudiantes.component').then(m => m.GestionEstudiantesComponent), canActivate: [AuthGuard], data: { trackear: true, labelAcceso: 'Gestión Estudiantes', iconoAcceso: '🎓' } },
+  { path: 'registro-rapido-estudiante', loadComponent: () => import('./components/estudiantes/registro-rapido-estudiante/registro-rapido-estudiante.component').then(m => m.RegistroRapidoEstudianteComponent), canActivate: [AuthGuard, PermisosGuard], data: { permiso: 'estudiantes.administrar' } },
   { path: 'estudiantes', loadComponent: () => import('./components/estudiantes/estudiantes.component').then(m => m.EstudiantesComponent), canActivate: [AuthGuard, PermisosGuard], data: { permiso: 'estudiantes.listado', trackear: true, labelAcceso: 'Estudiantes', iconoAcceso: '🎓' } },
   { path: 'estudiantes/:accion/:id', loadComponent: () => import('./components/estudiantes/crear-estudiante/crear-estudiante.component').then(m => m.CrearEstudianteComponent), canActivate: [AuthGuard, PermisosGuard], data: { permiso: 'estudiantes.administrar' } },
   { path: 'estudiantes-servicios/:id', loadComponent: () => import('./components/servicios/servicios/servicios.component').then(m => m.ServiciosComponent), canActivate: [AuthGuard] },

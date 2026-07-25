@@ -25,8 +25,18 @@ export class ConsultaEntesControlComponent implements OnInit {
 
   public cargando = false;
   public consultado = false;
-  public grupos: any[] = [];
+  public estudiantes: any[] = [];
+  public institucion: any[] = [];
+  public colaboradores: any[] = [];
+  public carpetasEnte: any[] = [];
   public reportes: any[] = [];
+
+  // Búsqueda de estudiante (carpetas)
+  public busqueda = '';
+
+  // Carpeta abierta (modal)
+  public carpetaAbierta: any = null;
+  public tipoCarpetaAbierta: 'estudiante' | 'plana' = 'plana';
 
   constructor(
     private entesControlService: EntesControlService,
@@ -51,8 +61,13 @@ export class ConsultaEntesControlComponent implements OnInit {
 
   cambiarEnte() {
     this.consultado = false;
-    this.grupos = [];
+    this.estudiantes = [];
+    this.institucion = [];
+    this.colaboradores = [];
+    this.carpetasEnte = [];
     this.reportes = [];
+    this.busqueda = '';
+    this.carpetaAbierta = null;
     this.enteSeleccionado = this.entes.find((e: any) => e.id === this.idEnteSeleccionado) || null;
 
     if (this.idEnteSeleccionado) {
@@ -65,12 +80,10 @@ export class ConsultaEntesControlComponent implements OnInit {
     this.entesControlRecursosService.resolver(this.idEnteSeleccionado).subscribe({
       next: (response: any) => {
         const body = response.body || {};
-        // Cada grupo arranca colapsado y con su propio filtro de texto.
-        this.grupos = (body.documentos || []).map((g: any) => ({
-          ...g,
-          abierto: false,
-          filtro: ''
-        }));
+        this.estudiantes = body.estudiantes || [];
+        this.institucion = body.institucion || [];
+        this.colaboradores = body.colaboradores || [];
+        this.carpetasEnte = body.entes || [];
         this.reportes = body.reportes || [];
         this.cargando = false;
         this.consultado = true;
@@ -84,23 +97,32 @@ export class ConsultaEntesControlComponent implements OnInit {
     });
   }
 
-  toggleGrupo(grupo: any) {
-    grupo.abierto = !grupo.abierto;
-  }
-
-  // Filtra los documentos de un grupo por su propio buscador.
-  documentosFiltrados(grupo: any): any[] {
-    if (!grupo.filtro) { return grupo.documentos; }
-    const texto = grupo.filtro.toLowerCase();
-    return grupo.documentos.filter((d: any) =>
-      String(d.nombre_persona || '').toLowerCase().includes(texto) ||
-      String(d.nombre_archivo || '').toLowerCase().includes(texto) ||
-      String(d.numero_identificacion || '').toLowerCase().includes(texto)
+  get estudiantesFiltrados(): any[] {
+    const texto = this.busqueda.toLowerCase().trim();
+    if (!texto) { return this.estudiantes; }
+    return this.estudiantes.filter((c: any) =>
+      String(c.nombre_estudiante || '').toLowerCase().includes(texto) ||
+      String(c.numero_identificacion || '').toLowerCase().includes(texto)
     );
   }
 
-  totalDocumentos(): number {
-    return this.grupos.reduce((total: number, g: any) => total + (g.documentos?.length || 0), 0);
+  get hayCarpetas(): boolean {
+    return this.estudiantes.length > 0 || this.institucion.length > 0 ||
+           this.colaboradores.length > 0 || this.carpetasEnte.length > 0;
+  }
+
+  abrirCarpetaEstudiante(carpeta: any) {
+    this.tipoCarpetaAbierta = 'estudiante';
+    this.carpetaAbierta = carpeta;
+  }
+
+  abrirCarpetaPlana(carpeta: any) {
+    this.tipoCarpetaAbierta = 'plana';
+    this.carpetaAbierta = carpeta;
+  }
+
+  cerrarCarpeta() {
+    this.carpetaAbierta = null;
   }
 
   verDocumento(documento: any) {
@@ -124,5 +146,17 @@ export class ConsultaEntesControlComponent implements OnInit {
   estaVencido(documento: any): boolean {
     if (!documento.fecha_vencimiento) { return false; }
     return new Date(documento.fecha_vencimiento) < new Date();
+  }
+
+  // Agrupa los documentos de acudientes por nombre de acudiente.
+  acudientesAgrupados(carpeta: any): any[] {
+    if (!carpeta || !carpeta.documentos_acudientes) { return []; }
+    const mapa: any = {};
+    carpeta.documentos_acudientes.forEach((d: any) => {
+      const nombre = d.nombre_acudiente || 'Acudiente';
+      if (!mapa[nombre]) { mapa[nombre] = { nombre: nombre, documentos: [] }; }
+      mapa[nombre].documentos.push(d);
+    });
+    return Object.values(mapa);
   }
 }

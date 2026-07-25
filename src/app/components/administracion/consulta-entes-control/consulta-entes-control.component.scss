@@ -1,135 +1,114 @@
 $gold: #d4af37;
 $black: #222;
+$manila: #f4d58d;
+$manila-borde: #d9b45f;
 
-.modulo {
-  background: #f5f7fa;
-  min-height: 100vh;
-  padding-bottom: 2rem;
-}
+.modulo { background: #f5f7fa; min-height: 100vh; padding-bottom: 2rem; }
 
 .card-selector {
-  background: #fff;
-  border: 1px solid #e9ecef;
-  border-radius: 12px;
-  padding: 1.25rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-  max-width: 520px;
+  background: #fff; border: 1px solid #e9ecef; border-radius: 12px;
+  padding: 1.25rem; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04); max-width: 520px;
 }
 
-.titulo-bloque {
-  font-weight: 700;
-  color: $black;
-  margin-bottom: 1rem;
-  i { color: $gold; }
-}
-
+.titulo-bloque { font-weight: 700; color: $black; margin-bottom: 1rem; i { color: $gold; } }
 .form-label { font-weight: 500; color: #495057; }
 
 // ---------- Reportes ----------
 .tarjeta-reporte {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: #fff;
-  border: 1px solid #e9ecef;
-  border-radius: 10px;
-  padding: 14px 16px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-
-  .icono {
-    width: 40px; height: 40px; border-radius: 10px;
-    background: rgba($gold, 0.15);
-    display: flex; align-items: center; justify-content: center;
-    i { color: darken($gold, 10%); font-size: 1.1rem; }
-  }
+  display: flex; align-items: center; gap: 12px; background: #fff;
+  border: 1px solid #e9ecef; border-radius: 10px; padding: 14px 16px;
+  cursor: pointer; transition: all 0.2s ease;
+  .icono { width: 40px; height: 40px; border-radius: 10px; background: rgba($gold, 0.15);
+    display: flex; align-items: center; justify-content: center; i { color: darken($gold, 10%); font-size: 1.1rem; } }
   .texto { display: flex; flex-direction: column; min-width: 0;
-    .nombre { font-weight: 600; color: $black; font-size: 0.95rem; }
-    .tipo { color: #6c757d; font-size: 0.8rem; }
-  }
+    .nombre { font-weight: 600; color: $black; font-size: 0.95rem; } .tipo { color: #6c757d; font-size: 0.8rem; } }
   .flecha { margin-left: auto; color: #ccc; transition: transform 0.2s ease; }
-  &:hover {
-    border-color: $gold; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); transform: translateY(-2px);
-    .flecha { color: $gold; transform: translateX(3px); }
+  &:hover { border-color: $gold; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); transform: translateY(-2px);
+    .flecha { color: $gold; transform: translateX(3px); } }
+}
+
+// ---------- Encabezado carpetas ----------
+.encabezado-carpetas {
+  display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between; margin-bottom: 1.25rem;
+}
+.buscador {
+  position: relative; min-width: 260px; max-width: 340px; flex: 1;
+  i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #adb5bd; font-size: 0.9rem; }
+  input { width: 100%; padding: 8px 12px 8px 34px; border: 1px solid #dee2e6; border-radius: 8px; font-size: 0.9rem;
+    &:focus { outline: none; border-color: $gold; box-shadow: 0 0 0 0.15rem rgba($gold, 0.2); } }
+}
+
+// ---------- Carpetas manila ----------
+.grilla-carpetas {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1.25rem;
+}
+
+.carpeta {
+  position: relative; cursor: pointer; transition: transform 0.15s ease; padding-top: 14px;
+  &:hover { transform: translateY(-4px); }
+
+  // pestaña superior
+  .pestana {
+    position: absolute; top: 0; left: 10px; width: 55%; height: 20px;
+    background: $manila; border: 1.5px solid $manila-borde; border-bottom: none;
+    border-radius: 8px 12px 0 0;
+  }
+
+  .cuerpo {
+    position: relative; z-index: 1;
+    background: linear-gradient(180deg, lighten($manila, 4%) 0%, $manila 100%);
+    border: 1.5px solid $manila-borde; border-radius: 4px 10px 10px 10px;
+    min-height: 110px; padding: 14px 12px 12px;
+    display: flex; flex-direction: column; gap: 3px;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+
+    .badge-conteo {
+      position: absolute; top: 8px; right: 8px;
+      background: $black; color: $manila; border-radius: 20px;
+      min-width: 22px; height: 22px; padding: 0 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.72rem; font-weight: 700;
+    }
+    .nombre { font-weight: 700; color: #5a4a1f; font-size: 0.92rem; line-height: 1.2; margin-top: 6px; word-break: break-word; }
+    .identificacion { color: #8a763c; font-size: 0.75rem; }
   }
 }
 
-// ---------- Documentos: grupos colapsables ----------
-.grupo {
-  background: #fff;
-  border: 1px solid #e9ecef;
-  border-radius: 12px;
-  margin-bottom: 0.75rem;
-  overflow: hidden;
-  transition: box-shadow 0.2s ease;
-
-  &.abierto { box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06); }
+// ---------- Modal carpeta ----------
+.modal-carpeta-overlay {
+  position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5); z-index: 1050;
+  display: flex; align-items: center; justify-content: center; padding: 1rem;
 }
+.modal-carpeta {
+  background: #fff; border-radius: 14px; width: 100%; max-width: 640px;
+  max-height: 85vh; display: flex; flex-direction: column; overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+.modal-header-carpeta {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px; background: linear-gradient(180deg, lighten($manila, 4%), $manila); border-bottom: 2px solid $manila-borde;
+  .titulo-carpeta { display: flex; align-items: center; gap: 12px;
+    i { font-size: 1.5rem; color: #8a763c; }
+    .nombre { display: block; font-weight: 700; color: #5a4a1f; }
+    .identificacion { color: #8a763c; font-size: 0.8rem; } }
+  .btn-cerrar { background: none; border: none; font-size: 1.2rem; color: #8a763c; cursor: pointer; padding: 4px 8px; border-radius: 6px;
+    &:hover { background: rgba(0, 0, 0, 0.08); } }
+}
+.modal-body-carpeta { padding: 1.25rem 1.5rem; overflow-y: auto; }
 
-.grupo-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 14px 16px;
-  cursor: pointer;
-  user-select: none;
-  transition: background 0.15s ease;
+.seccion { margin-bottom: 1.5rem; &:last-child { margin-bottom: 0; } }
+.titulo-seccion { font-weight: 700; color: $black; font-size: 0.95rem; margin-bottom: 0.75rem; i { color: $gold; } }
 
+.acudiente-grupo { margin-bottom: 1rem; }
+.acudiente-nombre { font-weight: 600; color: #495057; font-size: 0.85rem; margin-bottom: 0.4rem; i { color: $gold; } }
+
+.doc {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 10px 12px; border: 1px solid #eee; border-radius: 8px; margin-bottom: 6px;
   &:hover { background: #fafbfc; }
-
-  .chevron { color: #adb5bd; width: 14px; font-size: 0.85rem; transition: color 0.15s ease; }
-  .nombre-doc { font-weight: 600; color: $black; }
-  .conteo {
-    margin-left: auto;
-    background: #eef0f3; color: #6c757d;
-    border-radius: 20px; padding: 2px 12px;
-    font-size: 0.82rem; font-weight: 600;
-  }
-}
-
-.grupo.abierto .grupo-header .chevron { color: $gold; }
-
-.badge-origen {
-  display: inline-block;
-  padding: 3px 10px;
-  border-radius: 20px;
-  background: rgba($gold, 0.15);
-  color: darken($gold, 20%);
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-
-.grupo-body {
-  border-top: 1px solid #f0f0f0;
-  padding: 0.85rem 1rem 1rem;
-}
-
-// ---------- Buscador por sección ----------
-.buscador-seccion {
-  position: relative;
-  margin-bottom: 0.85rem;
-  max-width: 420px;
-
-  i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #adb5bd; font-size: 0.85rem; }
-  input {
-    width: 100%;
-    padding: 7px 12px 7px 32px;
-    border: 1px solid #dee2e6;
-    border-radius: 8px;
-    font-size: 0.88rem;
-    &:focus { outline: none; border-color: $gold; box-shadow: 0 0 0 0.15rem rgba($gold, 0.2); }
-  }
-}
-
-.table th { white-space: nowrap; font-size: 0.86rem; color: #495057; }
-
-.archivo {
-  font-size: 0.86rem; color: #6c757d;
-  max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-}
-
-.vencido { color: #dc3545; font-weight: 600; }
-
-.sin-documentos {
-  padding: 1rem; text-align: center; color: #adb5bd; font-size: 0.9rem;
+  .doc-info { display: flex; flex-direction: column; min-width: 0; gap: 1px;
+    .doc-tipo { font-weight: 600; color: $black; font-size: 0.88rem; }
+    .doc-archivo { color: #6c757d; font-size: 0.8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 340px; }
+    .doc-vence { color: #6c757d; font-size: 0.75rem; &.vencido { color: #dc3545; font-weight: 600; } } }
+  .doc-acciones { flex-shrink: 0; }
 }

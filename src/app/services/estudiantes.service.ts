@@ -269,6 +269,35 @@ export class EstudiantesService {
     );
   }
 
+  // Lee la foto/archivo del registro civil con IA y devuelve los datos del niño y
+  // sus padres para prellenar el asistente. No crea nada en la BD.
+  analizarRegistroCivil(archivo: File) {
+    const formData = new FormData();
+    formData.append('registro_civil', archivo);
+
+    return this.http.post<any>(this.servicio + '/analizar-registro-civil', formData).pipe(
+      tap((respuesta: any) => {
+        if (respuesta.error) throw respuesta.error;
+        return respuesta;
+      }),
+      catchError(this.handleError)
+    );
+  }
+
+  // Crea en una sola transacción el niño (persona + estudiante), su grupo/grado,
+  // horarios y los acudientes (persona + acudiente). Los usuarios del portal se
+  // crean aparte con Usuarios.crear a partir de los id_persona que devuelve.
+  registroRapidoCompleto(data: any) {
+    const body = JSON.stringify(data);
+    return this.http.post<any>(this.servicio + '/registro-rapido-completo', body, httpOptions).pipe(
+      tap((respuesta: any) => {
+        if (respuesta.error) throw respuesta.error;
+        return respuesta;
+      }),
+      catchError(this.handleError)
+    );
+  }
+
   private handleError(error: HttpErrorResponse) {
     return throwError(() => error);
   }
