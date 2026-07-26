@@ -34,6 +34,9 @@ export class ConsultaEntesControlComponent implements OnInit {
   // Búsqueda de estudiante (carpetas)
   public busqueda = '';
 
+  // Pestaña activa
+  public tabActiva = '';
+
   // Carpeta abierta (modal)
   public carpetaAbierta: any = null;
   public tipoCarpetaAbierta: 'estudiante' | 'plana' = 'plana';
@@ -68,6 +71,7 @@ export class ConsultaEntesControlComponent implements OnInit {
     this.reportes = [];
     this.busqueda = '';
     this.carpetaAbierta = null;
+    this.tabActiva = '';
     this.enteSeleccionado = this.entes.find((e: any) => e.id === this.idEnteSeleccionado) || null;
 
     if (this.idEnteSeleccionado) {
@@ -87,6 +91,7 @@ export class ConsultaEntesControlComponent implements OnInit {
         this.reportes = body.reportes || [];
         this.cargando = false;
         this.consultado = true;
+        this.seleccionarPrimeraTab();
       },
       error: (error: any) => {
         console.error('Error al resolver los recursos del ente', error);
@@ -109,6 +114,26 @@ export class ConsultaEntesControlComponent implements OnInit {
   get hayCarpetas(): boolean {
     return this.estudiantes.length > 0 || this.institucion.length > 0 ||
            this.colaboradores.length > 0 || this.carpetasEnte.length > 0;
+  }
+
+  // Pestañas disponibles (solo las que tienen contenido)
+  get tabs(): any[] {
+    const t: any[] = [];
+    if (this.reportes.length > 0)      { t.push({ id: 'reportes',      label: 'Reportes',      icono: 'fas fa-chart-bar',    total: this.reportes.length }); }
+    if (this.institucion.length > 0)   { t.push({ id: 'institucion',   label: 'Institución',   icono: 'fas fa-school',       total: this.institucion.length }); }
+    if (this.carpetasEnte.length > 0)  { t.push({ id: 'ente',          label: 'Ente',          icono: 'fas fa-landmark',     total: this.carpetasEnte.length }); }
+    if (this.colaboradores.length > 0) { t.push({ id: 'colaboradores', label: 'Colaboradores', icono: 'fas fa-user-tie',     total: this.colaboradores.length }); }
+    if (this.estudiantes.length > 0)   { t.push({ id: 'estudiantes',   label: 'Estudiantes',   icono: 'fas fa-user-graduate', total: this.estudiantes.length }); }
+    return t;
+  }
+
+  seleccionarPrimeraTab() {
+    const tabs = this.tabs;
+    this.tabActiva = tabs.length > 0 ? tabs[0].id : '';
+  }
+
+  cambiarTab(id: string) {
+    this.tabActiva = id;
   }
 
   abrirCarpetaEstudiante(carpeta: any) {

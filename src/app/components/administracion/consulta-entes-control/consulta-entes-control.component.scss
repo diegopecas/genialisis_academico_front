@@ -112,3 +112,89 @@ $manila-borde: #d9b45f;
     .doc-vence { color: #6c757d; font-size: 0.75rem; &.vencido { color: #dc3545; font-weight: 600; } } }
   .doc-acciones { flex-shrink: 0; }
 }
+
+// ================= Bienvenida =================
+.bienvenida {
+  max-width: 480px;
+  margin: 4rem auto 0;
+  text-align: center;
+
+  .bienvenida-icono {
+    width: 90px; height: 90px; margin: 0 auto 1.25rem;
+    border-radius: 24px;
+    background: linear-gradient(180deg, lighten($manila, 4%), $manila);
+    border: 1.5px solid $manila-borde;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 8px 20px rgba($manila-borde, 0.35);
+    i { font-size: 2.4rem; color: #8a763c; }
+  }
+  .bienvenida-titulo { font-weight: 700; color: $black; margin-bottom: 0.5rem; }
+  .bienvenida-texto { color: #8a8f98; margin-bottom: 1.5rem; }
+  .bienvenida-select { text-align: left; }
+}
+
+// ================= Encabezado del ente =================
+.ente-header {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  background: #fff; border: 1px solid #e9ecef; border-radius: 12px;
+  padding: 14px 18px; margin-bottom: 1.25rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+
+  .ente-info { display: flex; align-items: center; gap: 14px; }
+  .ente-avatar {
+    width: 46px; height: 46px; border-radius: 12px;
+    background: rgba($gold, 0.15);
+    display: flex; align-items: center; justify-content: center;
+    i { color: darken($gold, 10%); font-size: 1.3rem; }
+  }
+  .ente-nombre { display: block; font-weight: 700; color: $black; font-size: 1.05rem; }
+  .ente-id { color: #8a8f98; font-size: 0.82rem; }
+
+  .btn-cambiar {
+    background: none; border: 1px solid #dee2e6; border-radius: 8px;
+    padding: 8px 14px; color: #6c757d; font-size: 0.85rem; font-weight: 500;
+    cursor: pointer; transition: all 0.2s ease; white-space: nowrap;
+    &:hover { border-color: $gold; color: $black; }
+  }
+}
+
+// ================= Pestañas =================
+.tabs {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  border-bottom: 2px solid #eee; margin-bottom: 1.5rem;
+}
+.tab {
+  display: flex; align-items: center; gap: 8px;
+  background: none; border: none;
+  padding: 10px 16px; margin-bottom: -2px;
+  border-bottom: 3px solid transparent;
+  color: #6c757d; font-size: 0.9rem; font-weight: 600;
+  cursor: pointer; transition: all 0.2s ease;
+
+  i { font-size: 0.95rem; }
+  .tab-badge {
+    background: #eef0f3; color: #6c757d;
+    border-radius: 20px; padding: 1px 9px; font-size: 0.75rem; font-weight: 700;
+  }
+  &:hover { color: $black; }
+  &.activa {
+    color: $black;
+    border-bottom-color: $gold;
+    i { color: darken($gold, 5%); }
+    .tab-badge { background: $gold; color: $black; }
+  }
+}
+
+.tab-contenido { animation: aparecer 0.2s ease; }
+@keyframes aparecer { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+// buscador dentro de la pestaña estudiantes
+.buscador-estudiantes {
+  position: relative; max-width: 340px; margin-bottom: 1.25rem;
+  i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #adb5bd; font-size: 0.9rem; }
+  input {
+    width: 100%; padding: 8px 12px 8px 34px;
+    border: 1px solid #dee2e6; border-radius: 8px; font-size: 0.9rem;
+    &:focus { outline: none; border-color: $gold; box-shadow: 0 0 0 0.15rem rgba($gold, 0.2); }
+  }
+}

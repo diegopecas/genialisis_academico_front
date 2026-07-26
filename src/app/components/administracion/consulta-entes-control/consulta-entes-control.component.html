@@ -9,113 +9,129 @@
 
   <div class="container-fluid mt-4">
 
-    <!-- SELECCIÓN DEL ENTE -->
-    <div class="card-selector">
-      <label class="form-label">Ente de control</label>
-      <select class="form-select form-select-lg" [(ngModel)]="idEnteSeleccionado" (change)="cambiarEnte()">
-        <option value="">Seleccionar...</option>
-        <option *ngFor="let e of entes" [value]="e.id">{{ e.nombre_ente }}</option>
-      </select>
+    <!-- ESTADO INICIAL: bienvenida centrada -->
+    <div *ngIf="!idEnteSeleccionado" class="bienvenida">
+      <div class="bienvenida-icono"><i class="fas fa-folder-open"></i></div>
+      <h3 class="bienvenida-titulo">Consulta de expedientes</h3>
+      <p class="bienvenida-texto">Seleccione un ente de control para ver los documentos y reportes que tiene autorizados.</p>
+      <div class="bienvenida-select">
+        <select class="form-select form-select-lg" [(ngModel)]="idEnteSeleccionado" (change)="cambiarEnte()">
+          <option value="">Seleccionar ente de control...</option>
+          <option *ngFor="let e of entes" [value]="e.id">{{ e.nombre_ente }}</option>
+        </select>
+      </div>
     </div>
 
-    <div *ngIf="cargando" class="text-center text-muted py-5">Cargando...</div>
+    <!-- CON ENTE: encabezado + pestañas -->
+    <ng-container *ngIf="idEnteSeleccionado">
 
-    <div *ngIf="!cargando && !idEnteSeleccionado" class="text-center text-muted py-5">
-      Seleccione un ente de control para ver las carpetas y reportes que tiene autorizados.
-    </div>
+      <!-- Encabezado del ente -->
+      <div class="ente-header">
+        <div class="ente-info">
+          <div class="ente-avatar"><i class="fas fa-landmark"></i></div>
+          <div>
+            <span class="ente-nombre">{{ enteSeleccionado?.nombre_ente }}</span>
+            <small class="ente-id">{{ enteSeleccionado?.numero_identificacion }}</small>
+          </div>
+        </div>
+        <button class="btn-cambiar" (click)="idEnteSeleccionado = ''; cambiarEnte()">
+          <i class="fas fa-exchange-alt me-1"></i> Cambiar ente
+        </button>
+      </div>
 
-    <div *ngIf="!cargando && consultado && !hayCarpetas && reportes.length === 0"
-         class="text-center text-muted py-5">
-      Este ente de control no tiene recursos configurados o no hay documentos disponibles.
-    </div>
+      <div *ngIf="cargando" class="text-center text-muted py-5">Cargando...</div>
 
-    <!-- REPORTES -->
-    <div *ngIf="!cargando && reportes.length > 0" class="bloque mt-4">
-      <h5 class="titulo-bloque"><i class="fas fa-chart-bar me-2"></i>Reportes</h5>
-      <div class="row g-3">
-        <div class="col-sm-12 col-md-6 col-lg-4" *ngFor="let r of reportes">
-          <div class="tarjeta-reporte" (click)="abrirReporte(r)">
-            <div class="icono"><i class="fas fa-file-invoice"></i></div>
-            <div class="texto">
-              <span class="nombre">{{ r.nombre }}</span>
-              <small class="tipo">{{ r.nombre_tipo_reporte }}</small>
+      <div *ngIf="!cargando && consultado && tabs.length === 0" class="text-center text-muted py-5">
+        Este ente de control no tiene recursos configurados o no hay documentos disponibles.
+      </div>
+
+      <!-- Pestañas -->
+      <div *ngIf="!cargando && tabs.length > 0" class="tabs">
+        <button class="tab" *ngFor="let t of tabs" [class.activa]="tabActiva === t.id" (click)="cambiarTab(t.id)">
+          <i [class]="t.icono"></i>
+          <span>{{ t.label }}</span>
+          <span class="tab-badge">{{ t.total }}</span>
+        </button>
+      </div>
+
+      <!-- Contenido de pestañas -->
+      <div *ngIf="!cargando && tabs.length > 0" class="tab-contenido">
+
+        <!-- REPORTES -->
+        <div *ngIf="tabActiva === 'reportes'" class="row g-3">
+          <div class="col-sm-12 col-md-6 col-lg-4" *ngFor="let r of reportes">
+            <div class="tarjeta-reporte" (click)="abrirReporte(r)">
+              <div class="icono"><i class="fas fa-file-invoice"></i></div>
+              <div class="texto">
+                <span class="nombre">{{ r.nombre }}</span>
+                <small class="tipo">{{ r.nombre_tipo_reporte }}</small>
+              </div>
+              <i class="fas fa-arrow-right flecha"></i>
             </div>
-            <i class="fas fa-arrow-right flecha"></i>
           </div>
         </div>
-      </div>
-    </div>
 
-    <!-- INSTITUCIÓN -->
-    <div *ngIf="!cargando && institucion.length > 0" class="bloque mt-4">
-      <h5 class="titulo-bloque"><i class="fas fa-school me-2"></i>Institución</h5>
-      <div class="grilla-carpetas">
-        <div class="carpeta" *ngFor="let c of institucion" (click)="abrirCarpetaPlana(c)">
-          <div class="pestana"></div>
-          <div class="cuerpo">
-            <span class="badge-conteo">{{ c.total_documentos }}</span>
-            <span class="nombre">{{ c.nombre }}</span>
-            <small class="identificacion">{{ c.numero_identificacion }}</small>
+        <!-- INSTITUCIÓN -->
+        <div *ngIf="tabActiva === 'institucion'" class="grilla-carpetas">
+          <div class="carpeta" *ngFor="let c of institucion" (click)="abrirCarpetaPlana(c)">
+            <div class="pestana"></div>
+            <div class="cuerpo">
+              <span class="badge-conteo">{{ c.total_documentos }}</span>
+              <span class="nombre">{{ c.nombre }}</span>
+              <small class="identificacion">{{ c.numero_identificacion }}</small>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
 
-    <!-- ENTE DE CONTROL (propios) -->
-    <div *ngIf="!cargando && carpetasEnte.length > 0" class="bloque mt-4">
-      <h5 class="titulo-bloque"><i class="fas fa-landmark me-2"></i>Documentos del ente</h5>
-      <div class="grilla-carpetas">
-        <div class="carpeta" *ngFor="let c of carpetasEnte" (click)="abrirCarpetaPlana(c)">
-          <div class="pestana"></div>
-          <div class="cuerpo">
-            <span class="badge-conteo">{{ c.total_documentos }}</span>
-            <span class="nombre">{{ c.nombre }}</span>
-            <small class="identificacion">{{ c.numero_identificacion }}</small>
+        <!-- ENTE -->
+        <div *ngIf="tabActiva === 'ente'" class="grilla-carpetas">
+          <div class="carpeta" *ngFor="let c of carpetasEnte" (click)="abrirCarpetaPlana(c)">
+            <div class="pestana"></div>
+            <div class="cuerpo">
+              <span class="badge-conteo">{{ c.total_documentos }}</span>
+              <span class="nombre">{{ c.nombre }}</span>
+              <small class="identificacion">{{ c.numero_identificacion }}</small>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
 
-    <!-- COLABORADORES -->
-    <div *ngIf="!cargando && colaboradores.length > 0" class="bloque mt-4">
-      <h5 class="titulo-bloque"><i class="fas fa-user-tie me-2"></i>Colaboradores</h5>
-      <div class="grilla-carpetas">
-        <div class="carpeta" *ngFor="let c of colaboradores" (click)="abrirCarpetaPlana(c)">
-          <div class="pestana"></div>
-          <div class="cuerpo">
-            <span class="badge-conteo">{{ c.total_documentos }}</span>
-            <span class="nombre">{{ c.nombre }}</span>
-            <small class="identificacion">{{ c.numero_identificacion }}</small>
+        <!-- COLABORADORES -->
+        <div *ngIf="tabActiva === 'colaboradores'" class="grilla-carpetas">
+          <div class="carpeta" *ngFor="let c of colaboradores" (click)="abrirCarpetaPlana(c)">
+            <div class="pestana"></div>
+            <div class="cuerpo">
+              <span class="badge-conteo">{{ c.total_documentos }}</span>
+              <span class="nombre">{{ c.nombre }}</span>
+              <small class="identificacion">{{ c.numero_identificacion }}</small>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
 
-    <!-- ESTUDIANTES -->
-    <div *ngIf="!cargando && estudiantes.length > 0" class="bloque mt-4">
-      <div class="encabezado-carpetas">
-        <h5 class="titulo-bloque mb-0"><i class="fas fa-folder me-2"></i>Estudiantes</h5>
-        <div class="buscador">
-          <i class="fas fa-search"></i>
-          <input type="text" [(ngModel)]="busqueda" placeholder="Buscar estudiante..." />
-        </div>
-      </div>
+        <!-- ESTUDIANTES -->
+        <div *ngIf="tabActiva === 'estudiantes'">
+          <div class="buscador-estudiantes">
+            <i class="fas fa-search"></i>
+            <input type="text" [(ngModel)]="busqueda" placeholder="Buscar estudiante..." />
+          </div>
 
-      <div *ngIf="estudiantesFiltrados.length === 0" class="text-center text-muted py-4">
-        Ningún estudiante coincide con la búsqueda.
-      </div>
+          <div *ngIf="estudiantesFiltrados.length === 0" class="text-center text-muted py-4">
+            Ningún estudiante coincide con la búsqueda.
+          </div>
 
-      <div class="grilla-carpetas">
-        <div class="carpeta" *ngFor="let c of estudiantesFiltrados" (click)="abrirCarpetaEstudiante(c)">
-          <div class="pestana"></div>
-          <div class="cuerpo">
-            <span class="badge-conteo">{{ c.total_documentos }}</span>
-            <span class="nombre">{{ c.nombre_estudiante }}</span>
-            <small class="identificacion">{{ c.numero_identificacion }}</small>
+          <div class="grilla-carpetas">
+            <div class="carpeta" *ngFor="let c of estudiantesFiltrados" (click)="abrirCarpetaEstudiante(c)">
+              <div class="pestana"></div>
+              <div class="cuerpo">
+                <span class="badge-conteo">{{ c.total_documentos }}</span>
+                <span class="nombre">{{ c.nombre_estudiante }}</span>
+                <small class="identificacion">{{ c.numero_identificacion }}</small>
+              </div>
+            </div>
           </div>
         </div>
+
       </div>
-    </div>
+    </ng-container>
 
   </div>
 
