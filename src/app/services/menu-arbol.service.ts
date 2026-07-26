@@ -45,6 +45,7 @@ export class MenuArbolService {
             keywords: ['alumnos', 'niños', 'matricula'],
             hijos: [
               { id: 'estudiantes-gestion-estudiantes', label: 'Gestión Estudiantes', icono: '🎓', ruta: '/gestion-estudiantes', keywords: ['alumnos', 'niños', 'matricula', 'registro rapido', 'registro civil'] },
+              { id: 'estudiantes-registro-rapido', label: 'Registro Rápido', icono: '⚡', ruta: '/registro-rapido-estudiante', permiso: 'estudiantes.administrar', keywords: ['registro rapido', 'registro civil', 'matricula', 'nuip', 'foto'] },
               { id: 'estudiantes-listado', label: 'Estudiantes', icono: '🎓', ruta: '/estudiantes', permiso: 'estudiantes.listado', keywords: ['alumnos', 'niños', 'estudiantado', 'parvulos'] }
             ]
           }
