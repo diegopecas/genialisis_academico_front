@@ -126,10 +126,34 @@
 
 .btn-mic .mic-spinner {
   display: inline-block;
-  width: 1rem;
-  height: 1rem;
-  border: 2px solid rgba(255, 255, 255, 0.35);
-  border-top-color: currentColor;
+  width: 1.15rem;
+  height: 1.15rem;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  border-top-color: #ffbd31;
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
+}
+
+// Modo ícono grabando: se vuelve una pastilla con punto pulsante + tiempo
+.btn-mic.grabando {
+  width: auto;
+  gap: 0.4rem;
+  padding: 0 0.65rem;
+  border-radius: 999px;
+  color: #ff5a5f;
+  background: rgba(255, 90, 95, 0.12);
+}
+
+.btn-mic .rec-dot {
+  display: inline-block;
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 50%;
+  background: #ff5a5f;
+  animation: pulso-rec 1s ease-in-out infinite;
+}
+
+.btn-mic .rec-time {
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
 }

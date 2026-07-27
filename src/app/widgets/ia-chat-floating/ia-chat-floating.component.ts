@@ -219,7 +219,6 @@ export class IaChatFloatingComponent implements OnInit, OnDestroy, AfterViewChec
    * Recibe el texto dictado (Whisper) y lo agrega al input del chat.
    */
   onVozTranscrita(texto: string): void {
-    console.log('[chat] onVozTranscrita recibido:', JSON.stringify(texto));
     const limpio = (texto || '').trim();
     if (!limpio) {
       return;
