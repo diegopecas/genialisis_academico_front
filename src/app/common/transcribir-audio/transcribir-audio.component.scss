@@ -79,3 +79,57 @@
   animation: spin 2s linear infinite;
   margin-right: 0.25rem;
 }
+// Modo ícono (soloIcono): botón redondo de micrófono para inputs compactos (ej. chat)
+.btn-mic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: #cfcfcf;
+  cursor: pointer;
+  font-size: 1.1rem;
+  line-height: 1;
+  transition: background-color 0.2s ease, color 0.2s ease;
+
+  &:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.75;
+  }
+
+  &.grabando {
+    color: #ff5a5f;
+  }
+
+  &.procesando {
+    color: #cfcfcf;
+  }
+
+  .girando {
+    animation: spin 1s linear infinite;
+  }
+}
+
+// Ícono SVG y spinner del modo micrófono
+.btn-mic .mic-svg {
+  display: block;
+}
+
+.btn-mic .mic-spinner {
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}

@@ -137,6 +137,7 @@
           [disabled]="esperandoRespuesta"
           (input)="autoResize($event)"
         ></textarea>
+        <app-transcribir-audio [soloIcono]="true" [silencioso]="true" (mensaje)="onVozTranscrita($event)"></app-transcribir-audio>
         <button
           class="btn-enviar"
           (click)="enviarMensaje()"

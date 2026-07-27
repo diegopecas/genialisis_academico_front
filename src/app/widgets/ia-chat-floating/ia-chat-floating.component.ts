@@ -14,11 +14,12 @@ import { filter } from 'rxjs/operators';
 import {
   IaChatService,
 } from '../../services/ia-chat.service';
+import { TranscribirAudioComponent } from '../../common/transcribir-audio/transcribir-audio.component';
 
 @Component({
   selector: 'app-ia-chat-floating',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TranscribirAudioComponent],
   templateUrl: './ia-chat-floating.component.html',
   styleUrl: './ia-chat-floating.component.scss',
 })
@@ -212,6 +213,20 @@ export class IaChatFloatingComponent implements OnInit, OnDestroy, AfterViewChec
     const textarea = event.target as HTMLTextAreaElement;
     textarea.style.height = 'auto';
     textarea.style.height = Math.min(textarea.scrollHeight, 100) + 'px';
+  }
+
+  /**
+   * Recibe el texto dictado (Whisper) y lo agrega al input del chat.
+   */
+  onVozTranscrita(texto: string): void {
+    console.log('[chat] onVozTranscrita recibido:', JSON.stringify(texto));
+    const limpio = (texto || '').trim();
+    if (!limpio) {
+      return;
+    }
+    this.textoMensaje = this.textoMensaje.trim()
+      ? this.textoMensaje.trim() + ' ' + limpio
+      : limpio;
   }
 
   enviarMensaje(): void {

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output, OnDestroy } from '@angular/core';
+import { Component, EventEmitter, Output, Input, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IaTranscripcionAudioService } from '../../services/ia-transcripcion-audio.service';
 import Swal from 'sweetalert2';
@@ -12,6 +12,12 @@ import Swal from 'sweetalert2';
 })
 export class TranscribirAudioComponent implements OnDestroy {
   @Output() mensaje = new EventEmitter<string>();
+
+  /** Muestra solo un botón de micrófono (ícono), sin texto ni ancho completo. */
+  @Input() soloIcono: boolean = false;
+
+  /** Hace la transcripción en modo silencioso (sin spinner global). */
+  @Input() silencioso: boolean = false;
 
   public grabando: boolean = false;
   public procesando: boolean = false;
@@ -123,7 +129,7 @@ export class TranscribirAudioComponent implements OnDestroy {
 
     this.procesando = true;
 
-    this.iaTranscripcionAudioService.transcribir(audioBlob, 'es').subscribe({
+    this.iaTranscripcionAudioService.transcribir(audioBlob, 'es', this.silencioso).subscribe({
       next: (response: any) => {
         this.procesando = false;
 

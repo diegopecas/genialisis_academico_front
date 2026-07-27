@@ -1,6 +1,7 @@
 import {
   HttpClient,
   HttpErrorResponse,
+  HttpHeaders,
 } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from '../../environments/environment';
@@ -15,13 +16,19 @@ export class IaTranscripcionAudioService {
 
   constructor(private http: HttpClient) {}
 
-  transcribir(audio: Blob, idioma: string = 'es') {
+  transcribir(audio: Blob, idioma: string = 'es', silencioso: boolean = false) {
     const formData = new FormData();
     const extension = this.obtenerExtensionDesdeMimeType(audio.type);
     formData.append('audio', audio, `grabacion.${extension}`);
     formData.append('idioma', idioma);
 
-    return this.http.post<any>(this.servicio + '/transcribir', formData).pipe(
+    // En modo silencioso se agrega X-Silent para que no se dispare el spinner global
+    // (el interceptor lo detecta y lo remueve antes de enviar al servidor).
+    const options = silencioso
+      ? { headers: new HttpHeaders({ 'X-Silent': 'true' }) }
+      : {};
+
+    return this.http.post<any>(this.servicio + '/transcribir', formData, options).pipe(
       tap((respuesta: any) => {
         if (respuesta.error) {
           throw respuesta.error;
