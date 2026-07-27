@@ -210,9 +210,20 @@ export class IaChatFloatingComponent implements OnInit, OnDestroy, AfterViewChec
   }
 
   autoResize(event: Event): void {
-    const textarea = event.target as HTMLTextAreaElement;
+    this.ajustarAltura(event.target as HTMLTextAreaElement);
+  }
+
+  /**
+   * Ajusta la altura del textarea al contenido (crece hasta un tope).
+   * Reutilizable: sirve para el evento input y para cuando el texto se
+   * asigna por código (p. ej. al dictar), que no dispara el evento input.
+   */
+  private ajustarAltura(textarea?: HTMLTextAreaElement): void {
+    if (!textarea) {
+      return;
+    }
     textarea.style.height = 'auto';
-    textarea.style.height = Math.min(textarea.scrollHeight, 100) + 'px';
+    textarea.style.height = Math.min(textarea.scrollHeight, 160) + 'px';
   }
 
   /**
@@ -226,6 +237,7 @@ export class IaChatFloatingComponent implements OnInit, OnDestroy, AfterViewChec
     this.textoMensaje = this.textoMensaje.trim()
       ? this.textoMensaje.trim() + ' ' + limpio
       : limpio;
+    setTimeout(() => this.ajustarAltura(this.inputMensaje?.nativeElement), 0);
   }
 
   enviarMensaje(): void {

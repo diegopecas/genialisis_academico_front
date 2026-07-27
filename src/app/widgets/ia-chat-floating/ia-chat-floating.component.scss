@@ -404,8 +404,9 @@ $shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
     color: $text-white;
     font-size: 13.5px;
     line-height: 1.4;
-    resize: none;
-    max-height: 100px;
+    resize: vertical;
+    min-height: 24px;
+    max-height: 260px;
     padding: 6px 0;
     font-family: inherit;
 
