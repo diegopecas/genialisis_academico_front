@@ -21,6 +21,7 @@ export class TranscribirAudioComponent implements OnDestroy {
 
   public grabando: boolean = false;
   public procesando: boolean = false;
+  private procesandoDesde: number = 0;
   public tiempoGrabacion: number = 0;
 
   private mediaRecorder: MediaRecorder | null = null;
@@ -128,24 +129,37 @@ export class TranscribirAudioComponent implements OnDestroy {
     }
 
     this.procesando = true;
+    this.procesandoDesde = Date.now();
 
     this.iaTranscripcionAudioService.transcribir(audioBlob, 'es', this.silencioso).subscribe({
       next: (response: any) => {
-        this.procesando = false;
-
-        if (response?.success && response.texto?.trim()) {
-          this.mensaje.emit(response.texto.trim());
-        } else {
-          this.notificarError('No se pudo obtener un texto válido de la transcripción.');
-        }
+        this.finalizarProcesando(() => {
+          if (response?.success && response.texto?.trim()) {
+            this.mensaje.emit(response.texto.trim());
+          } else {
+            this.notificarError('No se pudo obtener un texto válido de la transcripción.');
+          }
+        });
       },
       error: (error: any) => {
-        this.procesando = false;
         console.error('Error al transcribir:', error);
         const mensajeError = error?.error?.error || 'No se pudo transcribir el audio. Intente de nuevo.';
-        this.notificarError(mensajeError);
+        this.finalizarProcesando(() => this.notificarError(mensajeError));
       }
     });
+  }
+
+  /**
+   * Cierra el estado "procesando" garantizando un mínimo visible del spinner
+   * (para que no desaparezca en un parpadeo cuando la transcripción es muy rápida).
+   */
+  private finalizarProcesando(accion: () => void): void {
+    const MIN_MS = 700;
+    const restante = Math.max(0, MIN_MS - (Date.now() - this.procesandoDesde));
+    setTimeout(() => {
+      this.procesando = false;
+      accion();
+    }, restante);
   }
 
   private obtenerMimeTypeSoportado(): string {
