@@ -1,0 +1,83 @@
+<div class="modulo">
+    <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [raiz]="'/operaciones/perfil-desarrollo'"
+        [regresar]="'/operaciones/perfil-desarrollo'"></app-header>
+
+    <div class="container-fluid mt-4">
+
+        <div *ngIf="cargando" class="text-center py-5">
+            <div class="spinner-border text-primary" role="status"></div>
+        </div>
+
+        <div *ngIf="!cargando">
+
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-body">
+                    <h5 class="mb-0"><i class="fas fa-child me-2 text-primary"></i>{{ nombreEstudiante }}</h5>
+                </div>
+            </div>
+
+            <div *ngIf="aplicaciones.length === 0" class="text-center py-5 text-muted">
+                <i class="fas fa-clipboard-list fa-2x mb-3"></i>
+                <p>Este estudiante no tiene aplicaciones registradas.</p>
+            </div>
+
+            <div *ngFor="let aplicacion of aplicaciones" class="card shadow-sm border-0 mb-3">
+                <div class="aplicacion-header" (click)="toggleDetalle(aplicacion)">
+                    <div class="aplicacion-info">
+                        <strong>{{ aplicacion.fecha_aplicacion }}</strong>
+                        <span class="text-muted small">{{ aplicacion.edad_meses }} meses · desde {{ aplicacion.nombre_rango_inicio }}</span>
+                    </div>
+                    <div class="aplicacion-datos">
+                        <span class="badge" [ngClass]="claseEstado(aplicacion.estado)">
+                            {{ etiquetaEstado(aplicacion.estado) }}
+                        </span>
+                        <span class="pill-indice" [ngClass]="claseIndice(aplicacion.indice_global)">
+                            {{ redondear(aplicacion.indice_global) }}
+                        </span>
+                        <i class="fas fa-chevron-down chevron" [class.rotado]="expandida === aplicacion.id"></i>
+                    </div>
+                </div>
+
+                <div class="aplicacion-body" *ngIf="expandida === aplicacion.id">
+
+                    <div class="esferas-grid" *ngIf="esferasPorAplicacion[aplicacion.id]">
+                        <div class="esfera-mini" *ngFor="let esfera of esferasPorAplicacion[aplicacion.id]">
+                            <span class="esfera-mini-nombre">{{ esfera.nombre_esfera }}</span>
+                            <span class="esfera-mini-indice" [ngClass]="claseIndice(esfera.indice)">
+                                {{ redondear(esfera.indice) }}
+                            </span>
+                            <small>{{ redondear(esfera.edad_desarrollo_meses) }} meses</small>
+                        </div>
+                    </div>
+
+                    <div class="alerta-esfera" *ngIf="aplicacion.nombre_esfera_mas_baja">
+                        <i class="fas fa-exclamation-triangle me-1"></i>
+                        Esfera rezagada frente al promedio: <strong>{{ aplicacion.nombre_esfera_mas_baja }}</strong>
+                    </div>
+
+                    <div class="observaciones" *ngIf="aplicacion.observaciones">
+                        <label>Observaciones</label>
+                        <p>{{ aplicacion.observaciones }}</p>
+                    </div>
+
+                    <div class="aplicacion-acciones">
+                        <button class="btn btn-sm btn-primary"
+                            *ngIf="aplicacion.estado !== 'finalizada'"
+                            (click)="continuar(aplicacion)">
+                            Continuar aplicación
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger ms-2" (click)="anular(aplicacion)">
+                            Anular
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mb-5 mt-4">
+                <div class="col-sm-12">
+                    <button class="btn btn-lg btn-secondary w-100" (click)="volver()">Volver</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

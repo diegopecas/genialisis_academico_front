@@ -1,0 +1,20 @@
+.modulo { width: 100%; }
+
+.leyenda-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  small { color: #666; }
+}
+
+.badge-indice {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  display: inline-block;
+
+  &.verde { background-color: #4CAF50; }
+  &.amarillo { background-color: #FF9800; }
+  &.rojo { background-color: #F44336; }
+}

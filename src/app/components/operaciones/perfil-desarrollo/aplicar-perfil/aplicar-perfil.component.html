@@ -1,0 +1,185 @@
+<div class="modulo">
+    <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [raiz]="'/operaciones/perfil-desarrollo'"
+        [regresar]="'/operaciones/perfil-desarrollo'"></app-header>
+
+    <div class="container-fluid mt-4">
+
+        <div *ngIf="cargando" class="text-center py-5">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-2 text-muted">Cargando...</p>
+        </div>
+
+        <div *ngIf="!cargando">
+
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h5 class="mb-1"><i class="fas fa-child me-2 text-primary"></i>{{ nombreEstudiante }}</h5>
+                            <p class="text-muted mb-0 small">{{ edadMeses }} meses · Fecha {{ fechaAplicacion }}</p>
+                        </div>
+                        <div class="col-md-6" *ngIf="paso === 'aplicacion'">
+                            <div class="resumen-global" [ngClass]="claseIndice(indiceGlobal)">
+                                <div class="resumen-item">
+                                    <small>Edad de desarrollo</small>
+                                    <strong>{{ redondear(edadDesarrolloPromedio) }} meses</strong>
+                                </div>
+                                <div class="resumen-item">
+                                    <small>Índice global</small>
+                                    <strong>{{ redondear(indiceGlobal) }}</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Paso de configuración -->
+            <div *ngIf="paso === 'configuracion'" class="card shadow-sm border-0 mb-4">
+                <div class="card-body">
+                    <h6 class="mb-3">¿Desde qué rango quiere empezar?</h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <select class="form-select" [(ngModel)]="idRangoInicio" (change)="consultarResumenAsumidos()">
+                                <option value="">Seleccione el rango de inicio...</option>
+                                <option *ngFor="let rango of rangos" [value]="rango.id">{{ rango.nombre }}</option>
+                            </select>
+                            <small class="form-text text-muted">
+                                Los rangos por debajo del elegido no se aplican y se dan por logrados.
+                            </small>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="aviso-asumidos" *ngIf="resumenAsumidos">
+                                <div class="aviso-titulo">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Se darán por logrados {{ resumenAsumidos.total_items_asumidos }} ítem(s)
+                                </div>
+                                <div class="aviso-detalle" *ngFor="let fila of resumenAsumidos.detalle">
+                                    {{ fila.nombre_rango }} · {{ fila.nombre_esfera }}: {{ fila.total_items }}
+                                </div>
+                                <div class="aviso-nota" *ngIf="resumenAsumidos.total_items_asumidos === 0">
+                                    Ninguno: está empezando desde el primer rango.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <button class="btn btn-warning" (click)="iniciarAplicacion()" [disabled]="guardando || !idRangoInicio">
+                            <span *ngIf="guardando" class="spinner-border spinner-border-sm me-1"></span>
+                            Iniciar aplicación
+                        </button>
+                        <button class="btn btn-secondary ms-2" (click)="volver()">Volver</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Paso de aplicación -->
+            <div *ngIf="paso === 'aplicacion'">
+
+                <div *ngFor="let estado of estados" class="card shadow-sm border-0 mb-3 esfera-card">
+                    <div class="esfera-header" (click)="toggleEsfera(estado)">
+                        <div class="esfera-header-left">
+                            <strong>{{ estado.nombreEsfera }}</strong>
+                            <span class="esfera-sub" *ngIf="estado.edadDesarrollo !== null">
+                                Alcanza {{ redondear(estado.edadDesarrollo) }} meses
+                            </span>
+                        </div>
+                        <div class="esfera-header-right">
+                            <span class="pill-indice" [ngClass]="claseIndice(estado.indice)">
+                                {{ redondear(estado.indice) }}
+                            </span>
+                            <span class="pill-estado" *ngIf="estado.cerrada">Cerrada</span>
+                            <i class="fas fa-chevron-down chevron" [class.rotado]="estado.abierta"></i>
+                        </div>
+                    </div>
+
+                    <div class="esfera-body" *ngIf="estado.abierta">
+
+                        <div *ngFor="let bloque of estado.bloques" class="bloque">
+                            <div class="bloque-header">
+                                <span class="bloque-titulo">{{ bloque.nombreRango }}</span>
+                                <span class="bloque-resultado" *ngIf="bloque.guardado"
+                                    [ngClass]="claseSemaforo(bloque.semaforo)">
+                                    {{ bloque.porcentaje }}%
+                                </span>
+                            </div>
+
+                            <div *ngFor="let item of bloque.items" class="item-row">
+                                <div class="item-texto">
+                                    <span class="item-num">{{ item.numero_item }}</span>
+                                    <span class="item-desc">{{ item.descripcion }}</span>
+                                    <small class="item-materiales" *ngIf="item.materiales">
+                                        Materiales: {{ item.materiales }}
+                                    </small>
+                                </div>
+                                <div class="item-botones">
+                                    <button *ngFor="let valor of escalaItem(item)"
+                                        class="btn-escala"
+                                        [class.activo]="bloque.puntajes[item.id] === valor"
+                                        [disabled]="bloque.guardado"
+                                        (click)="fijarPuntaje(bloque, item.id, valor)">
+                                        {{ etiquetaPuntaje(valor, item.puntaje_maximo) }}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="bloque-acciones" *ngIf="!bloque.guardado">
+                                <button class="btn btn-sm btn-warning" (click)="guardarBloque(estado, bloque)"
+                                    [disabled]="guardando">
+                                    Guardar {{ bloque.nombreRango }}
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="nota-cierre" *ngIf="estado.sinMasRangos">
+                            No hay más rangos con ítems para esta esfera. Se cierra aquí.
+                        </div>
+
+                        <div class="esfera-acciones">
+                            <button class="btn btn-sm btn-primary" *ngIf="!estado.cerrada && !bloquePendiente(estado)"
+                                (click)="cargarSiguienteRango(estado)" [disabled]="estado.cargandoSiguiente">
+                                <span *ngIf="estado.cargandoSiguiente" class="spinner-border spinner-border-sm me-1"></span>
+                                Aplicar siguiente rango
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary ms-2" *ngIf="!estado.cerrada"
+                                (click)="cerrarEsfera(estado)">
+                                Cerrar esta esfera
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary" *ngIf="estado.cerrada"
+                                (click)="reabrirEsfera(estado)">
+                                Reabrir esfera
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-body">
+                        <label class="form-label">Observaciones</label>
+                        <textarea class="form-control" rows="3" [(ngModel)]="observaciones"
+                            placeholder="Comportamiento durante la aplicación, condiciones, situaciones a destacar"></textarea>
+                    </div>
+                </div>
+
+                <div class="aviso-finalizar" *ngIf="motivoNoFinalizar()">
+                    <i class="fas fa-info-circle me-1"></i>{{ motivoNoFinalizar() }}
+                </div>
+
+                <div class="row mb-5">
+                    <div class="col-sm-6">
+                        <button class="btn btn-lg btn-warning w-100" (click)="finalizar()"
+                            [disabled]="guardando || !puedeFinalizar()">
+                            <span *ngIf="guardando" class="spinner-border spinner-border-sm me-1"></span>
+                            Finalizar aplicación
+                        </button>
+                    </div>
+                    <div class="col-sm-6">
+                        <button class="btn btn-lg btn-secondary w-100" (click)="volver()">Salir y continuar después</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>

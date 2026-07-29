@@ -15,6 +15,7 @@ import { EstudianteObservacionesComponent } from './estudiante-observaciones/est
 import { EstudianteAsistenciaComponent } from './estudiante-asistencia/estudiante-asistencia.component';
 import { EstudianteEvaluacionesComponent } from './estudiante-evaluaciones/estudiante-evaluaciones.component';
 import { EstudianteEad3Component } from './estudiante-ead3/estudiante-ead3.component';
+import { EstudiantePerfilDesarrolloComponent } from './estudiante-perfil-desarrollo/estudiante-perfil-desarrollo.component';
 import { EstudianteDatosMedicosComponent } from './estudiante-datos-medicos/estudiante-datos-medicos.component';
 import { EstudianteDatosAdicionalesComponent } from './estudiante-datos-adicionales/estudiante-datos-adicionales.component';
 
@@ -38,6 +39,7 @@ interface PestanaInfo {
     EstudianteAsistenciaComponent,
     EstudianteEvaluacionesComponent,
     EstudianteEad3Component,
+    EstudiantePerfilDesarrolloComponent,
     EstudianteDatosMedicosComponent,
     EstudianteDatosAdicionalesComponent,
     DocumentosPersonaComponent,
@@ -69,6 +71,7 @@ export class VistaEstudianteComponent implements OnInit {
     { id: 'asistencia', nombre: 'Asistencia', icono: 'fas fa-calendar-check' },
     { id: 'evaluaciones', nombre: 'Evaluaciones', icono: 'fas fa-graduation-cap' },
     { id: 'ead3', nombre: 'EAD-3', icono: 'fas fa-brain' },
+    { id: 'perfil-desarrollo', nombre: 'Perfil de Desarrollo', icono: 'fas fa-chart-line' },
     { id: 'documentos', nombre: 'Documentos', icono: 'fas fa-file-alt' },
   ];
 

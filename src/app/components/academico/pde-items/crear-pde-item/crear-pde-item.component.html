@@ -1,0 +1,108 @@
+<div class="modulo">
+    <app-header
+        [tituloModulo]="titulo"
+        [mostrarCrear]="false"
+        [accion]="accion"
+        [raiz]="'/academico/pde-items'"
+        [regresar]="regresar"
+        [iconoTitulo]="'/assets/images/perfil-desarrollo.png'">
+    </app-header>
+
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-md-6">
+                <label for="rango" class="form-label">Rango de edad <span class="text-danger">*</span></label>
+                <select class="form-select" id="rango" [(ngModel)]="model.id_rango_edad" [disabled]="!editable"
+                    [ngClass]="{'is-invalid': !model.id_rango_edad && submitted}">
+                    <option value="">Seleccione...</option>
+                    <option *ngFor="let rango of rangos" [value]="rango.id">{{ rango.nombre }}</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label for="esfera" class="form-label">Esfera de desarrollo <span class="text-danger">*</span></label>
+                <select class="form-select" id="esfera" [(ngModel)]="model.id_esfera" [disabled]="!editable"
+                    [ngClass]="{'is-invalid': !model.id_esfera && submitted}">
+                    <option value="">Seleccione...</option>
+                    <option *ngFor="let esfera of esferas" [value]="esfera.id">{{ esfera.nombre }}</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="subarea" class="form-label">Subárea</label>
+                <select class="form-select" id="subarea" [(ngModel)]="model.subarea" [disabled]="!editable">
+                    <option value="">Sin desglose</option>
+                    <option value="razonamiento">Razonamiento</option>
+                    <option value="conocimiento">Conocimiento</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="row mt-3">
+            <div class="col-md-12">
+                <label for="descripcion" class="form-label">Descripción del ítem <span class="text-danger">*</span></label>
+                <input class="form-control form-control-lg" type="text" id="descripcion"
+                    [(ngModel)]="model.descripcion"
+                    placeholder="Ej: Cuenta hasta cinco con objetos"
+                    [ngClass]="{'is-invalid': !model.descripcion && submitted}"
+                    [disabled]="!editable">
+                <small class="form-text text-muted">Conducta observable que la docente va a evaluar</small>
+            </div>
+        </div>
+
+        <div class="row mt-3">
+            <div class="col-md-12">
+                <label for="instrucciones" class="form-label">Instrucciones de aplicación</label>
+                <textarea class="form-control" id="instrucciones" rows="4"
+                    [(ngModel)]="model.instrucciones"
+                    placeholder="Administración y criterio de logro"
+                    [disabled]="!editable"></textarea>
+            </div>
+        </div>
+
+        <div class="row mt-3">
+            <div class="col-md-6">
+                <label for="materiales" class="form-label">Materiales</label>
+                <input class="form-control" type="text" id="materiales"
+                    [(ngModel)]="model.materiales"
+                    placeholder="Ej: cubos, láminas, lápiz"
+                    [disabled]="!editable">
+            </div>
+            <div class="col-md-2">
+                <label for="numero" class="form-label">N° ítem <span class="text-danger">*</span></label>
+                <input class="form-control" type="number" id="numero" min="1"
+                    [(ngModel)]="model.numero_item" [disabled]="!editable">
+            </div>
+            <div class="col-md-2">
+                <label for="puntaje" class="form-label">Puntaje máx. <span class="text-danger">*</span></label>
+                <input class="form-control" type="number" id="puntaje" min="1"
+                    [(ngModel)]="model.puntaje_maximo" [disabled]="!editable">
+                <small class="form-text text-muted">Escala 0 a este valor</small>
+            </div>
+            <div class="col-md-2">
+                <label for="orden" class="form-label">Orden <span class="text-danger">*</span></label>
+                <input class="form-control" type="number" id="orden" min="1"
+                    [(ngModel)]="model.orden" [disabled]="!editable">
+            </div>
+        </div>
+
+        <div class="row mt-3">
+            <div class="col-md-4">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="activo"
+                        [(ngModel)]="model.activo" [disabled]="!editable">
+                    <label class="form-check-label" for="activo">Activo</label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-sm-6" *ngIf="editable">
+                <button class="btn btn-lg btn-warning w-100" (click)="guardar()">Grabar</button>
+            </div>
+            <div class="col-sm-6">
+                <button class="btn btn-lg btn-secondary w-100" (click)="volver()">Volver</button>
+            </div>
+        </div>
+    </div>
+</div>

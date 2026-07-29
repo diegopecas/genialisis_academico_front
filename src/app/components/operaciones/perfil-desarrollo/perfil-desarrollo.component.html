@@ -1,0 +1,41 @@
+<div class="modulo">
+    <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [raiz]="'/operaciones'"
+        [regresar]="'/operaciones'"></app-header>
+
+    <div class="container-fluid mt-4">
+
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h5 class="mb-1"><i class="fas fa-chart-line me-2 text-primary"></i>Selecciona un estudiante para aplicar</h5>
+                        <p class="text-muted mb-0 small">Tamizaje pedagógico por esferas de desarrollo y rangos de edad</p>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="d-flex align-items-center gap-2 justify-content-end">
+                            <div class="leyenda-item">
+                                <span class="badge-indice verde"></span>
+                                <small>100 o más</small>
+                            </div>
+                            <div class="leyenda-item">
+                                <span class="badge-indice amarillo"></span>
+                                <small>80 a 94</small>
+                            </div>
+                            <div class="leyenda-item">
+                                <span class="badge-indice rojo"></span>
+                                <small>Menos de 80</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <app-tablas #tablaEstudiantes [titulos]="titulosTabla" [datos]="estudiantes" [acciones]="accionesTabla"
+            [raiz]="'/operaciones/perfil-desarrollo'" [accionVer]="false" [accionEditar]="false"
+            [accionEliminar]="false" [mostrarBuscar]="true" [columnasFiltro]="columnasFiltro"
+            (clicAccion)="onAccionTabla($event)">
+        </app-tablas>
+
+    </div>
+</div>

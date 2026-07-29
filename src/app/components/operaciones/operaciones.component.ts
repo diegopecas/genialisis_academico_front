@@ -71,6 +71,9 @@ export class OperacionesComponent {
       case 'evaluacion-desarrollo':
         this.router.navigate(['/operaciones/evaluacion-desarrollo']);
         break;
+      case 'perfil-desarrollo':
+        this.router.navigate(['/operaciones/perfil-desarrollo']);
+        break;
       case 'recordatorio-pagos':
         this.router.navigate(['/operaciones/recordatorio-pagos']);
         break;

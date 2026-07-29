@@ -257,6 +257,9 @@ export const routes: Routes = [
   { path: 'operaciones/evaluacion-desarrollo', loadComponent: () => import('./components/operaciones/evaluacion-desarrollo/evaluacion-desarrollo.component').then(m => m.EvaluacionDesarrolloComponent), canActivate: [AuthGuard], data: { trackear: true, labelAcceso: 'Evaluación Desarrollo', iconoAcceso: '📈' } },
   { path: 'operaciones/evaluacion-desarrollo/evaluar/:idEstudiante', loadComponent: () => import('./components/operaciones/evaluacion-desarrollo/evaluar-estudiante/evaluar-estudiante.component').then(m => m.EvaluarEstudianteComponent), canActivate: [AuthGuard] },
   { path: 'operaciones/evaluacion-desarrollo/historial/:idEstudiante', loadComponent: () => import('./components/operaciones/evaluacion-desarrollo/historial-evaluaciones/historial-evaluaciones.component').then(m => m.HistorialEvaluacionesComponent), canActivate: [AuthGuard] },
+  { path: 'operaciones/perfil-desarrollo', loadComponent: () => import('./components/operaciones/perfil-desarrollo/perfil-desarrollo.component').then(m => m.PerfilDesarrolloComponent), canActivate: [AuthGuard], data: { trackear: true, labelAcceso: 'Perfil de Desarrollo', iconoAcceso: '🧠' } },
+  { path: 'operaciones/perfil-desarrollo/aplicar/:idEstudiante', loadComponent: () => import('./components/operaciones/perfil-desarrollo/aplicar-perfil/aplicar-perfil.component').then(m => m.AplicarPerfilComponent), canActivate: [AuthGuard] },
+  { path: 'operaciones/perfil-desarrollo/historial/:idEstudiante', loadComponent: () => import('./components/operaciones/perfil-desarrollo/historial-perfil/historial-perfil.component').then(m => m.HistorialPerfilComponent), canActivate: [AuthGuard] },
 
   // Recordatorio de Pagos
   { path: 'operaciones/recordatorio-pagos', loadComponent: () => import('./components/operaciones/recordatorio-pagos/recordatorio-pagos.component').then(m => m.RecordatorioPagosComponent), canActivate: [AuthGuard], data: { trackear: true, labelAcceso: 'Recordatorio Pagos', iconoAcceso: '💬' } },
@@ -301,6 +304,10 @@ export const routes: Routes = [
   { path: 'academico/cursos-extra/:accion/:id', loadComponent: () => import('./components/academico/cursos-extra/crear-curso-extra/crear-curso-extra.component').then(m => m.CrearCursoExtraComponent), canActivate: [AuthGuard] },
   { path: 'academico/areas-academicas', loadComponent: () => import('./components/academico/areas-academicas/areas-academicas.component').then(m => m.AreasAcademicasComponent), canActivate: [AuthGuard], data: { trackear: true, labelAcceso: 'Áreas Académicas', iconoAcceso: '📖' } },
   { path: 'academico/areas-academicas/:accion/:id', loadComponent: () => import('./components/academico/areas-academicas/crear-area-academica/crear-area-academica.component').then(m => m.CrearAreaAcademicaComponent), canActivate: [AuthGuard] },
+  { path: 'academico/pde-rangos-edad', loadComponent: () => import('./components/academico/pde-rangos-edad/pde-rangos-edad.component').then(m => m.PdeRangosEdadComponent), canActivate: [AuthGuard], data: { trackear: true, labelAcceso: 'Rangos de Edad PDE', iconoAcceso: '📏' } },
+  { path: 'academico/pde-rangos-edad/:accion/:id', loadComponent: () => import('./components/academico/pde-rangos-edad/crear-pde-rango-edad/crear-pde-rango-edad.component').then(m => m.CrearPdeRangoEdadComponent), canActivate: [AuthGuard] },
+  { path: 'academico/pde-items', loadComponent: () => import('./components/academico/pde-items/pde-items.component').then(m => m.PdeItemsComponent), canActivate: [AuthGuard], data: { trackear: true, labelAcceso: 'Ítems Perfil Desarrollo', iconoAcceso: '🧩' } },
+  { path: 'academico/pde-items/:accion/:id', loadComponent: () => import('./components/academico/pde-items/crear-pde-item/crear-pde-item.component').then(m => m.CrearPdeItemComponent), canActivate: [AuthGuard] },
 
   // Cortes Académicos
   { path: 'academico/cortes-academicos', loadComponent: () => import('./components/academico/cortes-academicos/cortes-academicos.component').then(m => m.CortesAcademicosComponent), canActivate: [AuthGuard], data: { trackear: true, labelAcceso: 'Cortes Académicos', iconoAcceso: '📅' } },

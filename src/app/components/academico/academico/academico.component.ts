@@ -55,6 +55,12 @@ export class AcademicoComponent {
       case 'cursos-extra':
         this.router.navigate(['/academico/cursos-extra']);
         break;
+      case 'pde-rangos-edad':
+        this.router.navigate(['/academico/pde-rangos-edad']);
+        break;
+      case 'pde-items':
+        this.router.navigate(['/academico/pde-items']);
+        break;
     }
   }
 }

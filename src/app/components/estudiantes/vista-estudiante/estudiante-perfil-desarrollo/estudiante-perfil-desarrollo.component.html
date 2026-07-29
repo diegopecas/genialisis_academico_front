@@ -1,0 +1,173 @@
+<div class="pde-container">
+
+    <div class="pde-main-header">
+        <div class="header-icon"><i class="fas fa-chart-line"></i></div>
+        <div>
+            <h5>Perfil de Desarrollo por Edades</h5>
+            <p class="header-sub">Tamizaje pedagógico por esferas · edad alcanzada frente a la edad real</p>
+        </div>
+    </div>
+
+    <div *ngIf="cargando" class="loading-box">
+        <div class="spinner-border text-primary" role="status"></div>
+        <p>Cargando aplicaciones...</p>
+    </div>
+
+    <div *ngIf="!cargando && aplicaciones.length === 0" class="empty-state">
+        <div class="empty-icon"><i class="fas fa-clipboard-list"></i></div>
+        <p>No hay aplicaciones finalizadas para este estudiante.</p>
+    </div>
+
+    <div *ngIf="!cargando && aplicaciones.length > 0">
+
+        <div class="toolbar">
+            <div class="toolbar-select">
+                <label>Aplicación</label>
+                <select class="selector" [(ngModel)]="aplicacionSeleccionadaId" (change)="seleccionarAplicacion()">
+                    <option *ngFor="let aplicacion of aplicaciones" [value]="aplicacion.id">
+                        {{ formatearEtiquetaAplicacion(aplicacion) }}
+                    </option>
+                </select>
+            </div>
+            <button class="btn-pdf" (click)="exportarPDF()" [disabled]="!aplicacionSeleccionada || exportandoPdf">
+                <span *ngIf="exportandoPdf" class="spinner-border spinner-border-sm me-1"></span>
+                <i *ngIf="!exportandoPdf" class="fas fa-file-pdf"></i>
+                <span class="btn-pdf-text">Exportar PDF</span>
+            </button>
+        </div>
+
+        <div *ngIf="cargandoDetalle" class="loading-box">
+            <div class="spinner-border text-primary" role="status"></div>
+        </div>
+
+        <div *ngIf="aplicacionSeleccionada && !cargandoDetalle">
+
+            <div class="info-cards">
+                <div class="info-card">
+                    <div class="info-card-icon azul"><i class="fas fa-calendar-alt"></i></div>
+                    <div><small>Fecha</small><strong>{{ aplicacionSeleccionada.fecha_aplicacion }}</strong></div>
+                </div>
+                <div class="info-card">
+                    <div class="info-card-icon verde"><i class="fas fa-baby"></i></div>
+                    <div><small>Edad real</small><strong>{{ aplicacionSeleccionada.edad_meses }} meses</strong></div>
+                </div>
+                <div class="info-card">
+                    <div class="info-card-icon dorado"><i class="fas fa-layer-group"></i></div>
+                    <div><small>Inicio</small><strong>{{ aplicacionSeleccionada.nombre_rango_inicio }}</strong></div>
+                </div>
+                <div class="info-card">
+                    <div class="info-card-icon teal"><i class="fas fa-user-check"></i></div>
+                    <div><small>Aplicó</small><strong>{{ aplicacionSeleccionada.nombre_evaluador }}</strong></div>
+                </div>
+            </div>
+
+            <div class="resultado-global" [ngClass]="claseIndice(aplicacionSeleccionada.indice_global)">
+                <div class="global-izq">
+                    <span class="global-label">Índice global</span>
+                    <span class="global-valor">{{ redondear(aplicacionSeleccionada.indice_global) }}</span>
+                </div>
+                <div class="global-der">
+                    <span class="global-texto">{{ textoLectura(aplicacionSeleccionada.indice_global) }}</span>
+                    <span class="global-sub">
+                        Rinde como un niño de {{ redondear(aplicacionSeleccionada.edad_desarrollo_promedio) }} meses
+                    </span>
+                </div>
+            </div>
+
+            <div class="alerta-esfera" *ngIf="aplicacionSeleccionada.nombre_esfera_mas_baja">
+                <i class="fas fa-exclamation-triangle"></i>
+                Esfera rezagada frente al promedio: <strong>{{ aplicacionSeleccionada.nombre_esfera_mas_baja }}</strong>
+            </div>
+
+            <div class="esferas-section">
+                <div *ngFor="let esfera of esferas" class="esfera-block">
+                    <div class="esfera-header" (click)="toggleEsfera(esfera.id_esfera)">
+                        <div class="esfera-header-left">
+                            <strong>{{ esfera.nombre_esfera }}</strong>
+                            <span class="esfera-mini">
+                                Alcanza {{ redondear(esfera.edad_desarrollo_meses) }} meses ·
+                                {{ esfera.puntos_obtenidos }}/{{ esfera.puntos_posibles }} puntos
+                            </span>
+                        </div>
+                        <div class="esfera-header-right">
+                            <span class="pill-indice" [ngClass]="claseIndice(esfera.indice)">
+                                {{ redondear(esfera.indice) }}
+                            </span>
+                            <span class="pill-techo" *ngIf="esfera.nombre_rango_techo">
+                                Hasta {{ esfera.nombre_rango_techo }}
+                            </span>
+                            <i class="fas fa-chevron-down chevron" [class.rotado]="esferasAbiertas[esfera.id_esfera]"></i>
+                        </div>
+                    </div>
+
+                    <div class="esfera-content" *ngIf="esferasAbiertas[esfera.id_esfera]">
+
+                        <div class="subareas" *ngIf="resumenSubareas(esfera.id_esfera).length > 0">
+                            <div class="subarea-chip" *ngFor="let sub of resumenSubareas(esfera.id_esfera)"
+                                [ngClass]="claseSubarea(sub.porcentaje)">
+                                <span class="subarea-nombre">{{ sub.etiqueta }}</span>
+                                <span class="subarea-valor">{{ sub.porcentaje }}%</span>
+                                <small>{{ sub.obtenidos }}/{{ sub.posibles }}</small>
+                            </div>
+                        </div>
+
+                        <div class="item-row" *ngFor="let item of itemsPorEsfera(esfera.id_esfera)">
+                            <span class="item-rango">{{ item.nombre_rango }}</span>
+                            <span class="item-desc">
+                                {{ item.descripcion }}
+                                <small class="item-subarea" *ngIf="item.subarea">{{ item.subarea }}</small>
+                            </span>
+                            <span class="item-puntaje" [ngClass]="clasePuntaje(item)">
+                                {{ etiquetaPuntaje(item) }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grafico-box">
+                <div class="chart-container"><canvas #graficoEsferas></canvas></div>
+            </div>
+
+            <div class="seccion-card" *ngIf="aplicacionSeleccionada.observaciones">
+                <div class="seccion-header obs"><i class="fas fa-sticky-note"></i> Observaciones</div>
+                <div class="seccion-body">{{ aplicacionSeleccionada.observaciones }}</div>
+            </div>
+
+            <div class="seccion-card" *ngIf="tieneAnalisis()">
+                <div class="seccion-header analisis"><i class="fas fa-user-md"></i> Análisis Profesional</div>
+                <div class="seccion-body">
+                    <div *ngIf="tieneTexto(aplicacionSeleccionada.analisis)" class="mb-2">
+                        <label class="mini-label">Análisis</label>
+                        <div [innerHTML]="aplicacionSeleccionada.analisis"></div>
+                    </div>
+                    <div *ngIf="tieneTexto(aplicacionSeleccionada.recomendaciones)">
+                        <label class="mini-label">Recomendaciones</label>
+                        <div [innerHTML]="aplicacionSeleccionada.recomendaciones"></div>
+                    </div>
+                    <div *ngIf="aplicacionSeleccionada.nombre_analista" class="analista-tag">
+                        <i class="fas fa-user"></i> {{ aplicacionSeleccionada.nombre_analista }}
+                        <span *ngIf="aplicacionSeleccionada.fecha_analisis"> · {{ aplicacionSeleccionada.fecha_analisis }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="como-leer">
+                <div class="como-leer-titulo"><i class="fas fa-book-reader"></i> ¿Cómo leer este informe?</div>
+                <p>
+                    El índice compara la edad de desarrollo alcanzada con la edad real del niño. Un valor de 100 significa
+                    que rinde lo esperado para su edad; por encima va adelantado y por debajo va rezagado.
+                </p>
+                <p>
+                    Cada esfera se aplica desde el rango elegido y hacia arriba hasta donde el niño llega. Los rangos
+                    inferiores no se aplican y se dan por logrados.
+                </p>
+                <p class="nota">
+                    Es un tamizaje pedagógico de apoyo al seguimiento en el aula, no una medida de inteligencia ni un
+                    diagnóstico. Ante diferencias amplias conviene la valoración de un profesional.
+                </p>
+            </div>
+
+        </div>
+    </div>
+</div>

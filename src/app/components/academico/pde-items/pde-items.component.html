@@ -1,0 +1,52 @@
+<div class="modulo">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="true"
+    [accion]="'ConsultarTodos'"
+    [raiz]="'/academico/pde-items'"
+    [regresar]="'/academico'"
+    [iconoTitulo]="'/assets/images/perfil-desarrollo.png'"
+  ></app-header>
+
+  <div class="container-fluid filtros-pde">
+    <div class="row">
+      <div class="col-md-4">
+        <label class="form-label">Rango de edad</label>
+        <select class="form-select" [(ngModel)]="filtroRango" (change)="aplicarFiltros()">
+          <option value="">Todos los rangos</option>
+          <option *ngFor="let rango of rangos" [value]="rango.id">{{ rango.nombre }}</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Esfera</label>
+        <select class="form-select" [(ngModel)]="filtroEsfera" (change)="aplicarFiltros()">
+          <option value="">Todas las esferas</option>
+          <option *ngFor="let esfera of esferas" [value]="esfera.id">{{ esfera.nombre }}</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Subárea</label>
+        <select class="form-select" [(ngModel)]="filtroSubarea" (change)="aplicarFiltros()">
+          <option value="">Todas</option>
+          <option value="razonamiento">Razonamiento</option>
+          <option value="conocimiento">Conocimiento</option>
+        </select>
+      </div>
+      <div class="col-md-2 d-flex align-items-end">
+        <span class="conteo-items">{{ datos.length }} ítem(s)</span>
+      </div>
+    </div>
+  </div>
+
+  <app-tablas
+    [titulos]="titulos"
+    [datos]="datos"
+    [raiz]="'/academico/pde-items'"
+    [acciones]="acciones"
+    [accionEditar]="true"
+    [accionEliminar]="true"
+    [mostrarBuscar]="true"
+    [columnasFiltro]="columnasFiltro"
+    (clicAccion)="clicAccion($event)"
+  ></app-tablas>
+</div>

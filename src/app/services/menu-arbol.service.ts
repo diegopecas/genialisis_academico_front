@@ -68,7 +68,9 @@ export class MenuArbolService {
               { id: 'academico-grupos', label: 'Grupos', icono: '👨‍👩‍👧‍👦', ruta: '/academico/grupos', keywords: ['salones', 'aulas', 'cursos'] },
               { id: 'academico-areas', label: 'Áreas Académicas', icono: '📖', ruta: '/academico/areas-academicas', keywords: ['materias', 'asignaturas'] },
               { id: 'academico-cortes', label: 'Cortes Académicos', icono: '📅', ruta: '/academico/cortes-academicos', keywords: ['periodos', 'trimestres', 'bimestres'] },
-              { id: 'academico-cursos-extra', label: 'Cursos Extracurriculares', icono: '🎭', ruta: '/academico/cursos-extra', keywords: ['extracurriculares', 'talleres'] }
+              { id: 'academico-cursos-extra', label: 'Cursos Extracurriculares', icono: '🎭', ruta: '/academico/cursos-extra', keywords: ['extracurriculares', 'talleres'] },
+              { id: 'academico-pde-rangos', label: 'Rangos de Edad PDE', icono: '📏', ruta: '/academico/pde-rangos-edad', keywords: ['perfil desarrollo', 'rangos', 'edades', 'pde'] },
+              { id: 'academico-pde-items', label: 'Ítems Perfil Desarrollo', icono: '🧩', ruta: '/academico/pde-items', keywords: ['perfil desarrollo', 'items', 'pruebas', 'pde', 'esferas'] }
             ]
           },
           {
@@ -212,6 +214,7 @@ export class MenuArbolService {
             hijos: [
               { id: 'operaciones-registro-medidas', label: 'Registro Medidas', icono: '📏', ruta: '/operaciones/registro-medidas', keywords: ['talla', 'peso', 'antropometria'] },
               { id: 'operaciones-eval-desarrollo', label: 'Evaluación Desarrollo', icono: '📈', ruta: '/operaciones/evaluacion-desarrollo', keywords: ['ead', 'desarrollo', 'valoracion'] },
+              { id: 'operaciones-perfil-desarrollo', label: 'Perfil de Desarrollo', icono: '🧠', ruta: '/operaciones/perfil-desarrollo', keywords: ['pde', 'perfil', 'desarrollo', 'esferas', 'indice'] },
               { id: 'operaciones-actualizacion-datos', label: 'Actualización Datos', icono: '🔄', ruta: '/operaciones/actualizacion-datos-estudiantes', keywords: ['datos estudiantes', 'actualizar'] },
               { id: 'operaciones-galerias', label: 'Galerías', icono: '🖼️', ruta: '/operaciones/galerias', keywords: ['fotos', 'imagenes', 'album'] },
               { id: 'operaciones-inscripcion-cursos', label: 'Inscripción Cursos Extra', icono: '🎭', ruta: '/operaciones/inscripcion-cursos-extra', keywords: ['extracurriculares', 'talleres'] },

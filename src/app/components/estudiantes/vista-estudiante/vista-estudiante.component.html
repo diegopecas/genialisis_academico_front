@@ -68,6 +68,11 @@
         </button>
       </li>
       <li class="nav-item" role="presentation">
+        <button class="nav-link" [class.active]="pestanaActiva === 'perfil-desarrollo'" type="button" (click)="cambiarPestana('perfil-desarrollo')">
+          <i class="fas fa-chart-line me-2"></i>Perfil de Desarrollo
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
         <button class="nav-link" [class.active]="pestanaActiva === 'documentos'" type="button" (click)="cambiarPestana('documentos')">
           <i class="fas fa-file-alt me-2"></i>Documentos
         </button>
@@ -111,6 +116,10 @@
       <div class="nav-card" [class.active]="pestanaActiva === 'ead3'" (click)="cambiarPestana('ead3')">
         <div class="nav-icon"><i class="fas fa-brain"></i></div>
         <div class="nav-label">EAD-3</div>
+      </div>
+      <div class="nav-card" [class.active]="pestanaActiva === 'perfil-desarrollo'" (click)="cambiarPestana('perfil-desarrollo')">
+        <div class="nav-icon"><i class="fas fa-chart-line"></i></div>
+        <div class="nav-label">Perfil de Desarrollo</div>
       </div>
       <div class="nav-card" [class.active]="pestanaActiva === 'documentos'" (click)="cambiarPestana('documentos')">
         <div class="nav-icon"><i class="fas fa-file-alt"></i></div>
@@ -165,6 +174,11 @@
         <app-estudiante-ead3 [idEstudiante]="idEstudiante"></app-estudiante-ead3>
       </div>
 
+      <!-- Perfil de Desarrollo -->
+      <div class="p-4" *ngIf="tabsCargados.has('perfil-desarrollo')" [hidden]="pestanaActiva !== 'perfil-desarrollo'">
+        <app-estudiante-perfil-desarrollo [idEstudiante]="idEstudiante"></app-estudiante-perfil-desarrollo>
+      </div>
+
       <!-- Documentos -->
       <div class="p-4" *ngIf="tabsCargados.has('documentos')" [hidden]="pestanaActiva !== 'documentos'">
         <app-documentos-persona
@@ -211,6 +225,9 @@
         </div>
         <div class="quick-nav-item" (click)="navegarRapido('ead3')">
           <i class="fas fa-brain"></i><span>EAD-3</span>
+        </div>
+        <div class="quick-nav-item" (click)="navegarRapido('perfil-desarrollo')">
+          <i class="fas fa-chart-line"></i><span>Perfil de Desarrollo</span>
         </div>
         <div class="quick-nav-item" (click)="navegarRapido('documentos')">
           <i class="fas fa-file-alt"></i><span>Documentos</span>
