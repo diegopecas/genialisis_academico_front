@@ -38,7 +38,7 @@ export class CrearProductoComponent implements OnInit, OnDestroy {
     public submitted = false;
     public guardando = false;
     public titulo = "Registro de producto";
-    public regresar = '/administracion/productos';
+    public regresar = '/administracion/datos-maestros/productos';
     public productoActivoSwitch = true;
     public proveedoresAsignados: any[] = [];
 
@@ -872,7 +872,7 @@ export class CrearProductoComponent implements OnInit, OnDestroy {
     }
 
     volver(): void {
-        this.router.navigate(['/administracion/productos']);
+        this.router.navigate(['/administracion/datos-maestros/productos']);
     }
 
     establecerValoresPorDefecto(): void {

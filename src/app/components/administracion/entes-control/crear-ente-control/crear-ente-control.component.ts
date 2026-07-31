@@ -294,6 +294,6 @@ export class CrearEnteControlComponent implements OnInit {
   }
 
   volver() {
-    this.router.navigate(['/administracion/entes-control']);
+    this.router.navigate(['/administracion/operaciones/entes-control']);
   }
 }

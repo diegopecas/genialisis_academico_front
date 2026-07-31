@@ -5,14 +5,14 @@
         [mostrarCrear]="puedeAdministrar" 
         [accion]="'ConsultarTodos'"
         [raiz]="'/estudiantes/contratos'" 
-        [regresar]="'/estudiantes-opciones/' + idEstudiante"
+        [regresar]="'/estudiantes/opciones/' + idEstudiante"
         [iconoTitulo]="'/assets/images/contratos.png'">
     </app-header-anidado>
     
     <app-tablas 
         [titulos]="titulos" 
         [datos]="datos" 
-        [raiz]="'/estudiantes-contratos'" 
+        [raiz]="'/estudiantes/contratos'" 
         [accionVer]="puedeAdministrar"
         [accionEditar]="puedeAdministrar" 
         [accionEliminar]="puedeAdministrar" 

@@ -7,7 +7,7 @@
         <div class="row justify-content-center">
             
             <!-- Planeación -->
-            <div class="col-lg-5 col-md-6 mb-4">
+            <div class="col-lg-5 col-md-6 mb-4" *ngIf="tieneAlguno(['academico.cortes_academicos', 'academico.indicadores_logros', 'academico.logros', 'academico.selector_actividades', 'academico.sprints'])">
                 <div class="card-maestro menu-principal" [class.active]="menuActivo === 'planeacion'" (click)="toggleMenu('planeacion', $event)">
                     <div class="card-maestro-content">
                         <div class="icono-container planeacion">
@@ -22,31 +22,31 @@
                     
                     <div class="submenu-container">
                         <div class="row g-2">
-                            <div class="col-6">
+                            <div class="col-6" *ngIf="permisosService.tienePermiso('academico.cortes_academicos')">
                                 <div class="submenu-item" (click)="seleccionarOpcion('cortes-academicos')">
                                     <img src="/assets/images/cortes-academicos.png" alt="Cortes Académicos" />
                                     <span>Cortes Académicos</span>
                                 </div>
                             </div>
-                            <div class="col-6">
+                            <div class="col-6" *ngIf="permisosService.tienePermiso('academico.logros')">
                                 <div class="submenu-item" (click)="seleccionarOpcion('logros')">
                                     <img src="/assets/images/logros.png" alt="Logros" />
                                     <span>Logros</span>
                                 </div>
                             </div>
-                            <div class="col-6">
+                            <div class="col-6" *ngIf="permisosService.tienePermiso('academico.indicadores_logros')">
                                 <div class="submenu-item" (click)="seleccionarOpcion('indicadores-logro')">
                                     <img src="/assets/images/indicadores-logros.png" alt="Indicadores" />
                                     <span>Indicadores de Logros</span>
                                 </div>
                             </div>
-                            <div class="col-6">
+                            <div class="col-6" *ngIf="permisosService.tienePermiso('academico.selector_actividades')">
                                 <div class="submenu-item" (click)="seleccionarOpcion('actividades')">
                                     <img src="/assets/images/actividades.png" alt="Actividades" />
                                     <span>Actividades</span>
                                 </div>
                             </div>
-                            <div class="col-6">
+                            <div class="col-6" *ngIf="permisosService.tienePermiso('academico.sprints')">
                                 <div class="submenu-item" (click)="seleccionarOpcion('sprints')">
                                     <img src="/assets/images/sprints.png" alt="Sprints" />
                                     <span>Sprints</span>
@@ -58,7 +58,7 @@
             </div>
 
             <!-- Estructura Académica -->
-            <div class="col-lg-5 col-md-6 mb-4">
+            <div class="col-lg-5 col-md-6 mb-4" *ngIf="tieneAlguno(['academico.areas_academicas', 'academico.cursos_extra', 'academico.grados', 'academico.grupos', 'academico.parametros_calificaciones', 'academico.pde_items', 'academico.pde_rangos_edad'])">
                 <div class="card-maestro menu-principal" [class.active]="menuActivo === 'estructura'" (click)="toggleMenu('estructura', $event)">
                     <div class="card-maestro-content">
                         <div class="icono-container estructura">
@@ -73,44 +73,44 @@
                     
                     <div class="submenu-container">
                         <div class="row g-2">
-                            <div class="col-6">
+                            <div class="col-6" *ngIf="permisosService.tienePermiso('academico.parametros_calificaciones')">
                                 <div class="submenu-item" (click)="seleccionarOpcion('parametros-calificaciones')">
                                     <img src="/assets/images/parametros-calificaciones.png" alt="Parámetros" />
                                     <span>Parámetros Calificaciones</span>
                                 </div>
                             </div>
-                            <div class="col-6">
+                            <div class="col-6" *ngIf="permisosService.tienePermiso('academico.grados')">
                                 <div class="submenu-item" (click)="seleccionarOpcion('grados')">
                                     <img src="/assets/images/grados.png" alt="Grados" />
                                     <span>Grados</span>
                                 </div>
                             </div>
-                            <div class="col-6">
+                            <div class="col-6" *ngIf="permisosService.tienePermiso('academico.areas_academicas')">
                                 <div class="submenu-item" (click)="seleccionarOpcion('areas-academicas')">
                                     <img src="/assets/images/areas-academicas.png" alt="Áreas Académicas" />
                                     <span>Áreas Académicas</span>
                                 </div>
                             </div>
-                            <div class="col-6">
+                            <div class="col-6" *ngIf="permisosService.tienePermiso('academico.grupos')">
                                 <div class="submenu-item" (click)="seleccionarOpcion('grupos')">
                                     <img src="/assets/images/grupos.png" alt="Grupos" />
                                     <span>Grupos</span>
                                 </div>
                             </div>
-                            <div class="col-6">
+                            <div class="col-6" *ngIf="permisosService.tienePermiso('academico.cursos_extra')">
                                 <div class="submenu-item" (click)="seleccionarOpcion('cursos-extra')">
                                     <img src="/assets/images/cursos-extra.png" alt="Cursos Extracurriculares" />
                                     <span>Cursos Extracurriculares</span>
                                 </div>
                             </div>
                         </div>
-                            <div class="col-6">
+                            <div class="col-6" *ngIf="permisosService.tienePermiso('academico.pde_rangos_edad')">
                                 <div class="submenu-item" (click)="seleccionarOpcion('pde-rangos-edad')">
                                     <img src="/assets/images/perfil-desarrollo.png" alt="Rangos de Edad" />
                                     <span>Rangos de Edad PDE</span>
                                 </div>
                             </div>
-                            <div class="col-6">
+                            <div class="col-6" *ngIf="permisosService.tienePermiso('academico.pde_items')">
                                 <div class="submenu-item" (click)="seleccionarOpcion('pde-items')">
                                     <img src="/assets/images/perfil-desarrollo.png" alt="Items PDE" />
                                     <span>Ítems Perfil Desarrollo</span>

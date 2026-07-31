@@ -50,7 +50,7 @@ export class CrearProveedorComponent implements OnInit {
     public editable = true;
     public submitted = false;
     public titulo = "Registro de proveedor";
-    public regresar = '/administracion/proveedores';
+    public regresar = '/administracion/datos-maestros/proveedores';
     public documentoEncontrado = false;
     public camposHabilitados = false;
     public esPersonaJuridica = false; // Para manejar si es empresa o persona natural
@@ -586,7 +586,7 @@ export class CrearProveedorComponent implements OnInit {
     }
 
     volver(): void {
-        this.router.navigate(['/administracion/proveedores']);
+        this.router.navigate(['/administracion/datos-maestros/proveedores']);
     }
 
     establecerValoresPorDefecto(): void {

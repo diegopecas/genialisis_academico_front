@@ -34,7 +34,7 @@
           <!-- Submenú de Ingresos y Egresos -->
           <div class="submenu-container">
             <div class="row g-2">
-              <div class="col-6">
+              <div class="col-6" *ngIf="permisosService.tienePermiso('admin.movimientos_financieros')">
                 <div
                   class="submenu-item"
                   (click)="seleccionarOpcion('movimientos')"
@@ -43,7 +43,7 @@
                   <span>Gestión Ingresos y Egresos</span>
                 </div>
               </div>
-              <div class="col-6">
+              <div class="col-6" *ngIf="permisosService.tienePermiso('admin.aprobacion_multiple')">
                 <div
                   class="submenu-item"
                   (click)="seleccionarOpcion('aprobacion-multiple')"
@@ -81,7 +81,7 @@
           <!-- Submenú de Pagos Institucionales -->
           <div class="submenu-container">
             <div class="row g-2">
-              <div class="col-6">
+              <div class="col-6" *ngIf="permisosService.tienePermiso('admin.registro_pagos_rapido')">
                 <div
                   class="submenu-item"
                   (click)="seleccionarOpcion('registro-pagos-rapido')"
@@ -90,7 +90,7 @@
                   <span>Registro Rápido de Pagos</span>
                 </div>
               </div>
-              <div class="col-6">
+              <div class="col-6" *ngIf="permisosService.tienePermiso('admin.contabilizacion_multiple')">
                 <div
                   class="submenu-item"
                   (click)="seleccionarOpcion('contabilizar-pagos')"
@@ -128,7 +128,7 @@
           <!-- Submenú de Cobros Automáticos -->
           <div class="submenu-container">
             <div class="row g-2">
-              <div class="col-6">
+              <div class="col-6" *ngIf="permisosService.tienePermiso('admin.convenios')">
                 <div
                   class="submenu-item"
                   (click)="seleccionarOpcion('convenios')"
@@ -137,7 +137,7 @@
                   <span>Convenios</span>
                 </div>
               </div>
-              <div class="col-6">
+              <div class="col-6" *ngIf="permisosService.tienePermiso('admin.reglas_cobro_automatico')">
                 <div
                   class="submenu-item"
                   (click)="seleccionarOpcion('reglas-cobro')"

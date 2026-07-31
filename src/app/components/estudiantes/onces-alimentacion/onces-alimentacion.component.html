@@ -1,6 +1,6 @@
 <div class="modulo">
   <app-header-anidado [tituloModulo]="titulo" [path]="path" [mostrarCrear]="puedeAdministrar" [accion]="'ConsultarTodos'"
-    [raiz]="'/estudiantes-onces'" [regresar]="'/estudiantes-opciones/' + idEstudiante"
+    [raiz]="'/estudiantes/onces'" [regresar]="'/estudiantes/opciones/' + idEstudiante"
     [iconoTitulo]="'/assets/images/onces.png'"></app-header-anidado>
   
   <!-- Mensaje cuando no hay onces para el día -->
@@ -8,7 +8,7 @@
     No hay registros de onces para el día de hoy ({{ fechaActual | date:'dd/MM/yyyy' }})
   </div>
   
-  <app-tablas [titulos]="titulos" [datos]="datos" [raiz]="'/estudiantes-onces'" [accionVer]="true"
+  <app-tablas [titulos]="titulos" [datos]="datos" [raiz]="'/estudiantes/onces'" [accionVer]="true"
     [accionEditar]="puedeAdministrar" [accionEliminar]="puedeAdministrar" (clicAccion)="seleccionar($event)"></app-tablas>
 
   <!-- Sección de totales (alineada con la tabla) -->

@@ -17,7 +17,7 @@ export class EditarConfiguracionGoogleComponent implements OnInit {
 
   titulo = "Editar Configuración Google";
   accion: string = "editar";
-  regresar = '/administracion/configuracion-google';
+  regresar = '/administracion/datos-maestros/configuracion-google';
   editable: boolean = true;
 
   model = {
@@ -75,7 +75,7 @@ export class EditarConfiguracionGoogleComponent implements OnInit {
     this.googleConfiguracionService.actualizar(data).subscribe({
       next: (response: any) => {
         Swal.fire('Éxito', 'Configuración actualizada correctamente', 'success');
-        this.router.navigate(['/administracion/configuracion-google']);
+        this.router.navigate(['/administracion/datos-maestros/configuracion-google']);
       },
       error: (error: any) => {
         Swal.fire('Error', 'No se pudo actualizar la configuración', 'error');
@@ -84,6 +84,6 @@ export class EditarConfiguracionGoogleComponent implements OnInit {
   }
 
   volver() {
-    this.router.navigate(['/administracion/configuracion-google']);
+    this.router.navigate(['/administracion/datos-maestros/configuracion-google']);
   }
 }

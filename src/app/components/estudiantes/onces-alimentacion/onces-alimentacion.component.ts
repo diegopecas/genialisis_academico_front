@@ -38,7 +38,7 @@ export class OncesAlimentacionComponent {
   public titulo = "Gestión de onces y alimentación del día";
   public idEstudiante = "0";
   public accion = "";
-  public path = "/estudiantes-onces/crear/0/"
+  public path = "/estudiantes/onces/crear/0/"
   public estudiante: any;
   public nombre_estudiante = "";
   public titulos = [] as any[];

@@ -17,7 +17,7 @@ import { ComprobantePagoColaboradorComponent } from './comprobante-pago-colabora
       
       <div *ngIf="!datosCompletos" class="alert alert-warning">
         No se han recibido los datos necesarios para mostrar el comprobante.
-        <a class="btn btn-primary mt-3" [routerLink]="['/colaboradores-pagos-recibidos/0']">
+        <a class="btn btn-primary mt-3" [routerLink]="['/colaboradores/pagos-recibidos/0']">
           Volver al listado
         </a>
       </div>

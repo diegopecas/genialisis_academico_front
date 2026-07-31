@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { HeaderComponent } from '../../../common/header/header.component';
 import { Router } from '@angular/router';
+import { PermisosService } from '../../../services/permisos.service';
 
 @Component({
   selector: 'app-academico',
@@ -15,6 +16,8 @@ export class AcademicoComponent {
   menuActivo: string | null = null;
   
   constructor(
+    
+    public permisosService: PermisosService,
     private router: Router,
   ) { }
 
@@ -38,7 +41,7 @@ export class AcademicoComponent {
         this.router.navigate(['/academico/areas-academicas']);
         break;
       case 'actividades':
-        this.router.navigate(['/academico/selector-actividades']);
+        this.router.navigate(['/academico/actividades']);
         break;
       case 'sprints':
         this.router.navigate(['/academico/sprints']);
@@ -62,5 +65,9 @@ export class AcademicoComponent {
         this.router.navigate(['/academico/pde-items']);
         break;
     }
+  }
+
+  tieneAlguno(codigos: string[]): boolean {
+    return codigos.some(c => this.permisosService.tienePermiso(c));
   }
 }

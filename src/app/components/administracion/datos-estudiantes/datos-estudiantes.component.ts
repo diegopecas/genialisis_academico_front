@@ -23,6 +23,6 @@ export class DatosEstudiantesComponent {
   constructor(private router: Router) {}
 
   navegar(ruta: string) {
-    this.router.navigate(['/administracion/datos-estudiantes/' + ruta]);
+    this.router.navigate(['/administracion/datos-maestros/datos-estudiantes/' + ruta]);
   }
 }

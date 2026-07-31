@@ -40,7 +40,7 @@ export class CrearItemMenuComponent implements OnInit {
     public editable = true;
     public submitted = false;
     public titulo = "Registro de ítem de menú";
-    public regresar = '/administracion/items-menu';
+    public regresar = '/administracion/datos-maestros/menus/items';
     public tabActivo = 'datos-generales';
 
     public ingredientesAsignados: IngredienteModel[] = [];
@@ -536,7 +536,7 @@ export class CrearItemMenuComponent implements OnInit {
                         .then(() => {
                             if (response.id) {
                                 // Redirigir a editar para poder agregar ingredientes
-                                this.router.navigate(['/administracion/items-menu/editar', response.id]);
+                                this.router.navigate(['/administracion/datos-maestros/menus/items/editar', response.id]);
                             } else {
                                 this.volver();
                             }
@@ -573,6 +573,6 @@ export class CrearItemMenuComponent implements OnInit {
     }
 
     volver(): void {
-        this.router.navigate(['/administracion/items-menu']);
+        this.router.navigate(['/administracion/datos-maestros/menus/items']);
     }
 }

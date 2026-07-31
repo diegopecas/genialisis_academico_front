@@ -5,14 +5,14 @@
       [mostrarCrear]="puedeAdministrar" 
       [accion]="'ConsultarTodos'"
       [raiz]="'/estudiantes/observaciones'" 
-      [regresar]="'/estudiantes-opciones/' + idEstudiante"
+      [regresar]="'/estudiantes/opciones/' + idEstudiante"
       [iconoTitulo]="'/assets/images/observaciones.png'">
     </app-header-anidado>
     
     <app-tablas 
       [titulos]="titulos" 
       [datos]="datos" 
-      [raiz]="'/estudiantes-observaciones'" 
+      [raiz]="'/estudiantes/observaciones'" 
       [accionVer]="puedeAdministrar"
       [accionEditar]="puedeAdministrar" 
       [accionEliminar]="puedeAdministrar" 

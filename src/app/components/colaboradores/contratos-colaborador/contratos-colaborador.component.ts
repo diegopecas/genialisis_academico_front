@@ -25,7 +25,7 @@ export class ContratosColaboradorComponent implements OnInit {
   public nombre_colaborador = '';
 
   public titulo = 'Contratos';
-  public path = '/colaboradores-contratos/crear/0/';
+  public path = '/colaboradores/contratos/crear/0/';
 
   public contratos: ContratoColaborador[] = [];
   public titulos = [] as any[];

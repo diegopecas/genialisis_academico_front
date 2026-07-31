@@ -7,7 +7,7 @@
         <div class="row justify-content-center">
 
             <!-- Estudiantes -->
-            <div class="col-lg-3 col-md-6 mb-4">
+            <div class="col-lg-3 col-md-6 mb-4" *ngIf="tieneAlguno(['estudiantes.administrar', 'estudiantes.listado'])">
                 <div class="card-maestro menu-principal" [class.active]="menuActivo === 'estudiantes'" (click)="toggleMenu('estudiantes', $event)">
                     <div class="card-maestro-content">
                         <div class="icono-container estudiantes">
@@ -22,13 +22,13 @@
 
                     <div class="submenu-container">
                         <div class="row g-2">
-                            <div class="col-6">
+                            <div class="col-6" *ngIf="permisosService.tienePermiso('estudiantes.listado')">
                                 <div class="submenu-item" (click)="seleccionarOpcion('estudiantes', $event)">
                                     <img src="assets/images/estudiantes.png" alt="Gestión" />
                                     <span>Gestión</span>
                                 </div>
                             </div>
-                            <div class="col-6">
+                            <div class="col-6" *ngIf="permisosService.tienePermiso('estudiantes.administrar')">
                                 <div class="submenu-item" (click)="seleccionarOpcion('registro-rapido-estudiante', $event)">
                                     <img src="assets/images/registro-rapido-estudiante.png" alt="Registro rápido" />
                                     <span>Registro rápido</span>

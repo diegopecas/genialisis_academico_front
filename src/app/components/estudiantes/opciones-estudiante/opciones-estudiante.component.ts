@@ -50,15 +50,15 @@ export class OpcionesEstudianteComponent implements OnInit {
 
   // Catálogo completo de opciones, agrupado por categoría.
   private opciones: OpcionEstudiante[] = [
-    { id: 'vista_360', label: 'Vista 360', icono: '/assets/images/vista_360.png', categoria: 'Información', permiso: 'estudiantes.vista_360', ruta: '/estudiantes-vista/' },
-    { id: 'registro_acudientes', label: 'Acudientes', icono: '/assets/images/familia.png', categoria: 'Información', permiso: 'estudiantes.acudientes', ruta: '/estudiantes-acudientes/' },
-    { id: 'registro_medidas', label: 'Medidas', icono: '/assets/images/medidas.png', categoria: 'Información', permiso: 'estudiantes.medidas', ruta: '/estudiantes-medidas/' },
-    { id: 'observaciones', label: 'Observaciones', icono: '/assets/images/observaciones.png', categoria: 'Información', permiso: 'estudiantes.observaciones', ruta: '/estudiantes-observaciones/' },
-    { id: 'pagos', label: 'Pagos', icono: '/assets/images/pagos.png', categoria: 'Servicios y cobros', permiso: 'estudiantes.pagos', ruta: '/estudiantes-pagos/' },
-    { id: 'productos_servicios', label: 'Productos', icono: '/assets/images/productos.png', categoria: 'Servicios y cobros', permiso: 'estudiantes.productos_servicios', ruta: '/estudiantes-productos-servicios/' },
-    { id: 'contratos', label: 'Contratos', icono: '/assets/images/contratos.png', categoria: 'Servicios y cobros', permiso: 'estudiantes.contratos', ruta: '/estudiantes-contratos/' },
-    { id: 'cursos_extra', label: 'Cursos Extra', icono: '/assets/images/cursos-extra.png', categoria: 'Servicios y cobros', permiso: null, ruta: '/estudiantes-cursos-extra/' },
-    { id: 'onces', label: 'Onces', icono: '/assets/images/onces.png', categoria: 'Servicios y cobros', permiso: 'estudiantes.onces', ruta: '/estudiantes-onces/' },
+    { id: 'vista_360', label: 'Vista 360', icono: '/assets/images/vista_360.png', categoria: 'Información', permiso: 'estudiantes.vista_360', ruta: '/estudiantes/vista/' },
+    { id: 'registro_acudientes', label: 'Acudientes', icono: '/assets/images/familia.png', categoria: 'Información', permiso: 'estudiantes.acudientes', ruta: '/estudiantes/acudientes/' },
+    { id: 'registro_medidas', label: 'Medidas', icono: '/assets/images/medidas.png', categoria: 'Información', permiso: 'estudiantes.medidas', ruta: '/estudiantes/medidas/' },
+    { id: 'observaciones', label: 'Observaciones', icono: '/assets/images/observaciones.png', categoria: 'Información', permiso: 'estudiantes.observaciones', ruta: '/estudiantes/observaciones/' },
+    { id: 'pagos', label: 'Pagos', icono: '/assets/images/pagos.png', categoria: 'Servicios y cobros', permiso: 'estudiantes.pagos', ruta: '/estudiantes/pagos/' },
+    { id: 'productos_servicios', label: 'Productos', icono: '/assets/images/productos.png', categoria: 'Servicios y cobros', permiso: 'estudiantes.productos_servicios', ruta: '/estudiantes/productos-servicios/' },
+    { id: 'contratos', label: 'Contratos', icono: '/assets/images/contratos.png', categoria: 'Servicios y cobros', permiso: 'estudiantes.contratos', ruta: '/estudiantes/contratos/' },
+    { id: 'cursos_extra', label: 'Cursos Extra', icono: '/assets/images/cursos-extra.png', categoria: 'Servicios y cobros', permiso: null, ruta: '/estudiantes/cursos-extra/' },
+    { id: 'onces', label: 'Onces', icono: '/assets/images/onces.png', categoria: 'Servicios y cobros', permiso: 'estudiantes.onces', ruta: '/estudiantes/onces/' },
     { id: 'editar', label: 'Editar', icono: '/assets/images/editar.png', categoria: 'Gestión', permiso: 'estudiantes.administrar', ruta: 'estudiantes/editar/' },
     { id: 'cambiar_grupo', label: 'Cambio Grupo', icono: '/assets/images/cambio_grupo.png', categoria: 'Gestión', permiso: 'estudiantes.cambio_grupo', ruta: null },
   ];

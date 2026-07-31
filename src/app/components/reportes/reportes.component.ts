@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { HeaderComponent } from '../../common/header/header.component';
 import { Router } from '@angular/router';
+import { PermisosService } from '../../services/permisos.service';
 
 @Component({
   selector: 'app-reportes',
@@ -14,7 +15,9 @@ export class ReportesComponent {
   titulo = 'Centro de Reportes';
   menuActivo: string | null = null;
 
-  constructor(private router: Router) {}
+  constructor(
+    public permisosService: PermisosService,
+    private router: Router) {}
 
   toggleMenu(menu: string, event: Event) {
     event.stopPropagation();
@@ -85,5 +88,9 @@ export class ReportesComponent {
         this.router.navigate(['/reportes/reportes-pago']);
         break;
     }
+  }
+
+  tieneAlguno(codigos: string[]): boolean {
+    return codigos.some(c => this.permisosService.tienePermiso(c));
   }
 }

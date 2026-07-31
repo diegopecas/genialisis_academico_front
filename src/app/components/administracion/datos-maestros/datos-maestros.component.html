@@ -32,37 +32,37 @@
                   <span>Productos</span>
                 </div>
               </div>
-              <div class="col-6">
+              <div class="col-6" *ngIf="permisosService.tienePermiso('admin.proveedores')">
                 <div class="submenu-item" (click)="seleccionarOpcion('proveedores')">
                   <img src="assets/images/proveedores.png" alt="Proveedores" />
                   <span>Proveedores</span>
                 </div>
               </div>
-              <div class="col-6">
+              <div class="col-6" *ngIf="permisosService.tienePermiso('admin.productos_servicios')">
                 <div class="submenu-item" (click)="seleccionarOpcion('productos-servicios')">
                   <img src="assets/images/productos_servicios.png" alt="Productos y Servicios" />
                   <span>Productos y Servicios</span>
                 </div>
               </div>
-              <div class="col-6">
+              <div class="col-6" *ngIf="permisosService.tienePermiso('admin.productos_mobiliario')">
                 <div class="submenu-item" (click)="seleccionarOpcion('productos-mobiliario')">
                   <img src="assets/images/productos-mobiliario.png" alt="Mobiliario" />
                   <span>Productos Mobiliario</span>
                 </div>
               </div>
-              <div class="col-6">
+              <div class="col-6" *ngIf="permisosService.tienePermiso('admin.productos_limpieza')">
                 <div class="submenu-item" (click)="seleccionarOpcion('productos-limpieza')">
                   <img src="assets/images/productos-limpieza.png" alt="Limpieza" />
                   <span>Productos Limpieza</span>
                 </div>
               </div>
-              <div class="col-6">
+              <div class="col-6" *ngIf="permisosService.tienePermiso('admin.productos_alimentacion')">
                 <div class="submenu-item" (click)="seleccionarOpcion('productos-alimentacion')">
                   <img src="assets/images/productos-alimentacion.png" alt="Alimentación" />
                   <span>Productos Alimentación</span>
                 </div>
               </div>
-              <div class="col-6">
+              <div class="col-6" *ngIf="permisosService.tienePermiso('admin.productos_academico')">
                 <div class="submenu-item" (click)="seleccionarOpcion('productos-academico')">
                   <img src="assets/images/productos-academico.png" alt="Académico" />
                   <span>Productos Académico</span>
@@ -74,7 +74,7 @@
       </div>
 
       <!-- Infraestructura y Espacios -->
-      <div class="col-lg-4 col-md-6 mb-4">
+      <div class="col-lg-4 col-md-6 mb-4" *ngIf="tieneAlguno(['admin.areas_fisicas', 'admin.config_aseo', 'admin.elementos_fisicos'])">
         <div class="card-maestro menu-principal" [class.active]="menuActivo === 'infraestructura'" (click)="toggleMenu('infraestructura', $event)">
           <div class="card-maestro-content">
             <div class="icono-container infraestructura">
@@ -89,19 +89,19 @@
 
           <div class="submenu-container">
             <div class="row g-2">
-              <div class="col-6">
+              <div class="col-6" *ngIf="permisosService.tienePermiso('admin.areas_fisicas')">
                 <div class="submenu-item" (click)="seleccionarOpcion('areas-fisicas')">
                   <img src="assets/images/areas_fisicas.png" alt="Áreas Físicas" />
                   <span>Áreas Físicas</span>
                 </div>
               </div>
-              <div class="col-6">
+              <div class="col-6" *ngIf="permisosService.tienePermiso('admin.elementos_fisicos')">
                 <div class="submenu-item" (click)="seleccionarOpcion('elementos-fisicos')">
                   <img src="assets/images/elementos-fisicos.png" alt="Elementos Físicos" />
                   <span>Elementos Físicos</span>
                 </div>
               </div>
-              <div class="col-6">
+              <div class="col-6" *ngIf="permisosService.tienePermiso('admin.config_aseo')">
                 <div class="submenu-item" (click)="seleccionarOpcion('config-aseo')">
                   <img src="assets/images/config_aseo.png" alt="Configuración de Aseo" />
                   <span>Configuración de Aseo</span>
@@ -113,7 +113,7 @@
       </div>
 
       <!-- Operaciones -->
-      <div class="col-lg-4 col-md-6 mb-4">
+      <div class="col-lg-4 col-md-6 mb-4" *ngIf="tieneAlguno(['admin.gestion_medidas', 'admin.menus'])">
         <div class="card-maestro menu-principal" [class.active]="menuActivo === 'operaciones'" (click)="toggleMenu('operaciones', $event)">
           <div class="card-maestro-content">
             <div class="icono-container operaciones">
@@ -128,13 +128,13 @@
 
           <div class="submenu-container">
             <div class="row g-2">
-              <div class="col-6">
+              <div class="col-6" *ngIf="permisosService.tienePermiso('admin.menus')">
                 <div class="submenu-item" (click)="seleccionarOpcion('menus')">
                   <img src="assets/images/menu-restaurante.png" alt="Menús" />
                   <span>Menús del Restaurante</span>
                 </div>
               </div>
-              <div class="col-6">
+              <div class="col-6" *ngIf="permisosService.tienePermiso('admin.gestion_medidas')">
                 <div class="submenu-item" (click)="seleccionarOpcion('gestion-medidas')">
                   <img src="assets/images/medidas.png" alt="Medidas Corporales" />
                   <span>Gestión de Medidas Corporales</span>
@@ -146,7 +146,7 @@
       </div>
 
       <!-- Plantillas -->
-      <div class="col-lg-4 col-md-6 mb-4">
+      <div class="col-lg-4 col-md-6 mb-4" *ngIf="tieneAlguno(['admin.plantillas', 'admin.plantillas_whatsapp'])">
         <div class="card-maestro menu-principal" [class.active]="menuActivo === 'plantillas'" (click)="toggleMenu('plantillas', $event)">
           <div class="card-maestro-content">
             <div class="icono-container plantillas">
@@ -161,13 +161,13 @@
 
           <div class="submenu-container">
             <div class="row g-2">
-              <div class="col-6">
+              <div class="col-6" *ngIf="permisosService.tienePermiso('admin.plantillas')">
                 <div class="submenu-item" (click)="seleccionarOpcion('plantillas-institucionales')">
                   <img src="assets/images/plantillas_institucionales.png" alt="Institucionales" />
                   <span>Institucionales</span>
                 </div>
               </div>
-              <div class="col-6">
+              <div class="col-6" *ngIf="permisosService.tienePermiso('admin.plantillas_whatsapp')">
                 <div class="submenu-item" (click)="seleccionarOpcion('plantillas-whatsapp')">
                   <img src="assets/images/plantillas_whatsapp.png" alt="WhatsApp" />
                   <span>WhatsApp</span>
@@ -179,7 +179,7 @@
       </div>
 
       <!-- Configuración -->
-      <div class="col-lg-4 col-md-6 mb-4">
+      <div class="col-lg-4 col-md-6 mb-4" *ngIf="tieneAlguno(['admin.cargos', 'admin.conectar_whatsapp', 'admin.configuracion_geofence', 'admin.configuracion_global', 'admin.configuracion_google', 'admin.configuracion_ia', 'admin.datos_estudiantes', 'admin.institucion', 'admin.tipos_documentos'])">
         <div class="card-maestro menu-principal" [class.active]="menuActivo === 'configuracion'" (click)="toggleMenu('configuracion', $event)">
           <div class="card-maestro-content">
             <div class="icono-container configuracion">
@@ -194,55 +194,55 @@
 
           <div class="submenu-container">
             <div class="row g-2">
-              <div class="col-6">
+              <div class="col-6" *ngIf="permisosService.tienePermiso('admin.configuracion_global')">
                 <div class="submenu-item" (click)="seleccionarOpcion('configuracion-global')">
                   <img src="assets/images/configuracion.png" alt="Configuración Global" />
                   <span>Configuración Global</span>
                 </div>
               </div>
-              <div class="col-6">
+              <div class="col-6" *ngIf="permisosService.tienePermiso('admin.cargos')">
                 <div class="submenu-item" (click)="seleccionarOpcion('cargos')">
                   <img src="assets/images/cargos.png" alt="Cargos" />
                   <span>Cargos</span>
                 </div>
               </div>
-              <div class="col-6">
+              <div class="col-6" *ngIf="permisosService.tienePermiso('admin.tipos_documentos')">
                 <div class="submenu-item" (click)="seleccionarOpcion('tipos-documentos')">
                   <img src="assets/images/tipos-documentos.png" alt="Tipos de Documentos" />
                   <span>Tipos de Documentos</span>
                 </div>
               </div>
-              <div class="col-6">
+              <div class="col-6" *ngIf="permisosService.tienePermiso('admin.configuracion_ia')">
                 <div class="submenu-item" (click)="seleccionarOpcion('configuracion-ia')">
                   <img src="assets/images/configuracion-ia.png" alt="Configuración IA" />
                   <span>Configuración IA</span>
                 </div>
               </div>
-              <div class="col-6">
+              <div class="col-6" *ngIf="permisosService.tienePermiso('admin.configuracion_google')">
                 <div class="submenu-item" (click)="seleccionarOpcion('configuracion-google')">
                   <img src="assets/images/google.png" alt="Google Calendar" />
                   <span>Google</span>
                 </div>
               </div>
-              <div class="col-6">
+              <div class="col-6" *ngIf="permisosService.tienePermiso('admin.configuracion_geofence')">
                 <div class="submenu-item" (click)="seleccionarOpcion('configuracion-geofence')">
                   <img src="assets/images/geofence.png" alt="Zona Asistencia" />
                   <span>Zona de Asistencia</span>
                 </div>
               </div>
-              <div class="col-6">
+              <div class="col-6" *ngIf="permisosService.tienePermiso('admin.datos_estudiantes')">
                 <div class="submenu-item" (click)="seleccionarOpcion('datos-estudiantes')">
                   <img src="assets/images/estudiantes.png" alt="Datos Estudiantes" />
                   <span>Datos Estudiantes</span>
                 </div>
               </div>
-              <div class="col-6">
+              <div class="col-6" *ngIf="permisosService.tienePermiso('admin.institucion')">
                 <div class="submenu-item" (click)="seleccionarOpcion('institucion')">
                   <img src="assets/images/institucion.png" alt="Institución" />
                   <span>Institución</span>
                 </div>
               </div>
-              <div class="col-6">
+              <div class="col-6" *ngIf="permisosService.tienePermiso('admin.conectar_whatsapp')">
                 <div class="submenu-item" (click)="seleccionarOpcion('conectar-whatsapp')">
                   <img src="assets/images/whatsapp.png" alt="Conexión WhatsApp" />
                   <span>Conexión WhatsApp</span>
@@ -254,7 +254,7 @@
       </div>
 
       <!-- Seguridad -->
-      <div class="col-lg-4 col-md-6 mb-4">
+      <div class="col-lg-4 col-md-6 mb-4" *ngIf="tieneAlguno(['admin.documentacion', 'admin.permisos_rol'])">
         <div class="card-maestro menu-principal" [class.active]="menuActivo === 'seguridad'" (click)="toggleMenu('seguridad', $event)">
           <div class="card-maestro-content">
             <div class="icono-container seguridad">
@@ -283,13 +283,13 @@
                   <small class="text-muted">(Próximamente)</small>
                 </div>
               </div>
-              <div class="col-6">
+              <div class="col-6" *ngIf="permisosService.tienePermiso('admin.permisos_rol')">
                 <div class="submenu-item" (click)="seleccionarOpcion('permisos')">
                   <img src="assets/images/permisos.png" alt="Permisos" />
                   <span>Permisos por Rol</span>
                 </div>
               </div>
-              <div class="col-6">
+              <div class="col-6" *ngIf="permisosService.tienePermiso('admin.documentacion')">
                 <div class="submenu-item" (click)="seleccionarOpcion('documentacion-sistema')">
                   <img src="assets/images/documentacion_configuracion.png" alt="Documentación" />
                   <span>Documentación</span>

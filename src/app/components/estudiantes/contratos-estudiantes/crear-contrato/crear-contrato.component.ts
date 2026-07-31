@@ -52,7 +52,7 @@ export class CrearContratoComponent implements OnInit {
   public estudiante: any;
   public nombre_estudiante = '';
   public titulo = 'Contrato de matrícula';
-  public regresar = '/estudiantes-contratos/';
+  public regresar = '/estudiantes/contratos/';
 
   public acudientesDisponibles = [] as any[];
   public tarifaGrupo: any = null;
@@ -880,7 +880,7 @@ export class CrearContratoComponent implements OnInit {
             }).then((result) => {
               if (result.isConfirmed) {
                 this.router.navigate([
-                  '/estudiantes-contratos/consultar/' +
+                  '/estudiantes/contratos/consultar/' +
                     response.id_contrato +
                     '/' +
                     this.idEstudiante,
@@ -1219,7 +1219,7 @@ export class CrearContratoComponent implements OnInit {
   }
 
   volver() {
-    this.router.navigate(['/estudiantes-contratos/' + this.idEstudiante]);
+    this.router.navigate(['/estudiantes/contratos/' + this.idEstudiante]);
   }
 
   formatearMoneda(valor: number): string {

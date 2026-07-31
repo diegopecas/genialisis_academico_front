@@ -191,7 +191,7 @@ export class SelectorAreasComponent implements OnInit {
   }
 
   irAGini(): void {
-    this.router.navigate(['/clases-ia/gini-ingles', this.idGrupo], {
+    this.router.navigate(['/academico/clases-ia/gini-ingles', this.idGrupo], {
       queryParams: { grupo: this.grupo?.nombre }
     });
   }

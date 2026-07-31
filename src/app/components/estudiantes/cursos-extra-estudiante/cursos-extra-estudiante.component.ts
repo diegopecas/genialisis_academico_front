@@ -18,7 +18,7 @@ import Swal from 'sweetalert2';
 export class CursosExtraEstudianteComponent {
   public titulo = "Cursos Extracurriculares";
   public idEstudiante = "0";
-  public path = "/estudiantes-cursos-extra/crear/0/";
+  public path = "/estudiantes/cursos-extra/crear/0/";
   public estudiante: any;
   public nombre_estudiante = "";
   public titulos = [] as any[];
@@ -37,7 +37,7 @@ export class CursosExtraEstudianteComponent {
   ngOnInit() {
     this.route.params.subscribe(params => {
       this.idEstudiante = params['id'];
-      this.path = "/estudiantes-cursos-extra/crear/0/" + this.idEstudiante;
+      this.path = "/estudiantes/cursos-extra/crear/0/" + this.idEstudiante;
       this.obtenerEstudiante(this.idEstudiante);
     });
     this.crearTitulos();

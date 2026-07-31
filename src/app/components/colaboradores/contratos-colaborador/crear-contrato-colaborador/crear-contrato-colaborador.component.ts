@@ -34,7 +34,7 @@ export class CrearContratoColaboradorComponent implements OnInit {
 
   public titulo = 'Crear contrato';
   public accion = 'crear';
-  public regresar = '/colaboradores-contratos';
+  public regresar = '/colaboradores/contratos';
   public editable = true;
 
   colaborador: any = null;
@@ -88,7 +88,7 @@ export class CrearContratoColaboradorComponent implements OnInit {
     const idParam = this.route.snapshot.paramMap.get('id');
     this.idColaborador = this.route.snapshot.paramMap.get('idColaborador') || '';
     this.contrato.id_colaborador = this.idColaborador;
-    this.regresar = '/colaboradores-contratos/' + this.idColaborador;
+    this.regresar = '/colaboradores/contratos/' + this.idColaborador;
 
     if (accion === 'editar' && idParam) {
       this.idContrato = idParam;
@@ -442,7 +442,7 @@ export class CrearContratoColaboradorComponent implements OnInit {
             // para que aparezca la sección de documentos/firma.
             this.router.navigate(
               [
-                '/colaboradores-contratos',
+                '/colaboradores/contratos',
                 'editar',
                 this.idContrato,
                 this.idColaborador,
@@ -561,6 +561,6 @@ export class CrearContratoColaboradorComponent implements OnInit {
   }
 
   volver(): void {
-    this.router.navigate(['/colaboradores-contratos', this.idColaborador]);
+    this.router.navigate(['/colaboradores/contratos', this.idColaborador]);
   }
 }

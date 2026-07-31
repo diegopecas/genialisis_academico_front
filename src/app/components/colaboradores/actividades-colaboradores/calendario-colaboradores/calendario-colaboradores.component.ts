@@ -1268,6 +1268,6 @@ export class CalendarioColaboradoresComponent implements OnInit {
   }
 
   regresar() {
-    this.router.navigate(['/administracion/actividades-colaboradores']);
+    this.router.navigate(['/colaboradores/actividades']);
   }
 }

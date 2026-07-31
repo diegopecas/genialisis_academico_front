@@ -304,7 +304,7 @@ export class CrearColaboradoresPrestamosPagosComponent implements OnInit {
               timer: 2000
             }).then(() => {
               this.router.navigate([
-                '/colaboradores-prestamos/ver',
+                '/colaboradores/prestamos/ver',
                 this.idPrestamo,
                 this.idColaborador
               ]);
@@ -326,7 +326,7 @@ export class CrearColaboradoresPrestamosPagosComponent implements OnInit {
 
   cancelar() {
     this.router.navigate([
-      '/colaboradores-prestamos/ver',
+      '/colaboradores/prestamos/ver',
       this.idPrestamo,
       this.idColaborador
     ]);

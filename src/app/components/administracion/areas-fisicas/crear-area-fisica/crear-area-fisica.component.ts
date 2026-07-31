@@ -38,7 +38,7 @@ export class CrearAreaFisicaComponent implements OnInit {
     public editable = true;
     public submitted = false;
     public titulo = "Registro de área física";
-    public regresar = '/administracion/areas-fisicas';
+    public regresar = '/administracion/datos-maestros/areas-fisicas';
     public tabActivo = 'datos-generales';
 
     // Consumo general por área/proceso (respaldo cuando el área no tiene elementos)
@@ -636,7 +636,7 @@ export class CrearAreaFisicaComponent implements OnInit {
                     Swal.fire('Éxito', 'Área física creada correctamente', 'success')
                         .then(() => {
                             if (response.id) {
-                                this.router.navigate(['/administracion/areas-fisicas/editar', response.id]);
+                                this.router.navigate(['/administracion/datos-maestros/areas-fisicas/editar', response.id]);
                             } else {
                                 this.volver();
                             }
@@ -677,7 +677,7 @@ export class CrearAreaFisicaComponent implements OnInit {
     }
 
     volver(): void {
-        this.router.navigate(['/administracion/areas-fisicas']);
+        this.router.navigate(['/administracion/datos-maestros/areas-fisicas']);
     }
 
     // ========== MÉTODOS PARA PROCESOS DE LIMPIEZA ==========

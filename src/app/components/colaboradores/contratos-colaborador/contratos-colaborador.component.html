@@ -4,15 +4,15 @@
     [path]="path"
     [mostrarCrear]="puedeAdministrar"
     [accion]="'ConsultarTodos'"
-    [raiz]="'/colaboradores-contratos'"
-    [regresar]="'/colaboradores-opciones/' + idColaborador"
+    [raiz]="'/colaboradores/contratos'"
+    [regresar]="'/colaboradores/opciones/' + idColaborador"
     [iconoTitulo]="'/assets/images/contratos.png'">
   </app-header-anidado>
 
   <app-tablas
     [titulos]="titulos"
     [datos]="contratos"
-    [raiz]="'/colaboradores-contratos'"
+    [raiz]="'/colaboradores/contratos'"
     [accionVer]="false"
     [accionEditar]="puedeAdministrar"
     [accionEliminar]="puedeAdministrar"

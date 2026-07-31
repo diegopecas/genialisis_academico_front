@@ -38,7 +38,7 @@ export class CrearCursoExtraEstudianteComponent implements OnInit {
   public guardando = false;
   public generandoCuentas = false;
   public titulo = "Inscribir a Curso Extracurricular";
-  public regresar = '/estudiantes-cursos-extra';
+  public regresar = '/estudiantes/cursos-extra';
 
   public estudiante: any;
   public nombre_estudiante = "";
@@ -95,7 +95,7 @@ export class CrearCursoExtraEstudianteComponent implements OnInit {
     this.route.params.subscribe(params => {
       this.accion = params['accion'];
       this.idEstudiante = params['idEstudiante'];
-      this.regresar = '/estudiantes-cursos-extra/' + this.idEstudiante;
+      this.regresar = '/estudiantes/cursos-extra/' + this.idEstudiante;
 
       if (this.accion === 'crear') {
         this.titulo = "Inscribir a Curso Extracurricular";
@@ -591,6 +591,6 @@ export class CrearCursoExtraEstudianteComponent implements OnInit {
   }
 
   volver() {
-    this.router.navigate(['/estudiantes-cursos-extra/' + this.idEstudiante]);
+    this.router.navigate(['/estudiantes/cursos-extra/' + this.idEstudiante]);
   }
 }

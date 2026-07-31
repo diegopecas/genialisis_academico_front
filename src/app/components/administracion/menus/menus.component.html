@@ -18,7 +18,7 @@
         <div class="row justify-content-center">
             
             <!-- Items de Menú -->
-            <div class="col-lg-5 col-md-6 mb-4">
+            <div class="col-lg-5 col-md-6 mb-4" *ngIf="permisosService.tienePermiso('admin.items_menu')">
                 <div class="card-menu" (click)="seleccionarOpcion('items-menu')">
                     <div class="card-menu-content">
                         <div class="icono-container items-menu">
@@ -34,7 +34,7 @@
             </div>
 
             <!-- Menús -->
-            <div class="col-lg-5 col-md-6 mb-4">
+            <div class="col-lg-5 col-md-6 mb-4" *ngIf="permisosService.tienePermiso('admin.lista_menus')">
                 <div class="card-menu" (click)="seleccionarOpcion('menus')">
                     <div class="card-menu-content">
                         <div class="icono-container menus">

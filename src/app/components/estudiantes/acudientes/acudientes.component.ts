@@ -20,7 +20,7 @@ export class AcudientesComponent {
   public titulo = "Módulo de acudientes";
   public idEstudiante = "0";
   public accion = "";
-  public path = "/estudiantes-acudientes/crear/0/"
+  public path = "/estudiantes/acudientes/crear/0/"
   public estudiante: any;
   public nombre_estudiante = "";
   public titulos = [] as any[];

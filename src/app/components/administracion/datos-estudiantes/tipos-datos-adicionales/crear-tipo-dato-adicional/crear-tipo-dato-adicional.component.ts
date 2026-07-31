@@ -17,7 +17,7 @@ export class CrearTipoDatoAdicionalComponent implements OnInit {
 
   titulo = "Crear Categoría Adicional";
   accion: string = "";
-  regresar = '/administracion/datos-estudiantes/tipos-datos-adicionales';
+  regresar = '/administracion/datos-maestros/datos-estudiantes/tipos-datos-adicionales';
   editable: boolean = true;
   submitted: boolean = false;
 

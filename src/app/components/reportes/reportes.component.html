@@ -9,7 +9,7 @@
   <div class="container-fluid mt-5">
     <div class="row justify-content-center">
       <!-- Académicos -->
-      <div class="col-lg-3 col-md-6 mb-4">
+      <div class="col-lg-3 col-md-6 mb-4" *ngIf="tieneAlguno(['reportes.calificaciones_estudiante', 'reportes.calificaciones_sprint', 'reportes.cobertura_curricular', 'reportes.ejecucion_tareas', 'reportes.malla_curricular'])">
         <div
           class="card-maestro menu-principal"
           [class.active]="menuActivo === 'academicos'"
@@ -32,7 +32,7 @@
 
           <div class="submenu-container">
             <div class="row g-2">
-              <div class="col-6">
+              <div class="col-6" *ngIf="permisosService.tienePermiso('reportes.calificaciones_sprint')">
                 <div
                   class="submenu-item"
                   (click)="seleccionarOpcion('calificaciones-sprint', $event)"
@@ -44,7 +44,7 @@
                   <span>Calificaciones Sprint</span>
                 </div>
               </div>
-              <div class="col-6">
+              <div class="col-6" *ngIf="permisosService.tienePermiso('reportes.calificaciones_estudiante')">
                 <div
                   class="submenu-item"
                   (click)="
@@ -58,7 +58,7 @@
                   <span>Calificaciones Estudiante</span>
                 </div>
               </div>
-              <div class="col-6">
+              <div class="col-6" *ngIf="permisosService.tienePermiso('reportes.malla_curricular')">
                 <div
                   class="submenu-item"
                   (click)="seleccionarOpcion('malla-curricular', $event)"
@@ -70,7 +70,7 @@
                   <span>Malla Curricular</span>
                 </div>
               </div>
-              <div class="col-6">
+              <div class="col-6" *ngIf="permisosService.tienePermiso('reportes.cobertura_curricular')">
                 <div
                   class="submenu-item"
                   (click)="seleccionarOpcion('cobertura-curricular', $event)"
@@ -82,7 +82,7 @@
                   <span>Cobertura Curricular</span>
                 </div>
               </div>
-              <div class="col-6">
+              <div class="col-6" *ngIf="permisosService.tienePermiso('reportes.ejecucion_tareas')">
                 <div
                   class="submenu-item"
                   (click)="seleccionarOpcion('ejecucion-tareas', $event)"
@@ -100,7 +100,7 @@
       </div>
 
       <!-- Estudiantes -->
-      <div class="col-lg-3 col-md-6 mb-4">
+      <div class="col-lg-3 col-md-6 mb-4" *ngIf="tieneAlguno(['reportes.asistencia', 'reportes.estudiantes_general', 'reportes.tamizajes'])">
         <div
           class="card-maestro menu-principal"
           [class.active]="menuActivo === 'estudiantes'"
@@ -123,7 +123,7 @@
 
           <div class="submenu-container">
             <div class="row g-2">
-              <div class="col-6">
+              <div class="col-6" *ngIf="permisosService.tienePermiso('reportes.estudiantes_general')">
                 <div
                   class="submenu-item"
                   (click)="seleccionarOpcion('estudiantes-general', $event)"
@@ -135,7 +135,7 @@
                   <span>Reporte General</span>
                 </div>
               </div>
-              <div class="col-6">
+              <div class="col-6" *ngIf="permisosService.tienePermiso('reportes.asistencia')">
                 <div
                   class="submenu-item"
                   (click)="seleccionarOpcion('asistencia', $event)"
@@ -147,7 +147,7 @@
                   <span>Reporte Asistencia</span>
                 </div>
               </div>
-              <div class="col-12">
+              <div class="col-12" *ngIf="permisosService.tienePermiso('reportes.tamizajes')">
                 <div
                   class="submenu-item"
                   (click)="seleccionarOpcion('tamizajes', $event)"
@@ -162,7 +162,7 @@
       </div>
 
       <!-- Financiero -->
-      <div class="col-lg-3 col-md-6 mb-4">
+      <div class="col-lg-3 col-md-6 mb-4" *ngIf="tieneAlguno(['reportes.cartera', 'reportes.cobros_realizados', 'reportes.movimientos_financieros', 'reportes.pagos_recibidos', 'reportes.reportes_pago'])">
         <div
           class="card-maestro menu-principal"
           [class.active]="menuActivo === 'financiero'"
@@ -185,7 +185,7 @@
 
           <div class="submenu-container">
             <div class="row g-2">
-              <div class="col-6">
+              <div class="col-6" *ngIf="permisosService.tienePermiso('reportes.cartera')">
                 <div
                   class="submenu-item"
                   (click)="seleccionarOpcion('cartera', $event)"
@@ -194,7 +194,7 @@
                   <span>Cartera</span>
                 </div>
               </div>
-              <div class="col-6">
+              <div class="col-6" *ngIf="permisosService.tienePermiso('reportes.cobros_realizados')">
                 <div
                   class="submenu-item"
                   (click)="seleccionarOpcion('cobros-realizados', $event)"
@@ -206,7 +206,7 @@
                   <span>Cobros Realizados</span>
                 </div>
               </div>
-              <div class="col-6">
+              <div class="col-6" *ngIf="permisosService.tienePermiso('reportes.pagos_recibidos')">
                 <div
                   class="submenu-item"
                   (click)="seleccionarOpcion('pagos-recibidos', $event)"
@@ -215,7 +215,7 @@
                   <span>Pagos Recibidos</span>
                 </div>
               </div>
-              <div class="col-6">
+              <div class="col-6" *ngIf="permisosService.tienePermiso('reportes.reportes_pago')">
                 <div
                   class="submenu-item"
                   (click)="seleccionarOpcion('reportes-pago', $event)"
@@ -227,7 +227,7 @@
                   <span>Reportes de Pago</span>
                 </div>
               </div>
-              <div class="col-6">
+              <div class="col-6" *ngIf="permisosService.tienePermiso('reportes.movimientos_financieros')">
                 <div
                   class="submenu-item"
                   (click)="seleccionarOpcion('movimientos-financieros', $event)"
@@ -245,7 +245,7 @@
       </div>
 
       <!-- Colaboradores -->
-      <div class="col-lg-3 col-md-6 mb-4">
+      <div class="col-lg-3 col-md-6 mb-4" *ngIf="tieneAlguno(['reportes.asistencia_colaboradores', 'reportes.contabilizaciones', 'reportes.historial_actividades'])">
         <div
           class="card-maestro menu-principal"
           [class.active]="menuActivo === 'colaboradores'"
@@ -268,7 +268,7 @@
 
           <div class="submenu-container">
             <div class="row g-2">
-              <div class="col-6">
+              <div class="col-6" *ngIf="permisosService.tienePermiso('reportes.contabilizaciones')">
                 <div
                   class="submenu-item"
                   (click)="
@@ -282,7 +282,7 @@
                   <span>Reportes de Contabilización</span>
                 </div>
               </div>
-              <div class="col-6">
+              <div class="col-6" *ngIf="permisosService.tienePermiso('reportes.historial_actividades')">
                 <div
                   class="submenu-item"
                   (click)="seleccionarOpcion('historial-actividades', $event)"
@@ -294,7 +294,7 @@
                   <span>Historial de Actividades</span>
                 </div>
               </div>
-              <div class="col-6">
+              <div class="col-6" *ngIf="permisosService.tienePermiso('reportes.asistencia_colaboradores')">
                 <div
                   class="submenu-item"
                   (click)="seleccionarOpcion('asistencia-colaboradores', $event)"
@@ -312,7 +312,7 @@
       </div>
 
       <!-- Administración -->
-      <div class="col-lg-3 col-md-6 mb-4">
+      <div class="col-lg-3 col-md-6 mb-4" *ngIf="tieneAlguno(['dashboard.gerencial.listado'])">
         <div
           class="card-maestro menu-principal"
           [class.active]="menuActivo === 'administracion'"
@@ -336,7 +336,7 @@
 
           <div class="submenu-container">
             <div class="row g-2">
-              <div class="col-12">
+              <div class="col-12" *ngIf="permisosService.tienePermiso('dashboard.gerencial.listado')">
                 <div
                   class="submenu-item"
                   (click)="seleccionarOpcion('dashboard-gerencial', $event)"
@@ -354,7 +354,7 @@
       </div>
 
       <!-- Apoyo -->
-      <div class="col-lg-3 col-md-6 mb-4">
+      <div class="col-lg-3 col-md-6 mb-4" *ngIf="tieneAlguno(['reportes.alimentacion'])">
         <div
           class="card-maestro menu-principal"
           [class.active]="menuActivo === 'apoyo'"
@@ -375,7 +375,7 @@
 
           <div class="submenu-container">
             <div class="row g-2">
-              <div class="col-12">
+              <div class="col-12" *ngIf="permisosService.tienePermiso('reportes.alimentacion')">
                 <div
                   class="submenu-item"
                   (click)="seleccionarOpcion('alimentacion', $event)"

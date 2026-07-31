@@ -72,7 +72,7 @@ export class CrearColaboradoresPagosRecibidosComponent implements OnInit {
   public colaborador: any;
   public nombre_colaborador = "";
   public titulo = "Registro de Pagos";
-  public regresar = '/colaboradores-pagos-recibidos/';
+  public regresar = '/colaboradores/pagos-recibidos/';
 
   // Propiedades para el manejo de cuentas y pagos
   public cuentasPorCobrar: any[] = [];

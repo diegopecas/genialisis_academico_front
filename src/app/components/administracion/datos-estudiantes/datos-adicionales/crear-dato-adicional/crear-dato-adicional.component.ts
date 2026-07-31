@@ -18,7 +18,7 @@ export class CrearDatoAdicionalComponent implements OnInit {
 
   titulo = "Crear Dato Adicional";
   accion: string = "";
-  regresar = '/administracion/datos-estudiantes/datos-adicionales';
+  regresar = '/administracion/datos-maestros/datos-estudiantes/datos-adicionales';
   editable: boolean = true;
   submitted: boolean = false;
 

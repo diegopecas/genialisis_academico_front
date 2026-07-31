@@ -397,7 +397,7 @@ export class EditarIndicadoresLogrosComponent implements OnInit, OnDestroy {
       // Navegar a la vista de consulta de la actividad usando el id correcto
       const actividad = this.datosActividadesAcademicas.find((a: any) => a.id === event.id);
       if (actividad && actividad.id_actividad_academica) {
-        this.router.navigate(['/academico/actividades-academicas/consultar/' + actividad.id_actividad_academica]);
+        this.router.navigate(['/academico/actividades/gestion/consultar/' + actividad.id_actividad_academica]);
       }
     }
   }

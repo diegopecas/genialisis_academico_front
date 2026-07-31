@@ -73,7 +73,7 @@ export class CrearOncesAlimentacionComponent implements OnInit {
   public estudiante: any;
   public nombre_estudiante = "";
   public titulo = "Gestión de onces y alimentación del día ";
-  public regresar = '/estudiantes-onces/'
+  public regresar = '/estudiantes/onces/'
   public listas = {
     productosServicios: [] as any[],
     horariosAlimentacion: [] as any[]
@@ -406,7 +406,7 @@ export class CrearOncesAlimentacionComponent implements OnInit {
   }
 
   volver() {
-    this.router.navigate(['/estudiantes-onces/' + this.idEstudiante]);
+    this.router.navigate(['/estudiantes/onces/' + this.idEstudiante]);
   }
 
   asignarValorSugerido() {

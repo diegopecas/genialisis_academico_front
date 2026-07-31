@@ -26,7 +26,7 @@ export class ColaboradoresPrestamosComponent implements OnInit {
   public columnasFiltro = ['Fecha Préstamo', 'Tipo Préstamo', 'Estado'];
   public idColaborador = "0";
   public colaborador: any = {};
-  public path = "/colaboradores-prestamos/crear/0/";
+  public path = "/colaboradores/prestamos/crear/0/";
   
   // Acciones personalizadas
   public acciones = [
@@ -174,10 +174,10 @@ export class ColaboradoresPrestamosComponent implements OnInit {
   accionTabla(event: any) {
     switch (event.accion) {
       case 'consultar':
-        this.router.navigate(['/colaboradores-prestamos/ver/' + event.id + '/' + this.idColaborador]);
+        this.router.navigate(['/colaboradores/prestamos/ver/' + event.id + '/' + this.idColaborador]);
         break;
       case 'editar':
-        this.router.navigate(['/colaboradores-prestamos/editar/' + event.id + '/' + this.idColaborador]);
+        this.router.navigate(['/colaboradores/prestamos/editar/' + event.id + '/' + this.idColaborador]);
         break;
       case 'eliminar':
         this.eliminar(event.registro);
@@ -226,7 +226,7 @@ export class ColaboradoresPrestamosComponent implements OnInit {
 
     // Navegar al componente de registro de pago
     this.router.navigate([
-      '/colaboradores-prestamos-pagos/crear',
+      '/colaboradores/prestamos-pagos/crear',
       registro.id,
       this.idColaborador
     ]);

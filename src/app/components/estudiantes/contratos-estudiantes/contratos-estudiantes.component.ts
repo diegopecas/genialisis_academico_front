@@ -22,7 +22,7 @@ export class ContratosEstudiantesComponent {
   public titulo = "Contratos de matrícula";
   public idEstudiante = "0";
   public accion = "";
-  public path = "/estudiantes-contratos/crear/0/"
+  public path = "/estudiantes/contratos/crear/0/"
   public estudiante: any;
   public nombre_estudiante = "";
   public titulos = [] as any[];

@@ -6,7 +6,7 @@
         <!-- Tarjetas de opciones -->
         <div class="row justify-content-center">
             <!-- Colaboradores -->
-            <div class="col-lg-3 col-md-6 mb-4">
+            <div class="col-lg-3 col-md-6 mb-4" *ngIf="tieneAlguno(['colaboradores.actividades', 'colaboradores.listado'])">
                 <div class="card-maestro menu-principal" [class.active]="menuActivo === 'colaboradores'" (click)="toggleMenu('colaboradores', $event)">
                     <div class="card-maestro-content">
                         <div class="icono-container colaboradores">
@@ -21,19 +21,14 @@
 
                     <div class="submenu-container">
                         <div class="row g-2">
-                            <div class="col-4">
+                            <div class="col-4" *ngIf="permisosService.tienePermiso('colaboradores.listado')">
                                 <div class="submenu-item" (click)="seleccionarOpcion('colaboradores', $event)">
                                     <img src="assets/images/colaboradores.png" alt="Gestión" />
                                     <span>Gestión</span>
                                 </div>
                             </div>
-                            <div class="col-4">
-                                <div class="submenu-item" (click)="seleccionarOpcion('casas-colaboradores', $event)">
-                                    <img src="assets/images/casascolaboradores.png" alt="Casas" />
-                                    <span>Casas</span>
-                                </div>
-                            </div>
-                            <div class="col-4">
+                            
+                            <div class="col-4" *ngIf="permisosService.tienePermiso('colaboradores.actividades')">
                                 <div class="submenu-item" (click)="seleccionarOpcion('actividades-colaboradores', $event)">
                                     <img src="assets/images/actividades_colaboradores.png" alt="Actividades" />
                                     <span>Actividades</span>
@@ -72,7 +67,7 @@
             </div>
 
             <!-- Nómina -->
-            <div class="col-lg-3 col-md-6 mb-4">
+            <div class="col-lg-3 col-md-6 mb-4" *ngIf="tieneAlguno(['colaboradores.nominas'])">
                 <div class="card-maestro menu-principal" [class.active]="menuActivo === 'nomina'" (click)="toggleMenu('nomina', $event)">
                     <div class="card-maestro-content">
                         <div class="icono-container nomina">
@@ -87,7 +82,7 @@
 
                     <div class="submenu-container">
                         <div class="row g-2">
-                            <div class="col-12">
+                            <div class="col-12" *ngIf="permisosService.tienePermiso('colaboradores.nominas')">
                                 <div class="submenu-item" (click)="seleccionarOpcion('nominas', $event)">
                                     <img src="assets/images/nomina.png" alt="Nóminas" />
                                     <span>Gestionar Nóminas</span>

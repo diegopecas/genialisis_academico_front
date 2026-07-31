@@ -17,7 +17,7 @@ export class CrearCargoComponent implements OnInit {
 
   titulo = "Crear Cargo";
   accion: string = "";
-  regresar = '/administracion/cargos';
+  regresar = '/administracion/datos-maestros/cargos';
   editable: boolean = true;
   submitted: boolean = false;
 
@@ -90,7 +90,7 @@ export class CrearCargoComponent implements OnInit {
         next: (response: any) => {
           console.log("Cargo creado", response);
           Swal.fire('Éxito', 'Cargo creado correctamente', 'success');
-          this.router.navigate(['/administracion/cargos']);
+          this.router.navigate(['/administracion/datos-maestros/cargos']);
         },
         error: (error: any) => {
           console.error("Error al crear cargo", error);
@@ -103,7 +103,7 @@ export class CrearCargoComponent implements OnInit {
         next: (response: any) => {
           console.log("Cargo actualizado", response);
           Swal.fire('Éxito', 'Cargo actualizado correctamente', 'success');
-          this.router.navigate(['/administracion/cargos']);
+          this.router.navigate(['/administracion/datos-maestros/cargos']);
         },
         error: (error: any) => {
           console.error("Error al actualizar cargo", error);
@@ -114,6 +114,6 @@ export class CrearCargoComponent implements OnInit {
   }
 
   volver() {
-    this.router.navigate(['/administracion/cargos']);
+    this.router.navigate(['/administracion/datos-maestros/cargos']);
   }
 }

@@ -20,7 +20,7 @@ export class ObservacionesEstudiantesComponent {
   public titulo = "Módulo de registro de observaciones";
   public idEstudiante = "0";
   public accion = "";
-  public path = "/estudiantes-observaciones/crear/0/"
+  public path = "/estudiantes/observaciones/crear/0/"
   public estudiante: any;
   public nombre_estudiante = "";
   public titulos = [] as any[];

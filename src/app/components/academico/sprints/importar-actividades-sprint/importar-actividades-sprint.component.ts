@@ -365,7 +365,7 @@ export class ImportarActividadesSprintComponent implements OnInit {
   }
 
   volver() {
-    this.router.navigate(['/academico/selector-actividades']);
+    this.router.navigate(['/academico/actividades']);
   }
 
   getClaseEstado(idEstado: number): string {

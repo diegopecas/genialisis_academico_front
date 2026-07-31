@@ -26,7 +26,7 @@ export class PagosRecibidosComponent implements OnInit {
   public titulo = "Gestión de pagos recibidos";
   public idEstudiante = "0";
   public accion = "";
-  public path = "/estudiantes-pagos/crear/0/"
+  public path = "/estudiantes/pagos/crear/0/"
   public estudiante: any;
   public nombre_estudiante = "";
   public titulos = [] as any[];

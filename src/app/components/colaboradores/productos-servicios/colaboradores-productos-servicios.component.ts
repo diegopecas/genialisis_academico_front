@@ -24,7 +24,7 @@ export class ColaboradoresProductosServiciosComponent implements OnInit {
   public titulo = "Gestión de productos y servicios";
   public idColaborador = "0";
   public accion = "";
-  public path = "/colaboradores-productos-servicios/crear/0/";
+  public path = "/colaboradores/productos-servicios/crear/0/";
   public colaborador: any;
   public nombre_colaborador = "";
   public titulos = [] as any[];

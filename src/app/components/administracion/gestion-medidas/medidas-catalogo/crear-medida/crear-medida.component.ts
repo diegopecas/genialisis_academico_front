@@ -23,7 +23,7 @@ export class CrearMedidaComponent implements OnInit {
   public editable = true;
   public submitted = false;
   public titulo = "Medida Corporal";
-  public regresar = '/administracion/gestion-medidas/medidas';
+  public regresar = '/administracion/datos-maestros/gestion-medidas/medidas';
 
   public listas = {
     categorias: [] as any[],

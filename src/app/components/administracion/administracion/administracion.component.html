@@ -27,7 +27,7 @@
             </div>
 
             <!-- CRM - Gestión de Visitas -->
-            <div class="col-lg-4 col-md-6 mb-4">
+            <div class="col-lg-4 col-md-6 mb-4" *ngIf="permisosService.tienePermiso('administracion.crm')">
                 <div class="card-opcion" (click)="seleccionarOpcion('crm')">
                     <div class="card-opcion-content">
                         <div class="icono-container crm">
@@ -43,7 +43,7 @@
             </div>
 
             <!-- Módulo Financiero -->
-            <div class="col-lg-4 col-md-6 mb-4">
+            <div class="col-lg-4 col-md-6 mb-4" *ngIf="permisosService.tienePermiso('administracion.financiero')">
                 <div class="card-opcion" (click)="seleccionarOpcion('financiero')">
                     <div class="card-opcion-content">
                         <div class="icono-container financiero">
@@ -59,7 +59,7 @@
             </div>
 
             <!-- Operaciones -->
-            <div class="col-lg-4 col-md-6 mb-4">
+            <div class="col-lg-4 col-md-6 mb-4" *ngIf="permisosService.tienePermiso('administracion.operaciones')">
                 <div class="card-opcion" (click)="seleccionarOpcion('operaciones')">
                     <div class="card-opcion-content">
                         <div class="icono-container operaciones">
@@ -75,7 +75,7 @@
             </div>
 
             <!-- Auditoría de Registros -->
-            <div class="col-lg-4 col-md-6 mb-4">
+            <div class="col-lg-4 col-md-6 mb-4" *ngIf="permisosService.tienePermiso('admin.auditoria')">
                 <div class="card-opcion" (click)="seleccionarOpcion('auditoria-registros')">
                     <div class="card-opcion-content">
                         <div class="icono-container auditoria">

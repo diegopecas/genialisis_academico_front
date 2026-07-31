@@ -17,7 +17,7 @@ export class EditarConfiguracionGlobalComponent implements OnInit {
 
   titulo = "Editar Configuración Global";
   accion = "editar";
-  regresar = "/administracion/configuracion/configuracion-global";
+  regresar = "/administracion/datos-maestros/configuracion-global";
   editable = true;
   submitted = false;
 

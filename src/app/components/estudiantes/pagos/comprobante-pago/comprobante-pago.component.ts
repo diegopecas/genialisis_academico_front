@@ -75,7 +75,7 @@ export class ComprobantePagoComponent implements OnInit {
   public nitInstitucion: string = '';
 
   fechaGeneracion: Date = new Date();
-  public regresar = '/estudiantes-pagos/';
+  public regresar = '/estudiantes/pagos/';
 
   constructor(
     private router: Router,
@@ -88,7 +88,7 @@ export class ComprobantePagoComponent implements OnInit {
     if (this.origenNavegacion === 'global') {
       this.regresar = '/administracion/financiero/gestion-pagos-recibidos';
     } else {
-      this.regresar = '/estudiantes-pagos/' + (this.pago?.id_estudiante || '0');
+      this.regresar = '/estudiantes/pagos/' + (this.pago?.id_estudiante || '0');
     }
     
     // Cargar configuración dinámica

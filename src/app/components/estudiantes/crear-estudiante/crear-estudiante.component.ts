@@ -255,7 +255,7 @@ export class CrearEstudianteComponent implements OnInit {
           this.documentoEncontrado = true;
           this.nuevo = false;
           this.titulo = 'Editar estudiante';
-          this.regresar = '/estudiantes-opciones/' + this.id;
+          this.regresar = '/estudiantes/opciones/' + this.id;
           this.obtenerEstudiante(this.id);
           break;
         case 'consultar':
@@ -264,7 +264,7 @@ export class CrearEstudianteComponent implements OnInit {
           this.documentoEncontrado = true;
           this.nuevo = false;
           this.titulo = 'Consultar estudiante';
-          this.regresar = '/estudiantes-opciones/' + this.id;
+          this.regresar = '/estudiantes/opciones/' + this.id;
           this.obtenerEstudiante(this.id);
           break;
         default:
@@ -1331,7 +1331,7 @@ export class CrearEstudianteComponent implements OnInit {
 
   volver(): void {
     if (this.model.idEstudiante && this.model.idEstudiante !== '0') {
-      this.router.navigate(['/estudiantes-opciones/' + this.model.idEstudiante]);
+      this.router.navigate(['/estudiantes/opciones/' + this.model.idEstudiante]);
     } else {
       this.router.navigate(['/estudiantes']);
     }

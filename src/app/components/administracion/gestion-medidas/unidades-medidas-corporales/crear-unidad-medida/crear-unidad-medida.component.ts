@@ -20,7 +20,7 @@ export class CrearUnidadMedidaComponent implements OnInit {
   public editable = true;
   public submitted = false;
   public titulo = "Unidad de Medida";
-  public regresar = '/administracion/gestion-medidas/unidades';
+  public regresar = '/administracion/datos-maestros/gestion-medidas/unidades';
 
   public model = {
     id: 0,

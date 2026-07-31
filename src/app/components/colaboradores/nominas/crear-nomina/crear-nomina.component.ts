@@ -21,7 +21,7 @@ export class CrearNominaComponent implements OnInit {
   public accion = "";
   public editable = true;
   public titulo = "Crear Nómina";
-  public regresar = '/administracion/nominas';
+  public regresar = '/colaboradores/nominas';
   
   formulario!: FormGroup;
   idNomina: any = null;
@@ -233,7 +233,7 @@ export class CrearNominaComponent implements OnInit {
   }
 
   volver(): void {
-    this.router.navigate(['/administracion/nominas']);
+    this.router.navigate(['/colaboradores/nominas']);
   }
 
   campoNoValido(campo: string): boolean {

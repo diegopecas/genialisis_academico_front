@@ -32,7 +32,7 @@ export class CrearElementoFisicoComponent implements OnInit {
     public editable = true;
     public submitted = false;
     public titulo = "Registro de elemento físico";
-    public regresar = '/administracion/elementos-fisicos';
+    public regresar = '/administracion/datos-maestros/elementos-fisicos';
     public tabActivo = 'datos-generales';
 
     public procesosLimpiezaAsignados: any[] = [];
@@ -667,7 +667,7 @@ export class CrearElementoFisicoComponent implements OnInit {
                     Swal.fire('Éxito', 'Elemento físico creado correctamente', 'success')
                         .then(() => {
                             if (response.id) {
-                                this.router.navigate(['/administracion/elementos-fisicos/editar', response.id]);
+                                this.router.navigate(['/administracion/datos-maestros/elementos-fisicos/editar', response.id]);
                             } else {
                                 this.volver();
                             }
@@ -706,6 +706,6 @@ export class CrearElementoFisicoComponent implements OnInit {
     }
 
     volver(): void {
-        this.router.navigate(['/administracion/elementos-fisicos']);
+        this.router.navigate(['/administracion/datos-maestros/elementos-fisicos']);
     }
 }

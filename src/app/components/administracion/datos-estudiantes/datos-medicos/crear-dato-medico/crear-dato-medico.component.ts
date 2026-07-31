@@ -18,7 +18,7 @@ export class CrearDatoMedicoComponent implements OnInit {
 
   titulo = "Crear Dato Médico";
   accion: string = "";
-  regresar = '/administracion/datos-estudiantes/datos-medicos';
+  regresar = '/administracion/datos-maestros/datos-estudiantes/datos-medicos';
   editable: boolean = true;
   submitted: boolean = false;
 

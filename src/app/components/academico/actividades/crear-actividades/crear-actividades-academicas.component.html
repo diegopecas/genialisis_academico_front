@@ -1,7 +1,7 @@
 <!-- crear-actividades-academicas.component.html -->
 <div class="modulo">
     <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [accion]="accion" [id]="id" [raiz]="'/actividades-academicas'"
-        [regresar]="'/academico/actividades-academicas'" [iconoTitulo]="'/assets/images/actividades.png'"></app-header>
+        [regresar]="'/academico/actividades/gestion'" [iconoTitulo]="'/assets/images/actividades.png'"></app-header>
     
     <div class="container-fluid mt-4" [ngClass]="{ 'disabled-container': !editable }">
         <!-- Sección de Información Básica -->
@@ -222,7 +222,7 @@
                 </button>
             </div>
             <div class="card-body">
-                <app-tablas [titulos]="titulos" [datos]="datosIndicadoresLogro" [raiz]="'/academico/actividades-academicas'"
+                <app-tablas [titulos]="titulos" [datos]="datosIndicadoresLogro" [raiz]="'/academico/actividades/gestion'"
                     (clicAccion)="seleccionarIndicador($event)" [accionEditar]="false" [accionEliminar]="true" [accionVer]="false"></app-tablas>
             </div>
         </div>
@@ -252,7 +252,7 @@
                 <app-tablas 
                     [titulos]="titulosSprints" 
                     [datos]="datosTareasActividad" 
-                    [raiz]="'/academico/actividades-academicas'"
+                    [raiz]="'/academico/actividades/gestion'"
                     (clicAccion)="accionTareaSprint($event)" 
                     [accionEditar]="false" 
                     [accionEliminar]="editable" 

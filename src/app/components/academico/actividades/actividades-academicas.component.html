@@ -3,8 +3,8 @@
       [tituloModulo]="titulo"
       [mostrarCrear]="true"
       [accion]="'ConsultarTodos'"
-      [raiz]="'/academico/actividades-academicas'"
-      [regresar]="'/academico/selector-actividades'"
+      [raiz]="'/academico/actividades/gestion'"
+      [regresar]="'/academico/actividades'"
       [iconoTitulo]="'/assets/images/actividades.png'"
     ></app-header>
    
@@ -12,7 +12,7 @@
       [titulos]="titulos"
       [datos]="datos"
       [columnasFiltro]="columnasFiltro" 
-      [raiz]="'/academico/actividades-academicas'"
+      [raiz]="'/academico/actividades/gestion'"
       [accionVer]="true" [accionEditar]="true" [accionEliminar]="true"
       (clicAccion)="seleccionar($event)"
     ></app-tablas>

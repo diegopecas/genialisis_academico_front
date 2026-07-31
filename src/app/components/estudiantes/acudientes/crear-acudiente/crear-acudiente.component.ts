@@ -62,7 +62,7 @@ export class CrearAcudienteComponent implements OnInit {
   public estudiante: any;
   public nombre_estudiante = "";
   public titulo = "Registro de acudiente";
-  public regresar = '/estudiantes-acudientes/';
+  public regresar = '/estudiantes/acudientes/';
   public documentoEncontrado = false;
   public camposHabilitados = false;
   public seccionActiva: 'datos-personales' | 'datos-acudiente' | 'documentos' | 'usuario' = 'datos-personales';
@@ -665,7 +665,7 @@ export class CrearAcudienteComponent implements OnInit {
   }
 
   volver(): void {
-    this.router.navigate(['/estudiantes-acudientes', this.idEstudiante]);
+    this.router.navigate(['/estudiantes/acudientes', this.idEstudiante]);
   }
 
   obtenerEstudiante(id_estudiante: any): void {

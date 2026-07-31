@@ -21,7 +21,7 @@ import Swal from 'sweetalert2';
 export class CrearTipoDocumentoComponent implements OnInit {
   titulo = 'Crear Tipo de Documento';
   accion: string = '';
-  regresar = '/administracion/tipos-documentos';
+  regresar = '/administracion/datos-maestros/tipos-documentos';
   editable: boolean = true;
   submitted: boolean = false;
 
@@ -193,7 +193,7 @@ export class CrearTipoDocumentoComponent implements OnInit {
             'Tipo de documento creado correctamente',
             'success',
           );
-          this.router.navigate(['/administracion/tipos-documentos']);
+          this.router.navigate(['/administracion/datos-maestros/tipos-documentos']);
         },
         error: (error: any) => {
           console.error('Error al crear tipo de documento', error);
@@ -243,7 +243,7 @@ export class CrearTipoDocumentoComponent implements OnInit {
             'Tipo de documento y asociaciones actualizados correctamente',
             'success',
           );
-          this.router.navigate(['/administracion/tipos-documentos']);
+          this.router.navigate(['/administracion/datos-maestros/tipos-documentos']);
         },
         error: (error: any) => {
           console.error('Error al guardar asociaciones', error);
@@ -257,6 +257,6 @@ export class CrearTipoDocumentoComponent implements OnInit {
   }
 
   volver() {
-    this.router.navigate(['/administracion/tipos-documentos']);
+    this.router.navigate(['/administracion/datos-maestros/tipos-documentos']);
   }
 }

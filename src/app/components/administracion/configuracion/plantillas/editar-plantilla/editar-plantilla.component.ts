@@ -23,7 +23,7 @@ export class EditarPlantillaComponent implements OnInit {
 
   titulo = "Editar Plantilla";
   accion = "editar";
-  regresar = "/administracion/configuracion/plantillas";
+  regresar = "/administracion/datos-maestros/plantillas";
   editable = true;
   submitted = false;
 

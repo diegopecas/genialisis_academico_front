@@ -21,7 +21,7 @@ export class CrearProductoServicioComponent implements OnInit {
 
   titulo = "Crear Producto/Servicio";
   accion = "crear";
-  regresar = "/administracion/productos-servicios";
+  regresar = "/administracion/datos-maestros/productos-servicios";
   editable = true;
   submitted = false;
   productoServicioActivoSwitch = true;
@@ -177,7 +177,7 @@ export class CrearProductoServicioComponent implements OnInit {
       this.productosServiciosService.crear(payload).subscribe({
         next: (response: any) => {
           Swal.fire('Éxito', 'Producto/Servicio creado correctamente', 'success');
-          this.router.navigate(['/administracion/productos-servicios']);
+          this.router.navigate(['/administracion/datos-maestros/productos-servicios']);
         },
         error: (error: any) => {
           console.error("Error al crear producto/servicio", error);
@@ -188,7 +188,7 @@ export class CrearProductoServicioComponent implements OnInit {
       this.productosServiciosService.actualizar(payload).subscribe({
         next: (response: any) => {
           Swal.fire('Éxito', 'Producto/Servicio actualizado correctamente', 'success');
-          this.router.navigate(['/administracion/productos-servicios']);
+          this.router.navigate(['/administracion/datos-maestros/productos-servicios']);
         },
         error: (error: any) => {
           console.error("Error al actualizar producto/servicio", error);
@@ -208,6 +208,6 @@ export class CrearProductoServicioComponent implements OnInit {
   }
 
   volver() {
-    this.router.navigate(['/administracion/productos-servicios']);
+    this.router.navigate(['/administracion/datos-maestros/productos-servicios']);
   }
 }

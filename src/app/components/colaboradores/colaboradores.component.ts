@@ -112,7 +112,7 @@ export class ColaboradoresComponent implements OnInit {
         this.router.navigate(['/colaboradores/editar/' + event.id]);
         break;
       case 'opciones':
-        this.router.navigate(['/colaboradores-opciones/' + event.id], {
+        this.router.navigate(['/colaboradores/opciones/' + event.id], {
           state: { registro: event.registro }
         });
         break;

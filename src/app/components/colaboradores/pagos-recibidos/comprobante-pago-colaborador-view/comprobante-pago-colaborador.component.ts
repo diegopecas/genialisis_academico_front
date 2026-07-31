@@ -65,7 +65,7 @@ export class ComprobantePagoColaboradorComponent implements OnInit {
   public nombreInstitucion: string = '';
   public direccionInstitucion: string = '';
   public nitInstitucion: string = '';
-  public regresar = '/colaboradores-pagos-recibidos/';
+  public regresar = '/colaboradores/pagos-recibidos/';
 
   constructor(
     private router: Router,

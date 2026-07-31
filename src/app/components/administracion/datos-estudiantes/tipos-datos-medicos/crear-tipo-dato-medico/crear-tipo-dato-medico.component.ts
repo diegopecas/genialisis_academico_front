@@ -17,7 +17,7 @@ export class CrearTipoDatoMedicoComponent implements OnInit {
 
   titulo = "Crear Categoría Médica";
   accion: string = "";
-  regresar = '/administracion/datos-estudiantes/tipos-datos-medicos';
+  regresar = '/administracion/datos-maestros/datos-estudiantes/tipos-datos-medicos';
   editable: boolean = true;
   submitted: boolean = false;
 

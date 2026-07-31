@@ -56,7 +56,7 @@ export class CrearMedidasComponent implements OnInit {
   public estudiante: any;
   public nombre_estudiante = "";
   public titulo = "Registro de medidas ";
-  public regresar = '/estudiantes-medidas/';
+  public regresar = '/estudiantes/medidas/';
 
   public categorias: CategoriaMedidas[] = [];
   public listas = {
@@ -298,7 +298,7 @@ export class CrearMedidasComponent implements OnInit {
   }
 
   volver() {
-    this.router.navigate(['/estudiantes-medidas/' + this.idEstudiante]);
+    this.router.navigate(['/estudiantes/medidas/' + this.idEstudiante]);
   }
 
   obtenerEstudiante(id_estudiante: any) {

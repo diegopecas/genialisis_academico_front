@@ -62,7 +62,7 @@ export class CrearMenuComponent implements OnInit {
     public editable = true;
     public submitted = false;
     public titulo = "Registro de menú";
-    public regresar = '/administracion/lista-menus';
+    public regresar = '/administracion/datos-maestros/menus/lista';
     public tabActivo = 'datos-generales';
 
     public itemsAsignados: ItemMenuAsignado[] = [];
@@ -830,7 +830,7 @@ export class CrearMenuComponent implements OnInit {
                     Swal.fire('Éxito', 'Menú creado correctamente', 'success')
                         .then(() => {
                             if (response.id) {
-                                this.router.navigate(['/administracion/lista-menus/editar', response.id]);
+                                this.router.navigate(['/administracion/datos-maestros/menus/lista/editar', response.id]);
                             } else {
                                 this.volver();
                             }
@@ -869,6 +869,6 @@ export class CrearMenuComponent implements OnInit {
     }
 
     volver(): void {
-        this.router.navigate(['/administracion/lista-menus']);
+        this.router.navigate(['/administracion/datos-maestros/menus/lista']);
     }
 }

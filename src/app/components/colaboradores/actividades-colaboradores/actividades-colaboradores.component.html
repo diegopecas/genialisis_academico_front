@@ -2,8 +2,8 @@
   <app-header
     [tituloModulo]="titulo"
     [mostrarCrear]="false"
-    [raiz]="'/gestion-colaboradores'"
-    [regresar]="'/gestion-colaboradores'"
+    [raiz]="'/colaboradores/gestion'"
+    [regresar]="'/colaboradores/gestion'"
     [iconoTitulo]="'/assets/images/actividades_colaboradores.png'"
   >
   </app-header>
@@ -14,7 +14,7 @@
     <!-- Tarjetas de opciones -->
     <div class="row justify-content-center">
       <!-- Aprobar Actividades -->
-      <div class="col-lg-3 col-md-6 mb-4">
+      <div class="col-lg-3 col-md-6 mb-4" *ngIf="permisosService.tienePermiso('colaboradores.aprobacion_actividades')">
         <div class="card-opcion" (click)="seleccionarOpcion('aprobar')">
           <div class="card-opcion-content">
             <div class="icono-container aprobar">
@@ -38,7 +38,7 @@
       </div>
 
       <!-- Contabilizar Actividades -->
-      <div class="col-lg-3 col-md-6 mb-4">
+      <div class="col-lg-3 col-md-6 mb-4" *ngIf="permisosService.tienePermiso('colaboradores.contabilizacion_actividades')">
         <div class="card-opcion" (click)="seleccionarOpcion('contabilizar')">
           <div class="card-opcion-content">
             <div class="icono-container contabilizar">
@@ -62,7 +62,7 @@
       </div>
 
       <!-- Calendario de Colaboradores -->
-      <div class="col-lg-3 col-md-6 mb-4">
+      <div class="col-lg-3 col-md-6 mb-4" *ngIf="permisosService.tienePermiso('colaboradores.calendario')">
         <div class="card-opcion" (click)="seleccionarOpcion('calendario')">
           <div class="card-opcion-content">
             <div class="icono-container calendario">

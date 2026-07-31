@@ -42,7 +42,7 @@ export class CrearProductoAcademicoComponent implements OnInit {
     public editable = true;
     public submitted = false;
     public titulo = "Registro de producto académico";
-    public regresar = '/administracion/productos-academico';
+    public regresar = '/administracion/datos-maestros/productos-academico';
 
     public listas = {
         tiposProductoAcademico: [] as any[],
@@ -507,6 +507,6 @@ export class CrearProductoAcademicoComponent implements OnInit {
     }
 
     volver(): void {
-        this.router.navigate(['/administracion/productos-academico']);
+        this.router.navigate(['/administracion/datos-maestros/productos-academico']);
     }
 }

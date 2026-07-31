@@ -11,7 +11,7 @@
         <!-- Tarjetas de opciones -->
         <div class="row justify-content-center">
             <!-- Entes de Control -->
-            <div class="col-lg-4 col-md-6 mb-4">
+            <div class="col-lg-4 col-md-6 mb-4" *ngIf="permisosService.tienePermiso('admin.entes_control')">
                 <div class="card-opcion" (click)="seleccionarOpcion('entes-control')">
                     <div class="card-opcion-content">
                         <div class="icono-container entes-control">
@@ -27,7 +27,7 @@
             </div>
 
             <!-- Consulta Entes de Control -->
-            <div class="col-lg-4 col-md-6 mb-4">
+            <div class="col-lg-4 col-md-6 mb-4" *ngIf="permisosService.tienePermiso('admin.consulta_entes_control')">
                 <div class="card-opcion" (click)="seleccionarOpcion('consulta-entes-control')">
                     <div class="card-opcion-content">
                         <div class="icono-container consulta-entes-control">

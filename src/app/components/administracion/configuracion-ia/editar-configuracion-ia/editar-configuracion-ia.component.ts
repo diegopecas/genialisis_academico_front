@@ -17,7 +17,7 @@ export class EditarConfiguracionIaComponent implements OnInit {
 
   titulo = "Editar Configuración IA";
   accion: string = "editar";
-  regresar = '/administracion/configuracion-ia';
+  regresar = '/administracion/datos-maestros/configuracion-ia';
   editable: boolean = true;
 
   model = {
@@ -78,7 +78,7 @@ export class EditarConfiguracionIaComponent implements OnInit {
       next: (response: any) => {
         console.log("Configuración IA actualizada", response);
         Swal.fire('Éxito', 'Configuración actualizada correctamente', 'success');
-        this.router.navigate(['/administracion/configuracion-ia']);
+        this.router.navigate(['/administracion/datos-maestros/configuracion-ia']);
       },
       error: (error: any) => {
         console.error("Error al actualizar configuración IA", error);
@@ -88,6 +88,6 @@ export class EditarConfiguracionIaComponent implements OnInit {
   }
 
   volver() {
-    this.router.navigate(['/administracion/configuracion-ia']);
+    this.router.navigate(['/administracion/datos-maestros/configuracion-ia']);
   }
 }

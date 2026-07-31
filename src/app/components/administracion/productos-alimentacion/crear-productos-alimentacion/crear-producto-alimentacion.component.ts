@@ -38,7 +38,7 @@ export class CrearProductoAlimentacionComponent implements OnInit {
     public editable = true;
     public submitted = false;
     public titulo = "Registro de producto de alimentación";
-    public regresar = '/administracion/productos-alimentacion';
+    public regresar = '/administracion/datos-maestros/productos-alimentacion';
 
     public listas = {
         productos: [] as any[],
@@ -493,6 +493,6 @@ export class CrearProductoAlimentacionComponent implements OnInit {
     }
 
     volver(): void {
-        this.router.navigate(['/administracion/productos-alimentacion']);
+        this.router.navigate(['/administracion/datos-maestros/productos-alimentacion']);
     }
 }

@@ -24,7 +24,7 @@ export class ProductosServiciosComponent implements OnInit {
   public titulo = "Gestión de productos y servicios";
   public idEstudiante = "0";
   public accion = "";
-  public path = "/estudiantes-productos-servicios/crear/0/"
+  public path = "/estudiantes/productos-servicios/crear/0/"
   public estudiante: any;
   public nombre_estudiante = "";
   public titulos = [] as any[];

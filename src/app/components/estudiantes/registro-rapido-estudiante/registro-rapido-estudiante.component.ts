@@ -63,7 +63,7 @@ interface DiaHorario {
 })
 export class RegistroRapidoEstudianteComponent implements OnInit, OnDestroy {
   titulo = 'Registro rápido de estudiante';
-  regresar = '/gestion-estudiantes';
+  regresar = '/estudiantes/gestion';
 
   // Pasos del asistente: 1=captura+IA, 2=revisión de datos.
   public paso = 1;

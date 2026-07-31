@@ -184,7 +184,7 @@ export class EstudiantesComponent implements OnInit {
   // Navega al hub pasando el registro completo de la fila para evitar una nueva
   // consulta. En refresh directo el hub usa su propio fallback.
   private irAOpciones(registro: any) {
-    this.router.navigate(['/estudiantes-opciones/' + registro.id_estudiante], {
+    this.router.navigate(['/estudiantes/opciones/' + registro.id_estudiante], {
       state: { registro },
     });
   }

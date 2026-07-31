@@ -37,7 +37,7 @@ export class CrearProductoMobiliarioComponent implements OnInit {
     public editable = true;
     public submitted = false;
     public titulo = "Registro de producto mobiliario";
-    public regresar = '/administracion/productos-mobiliario';
+    public regresar = '/administracion/datos-maestros/productos-mobiliario';
     public tabActivo = 'datos-generales';
 
     public productosLimpiezaAsignados: any[] = [];
@@ -1695,7 +1695,7 @@ export class CrearProductoMobiliarioComponent implements OnInit {
                     Swal.fire('Éxito', 'Producto mobiliario creado correctamente', 'success')
                         .then(() => {
                             if (response.id) {
-                                this.router.navigate(['/administracion/productos-mobiliario/editar', response.id]);
+                                this.router.navigate(['/administracion/datos-maestros/productos-mobiliario/editar', response.id]);
                             } else {
                                 this.volver();
                             }
@@ -1749,7 +1749,7 @@ export class CrearProductoMobiliarioComponent implements OnInit {
     }
 
     volver(): void {
-        this.router.navigate(['/administracion/productos-mobiliario']);
+        this.router.navigate(['/administracion/datos-maestros/productos-mobiliario']);
     }
     // Agregar este método auxiliar en el componente
     contarTotalProductosEnProcesos(): number {

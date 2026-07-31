@@ -24,7 +24,7 @@ export class ColaboradoresPagosRecibidosComponent implements OnInit {
   public titulo = "Gestión de pagos recibidos";
   public idColaborador = "0";
   public accion = "";
-  public path = "/colaboradores-pagos-recibidos/crear/0/";
+  public path = "/colaboradores/pagos-recibidos/crear/0/";
   public colaborador: any;
   public nombre_colaborador = "";
   public titulos = [] as any[];

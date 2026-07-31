@@ -142,13 +142,13 @@ export class ActividadesAcademicasComponent implements OnInit {
   seleccionar(event: any): void {
     console.log("Seleccionar evento:", event);
     if (event.accion === 'editar') {
-      this.router.navigate(['/academico/actividades-academicas/editar/' + event.id]);
+      this.router.navigate(['/academico/actividades/gestion/editar/' + event.id]);
     }
     if (event.accion === 'eliminar') {
       this.eliminar(event.id, event.registro.titulo || 'Actividad sin título'); 
     }
     if (event.accion === 'consultar') {
-      this.router.navigate(['/academico/actividades-academicas/consultar/' + event.id]);
+      this.router.navigate(['/academico/actividades/gestion/consultar/' + event.id]);
     }
   }
 }

@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { HeaderComponent } from '../../../common/header/header.component';
+import { PermisosService } from '../../../services/permisos.service';
 
 @Component({
   selector: 'app-financiero',
@@ -14,7 +15,9 @@ export class FinancieroComponent {
   titulo = "Módulo Financiero";
   menuActivo: string | null = null;
 
-  constructor(private router: Router) { }
+  constructor(
+    public permisosService: PermisosService,
+    private router: Router) { }
 
   toggleMenu(menu: string, event: Event) {
     event.stopPropagation();
@@ -33,7 +36,7 @@ export class FinancieroComponent {
         this.router.navigate(['/administracion/financiero/aprobacion-multiple']);
         break;
       case 'contabilizar-pagos':
-        this.router.navigate(['/administracion/contabilizacion-multiple']);
+        this.router.navigate(['/administracion/financiero/contabilizacion-multiple']);
         break;
       case 'convenios':
         this.router.navigate(['/administracion/financiero/convenios']);

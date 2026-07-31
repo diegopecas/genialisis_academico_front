@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { HeaderComponent } from '../../../common/header/header.component';
 import { Router } from '@angular/router';
+import { PermisosService } from '../../../services/permisos.service';
 
 @Component({
   selector: 'app-crm',
@@ -14,6 +15,8 @@ export class CrmComponent {
   titulo = "CRM - Gestión de Visitas y Contactos";
 
   constructor(
+    
+    public permisosService: PermisosService,
     private router: Router,
   ) { }
 

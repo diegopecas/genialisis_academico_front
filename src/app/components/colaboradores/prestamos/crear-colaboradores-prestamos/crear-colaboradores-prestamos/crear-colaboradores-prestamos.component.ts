@@ -335,7 +335,7 @@ export class CrearColaboradoresPrestamosComponent implements OnInit {
               icon: 'success',
               confirmButtonText: 'Aceptar'
             }).then(() => {
-              this.router.navigate(['/colaboradores-prestamos/' + this.idColaborador]);
+              this.router.navigate(['/colaboradores/prestamos/' + this.idColaborador]);
             });
           }
         },
@@ -359,7 +359,7 @@ export class CrearColaboradoresPrestamosComponent implements OnInit {
             icon: 'success',
             confirmButtonText: 'Aceptar'
           }).then(() => {
-            this.router.navigate(['/colaboradores-prestamos/' + this.idColaborador]);
+            this.router.navigate(['/colaboradores/prestamos/' + this.idColaborador]);
           });
         },
         (error: any) => {
@@ -389,7 +389,7 @@ export class CrearColaboradoresPrestamosComponent implements OnInit {
           icon: 'success',
           confirmButtonText: 'Aceptar'
         }).then(() => {
-          this.router.navigate(['/colaboradores-prestamos/' + this.idColaborador]);
+          this.router.navigate(['/colaboradores/prestamos/' + this.idColaborador]);
         });
       },
       (error: any) => {
@@ -400,7 +400,7 @@ export class CrearColaboradoresPrestamosComponent implements OnInit {
           icon: 'warning',
           confirmButtonText: 'Aceptar'
         }).then(() => {
-          this.router.navigate(['/colaboradores-prestamos/' + this.idColaborador]);
+          this.router.navigate(['/colaboradores/prestamos/' + this.idColaborador]);
         });
       }
     );
@@ -515,7 +515,7 @@ export class CrearColaboradoresPrestamosComponent implements OnInit {
     return this.formatearValorConSeparador(this.prestamo.monto_prestado);
   }
   cancelar() {
-    this.router.navigate(['/colaboradores-prestamos/' + this.idColaborador]);
+    this.router.navigate(['/colaboradores/prestamos/' + this.idColaborador]);
   }
   /**
  * Ver pagos de una cuota específica (popup)
@@ -713,7 +713,7 @@ export class CrearColaboradoresPrestamosComponent implements OnInit {
    */
   irARegistrarPago() {
     this.router.navigate([
-      '/colaboradores-prestamos-pagos/crear',
+      '/colaboradores/prestamos-pagos/crear',
       this.idPrestamo,
       this.idColaborador
     ]);

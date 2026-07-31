@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { HeaderComponent } from '../../../common/header/header.component';
+import { PermisosService } from '../../../services/permisos.service';
 
 @Component({
   selector: 'app-selector-actividades',
@@ -13,25 +14,27 @@ import { HeaderComponent } from '../../../common/header/header.component';
 export class SelectorActividadesComponent {
   titulo = "Actividades";
 
-  constructor(private router: Router) {}
+  constructor(
+    public permisosService: PermisosService,
+    private router: Router) {}
 
   irMaquinaActividades() {
-    this.router.navigate(['/academico/maquina-actividades']);
+    this.router.navigate(['/academico/actividades/maquina']);
   }
 
   irMisActividades() {
-    this.router.navigate(['/academico/crear-actividades-manual']);
+    this.router.navigate(['/academico/actividades/manual']);
   }
 
   irImportarDeSprint() {
-    this.router.navigate(['/academico/importar-actividades-sprint']);
+    this.router.navigate(['/academico/actividades/importar']);
   }
 
   irGestionActividades() {
-    this.router.navigate(['/academico/actividades-academicas']);
+    this.router.navigate(['/academico/actividades/gestion']);
   }
 
   irActividadesEvaluacion() {
-    this.router.navigate(['/academico/crear-actividades-evaluacion']);
+    this.router.navigate(['/academico/actividades/evaluacion']);
   }
 }

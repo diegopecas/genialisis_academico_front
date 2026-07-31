@@ -62,7 +62,7 @@ export class CrearObservacionesComponent implements OnInit {
     public nombre_estudiante = "";
     public nombre_estudiante_afectado = "";
     public titulo = "Registro de observaciones ";
-    public regresar = '/estudiantes-observaciones/';
+    public regresar = '/estudiantes/observaciones/';
     public mostrarFirmaPadre = false;
     public mostrarFirmaPadreAfectado = false;
 
@@ -573,7 +573,7 @@ export class CrearObservacionesComponent implements OnInit {
     }
 
     volver() {
-        this.router.navigate(['/estudiantes-observaciones/' + this.idEstudiante]);
+        this.router.navigate(['/estudiantes/observaciones/' + this.idEstudiante]);
     }
 
     obtenerEstudiante(id_estudiante: any) {

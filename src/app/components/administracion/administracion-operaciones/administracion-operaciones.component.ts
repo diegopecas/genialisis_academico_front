@@ -22,10 +22,10 @@ export class AdministracionOperacionesComponent {
   seleccionarOpcion(opcion: any) {
     switch (opcion) {
       case 'entes-control':
-        this.router.navigate(['/administracion/entes-control']);
+        this.router.navigate(['/administracion/operaciones/entes-control']);
         break;
       case 'consulta-entes-control':
-        this.router.navigate(['/administracion/consulta-entes-control']);
+        this.router.navigate(['/administracion/operaciones/consulta-entes-control']);
         break;
     }
   }

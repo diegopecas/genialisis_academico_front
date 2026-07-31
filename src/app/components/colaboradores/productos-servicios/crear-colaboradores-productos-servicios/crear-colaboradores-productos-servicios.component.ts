@@ -57,7 +57,7 @@ export class CrearColaboradoresProductosServiciosComponent implements OnInit {
   public colaborador: any;
   public nombre_colaborador = "";
   public titulo = "Productos & Servicios ";
-  public regresar = '/colaboradores-productos-servicios/';
+  public regresar = '/colaboradores/productos-servicios/';
   public listas = {
     clasificacionProductosServicios: [] as any[],
     productosServicios: [] as any[],
@@ -534,7 +534,7 @@ export class CrearColaboradoresProductosServiciosComponent implements OnInit {
   }
 
   volver() {
-    this.router.navigate(['/colaboradores-productos-servicios/' + this.idColaborador]);
+    this.router.navigate(['/colaboradores/productos-servicios/' + this.idColaborador]);
   }
 
   filtrarProductos() {

@@ -38,7 +38,7 @@ export class CrearProductoLimpiezaComponent implements OnInit {
     public editable = true;
     public submitted = false;
     public titulo = "Registro de producto de limpieza";
-    public regresar = '/administracion/productos-limpieza';
+    public regresar = '/administracion/datos-maestros/productos-limpieza';
 
     public listas = {
         productos: [] as any[],
@@ -647,7 +647,7 @@ export class CrearProductoLimpiezaComponent implements OnInit {
     }
 
     volver(): void {
-        this.router.navigate(['/administracion/productos-limpieza']);
+        this.router.navigate(['/administracion/datos-maestros/productos-limpieza']);
     }
 
 }

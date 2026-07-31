@@ -63,7 +63,7 @@ export class CrearProductosServiciosComponent implements OnInit {
   public estudiante: any;
   public nombre_estudiante = "";
   public titulo = "Productos & Servicios ";
-  public regresar = '/estudiantes-productos-servicios/'
+  public regresar = '/estudiantes/productos-servicios/'
   public listas = {
     clasificacionProductosServicios: [] as any[],
     productosServicios: [] as any[],
@@ -606,7 +606,7 @@ export class CrearProductosServiciosComponent implements OnInit {
   }
 
   volver() {
-    this.router.navigate(['/estudiantes-productos-servicios/' + this.idEstudiante]);
+    this.router.navigate(['/estudiantes/productos-servicios/' + this.idEstudiante]);
   }
 
   filtrarProductos() {

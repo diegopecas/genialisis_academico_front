@@ -20,7 +20,7 @@ export class CrearCategoriaMedidaComponent implements OnInit {
   public editable = true;
   public submitted = false;
   public titulo = "Categoría de Medida";
-  public regresar = '/administracion/gestion-medidas/categorias';
+  public regresar = '/administracion/datos-maestros/gestion-medidas/categorias';
 
   public model = {
     id: 0,

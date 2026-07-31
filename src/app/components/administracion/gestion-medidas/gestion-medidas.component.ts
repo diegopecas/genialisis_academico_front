@@ -15,9 +15,9 @@ export class GestionMedidasComponent {
   titulo = "Gestión de Medidas Corporales";
 
   opciones = [
-    { id: 'categorias', nombre: 'Categorías', descripcion: 'Agrupa las medidas por tipo', icono: 'fas fa-folder-open', imagen: 'assets/images/categorias-medidas.png', ruta: '/administracion/gestion-medidas/categorias' },
-    { id: 'unidades', nombre: 'Unidades de Medida', descripcion: 'Unidades como kg, cm, %, etc.', icono: 'fas fa-balance-scale', imagen: 'assets/images/unidades-medidas.png', ruta: '/administracion/gestion-medidas/unidades' },
-    { id: 'medidas', nombre: 'Medidas', descripcion: 'Catálogo de medidas corporales', icono: 'fas fa-weight', imagen: 'assets/images/medidas-catalogo.png', ruta: '/administracion/gestion-medidas/medidas' }
+    { id: 'categorias', nombre: 'Categorías', descripcion: 'Agrupa las medidas por tipo', icono: 'fas fa-folder-open', imagen: 'assets/images/categorias-medidas.png', ruta: '/administracion/datos-maestros/gestion-medidas/categorias' },
+    { id: 'unidades', nombre: 'Unidades de Medida', descripcion: 'Unidades como kg, cm, %, etc.', icono: 'fas fa-balance-scale', imagen: 'assets/images/unidades-medidas.png', ruta: '/administracion/datos-maestros/gestion-medidas/unidades' },
+    { id: 'medidas', nombre: 'Medidas', descripcion: 'Catálogo de medidas corporales', icono: 'fas fa-weight', imagen: 'assets/images/medidas-catalogo.png', ruta: '/administracion/datos-maestros/gestion-medidas/medidas' }
   ];
 
   constructor(private router: Router) {}

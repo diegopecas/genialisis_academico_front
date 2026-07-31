@@ -1,9 +1,9 @@
 <div class="modulo">
     <app-header [tituloModulo]="titulo" [mostrarCrear]="puedeCrear" [accion]="'ConsultarTodos'"
-        [raiz]="'/administracion/gestion-medidas/categorias'" [regresar]="'/administracion/gestion-medidas'"
+        [raiz]="'/administracion/datos-maestros/gestion-medidas/categorias'" [regresar]="'/administracion/datos-maestros/gestion-medidas'"
         [iconoTitulo]="'/assets/images/medidas.png'"></app-header>
 
-    <app-tablas [titulos]="titulos" [datos]="datos" [raiz]="'/administracion/gestion-medidas/categorias'" 
+    <app-tablas [titulos]="titulos" [datos]="datos" [raiz]="'/administracion/datos-maestros/gestion-medidas/categorias'" 
         [acciones]="acciones" [accionEditar]="puedeEditar" [accionEliminar]="puedeEliminar" 
         [mostrarBuscar]="true" [columnasFiltro]="columnasFiltro"
         (clicAccion)="clicAccion($event)"></app-tablas>

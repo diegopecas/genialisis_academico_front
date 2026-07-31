@@ -76,7 +76,7 @@ export class CrearPagosRecibidosComponent implements OnInit {
   public estudiante: any;
   public nombre_estudiante = "";
   public titulo = "Registro de Pagos";
-  public regresar = '/estudiantes-pagos/';
+  public regresar = '/estudiantes/pagos/';
 
   // Propiedades para el manejo de cuentas y pagos
   public cuentasPorCobrar: any[] = [];
@@ -154,7 +154,7 @@ export class CrearPagosRecibidosComponent implements OnInit {
         if (queryParams['origen'] === 'global') {
           this.regresar = '/administracion/financiero/gestion-pagos-recibidos';
         } else {
-          this.regresar = '/estudiantes-pagos/' + this.idEstudiante;
+          this.regresar = '/estudiantes/pagos/' + this.idEstudiante;
         }
       });
       

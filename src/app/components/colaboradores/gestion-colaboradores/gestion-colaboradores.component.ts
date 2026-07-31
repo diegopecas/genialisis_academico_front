@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { HeaderComponent } from '../../../common/header/header.component';
+import { PermisosService } from '../../../services/permisos.service';
 
 @Component({
   selector: 'app-gestion-colaboradores',
@@ -14,7 +15,9 @@ export class GestionColaboradoresComponent {
   titulo = "Gestión de Colaboradores";
   menuActivo: string | null = null;
 
-  constructor(private router: Router) { }
+  constructor(
+    public permisosService: PermisosService,
+    private router: Router) { }
 
   toggleMenu(menu: string, event: Event) {
     event.stopPropagation();
@@ -34,11 +37,15 @@ export class GestionColaboradoresComponent {
         this.router.navigate(['/registro-ingreso-salida']);
         break;
       case 'actividades-colaboradores':
-        this.router.navigate(['/administracion/actividades-colaboradores']);
+        this.router.navigate(['/colaboradores/actividades']);
         break;
       case 'nominas':
-        this.router.navigate(['/administracion/nominas']);
+        this.router.navigate(['/colaboradores/nominas']);
         break;
     }
+  }
+
+  tieneAlguno(codigos: string[]): boolean {
+    return codigos.some(c => this.permisosService.tienePermiso(c));
   }
 }

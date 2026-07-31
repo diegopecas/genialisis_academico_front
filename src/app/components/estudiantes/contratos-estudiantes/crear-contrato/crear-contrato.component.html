@@ -54,7 +54,7 @@
         <div *ngIf="acudientesDisponibles.length === 0" class="alert alert-danger">
           <i class="fas fa-exclamation-circle me-2"></i>
           No hay acudientes registrados.
-          <a [routerLink]="['/estudiantes-acudientes', idEstudiante]" class="alert-link">
+          <a [routerLink]="['/estudiantes/acudientes', idEstudiante]" class="alert-link">
             Registre al menos uno
           </a>
         </div>

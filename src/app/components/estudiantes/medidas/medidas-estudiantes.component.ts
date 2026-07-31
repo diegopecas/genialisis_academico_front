@@ -21,7 +21,7 @@ export class MedidasEstudiantesComponent {
   public titulo = "Módulo de registro de medidas";
   public idEstudiante = "0";
   public accion = "";
-  public path = "/estudiantes-medidas/crear/0/"
+  public path = "/estudiantes/medidas/crear/0/"
   public estudiante: any;
   public nombre_estudiante = "";
   public titulos = [] as any[];

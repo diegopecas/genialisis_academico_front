@@ -338,7 +338,7 @@ export class CrearLogrosComponent implements OnInit, OnDestroy {
   }
 
   verDetalleActividad(idActividad: number) {
-    this.router.navigate(['/academico/actividades-academicas/consultar', idActividad]);
+    this.router.navigate(['/academico/actividades/gestion/consultar', idActividad]);
   }
 
   volver() {
