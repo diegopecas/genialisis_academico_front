@@ -10,17 +10,24 @@
     <div class="container mt-4 mb-5">
 
         <!-- Selección de rol -->
-        <div class="row mb-4 align-items-end">
+        <div class="tarjeta-filtros row mb-4 align-items-end g-3">
             <div class="col-sm-5">
-                <label class="form-label">Rol</label>
+                <label class="form-label etiqueta">👥 Seleccionar Rol</label>
                 <select class="form-select form-select-lg" [(ngModel)]="idRolSeleccionado" (ngModelChange)="cargarUsuarios()">
-                    <option value="">Seleccione un rol...</option>
+                    <option value="">-- Seleccione un rol --</option>
                     <option *ngFor="let rol of roles" [value]="rol.id">{{ rol.nombre }}</option>
                 </select>
             </div>
-            <div class="col-sm-4" *ngIf="idRolSeleccionado">
+            <div class="col-sm-4 pb-2" *ngIf="idRolSeleccionado">
                 <span class="badge bg-warning text-dark fs-6">{{ totalAsignados }} / {{ usuarios.length }} usuarios asignados</span>
             </div>
+        </div>
+
+        <!-- Estado vacío -->
+        <div class="estado-vacio text-center" *ngIf="!idRolSeleccionado">
+            <div class="icono-vacio">👥</div>
+            <h4>Selecciona un rol</h4>
+            <p class="text-muted">Elige un rol para ver y asignar sus usuarios</p>
         </div>
 
         <!-- Filtros -->
