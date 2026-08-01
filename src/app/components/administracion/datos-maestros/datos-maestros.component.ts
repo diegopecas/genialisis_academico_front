@@ -86,6 +86,14 @@ export class DatosMaestrosComponent {
         break;
       case 'permisos':
         this.router.navigate(['/administracion/datos-maestros/permisos']);
+        break;      case 'usuarios':
+        this.router.navigate(['/administracion/datos-maestros/usuarios']);
+        break;
+      case 'roles':
+        this.router.navigate(['/administracion/datos-maestros/roles']);
+        break;
+      case 'usuarios-x-rol':
+        this.router.navigate(['/administracion/datos-maestros/usuarios-x-rol']);
         break;
       case 'configuracion-geofence':
         this.router.navigate(['/administracion/datos-maestros/configuracion-geofence']);

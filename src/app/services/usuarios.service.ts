@@ -115,6 +115,21 @@ export class UsuariosService {
     );
   }
 
+
+  restablecerClave(data: any) {
+    return this.http
+      .post<HttpResponse<Object>>(`${this.servicio}/restablecer-clave`, data, httpOptions)
+      .pipe(
+        tap((response: any) => {
+          if (response.error) {
+            throw response.error;
+          }
+          return response;
+        }),
+        catchError(this.handleError)
+      );
+  }
+
   private handleError(error: HttpErrorResponse) {
     return throwError(() => error);
   }

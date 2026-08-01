@@ -145,7 +145,7 @@
 
             <!-- Nombre del módulo -->
             <span class="nodo-nombre" (click)="tieneContenidoExpandible(nodo) ? toggleExpandir(nodo) : null">
-                <img *ngIf="nodo.icono" [src]="'assets/images/' + nodo.icono" class="nodo-icono" alt="">
+                <img *ngIf="nodo.icono" #imgIcono [src]="'assets/images/' + nodo.icono" class="nodo-icono" alt="" (error)="imgIcono.style.display='none'">
                 {{ nodo.nombre }}
             </span>
 

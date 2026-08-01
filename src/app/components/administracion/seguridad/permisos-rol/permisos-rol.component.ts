@@ -1,3 +1,4 @@
+import { ActivatedRoute } from '@angular/router';
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -55,6 +56,8 @@ export class PermisosRolComponent implements OnInit {
   terminoBusqueda: string = '';
 
   constructor(
+    
+    private route: ActivatedRoute,
     private permisosRolService: PermisosRolService,
     public permisosService: PermisosService
   ) { }
@@ -69,6 +72,12 @@ export class PermisosRolComponent implements OnInit {
     this.permisosRolService.obtenerRoles().subscribe({
       next: (response: any) => {
         this.roles = response.body as any[];
+        // Preselección cuando se llega desde el listado de roles (?rol=<id>)
+        const rolParam = this.route.snapshot.queryParamMap.get('rol');
+        if (rolParam && !this.rolSeleccionado) {
+          this.rolSeleccionado = rolParam;
+          this.seleccionarRol();
+        }
       },
       error: (error: any) => {
         console.error('Error cargando roles:', error);

@@ -1,0 +1,110 @@
+<div class="modulo">
+    <app-header 
+        [tituloModulo]="titulo" 
+        [mostrarCrear]="false" 
+        [raiz]="'/administracion/datos-maestros/usuarios-x-rol'"
+        [regresar]="'/administracion/datos-maestros'" 
+        [iconoTitulo]="'/assets/images/seguridad.png'">
+    </app-header>
+
+    <div class="container mt-4 mb-5">
+
+        <!-- Selección de rol -->
+        <div class="row mb-4 align-items-end">
+            <div class="col-sm-5">
+                <label class="form-label">Rol</label>
+                <select class="form-select form-select-lg" [(ngModel)]="idRolSeleccionado" (ngModelChange)="cargarUsuarios()">
+                    <option value="">Seleccione un rol...</option>
+                    <option *ngFor="let rol of roles" [value]="rol.id">{{ rol.nombre }}</option>
+                </select>
+            </div>
+            <div class="col-sm-4" *ngIf="idRolSeleccionado">
+                <span class="badge bg-warning text-dark fs-6">{{ totalAsignados }} / {{ usuarios.length }} usuarios asignados</span>
+            </div>
+        </div>
+
+        <!-- Filtros -->
+        <div class="row mb-3 g-2" *ngIf="idRolSeleccionado && usuarios.length > 0">
+            <div class="col-sm-4">
+                <input class="form-control" type="text" [(ngModel)]="filtroTexto" placeholder="Buscar por nombre, usuario o identificación...">
+            </div>
+            <div class="col-sm-2">
+                <select class="form-select" [(ngModel)]="filtroAsignacion">
+                    <option value="todos">Todos</option>
+                    <option value="asignados">Asignados</option>
+                    <option value="sin-asignar">Sin asignar</option>
+                </select>
+            </div>
+            <div class="col-sm-2">
+                <select class="form-select" [(ngModel)]="filtroTipo">
+                    <option value="todos">Todo tipo</option>
+                    <option value="colaborador">Colaboradores</option>
+                    <option value="acudiente">Acudientes</option>
+                    <option value="ninguno">Sin tipo</option>
+                </select>
+            </div>
+            <div class="col-sm-2">
+                <select class="form-select" [(ngModel)]="filtroEstado">
+                    <option value="todos">Todo estado</option>
+                    <option value="activos">Activos</option>
+                    <option value="inactivos">Inactivos</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Acciones de selección masiva -->
+        <div class="row mb-3" *ngIf="idRolSeleccionado && usuarios.length > 0">
+            <div class="col-12 text-end">
+                <button class="btn btn-outline-secondary btn-sm me-2" (click)="seleccionarVisibles(true)">Marcar visibles</button>
+                <button class="btn btn-outline-secondary btn-sm" (click)="seleccionarVisibles(false)">Desmarcar visibles</button>
+            </div>
+        </div>
+
+        <!-- Tabla de usuarios -->
+        <div class="row" *ngIf="idRolSeleccionado">
+            <div class="col-12">
+                <div class="text-center my-4" *ngIf="cargando">Cargando usuarios...</div>
+                <table class="table table-hover align-middle" *ngIf="!cargando && usuarios.length > 0">
+                    <thead>
+                        <tr>
+                            <th class="text-center">Asignado</th>
+                            <th>Nombre</th>
+                            <th>Usuario</th>
+                            <th>Tipo</th>
+                            <th>Correo</th>
+                            <th class="text-center">Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let usuario of usuariosFiltrados">
+                            <td class="text-center">
+                                <input class="form-check-input" type="checkbox" [(ngModel)]="usuario.asignado" (ngModelChange)="marcarCambio()">
+                            </td>
+                            <td>{{ usuario.nombre_completo }}</td>
+                            <td>{{ usuario.usuario }}</td>
+                            <td>{{ usuario.tipo_persona }}</td>
+                            <td>{{ usuario.correo_electronico }}</td>
+                            <td class="text-center">
+                                <span class="badge" [ngClass]="usuario.activo == 1 ? 'badge-activo' : 'badge-inactivo'">
+                                    {{ usuario.activo == 1 ? 'Activo' : 'Inactivo' }}
+                                </span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="text-center text-muted my-4" *ngIf="!cargando && usuarios.length === 0">
+                    No hay usuarios en el sistema
+                </div>
+            </div>
+        </div>
+
+        <!-- Guardar -->
+        <div class="row mt-4" *ngIf="idRolSeleccionado && usuarios.length > 0">
+            <div class="col-12 text-center">
+                <button class="btn btn-lg btn-warning px-5" (click)="guardar()" [disabled]="!hayCambios">
+                    Guardar usuarios del rol
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

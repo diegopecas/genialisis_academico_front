@@ -416,6 +416,9 @@ export class MenuArbolService {
             keywords: ['roles', 'permisos', 'accesos'],
             hijos: [
               { id: 'administracion-permisos', label: 'Permisos por Rol', icono: '🔐', ruta: '/administracion/datos-maestros/permisos', permiso: 'admin.permisos_rol', keywords: ['roles', 'permisos', 'accesos'] },
+              { id: 'administracion-usuarios', label: 'Usuarios', icono: '👤', ruta: '/administracion/datos-maestros/usuarios', permiso: 'admin.usuarios', keywords: ['cuentas', 'accesos', 'login', 'claves'] },
+              { id: 'administracion-roles', label: 'Roles', icono: '🎭', ruta: '/administracion/datos-maestros/roles', permiso: 'admin.roles', keywords: ['perfiles', 'cargos de sistema'] },
+              { id: 'administracion-usuarios-x-rol', label: 'Usuarios por Rol', icono: '👥', ruta: '/administracion/datos-maestros/usuarios-x-rol', permiso: 'admin.usuarios_x_rol', keywords: ['asignar usuarios', 'asignacion masiva'] },
               { id: 'administracion-auditoria', label: 'Auditoría', icono: '🔍', ruta: '/administracion/auditoria-registros', permiso: 'admin.auditoria', keywords: ['logs', 'registros', 'historial'] }
             ]
           },

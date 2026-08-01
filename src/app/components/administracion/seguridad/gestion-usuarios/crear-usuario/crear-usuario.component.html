@@ -1,0 +1,144 @@
+<div class="modulo">
+    <app-header 
+        [tituloModulo]="titulo" 
+        [mostrarCrear]="false" 
+        [accion]="accion" 
+        [raiz]="'/administracion/datos-maestros/usuarios'"
+        [regresar]="regresar" 
+        [iconoTitulo]="'/assets/images/colaboradores.png'">
+    </app-header>
+
+    <div class="container mt-5">
+
+        <!-- Selección de persona (solo al crear) -->
+        <div class="row mb-4" *ngIf="accion === 'crear'">
+            <div class="col-12">
+                <label class="form-label">Persona <span class="text-danger">*</span></label>
+                <input 
+                    class="form-control" 
+                    type="text" 
+                    [(ngModel)]="filtroPersona"
+                    (ngModelChange)="filtrarPersonas()"
+                    placeholder="Busque por nombre o número de identificación..."
+                    [ngClass]="{'is-invalid': !model.id_persona && submitted}">
+                <div class="list-group mt-1 lista-personas" *ngIf="filtroPersona && !model.id_persona">
+                    <button 
+                        type="button" 
+                        class="list-group-item list-group-item-action"
+                        *ngFor="let persona of personasFiltradas | slice:0:10"
+                        (click)="seleccionarPersona(persona)">
+                        {{ persona.nombre }} — {{ persona.numero_identificacion }}
+                    </button>
+                    <div class="list-group-item text-muted" *ngIf="personasFiltradas.length === 0">
+                        Sin resultados
+                    </div>
+                </div>
+                <small class="form-text text-muted" *ngIf="model.id_persona">
+                    Seleccionada: <b>{{ model.nombre_persona }}</b> — el usuario será su número de identificación: <b>{{ model.usuario }}</b>
+                </small>
+            </div>
+        </div>
+
+        <!-- Persona fija (editar / consultar) -->
+        <div class="row mb-4" *ngIf="accion !== 'crear'">
+            <div class="col-sm-6">
+                <label class="form-label">Persona</label>
+                <input class="form-control" type="text" [value]="model.nombre_persona" disabled>
+            </div>
+            <div class="col-sm-6">
+                <label class="form-label">Usuario</label>
+                <input class="form-control" type="text" [value]="model.usuario" disabled>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-sm-6">
+                <label for="correo" class="form-label">Correo electrónico <span class="text-danger">*</span></label>
+                <input 
+                    class="form-control" 
+                    type="email" 
+                    id="correo"
+                    [(ngModel)]="model.correo_electronico"
+                    placeholder="correo@ejemplo.com"
+                    [ngClass]="{'is-invalid': !model.correo_electronico && submitted}"
+                    [disabled]="!editable">
+            </div>
+            <div class="col-sm-6" *ngIf="accion === 'crear'">
+                <label for="clave" class="form-label">Clave <span class="text-danger">*</span></label>
+                <input 
+                    class="form-control" 
+                    type="password" 
+                    id="clave"
+                    [(ngModel)]="model.clave"
+                    placeholder="Clave inicial del usuario"
+                    [ngClass]="{'is-invalid': !model.clave && submitted}">
+                <small class="form-text text-muted">En editar, la clave se cambia con la acción Restablecer clave del listado</small>
+            </div>
+        </div>
+
+        <!-- Accesos -->
+        <div class="row mb-4">
+            <div class="col-sm-3 form-check form-switch ms-3">
+                <input class="form-check-input" type="checkbox" id="activo" [(ngModel)]="model.activo" [disabled]="!editable">
+                <label class="form-check-label" for="activo">Activo</label>
+            </div>
+            <div class="col-sm-3 form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="accInst" [(ngModel)]="model.acceso_institucional" [disabled]="!editable">
+                <label class="form-check-label" for="accInst">Acceso institucional</label>
+            </div>
+            <div class="col-sm-3 form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="accPortal" [(ngModel)]="model.acceso_portal_padres" [disabled]="!editable">
+                <label class="form-check-label" for="accPortal">Portal de padres</label>
+            </div>
+            <div class="col-sm-2 form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="accWa" [(ngModel)]="model.acceso_chat_wa" [disabled]="!editable">
+                <label class="form-check-label" for="accWa">Chat WhatsApp</label>
+            </div>
+        </div>
+
+        <!-- Super administrador: solo visible y editable para super admins -->
+        <div class="row mb-4" *ngIf="permisosService.esSuperAdmin()">
+            <div class="col-12 form-check form-switch ms-3">
+                <input class="form-check-input" type="checkbox" id="superAdmin" [(ngModel)]="model.super_admin" [disabled]="!editable">
+                <label class="form-check-label" for="superAdmin"><b>Super administrador</b></label>
+                <small class="form-text text-muted d-block">Acceso total al sistema sin validación de permisos. Solo un super administrador puede otorgarlo o retirarlo.</small>
+            </div>
+        </div>
+
+        <!-- Roles -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <label class="form-label">Roles del usuario</label>
+                <div class="row">
+                    <div class="col-sm-4" *ngFor="let rol of roles">
+                        <div class="form-check">
+                            <input 
+                                class="form-check-input" 
+                                type="checkbox" 
+                                [id]="'rol-' + rol.id"
+                                [(ngModel)]="rol.seleccionado"
+                                [disabled]="!editable">
+                            <label class="form-check-label" [for]="'rol-' + rol.id">{{ rol.nombre }}</label>
+                        </div>
+                    </div>
+                </div>
+                <small class="form-text text-muted">Los permisos que recibe el usuario dependen de sus roles (Permisos por Rol)</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mt-4 mb-5">
+        <div class="row">
+            <div class="col-sm-6" *ngIf="editable">
+                <button class="btn btn-lg btn-warning w-100" (click)="guardar()">
+                    Grabar
+                </button>
+            </div>
+            <div class="col-sm-6">
+                <button class="btn btn-lg btn-secondary w-100" (click)="volver()">
+                    Volver
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
