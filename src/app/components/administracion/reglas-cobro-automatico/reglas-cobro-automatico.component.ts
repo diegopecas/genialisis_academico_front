@@ -35,6 +35,7 @@ export class ReglasCobroAutomaticoComponent implements OnInit {
       { clave: 'nombre_tipo_evento', alias: 'Tipo evento', alinear: 'izquierda' },
       { clave: 'nombre_producto_servicio', alias: 'Producto a cobrar', alinear: 'izquierda' },
       { clave: 'valor_sugerido_formateado', alias: 'Valor', alinear: 'derecha' },
+      { clave: 'forma_cobro', alias: 'Forma de cobro', alinear: 'centrado' },
       { clave: 'nombre_grupo', alias: 'Grupo', alinear: 'centrado' },
       { clave: 'nombre_convenio_exime', alias: 'Exime convenio', alinear: 'centrado' },
       { clave: 'prioridad', alias: 'Prioridad', alinear: 'centrado' },
@@ -52,6 +53,7 @@ export class ReglasCobroAutomaticoComponent implements OnInit {
           color: r.activo == 0 ? '#e2e9f3' : '',
           nombre_grupo: r.nombre_grupo || 'Todos',
           nombre_convenio_exime: r.nombre_convenio_exime || 'Ninguno',
+          forma_cobro: this.describirFormaCobro(r.cobro_fraccion),
           valor_sugerido_formateado: '$' + Number(r.valor_sugerido).toLocaleString('es-CO')
         }));
       },
@@ -59,6 +61,17 @@ export class ReglasCobroAutomaticoComponent implements OnInit {
         console.error('Error al obtener reglas:', error);
       }
     });
+  }
+
+  /**
+   * Texto de la columna Forma de cobro.
+   * NULL = valor fijo, 0 = por hora empezada, 1 = proporcional a los minutos.
+   */
+  describirFormaCobro(cobroFraccion: any): string {
+    if (cobroFraccion === null || cobroFraccion === undefined || cobroFraccion === '') {
+      return 'Valor fijo';
+    }
+    return Number(cobroFraccion) === 0 ? 'Por hora empezada' : 'Por minutos';
   }
 
   clicAccion($event: any) {

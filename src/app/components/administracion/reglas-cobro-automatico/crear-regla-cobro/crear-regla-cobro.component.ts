@@ -54,6 +54,7 @@ export class CrearReglaCobroComponent implements OnInit {
     hora_hasta: null as any,
     id_dia_semana: null as any,
     id_convenio_exime: null as any,
+    cobro_fraccion: null as any,
     prioridad: 1,
     activo: 1
   };
@@ -128,7 +129,12 @@ export class CrearReglaCobroComponent implements OnInit {
         this.model = {
           ...body,
           hora_desde: body.hora_desde ? body.hora_desde.substring(0, 5) : null,
-          hora_hasta: body.hora_hasta ? body.hora_hasta.substring(0, 5) : null
+          hora_hasta: body.hora_hasta ? body.hora_hasta.substring(0, 5) : null,
+          /* La base devuelve cobro_fraccion como texto ('0' / '1'); el select usa
+             ngValue numerico, asi que hay que convertirlo o no queda seleccionado. */
+          cobro_fraccion: (body.cobro_fraccion === null || body.cobro_fraccion === undefined || body.cobro_fraccion === '')
+            ? null
+            : Number(body.cobro_fraccion)
         };
         if (this.accion === 'editar') {
           this.titulo = 'Editar regla: ' + this.model.nombre;
@@ -157,7 +163,11 @@ export class CrearReglaCobroComponent implements OnInit {
       hora_hasta: this.model.hora_hasta ? this.model.hora_hasta + ':00' : null,
       id_grupo: this.model.id_grupo || null,
       id_dia_semana: this.model.id_dia_semana || null,
-      id_convenio_exime: this.model.id_convenio_exime || null
+      id_convenio_exime: this.model.id_convenio_exime || null,
+      /* Ojo: no usar || null, porque el 0 (por hora) es un valor valido y se perderia. */
+      cobro_fraccion: (this.model.cobro_fraccion === null || this.model.cobro_fraccion === undefined || this.model.cobro_fraccion === '')
+        ? null
+        : Number(this.model.cobro_fraccion)
     };
 
     const servicio = this.accion === 'crear'

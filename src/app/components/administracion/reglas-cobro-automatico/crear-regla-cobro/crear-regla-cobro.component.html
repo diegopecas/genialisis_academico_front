@@ -72,7 +72,7 @@
     </div>
 
     <div class="row mt-3">
-      <div class="col-sm-12 col-md-6">
+      <div class="col-sm-12 col-md-4">
         <label class="form-label">Convenio que exime <small class="text-muted">(si el estudiante tiene este convenio, la regla NO aplica)</small></label>
         <select class="form-select form-select-lg" [(ngModel)]="model.id_convenio_exime" [disabled]="!editable">
           <option [ngValue]="null">Ninguno</option>
@@ -81,12 +81,31 @@
           </ng-container>
         </select>
       </div>
-      <div class="col-sm-12 col-md-6">
+      <div class="col-sm-12 col-md-4">
+        <label class="form-label">Forma de cobro</label>
+        <select class="form-select form-select-lg" [(ngModel)]="model.cobro_fraccion" [disabled]="!editable">
+          <option [ngValue]="null">Valor fijo del producto</option>
+          <option [ngValue]="0">Por hora empezada</option>
+          <option [ngValue]="1">Proporcional a los minutos</option>
+        </select>
+        <small class="text-muted d-block">Aplica a salida después de hora.</small>
+      </div>
+      <div class="col-sm-12 col-md-4">
         <label class="form-label">Estado</label>
         <select class="form-select form-select-lg" [(ngModel)]="model.activo" [disabled]="!editable">
           <option [ngValue]="1">Activo</option>
           <option [ngValue]="0">Inactivo</option>
         </select>
+      </div>
+    </div>
+
+    <div class="row mt-3" *ngIf="model.cobro_fraccion !== null">
+      <div class="col-12">
+        <div class="alert alert-warning mb-0">
+          Con cobro por hora o por minuto, si <b>Hora desde</b> queda vacía el cobro arranca en la hora de salida
+          de cada estudiante y se cobra hasta la hora real de salida. Si le pone <b>Hora desde</b>, el cobro arranca
+          en esa hora para todos, sin importar el horario del niño, y varias reglas de este tipo se suman entre sí.
+        </div>
       </div>
     </div>
   </div>
