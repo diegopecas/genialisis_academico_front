@@ -70,7 +70,7 @@ export class PlantillasComponent implements OnInit {
   clicAccion($event: any) {
     switch ($event.accion) {
       case 'editar':
-        this.router.navigate(['administracion/configuracion/plantillas/editar/' + $event.registro.id]);
+        this.router.navigate(['administracion/datos-maestros/plantillas/editar/' + $event.registro.id]);
         break;
     }
   }
