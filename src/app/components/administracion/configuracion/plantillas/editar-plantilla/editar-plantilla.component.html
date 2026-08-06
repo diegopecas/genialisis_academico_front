@@ -45,8 +45,18 @@
 
         <hr class="my-4">
 
+        <!-- Editor de plantillas de tipo mensaje -->
+        <div class="row" *ngIf="esMensaje">
+            <div class="col-12">
+                <app-editor-mensaje
+                    [contenido]="contenidoEditable"
+                    [editable]="editable">
+                </app-editor-mensaje>
+            </div>
+        </div>
+
         <!-- Selector de modo de edición -->
-        <div class="row mb-4">
+        <div class="row mb-4" *ngIf="!esMensaje">
             <div class="col-12">
                 <h5>Modo de Edición</h5>
                 <div class="btn-group w-100" role="group">
@@ -109,7 +119,7 @@
         </div>
 
         <!-- Contenido del modo estructurado -->
-        <div *ngIf="modoEdicion === 'estructurado'">
+        <div *ngIf="modoEdicion === 'estructurado' && !esMensaje">
             <div class="row">
                 <div class="col-12">
                     <h5>Contenido de la plantilla</h5>
@@ -226,7 +236,7 @@
         </div>
 
         <!-- Contenido del modo JSON directo -->
-        <div *ngIf="modoEdicion === 'json'">
+        <div *ngIf="modoEdicion === 'json' && !esMensaje">
             <div class="row">
                 <div class="col-12">
                     <h5>Editor JSON Directo</h5>

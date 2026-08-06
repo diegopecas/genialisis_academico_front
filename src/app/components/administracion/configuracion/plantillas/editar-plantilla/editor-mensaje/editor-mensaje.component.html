@@ -1,0 +1,55 @@
+<div class="row">
+    <div class="col-md-8">
+        <h5>Texto del mensaje</h5>
+        <small class="text-muted d-block mb-3">
+            Escribe el mensaje como quieres que le llegue a la familia. Las variables se reemplazan solas al enviarlo.
+        </small>
+
+        <div class="editor-mensaje">
+            <div *ngFor="let campo of campos" class="mb-3">
+                <label class="form-label fw-bold" [attr.for]="'campo_' + campo.key">{{ campo.label }}</label>
+                <textarea
+                    class="form-control"
+                    [id]="'campo_' + campo.key"
+                    [rows]="campo.rows"
+                    [(ngModel)]="contenido[campo.key]"
+                    (focus)="marcarCampoActivo(campo.key)"
+                    [ngClass]="{'campo-activo': campoActivo === campo.key}"
+                    [disabled]="!editable">
+                </textarea>
+            </div>
+
+            <div class="alert alert-warning" *ngIf="campos.length === 0">
+                Esta plantilla no tiene campos de texto para editar.
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <h5>Variables</h5>
+        <small class="text-muted d-block mb-3">
+            Ubícate en el campo que quieras y haz clic en la variable para insertarla.
+        </small>
+
+        <div class="lista-variables">
+            <button
+                type="button"
+                class="btn btn-sm btn-outline-secondary w-100 text-start mb-2"
+                *ngFor="let v of variables"
+                (click)="insertarVariable(v.variable)"
+                [disabled]="!editable">
+                <span class="font-monospace">{{ v.variable }}</span>
+                <small class="d-block text-muted">{{ v.descripcion }}</small>
+            </button>
+
+            <div class="alert alert-info" *ngIf="variables.length === 0">
+                Esta plantilla no declara variables.
+            </div>
+        </div>
+
+        <div class="mt-4" *ngIf="campoActivo">
+            <h6>Vista previa</h6>
+            <div class="vista-previa">{{ vistaPrevia }}</div>
+        </div>
+    </div>
+</div>

@@ -7,6 +7,8 @@ import { HeaderComponent } from '../../../common/header/header.component';
 import { TablasComponent } from '../../../common/tablas/tablas.component';
 import { AsistenciaEstudiantesService } from '../../../services/asistencia-estudiantes.service';
 import { HistorialRecordatoriosAsistenciaService } from '../../../services/historial-recordatorios-asistencia.service';
+import { InstitucionConfigService } from '../../../services/institucion-config.service';
+import { PlantillasService } from '../../../services/plantillas.service';
 import { UtilService } from '../../../common/constantes/util.service';
 
 interface AcudienteAsistencia {
@@ -103,19 +105,53 @@ export class SeguimientoAsistenciaComponent implements OnInit, OnDestroy {
 
   public mostrarPlantilla: boolean = false;
 
-  private nombreColegio: string = 'Liceo Lumen';
+  /* El nombre sale de la configuracion del jardin, no se quema aqui:
+     el mismo codigo corre para todos los tenants. */
+  private get nombreColegio(): string {
+    return this.institucionConfigService.getNombreInstitucion() || 'La institución';
+  }
 
   constructor(
     private asistenciaService: AsistenciaEstudiantesService,
     private historialRecordatoriosService: HistorialRecordatoriosAsistenciaService,
+    private institucionConfigService: InstitucionConfigService,
+    private plantillasService: PlantillasService,
     private utilService: UtilService
   ) { }
 
   ngOnInit(): void {
     this.fechaReferencia = this.obtenerFechaColombia();
     this.plantillaMensaje = this.plantillaPorDefecto;
+    this.cargarPlantilla();
     this.crearTitulosTabla();
     this.cargarDatos();
+  }
+
+  /**
+   * Trae el texto del mensaje desde la tabla plantillas.
+   * Si el jardin todavia no tiene la fila sembrada o la consulta falla, se
+   * queda con el texto por defecto y el recordatorio sigue funcionando.
+   */
+  cargarPlantilla(): void {
+    const sub = this.plantillasService.obtenerByTipoClave('mensaje', 'recordatorio_asistencia').subscribe({
+      next: (response: any) => {
+        const plantilla = response.body;
+        const contenido = plantilla?.contenido;
+        if (!contenido) return;
+
+        if (typeof contenido.mensaje === 'string' && contenido.mensaje.trim()) {
+          this.plantillaPorDefecto = contenido.mensaje;
+          this.plantillaMensaje = contenido.mensaje;
+        }
+        if (Array.isArray(contenido.variables) && contenido.variables.length > 0) {
+          this.variablesDisponibles = contenido.variables;
+        }
+      },
+      error: () => {
+        console.warn('No se pudo cargar la plantilla de recordatorio de asistencia, se usa la de por defecto.');
+      }
+    });
+    this.subscriptions.push(sub);
   }
 
   ngOnDestroy(): void {

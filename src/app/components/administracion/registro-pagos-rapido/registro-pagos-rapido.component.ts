@@ -10,6 +10,7 @@ import { DocumentosPersonasService } from '../../../services/documentos-personas
 import { ExportarPdfComprobanteService, DatosComprobantePDF } from '../../../services/exportar-pdf-comprobante.service';
 import { InstitucionConfigService } from '../../../services/institucion-config.service';
 import { PagosRecibidosService } from '../../../services/pagos-recibidos.service';
+import { PlantillasService } from '../../../services/plantillas.service';
 
 
 interface EstudianteRapido {
@@ -135,7 +136,21 @@ export class RegistroPagosRapidoComponent implements OnInit, OnDestroy {
   public correoAdicional = '';
   public descargandoPDF = false;
 
-  private nombreColegio = 'Liceo Lumen';
+  /* El nombre sale de la configuracion del jardin, no se quema aqui:
+     el mismo codigo corre para todos los tenants. */
+  private get nombreColegio(): string {
+    return this.institucionConfigService.getNombreInstitucion() || 'La institución';
+  }
+
+  /* Cuerpos del mensaje de confirmacion. Son el respaldo: si el jardin tiene
+     la plantilla sembrada en base, estos valores se reemplazan al iniciar. */
+  public plantillaConfirmacion: any = {
+    cuerpo_whatsapp: 'Estimad@ *{nombre_destinatario}*,\n\nDe parte de *{nombre_colegio}*, confirmamos la recepción de su pago:\n\n👤 *Estudiante:* {nombre_estudiante}\n💰 *Valor:* {valor}\n📅 *Fecha:* {fecha}\n{linea_referencia}\n\n¡Gracias por su puntualidad y confianza! 🙏',
+    linea_referencia_whatsapp: '🔢 *Referencia:* {referencia}',
+    cuerpo_correo: 'Estimad@ {nombre_destinatario},\n\nDe parte de {nombre_colegio}, confirmamos la recepción de su pago:\n\nEstudiante: {nombre_estudiante}\nValor: {valor}\nFecha: {fecha}\n{linea_referencia}\n\nGracias por su puntualidad y confianza.',
+    linea_referencia_correo: 'Referencia: {referencia}',
+    asunto_correo: 'Confirmación de pago - {nombre_estudiante} - {nombre_colegio}'
+  };
 
   constructor(
     private pagosRecibidosService: PagosRecibidosService,
@@ -143,12 +158,78 @@ export class RegistroPagosRapidoComponent implements OnInit, OnDestroy {
     private utilService: UtilService,
     private router: Router,
     private exportarPdfComprobanteService: ExportarPdfComprobanteService,
-    private institucionConfigService: InstitucionConfigService
+    private institucionConfigService: InstitucionConfigService,
+    private plantillasService: PlantillasService
   ) {}
 
   ngOnInit(): void {
     this.cargando = true;
+    this.cargarPlantilla();
     this.cargarDatos();
+  }
+
+  /**
+   * Trae la plantilla de confirmacion de pago desde la tabla plantillas.
+   * Si no existe la fila o falla la consulta, se conservan los textos de arriba.
+   */
+  cargarPlantilla(): void {
+    const sub = this.plantillasService.obtenerByTipoClave('mensaje', 'confirmacion_pago').subscribe({
+      next: (response: any) => {
+        const contenido = response.body?.contenido;
+        if (!contenido) return;
+
+        Object.keys(this.plantillaConfirmacion).forEach(clave => {
+          if (typeof contenido[clave] === 'string' && contenido[clave].trim()) {
+            this.plantillaConfirmacion[clave] = contenido[clave];
+          }
+        });
+      },
+      error: () => {
+        console.warn('No se pudo cargar la plantilla de confirmación de pago, se usan los textos por defecto.');
+      }
+    });
+    this.subscriptions.push(sub);
+  }
+
+  /**
+   * Arma el mensaje a partir de la plantilla.
+   * canal 'whatsapp' usa el cuerpo con negrillas y emojis; 'correo' el de
+   * texto plano. La linea de referencia se quita cuando el pago no la trae.
+   */
+  private armarMensajeConfirmacion(fila: FilaPago, nombreDestinatario: string, canal: 'whatsapp' | 'correo'): string {
+    const cuerpo = canal === 'whatsapp'
+      ? this.plantillaConfirmacion.cuerpo_whatsapp
+      : this.plantillaConfirmacion.cuerpo_correo;
+
+    const plantillaReferencia = canal === 'whatsapp'
+      ? this.plantillaConfirmacion.linea_referencia_whatsapp
+      : this.plantillaConfirmacion.linea_referencia_correo;
+
+    const lineaReferencia = fila.referencia_bancaria
+      ? (plantillaReferencia || '').replace(/\{referencia\}/g, fila.referencia_bancaria)
+      : '';
+
+    let mensaje = cuerpo || '';
+    mensaje = mensaje.replace(/\{nombre_destinatario\}/g, nombreDestinatario);
+    mensaje = mensaje.replace(/\{nombre_colegio\}/g, this.nombreColegio);
+    mensaje = mensaje.replace(/\{nombre_estudiante\}/g, fila.estudiante.nombre_estudiante);
+    mensaje = mensaje.replace(/\{valor\}/g, '$' + this.formatearMoneda(fila.valor_recibido));
+    mensaje = mensaje.replace(/\{fecha\}/g, this.formatearFecha(fila.fecha));
+
+    /* Sin referencia se elimina la linea completa, con su salto, para no
+       dejar un renglon vacio en la mitad del mensaje. */
+    mensaje = lineaReferencia
+      ? mensaje.replace(/\{linea_referencia\}/g, lineaReferencia)
+      : mensaje.replace(/\{linea_referencia\}\n?/g, '');
+
+    return mensaje;
+  }
+
+  private armarAsuntoConfirmacion(fila: FilaPago): string {
+    let asunto = this.plantillaConfirmacion.asunto_correo || '';
+    asunto = asunto.replace(/\{nombre_estudiante\}/g, fila.estudiante.nombre_estudiante);
+    asunto = asunto.replace(/\{nombre_colegio\}/g, this.nombreColegio);
+    return asunto;
   }
 
   ngOnDestroy(): void {
@@ -776,27 +857,12 @@ export class RegistroPagosRapidoComponent implements OnInit, OnDestroy {
     const acudiente = fila.acudientes.find((a: AcudienteResponsable) => a.id_acudiente === fila.id_acudiente);
     const nombreDestinatario = acudiente ? acudiente.nombre_acudiente : 'Señor(a) acudiente';
 
-    let mensaje = `Estimad@ *${nombreDestinatario}*,\n\n`;
-    mensaje += `De parte de *${this.nombreColegio}*, confirmamos la recepción de su pago:\n\n`;
-    mensaje += `👤 *Estudiante:* ${fila.estudiante.nombre_estudiante}\n`;
-    mensaje += `💰 *Valor:* $${this.formatearMoneda(fila.valor_recibido)}\n`;
-    mensaje += `📅 *Fecha:* ${this.formatearFecha(fila.fecha)}\n`;
-    if (fila.referencia_bancaria) mensaje += `🔢 *Referencia:* ${fila.referencia_bancaria}\n`;
-    mensaje += `\n¡Gracias por su puntualidad y confianza! 🙏`;
-
-    fila.mensajeWA = mensaje;
+    fila.mensajeWA = this.armarMensajeConfirmacion(fila, nombreDestinatario, 'whatsapp');
     fila.telefonoWA = acudiente?.telefono || '';
   }
 
   generarMensajeWAParaDestinatario(fila: FilaPago, nombreDestinatario: string): string {
-    let mensaje = `Estimad@ *${nombreDestinatario}*,\n\n`;
-    mensaje += `De parte de *${this.nombreColegio}*, confirmamos la recepción de su pago:\n\n`;
-    mensaje += `👤 *Estudiante:* ${fila.estudiante.nombre_estudiante}\n`;
-    mensaje += `💰 *Valor:* $${this.formatearMoneda(fila.valor_recibido)}\n`;
-    mensaje += `📅 *Fecha:* ${this.formatearFecha(fila.fecha)}\n`;
-    if (fila.referencia_bancaria) mensaje += `🔢 *Referencia:* ${fila.referencia_bancaria}\n`;
-    mensaje += `\n¡Gracias por su puntualidad y confianza! 🙏`;
-    return mensaje;
+    return this.armarMensajeConfirmacion(fila, nombreDestinatario, 'whatsapp');
   }
 
   enviarWhatsAppAcudiente(fila: FilaPago, acudiente: AcudienteResponsable, indice: number): void {
@@ -820,14 +886,8 @@ export class RegistroPagosRapidoComponent implements OnInit, OnDestroy {
       Swal.fire('Atención', 'Este acudiente no tiene correo electrónico registrado.', 'warning');
       return;
     }
-    const asunto = `Confirmación de pago - ${fila.estudiante.nombre_estudiante} - ${this.nombreColegio}`;
-    let cuerpo = `Estimad@ ${acudiente.nombre_acudiente},\n\n`;
-    cuerpo += `De parte de ${this.nombreColegio}, confirmamos la recepción de su pago:\n\n`;
-    cuerpo += `Estudiante: ${fila.estudiante.nombre_estudiante}\n`;
-    cuerpo += `Valor: $${this.formatearMoneda(fila.valor_recibido)}\n`;
-    cuerpo += `Fecha: ${this.formatearFecha(fila.fecha)}\n`;
-    if (fila.referencia_bancaria) cuerpo += `Referencia: ${fila.referencia_bancaria}\n`;
-    cuerpo += `\nGracias por su puntualidad y confianza.`;
+    const asunto = this.armarAsuntoConfirmacion(fila);
+    const cuerpo = this.armarMensajeConfirmacion(fila, acudiente.nombre_acudiente, 'correo');
 
     const url = `https://mail.google.com/mail/?view=cm&to=${encodeURIComponent(acudiente.correo_electronico)}&su=${encodeURIComponent(asunto)}&body=${encodeURIComponent(cuerpo)}`;
     window.open(url, '_blank');
@@ -836,12 +896,8 @@ export class RegistroPagosRapidoComponent implements OnInit, OnDestroy {
   enviarCorreoAdicional(fila: FilaPago): void {
     if (!this.correoAdicional) { Swal.fire('Atención', 'Ingrese un correo electrónico.', 'warning'); return; }
     const nombre = this.nombreAdicional.trim() || 'Señor(a) acudiente';
-    const asunto = `Confirmación de pago - ${fila.estudiante.nombre_estudiante} - ${this.nombreColegio}`;
-    let cuerpo = `Estimad@ ${nombre},\n\nDe parte de ${this.nombreColegio}, confirmamos la recepción de su pago:\n\n`;
-    cuerpo += `Estudiante: ${fila.estudiante.nombre_estudiante}\nValor: $${this.formatearMoneda(fila.valor_recibido)}\n`;
-    cuerpo += `Fecha: ${this.formatearFecha(fila.fecha)}\n`;
-    if (fila.referencia_bancaria) cuerpo += `Referencia: ${fila.referencia_bancaria}\n`;
-    cuerpo += `\nGracias por su puntualidad y confianza.`;
+    const asunto = this.armarAsuntoConfirmacion(fila);
+    const cuerpo = this.armarMensajeConfirmacion(fila, nombre, 'correo');
 
     const url = `https://mail.google.com/mail/?view=cm&to=${encodeURIComponent(this.correoAdicional)}&su=${encodeURIComponent(asunto)}&body=${encodeURIComponent(cuerpo)}`;
     window.open(url, '_blank');

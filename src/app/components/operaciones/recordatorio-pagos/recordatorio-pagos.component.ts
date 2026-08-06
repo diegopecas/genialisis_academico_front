@@ -8,6 +8,7 @@ import { CuentasPorCobrarService } from '../../../services/cuentas-por-cobrar.se
 import { GruposService } from '../../../services/grupos.service';
 import { ExportarPdfCuentasService, DatosCuentasPDF } from '../../../services/exportar-pdf-cuentas.service';
 import { InstitucionConfigService } from '../../../services/institucion-config.service';
+import { PlantillasService } from '../../../services/plantillas.service';
 import { HistorialRecordatoriosPagoService } from '../../../services/historial-recordatorios-pago.service';
 import { TareasColaboradoresService } from '../../../services/tareas-colaboradores.service';
 import { UtilService } from '../../../common/constantes/util.service';
@@ -116,6 +117,69 @@ export class RecordatorioPagosComponent implements OnInit, OnDestroy {
     return this.institucionConfigService.getNombreInstitucion() || 'La institución';
   }
 
+  /* Bloques del mensaje. Son el respaldo: si el jardin tiene la plantilla
+     sembrada en base, estos valores se reemplazan al iniciar. El detalle de
+     meses y los totales los sigue armando el codigo, porque dependen de lo
+     que se marque en pantalla. */
+  public bloquesMensaje: any = {
+    saludo_tu: 'Hola {NOMBRE_DESTINATARIO},',
+    saludo_usted: 'Cordial saludo {NOMBRE_DESTINATARIO},',
+    encabezado_tu: 'Te escribimos desde *{nombre_colegio}* con relación al estado de cuenta del estudiante *{nombre_estudiante}*.',
+    encabezado_usted: 'Le escribimos desde *{nombre_colegio}* con relación al estado de cuenta del estudiante *{nombre_estudiante}*.',
+    titulo_detalle: '*Detalle de saldos pendientes:*',
+    linea_total: '*Total pendiente: {total}*',
+    linea_vencido: '*Saldo vencido: {vencido}*',
+    invitacion_tu: 'Te invitamos a ponerte al día con este compromiso. Si ya realizaste el pago, haz caso omiso de este mensaje.',
+    invitacion_usted: 'Le invitamos a ponerse al día con este compromiso. Si ya realizó el pago, haga caso omiso de este mensaje.',
+    reunion_ambas_tu: 'Nos gustaría agendar una reunión (presencial o virtual) para tratar este tema. Por favor indícanos tu disponibilidad.',
+    reunion_ambas_usted: 'Nos gustaría agendar una reunión (presencial o virtual) para tratar este tema. Por favor indíquenos su disponibilidad.',
+    reunion_presencial_tu: 'Nos gustaría agendar una reunión presencial. Por favor indícanos tu disponibilidad.',
+    reunion_presencial_usted: 'Nos gustaría agendar una reunión presencial. Por favor indíquenos su disponibilidad.',
+    reunion_virtual_tu: 'Nos gustaría agendar una reunión virtual. Por favor indícanos tu disponibilidad.',
+    reunion_virtual_usted: 'Nos gustaría agendar una reunión virtual. Por favor indíquenos su disponibilidad.',
+    compromiso_tu: 'Te agradecemos indicarnos una fecha en la que puedas cumplir con este compromiso.',
+    compromiso_usted: 'Le agradecemos indicarnos una fecha en la que pueda cumplir con este compromiso.',
+    cierre_tu: 'Quedamos atentos. Gracias por tu confianza.',
+    cierre_usted: 'Quedamos atentos. Gracias por su confianza.',
+    firma: '{nombre_colegio}',
+    asunto_correo: 'Recordatorio de pago - {nombre_estudiante} - {nombre_colegio}'
+  };
+
+  /**
+   * Trae los bloques del mensaje desde la tabla plantillas.
+   * Si no existe la fila o falla la consulta, se conservan los de arriba.
+   */
+  cargarPlantilla(): void {
+    this.plantillasService.obtenerByTipoClave('mensaje', 'recordatorio_pago').subscribe({
+      next: (response: any) => {
+        const contenido = response.body?.contenido;
+        if (!contenido) return;
+
+        Object.keys(this.bloquesMensaje).forEach(clave => {
+          if (typeof contenido[clave] === 'string' && contenido[clave].trim()) {
+            this.bloquesMensaje[clave] = contenido[clave];
+          }
+        });
+      },
+      error: () => {
+        console.warn('No se pudo cargar la plantilla de recordatorio de pago, se usan los textos por defecto.');
+      }
+    });
+  }
+
+  /**
+   * Reemplaza las variables del bloque. {NOMBRE_DESTINATARIO} no se toca aqui:
+   * se resuelve al enviar, cuando ya se sabe a que acudiente va el mensaje.
+   */
+  private resolverBloque(clave: string, valores: { [k: string]: string } = {}): string {
+    let texto = this.bloquesMensaje[clave] || '';
+    texto = texto.replace(/\{nombre_colegio\}/g, this.nombreColegio);
+    Object.keys(valores).forEach(k => {
+      texto = texto.replace(new RegExp('\\{' + k + '\\}', 'g'), valores[k]);
+    });
+    return texto;
+  }
+
   // PDF
   public descargandoPDF: boolean = false;
 
@@ -130,12 +194,14 @@ export class RecordatorioPagosComponent implements OnInit, OnDestroy {
     private exportarPdfCuentasService: ExportarPdfCuentasService,
     private institucionConfigService: InstitucionConfigService,
     private historialRecordatoriosService: HistorialRecordatoriosPagoService,
+    private plantillasService: PlantillasService,
     private tareasColaboradoresService: TareasColaboradoresService,
     private utilService: UtilService
   ) { }
 
   ngOnInit(): void {
     this.inicializarAnios();
+    this.cargarPlantilla();
     this.cargarGrupos();
     this.cargarDatos();
   }
@@ -449,18 +515,16 @@ export class RecordatorioPagosComponent implements OnInit, OnDestroy {
 
   private construirMensajePago(estudiante: EstudianteCartera): string {
     const tu = this.tratoCercano;
+    const sufijo = tu ? '_tu' : '_usted';
+    const datos = { nombre_estudiante: estudiante.nombre_estudiante };
     let msg = '';
 
-    msg += tu
-      ? `Hola {NOMBRE_DESTINATARIO},\n\n`
-      : `Cordial saludo {NOMBRE_DESTINATARIO},\n\n`;
+    msg += this.resolverBloque('saludo' + sufijo, datos) + `\n\n`;
 
-    msg += tu
-      ? `Te escribimos desde *${this.nombreColegio}* con relación al estado de cuenta del estudiante *${estudiante.nombre_estudiante}*.\n\n`
-      : `Le escribimos desde *${this.nombreColegio}* con relación al estado de cuenta del estudiante *${estudiante.nombre_estudiante}*.\n\n`;
+    msg += this.resolverBloque('encabezado' + sufijo, datos) + `\n\n`;
 
     if (this.tipoMensajeSeleccionado === 'vencido') {
-      msg += `*Saldo vencido: ${this.formatearMoneda(estudiante.saldoVencido)}*\n\n`;
+      msg += this.resolverBloque('linea_vencido', { vencido: this.formatearMoneda(estudiante.saldoVencido) }) + `\n\n`;
     } else {
       let mesesIncluir: number[] = [];
 
@@ -479,7 +543,7 @@ export class RecordatorioPagosComponent implements OnInit, OnDestroy {
       }
 
       if (mesesIncluir.length > 0) {
-        msg += `*Detalle de saldos pendientes:*\n`;
+        msg += this.resolverBloque('titulo_detalle') + `\n`;
         let totalIncluido = 0;
         mesesIncluir.forEach(mesValor => {
           const mes = this.mesesDisponibles.find(m => m.valor === mesValor);
@@ -489,45 +553,33 @@ export class RecordatorioPagosComponent implements OnInit, OnDestroy {
             totalIncluido += saldo;
           }
         });
-        msg += `\n*Total pendiente: ${this.formatearMoneda(totalIncluido)}*\n`;
+        msg += `\n` + this.resolverBloque('linea_total', { total: this.formatearMoneda(totalIncluido) }) + `\n`;
       }
 
       if (estudiante.saldoVencido > 0) {
-        msg += `*Saldo vencido: ${this.formatearMoneda(estudiante.saldoVencido)}*\n`;
+        msg += this.resolverBloque('linea_vencido', { vencido: this.formatearMoneda(estudiante.saldoVencido) }) + `\n`;
       }
       msg += '\n';
     }
 
-    msg += tu
-      ? `Te invitamos a ponerte al día con este compromiso. Si ya realizaste el pago, haz caso omiso de este mensaje.\n\n`
-      : `Le invitamos a ponerse al día con este compromiso. Si ya realizó el pago, haga caso omiso de este mensaje.\n\n`;
+    msg += this.resolverBloque('invitacion' + sufijo, datos) + `\n\n`;
 
     // Reunión
     if (this.solicitarReunionPresencial && this.solicitarReunionVirtual) {
-      msg += tu
-        ? `Nos gustaría agendar una reunión (presencial o virtual) para tratar este tema. Por favor indícanos tu disponibilidad.\n\n`
-        : `Nos gustaría agendar una reunión (presencial o virtual) para tratar este tema. Por favor indíquenos su disponibilidad.\n\n`;
+      msg += this.resolverBloque('reunion_ambas' + sufijo, datos) + `\n\n`;
     } else if (this.solicitarReunionPresencial) {
-      msg += tu
-        ? `Nos gustaría agendar una reunión presencial. Por favor indícanos tu disponibilidad.\n\n`
-        : `Nos gustaría agendar una reunión presencial. Por favor indíquenos su disponibilidad.\n\n`;
+      msg += this.resolverBloque('reunion_presencial' + sufijo, datos) + `\n\n`;
     } else if (this.solicitarReunionVirtual) {
-      msg += tu
-        ? `Nos gustaría agendar una reunión virtual. Por favor indícanos tu disponibilidad.\n\n`
-        : `Nos gustaría agendar una reunión virtual. Por favor indíquenos su disponibilidad.\n\n`;
+      msg += this.resolverBloque('reunion_virtual' + sufijo, datos) + `\n\n`;
     }
 
     // Fecha compromiso
     if (this.solicitarFechaCompromiso) {
-      msg += tu
-        ? `Te agradecemos indicarnos una fecha en la que puedas cumplir con este compromiso.\n\n`
-        : `Le agradecemos indicarnos una fecha en la que pueda cumplir con este compromiso.\n\n`;
+      msg += this.resolverBloque('compromiso' + sufijo, datos) + `\n\n`;
     }
 
-    msg += tu
-      ? `Quedamos atentos. Gracias por tu confianza.\n`
-      : `Quedamos atentos. Gracias por su confianza.\n`;
-    msg += `${this.nombreColegio}`;
+    msg += this.resolverBloque('cierre' + sufijo, datos) + `\n`;
+    msg += this.resolverBloque('firma', datos);
 
     return msg;
   }
@@ -569,7 +621,7 @@ export class RecordatorioPagosComponent implements OnInit, OnDestroy {
   enviarCorreo(estudiante: EstudianteCartera, acudiente: AcudientePago): void {
     if (!acudiente.correo_electronico) { alert('El acudiente no tiene correo electrónico registrado.'); return; }
 
-    const asunto = `Recordatorio de pago - ${estudiante.nombre_estudiante} - ${this.nombreColegio}`;
+    const asunto = this.resolverBloque('asunto_correo', { nombre_estudiante: estudiante.nombre_estudiante });
     const cuerpo = this.getMensajeCorreo(acudiente.nombre_acudiente);
     const monto = this.calcularMontoNotificado(estudiante);
 
@@ -582,7 +634,7 @@ export class RecordatorioPagosComponent implements OnInit, OnDestroy {
     if (!this.correoAdicional) { alert('Ingrese un correo electrónico.'); return; }
 
     const nombre = this.nombreAdicional.trim() || 'Señor(a) acudiente';
-    const asunto = `Recordatorio de pago - ${estudiante.nombre_estudiante} - ${this.nombreColegio}`;
+    const asunto = this.resolverBloque('asunto_correo', { nombre_estudiante: estudiante.nombre_estudiante });
     const cuerpo = this.getMensajeCorreo(nombre);
     const monto = this.calcularMontoNotificado(estudiante);
 

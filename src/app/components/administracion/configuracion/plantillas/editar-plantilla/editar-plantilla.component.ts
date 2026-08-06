@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HeaderComponent } from '../../../../../common/header/header.component';
 import { PlantillasService, Plantilla } from '../../../../../services/plantillas.service';
+import { EditorMensajeComponent } from './editor-mensaje/editor-mensaje.component';
 import Swal from 'sweetalert2';
 
 interface CampoEditable {
@@ -17,7 +18,7 @@ interface CampoEditable {
   templateUrl: './editar-plantilla.component.html',
   styleUrl: './editar-plantilla.component.scss',
   standalone: true,
-  imports: [CommonModule, FormsModule, HeaderComponent]
+  imports: [CommonModule, FormsModule, HeaderComponent, EditorMensajeComponent]
 })
 export class EditarPlantillaComponent implements OnInit {
 
@@ -43,6 +44,9 @@ export class EditarPlantillaComponent implements OnInit {
 
   modoEdicion: 'estructurado' | 'json' = 'estructurado';
   tieneSingularPlural: boolean = false;
+  /* Las plantillas del tipo 'mensaje' se editan con su propio componente:
+     son textos sueltos con variables, no llevan clausulas ni singular/plural. */
+  esMensaje: boolean = false;
   modoVista: 'dual' | 'plural' | 'singular' = 'dual';
   mostrarJSON: boolean = false;
 
@@ -99,7 +103,9 @@ export class EditarPlantillaComponent implements OnInit {
 
   analizarContenido() {
     const contenido = this.model.contenido;
-    
+
+    this.esMensaje = this.model.tipo_codigo === 'mensaje';
+
     if (!contenido || typeof contenido !== 'object') {
       this.tieneSingularPlural = false;
       this.contenidoJSON = JSON.stringify(contenido, null, 2);
@@ -108,6 +114,14 @@ export class EditarPlantillaComponent implements OnInit {
 
     // Crear copia editable del contenido PRIMERO
     this.contenidoEditable = JSON.parse(JSON.stringify(contenido));
+
+    // Las de tipo mensaje no pasan por el analisis de singular/plural ni por
+    // el de clausulas: el componente hijo arma sus campos a partir del JSON.
+    if (this.esMensaje) {
+      this.tieneSingularPlural = false;
+      this.actualizarJSON();
+      return;
+    }
 
     // Detectar si tiene campos con sufijo _singular
     const claves = Object.keys(contenido);
