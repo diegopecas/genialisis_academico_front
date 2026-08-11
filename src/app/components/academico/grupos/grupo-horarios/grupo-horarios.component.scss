@@ -1,0 +1,1037 @@
+// Variables de colores
+$gold: #d4af37;
+$black: #222;
+$light-gold: rgba(212, 175, 55, 0.1);
+
+// =============================================
+// Visualización de horarios tipo calendario
+// =============================================
+.horarios-section {
+  &.con-barra-guardar {
+    padding-bottom: 90px;
+  }
+
+  .horarios-header-section {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  .horarios-resumen {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+
+    .resumen-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      font-size: 0.85rem;
+
+      i {
+        color: #F5A623;
+        font-size: 1rem;
+      }
+
+      .resumen-numero {
+        font-weight: 700;
+        color: #2c3e50;
+        font-size: 1rem;
+      }
+
+      .resumen-texto {
+        color: #6c757d;
+        font-size: 0.8rem;
+      }
+    }
+  }
+
+  .horario-leyenda {
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    flex: 1;
+    min-width: 300px;
+
+    h6 {
+      margin-bottom: 0.75rem;
+      color: #495057;
+      font-weight: 600;
+      font-size: 0.85rem;
+    }
+
+    .leyenda-items {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .leyenda-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.75rem;
+      cursor: pointer;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      transition: background-color 0.2s ease;
+
+      &:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+      }
+
+      .leyenda-checkbox {
+        cursor: pointer;
+        width: 16px;
+        height: 16px;
+      }
+
+      .leyenda-color {
+        width: 16px;
+        height: 16px;
+        border-radius: 4px;
+        border: 2px solid rgba(0, 0, 0, 0.1);
+      }
+    }
+  }
+
+  .horario-scroll-container {
+    overflow-x: auto;
+    overflow-y: visible;
+    max-width: 100%;
+    padding-bottom: 1rem;
+
+    &::-webkit-scrollbar {
+      height: 8px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 4px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: #888;
+      border-radius: 4px;
+
+      &:hover {
+        background: #555;
+      }
+    }
+  }
+
+  .horario-grid {
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    min-width: 800px;
+
+    &.modo-agregar {
+      user-select: none;
+      touch-action: none;
+      box-shadow: 0 0 0 2px rgba($gold, 0.6), 0 6px 18px rgba(0, 0, 0, 0.12);
+
+      .horario-content-cell.sin-horario {
+        cursor: crosshair;
+      }
+
+      .celda-vacia {
+        opacity: 0.35;
+      }
+    }
+  }
+
+  .horario-header-dias {
+    display: grid;
+    grid-template-columns: 60px repeat(7, 1fr);
+    background: linear-gradient(135deg, #F5A623 0%, #F76B1C 100%);
+    color: white;
+    font-weight: 600;
+    font-size: 0.75rem;
+  }
+
+  .horario-row {
+    display: grid;
+    grid-template-columns: 60px repeat(7, 1fr);
+    border-bottom: 1px solid #e0e0e0;
+    min-height: 50px;
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  .horario-cell {
+    padding: 0.4rem;
+    border-right: 1px solid #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+
+    &:last-child {
+      border-right: none;
+    }
+  }
+
+  .horario-time-header,
+  .horario-day-header {
+    text-align: center;
+    padding: 0.6rem 0.4rem;
+    font-size: 0.75rem;
+  }
+
+  .horario-time-cell {
+    background: #f8f9fa;
+    font-weight: 600;
+    color: #495057;
+    font-size: 0.7rem;
+    padding: 0.3rem;
+  }
+
+  .horario-content-cell {
+    position: relative;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    padding: 0;
+
+    &.sin-horario:hover {
+      background-color: #f0f0f0;
+    }
+
+    &.tiene-horario {
+      cursor: default;
+    }
+
+    // Celdas marcadas mientras se arrastra
+    &.en-arrastre {
+      background-color: rgba($gold, 0.35);
+      box-shadow: inset 0 0 0 2px $gold;
+    }
+  }
+
+  .celda-vacia {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ccc;
+    font-size: 0.9rem;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+
+    .horario-content-cell:hover & {
+      opacity: 1;
+    }
+  }
+
+  .horario-block {
+    width: 100%;
+    height: 100%;
+    padding: 0.3rem;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    &.es-inicio {
+      border-top-left-radius: 6px;
+      border-top-right-radius: 6px;
+    }
+
+    &.es-fin {
+      border-bottom-left-radius: 6px;
+      border-bottom-right-radius: 6px;
+    }
+
+    &.es-intermedio {
+      border-radius: 0;
+      border-top: none;
+      border-bottom: none;
+      padding: 0;
+      min-height: 50px;
+    }
+
+    &:hover {
+      transform: translateX(2px);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      z-index: 10;
+
+      .btn-eliminar-horario-calendar {
+        opacity: 1;
+      }
+    }
+
+    .horario-block-header {
+      text-align: center;
+      margin-bottom: 0.15rem;
+
+      strong {
+        font-size: 0.65rem;
+        color: #2c3e50;
+        display: block;
+        text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
+        line-height: 1.1;
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+
+      .horario-tiempo-small {
+        font-size: 0.55rem;
+        opacity: 0.8;
+        color: #2c3e50;
+        margin-top: 0.1rem;
+      }
+    }
+
+    .horario-block-content {
+      text-align: center;
+
+      .horario-minutos {
+        font-size: 0.6rem;
+        font-weight: 700;
+        color: #2c3e50;
+      }
+    }
+
+    .btn-eliminar-horario-calendar {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      background: rgba(220, 53, 69, 0.9);
+      border: none;
+      color: white;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      z-index: 20;
+
+      i {
+        font-size: 0.55rem;
+      }
+
+      &:hover {
+        background: #c82333;
+      }
+    }
+
+    // Franja aún no guardada
+    &.bloque-pendiente {
+      border: 2px dashed rgba(0, 0, 0, 0.35);
+      opacity: 0.85;
+      animation: pendiente-latido 1.6s ease-in-out infinite;
+
+      .badge-pendiente {
+        position: absolute;
+        bottom: 2px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        background: rgba(255, 255, 255, 0.85);
+        color: #495057;
+        border-radius: 10px;
+        padding: 0 6px;
+        white-space: nowrap;
+      }
+    }
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 2.5rem 1rem;
+    color: #adb5bd;
+
+    i {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      opacity: 0.5;
+    }
+
+    p {
+      margin: 0;
+      font-size: 0.9375rem;
+      color: #6c757d;
+    }
+  }
+
+  .btn-asociar {
+    background: #e3f2fd;
+    border: 1px solid #90caf9;
+    color: #1976d2;
+    padding: 0.75rem 1.25rem;
+    border-radius: 8px;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+
+    &:hover {
+      background: #bbdefb;
+      border-color: #64b5f6;
+      color: #1565c0;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(25, 118, 210, 0.15);
+    }
+
+    i {
+      margin-right: 0.5rem;
+    }
+  }
+}
+
+@keyframes pendiente-latido {
+  0%, 100% { opacity: 0.85; }
+  50%      { opacity: 0.55; }
+}
+
+// =============================================
+// Barra y panel del modo pintar
+// =============================================
+.barra-agregar {
+  margin-bottom: 1.25rem;
+}
+
+// Selector de vista lista / calendario (solo movil)
+.selector-vista {
+  display: none;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+
+  button {
+    flex: 1;
+    border: 1px solid #dee2e6;
+    background: #fff;
+    color: #6c757d;
+    border-radius: 25px;
+    padding: 0.5rem 0.6rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+
+    i {
+      margin-right: 0.35rem;
+    }
+
+    &.activo {
+      background: linear-gradient(135deg, $gold 0%, darken($gold, 12%) 100%);
+      border-color: transparent;
+      color: #fff;
+      box-shadow: 0 3px 10px rgba($gold, 0.3);
+    }
+  }
+}
+
+// Boton para plegar la leyenda (solo movil)
+.btn-toggle-filtros {
+  display: none;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  background: transparent;
+  border: none;
+  padding: 0;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #495057;
+
+  i {
+    color: $gold;
+  }
+}
+
+.btn-modo-agregar {
+  background: linear-gradient(135deg, $gold 0%, darken($gold, 12%) 100%);
+  border: none;
+  color: #fff;
+  padding: 0.7rem 1.4rem;
+  border-radius: 30px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba($gold, 0.35);
+  transition: all 0.25s ease;
+
+  i {
+    margin-right: 0.5rem;
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba($gold, 0.45);
+  }
+}
+
+.panel-pintar {
+  background: #fff;
+  border: 1px solid rgba($gold, 0.35);
+  border-radius: 12px;
+  padding: 1rem 1.15rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+.panel-pintar-fila {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.panel-pintar-titulo {
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: $black;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+
+  i {
+    color: $gold;
+    margin-right: 0.35rem;
+  }
+}
+
+.area-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.area-chip {
+  border: 2px solid #dee2e6;
+  background: transparent;
+  border-radius: 20px;
+  padding: 0.3rem 0.85rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #495057;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+  }
+
+  &.activo {
+    color: #2c3e50;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  }
+}
+
+.btn-cancelar-modo {
+  background: transparent;
+  border: 1px solid #dee2e6;
+  color: #6c757d;
+  border-radius: 20px;
+  padding: 0.3rem 0.9rem;
+  font-size: 0.78rem;
+
+  i {
+    margin-right: 0.3rem;
+  }
+
+  &:hover {
+    background: #f8f9fa;
+    color: #495057;
+  }
+}
+
+.panel-pintar-ayuda {
+  margin: 0.75rem 0 0 0;
+  font-size: 0.78rem;
+  color: #6c757d;
+}
+
+.pendientes {
+  margin-top: 0.9rem;
+  border-top: 1px dashed #e0e0e0;
+  padding-top: 0.9rem;
+}
+
+.pendiente-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  padding: 0.45rem 0.6rem;
+  border-radius: 8px;
+  background: #f8f9fa;
+  margin-bottom: 0.45rem;
+  font-size: 0.8rem;
+}
+
+.pendiente-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  flex-shrink: 0;
+}
+
+.pendiente-area {
+  font-weight: 600;
+  color: $black;
+}
+
+.pendiente-dia {
+  color: #495057;
+}
+
+.pendiente-hora {
+  color: #6c757d;
+}
+
+.pendiente-min {
+  color: #adb5bd;
+  font-size: 0.75rem;
+}
+
+.pendiente-clases {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0 0 0 auto;
+  font-size: 0.75rem;
+  color: #6c757d;
+
+  input {
+    width: 60px;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    padding: 0.15rem 0.4rem;
+    font-size: 0.8rem;
+  }
+}
+
+.btn-quitar-pendiente {
+  background: transparent;
+  border: none;
+  color: #dc3545;
+  cursor: pointer;
+  padding: 0.15rem 0.35rem;
+  border-radius: 50%;
+
+  &:hover {
+    background: rgba(220, 53, 69, 0.1);
+  }
+}
+
+// Barra fija con el resumen de franjas sin guardar
+.barra-guardar-fija {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 18px;
+  width: min(720px, calc(100% - 32px));
+  z-index: 1040;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 0.75rem 1.1rem;
+  background: #fff;
+  border: 1px solid rgba($gold, 0.45);
+  border-radius: 14px;
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.22);
+}
+
+.barra-guardar-info {
+  font-size: 0.85rem;
+  color: #495057;
+
+  i {
+    color: $gold;
+    margin-right: 0.4rem;
+  }
+
+  strong {
+    color: $black;
+  }
+}
+
+.barra-guardar-acciones {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.btn-descartar-franjas {
+  background: transparent;
+  border: 1px solid #dee2e6;
+  color: #6c757d;
+  border-radius: 25px;
+  padding: 0.5rem 1.1rem;
+  font-size: 0.82rem;
+
+  &:hover:not(:disabled) {
+    background: #f8f9fa;
+    color: #495057;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.btn-guardar-franjas {
+  background: linear-gradient(135deg, #2e9e5b 0%, #218838 100%);
+  border: none;
+  color: #fff;
+  padding: 0.55rem 1.3rem;
+  border-radius: 25px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+  transition: all 0.25s ease;
+
+  i {
+    margin-right: 0.45rem;
+  }
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+// =============================================
+// Vista móvil de horarios (lista por día)
+// =============================================
+.horario-vista-desktop {
+  display: block;
+}
+
+.horario-vista-movil {
+  display: none;
+}
+
+.horario-dia-grupo {
+  margin-bottom: 1rem;
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e9ecef;
+}
+
+.horario-dia-titulo {
+  background: linear-gradient(135deg, $gold 0%, darken($gold, 10%) 100%);
+  color: #fff;
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  i {
+    font-size: 0.9rem;
+  }
+}
+
+.horario-dia-items {
+  padding: 0;
+}
+
+.horario-dia-item {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #f1f3f5;
+  border-left: 4px solid transparent;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background-color: $light-gold;
+  }
+
+  &:active {
+    background-color: rgba($gold, 0.15);
+  }
+}
+
+.horario-dia-item-area {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: $black;
+  margin-bottom: 0.25rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.horario-dia-color-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+.horario-dia-item-hora {
+  font-size: 0.8rem;
+  color: #6c757d;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-left: 18px;
+
+  i {
+    font-size: 0.7rem;
+    color: $gold;
+  }
+
+  .horario-dia-item-min {
+    color: #adb5bd;
+    font-size: 0.75rem;
+  }
+}
+
+// =============================================
+// Modal de horario
+// =============================================
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050;
+  padding: 1rem;
+}
+
+.modal-content-horario {
+  background: white;
+  border-radius: 15px;
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header-custom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #dee2e6;
+
+  h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: $black;
+  }
+
+  .btn-close-custom {
+    background: transparent;
+    border: none;
+    color: #6c757d;
+    font-size: 1rem;
+    cursor: pointer;
+
+    &:hover {
+      color: #343a40;
+    }
+  }
+}
+
+.modal-body-custom {
+  padding: 1.5rem;
+  overflow-y: auto;
+}
+
+.modal-footer-custom {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #dee2e6;
+  margin-top: 1rem;
+}
+
+// =============================================
+// Responsive
+// =============================================
+@media (max-width: 768px) {
+  // La grilla se mantiene visible con scroll horizontal para poder pintar
+  .horario-vista-movil {
+    display: block;
+    margin-top: 0;
+  }
+
+  // Solo se ve la vista elegida en el selector
+  .movil-oculto {
+    display: none !important;
+  }
+
+  .selector-vista {
+    display: flex;
+  }
+
+  .btn-toggle-filtros {
+    display: flex;
+    margin-bottom: 0;
+  }
+
+  .horarios-section {
+    .horario-leyenda {
+      padding: 0.75rem;
+
+      h6 {
+        display: none;
+      }
+
+      .leyenda-items {
+        display: none;
+        margin-top: 0.75rem;
+
+        &.abierto {
+          display: flex;
+        }
+      }
+    }
+
+    // Grilla mas compacta
+    .horario-grid {
+      min-width: 560px;
+    }
+
+    .horario-header-dias,
+    .horario-row {
+      grid-template-columns: 44px repeat(7, minmax(74px, 1fr));
+    }
+
+    .horario-row {
+      min-height: 40px;
+    }
+
+    .horario-block.es-intermedio {
+      min-height: 40px;
+    }
+
+    .horario-time-cell {
+      font-size: 0.62rem;
+      padding: 0.2rem;
+    }
+
+    .horario-day-header {
+      font-size: 0.65rem;
+      padding: 0.5rem 0.2rem;
+    }
+  }
+
+  // Chips de area en una sola fila con scroll
+  .panel-pintar {
+    padding: 0.75rem 0.8rem;
+  }
+
+  .area-chips {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 0.3rem;
+    width: 100%;
+
+    &::-webkit-scrollbar {
+      height: 4px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: #ccc;
+      border-radius: 4px;
+    }
+  }
+
+  .area-chip {
+    white-space: nowrap;
+    flex-shrink: 0;
+    font-size: 0.72rem;
+    padding: 0.3rem 0.7rem;
+  }
+
+  .panel-pintar-fila {
+    gap: 0.5rem;
+  }
+
+  .panel-pintar-titulo {
+    font-size: 0.75rem;
+  }
+
+  .panel-pintar-ayuda {
+    font-size: 0.72rem;
+    margin-top: 0.5rem;
+  }
+
+  .panel-pintar-fila {
+    align-items: flex-start;
+  }
+
+  .pendiente-item {
+    font-size: 0.75rem;
+  }
+
+  .pendiente-clases {
+    margin-left: 0;
+  }
+
+  .barra-guardar-fija {
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+    width: auto;
+    transform: none;
+    padding: 0.6rem 0.8rem;
+  }
+
+  .horarios-section {
+    .horarios-header-section {
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .horario-leyenda {
+      min-width: unset;
+
+      .leyenda-items {
+        gap: 0.5rem;
+      }
+    }
+
+    .horarios-resumen .resumen-badge {
+      padding: 0.35rem 0.75rem;
+      font-size: 0.78rem;
+    }
+  }
+}

@@ -98,6 +98,21 @@ export class HorariosService {
     );
   }
 
+  /** Guarda varias franjas del mismo grupo en una sola peticion */
+  crearLote(elemento: any): Observable<any> {
+    var body = JSON.stringify(elemento);
+    return this.http.post<any>(`${this.servicio}/lote`, body, httpOptions).pipe(
+      tap((respuesta: any) => {
+        if (respuesta && respuesta.error) {
+          console.log(respuesta);
+          throw respuesta.error;
+        }
+        return respuesta;
+      }),
+      catchError(this.handleError)
+    );
+  }
+
   actualizar(elemento: any): Observable<any> {
     var body = JSON.stringify(elemento);
     console.log("Actualizar horario:", body);

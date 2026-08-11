@@ -1,0 +1,322 @@
+<div class="horarios-section" [class.con-barra-guardar]="franjasPendientes.length > 0">
+
+    <div *ngIf="areasAsociadas.length === 0" class="alert alert-info">
+        <i class="fas fa-info-circle"></i>
+        Primero debe asociar áreas académicas al grupo
+    </div>
+
+    <!-- Resumen y filtros -->
+    <div class="horarios-header-section" *ngIf="areasAsociadas.length > 0">
+        <div class="horarios-resumen">
+            <div class="resumen-badge">
+                <i class="fas fa-calendar-day"></i>
+                <span class="resumen-numero">{{ diasActivos }}</span>
+                <span class="resumen-texto">días activos</span>
+            </div>
+            <div class="resumen-badge">
+                <i class="fas fa-clock"></i>
+                <span class="resumen-numero">{{ horasSemanales }}h</span>
+                <span class="resumen-texto">semanales</span>
+            </div>
+        </div>
+
+        <div class="horario-leyenda">
+            <button type="button" class="btn-toggle-filtros" (click)="toggleFiltros()">
+                <span><i class="fas fa-filter"></i> Filtrar áreas ({{ areasFiltradasActivas }}/{{ areasAsociadas.length }})</span>
+                <i class="fas" [ngClass]="filtrosAbiertos ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+            </button>
+
+            <h6>Áreas Académicas:</h6>
+            <div class="leyenda-items" [class.abierto]="filtrosAbiertos">
+                <label class="leyenda-item" *ngFor="let area of areasAsociadas">
+                    <input
+                        type="checkbox"
+                        [checked]="areasSeleccionadasFiltro[area.id_area_academica]"
+                        (change)="toggleAreaFiltro(area.id_area_academica)"
+                        class="leyenda-checkbox">
+                    <div class="leyenda-color" [style.background-color]="obtenerColorArea(area.id_area_academica)"></div>
+                    {{ area.nombre_area_academica }}
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Selector de vista (solo móvil) -->
+    <div class="selector-vista" *ngIf="areasAsociadas.length > 0">
+        <button type="button" [class.activo]="vistaMovil === 'lista'" (click)="cambiarVistaMovil('lista')">
+            <i class="fas fa-list-ul"></i> Lista
+        </button>
+        <button type="button" [class.activo]="vistaMovil === 'calendario'" (click)="cambiarVistaMovil('calendario')">
+            <i class="fas fa-table"></i> Calendario
+        </button>
+    </div>
+
+    <!-- Barra de acción: activar el modo pintar -->
+    <div class="barra-agregar" *ngIf="editable && areasAsociadas.length > 0" [class.movil-oculto]="vistaMovil !== 'calendario'">
+        <button class="btn-modo-agregar" *ngIf="!modoAgregar" (click)="activarModoAgregar()">
+            <i class="fas fa-plus"></i> Agregar franjas
+        </button>
+
+        <div class="panel-pintar" *ngIf="modoAgregar">
+            <div class="panel-pintar-fila">
+                <span class="panel-pintar-titulo">
+                    <i class="fas fa-paint-brush"></i> Pintando
+                </span>
+
+                <div class="area-chips">
+                    <button
+                        type="button"
+                        class="area-chip"
+                        *ngFor="let area of areasAsociadas"
+                        [class.activo]="areaParaPintar === area.id_area_academica"
+                        [style.border-color]="obtenerColorArea(area.id_area_academica)"
+                        [style.background-color]="areaParaPintar === area.id_area_academica ? obtenerColorArea(area.id_area_academica) : 'transparent'"
+                        (click)="areaParaPintar = area.id_area_academica">
+                        {{ area.nombre_area_academica }}
+                    </button>
+                </div>
+
+                <button class="btn-cancelar-modo" (click)="cancelarModoAgregar()">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+            </div>
+
+            <p class="panel-pintar-ayuda">
+                Arrastra sobre la grilla desde la hora inicial hasta la final. Puedes marcar varias franjas y varios días antes de guardar.
+            </p>
+
+            <!-- Franjas sin guardar -->
+            <div class="pendientes" *ngIf="franjasPendientes.length > 0">
+                <div class="pendiente-item" *ngFor="let franja of franjasPendientes; let i = index">
+                    <span class="pendiente-color" [style.background-color]="obtenerColorArea(franja.id_area_academica)"></span>
+                    <span class="pendiente-area">{{ obtenerNombreArea(franja.id_area_academica) }}</span>
+                    <span class="pendiente-dia">{{ nombreDia(franja.id_dia_semana) }}</span>
+                    <span class="pendiente-hora">{{ franja.hora_inicial }} - {{ franja.hora_final }}</span>
+                    <span class="pendiente-min">{{ franja.total_minutos }} min</span>
+                    <label class="pendiente-clases">
+                        Clases
+                        <input type="number" min="1" [(ngModel)]="franja.total_clases">
+                    </label>
+                    <button class="btn-quitar-pendiente" (click)="quitarFranjaPendiente(i)" title="Quitar">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- VISTA DESKTOP: grilla semanal -->
+    <div class="horario-scroll-container horario-vista-desktop" *ngIf="areasAsociadas.length > 0" [class.movil-oculto]="vistaMovil !== 'calendario'">
+        <div class="horario-grid"
+             [class.modo-agregar]="modoAgregar"
+             (mouseup)="terminarArrastre()"
+             (mouseleave)="terminarArrastre()"
+             (touchend)="terminarArrastre()"
+             (touchmove)="moverArrastreTactil($event)">
+
+            <div class="horario-header-dias">
+                <div class="horario-cell horario-time-header">Hora</div>
+                <div class="horario-cell horario-day-header" *ngFor="let dia of diasSemana">
+                    {{ dia.nombre }}
+                </div>
+            </div>
+
+            <div class="horario-row" *ngFor="let hora of horasDelDia; let indiceHora = index">
+                <div class="horario-cell horario-time-cell">
+                    {{ hora }}
+                </div>
+
+                <div class="horario-cell horario-content-cell"
+                     *ngFor="let dia of diasSemana"
+                     [attr.data-dia]="dia.id"
+                     [attr.data-indice]="indiceHora"
+                     [ngClass]="getClaseHorario(dia.id, hora)"
+                     [class.en-arrastre]="esCeldaEnArrastre(dia.id, indiceHora)"
+                     (mousedown)="!getHorarioInfo(dia.id, hora) && !getFranjaPendiente(dia.id, hora) && iniciarArrastre(dia.id, indiceHora, $event)"
+                     (mouseenter)="extenderArrastre(dia.id, indiceHora)"
+                     (touchstart)="!getHorarioInfo(dia.id, hora) && !getFranjaPendiente(dia.id, hora) && iniciarArrastre(dia.id, indiceHora, $event)">
+
+                    <!-- Horario ya guardado -->
+                    <div class="horario-block"
+                         *ngIf="getHorarioInfo(dia.id, hora) as horarioInfo"
+                         [style.background-color]="obtenerColorArea(horarioInfo.id_area_academica)"
+                         [ngClass]="[horarioInfo.esInicio ? 'es-inicio' : '',
+                                     horarioInfo.esFin ? 'es-fin' : '',
+                                     horarioInfo.esIntermedio ? 'es-intermedio' : '']"
+                         (click)="mostrarDetalleHorario(horarioInfo)"
+                         [attr.title]="obtenerNombreArea(horarioInfo.id_area_academica) + ' - ' + horarioInfo.total_minutos + ' min'">
+
+                        <div *ngIf="horarioInfo.esInicio" class="horario-block-header">
+                            <strong>{{ obtenerNombreArea(horarioInfo.id_area_academica) }}</strong>
+                            <div class="horario-tiempo-small">
+                                {{ horarioInfo.duracionCompleta }}
+                            </div>
+                        </div>
+
+                        <div *ngIf="horarioInfo.esInicio" class="horario-block-content">
+                            <div class="horario-minutos">
+                                {{ horarioInfo.total_minutos }}min
+                            </div>
+                        </div>
+
+                        <button *ngIf="horarioInfo.esInicio && editable"
+                                class="btn-eliminar-horario-calendar"
+                                (click)="$event.stopPropagation(); eliminarHorario(horarioInfo)"
+                                title="Eliminar">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+
+                    <!-- Franja pendiente de guardar -->
+                    <div class="horario-block bloque-pendiente"
+                         *ngIf="!getHorarioInfo(dia.id, hora) && getFranjaPendiente(dia.id, hora) as pendiente"
+                         [style.background-color]="obtenerColorArea(pendiente.id_area_academica)">
+                        <div *ngIf="pendiente.esInicio" class="horario-block-header">
+                            <strong>{{ obtenerNombreArea(pendiente.id_area_academica) }}</strong>
+                            <div class="horario-tiempo-small">
+                                {{ pendiente.hora_inicial }} - {{ pendiente.hora_final }}
+                            </div>
+                        </div>
+                        <span class="badge-pendiente" *ngIf="pendiente.esInicio">sin guardar</span>
+                    </div>
+
+                    <div *ngIf="!getHorarioInfo(dia.id, hora) && !getFranjaPendiente(dia.id, hora)" class="celda-vacia">
+                        <i class="fas fa-plus"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- VISTA MOVIL: lista por día -->
+    <div class="horario-vista-movil" *ngIf="areasAsociadas.length > 0" [class.movil-oculto]="vistaMovil !== 'lista'">
+        <div *ngIf="horariosAgrupadosPorDia.length === 0" class="empty-state">
+            <i class="fas fa-calendar-times"></i>
+            <p>No hay horarios configurados</p>
+        </div>
+
+        <div class="horario-dia-grupo" *ngFor="let grupo of horariosAgrupadosPorDia">
+            <div class="horario-dia-titulo">
+                <i class="fas fa-calendar-day"></i>
+                {{ grupo.dia.nombre }}
+            </div>
+            <div class="horario-dia-items">
+                <div class="horario-dia-item"
+                     *ngFor="let horario of grupo.horarios"
+                     [style.border-left-color]="obtenerColorArea(horario.id_area_academica)"
+                     (click)="mostrarDetalleHorarioMovil(horario)">
+                    <div class="horario-dia-item-area">
+                        <span class="horario-dia-color-dot" [style.background-color]="obtenerColorArea(horario.id_area_academica)"></span>
+                        {{ obtenerNombreArea(horario.id_area_academica) }}
+                    </div>
+                    <div class="horario-dia-item-hora">
+                        <i class="fas fa-clock"></i>
+                        {{ horario.hora_inicial | slice:0:5 }} - {{ horario.hora_final | slice:0:5 }}
+                        <span class="horario-dia-item-min">· {{ horario.total_minutos }}min</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button
+            *ngIf="editable"
+            class="btn-asociar mt-3 w-100"
+            (click)="abrirModalHorario()">
+            <i class="fas fa-plus"></i> Agregar Horario
+        </button>
+    </div>
+
+
+    <!-- Barra fija con las franjas sin guardar -->
+    <div class="barra-guardar-fija" *ngIf="franjasPendientes.length > 0">
+        <div class="barra-guardar-info">
+            <i class="fas fa-clock"></i>
+            <strong>{{ franjasPendientes.length }}</strong> franja(s) sin guardar
+        </div>
+        <div class="barra-guardar-acciones">
+            <button class="btn-descartar-franjas" (click)="cancelarModoAgregar()" [disabled]="guardando">
+                Descartar
+            </button>
+            <button class="btn-guardar-franjas" (click)="guardarFranjas()" [disabled]="guardando">
+                <i class="fas fa-save"></i>
+                {{ guardando ? 'Guardando...' : 'Guardar franjas' }}
+            </button>
+        </div>
+    </div>
+
+</div>
+
+<!-- Modal de horario (crear o editar una franja puntual) -->
+<div class="modal-overlay" *ngIf="mostrarModalHorario" (click)="cerrarModalHorario()">
+    <div class="modal-content-horario" (click)="$event.stopPropagation()">
+        <div class="modal-header-custom">
+            <h3>{{ horarioModal.id ? 'Editar' : 'Crear' }} Horario</h3>
+            <button type="button" class="btn-close-custom" (click)="cerrarModalHorario()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="modal-body-custom">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Área Académica <span class="text-danger">*</span></label>
+                    <select class="form-select" [(ngModel)]="horarioModal.id_area_academica" (ngModelChange)="calcularMinutos()">
+                        <option [value]="null">Seleccionar</option>
+                        <option *ngFor="let area of areasAsociadas" [value]="area.id_area_academica">
+                            {{ area.nombre_area_academica }}
+                        </option>
+                    </select>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Día <span class="text-danger">*</span></label>
+                    <select class="form-select" [(ngModel)]="horarioModal.id_dia_semana" (ngModelChange)="calcularMinutos()">
+                        <option [value]="null">Seleccionar</option>
+                        <option *ngFor="let dia of diasSemana" [value]="dia.id">
+                            {{ dia.nombre }}
+                        </option>
+                    </select>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Hora Inicial <span class="text-danger">*</span></label>
+                    <input type="time" class="form-control" [(ngModel)]="horarioModal.hora_inicial" (change)="calcularMinutos()">
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Hora Final <span class="text-danger">*</span></label>
+                    <input type="time" class="form-control" [(ngModel)]="horarioModal.hora_final" (change)="calcularMinutos()"
+                      [ngClass]="{'is-invalid': horarioModal.hora_inicial && horarioModal.hora_final && horarioModal.hora_final <= horarioModal.hora_inicial}">
+                    <div class="invalid-feedback" *ngIf="horarioModal.hora_inicial && horarioModal.hora_final && horarioModal.hora_final <= horarioModal.hora_inicial">
+                      La hora final debe ser mayor que la hora inicial
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Total Minutos</label>
+                    <input type="number" class="form-control" [(ngModel)]="horarioModal.total_minutos" readonly>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Total Clases</label>
+                    <input type="number" class="form-control" [(ngModel)]="horarioModal.total_clases" min="1">
+                </div>
+
+                <div class="col-12" *ngIf="horarioErrorSolapamiento">
+                    <div class="alert alert-danger py-2 mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Horario solapado:</strong> {{ horarioErrorSolapamiento }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer-custom">
+                <button class="btn btn-secondary" (click)="cerrarModalHorario()">Cancelar</button>
+                <button class="btn btn-primary" (click)="guardarHorario()"
+                    [disabled]="horarioErrorSolapamiento || (horarioModal.hora_inicial && horarioModal.hora_final && horarioModal.hora_final <= horarioModal.hora_inicial)">
+                    {{ horarioModal.id ? 'Actualizar' : 'Crear' }}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

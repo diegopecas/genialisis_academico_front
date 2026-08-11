@@ -27,6 +27,8 @@ export class SelectorAreasComponent implements OnInit {
   public areasFueraDia: any[] = [];
   public horariosGrupo: any[] = [];
   public verTodas: boolean = false;
+  // Tarjeta de Gini oculta por ahora; ponerla en true la vuelve a mostrar
+  public mostrarGini: boolean = false;
   public diaActual: number = 0;
   public nombreDia: string = '';
 

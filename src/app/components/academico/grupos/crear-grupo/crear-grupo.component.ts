@@ -8,11 +8,10 @@ import { GradosService } from '../../../../services/grados.service';
 import { GradosXGrupoService } from '../../../../services/grados-x-grupo.service';
 import { AreasAcademicasService } from '../../../../services/areas-academicas.service';
 import { AreaAcademicaXGrupoService } from '../../../../services/area-academica-x-grupo.service';
-import { HorariosService } from '../../../../services/horarios.service';
-import { DiasSemanaService } from '../../../../services/dias-semana.service';
 import { TarifasGruposService } from '../../../../services/tarifas-grupos.service';
 import { ProductosServiciosService } from '../../../../services/productos-servicios.service';
 import { InstitucionConfigService } from '../../../../services/institucion-config.service';
+import { GrupoHorariosComponent } from '../grupo-horarios/grupo-horarios.component';
 import { HttpClient } from '@angular/common/http';
 import Swal from 'sweetalert2';
 
@@ -21,7 +20,7 @@ import Swal from 'sweetalert2';
   templateUrl: './crear-grupo.component.html',
   styleUrl: './crear-grupo.component.scss',
   standalone: true,
-  imports: [CommonModule, FormsModule, HeaderComponent]
+  imports: [CommonModule, FormsModule, HeaderComponent, GrupoHorariosComponent]
 })
 export class CrearGrupoComponent implements OnInit {
 
@@ -50,23 +49,6 @@ export class CrearGrupoComponent implements OnInit {
   areasDisponibles: any[] = [];
   areasAsociadas: any[] = [];
   areasSeleccionadas: { [key: string]: boolean } = {};
-
-  // Horarios
-  diasSemana: any[] = [];
-  horariosGrupo: any[] = [];
-  horasDelDia: string[] = [];
-  areasSeleccionadasFiltro: { [key: string]: boolean } = {};
-  mostrarModalHorario: boolean = false;
-  horarioErrorSolapamiento: string = '';
-  horarioModal = {
-    id: null,
-    id_area_academica: null,
-    id_dia_semana: null,
-    hora_inicial: '',
-    hora_final: '',
-    total_minutos: 0,
-    total_clases: 1
-  } as any;
 
   // Tarifas
   tarifasGrupo: any[] = [];
@@ -101,8 +83,6 @@ export class CrearGrupoComponent implements OnInit {
     private gradosXGrupoService: GradosXGrupoService,
     private areasAcademicasService: AreasAcademicasService,
     private areaAcademicaXGrupoService: AreaAcademicaXGrupoService,
-    private horariosService: HorariosService,
-    private diasSemanaService: DiasSemanaService,
     private tarifasGruposService: TarifasGruposService,
     private productosServiciosService: ProductosServiciosService,
     private institucionConfigService: InstitucionConfigService,
@@ -128,7 +108,6 @@ export class CrearGrupoComponent implements OnInit {
         this.cargarGradosAsociados(id);
         this.cargarAreasDisponibles(id);
         this.cargarAreasAsociadas(id);
-        this.cargarHorarios(id);
         this.cargarTarifasGrupo(id);
         this.cargarProductos();
         this.cargarAniosEscolares();
@@ -142,7 +121,6 @@ export class CrearGrupoComponent implements OnInit {
     });
 
     this.cargarImagenes();
-    this.cargarDiasSemana();
   }
 
   obtenerUltimoOrden() {
@@ -283,6 +261,12 @@ export class CrearGrupoComponent implements OnInit {
         }
       });
     }
+  }
+
+  // Seleccionar pestaña y cerrar menú móvil
+  seleccionarPestana(pestana: string) {
+    this.pestanaActiva = pestana;
+    this.menuMovilAbierto = false;
   }
 
   volver() {
@@ -461,415 +445,6 @@ export class CrearGrupoComponent implements OnInit {
     }
   }
 
-
-  // ========== Métodos para gestión de horarios ==========
-
-  cargarDiasSemana() {
-    this.diasSemanaService.obtenerTodos().subscribe({
-      next: (response: any) => {
-        const body = response.body as any[];
-        this.diasSemana = body;
-      },
-      error: (error: any) => {
-        console.error("Error al cargar días de la semana", error);
-      }
-    });
-  }
-
-  cargarHorarios(id_grupo: any) {
-    this.horariosService.obtenerByGrupo(id_grupo).subscribe({
-      next: (response: any) => {
-        const body = response.body as any[];
-        console.log("Horarios cargados", body);
-        this.horariosGrupo = body;
-        this.calcularHorasDelDia();
-        this.inicializarFiltroAreas();
-      },
-      error: (error: any) => {
-        console.error("Error al cargar horarios", error);
-      }
-    });
-  }
-
-  inicializarFiltroAreas() {
-    this.areasAsociadas.forEach(area => {
-      this.areasSeleccionadasFiltro[area.id_area_academica] = true;
-    });
-  }
-
-  toggleAreaFiltro(idArea: string) {
-    this.areasSeleccionadasFiltro[idArea] = !this.areasSeleccionadasFiltro[idArea];
-  }
-
-  get horariosFiltrados(): any[] {
-    return this.horariosGrupo.filter(h => this.areasSeleccionadasFiltro[h.id_area_academica]);
-  }
-
-  get diasActivos(): number {
-    const diasUnicos = new Set(this.horariosFiltrados.map(h => h.id_dia_semana));
-    return diasUnicos.size;
-  }
-
-  get horasSemanales(): number {
-    const totalMinutos = this.horariosFiltrados.reduce((total, h) => total + h.total_minutos, 0);
-    return Math.round(totalMinutos / 60 * 10) / 10;
-  }
-
-  // Getter para la vista móvil de horarios agrupados por día
-  get horariosAgrupadosPorDia(): any[] {
-    const grupos: any[] = [];
-    this.diasSemana.forEach(dia => {
-      const horariosDia = this.horariosFiltrados
-        .filter(h => h.id_dia_semana == dia.id)
-        .sort((a, b) => {
-          const horaA = a.hora_inicial || '';
-          const horaB = b.hora_inicial || '';
-          return horaA.localeCompare(horaB);
-        });
-      if (horariosDia.length > 0) {
-        grupos.push({
-          dia: dia,
-          horarios: horariosDia
-        });
-      }
-    });
-    return grupos;
-  }
-
-  // Seleccionar pestaña y cerrar menú móvil
-  seleccionarPestana(pestana: string) {
-    this.pestanaActiva = pestana;
-    this.menuMovilAbierto = false;
-  }
-
-  abrirModalHorario(id_area_academica?: any, id_dia_semana?: any, hora?: string) {
-    let horaInicial = '';
-    let horaFinal = '';
-
-    if (hora) {
-      horaInicial = hora;
-      const [h, m] = hora.split(':').map(Number);
-      const totalMin = h * 60 + m + 30;
-      const hFin = Math.floor(totalMin / 60);
-      const mFin = totalMin % 60;
-      horaFinal = `${hFin.toString().padStart(2, '0')}:${mFin.toString().padStart(2, '0')}`;
-    }
-
-    this.horarioModal = {
-      id: null,
-      id_area_academica: id_area_academica || null,
-      id_dia_semana: id_dia_semana || null,
-      hora_inicial: horaInicial,
-      hora_final: horaFinal,
-      total_minutos: horaInicial && horaFinal ? 30 : 0,
-      total_clases: 1
-    };
-    this.horarioErrorSolapamiento = '';
-    this.mostrarModalHorario = true;
-
-    if (horaInicial && horaFinal) {
-      this.calcularMinutos();
-    }
-  }
-
-  cerrarModalHorario() {
-    this.mostrarModalHorario = false;
-    this.horarioErrorSolapamiento = '';
-  }
-
-  calcularMinutos() {
-    this.horarioErrorSolapamiento = '';
-
-    if (this.horarioModal.hora_inicial && this.horarioModal.hora_final) {
-      const [horaIni, minIni] = this.horarioModal.hora_inicial.split(':').map(Number);
-      const [horaFin, minFin] = this.horarioModal.hora_final.split(':').map(Number);
-      
-      const minutosIni = horaIni * 60 + minIni;
-      const minutosFin = horaFin * 60 + minFin;
-      
-      const diferencia = minutosFin - minutosIni;
-      this.horarioModal.total_minutos = diferencia > 0 ? diferencia : 0;
-
-      if (this.horarioModal.id_area_academica && this.horarioModal.id_dia_semana && diferencia > 0) {
-        this.validarSolapamientoInline();
-      }
-    }
-  }
-
-  /**
-   * Valida solapamiento contra horarios existentes del mismo grupo y día (cualquier área).
-   * Setea horarioErrorSolapamiento con el mensaje de error si hay conflicto.
-   */
-  validarSolapamientoInline() {
-    this.horarioErrorSolapamiento = '';
-
-    const horariosConflicto = this.horariosGrupo.filter((h: any) => {
-      if (this.horarioModal.id && String(h.id) === String(this.horarioModal.id)) return false;
-      if (String(h.id_dia_semana) !== String(this.horarioModal.id_dia_semana)) return false;
-
-      const inicioNuevo = this.horarioModal.hora_inicial;
-      const finNuevo = this.horarioModal.hora_final;
-      const inicioExistente = h.hora_inicial?.substring(0, 5) || h.hora_inicial;
-      const finExistente = h.hora_final?.substring(0, 5) || h.hora_final;
-
-      return inicioNuevo < finExistente && inicioExistente < finNuevo;
-    });
-
-    if (horariosConflicto.length > 0) {
-      const conflicto = horariosConflicto[0];
-      const horaIni = conflicto.hora_inicial?.substring(0, 5) || conflicto.hora_inicial;
-      const horaFin = conflicto.hora_final?.substring(0, 5) || conflicto.hora_final;
-      const nombreArea = this.areasAsociadas.find((a: any) => a.id_area_academica == conflicto.id_area_academica)?.nombre_area_academica || 'otra área';
-      this.horarioErrorSolapamiento = `Se cruza con ${nombreArea} (${horaIni} - ${horaFin}). No se permiten horarios superpuestos.`;
-    }
-  }
-
-  guardarHorario() {
-    if (!this.horarioModal.id_area_academica) {
-      Swal.fire('Advertencia', 'Debe seleccionar un área académica', 'warning');
-      return;
-    }
-
-    if (!this.horarioModal.id_dia_semana) {
-      Swal.fire('Advertencia', 'Debe seleccionar un día', 'warning');
-      return;
-    }
-
-    if (!this.horarioModal.hora_inicial || !this.horarioModal.hora_final) {
-      Swal.fire('Advertencia', 'Debe ingresar hora inicial y final', 'warning');
-      return;
-    }
-
-    if (this.horarioModal.hora_final <= this.horarioModal.hora_inicial) {
-      Swal.fire('Advertencia', 'La hora final debe ser mayor que la hora inicial', 'warning');
-      return;
-    }
-
-    this.calcularMinutos();
-
-    if (this.horarioModal.total_minutos <= 0) {
-      return;
-    }
-
-    this.validarSolapamientoInline();
-    if (this.horarioErrorSolapamiento) {
-      return;
-    }
-
-    const data = {
-      id_grupo: this.model.id,
-      id_area_academica: this.horarioModal.id_area_academica,
-      id_dia_semana: this.horarioModal.id_dia_semana,
-      hora_inicial: this.horarioModal.hora_inicial,
-      hora_final: this.horarioModal.hora_final,
-      total_minutos: this.horarioModal.total_minutos,
-      total_clases: this.horarioModal.total_clases || 1
-    };
-
-    if (this.horarioModal.id) {
-      const updateData = { ...data, id: this.horarioModal.id };
-      this.horariosService.actualizar(updateData).subscribe({
-        next: (response: any) => {
-          Swal.fire('Éxito', 'Horario actualizado correctamente', 'success');
-          this.cargarHorarios(this.model.id);
-          this.cerrarModalHorario();
-        },
-        error: (error: any) => {
-          console.error("Error al actualizar horario", error);
-          Swal.fire('Error', 'No se pudo actualizar el horario', 'error');
-        }
-      });
-    } else {
-      this.horariosService.crear(data).subscribe({
-        next: (response: any) => {
-          Swal.fire('Éxito', 'Horario creado correctamente', 'success');
-          this.cargarHorarios(this.model.id);
-          this.cerrarModalHorario();
-        },
-        error: (error: any) => {
-          console.error("Error al crear horario", error);
-          Swal.fire('Error', 'No se pudo crear el horario', 'error');
-        }
-      });
-    }
-  }
-
-  editarHorario(horario: any) {
-    this.horarioModal = {
-      id: horario.id,
-      id_area_academica: horario.id_area_academica,
-      id_dia_semana: horario.id_dia_semana,
-      hora_inicial: horario.hora_inicial?.substring(0, 5) || horario.hora_inicial,
-      hora_final: horario.hora_final?.substring(0, 5) || horario.hora_final,
-      total_minutos: horario.total_minutos,
-      total_clases: horario.total_clases || 1
-    };
-    this.horarioErrorSolapamiento = '';
-    this.mostrarModalHorario = true;
-  }
-
-  async eliminarHorario(horario: any) {
-    const result = await Swal.fire({
-      title: '¿Está seguro?',
-      text: `¿Desea eliminar este horario?`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Sí, eliminar',
-      cancelButtonText: 'Cancelar'
-    });
-
-    if (result.isConfirmed) {
-      this.horariosService.eliminar({ id: horario.id }).subscribe({
-        next: (response: any) => {
-          Swal.fire('Éxito', 'Horario eliminado correctamente', 'success');
-          this.cargarHorarios(this.model.id);
-        },
-        error: (error: any) => {
-          console.error("Error al eliminar horario", error);
-          Swal.fire('Error', 'No se pudo eliminar el horario', 'error');
-        }
-      });
-    }
-  }
-
-  obtenerHorariosPorAreaYDia(id_area: string, id_dia: number): any[] {
-    return this.horariosGrupo.filter(h => 
-      h.id_area_academica === id_area && h.id_dia_semana === id_dia
-    );
-  }
-
-  obtenerColorArea(id_area: string): string {
-    const horario = this.horariosGrupo.find(h => h.id_area_academica === id_area);
-    if (horario && horario.area_academica_color) {
-      return horario.area_academica_color;
-    }
-    const area = this.areasAsociadas.find(a => a.id_area_academica === id_area);
-    return area?.color || '#FFFFFF';
-  }
-
-  obtenerNombreArea(id_area: string): string {
-    const area = this.areasAsociadas.find(a => a.id_area_academica === id_area);
-    return area?.nombre_area_academica || '';
-  }
-
-  calcularHorasDelDia() {
-    if (this.horariosGrupo.length === 0) {
-      this.horasDelDia = ['07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00'];
-      return;
-    }
-
-    let horaMinima = 24 * 60;
-    let horaMaxima = 0;
-
-    this.horariosGrupo.forEach(horario => {
-      const [horaIni, minIni] = horario.hora_inicial.split(':').map(Number);
-      const minutosInicio = horaIni * 60 + minIni;
-
-      const [horaFin, minFin] = horario.hora_final.split(':').map(Number);
-      const minutosFin = horaFin * 60 + minFin;
-
-      if (minutosInicio < horaMinima) horaMinima = minutosInicio;
-      if (minutosFin > horaMaxima) horaMaxima = minutosFin;
-    });
-
-    const horas: string[] = [];
-    const horaInicioRedondeada = Math.floor(horaMinima / 30) * 30;
-    const horaFinRedondeada = Math.ceil(horaMaxima / 30) * 30;
-
-    for (let minutos = horaInicioRedondeada; minutos < horaFinRedondeada; minutos += 30) {
-      const hora = Math.floor(minutos / 60);
-      const min = minutos % 60;
-      const horaFormateada = `${hora.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
-      horas.push(horaFormateada);
-    }
-
-    this.horasDelDia = horas;
-  }
-
-  getHorarioInfo(idDia: any, hora: string): any | null {
-    const [horaNum, minutosNum] = hora.split(':').map(Number);
-    const minutosHoraActual = horaNum * 60 + minutosNum;
-
-    const horario = this.horariosFiltrados.find(h => {
-      if (h.id_dia_semana != idDia) {
-        return false;
-      }
-
-      const [horaIni, minIni] = h.hora_inicial.split(':').map(Number);
-      const [horaFin, minFin] = h.hora_final.split(':').map(Number);
-
-      const minutosInicio = horaIni * 60 + minIni;
-      const minutosFin = horaFin * 60 + minFin;
-
-      return minutosHoraActual >= minutosInicio && minutosHoraActual < minutosFin;
-    });
-
-    if (horario) {
-      const horaInicioFormato = horario.hora_inicial.substring(0, 5);
-      const horaFinFormato = horario.hora_final.substring(0, 5);
-      const horaActualFormato = `${horaNum.toString().padStart(2, '0')}:${minutosNum.toString().padStart(2, '0')}`;
-
-      const [horaFin, minFin] = horario.hora_final.split(':').map(Number);
-      const minutosFin = horaFin * 60 + minFin;
-      
-      const siguienteFrama = minutosHoraActual + 30;
-      const esUltimaCelda = siguienteFrama >= minutosFin;
-
-      const esInicio = horaActualFormato === horaInicioFormato;
-
-      return {
-        ...horario,
-        esInicio: esInicio,
-        esFin: esUltimaCelda,
-        duracionCompleta: `${horaInicioFormato} - ${horaFinFormato}`,
-        esIntermedio: !esInicio && !esUltimaCelda
-      };
-    }
-
-    return null;
-  }
-
-  getClaseHorario(idDia: any, hora: string): string {
-    const horarioInfo = this.getHorarioInfo(idDia, hora);
-    return horarioInfo ? 'tiene-horario' : 'sin-horario';
-  }
-
-  mostrarDetalleHorario(horarioInfo: any) {
-    const area = this.obtenerNombreArea(horarioInfo.id_area_academica);
-
-    Swal.fire({
-      title: 'Detalle de Horario',
-      html: `
-        <div class="text-start">
-          <p><strong>Área:</strong> ${area}</p>
-          <p><strong>Horario:</strong> ${horarioInfo.duracionCompleta}</p>
-          <p><strong>Duración:</strong> ${horarioInfo.total_minutos} minutos</p>
-        </div>
-      `,
-      icon: 'info',
-      confirmButtonText: 'Cerrar',
-      showCancelButton: true,
-      cancelButtonText: 'Editar',
-      cancelButtonColor: '#3085d6'
-    }).then((result) => {
-      if (result.isDismissed && result.dismiss === Swal.DismissReason.cancel) {
-        this.editarHorario(horarioInfo);
-      }
-    });
-  }
-
-  // Adaptador para la vista móvil de horarios
-  mostrarDetalleHorarioMovil(horario: any) {
-    const horaIni = (horario.hora_inicial || '').substring(0, 5);
-    const horaFin = (horario.hora_final || '').substring(0, 5);
-    this.mostrarDetalleHorario({
-      ...horario,
-      duracionCompleta: horaIni + ' - ' + horaFin,
-      esInicio: true
-    });
-  }
 
   // ==================== TARIFAS ====================
 
