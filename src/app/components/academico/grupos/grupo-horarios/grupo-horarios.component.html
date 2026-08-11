@@ -1,4 +1,4 @@
-<div class="horarios-section" [class.con-barra-guardar]="franjasPendientes.length > 0">
+<div class="horarios-section" [class.con-barra-guardar]="hayCambiosPendientes">
 
     <div *ngIf="areasAsociadas.length === 0" class="alert alert-info">
         <i class="fas fa-info-circle"></i>
@@ -140,6 +140,7 @@
                     <div class="horario-block"
                          *ngIf="getHorarioInfo(dia.id, hora) as horarioInfo"
                          [style.background-color]="obtenerColorArea(horarioInfo.id_area_academica)"
+                         [class.marcada-eliminar]="estaMarcadaParaEliminar(horarioInfo.id)"
                          [ngClass]="[horarioInfo.esInicio ? 'es-inicio' : '',
                                      horarioInfo.esFin ? 'es-fin' : '',
                                      horarioInfo.esIntermedio ? 'es-intermedio' : '']"
@@ -161,9 +162,10 @@
 
                         <button *ngIf="horarioInfo.esInicio && editable"
                                 class="btn-eliminar-horario-calendar"
-                                (click)="$event.stopPropagation(); eliminarHorario(horarioInfo)"
-                                title="Eliminar">
-                            <i class="fas fa-times"></i>
+                                [class.marcada]="estaMarcadaParaEliminar(horarioInfo.id)"
+                                (click)="$event.stopPropagation(); toggleEliminarFranja(horarioInfo)"
+                                [title]="estaMarcadaParaEliminar(horarioInfo.id) ? 'Conservar' : 'Marcar para eliminar'">
+                            <i class="fas" [ngClass]="estaMarcadaParaEliminar(horarioInfo.id) ? 'fa-undo' : 'fa-times'"></i>
                         </button>
                     </div>
 
@@ -204,10 +206,18 @@
                 <div class="horario-dia-item"
                      *ngFor="let horario of grupo.horarios"
                      [style.border-left-color]="obtenerColorArea(horario.id_area_academica)"
+                     [class.marcada-eliminar]="estaMarcadaParaEliminar(horario.id)"
                      (click)="mostrarDetalleHorarioMovil(horario)">
                     <div class="horario-dia-item-area">
                         <span class="horario-dia-color-dot" [style.background-color]="obtenerColorArea(horario.id_area_academica)"></span>
                         {{ obtenerNombreArea(horario.id_area_academica) }}
+                        <button *ngIf="editable"
+                                type="button"
+                                class="btn-marcar-eliminar"
+                                (click)="$event.stopPropagation(); toggleEliminarFranja(horario)"
+                                [title]="estaMarcadaParaEliminar(horario.id) ? 'Conservar' : 'Marcar para eliminar'">
+                            <i class="fas" [ngClass]="estaMarcadaParaEliminar(horario.id) ? 'fa-undo' : 'fa-trash'"></i>
+                        </button>
                     </div>
                     <div class="horario-dia-item-hora">
                         <i class="fas fa-clock"></i>
@@ -228,10 +238,16 @@
 
 
     <!-- Barra fija con las franjas sin guardar -->
-    <div class="barra-guardar-fija" *ngIf="franjasPendientes.length > 0">
+    <div class="barra-guardar-fija" *ngIf="hayCambiosPendientes">
         <div class="barra-guardar-info">
             <i class="fas fa-clock"></i>
-            <strong>{{ franjasPendientes.length }}</strong> franja(s) sin guardar
+            <span *ngIf="franjasPendientes.length > 0">
+                <strong>{{ franjasPendientes.length }}</strong> nueva(s)
+            </span>
+            <span class="info-separador" *ngIf="franjasPendientes.length > 0 && franjasAEliminar.length > 0">·</span>
+            <span class="info-eliminar" *ngIf="franjasAEliminar.length > 0">
+                <strong>{{ franjasAEliminar.length }}</strong> para eliminar
+            </span>
         </div>
         <div class="barra-guardar-acciones">
             <button class="btn-descartar-franjas" (click)="cancelarModoAgregar()" [disabled]="guardando">

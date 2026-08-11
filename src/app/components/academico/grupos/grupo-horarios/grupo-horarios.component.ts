@@ -34,6 +34,8 @@ export class GrupoHorariosComponent implements OnInit, OnChanges {
   public filtrosAbiertos: boolean = false;
   public areaParaPintar: any = null;
   public franjasPendientes: any[] = [];
+  // Ids de franjas guardadas marcadas para eliminar
+  public franjasAEliminar: string[] = [];
   public guardando: boolean = false;
 
   // Arrastre en curso
@@ -271,7 +273,26 @@ export class GrupoHorariosComponent implements OnInit, OnChanges {
     this.arrastreIndiceInicio = -1;
     this.arrastreIndiceFin = -1;
     this.franjasPendientes = [];
+    this.franjasAEliminar = [];
     this.calcularHorasDelDia();
+  }
+
+  get hayCambiosPendientes(): boolean {
+    return this.franjasPendientes.length > 0 || this.franjasAEliminar.length > 0;
+  }
+
+  /** Marca o desmarca una franja guardada para eliminar */
+  toggleEliminarFranja(horario: any): void {
+    const indice = this.franjasAEliminar.indexOf(horario.id);
+    if (indice >= 0) {
+      this.franjasAEliminar.splice(indice, 1);
+    } else {
+      this.franjasAEliminar.push(horario.id);
+    }
+  }
+
+  estaMarcadaParaEliminar(id: any): boolean {
+    return this.franjasAEliminar.indexOf(id) >= 0;
   }
 
   /** Marca la celda como parte de la selección que se está arrastrando */
@@ -388,6 +409,7 @@ export class GrupoHorariosComponent implements OnInit, OnChanges {
 
     const existente = this.horariosGrupo.find((h: any) => {
       if (idHorarioIgnorar && String(h.id) === String(idHorarioIgnorar)) return false;
+      if (this.estaMarcadaParaEliminar(h.id)) return false;
       if (String(h.id_dia_semana) !== String(idDia)) return false;
       return inicioNuevo < this.aMinutos(h.hora_final) && this.aMinutos(h.hora_inicial) < finNuevo;
     });
@@ -410,9 +432,9 @@ export class GrupoHorariosComponent implements OnInit, OnChanges {
     return null;
   }
 
-  /** Envía todas las franjas pendientes en una sola petición */
+  /** Envía las franjas nuevas y las marcadas para eliminar en una sola petición */
   guardarFranjas(): void {
-    if (this.franjasPendientes.length === 0) return;
+    if (!this.hayCambiosPendientes) return;
 
     const sinClases = this.franjasPendientes.find(f => !f.total_clases || f.total_clases < 1);
     if (sinClases) {
@@ -431,28 +453,38 @@ export class GrupoHorariosComponent implements OnInit, OnChanges {
         hora_final: f.hora_final,
         total_minutos: f.total_minutos,
         total_clases: f.total_clases
-      }))
+      })),
+      eliminar: [...this.franjasAEliminar]
     };
 
     this.horariosService.crearLote(data).subscribe({
       next: (respuesta: any) => {
         this.guardando = false;
+
+        const creadas = respuesta?.total ?? this.franjasPendientes.length;
+        const borradas = respuesta?.eliminados ?? this.franjasAEliminar.length;
+        const partes: string[] = [];
+        if (creadas > 0) partes.push(`${creadas} nueva(s)`);
+        if (borradas > 0) partes.push(`${borradas} eliminada(s)`);
+
         Swal.fire({
           toast: true,
           position: 'top-end',
           icon: 'success',
-          title: `${respuesta?.total || this.franjasPendientes.length} franja(s) guardada(s)`,
+          title: partes.join(' · '),
           showConfirmButton: false,
           timer: 2000
         });
+
         this.franjasPendientes = [];
+        this.franjasAEliminar = [];
         this.modoAgregar = false;
         this.cargarHorarios(this.idGrupo);
       },
       error: (error: any) => {
         this.guardando = false;
-        console.error("Error al guardar franjas", error);
-        Swal.fire('Error', 'No se pudieron guardar las franjas', 'error');
+        console.error("Error al guardar los cambios de horarios", error);
+        Swal.fire('Error', 'No se pudieron guardar los cambios', 'error');
       }
     });
   }

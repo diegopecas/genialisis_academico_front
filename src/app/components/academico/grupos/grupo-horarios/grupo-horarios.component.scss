@@ -334,6 +334,30 @@ $light-gold: rgba(212, 175, 55, 0.1);
       }
     }
 
+    // Franja guardada marcada para eliminar
+    &.marcada-eliminar {
+      filter: grayscale(0.7);
+      opacity: 0.55;
+      border-style: dashed;
+      border-color: #dc3545;
+
+      .horario-block-header strong {
+        text-decoration: line-through;
+      }
+
+      .btn-eliminar-horario-calendar {
+        opacity: 1;
+      }
+    }
+
+    .btn-eliminar-horario-calendar.marcada {
+      background: rgba(108, 117, 125, 0.9);
+
+      &:hover {
+        background: #5a6268;
+      }
+    }
+
     // Franja aún no guardada
     &.bloque-pendiente {
       border: 2px dashed rgba(0, 0, 0, 0.35);
@@ -657,6 +681,15 @@ $light-gold: rgba(212, 175, 55, 0.1);
   font-size: 0.85rem;
   color: #495057;
 
+  .info-separador {
+    margin: 0 0.35rem;
+    color: #ced4da;
+  }
+
+  .info-eliminar {
+    color: #c82333;
+  }
+
   i {
     color: $gold;
     margin-right: 0.4rem;
@@ -776,6 +809,15 @@ $light-gold: rgba(212, 175, 55, 0.1);
   }
 }
 
+.horario-dia-item.marcada-eliminar {
+  opacity: 0.55;
+  background: rgba(220, 53, 69, 0.06);
+
+  .horario-dia-item-area {
+    text-decoration: line-through;
+  }
+}
+
 .horario-dia-item-area {
   font-weight: 600;
   font-size: 0.9rem;
@@ -784,6 +826,21 @@ $light-gold: rgba(212, 175, 55, 0.1);
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.btn-marcar-eliminar {
+  margin-left: auto;
+  background: transparent;
+  border: none;
+  color: #adb5bd;
+  padding: 0.25rem 0.4rem;
+  border-radius: 6px;
+  text-decoration: none;
+
+  &:hover {
+    background: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+  }
 }
 
 .horario-dia-color-dot {
