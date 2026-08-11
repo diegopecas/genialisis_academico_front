@@ -1,4 +1,4 @@
-// crear-actividades-academicas.component.scss
+// crear-area-academica.component.scss
 
 // Variables de color corporativo
 $corporate-yellow: #F5A623;  // Amarillo oscuro corporativo
@@ -761,4 +761,203 @@ small.text-muted {
 .badge-check-ico {
   font-size: 14px;
   color: $success-color;
+}
+
+// ========================================================================
+// Selector de icono del area academica
+// ========================================================================
+
+.icono-section {
+
+  .icono-preview-large {
+    width: 100%;
+    height: 180px;
+    border: 2px dashed #E0E0E0;
+    border-radius: 12px;
+    background-color: $white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    transition: border-color 0.3s ease;
+
+    &:hover {
+      border-color: $corporate-yellow;
+    }
+
+    &.is-invalid-border {
+      border-color: $danger-color;
+    }
+
+    .img-preview {
+      max-width: 80%;
+      max-height: 80%;
+      object-fit: contain;
+    }
+
+    .sin-icono {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      color: $corporate-gray;
+
+      i {
+        font-size: 2.5rem;
+        opacity: 0.4;
+      }
+
+      span {
+        font-size: 0.875rem;
+      }
+    }
+  }
+}
+
+// Modal de seleccion de icono
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  padding: 1rem;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1050;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .modal-content-custom {
+    width: 100%;
+    max-width: 720px;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .modal-header-custom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    background-color: $corporate-yellow;
+    border-radius: 12px 12px 0 0;
+
+    h3 {
+      margin: 0;
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: $corporate-black;
+    }
+
+    .btn-close-custom {
+      border: none;
+      background: transparent;
+      padding: 0.25rem 0.5rem;
+      border-radius: 6px;
+      font-size: 1.1rem;
+      line-height: 1;
+      color: $corporate-black;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+
+      &:hover {
+        background-color: rgba(0, 0, 0, 0.1);
+      }
+    }
+  }
+
+  .modal-body-custom {
+    padding: 1.25rem 1.5rem 1.5rem;
+    overflow-y: auto;
+  }
+}
+
+.search-box {
+  position: relative;
+  margin-bottom: 1.25rem;
+
+  .form-control {
+    padding-left: 2.25rem;
+  }
+
+  i {
+    position: absolute;
+    top: 50%;
+    left: 0.75rem;
+    transform: translateY(-50%);
+    color: $corporate-gray;
+    opacity: 0.6;
+  }
+}
+
+.imagenes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 1rem;
+}
+
+.imagen-item {
+  position: relative;
+  padding: 0.75rem;
+  border: 2px solid #E0E0E0;
+  border-radius: 10px;
+  background-color: $white;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover {
+    border-color: $corporate-yellow;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  }
+
+  &.seleccionada {
+    border-color: $corporate-yellow;
+    background-color: lighten($corporate-yellow, 42%);
+  }
+
+  img {
+    display: block;
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 0.5rem;
+    object-fit: contain;
+  }
+
+  .imagen-nombre {
+    font-size: 0.8rem;
+    line-height: 1.2;
+    color: $corporate-black;
+    word-break: break-word;
+  }
+
+  .check-icon {
+    position: absolute;
+    top: 0.35rem;
+    right: 0.35rem;
+    font-size: 1.1rem;
+    color: $corporate-yellow;
+  }
+}
+
+.sin-resultados {
+  padding: 2.5rem 1rem;
+  text-align: center;
+  color: $corporate-gray;
+
+  i {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 2rem;
+    opacity: 0.4;
+  }
+
+  p {
+    margin: 0;
+    font-style: italic;
+  }
 }

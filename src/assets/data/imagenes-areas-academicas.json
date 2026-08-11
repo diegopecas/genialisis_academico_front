@@ -2,7 +2,9 @@
   "imagenes": [
     { "nombre": "Arte Clásico", "ruta": "assets/images/recursos_compartidos/arte_clasico.png" },
     { "nombre": "Ciencias", "ruta": "assets/images/recursos_compartidos/ciencias.png" },
+    { "nombre": "Educación Física", "ruta": "assets/images/recursos_compartidos/educacion_fisica.png" },
     { "nombre": "Emprendimiento", "ruta": "assets/images/recursos_compartidos/emprendimiento.png" },
+    { "nombre": "Ética y Valores", "ruta": "assets/images/recursos_compartidos/etica_valores.png" },
     { "nombre": "Experimentales", "ruta": "assets/images/recursos_compartidos/experimentales.png" },
     { "nombre": "Geografía", "ruta": "assets/images/recursos_compartidos/geografia.png" },
     { "nombre": "Historia", "ruta": "assets/images/recursos_compartidos/historia.png" },
@@ -12,6 +14,8 @@
     { "nombre": "Matemáticas", "ruta": "assets/images/recursos_compartidos/matematicas.png" },
     { "nombre": "Motricidad Fina", "ruta": "assets/images/recursos_compartidos/motricidad_fina.png" },
     { "nombre": "Motricidad Gruesa", "ruta": "assets/images/recursos_compartidos/motricidad_gruesa.png" },
+    { "nombre": "Música", "ruta": "assets/images/recursos_compartidos/musica.png" },
+    { "nombre": "Religión", "ruta": "assets/images/recursos_compartidos/religion.png" },
     { "nombre": "Tecnología", "ruta": "assets/images/recursos_compartidos/tecnologia.png" },
     { "nombre": "Vida Práctica", "ruta": "assets/images/recursos_compartidos/vida_practica.png" }
   ]
