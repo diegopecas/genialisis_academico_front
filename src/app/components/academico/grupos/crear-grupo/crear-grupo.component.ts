@@ -323,8 +323,7 @@ export class CrearGrupoComponent implements OnInit {
 
   asociarGrados() {
     const gradosAAsociar = Object.keys(this.gradosSeleccionados)
-      .filter(key => this.gradosSeleccionados[+key])
-      .map(key => +key);
+      .filter(key => this.gradosSeleccionados[key]);
 
     if (gradosAAsociar.length === 0) {
       Swal.fire('Advertencia', 'Debe seleccionar al menos un grado', 'warning');
@@ -408,8 +407,7 @@ export class CrearGrupoComponent implements OnInit {
 
   asociarAreas() {
     const areasAAsociar = Object.keys(this.areasSeleccionadas)
-      .filter(key => this.areasSeleccionadas[+key])
-      .map(key => +key);
+      .filter(key => this.areasSeleccionadas[key]);
 
     if (areasAAsociar.length === 0) {
       Swal.fire('Advertencia', 'Debe seleccionar al menos un área académica', 'warning');

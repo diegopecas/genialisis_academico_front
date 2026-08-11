@@ -39,7 +39,7 @@
       </div>
 
       <!-- Tarjeta Gini -->
-      <div class="col-sm-12 col-md-4 px-3 mb-4">
+      <div class="col-sm-12 col-md-4 px-3 mb-4" *ngIf="permisosService.tienePermiso('academico.clases_ia')">
         <div class="text-center ficha ficha-gini" (click)="irAGini()">
           <div class="imagen-container-area gini-avatar-mini">
             <svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" style="width:70px;height:70px">
@@ -129,7 +129,7 @@
       </ng-container>
 
       <!-- Tarjeta Gini si no se mostró arriba -->
-      <div class="col-sm-12 col-md-4 px-3 mb-4" *ngIf="!areaDestacada">
+      <div class="col-sm-12 col-md-4 px-3 mb-4" *ngIf="!areaDestacada && permisosService.tienePermiso('academico.clases_ia')">
         <div class="text-center ficha ficha-gini" (click)="irAGini()">
           <div class="imagen-container-area gini-avatar-mini">
             <svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" style="width:70px;height:70px">

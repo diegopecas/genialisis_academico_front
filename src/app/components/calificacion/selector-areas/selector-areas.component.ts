@@ -7,6 +7,7 @@ import { HorariosService } from '../../../services/horarios.service';
 import { DiasSemanaService } from '../../../services/dias-semana.service';
 import { GruposService } from '../../../services/grupos.service';
 import { CalificacionContextService } from '../../../services/calificacion-context.service';
+import { PermisosService } from '../../../services/permisos.service';
 import { forkJoin } from 'rxjs';
 
 @Component({
@@ -45,7 +46,8 @@ export class SelectorAreasComponent implements OnInit {
     private horariosService: HorariosService,
     private diasSemanaService: DiasSemanaService,
     private gruposService: GruposService,
-    private calificacionContext: CalificacionContextService
+    private calificacionContext: CalificacionContextService,
+    public permisosService: PermisosService
   ) {}
 
   ngOnInit(): void {
