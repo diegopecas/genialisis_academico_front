@@ -10,6 +10,7 @@ import { EstudiantesService } from '../../../../services/estudiantes.service';
 import { TiposPagosService } from '../../../../services/tipos-pagos.service';
 import { AcudientesService } from '../../../../services/acudientes.service';
 import { UtilService } from '../../../../common/constantes/util.service';
+import { ConfiguracionGlobalService } from '../../../../services/configuracion-global.service';
 import { CuentaPagadaService } from '../../../../services/cuenta-pagada.service';
 import { ReportesPagoService } from '../../../../services/reportes-pago.service';
 import { DocumentosPersonasService } from '../../../../services/documentos-personas.service';
@@ -47,6 +48,9 @@ interface CuentaAplicadaModel {
   id_cuenta_por_cobrar: string;
   id_pago_recibido: string | null;
   valor_aplicado: number;
+  // Parte del abono imputada a intereses de mora. valor_aplicado sigue siendo
+  // SOLO capital, para no alterar el saldo que calcula el backend.
+  valor_aplicado_mora: number;
   fecha: string;
 }
 // Interfaz para las cuentas pagadas
@@ -55,6 +59,7 @@ interface CuentaPagada {
   id_cuenta_por_cobrar: string;
   id_pago_recibido: string;
   valor_aplicado: number;
+  valor_aplicado_mora: number;
   fecha: string;
   nombre_producto_servicio: string;
 }
@@ -81,6 +86,9 @@ export class CrearPagosRecibidosComponent implements OnInit {
   // Propiedades para el manejo de cuentas y pagos
   public cuentasPorCobrar: any[] = [];
   public cuentasSeleccionadas: string[] = [];
+  /* Orden de imputacion del abono cuando no alcanza para todo. Sale de
+     configuracion_global (mora_aplicar_pago_primero): MORA o CAPITAL. */
+  public aplicarPagoPrimero: string = 'MORA';
   public valorPorAplicar = 0;
   public valorRestante = 0;
 
@@ -139,10 +147,13 @@ export class CrearPagosRecibidosComponent implements OnInit {
     private cuentaPagadaService: CuentaPagadaService,
     private reportesPagoService: ReportesPagoService,
     private documentosService: DocumentosPersonasService,
-    private utilService: UtilService
+    private utilService: UtilService,
+    private configuracionGlobalService: ConfiguracionGlobalService
   ) { }
 
   ngOnInit() {
+    this.cargarOrdenImputacion();
+
     this.route.params.subscribe(params => {
       this.accion = params['accion'];
       this.id = params['id'];
@@ -364,6 +375,7 @@ export class CrearPagosRecibidosComponent implements OnInit {
                   id_cuenta_por_cobrar: cp.id_cuenta_por_cobrar,
                   id_pago_recibido: cp.id_pago_recibido,
                   valor_aplicado: cp.valor_aplicado,
+                  valor_aplicado_mora: cp.valor_aplicado_mora || 0,
                   fecha: cp.fecha
                 }));
 
@@ -402,7 +414,7 @@ export class CrearPagosRecibidosComponent implements OnInit {
     this.cuentasService.obtenerTodosXPersona(this.estudiante?.id_persona).subscribe((response: any) => {
       // Filtrar solo cuentas con saldo > 0 y que no estén ya en cuentasPorCobrar
       const cuentasPendientes = response.body
-        .filter((cuenta: any) => cuenta.saldo > 0)
+        .filter((cuenta: any) => cuenta.saldo > 0 || Number(cuenta.saldo_mora) > 0)
         .filter((cuenta: any) => !this.cuentasPorCobrar.some(c => c.id === cuenta.id));
 
       // Añadir estas cuentas pendientes al array existente, marcándolas como no aplicadas aún
@@ -417,7 +429,8 @@ export class CrearPagosRecibidosComponent implements OnInit {
 
   obtenerCuentasPorCobrar() {
     this.cuentasService.obtenerTodosXPersona(this.estudiante?.id_persona).subscribe((response: any) => {
-      this.cuentasPorCobrar = response.body.filter((cuenta: any) => cuenta.saldo > 0);
+      // Se incluyen tambien las cuentas con capital en cero pero mora pendiente.
+      this.cuentasPorCobrar = response.body.filter((cuenta: any) => cuenta.saldo > 0 || Number(cuenta.saldo_mora) > 0);
       console.log("obtenerCuentasPorCobrar", this.cuentasPorCobrar)
       // Si estamos editando, marcamos las cuentas que ya tienen pagos aplicados
       if (this.accion !== 'crear' && this.model.cuentas_aplicadas) {
@@ -448,35 +461,27 @@ export class CrearPagosRecibidosComponent implements OnInit {
 
       // Siempre asignar automáticamente el saldo pendiente de la cuenta
       if (cuenta) {
-        let valorAplicar = cuenta.saldo;
-
-        if (this.valorRestante > 0 && this.valorRestante < cuenta.saldo) {
-          valorAplicar = this.valorRestante;
-        }
+        const distribucion = this.distribuirAbono(cuenta);
 
         const indexCuentaAplicada = this.model.cuentas_aplicadas.findIndex(
           ca => ca.id_cuenta_por_cobrar === idCuenta
         );
 
         if (indexCuentaAplicada >= 0) {
-          this.model.cuentas_aplicadas[indexCuentaAplicada].valor_aplicado = valorAplicar;
+          this.model.cuentas_aplicadas[indexCuentaAplicada].valor_aplicado = distribucion.capital;
+          this.model.cuentas_aplicadas[indexCuentaAplicada].valor_aplicado_mora = distribucion.mora;
         } else {
           this.model.cuentas_aplicadas.push({
             id: '',
             id_cuenta_por_cobrar: idCuenta,
             id_pago_recibido: this.model.id || null,
-            valor_aplicado: valorAplicar,
+            valor_aplicado: distribucion.capital,
+            valor_aplicado_mora: distribucion.mora,
             fecha: this.model.fecha
           });
         }
 
-        this.formatearValorAplicado(idCuenta, valorAplicar);
-
-        if (valorAplicar === cuenta.saldo) {
-          console.log(`Se aplicará el saldo completo de ${this.formatearMoneda(cuenta.saldo)} a la cuenta`);
-        } else {
-          console.log(`Se aplicará ${this.formatearMoneda(valorAplicar)} de ${this.formatearMoneda(cuenta.saldo)} disponible`);
-        }
+        this.formatearValorAplicado(idCuenta, distribucion.capital);
       }
     } else {
       // Solo permitir desmarcar cuentas que no están ya aplicadas
@@ -490,6 +495,57 @@ export class CrearPagosRecibidosComponent implements OnInit {
     }
 
     this.actualizarTotales();
+  }
+
+  /**
+   * Lee de configuracion_global si el abono se imputa primero a intereses o a
+   * capital. Si la clave no existe se conserva el valor por defecto (MORA) y
+   * no se interrumpe el registro del pago.
+   */
+  cargarOrdenImputacion() {
+    this.configuracionGlobalService.obtenerByClave('mora_aplicar_pago_primero').subscribe({
+      next: (response: any) => {
+        const body = response.body || response;
+        if (body && body.valor_texto) {
+          this.aplicarPagoPrimero = body.valor_texto;
+        }
+      },
+      error: () => {
+        // Sin configuracion se mantiene el orden estandar: intereses primero.
+      }
+    });
+  }
+
+  /**
+   * Reparte lo que queda del pago entre intereses de mora y capital de una
+   * cuenta. El orden lo define configuracion_global (mora_aplicar_pago_primero);
+   * por defecto primero intereses, que es la imputacion estandar.
+   *
+   * Si el pago no alcanza, se cubre lo que se pueda del primer concepto y el
+   * resto queda en cero.
+   */
+  distribuirAbono(cuenta: any): { capital: number; mora: number } {
+    const saldoCapital = Number(cuenta.saldo) > 0 ? Number(cuenta.saldo) : 0;
+    const saldoMora = Number(cuenta.saldo_mora) > 0 ? Number(cuenta.saldo_mora) : 0;
+
+    /* Si no se ha digitado valor recibido, valorRestante puede venir en cero o
+       negativo; en ese caso se propone cubrir todo y el usuario ajusta. */
+    let disponible = this.valorRestante > 0 ? this.valorRestante : (saldoCapital + saldoMora);
+
+    let capital = 0;
+    let mora = 0;
+
+    if (this.aplicarPagoPrimero === 'CAPITAL') {
+      capital = Math.min(saldoCapital, disponible);
+      disponible -= capital;
+      mora = Math.min(saldoMora, disponible);
+    } else {
+      mora = Math.min(saldoMora, disponible);
+      disponible -= mora;
+      capital = Math.min(saldoCapital, disponible);
+    }
+
+    return { capital, mora };
   }
 
   // Métodos para la máscara de formato de moneda
@@ -605,6 +661,9 @@ export class CrearPagosRecibidosComponent implements OnInit {
         id_cuenta_por_cobrar: idCuenta,
         id_pago_recibido: this.model.id || null,
         valor_aplicado: nuevoValor,
+        /* El campo editable es el de capital; la mora imputada se conserva
+           como la calculo distribuirAbono() al seleccionar la cuenta. */
+        valor_aplicado_mora: 0,
         fecha: this.model.fecha
       });
     }
@@ -613,8 +672,9 @@ export class CrearPagosRecibidosComponent implements OnInit {
   }
 
   actualizarTotales() {
+    // Se suma capital + mora: los dos consumen el dinero recibido.
     const totalAplicado = this.model.cuentas_aplicadas.reduce(
-      (sum, ca) => sum + ca.valor_aplicado, 0
+      (sum, ca) => sum + Number(ca.valor_aplicado || 0) + Number(ca.valor_aplicado_mora || 0), 0
     );
 
     this.valorRestante = this.model.valor_recibido - totalAplicado;
@@ -658,15 +718,32 @@ export class CrearPagosRecibidosComponent implements OnInit {
 
       this.cuentasSeleccionadas.push(cuenta.id);
 
-      const valorAplicar = Math.min(cuenta.saldo, valorRestante);
-      valorRestante -= valorAplicar;
-      totalAplicado += valorAplicar;
+      /* Se reparte entre intereses y capital con el mismo criterio que la
+         seleccion manual, usando lo que queda del saldo a favor. */
+      const saldoMoraCuenta = Number(cuenta.saldo_mora) > 0 ? Number(cuenta.saldo_mora) : 0;
+      let disponibleCuenta = valorRestante;
+      let moraAplicar = 0;
+      let valorAplicar = 0;
+
+      if (this.aplicarPagoPrimero === 'CAPITAL') {
+        valorAplicar = Math.min(cuenta.saldo, disponibleCuenta);
+        disponibleCuenta -= valorAplicar;
+        moraAplicar = Math.min(saldoMoraCuenta, disponibleCuenta);
+      } else {
+        moraAplicar = Math.min(saldoMoraCuenta, disponibleCuenta);
+        disponibleCuenta -= moraAplicar;
+        valorAplicar = Math.min(cuenta.saldo, disponibleCuenta);
+      }
+
+      valorRestante -= (valorAplicar + moraAplicar);
+      totalAplicado += (valorAplicar + moraAplicar);
 
       this.model.cuentas_aplicadas.push({
         id: '',
         id_cuenta_por_cobrar: cuenta.id,
         id_pago_recibido: this.model.id || null,
         valor_aplicado: valorAplicar,
+        valor_aplicado_mora: moraAplicar,
         fecha: this.model.fecha
       });
 
@@ -1229,6 +1306,7 @@ export class CrearPagosRecibidosComponent implements OnInit {
     const cuentasParaEnviar = cuentasAplicadas.map(cuenta => ({
       id_cuenta_por_cobrar: cuenta.id_cuenta_por_cobrar,
       valor_aplicado: cuenta.valor_aplicado,
+      valor_aplicado_mora: cuenta.valor_aplicado_mora || 0,
       fecha: cuenta.fecha
     }));
 

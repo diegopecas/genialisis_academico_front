@@ -89,7 +89,7 @@ export class ListarProductosServiciosComponent implements OnInit {
     console.log("Acción", $event);
     switch ($event.accion) {
       case 'editar':
-        this.router.navigate(['administracion/productos-servicios/editar/' + $event.registro.id]);
+        this.router.navigate(['/administracion/datos-maestros/productos-servicios/editar/' + $event.registro.id]);
         break;
       case 'eliminar':
         this.eliminarProductoServicio($event.registro);

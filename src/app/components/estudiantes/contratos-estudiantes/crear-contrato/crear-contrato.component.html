@@ -137,6 +137,11 @@
             <small class="text-muted">Cuándo termina</small>
           </div>
           <div class="col-md-2">
+            <label class="form-label">Día de Vencimiento</label>
+            <input type="number" min="1" max="31" class="form-control" [(ngModel)]="model.dia_vencimiento" />
+            <small class="text-muted">Día en que vence cada cuota</small>
+          </div>
+          <div class="col-md-2">
             <label class="form-label">Lugar <span class="text-danger">*</span></label>
             <input type="text" class="form-control" [(ngModel)]="model.lugar_firma" required
               [ngClass]="{ 'is-invalid': !model.lugar_firma && submitted }" />

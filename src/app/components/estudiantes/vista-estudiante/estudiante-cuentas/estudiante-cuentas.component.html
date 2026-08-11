@@ -338,12 +338,13 @@
                         <th class="text-end">Valor</th>
                         <th class="text-end">Pagado</th>
                         <th class="text-end">Saldo</th>
+                        <th class="text-end">Mora</th>
                         <th>Estado</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr *ngIf="datosFiltrados.length === 0">
-                        <td colspan="9" class="text-center">No se encontraron registros.</td>
+                        <td colspan="10" class="text-center">No se encontraron registros.</td>
                     </tr>
                     <tr *ngFor="let item of datosFiltrados; let i = index"
                         [class.pagado]="item.saldo <= 0"
@@ -366,6 +367,12 @@
                         <td class="text-end">{{ item.valor | currency:'COP':'symbol':'1.0-0' }}</td>
                         <td class="text-end">{{ item.valor_pagado | currency:'COP':'symbol':'1.0-0' }}</td>
                         <td class="text-end">{{ item.saldo | currency:'COP':'symbol':'1.0-0' }}</td>
+                        <td class="text-end">
+                            <span *ngIf="item.saldo_mora > 0" class="text-danger fw-bold">
+                                {{ item.saldo_mora | currency:'COP':'symbol':'1.0-0' }}
+                            </span>
+                            <span *ngIf="!item.saldo_mora || item.saldo_mora <= 0">-</span>
+                        </td>
                         <td>
                             <span class="estado-badge" [class.pagado]="item.saldo <= 0" [class.pendiente]="item.saldo > 0 && !esVencido(item)" [class.vencido]="esVencido(item)">
                                 {{ item.saldo <= 0 ? 'Pagado' : (esVencido(item) ? 'Vencido' : 'Pendiente' ) }}
@@ -380,6 +387,7 @@
                         <td class="text-end fw-bold">{{ calcularTotalesFiltrados().totalValor | currency:'COP':'symbol':'1.0-0' }}</td>
                         <td class="text-end fw-bold">{{ calcularTotalesFiltrados().totalPagado | currency:'COP':'symbol':'1.0-0' }}</td>
                         <td class="text-end fw-bold">{{ calcularTotalesFiltrados().totalSaldo | currency:'COP':'symbol':'1.0-0' }}</td>
+                        <td class="text-end fw-bold text-danger">{{ calcularTotalesFiltrados().totalMora | currency:'COP':'symbol':'1.0-0' }}</td>
                         <td></td>
                     </tr>
                 </tfoot>
@@ -448,6 +456,12 @@
                         <span class="valor-label">Saldo</span>
                         <span class="valor-monto" [class.text-danger]="item.saldo > 0" [class.text-success]="item.saldo <= 0">
                             {{ item.saldo | currency:'COP':'symbol':'1.0-0' }}
+                        </span>
+                    </div>
+                    <div class="valor-item" *ngIf="item.saldo_mora > 0">
+                        <span class="valor-label">Mora</span>
+                        <span class="valor-monto text-danger">
+                            {{ item.saldo_mora | currency:'COP':'symbol':'1.0-0' }}
                         </span>
                     </div>
                 </div>

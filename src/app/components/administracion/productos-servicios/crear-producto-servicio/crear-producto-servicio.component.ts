@@ -9,6 +9,9 @@ import { ClasificacionProductosServiciosService } from '../../../../services/cla
 import { HorariosAlimentacionService } from '../../../../services/horarios-alimentacion.service';
 import { PeriodicidadCobroService } from '../../../../services/periodicidad-cobro.service';
 import { ProductosServiciosService } from '../../../../services/productos-servicios.service';
+import { MoraConfiguracionService } from '../../../../services/mora-configuracion.service';
+import { TiposMoraService } from '../../../../services/tipos-mora.service';
+import { UtilService } from '../../../../common/constantes/util.service';
 
 @Component({
   selector: 'app-crear-producto-servicio',
@@ -26,6 +29,18 @@ export class CrearProductoServicioComponent implements OnInit {
   submitted = false;
   productoServicioActivoSwitch = true;
   valorSugeridoFormateado = '';
+  tabActiva = 'datos';
+
+  /* Configuracion de mora del producto. `cobra` es solo de pantalla: cuando
+     queda en false se borra la configuracion al grabar. */
+  mora = {
+    id: '',
+    cobra: false,
+    id_tipo_mora: null as any,
+    valor_recargo: null as any,
+    recargo_acumulable: 0,
+    porcentaje_mensual: null as any
+  };
 
   model = {
     id: null,
@@ -44,7 +59,8 @@ export class CrearProductoServicioComponent implements OnInit {
     clasificaciones: [] as any[],
     categorias: [] as any[],
     periodicidades: [] as any[],
-    horarios: [] as any[]
+    horarios: [] as any[],
+    tiposMora: [] as any[]
   };
 
   constructor(
@@ -54,7 +70,10 @@ export class CrearProductoServicioComponent implements OnInit {
     private clasificacionService: ClasificacionProductosServiciosService,
     private categoriaService: CategoriaProductosServiciosService,
     private periodicidadService: PeriodicidadCobroService,
-    private horariosService: HorariosAlimentacionService
+    private horariosService: HorariosAlimentacionService,
+    private moraConfiguracionService: MoraConfiguracionService,
+    private tiposMoraService: TiposMoraService,
+    private utilService: UtilService
   ) { }
 
   ngOnInit(): void {
@@ -93,6 +112,65 @@ export class CrearProductoServicioComponent implements OnInit {
     this.horariosService.obtenerTodos().subscribe((response: any) => {
       this.listas.horarios = response.body;
     });
+
+    this.tiposMoraService.obtenerTodos().subscribe((response: any) => {
+      this.listas.tiposMora = response.body;
+    });
+  }
+
+  cambiarTab(tab: string) {
+    this.tabActiva = tab;
+  }
+
+  /** Codigo del tipo elegido; el HTML lo usa para mostrar solo lo que aplica. */
+  get codigoTipoMora(): string {
+    const tipo = this.listas.tiposMora.find((t: any) => Number(t.id) === Number(this.mora.id_tipo_mora));
+    return tipo ? tipo.codigo : '';
+  }
+
+  get esRecargoFijo(): boolean {
+    return this.codigoTipoMora === 'RECARGO_FIJO';
+  }
+
+  get esPorcentaje(): boolean {
+    return this.codigoTipoMora === 'PORCENTAJE';
+  }
+
+  /** Al apagar el cobro se limpian los valores para no grabar datos sueltos. */
+  onCambioCobraMora() {
+    if (!this.mora.cobra) {
+      this.mora.id_tipo_mora = null;
+      this.mora.valor_recargo = null;
+      this.mora.recargo_acumulable = 0;
+      this.mora.porcentaje_mensual = null;
+    }
+  }
+
+  /** Trae la configuracion de mora del producto, si la tiene. */
+  cargarMora(idProducto: string) {
+    this.moraConfiguracionService.obtenerPorProducto(idProducto).subscribe({
+      next: (response: any) => {
+        const body = response.body || response;
+        const config = Array.isArray(body) ? body[0] : body;
+
+        if (!config) {
+          this.mora.cobra = false;
+          return;
+        }
+
+        this.mora = {
+          id: config.id,
+          cobra: true,
+          id_tipo_mora: config.id_tipo_mora !== null ? Number(config.id_tipo_mora) : null,
+          valor_recargo: config.valor_recargo,
+          recargo_acumulable: Number(config.recargo_acumulable),
+          porcentaje_mensual: config.porcentaje_mensual
+        };
+      },
+      error: (error: any) => {
+        console.error('Error al cargar la configuración de mora', error);
+      }
+    });
   }
 
   cargarProductoServicio(id: string) {
@@ -124,6 +202,8 @@ export class CrearProductoServicioComponent implements OnInit {
         }
         
         this.productoServicioActivoSwitch = data.disponible === 1;
+
+        this.cargarMora(data.id);
       },
       error: (error: any) => {
         console.error("Error al cargar producto/servicio", error);
@@ -187,13 +267,89 @@ export class CrearProductoServicioComponent implements OnInit {
     } else if (this.accion === 'editar') {
       this.productosServiciosService.actualizar(payload).subscribe({
         next: (response: any) => {
-          Swal.fire('Éxito', 'Producto/Servicio actualizado correctamente', 'success');
-          this.router.navigate(['/administracion/datos-maestros/productos-servicios']);
+          this.guardarMora();
         },
         error: (error: any) => {
           console.error("Error al actualizar producto/servicio", error);
           Swal.fire('Error', 'No se pudo actualizar el producto/servicio', 'error');
         }
+      });
+    }
+  }
+
+  /**
+   * Guarda la configuracion de mora del producto y cierra el flujo de grabado.
+   * Tres casos: crearla, actualizarla o borrarla cuando se apago el cobro.
+   * Un fallo aqui no debe perder los datos del producto, que ya se guardaron:
+   * por eso se avisa y se sigue.
+   */
+  guardarMora() {
+    const terminar = (mensaje: string) => {
+      Swal.fire('Éxito', mensaje, 'success');
+      this.router.navigate(['/administracion/datos-maestros/productos-servicios']);
+    };
+
+    const avisarError = (error: any) => {
+      console.error('Error al guardar la configuración de mora', error);
+      Swal.fire(
+        'Atención',
+        'El producto se guardó, pero no se pudo guardar la configuración de intereses de mora.',
+        'warning'
+      );
+      this.router.navigate(['/administracion/datos-maestros/productos-servicios']);
+    };
+
+    // Se apago el cobro y existia configuracion: se borra.
+    if (!this.mora.cobra) {
+      if (!this.mora.id) {
+        terminar('Producto/Servicio actualizado correctamente');
+        return;
+      }
+      this.moraConfiguracionService.eliminar({ id: this.mora.id }).subscribe({
+        next: () => terminar('Producto/Servicio actualizado y cobro de mora retirado'),
+        error: avisarError
+      });
+      return;
+    }
+
+    if (!this.mora.id_tipo_mora) {
+      Swal.fire('Campos incompletos', 'Seleccione el tipo de mora o apague el cobro de intereses', 'warning');
+      this.tabActiva = 'mora';
+      return;
+    }
+
+    if (this.esRecargoFijo && (!this.mora.valor_recargo || Number(this.mora.valor_recargo) <= 0)) {
+      Swal.fire('Campos incompletos', 'El recargo fijo debe ser mayor que cero', 'warning');
+      this.tabActiva = 'mora';
+      return;
+    }
+
+    if (this.esPorcentaje && (!this.mora.porcentaje_mensual || Number(this.mora.porcentaje_mensual) <= 0)) {
+      Swal.fire('Campos incompletos', 'El porcentaje mensual debe ser mayor que cero', 'warning');
+      this.tabActiva = 'mora';
+      return;
+    }
+
+    const dataMora: any = {
+      id_producto_servicio: this.model.id,
+      id_tipo_mora: Number(this.mora.id_tipo_mora),
+      valor_recargo: this.esRecargoFijo ? Number(this.mora.valor_recargo) : null,
+      recargo_acumulable: this.esRecargoFijo ? Number(this.mora.recargo_acumulable) : 0,
+      porcentaje_mensual: this.esPorcentaje ? Number(this.mora.porcentaje_mensual) : null,
+      activo: 1,
+      id_usuario: this.utilService.obtenerIdUsuarioActual()
+    };
+
+    if (this.mora.id) {
+      dataMora.id = this.mora.id;
+      this.moraConfiguracionService.actualizar(dataMora).subscribe({
+        next: () => terminar('Producto/Servicio actualizado correctamente'),
+        error: avisarError
+      });
+    } else {
+      this.moraConfiguracionService.crear(dataMora).subscribe({
+        next: () => terminar('Producto/Servicio actualizado correctamente'),
+        error: avisarError
       });
     }
   }

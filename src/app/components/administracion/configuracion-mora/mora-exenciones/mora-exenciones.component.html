@@ -1,0 +1,139 @@
+<div class="modulo">
+  <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [accion]="'ConsultarTodos'"
+    [raiz]="'/administracion/financiero/mora-exenciones'" [regresar]="regresar"
+    [iconoTitulo]="'/assets/images/productos.png'"></app-header>
+
+  <!-- Condiciones de la exención -->
+  <div class="container mt-4">
+    <div class="card">
+      <div class="card-body">
+        <h6 class="card-subtitle mb-3 text-muted">1. Defina la exención</h6>
+        <div class="row g-2">
+          <div class="col-sm-12 col-md-3">
+            <label class="form-label">Desde <span class="text-danger">*</span></label>
+            <input type="date" class="form-control" [(ngModel)]="condiciones.fecha_desde">
+          </div>
+          <div class="col-sm-12 col-md-3">
+            <label class="form-label">Hasta <small class="text-muted">(vacío = indefinida)</small></label>
+            <input type="date" class="form-control" [(ngModel)]="condiciones.fecha_hasta">
+          </div>
+          <div class="col-sm-12 col-md-6">
+            <label class="form-label">Producto <small class="text-muted">(vacío = todos)</small></label>
+            <select class="form-select" [(ngModel)]="condiciones.id_producto_servicio">
+              <option [ngValue]="null">Todos los productos</option>
+              <ng-container *ngFor="let ps of productos">
+                <option [value]="ps.id">{{ ps.nombre }}</option>
+              </ng-container>
+            </select>
+          </div>
+          <div class="col-12">
+            <label class="form-label">Motivo</label>
+            <input type="text" class="form-control" [(ngModel)]="condiciones.motivo"
+              placeholder="Ej: Acuerdo de pago autorizado por dirección">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="container mt-3">
+    <div class="card">
+      <div class="card-body">
+        <h6 class="card-subtitle mb-3 text-muted">2. Filtre y marque las personas</h6>
+        <div class="row g-2">
+          <div class="col-sm-12 col-md-4">
+            <input type="text" class="form-control" [(ngModel)]="filtros.texto" placeholder="Buscar por nombre o documento...">
+          </div>
+          <div class="col-sm-6 col-md-3">
+            <select class="form-select" [(ngModel)]="filtros.id_grado" (ngModelChange)="onCambioGrado()">
+              <option value="">Grado: todos</option>
+              <ng-container *ngFor="let g of grados">
+                <option [value]="g.id">{{ g.nombre }}</option>
+              </ng-container>
+            </select>
+          </div>
+          <div class="col-sm-6 col-md-3">
+            <select class="form-select" [(ngModel)]="filtros.id_grupo">
+              <option value="">Grupo: todos</option>
+              <ng-container *ngFor="let g of grupos">
+                <option [value]="g.id">{{ g.nombre }}</option>
+              </ng-container>
+            </select>
+          </div>
+          <div class="col-sm-6 col-md-2">
+            <select class="form-select" [(ngModel)]="filtros.exentos">
+              <option value="">Todos</option>
+              <option value="si">Ya exentos</option>
+              <option value="no">Sin exención</option>
+            </select>
+          </div>
+        </div>
+        <div class="mt-2">
+          <button class="btn btn-sm btn-outline-secondary" (click)="limpiarFiltros()">Limpiar filtros</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabla -->
+  <div class="container mt-3">
+    <div *ngIf="cargando" class="text-center p-4">Cargando personas...</div>
+
+    <div class="table-responsive" *ngIf="!cargando">
+      <table class="table table-hover align-middle">
+        <thead class="table-light">
+          <tr>
+            <th style="width: 44px;">
+              <input type="checkbox" [checked]="todosVisiblesSeleccionados" (change)="toggleSeleccionarTodos()"
+                title="Seleccionar todos los visibles">
+            </th>
+            <th>Persona</th>
+            <th>Documento</th>
+            <th>Grado</th>
+            <th>Grupo</th>
+            <th>Exenciones activas</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="personasFiltradas.length === 0">
+            <td colspan="6" class="text-center text-muted">No hay personas con esos filtros.</td>
+          </tr>
+          <tr *ngFor="let p of personasFiltradas" (click)="toggleSeleccion(p.id_persona)"
+              [class.table-warning]="estaSeleccionado(p.id_persona)" style="cursor: pointer;">
+            <td>
+              <input type="checkbox" [checked]="estaSeleccionado(p.id_persona)"
+                (click)="$event.stopPropagation()" (change)="toggleSeleccion(p.id_persona)">
+            </td>
+            <td>{{ p.nombre_persona }}</td>
+            <td>{{ p.numero_identificacion }}</td>
+            <td>{{ p.nombre_grado || '-' }}</td>
+            <td>{{ p.nombre_grupo || '-' }}</td>
+            <td>
+              <span class="badge" [class.bg-success]="p.exenciones_activas > 0" [class.bg-secondary]="p.exenciones_activas == 0">
+                {{ p.exenciones_activas > 0 ? p.exenciones_activas + ' activa(s)' : 'Ninguna' }}
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Acciones -->
+  <div class="container mt-3 mb-5">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <span class="text-muted">
+        {{ totalSeleccionados }} seleccionada(s) de {{ personasFiltradas.length }} visible(s)
+      </span>
+      <div class="d-flex gap-2">
+        <button class="btn btn-outline-danger" (click)="quitar()" [disabled]="guardando || totalSeleccionados === 0">
+          Desactivar exenciones
+        </button>
+        <button class="btn btn-warning" (click)="aplicar()" [disabled]="guardando || totalSeleccionados === 0">
+          {{ guardando ? 'Aplicando...' : 'Exonerar seleccionadas' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

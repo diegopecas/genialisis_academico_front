@@ -1,0 +1,109 @@
+<div class="modulo">
+  <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [accion]="accion"
+    [raiz]="'/administracion/financiero/mora-configuracion'"
+    [regresar]="regresar" [iconoTitulo]="'/assets/images/productos.png'"></app-header>
+
+  <div class="container mt-5" [ngClass]="{ 'disabled-container': !editable }">
+    <div class="row">
+      <div class="col-sm-12 col-md-6">
+        <label class="form-label">Producto/Servicio <span class="text-danger">*</span></label>
+        <select class="form-select form-select-lg" [(ngModel)]="model.id_producto_servicio"
+          [ngClass]="{'is-invalid': !model.id_producto_servicio && submitted}" [disabled]="!editable">
+          <option value="">Seleccionar</option>
+          <ng-container *ngFor="let ps of listas.productosServicios">
+            <option [value]="ps.id">{{ ps.nombre }}</option>
+          </ng-container>
+        </select>
+      </div>
+      <div class="col-sm-12 col-md-6">
+        <label class="form-label">Tipo de mora <span class="text-danger">*</span></label>
+        <select class="form-select form-select-lg" [(ngModel)]="model.id_tipo_mora"
+          [ngClass]="{'is-invalid': !model.id_tipo_mora && submitted}" [disabled]="!editable">
+          <option [ngValue]="null">Seleccionar</option>
+          <ng-container *ngFor="let tm of listas.tiposMora">
+            <option [ngValue]="tm.id">{{ tm.nombre }}</option>
+          </ng-container>
+        </select>
+      </div>
+    </div>
+
+    <div class="row mt-3" *ngIf="esRecargoFijo">
+      <div class="col-sm-12 col-md-6">
+        <label class="form-label">Valor del recargo <span class="text-danger">*</span></label>
+        <input type="number" class="form-control form-control-lg" [(ngModel)]="model.valor_recargo"
+          [ngClass]="{'is-invalid': !model.valor_recargo && submitted}" [disabled]="!editable"
+          placeholder="Ej: 50000">
+      </div>
+      <div class="col-sm-12 col-md-6">
+        <label class="form-label">¿Se acumula cada mes?</label>
+        <select class="form-select form-select-lg" [(ngModel)]="model.recargo_acumulable" [disabled]="!editable">
+          <option [ngValue]="0">No, se cobra una sola vez</option>
+          <option [ngValue]="1">Sí, otro recargo el 1ro de cada mes</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row mt-3" *ngIf="esPorcentaje">
+      <div class="col-sm-12 col-md-6">
+        <label class="form-label">Porcentaje mensual <span class="text-danger">*</span></label>
+        <input type="number" step="0.001" class="form-control form-control-lg" [(ngModel)]="model.porcentaje_mensual"
+          [ngClass]="{'is-invalid': !model.porcentaje_mensual && submitted}" [disabled]="!editable"
+          placeholder="Ej: 2">
+      </div>
+      <div class="col-sm-12 col-md-6">
+        <label class="form-label">Estado</label>
+        <select class="form-select form-select-lg" [(ngModel)]="model.activo" [disabled]="!editable">
+          <option [ngValue]="1">Activo</option>
+          <option [ngValue]="0">Inactivo</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row mt-3" *ngIf="!esPorcentaje">
+      <div class="col-sm-12 col-md-6">
+        <label class="form-label">Estado</label>
+        <select class="form-select form-select-lg" [(ngModel)]="model.activo" [disabled]="!editable">
+          <option [ngValue]="1">Activo</option>
+          <option [ngValue]="0">Inactivo</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row mt-3" *ngIf="esPorcentaje">
+      <div class="col-12">
+        <div class="alert alert-info mb-0">
+          La tasa se digita <b>mensual</b> y se liquida diaria (tasa ÷ 30) sobre el saldo pendiente, contando
+          desde el día siguiente al vencimiento de la cuenta.
+        </div>
+      </div>
+    </div>
+
+    <div class="row mt-3" *ngIf="esRecargoFijo">
+      <div class="col-12">
+        <div class="alert alert-info mb-0">
+          El recargo se cobra completo apenas la cuenta pasa su fecha de vencimiento con saldo pendiente.
+        </div>
+      </div>
+    </div>
+
+    <div class="row mt-3">
+      <div class="col-12">
+        <div class="alert alert-warning mb-0">
+          Estos valores se copian a cada cuenta por cobrar cuando se crea. Cambiarlos aquí
+          <b>no altera las cuentas ya emitidas</b>, solo aplica a las nuevas.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container mt-5">
+    <div class="row">
+      <div class="col-sm-6" *ngIf="editable">
+        <button class="btn btn-lg btn-warning w-100" (click)="grabar()">Grabar</button>
+      </div>
+      <div class="col-sm-6">
+        <button class="btn btn-lg btn-secondary w-100" (click)="volver()">Volver</button>
+      </div>
+    </div>
+  </div>
+</div>

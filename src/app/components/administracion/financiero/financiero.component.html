@@ -146,6 +146,33 @@
                   <span>Reglas de Cobro</span>
                 </div>
               </div>
+              <div class="col-6" *ngIf="permisosService.tienePermiso('admin.mora_configuracion')">
+                <div
+                  class="submenu-item"
+                  (click)="seleccionarOpcion('mora-configuracion')"
+                >
+                  <img src="assets/images/productos.png" alt="Registro Rápido de Mora" />
+                  <span>Registro Rápido de Mora</span>
+                </div>
+              </div>
+              <div class="col-6" *ngIf="permisosService.tienePermiso('admin.mora_exenciones')">
+                <div
+                  class="submenu-item"
+                  (click)="seleccionarOpcion('mora-exenciones')"
+                >
+                  <img src="assets/images/productos.png" alt="Registro Rápido de Exenciones" />
+                  <span>Registro Rápido de Exenciones</span>
+                </div>
+              </div>
+              <div class="col-6" *ngIf="permisosService.tienePermiso('admin.mora_ejecuciones')">
+                <div
+                  class="submenu-item"
+                  (click)="seleccionarOpcion('mora-ejecuciones')"
+                >
+                  <img src="assets/images/productos.png" alt="Proceso de Mora" />
+                  <span>Proceso de Mora</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>

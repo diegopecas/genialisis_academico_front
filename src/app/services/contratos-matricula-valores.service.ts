@@ -38,6 +38,8 @@ export interface GenerarValoresRequest {
   fecha_inicio: string;
   fecha_fin: string;
   cuotas_matricula?: number;
+  // Dia del mes en que vence cada cuota generada (1-31).
+  dia_vencimiento?: number;
   valor_matricula?: number;  // Valor final con descuentos/recargos aplicados
   valor_pension?: number;    // Valor final con descuentos/recargos aplicados
 }

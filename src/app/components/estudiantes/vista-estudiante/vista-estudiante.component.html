@@ -48,6 +48,11 @@
         </button>
       </li>
       <li class="nav-item" role="presentation">
+        <button class="nav-link" [class.active]="pestanaActiva === 'exenciones-mora'" type="button" (click)="cambiarPestana('exenciones-mora')">
+          <i class="fas fa-shield-alt me-2"></i>Exenciones de Mora
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
         <button class="nav-link" [class.active]="pestanaActiva === 'observaciones'" type="button" (click)="cambiarPestana('observaciones')">
           <i class="fas fa-comment-alt me-2"></i>Observaciones
         </button>
@@ -101,6 +106,10 @@
         <div class="nav-icon"><i class="fas fa-file-invoice-dollar"></i></div>
         <div class="nav-label">Estado de Cuenta</div>
       </div>
+      <div class="nav-card" [class.active]="pestanaActiva === 'exenciones-mora'" (click)="cambiarPestana('exenciones-mora')">
+        <div class="nav-icon"><i class="fas fa-shield-alt"></i></div>
+        <div class="nav-label">Exenciones de Mora</div>
+      </div>
       <div class="nav-card" [class.active]="pestanaActiva === 'observaciones'" (click)="cambiarPestana('observaciones')">
         <div class="nav-icon"><i class="fas fa-comment-alt"></i></div>
         <div class="nav-label">Observaciones</div>
@@ -152,6 +161,10 @@
       <!-- Estado de Cuenta -->
       <div class="p-4" *ngIf="tabsCargados.has('cuenta')" [hidden]="pestanaActiva !== 'cuenta'">
         <app-estudiante-cuentas [idEstudiante]="idEstudiante"></app-estudiante-cuentas>
+      </div>
+
+      <div class="p-4" *ngIf="tabsCargados.has('exenciones-mora')" [hidden]="pestanaActiva !== 'exenciones-mora'">
+        <app-estudiante-mora-exenciones [idEstudiante]="idEstudiante"></app-estudiante-mora-exenciones>
       </div>
 
       <!-- Observaciones -->
@@ -213,6 +226,9 @@
         </div>
         <div class="quick-nav-item" (click)="navegarRapido('cuenta')">
           <i class="fas fa-file-invoice-dollar"></i><span>Estado de Cuenta</span>
+        </div>
+        <div class="quick-nav-item" (click)="navegarRapido('exenciones-mora')">
+          <i class="fas fa-shield-alt"></i><span>Exenciones de Mora</span>
         </div>
         <div class="quick-nav-item" (click)="navegarRapido('observaciones')">
           <i class="fas fa-comment-alt"></i><span>Observaciones</span>

@@ -11,6 +11,7 @@ import { DocumentosPersonaComponent } from '../../../common/documentos-persona/d
 import { EstudianteDatosComponent } from './estudiante-datos/estudiante-datos.component';
 import { EstudianteMedidasComponent } from './estudiante-medidas/estudiante-medidas.component';
 import { EstudianteCuentasComponent } from './estudiante-cuentas/estudiante-cuentas.component';
+import { EstudianteMoraExencionesComponent } from './estudiante-mora-exenciones/estudiante-mora-exenciones.component';
 import { EstudianteObservacionesComponent } from './estudiante-observaciones/estudiante-observaciones.component';
 import { EstudianteAsistenciaComponent } from './estudiante-asistencia/estudiante-asistencia.component';
 import { EstudianteEvaluacionesComponent } from './estudiante-evaluaciones/estudiante-evaluaciones.component';
@@ -35,6 +36,7 @@ interface PestanaInfo {
     EstudianteDatosComponent,
     EstudianteMedidasComponent,
     EstudianteCuentasComponent,
+    EstudianteMoraExencionesComponent,
     EstudianteObservacionesComponent,
     EstudianteAsistenciaComponent,
     EstudianteEvaluacionesComponent,
@@ -67,6 +69,7 @@ export class VistaEstudianteComponent implements OnInit {
     { id: 'datos-adicionales', nombre: 'Datos Adicionales', icono: 'fas fa-puzzle-piece' },
     { id: 'medidas', nombre: 'Medidas', icono: 'fas fa-weight' },
     { id: 'cuenta', nombre: 'Estado de Cuenta', icono: 'fas fa-file-invoice-dollar' },
+    { id: 'exenciones-mora', nombre: 'Exenciones de Mora', icono: 'fas fa-shield-alt' },
     { id: 'observaciones', nombre: 'Observaciones', icono: 'fas fa-comment-alt' },
     { id: 'asistencia', nombre: 'Asistencia', icono: 'fas fa-calendar-check' },
     { id: 'evaluaciones', nombre: 'Evaluaciones', icono: 'fas fa-graduation-cap' },

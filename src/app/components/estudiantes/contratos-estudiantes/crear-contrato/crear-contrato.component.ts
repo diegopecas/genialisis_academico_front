@@ -107,6 +107,7 @@ export class CrearContratoComponent implements OnInit {
     fecha_firma: '',
     fecha_inicio: '',
     fecha_fin: '',
+    dia_vencimiento: 1,
     lugar_firma: 'Chía',
     autoriza_imagenes: 1,
     autoriza_pagare: 1,
@@ -291,6 +292,12 @@ export class CrearContratoComponent implements OnInit {
           if (contrato.cuotas_matricula) {
             this.cuotasMatricula = parseInt(contrato.cuotas_matricula);
           }
+
+          // Dia del mes en que vencen las cuotas. Los contratos anteriores a
+          // la mora no lo traen: se asume 1, que es como se generaban antes.
+          this.model.dia_vencimiento = contrato.dia_vencimiento
+            ? parseInt(contrato.dia_vencimiento)
+            : 1;
 
           // Cargar descuentos y recargos del contrato
           this.descuento_matricula = parseFloat(contrato.descuento_matricula) || 0;
@@ -550,6 +557,8 @@ export class CrearContratoComponent implements OnInit {
         fecha_inicio: this.model.fecha_inicio!,
         fecha_fin: this.model.fecha_fin!,
         cuotas_matricula: this.cuotasMatricula,
+        // Dia en que vence cada cuota: define desde cuando corre la mora
+        dia_vencimiento: this.model.dia_vencimiento || 1,
         // Enviar valores finales (con descuentos/recargos aplicados)
         valor_matricula: this.matriculaFinal,
         valor_pension: this.pensionFinal

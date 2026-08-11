@@ -1,0 +1,94 @@
+<div class="exenciones-mora">
+  <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <div>
+      <h5 class="mb-1">Exenciones de Mora</h5>
+      <small class="text-muted">Períodos en los que el estudiante no causa intereses por pago tardío</small>
+    </div>
+    <button class="btn btn-warning" (click)="abrirFormulario()" *ngIf="!mostrarFormulario && idPersona">
+      Nueva exención
+    </button>
+  </div>
+
+  <!-- Formulario -->
+  <div class="card mb-3" *ngIf="mostrarFormulario">
+    <div class="card-body">
+      <div class="row g-2">
+        <div class="col-sm-12 col-md-3">
+          <label class="form-label">Desde <span class="text-danger">*</span></label>
+          <input type="date" class="form-control" [(ngModel)]="nueva.fecha_desde">
+        </div>
+        <div class="col-sm-12 col-md-3">
+          <label class="form-label">Hasta <small class="text-muted">(vacío = indefinida)</small></label>
+          <input type="date" class="form-control" [(ngModel)]="nueva.fecha_hasta">
+        </div>
+        <div class="col-sm-12 col-md-6">
+          <label class="form-label">Producto <small class="text-muted">(vacío = todos)</small></label>
+          <select class="form-select" [(ngModel)]="nueva.id_producto_servicio">
+            <option [ngValue]="null">Todos los productos</option>
+            <ng-container *ngFor="let ps of productos">
+              <option [value]="ps.id">{{ ps.nombre }}</option>
+            </ng-container>
+          </select>
+        </div>
+        <div class="col-12">
+          <label class="form-label">Motivo</label>
+          <input type="text" class="form-control" [(ngModel)]="nueva.motivo"
+            placeholder="Ej: Acuerdo de pago autorizado por dirección">
+        </div>
+      </div>
+
+      <div class="alert alert-info mt-3 mb-0">
+        La mora causada dentro del rango desaparece en el siguiente cálculo. Lo único que se conserva
+        es la mora que ya se haya pagado.
+      </div>
+
+      <div class="d-flex gap-2 mt-3">
+        <button class="btn btn-warning" (click)="guardar()" [disabled]="guardando">
+          {{ guardando ? 'Guardando...' : 'Guardar' }}
+        </button>
+        <button class="btn btn-secondary" (click)="cancelar()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="cargando" class="text-center p-4">Cargando exenciones...</div>
+
+  <div class="table-responsive" *ngIf="!cargando">
+    <table class="table table-hover align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>Desde</th>
+          <th>Hasta</th>
+          <th>Producto</th>
+          <th>Motivo</th>
+          <th>Estado</th>
+          <th class="text-end">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngIf="exenciones.length === 0">
+          <td colspan="6" class="text-center text-muted">
+            Este estudiante no tiene exenciones registradas. Causa intereses de mora normalmente.
+          </td>
+        </tr>
+        <tr *ngFor="let e of exenciones" [class.table-secondary]="e.activo == 0">
+          <td>{{ e.fecha_desde }}</td>
+          <td>{{ describirVigencia(e) }}</td>
+          <td>{{ e.nombre_producto_servicio || 'Todos los productos' }}</td>
+          <td>{{ e.motivo || '-' }}</td>
+          <td>
+            <span class="badge" [class.bg-success]="e.activo == 1" [class.bg-secondary]="e.activo == 0">
+              {{ e.activo == 1 ? 'Activa' : 'Inactiva' }}
+            </span>
+          </td>
+          <td class="text-end">
+            <button class="btn btn-sm btn-outline-primary me-1" (click)="editar(e)">Editar</button>
+            <button class="btn btn-sm btn-outline-danger" (click)="desactivar(e)" *ngIf="e.activo == 1">
+              Desactivar
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

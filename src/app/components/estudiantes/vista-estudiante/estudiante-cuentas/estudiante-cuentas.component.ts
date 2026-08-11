@@ -904,6 +904,7 @@ export class EstudianteCuentasComponent implements OnInit {
         totalValor: number,
         totalPagado: number,
         totalSaldo: number,
+        totalMora?: number,
         totalRecibido?: number,
         totalAplicado?: number
     } {
@@ -913,14 +914,16 @@ export class EstudianteCuentasComponent implements OnInit {
             let totalValor = 0;
             let totalPagado = 0;
             let totalSaldo = 0;
+            let totalMora = 0;
 
             resultado.forEach(item => {
                 totalValor += Number(item.valor) || 0;
                 totalPagado += Number(item.valor_pagado) || 0;
                 totalSaldo += Number(item.saldo) || 0;
+                totalMora += Number(item.saldo_mora) || 0;
             });
 
-            return { totalValor, totalPagado, totalSaldo };
+            return { totalValor, totalPagado, totalSaldo, totalMora };
         } else {
             let resultado = this.obtenerDatosBasePagos();
 

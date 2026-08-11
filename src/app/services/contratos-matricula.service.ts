@@ -22,6 +22,9 @@ export interface ContratoMatricula {
   fecha_firma: string;
   fecha_inicio?: string; 
   fecha_fin: string;
+  // Dia del mes en que vence cada cuota (1-31). Sin dato se asume el dia 1,
+  // que es como se generaban los contratos antes de los intereses de mora.
+  dia_vencimiento?: number;
   lugar_firma: string;
   autoriza_imagenes: number;
   autoriza_pagare?: number;

@@ -310,6 +310,7 @@
                                 <th class="text-end">Valor</th>
                                 <th class="text-end" *ngIf="accion === 'crear'">Pagado</th>
                                 <th class="text-end" *ngIf="accion === 'crear'">Saldo</th>
+                                <th class="text-end">Mora</th>
                                 <th class="text-end">A pagar</th>
                                 <th class="text-center" *ngIf="accion === 'editar'">Estado</th>
                             </tr>
@@ -333,6 +334,13 @@
                                 <td class="text-end">{{ formatearMoneda(cuenta.valor) }}</td>
                                 <td class="text-end" *ngIf="accion === 'crear'">{{ formatearMoneda(cuenta.valor_pagado) }}</td>
                                 <td class="text-end" *ngIf="accion === 'crear'">{{ formatearMoneda(cuenta.saldo) }}</td>
+
+                                <td class="text-end">
+                                    <span *ngIf="cuenta.saldo_mora > 0" class="badge bg-danger">
+                                        {{ formatearMoneda(cuenta.saldo_mora) }}
+                                    </span>
+                                    <span *ngIf="!cuenta.saldo_mora || cuenta.saldo_mora <= 0">-</span>
+                                </td>
 
                                 <td class="text-end" [class.a-pagar-resaltado]="getCuentaAplicadaValor(cuenta.id) > 0">
                                     <div class="input-group input-group-sm">

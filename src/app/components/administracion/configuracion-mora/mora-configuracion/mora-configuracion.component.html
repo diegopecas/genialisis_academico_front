@@ -1,0 +1,158 @@
+<div class="modulo">
+  <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [accion]="'ConsultarTodos'"
+    [raiz]="'/administracion/financiero/mora-configuracion'" [regresar]="regresar"
+    [iconoTitulo]="'/assets/images/productos.png'"></app-header>
+
+  <!-- Condiciones a aplicar -->
+  <div class="container mt-4">
+    <div class="card">
+      <div class="card-body">
+        <h6 class="card-subtitle mb-3 text-muted">1. Defina la condición</h6>
+        <div class="row">
+          <div class="col-sm-12 col-md-4">
+            <label class="form-label">Tipo de mora</label>
+            <select class="form-select" [(ngModel)]="condiciones.id_tipo_mora">
+              <option [ngValue]="null">Seleccionar</option>
+              <ng-container *ngFor="let tm of listas.tiposMora">
+                <option [ngValue]="tm.id">{{ tm.nombre }}</option>
+              </ng-container>
+            </select>
+          </div>
+          <div class="col-sm-12 col-md-4" *ngIf="esRecargoFijo">
+            <label class="form-label">Valor del recargo</label>
+            <input type="number" class="form-control" [(ngModel)]="condiciones.valor_recargo" placeholder="Ej: 50000">
+          </div>
+          <div class="col-sm-12 col-md-4" *ngIf="esRecargoFijo">
+            <label class="form-label">¿Se acumula cada mes?</label>
+            <select class="form-select" [(ngModel)]="condiciones.recargo_acumulable">
+              <option [ngValue]="0">No, una sola vez</option>
+              <option [ngValue]="1">Sí, cada 1ro de mes</option>
+            </select>
+          </div>
+          <div class="col-sm-12 col-md-4" *ngIf="esPorcentaje">
+            <label class="form-label">Porcentaje mensual</label>
+            <input type="number" step="0.001" class="form-control" [(ngModel)]="condiciones.porcentaje_mensual" placeholder="Ej: 2">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="container mt-3">
+    <div class="card">
+      <div class="card-body">
+        <h6 class="card-subtitle mb-3 text-muted">2. Filtre y marque los productos</h6>
+        <div class="row g-2">
+          <div class="col-sm-12 col-md-4">
+            <input type="text" class="form-control" [(ngModel)]="filtros.texto" placeholder="Buscar por nombre...">
+          </div>
+          <div class="col-sm-6 col-md-4">
+            <select class="form-select" [(ngModel)]="filtros.id_clasificacion">
+              <option value="">Clasificación: todas</option>
+              <ng-container *ngFor="let c of listas.clasificaciones">
+                <option [value]="c.id">{{ c.nombre }}</option>
+              </ng-container>
+            </select>
+          </div>
+          <div class="col-sm-6 col-md-4">
+            <select class="form-select" [(ngModel)]="filtros.id_categoria">
+              <option value="">Categoría: todas</option>
+              <ng-container *ngFor="let c of listas.categorias">
+                <option [value]="c.id">{{ c.nombre }}</option>
+              </ng-container>
+            </select>
+          </div>
+          <div class="col-sm-6 col-md-4">
+            <select class="form-select" [(ngModel)]="filtros.id_periodicidad">
+              <option value="">Periodicidad: todas</option>
+              <ng-container *ngFor="let p of listas.periodicidades">
+                <option [value]="p.id">{{ p.nombre }}</option>
+              </ng-container>
+            </select>
+          </div>
+          <div class="col-sm-6 col-md-4">
+            <select class="form-select" [(ngModel)]="filtros.estado">
+              <option value="">Estado: todos</option>
+              <option value="1">Disponible</option>
+              <option value="0">No disponible</option>
+            </select>
+          </div>
+          <div class="col-sm-6 col-md-3">
+            <select class="form-select" [(ngModel)]="filtros.conMora">
+              <option value="">Mora: todos</option>
+              <option value="si">Con mora</option>
+              <option value="no">Sin mora</option>
+            </select>
+          </div>
+          <div class="col-sm-6 col-md-1">
+            <button class="btn btn-outline-secondary w-100" (click)="limpiarFiltros()" title="Limpiar filtros">✕</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabla -->
+  <div class="container mt-3">
+    <div *ngIf="cargando" class="text-center p-4">Cargando productos...</div>
+
+    <div class="table-responsive" *ngIf="!cargando">
+      <table class="table table-hover align-middle">
+        <thead class="table-light">
+          <tr>
+            <th style="width: 44px;">
+              <input type="checkbox" [checked]="todosVisiblesSeleccionados" (change)="toggleSeleccionarTodos()"
+                title="Seleccionar todos los visibles">
+            </th>
+            <th>Producto</th>
+            <th>Clasificación</th>
+            <th>Categoría</th>
+            <th>Periodicidad</th>
+            <th>Mora actual</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="productosFiltrados.length === 0">
+            <td colspan="7" class="text-center text-muted">No hay productos con esos filtros.</td>
+          </tr>
+          <tr *ngFor="let p of productosFiltrados" (click)="toggleSeleccion(p.id_producto_servicio)"
+              [class.table-warning]="estaSeleccionado(p.id_producto_servicio)" style="cursor: pointer;">
+            <td>
+              <input type="checkbox" [checked]="estaSeleccionado(p.id_producto_servicio)"
+                (click)="$event.stopPropagation()" (change)="toggleSeleccion(p.id_producto_servicio)">
+            </td>
+            <td>{{ p.nombre }}</td>
+            <td>{{ p.nombre_clasificacion }}</td>
+            <td>{{ p.nombre_categoria }}</td>
+            <td>{{ p.nombre_periodicidad }}</td>
+            <td>
+              <span class="badge" [class.bg-danger]="p.id_tipo_mora" [class.bg-secondary]="!p.id_tipo_mora">
+                {{ p.mora_texto }}
+              </span>
+            </td>
+            <td>{{ p.disponible == 1 ? 'Disponible' : 'No disponible' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Acciones -->
+  <div class="container mt-3 mb-5">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <span class="text-muted">
+        {{ totalSeleccionados }} seleccionado(s) de {{ productosFiltrados.length }} visible(s)
+      </span>
+      <div class="d-flex gap-2">
+        <button class="btn btn-outline-danger" (click)="quitar()" [disabled]="guardando || totalSeleccionados === 0">
+          Quitar mora
+        </button>
+        <button class="btn btn-warning" (click)="aplicar()" [disabled]="guardando || totalSeleccionados === 0">
+          {{ guardando ? 'Aplicando...' : 'Aplicar a seleccionados' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

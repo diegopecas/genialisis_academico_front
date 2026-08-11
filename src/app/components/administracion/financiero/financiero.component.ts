@@ -44,6 +44,15 @@ export class FinancieroComponent {
       case 'reglas-cobro':
         this.router.navigate(['/administracion/financiero/reglas-cobro-automatico']);
         break;
+      case 'mora-configuracion':
+        this.router.navigate(['/administracion/financiero/mora-configuracion']);
+        break;
+      case 'mora-exenciones':
+        this.router.navigate(['/administracion/financiero/mora-exenciones']);
+        break;
+      case 'mora-ejecuciones':
+        this.router.navigate(['/administracion/financiero/mora-ejecuciones']);
+        break;
     }
   }
 }

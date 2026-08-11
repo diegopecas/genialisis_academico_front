@@ -1,0 +1,82 @@
+<div class="modulo">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="false"
+    [accion]="'ConsultarTodos'"
+    [raiz]="'/administracion/financiero/mora-ejecuciones'"
+    [regresar]="'/administracion/financiero'"
+    [iconoTitulo]="'/assets/images/productos.png'"
+  ></app-header>
+
+  <div class="container mt-4">
+    <div class="row" *ngIf="faltaFechaArranque">
+      <div class="col-12">
+        <div class="alert alert-warning">
+          No hay <b>fecha de arranque</b> configurada, así que el proceso no está causando mora.
+          Debe fijarse la clave <code>mora_fecha_arranque</code> en la configuración global.
+        </div>
+      </div>
+    </div>
+
+    <div class="row" *ngIf="cronRetrasado">
+      <div class="col-12">
+        <div class="alert alert-danger">
+          El proceso lleva <b>{{ estado.dias_sin_correr }} días</b> sin correr. Revise el cron del servidor.
+        </div>
+      </div>
+    </div>
+
+    <div class="row" *ngIf="estado?.ultima_ejecucion">
+      <div class="col-sm-12 col-md-3">
+        <div class="card mb-3">
+          <div class="card-body">
+            <h6 class="card-subtitle mb-2 text-muted">Último corte</h6>
+            <h4 class="card-title mb-0">{{ estado.ultima_ejecucion.fecha_corte }}</h4>
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-12 col-md-3">
+        <div class="card mb-3">
+          <div class="card-body">
+            <h6 class="card-subtitle mb-2 text-muted">¿Corrió hoy?</h6>
+            <h4 class="card-title mb-0">{{ estado.corrio_hoy ? 'Sí' : 'No' }}</h4>
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-12 col-md-3">
+        <div class="card mb-3">
+          <div class="card-body">
+            <h6 class="card-subtitle mb-2 text-muted">Cuentas con mora</h6>
+            <h4 class="card-title mb-0">{{ estado.ultima_ejecucion.cuentas_con_mora }}</h4>
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-12 col-md-3">
+        <div class="card mb-3">
+          <div class="card-body">
+            <h6 class="card-subtitle mb-2 text-muted">Mora causada</h6>
+            <h4 class="card-title mb-0">${{ estado.ultima_ejecucion.valor_total_causado | number:'1.0-0' }}</h4>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Barra de acciones: alineada a la derecha, no como bloque suelto -->
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+      <small class="text-muted">
+        El proceso corre automáticamente todos los días a la 1:00 a.m.
+      </small>
+      <button class="btn btn-warning" (click)="liquidarAhora()" [disabled]="liquidando">
+        {{ liquidando ? 'Liquidando...' : 'Liquidar ahora' }}
+      </button>
+    </div>
+  </div>
+
+  <app-tablas
+    [titulos]="titulos"
+    [datos]="datos"
+    [raiz]="'/administracion/financiero/mora-ejecuciones'"
+    [accionEditar]="false"
+    [mostrarBuscar]="true"
+  ></app-tablas>
+</div>
