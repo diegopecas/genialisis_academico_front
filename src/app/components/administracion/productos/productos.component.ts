@@ -105,7 +105,7 @@ export class ProductosComponent implements OnInit {
         this.verMovimientos($event.registro.id);
         break;
       case 'editar':
-        this.router.navigate(['administracion/productos/editar/' + $event.registro.id]);
+        this.router.navigate(['administracion/datos-maestros/productos/editar/' + $event.registro.id]);
         break;
       case 'eliminar':
         this.eliminarProducto($event.registro);

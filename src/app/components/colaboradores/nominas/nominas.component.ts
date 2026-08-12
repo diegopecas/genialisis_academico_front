@@ -126,10 +126,10 @@ export class NominasComponent implements OnInit {
 
     switch (accion) {
       case 'consultar':
-        this.router.navigate(['administracion/nominas/consultar', item.id]);
+        this.router.navigate(['colaboradores/nominas/consultar', item.id]);
         break;
       case 'editar':
-        this.router.navigate(['administracion/nominas/editar', item.id]);
+        this.router.navigate(['colaboradores/nominas/editar', item.id]);
         break;
       case 'eliminar':
         this.eliminarNomina(item);

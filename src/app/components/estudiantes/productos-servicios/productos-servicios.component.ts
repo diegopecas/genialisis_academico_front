@@ -236,7 +236,7 @@ export class ProductosServiciosComponent implements OnInit {
   }
   seleccionar(event: any) {
     if (event.accion === 'editar') {
-      this.router.navigate(['estudiantes-productos-servicios/editar/' + event.id + '/' + this.idEstudiante]);
+      this.router.navigate(['estudiantes/productos-servicios/editar/' + event.id + '/' + this.idEstudiante]);
     }
     if (event.accion === 'eliminar') {
       // Verificar si el registro tiene valores pagados
@@ -252,7 +252,7 @@ export class ProductosServiciosComponent implements OnInit {
       this.eliminar(event.id, event.registro);
     }
     if (event.accion === 'consultar') {
-      this.router.navigate(['estudiantes-productos-servicios/consultar/' + event.id + '/' + this.idEstudiante]);
+      this.router.navigate(['estudiantes/productos-servicios/consultar/' + event.id + '/' + this.idEstudiante]);
     }
   }
 

@@ -88,7 +88,7 @@ export class ConfiguracionGlobalComponent implements OnInit {
     console.log("Acción", $event);
     switch ($event.accion) {
       case 'editar':
-        this.router.navigate(['administracion/configuracion/configuracion-global/editar/' + $event.registro.id]);
+        this.router.navigate(['administracion/datos-maestros/configuracion-global/editar/' + $event.registro.id]);
         break;
     }
   }

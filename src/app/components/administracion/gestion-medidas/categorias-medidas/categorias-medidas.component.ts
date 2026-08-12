@@ -59,7 +59,7 @@ export class CategoriasMedidasComponent implements OnInit {
   clicAccion($event: any) {
     switch ($event.accion) {
       case 'editar':
-        this.router.navigate(['administracion/gestion-medidas/categorias/editar/' + $event.registro.id]);
+        this.router.navigate(['administracion/datos-maestros/gestion-medidas/categorias/editar/' + $event.registro.id]);
         break;
       case 'eliminar':
         this.eliminar($event.registro);

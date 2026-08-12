@@ -66,7 +66,7 @@ export class EntesControlComponent implements OnInit {
   clicAccion($event: any) {
     switch ($event.accion) {
       case 'editar':
-        this.router.navigate(['administracion/entes-control/editar/' + $event.registro.id]);
+        this.router.navigate(['administracion/operaciones/entes-control/editar/' + $event.registro.id]);
         break;
       case 'eliminar':
         this.eliminarEnteControl($event.registro);

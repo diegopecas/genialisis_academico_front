@@ -299,12 +299,12 @@ export class ReportePagosRecibidosComponent implements OnInit {
 
     if (event.accion === 'editar') {
       if (esColaborador) {
-        this.router.navigate(['colaboradores-pagos-recibidos/editar/' + event.id + '/' + event.registro.id_colaborador], {
+        this.router.navigate(['colaboradores/pagos-recibidos/editar/' + event.id + '/' + event.registro.id_colaborador], {
           queryParams: { origen: 'reporte' }
         });
       } else {
         const idEstudiante = event.registro.id_estudiante || '0';
-        this.router.navigate(['estudiantes-pagos/editar/' + event.id + '/' + idEstudiante], {
+        this.router.navigate(['estudiantes/pagos/editar/' + event.id + '/' + idEstudiante], {
           queryParams: { origen: 'reporte' }
         });
       }
@@ -314,12 +314,12 @@ export class ReportePagosRecibidosComponent implements OnInit {
     }
     else if (event.accion === 'consultar') {
       if (esColaborador) {
-        this.router.navigate(['colaboradores-pagos-recibidos/consultar/' + event.id + '/' + event.registro.id_colaborador], {
+        this.router.navigate(['colaboradores/pagos-recibidos/consultar/' + event.id + '/' + event.registro.id_colaborador], {
           queryParams: { origen: 'reporte' }
         });
       } else {
         const idEstudiante = event.registro.id_estudiante || '0';
-        this.router.navigate(['estudiantes-pagos/consultar/' + event.id + '/' + idEstudiante], {
+        this.router.navigate(['estudiantes/pagos/consultar/' + event.id + '/' + idEstudiante], {
           queryParams: { origen: 'reporte' }
         });
       }
@@ -423,7 +423,7 @@ export class ReportePagosRecibidosComponent implements OnInit {
           Swal.close();
 
           if (response && response.body) {
-            this.router.navigate(['colaboradores-pagos-recibidos/comprobante', id], {
+            this.router.navigate(['colaboradores/pagos-recibidos/comprobante', id], {
               queryParams: { origen: 'reporte' }
             });
           } else {
@@ -452,7 +452,7 @@ export class ReportePagosRecibidosComponent implements OnInit {
           Swal.close();
 
           if (response && response.body) {
-            this.router.navigate(['estudiantes-pagos/comprobante', id], {
+            this.router.navigate(['estudiantes/pagos/comprobante', id], {
               queryParams: { origen: 'reporte' }
             });
           } else {

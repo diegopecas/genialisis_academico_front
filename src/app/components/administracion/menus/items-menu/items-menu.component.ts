@@ -95,10 +95,10 @@ export class ItemsMenuComponent implements OnInit {
 
     switch ($event.accion) {
       case 'consultar':
-        this.router.navigate(['administracion/items-menu/consultar/' + item.id]);
+        this.router.navigate(['administracion/datos-maestros/menus/items/consultar/' + item.id]);
         break;
       case 'editar':
-        this.router.navigate(['administracion/items-menu/editar/' + item.id]);
+        this.router.navigate(['administracion/datos-maestros/menus/items/editar/' + item.id]);
         break;
       case 'eliminar':
         this.eliminarItem(item);

@@ -49,7 +49,7 @@ export class TiposDatosAdicionalesComponent implements OnInit {
   clicAccion($event: any) {
     switch ($event.accion) {
       case 'editar':
-        this.router.navigate(['administracion/datos-estudiantes/tipos-datos-adicionales/editar/' + $event.registro.id]);
+        this.router.navigate(['administracion/datos-maestros/datos-estudiantes/tipos-datos-adicionales/editar/' + $event.registro.id]);
         break;
       case 'eliminar':
         this.eliminar($event.registro);

@@ -536,6 +536,6 @@ export class MaquinaActividadesComponent implements OnInit {
   }
 
   volver() {
-    this.router.navigate(['academico/selector-actividades']);
+    this.router.navigate(['academico/actividades']);
   }
 }

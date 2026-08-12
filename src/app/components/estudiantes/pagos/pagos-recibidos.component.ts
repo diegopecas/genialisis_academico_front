@@ -317,13 +317,13 @@ export class PagosRecibidosComponent implements OnInit {
 
     // Proceder con las acciones normales
     if (event.accion === 'editar') {
-      this.router.navigate(['estudiantes-pagos/editar/' + event.id + '/' + this.idEstudiante]);
+      this.router.navigate(['estudiantes/pagos/editar/' + event.id + '/' + this.idEstudiante]);
     }
     else if (event.accion === 'eliminar') {
       this.anularPago(event.id, event.registro);
     }
     else if (event.accion === 'consultar') {
-      this.router.navigate(['estudiantes-pagos/consultar/' + event.id + '/' + this.idEstudiante]);
+      this.router.navigate(['estudiantes/pagos/consultar/' + event.id + '/' + this.idEstudiante]);
     } else if (event.accion === 'contabilizar') {
       this.contablilziarPago(event.id, event.registro);
     } else if (event.accion === 'imprimir') {
@@ -540,7 +540,7 @@ export class PagosRecibidosComponent implements OnInit {
         
         if (response && response.body) {
           // Simplemente navegar a la página del comprobante
-          this.router.navigate(['estudiantes-pagos/comprobante', id]);
+          this.router.navigate(['estudiantes/pagos/comprobante', id]);
         } else {
           Swal.fire({
             title: 'Error',

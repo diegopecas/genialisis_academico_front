@@ -517,5 +517,5 @@ export class CrearActividadesManualComponent implements OnInit {
     return tipo?.icono || '📌';
   }
 
-  volver() { this.router.navigate(['academico/selector-actividades']); }
+  volver() { this.router.navigate(['academico/actividades']); }
 }

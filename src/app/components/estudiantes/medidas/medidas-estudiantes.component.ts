@@ -110,13 +110,13 @@ export class MedidasEstudiantesComponent {
 
   seleccionar(event: any) {
     if (event.accion === 'editar') {
-      this.router.navigate(['estudiantes-medidas/editar/' + event.id + '/' + this.idEstudiante]);
+      this.router.navigate(['estudiantes/medidas/editar/' + event.id + '/' + this.idEstudiante]);
     }
     if (event.accion === 'eliminar') {
       this.eliminar(event.id, event.registro);
     }
     if (event.accion === 'consultar') {
-      this.router.navigate(['estudiantes-medidas/consultar/' + event.id + '/' + this.idEstudiante]);
+      this.router.navigate(['estudiantes/medidas/consultar/' + event.id + '/' + this.idEstudiante]);
     }
   }
 

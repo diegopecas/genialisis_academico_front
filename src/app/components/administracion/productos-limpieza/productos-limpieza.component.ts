@@ -74,7 +74,7 @@ export class ProductosLimpiezaComponent implements OnInit {
     console.log("Acción", $event);
     switch ($event.accion) {
       case 'editar':
-        this.router.navigate(['administracion/productos-limpieza/editar/' + $event.registro.id]);
+        this.router.navigate(['administracion/datos-maestros/productos-limpieza/editar/' + $event.registro.id]);
         break;
       case 'eliminar':
         this.eliminarProductoLimpieza($event.registro);

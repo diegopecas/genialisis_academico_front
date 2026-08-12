@@ -51,7 +51,7 @@ export class UnidadesMedidasCorporalesComponent implements OnInit {
   clicAccion($event: any) {
     switch ($event.accion) {
       case 'editar':
-        this.router.navigate(['administracion/gestion-medidas/unidades/editar/' + $event.registro.id]);
+        this.router.navigate(['administracion/datos-maestros/gestion-medidas/unidades/editar/' + $event.registro.id]);
         break;
       case 'eliminar':
         this.eliminar($event.registro);

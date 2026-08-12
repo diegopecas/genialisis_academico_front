@@ -599,7 +599,7 @@ export class CrearActividadesAcademicasComponent implements OnInit, OnDestroy, A
             confirmButtonText: "Aceptar",
             confirmButtonColor: '#F5A623'
           }).then(() => {
-            this.router.navigate(['academico/actividades-academicas/']);
+            this.router.navigate(['academico/actividades/gestion']);
           });
         } else {
           Swal.fire({
@@ -700,11 +700,11 @@ export class CrearActividadesAcademicasComponent implements OnInit, OnDestroy, A
         cancelButtonText: 'Cancelar'
       }).then((result) => {
         if (result.isConfirmed) {
-          this.router.navigate(['academico/actividades-academicas/']);
+          this.router.navigate(['academico/actividades/gestion']);
         }
       });
     } else {
-      this.router.navigate(['academico/actividades-academicas/']);
+      this.router.navigate(['academico/actividades/gestion']);
     }
   }
 

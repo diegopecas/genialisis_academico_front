@@ -67,7 +67,7 @@ export class ConfiguracionIaComponent implements OnInit {
     console.log("Acción", $event);
     switch ($event.accion) {
       case 'editar':
-        this.router.navigate(['administracion/configuracion-ia/editar/' + $event.registro.id]);
+        this.router.navigate(['administracion/datos-maestros/configuracion-ia/editar/' + $event.registro.id]);
         break;
     }
   }

@@ -104,7 +104,7 @@ export class ConfiguracionGoogleComponent implements OnInit {
   clicAccion($event: any) {
     switch ($event.accion) {
       case 'editar':
-        this.router.navigate(['administracion/configuracion-google/editar/' + $event.registro.id]);
+        this.router.navigate(['administracion/datos-maestros/configuracion-google/editar/' + $event.registro.id]);
         break;
     }
   }

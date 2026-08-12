@@ -199,10 +199,10 @@ export class ListaMenusComponent implements OnInit {
     
     switch ($event.accion) {
       case 'consultar':
-        this.router.navigate(['administracion/lista-menus/consultar/' + menu.id]);
+        this.router.navigate(['administracion/datos-maestros/menus/lista/consultar/' + menu.id]);
         break;
       case 'editar':
-        this.router.navigate(['administracion/lista-menus/editar/' + menu.id]);
+        this.router.navigate(['administracion/datos-maestros/menus/lista/editar/' + menu.id]);
         break;
       case 'eliminar':
         this.eliminarMenu(menu);

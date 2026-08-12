@@ -89,7 +89,7 @@ export class TiposDocumentosComponent implements OnInit {
     console.log("Acción", $event);
     switch ($event.accion) {
       case 'editar':
-        this.router.navigate(['administracion/tipos-documentos/editar/' + $event.registro.id]);
+        this.router.navigate(['administracion/datos-maestros/tipos-documentos/editar/' + $event.registro.id]);
         break;
       case 'eliminar':
         this.eliminarTipoDocumento($event.registro);

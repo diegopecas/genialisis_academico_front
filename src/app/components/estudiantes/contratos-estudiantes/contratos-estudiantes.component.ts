@@ -139,10 +139,10 @@ export class ContratosEstudiantesComponent {
   seleccionar(event: any) {
     switch (event.accion) {
       case 'consultar':
-        this.router.navigate(['estudiantes-contratos/consultar/' + event.id + '/' + this.idEstudiante]);
+        this.router.navigate(['estudiantes/contratos/consultar/' + event.id + '/' + this.idEstudiante]);
         break;
       case 'editar':
-        this.router.navigate(['estudiantes-contratos/editar/' + event.id + '/' + this.idEstudiante]);
+        this.router.navigate(['estudiantes/contratos/editar/' + event.id + '/' + this.idEstudiante]);
         break;
       case 'eliminar':
         this.anularContrato(event.id, event.registro);

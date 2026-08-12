@@ -226,7 +226,7 @@ export class ColaboradoresProductosServiciosComponent implements OnInit {
 
   seleccionar(event: any) {
     if (event.accion === 'editar') {
-      this.router.navigate(['colaboradores-productos-servicios/editar/' + event.id + '/' + this.idColaborador]);
+      this.router.navigate(['colaboradores/productos-servicios/editar/' + event.id + '/' + this.idColaborador]);
     }
     if (event.accion === 'eliminar') {
       // Verificar si el registro tiene valores pagados
@@ -242,7 +242,7 @@ export class ColaboradoresProductosServiciosComponent implements OnInit {
       this.eliminar(event.id, event.registro);
     }
     if (event.accion === 'consultar') {
-      this.router.navigate(['colaboradores-productos-servicios/consultar/' + event.id + '/' + this.idColaborador]);
+      this.router.navigate(['colaboradores/productos-servicios/consultar/' + event.id + '/' + this.idColaborador]);
     }
   }
 

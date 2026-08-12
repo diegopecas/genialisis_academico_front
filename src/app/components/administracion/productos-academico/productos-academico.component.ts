@@ -86,13 +86,13 @@ export class ProductosAcademicoComponent implements OnInit {
   clicAccion($event: any) {
     switch ($event.accion) {
       case 'editar':
-        this.router.navigate(['administracion/productos-academico/editar/' + $event.registro.id]);
+        this.router.navigate(['administracion/datos-maestros/productos-academico/editar/' + $event.registro.id]);
         break;
       case 'eliminar':
         this.eliminarProductoAcademico($event.registro);
         break;
       case 'consultar':
-        this.router.navigate(['administracion/productos-academico/consultar/' + $event.registro.id]);
+        this.router.navigate(['administracion/datos-maestros/productos-academico/consultar/' + $event.registro.id]);
         break;
     }
   }

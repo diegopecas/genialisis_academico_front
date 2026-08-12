@@ -278,13 +278,13 @@ export class ColaboradoresPagosRecibidosComponent implements OnInit {
 
     // Proceder con las acciones normales
     if (event.accion === 'editar') {
-      this.router.navigate(['colaboradores-pagos-recibidos/editar/' + event.id + '/' + this.idColaborador]);
+      this.router.navigate(['colaboradores/pagos-recibidos/editar/' + event.id + '/' + this.idColaborador]);
     }
     else if (event.accion === 'eliminar') {
       this.anularPago(event.id, event.registro);
     }
     else if (event.accion === 'consultar') {
-      this.router.navigate(['colaboradores-pagos-recibidos/consultar/' + event.id + '/' + this.idColaborador]);
+      this.router.navigate(['colaboradores/pagos-recibidos/consultar/' + event.id + '/' + this.idColaborador]);
     } else if (event.accion === 'contabilizar') {
       this.contabilizarPago(event.id, event.registro);
     } else if (event.accion === 'imprimir') {
@@ -461,7 +461,7 @@ export class ColaboradoresPagosRecibidosComponent implements OnInit {
         Swal.close();
         
         if (response && response.body) {
-          this.router.navigate(['colaboradores-pagos-recibidos/comprobante', id]);
+          this.router.navigate(['colaboradores/pagos-recibidos/comprobante', id]);
         } else {
           Swal.fire({
             title: 'Error',

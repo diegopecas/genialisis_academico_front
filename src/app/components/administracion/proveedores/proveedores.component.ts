@@ -113,7 +113,7 @@ export class ProveedoresComponent implements OnInit {
         this.verProductos($event.registro.id);
         break;
       case 'editar':
-        this.router.navigate(['administracion/proveedores/editar/' + $event.registro.id]);
+        this.router.navigate(['administracion/datos-maestros/proveedores/editar/' + $event.registro.id]);
         break;
       case 'eliminar':
         this.eliminarProveedor($event.registro);

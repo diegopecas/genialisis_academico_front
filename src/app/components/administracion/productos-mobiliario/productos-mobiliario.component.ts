@@ -88,7 +88,7 @@ export class ProductosMobiliarioComponent implements OnInit {
     console.log("Acción", $event);
     switch ($event.accion) {
       case 'editar':
-        this.router.navigate(['administracion/productos-mobiliario/editar/' + $event.registro.id]);
+        this.router.navigate(['administracion/datos-maestros/productos-mobiliario/editar/' + $event.registro.id]);
         break;
       case 'eliminar':
         this.eliminarElementoFisico($event.registro);

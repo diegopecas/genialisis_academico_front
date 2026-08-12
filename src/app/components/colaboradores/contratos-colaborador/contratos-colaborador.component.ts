@@ -109,7 +109,7 @@ export class ContratosColaboradorComponent implements OnInit {
   accionTabla(event: any): void {
     if (event.accion === 'editar') {
       this.router.navigate([
-        'colaboradores-contratos/editar/' + event.id + '/' + this.idColaborador,
+        'colaboradores/contratos/editar/' + event.id + '/' + this.idColaborador,
       ]);
     }
     if (event.accion === 'eliminar') {

@@ -58,7 +58,7 @@ export class CargosComponent implements OnInit {
     console.log("Acción", $event);
     switch ($event.accion) {
       case 'editar':
-        this.router.navigate(['administracion/cargos/editar/' + $event.registro.id]);
+        this.router.navigate(['administracion/datos-maestros/cargos/editar/' + $event.registro.id]);
         break;
       case 'eliminar':
         this.eliminarCargo($event.registro);

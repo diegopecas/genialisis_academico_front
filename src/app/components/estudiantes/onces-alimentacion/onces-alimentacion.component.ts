@@ -215,7 +215,7 @@ export class OncesAlimentacionComponent {
 
   seleccionar(event: any) {
     if (event.accion === 'editar') {
-      this.router.navigate(['estudiantes-onces/editar/' + event.id + '/' + this.idEstudiante]);
+      this.router.navigate(['estudiantes/onces/editar/' + event.id + '/' + this.idEstudiante]);
     }
     if (event.accion === 'eliminar') {
       // Verificar si el registro tiene valores pagados
@@ -231,7 +231,7 @@ export class OncesAlimentacionComponent {
       this.eliminar(event.id, event.registro);
     }
     if (event.accion === 'consultar') {
-      this.router.navigate(['estudiantes-onces/consultar/' + event.id + '/' + this.idEstudiante]);
+      this.router.navigate(['estudiantes/onces/consultar/' + event.id + '/' + this.idEstudiante]);
     }
   }
 

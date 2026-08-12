@@ -98,13 +98,13 @@ export class ProductosAlimentacionComponent implements OnInit {
     console.log("Acción", $event);
     switch ($event.accion) {
       case 'editar':
-        this.router.navigate(['administracion/productos-alimentacion/editar/' + $event.registro.id]);
+        this.router.navigate(['administracion/datos-maestros/productos-alimentacion/editar/' + $event.registro.id]);
         break;
       case 'eliminar':
         this.eliminarProductoAlimentacion($event.registro);
         break;
       case 'consultar':
-        this.router.navigate(['administracion/productos-alimentacion/consultar/' + $event.registro.id]);
+        this.router.navigate(['administracion/datos-maestros/productos-alimentacion/consultar/' + $event.registro.id]);
         break;
     }
   }

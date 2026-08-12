@@ -88,7 +88,7 @@ export class AreasFisicasComponent implements OnInit {
     console.log("Acción", $event);
     switch ($event.accion) {
       case 'editar':
-        this.router.navigate(['administracion/areas-fisicas/editar/' + $event.registro.id]);
+        this.router.navigate(['administracion/datos-maestros/areas-fisicas/editar/' + $event.registro.id]);
         break;
       case 'eliminar':
         this.eliminarAreaFisica($event.registro);

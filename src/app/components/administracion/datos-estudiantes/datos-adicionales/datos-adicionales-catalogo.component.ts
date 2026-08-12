@@ -56,7 +56,7 @@ export class DatosAdicionalesCatalogoComponent implements OnInit {
   clicAccion($event: any) {
     switch ($event.accion) {
       case 'editar':
-        this.router.navigate(['administracion/datos-estudiantes/datos-adicionales/editar/' + $event.registro.id]);
+        this.router.navigate(['administracion/datos-maestros/datos-estudiantes/datos-adicionales/editar/' + $event.registro.id]);
         break;
       case 'eliminar':
         this.eliminar($event.registro);
