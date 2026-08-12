@@ -37,3 +37,5 @@ ng build --configuration production
 
 ## Compilar genialisis
 ng build --configuration genialisis
+ng build --configuration genialisis --output-path=dist/prod
+ng build --configuration qa --output-path=dist/qa
