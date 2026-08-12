@@ -100,7 +100,7 @@
       </div>
 
       <!-- Estudiantes -->
-      <div class="col-lg-3 col-md-6 mb-4" *ngIf="tieneAlguno(['reportes.asistencia', 'reportes.estudiantes_general', 'reportes.tamizajes'])">
+      <div class="col-lg-3 col-md-6 mb-4" *ngIf="tieneAlguno(['reportes.asistencia', 'reportes.estudiantes_general'])">
         <div
           class="card-maestro menu-principal"
           [class.active]="menuActivo === 'estudiantes'"
@@ -112,7 +112,7 @@
             </div>
             <h3 class="card-titulo">Estudiantes</h3>
             <p class="card-descripcion">
-              Información general, asistencia y tamizajes
+              Información general y asistencia
             </p>
             <div class="card-footer-custom">
               <span class="link-accion"
@@ -145,15 +145,6 @@
                     alt="Reporte Asistencia"
                   />
                   <span>Reporte Asistencia</span>
-                </div>
-              </div>
-              <div class="col-12" *ngIf="permisosService.tienePermiso('reportes.tamizajes')">
-                <div
-                  class="submenu-item"
-                  (click)="seleccionarOpcion('tamizajes', $event)"
-                >
-                  <img src="assets/images/tamizajes.png" alt="Tamizajes" />
-                  <span>Tamizajes de Desarrollo</span>
                 </div>
               </div>
             </div>

@@ -50,9 +50,6 @@ export class ReportesComponent {
       case 'asistencia':
         this.router.navigate(['/reportes/asistencia']);
         break;
-      case 'tamizajes':
-        this.router.navigate(['/reportes/tamizajes']);
-        break;
       // Financiero
       case 'cartera':
         this.router.navigate(['/reportes/cartera']);

@@ -180,7 +180,6 @@ export class MenuArbolService {
               { id: 'reportes-estudiantes-general', label: 'Reporte Estudiantes', icono: '📋', ruta: '/reportes/estudiantes-general', permiso: 'reportes.estudiantes_general', keywords: ['listado estudiantes', 'alumnos'] },
               { id: 'reportes-asistencia', label: 'Reporte Asistencia', icono: '✋', ruta: '/reportes/asistencia', permiso: 'reportes.asistencia', keywords: ['faltas', 'inasistencia'] },
               { id: 'reportes-alimentacion', label: 'Reporte Alimentación', icono: '🍎', ruta: '/reportes/alimentacion', permiso: 'reportes.alimentacion', keywords: ['comida', 'onces', 'refrigerios'] },
-              { id: 'reportes-tamizajes', label: 'Tamizajes', icono: '🔬', ruta: '/reportes/tamizajes', permiso: 'reportes.tamizajes', keywords: ['salud', 'valoracion'] },
               { id: 'reportes-ejecucion-tareas', label: 'Ejecución de Tareas', icono: '📊', ruta: '/reportes/ejecucion-tareas', permiso: 'reportes.ejecucion_tareas' }
             ]
           }
