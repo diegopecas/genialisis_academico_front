@@ -177,101 +177,76 @@
         <span>Valores del Contrato</span>
       </div>
       <div class="card-body-simple">
-        <!-- Tarifas sugeridas -->
-        <div *ngIf="tarifaGrupo" class="alert alert-info mb-3">
-          <i class="fas fa-info-circle me-2"></i>
-          <strong>Tarifas base para {{ tarifaGrupo.nombre_grupo }} año {{ model.anio }}:</strong>
-          Matrícula {{ formatearMoneda(matriculaBase) }} • Pensión {{ formatearMoneda(pensionBase) }}
-        </div>
-        <div *ngIf="!tarifaGrupo && model.anio && estudiante" class="alert alert-warning mb-3">
+        <!-- Tarifas del grupo -->
+        <div *ngIf="tarifaGrupo.length === 0 && model.anio && estudiante" class="alert alert-warning mb-3">
           <i class="fas fa-exclamation-triangle me-2"></i>
           No hay tarifas configuradas para este grupo en el año {{ model.anio }}.
         </div>
 
-        <!-- Ajustes de Valores -->
-        <div *ngIf="tarifaGrupo" class="card border mb-3">
+        <!-- Productos del contrato -->
+        <div *ngIf="lineas.length > 0" class="card border mb-3">
           <div class="card-header bg-light py-2 d-flex justify-content-start align-items-center">
             <i class="fas fa-sliders-h me-2"></i>
-            <strong>Ajustes de Valores</strong>
+            <strong>Productos del contrato</strong>
           </div>
           <div class="card-body">
+            <p class="text-muted small mb-3">
+              El descuento y el recargo son por producto. En las pensiones el valor es el de un mes.
+            </p>
+            <div class="table-responsive">
+              <table class="table table-sm table-bordered align-middle tabla-lineas">
+                <thead class="table-light">
+                  <tr>
+                    <th style="width: 50px;" class="text-center">Incluir</th>
+                    <th>Producto</th>
+                    <th style="width: 110px;">Tipo</th>
+                    <th style="width: 140px;" class="text-end">Valor base</th>
+                    <th style="width: 150px;" class="text-end">Descuento</th>
+                    <th style="width: 150px;" class="text-end">Recargo</th>
+                    <th style="width: 150px;" class="text-end">Valor final</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let linea of lineas" [class.table-secondary]="!linea.seleccionado">
+                    <td class="text-center">
+                      <input class="form-check-input" type="checkbox" [checked]="linea.seleccionado"
+                        [disabled]="!editable || linea.obligatorio === 1"
+                        (change)="toggleLinea(linea)" />
+                    </td>
+                    <td>
+                      <strong>{{ linea.nombre_producto }}</strong>
+                      <span *ngIf="linea.obligatorio === 1" class="badge bg-secondary ms-2">Obligatorio</span>
+                      <small class="text-muted d-block" *ngIf="linea.nombre_periodicidad">
+                        {{ linea.nombre_periodicidad }}
+                      </small>
+                    </td>
+                    <td>
+                      <span class="badge bg-light text-dark">{{ linea.nombre_tipo_cobro || linea.codigo_tipo_cobro }}</span>
+                    </td>
+                    <td class="text-end">{{ formatearMoneda(linea.valor_base) }}</td>
+                    <td>
+                      <div class="input-group input-group-sm">
+                        <span class="input-group-text">$</span>
+                        <input type="text" class="form-control text-end" [value]="linea.descuentoFormateado"
+                          (input)="onDescuentoLineaInput($event, linea)" placeholder="0"
+                          [disabled]="!editable || !linea.seleccionado" />
+                      </div>
+                    </td>
+                    <td>
+                      <div class="input-group input-group-sm">
+                        <span class="input-group-text">$</span>
+                        <input type="text" class="form-control text-end" [value]="linea.recargoFormateado"
+                          (input)="onRecargoLineaInput($event, linea)" placeholder="0"
+                          [disabled]="!editable || !linea.seleccionado" />
+                      </div>
+                    </td>
+                    <td class="text-end fw-bold">{{ formatearMoneda(linea.valor_final) }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
             <div class="row g-3">
-              <!-- Columna Matrícula -->
-              <div class="col-md-6">
-                <div class="border rounded p-3 h-100">
-                  <h6 class="mb-3 text-primary text-start">
-                    <i class="fas fa-graduation-cap me-2"></i>Matrícula
-                  </h6>
-                  <div class="row g-2">
-                    <div class="col-12">
-                      <label class="form-label small text-muted mb-1">Valor Base</label>
-                      <div class="form-control-plaintext fw-bold">{{ formatearMoneda(matriculaBase) }}</div>
-                    </div>
-                    <div class="col-6">
-                      <label class="form-label small text-muted mb-1">
-                        <i class="fas fa-minus-circle text-success me-1"></i>Descuento
-                      </label>
-                      <div class="input-group">
-                        <span class="input-group-text">$</span>
-                        <input type="text" class="form-control text-end" [value]="formateados.descuentoMatricula"
-                          (input)="onDescuentoMatriculaInput($event)" placeholder="0" [disabled]="!editable" />
-                      </div>
-                    </div>
-                    <div class="col-6">
-                      <label class="form-label small text-muted mb-1">
-                        <i class="fas fa-plus-circle text-danger me-1"></i>Recargo
-                      </label>
-                      <div class="input-group">
-                        <span class="input-group-text">$</span>
-                        <input type="text" class="form-control text-end" [value]="formateados.recargoMatricula"
-                          (input)="onRecargoMatriculaInput($event)" placeholder="0" [disabled]="!editable" />
-                      </div>
-                    </div>
-                    <div class="col-12">
-                      <label class="form-label small text-muted mb-1">Valor Final</label>
-                      <div class="form-control bg-light fw-bold text-end py-2">{{ formatearMoneda(matriculaFinal) }}</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <!-- Columna Pensión -->
-              <div class="col-md-6">
-                <div class="border rounded p-3 h-100">
-                  <h6 class="mb-3 text-primary text-start">
-                    <i class="fas fa-calendar-alt me-2"></i>Pensión Mensual
-                  </h6>
-                  <div class="row g-2">
-                    <div class="col-12">
-                      <label class="form-label small text-muted mb-1">Valor Base</label>
-                      <div class="form-control-plaintext fw-bold">{{ formatearMoneda(pensionBase) }}</div>
-                    </div>
-                    <div class="col-6">
-                      <label class="form-label small text-muted mb-1">
-                        <i class="fas fa-minus-circle text-success me-1"></i>Descuento
-                      </label>
-                      <div class="input-group">
-                        <span class="input-group-text">$</span>
-                        <input type="text" class="form-control text-end" [value]="formateados.descuentoPension"
-                          (input)="onDescuentoPensionInput($event)" placeholder="0" [disabled]="!editable" />
-                      </div>
-                    </div>
-                    <div class="col-6">
-                      <label class="form-label small text-muted mb-1">
-                        <i class="fas fa-plus-circle text-danger me-1"></i>Recargo
-                      </label>
-                      <div class="input-group">
-                        <span class="input-group-text">$</span>
-                        <input type="text" class="form-control text-end" [value]="formateados.recargoPension"
-                          (input)="onRecargoPensionInput($event)" placeholder="0" [disabled]="!editable" />
-                      </div>
-                    </div>
-                    <div class="col-12">
-                      <label class="form-label small text-muted mb-1">Valor Final</label>
-                      <div class="form-control bg-light fw-bold text-end py-2">{{ formatearMoneda(pensionFinal) }}</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
               <!-- Razón del descuento -->
               <div class="col-md-6" *ngIf="hayDescuentos()">
                 <label class="form-label text-start">
@@ -295,7 +270,7 @@
         </div>
 
         <!-- Botón Regenerar Valores -->
-        <div class="mb-3" *ngIf="tarifaGrupo">
+        <div class="mb-3" *ngIf="hayLineas()">
           <button class="btn btn-primary" (click)="generarValores()" *ngIf="editable"
             [disabled]="!model.fecha_inicio || !model.fecha_fin">
             <i class="fas fa-sync-alt me-1"></i>
@@ -307,9 +282,9 @@
         </div>
 
         <!-- Mensaje para generar valores -->
-        <div *ngIf="!valoresGenerados && tarifaGrupo" class="alert alert-secondary text-center py-4">
+        <div *ngIf="!valoresGenerados && hayLineas()" class="alert alert-secondary text-center py-4">
           <i class="fas fa-calculator fa-2x mb-2 d-block"></i>
-          <p class="mb-2">Configure las fechas, ajuste descuentos/recargos si aplica, luego haga clic en "Generar Valores"</p>
+          <p class="mb-2">Escoja los productos, ajuste descuentos y recargos si aplica, luego haga clic en "Generar Valores"</p>
           <small class="text-muted">Se creará una cuota por cada mes del período seleccionado</small>
         </div>
 
@@ -320,35 +295,25 @@
               <thead class="table-light">
                 <tr>
                   <th class="text-start" style="width: 180px;">Mes</th>
-                  <th class="text-end" style="width: 180px;">Matrícula</th>
-                  <th class="text-end" style="width: 180px;">Pensión</th>
+                  <th class="text-end" *ngFor="let col of columnasProductos" style="min-width: 160px;">
+                    {{ col.nombre_producto }}
+                  </th>
                   <th class="text-end" style="width: 150px;">Total Mes</th>
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let vm of valoresMensuales; let i = index">
+                <tr *ngFor="let vm of valoresMensuales">
                   <td class="text-start"><strong>{{ vm.fechaFormateada }}</strong></td>
-                  <td>
-                    <div class="input-group input-group-sm" *ngIf="vm.matricula">
+                  <td *ngFor="let col of columnasProductos">
+                    <div class="input-group input-group-sm" *ngIf="celdaDe(vm, col.id_producto_servicio)">
                       <span class="input-group-text">$</span>
-                      <input type="text" class="form-control text-end" 
-                        [value]="formatearNumeroTabla(vm.matricula.valor)"
-                        (input)="onInputValorTabla($event, vm, 'matricula')"
-                        (blur)="onBlurValorTabla($event, vm, 'matricula')"
+                      <input type="text" class="form-control text-end"
+                        [value]="formatearNumeroTabla(celdaDe(vm, col.id_producto_servicio)!.valor)"
+                        (input)="onInputValorTabla($event, vm, col.id_producto_servicio)"
+                        (blur)="onBlurValorTabla($event, vm, col.id_producto_servicio)"
                         [disabled]="!editable" />
                     </div>
-                    <span *ngIf="!vm.matricula" class="text-muted">-</span>
-                  </td>
-                  <td>
-                    <div class="input-group input-group-sm" *ngIf="vm.pension">
-                      <span class="input-group-text">$</span>
-                      <input type="text" class="form-control text-end" 
-                        [value]="formatearNumeroTabla(vm.pension.valor)"
-                        (input)="onInputValorTabla($event, vm, 'pension')"
-                        (blur)="onBlurValorTabla($event, vm, 'pension')"
-                        [disabled]="!editable" />
-                    </div>
-                    <span *ngIf="!vm.pension" class="text-muted">-</span>
+                    <span *ngIf="!celdaDe(vm, col.id_producto_servicio)" class="text-muted">-</span>
                   </td>
                   <td class="text-end"><strong>{{ formatearMoneda(vm.totalMes) }}</strong></td>
                 </tr>
@@ -364,15 +329,19 @@
                   <strong class="text-primary">{{ formatearMoneda(resumenValores.total_matricula) }}</strong>
                 </div>
               </div>
-              <div class="col-md-1"><i class="fas fa-plus text-muted"></i></div>
               <div class="col-md-3">
                 <div class="resumen-item">
-                  <small class="text-muted d-block">Total Pensiones ({{ resumenValores.numero_cuotas }} meses)</small>
+                  <small class="text-muted d-block">Total Pensiones ({{ resumenValores.numero_cuotas }} cuotas)</small>
                   <strong class="text-primary">{{ formatearMoneda(resumenValores.total_pension) }}</strong>
                 </div>
               </div>
-              <div class="col-md-1"><i class="fas fa-equals text-muted"></i></div>
-              <div class="col-md-4">
+              <div class="col-md-3">
+                <div class="resumen-item">
+                  <small class="text-muted d-block">Otros</small>
+                  <strong class="text-primary">{{ formatearMoneda(resumenValores.total_otros) }}</strong>
+                </div>
+              </div>
+              <div class="col-md-3">
                 <div class="resumen-item resumen-total">
                   <small class="text-muted d-block">Total Contrato</small>
                   <strong class="text-success fs-4">{{ formatearMoneda(resumenValores.valor_total) }}</strong>

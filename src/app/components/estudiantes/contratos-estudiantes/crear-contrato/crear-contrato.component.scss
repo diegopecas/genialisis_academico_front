@@ -288,3 +288,43 @@
     color: #fff;
   }
 }
+
+/* Grilla de productos del contrato (lineas con descuento y recargo) */
+.tabla-lineas {
+
+  th {
+    font-size: 0.85rem;
+    vertical-align: middle;
+  }
+
+  td {
+    vertical-align: middle;
+  }
+
+  .form-check-input {
+    width: 1.15rem;
+    height: 1.15rem;
+    cursor: pointer;
+  }
+}
+
+/* La grilla mensual crece con el numero de productos del contrato */
+.table-valores {
+
+  th,
+  td {
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 768px) {
+
+  .tabla-lineas {
+    font-size: 0.8rem;
+
+    th,
+    td {
+      padding: 0.35rem;
+    }
+  }
+}

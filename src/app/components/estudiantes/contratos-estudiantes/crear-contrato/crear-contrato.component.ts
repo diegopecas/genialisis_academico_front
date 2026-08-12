@@ -22,15 +22,27 @@ import {
   ContratoValor,
   ResumenValores 
 } from '../../../../services/contratos-matricula-valores.service';
+import {
+  ContratosMatriculaProductosService,
+  LineaContrato
+} from '../../../../services/contratos-matricula-productos.service';
 
-// Interfaz para agrupar valores por mes
+// Producto que aparece como columna en la grilla mensual
+interface ColumnaProducto {
+  id_producto_servicio: string;
+  nombre_producto: string;
+  codigo_tipo_cobro: string;
+  orden: number;
+}
+
+// Interfaz para agrupar valores por mes.
+// Las celdas son dinámicas: una por producto que tenga cuota en ese mes.
 interface ValorMensual {
   fecha: string;
   fechaFormateada: string;
   mes: number;
   anio: number;
-  matricula: ContratoValor | null;
-  pension: ContratoValor | null;
+  celdas: { [idProducto: string]: ContratoValor };
   totalMes: number;
 }
 
@@ -55,7 +67,8 @@ export class CrearContratoComponent implements OnInit {
   public regresar = '/estudiantes/contratos/';
 
   public acudientesDisponibles = [] as any[];
-  public tarifaGrupo: any = null;
+  /** Filas de la tarifa del grupo para el año del contrato */
+  public tarifaGrupo: any[] = [];
   public emailsFirmantes: string[] = [];
 
   // Nuevas propiedades para valores detallados
@@ -64,34 +77,21 @@ export class CrearContratoComponent implements OnInit {
   public resumenValores: ResumenValores = {
     total_matricula: 0,
     total_pension: 0,
+    total_otros: 0,
     numero_cuotas: 0,
     valor_total: 0
   };
   public cuotasMatricula: number = 1;
   public valoresGenerados: boolean = false;
 
-  public valorMatriculaFormateado: string = '';
-  public valorPensionFormateado: string = '';
+  // Líneas del contrato: un producto por línea, con su descuento y su recargo.
+  // En las líneas de PENSION el valor es el mensual, igual que en la tarifa.
+  public lineas: LineaContrato[] = [];
+  // Columnas de la grilla mensual, en el orden de la tarifa
+  public columnasProductos: ColumnaProducto[] = [];
 
-  // Propiedades para descuentos y recargos
-  public matriculaBase: number = 0;
-  public pensionBase: number = 0;
-  public descuento_matricula: number = 0;
-  public recargo_matricula: number = 0;
-  public descuento_pension: number = 0;
-  public recargo_pension: number = 0;
   public razon_descuento: string = '';
   public razon_recargo: string = '';
-  public matriculaFinal: number = 0;
-  public pensionFinal: number = 0;
-  public formateados = {
-    descuentoMatricula: '',
-    recargoMatricula: '',
-    descuentoPension: '',
-    recargoPension: '',
-    matriculaFinal: '',
-    pensionFinal: ''
-  };
 
   // Propiedad para controlar estado de generación de cuentas por cobrar
   public generandoCuentas: boolean = false;
@@ -135,6 +135,7 @@ export class CrearContratoComponent implements OnInit {
     private documentosPersonasService: DocumentosPersonasService,
     private tiposDocumentosService: TiposDocumentosService,
     private contratosMatriculaValoresService: ContratosMatriculaValoresService,
+    private contratosMatriculaProductosService: ContratosMatriculaProductosService,
     private cuentasPorCobrarService: CuentasPorCobrarService
   ) {}
 
@@ -285,7 +286,8 @@ export class CrearContratoComponent implements OnInit {
               );
             });
 
-          // Cargar valores detallados
+          // Cargar las lineas del contrato y despues el calendario
+          this.cargarLineasContrato(id);
           this.cargarValoresContrato(id);
 
           // Cargar cuotas matrícula del contrato
@@ -299,29 +301,10 @@ export class CrearContratoComponent implements OnInit {
             ? parseInt(contrato.dia_vencimiento)
             : 1;
 
-          // Cargar descuentos y recargos del contrato
-          this.descuento_matricula = parseFloat(contrato.descuento_matricula) || 0;
-          this.recargo_matricula = parseFloat(contrato.recargo_matricula) || 0;
-          this.descuento_pension = parseFloat(contrato.descuento_pension) || 0;
-          this.recargo_pension = parseFloat(contrato.recargo_pension) || 0;
+          // El descuento y el recargo de cada producto viven en su línea.
+          // De la cabecera solo se conservan las razones.
           this.razon_descuento = contrato.razon_descuento || '';
           this.razon_recargo = contrato.razon_recargo || '';
-          
-          console.log('=== DESCUENTOS CARGADOS ===', {
-            descuento_matricula: this.descuento_matricula,
-            recargo_matricula: this.recargo_matricula,
-            descuento_pension: this.descuento_pension,
-            recargo_pension: this.recargo_pension
-          });
-          
-          // Los valores finales del contrato
-          this.matriculaFinal = parseFloat(contrato.valor_matricula) || 0;
-          this.pensionFinal = parseFloat(contrato.valor_pension) || 0;
-          
-          // Actualizar formatos para mostrar en los inputs
-          this.actualizarFormatos();
-          
-          console.log('=== FORMATOS ACTUALIZADOS ===', this.formateados);
 
           this.verificarDocumentoFirmado();
         }
@@ -330,24 +313,38 @@ export class CrearContratoComponent implements OnInit {
 
   // Cargar tarifas después de tener el estudiante cargado (para edición)
   cargarTarifasParaEdicion() {
-    if (!this.estudiante?.id_grupo || !this.model.anio) return;
+    this.cargarTarifasGrupo();
+  }
 
-    this.tarifasGruposService
-      .obtenerByGrupoAnio(this.estudiante.id_grupo, this.model.anio)
+  /**
+   * Trae las líneas ya guardadas del contrato. Manda lo guardado sobre lo que
+   * diga la tarifa: un contrato firmado no cambia porque suban la tarifa.
+   */
+  cargarLineasContrato(idContrato: string) {
+    this.contratosMatriculaProductosService
+      .obtenerByContrato(idContrato)
       .subscribe({
         next: (response: any) => {
-          this.tarifaGrupo = response.body;
-          if (this.tarifaGrupo) {
-            this.matriculaBase = parseFloat(this.tarifaGrupo.valor_matricula) || 0;
-            this.pensionBase = parseFloat(this.tarifaGrupo.valor_pension) || 0;
-            // Actualizar formatos
-            this.calcularValoresFinales();
-            this.actualizarFormatos();
-          }
+          const guardadas = (response.body || []) as LineaContrato[];
+          if (guardadas.length === 0) return;
+
+          this.lineas = guardadas.map((l: any) => ({
+            ...l,
+            valor_base: parseFloat(l.valor_base) || 0,
+            descuento: parseFloat(l.descuento) || 0,
+            recargo: parseFloat(l.recargo) || 0,
+            valor_final: parseFloat(l.valor_final) || 0,
+            orden: parseInt(l.orden) || 1,
+            id_periodicidad_cobro: l.id_periodicidad_cobro ? parseInt(l.id_periodicidad_cobro) : undefined,
+            obligatorio: 1,
+            seleccionado: true
+          }));
+
+          this.completarLineasOpcionales();
+          this.actualizarFormatosLineas();
         },
         error: (error) => {
-          console.log('No se encontraron tarifas para el grupo');
-          this.tarifaGrupo = null;
+          console.log('No se encontraron líneas del contrato:', error);
         }
       });
   }
@@ -377,49 +374,86 @@ export class CrearContratoComponent implements OnInit {
       .obtenerByGrupoAnio(this.estudiante.id_grupo, this.model.anio)
       .subscribe({
         next: (response: any) => {
-          this.tarifaGrupo = response.body;
-          if (this.tarifaGrupo) {
-            // Inicializar valores base desde tarifas
-            this.matriculaBase = parseFloat(this.tarifaGrupo.valor_matricula) || 0;
-            this.pensionBase = parseFloat(this.tarifaGrupo.valor_pension) || 0;
-            
-            // Si es crear, inicializar valores finales = base
-            if (this.accion === 'crear') {
-              this.matriculaFinal = this.matriculaBase;
-              this.pensionFinal = this.pensionBase;
-              this.descuento_matricula = 0;
-              this.recargo_matricula = 0;
-              this.descuento_pension = 0;
-              this.recargo_pension = 0;
-            }
-            // Calcular valores finales y actualizar formatos
-            this.calcularValoresFinales();
-            this.actualizarFormatos();
+          this.tarifaGrupo = (response.body || []) as any[];
+
+          if (this.accion === 'crear') {
+            // Las obligatorias entran solas, las demás las escoge el acudiente
+            this.lineas = this.tarifaGrupo.map((t: any) => this.lineaDesdeTarifa(t));
+            this.actualizarFormatosLineas();
+          } else {
+            // En editar y consultar mandan las líneas guardadas; la tarifa solo
+            // sirve para ofrecer los productos opcionales que no se escogieron.
+            this.completarLineasOpcionales();
           }
         },
         error: (error) => {
           console.log('No se encontraron tarifas para el grupo');
-          this.tarifaGrupo = null;
+          this.tarifaGrupo = [];
         },
       });
   }
 
-  // ==================== GESTIÓN DE DESCUENTOS Y RECARGOS ====================
-
-  calcularValoresFinales() {
-    this.matriculaFinal = this.matriculaBase - this.descuento_matricula + this.recargo_matricula;
-    this.pensionFinal = this.pensionBase - this.descuento_pension + this.recargo_pension;
-    if (this.matriculaFinal < 0) this.matriculaFinal = 0;
-    if (this.pensionFinal < 0) this.pensionFinal = 0;
+  /** Arma una línea del contrato a partir de una fila de la tarifa */
+  private lineaDesdeTarifa(t: any): LineaContrato {
+    const valorBase = parseFloat(t.valor) || 0;
+    return {
+      id_producto_servicio: t.id_producto_servicio,
+      nombre_producto: t.nombre_producto,
+      id_tipo_cobro: t.id_tipo_cobro,
+      codigo_tipo_cobro: t.codigo_tipo_cobro,
+      nombre_tipo_cobro: t.nombre_tipo_cobro,
+      id_periodicidad_cobro: t.id_periodicidad_cobro ? parseInt(t.id_periodicidad_cobro) : undefined,
+      nombre_periodicidad: t.nombre_periodicidad,
+      valor_base: valorBase,
+      descuento: 0,
+      recargo: 0,
+      valor_final: valorBase,
+      orden: parseInt(t.orden) || 1,
+      obligatorio: parseInt(t.obligatorio) === 1 ? 1 : 0,
+      seleccionado: parseInt(t.obligatorio) === 1
+    };
   }
 
-  actualizarFormatos() {
-    this.formateados.descuentoMatricula = this.formatearNumeroInput(this.descuento_matricula);
-    this.formateados.recargoMatricula = this.formatearNumeroInput(this.recargo_matricula);
-    this.formateados.descuentoPension = this.formatearNumeroInput(this.descuento_pension);
-    this.formateados.recargoPension = this.formatearNumeroInput(this.recargo_pension);
-    this.formateados.matriculaFinal = this.formatearNumeroInput(this.matriculaFinal);
-    this.formateados.pensionFinal = this.formatearNumeroInput(this.pensionFinal);
+  /**
+   * Agrega a la lista los productos de la tarifa que el contrato no tiene,
+   * desmarcados, para poder sumarlos sin salir de la pantalla.
+   */
+  private completarLineasOpcionales() {
+    if (!this.tarifaGrupo || this.tarifaGrupo.length === 0) return;
+
+    this.tarifaGrupo.forEach((t: any) => {
+      const yaEsta = this.lineas.some(
+        l => l.id_producto_servicio === t.id_producto_servicio
+      );
+      if (!yaEsta) {
+        const linea = this.lineaDesdeTarifa(t);
+        linea.seleccionado = false;
+        this.lineas.push(linea);
+      }
+    });
+
+    this.lineas.sort((a, b) => a.orden - b.orden);
+    this.actualizarFormatosLineas();
+  }
+
+  // ==================== GESTIÓN DE DESCUENTOS Y RECARGOS ====================
+
+  /** Recalcula el valor final de una línea: base menos descuento más recargo */
+  calcularValorFinalLinea(linea: LineaContrato) {
+    let final = (linea.valor_base || 0) - (linea.descuento || 0) + (linea.recargo || 0);
+    if (final < 0) final = 0;
+    linea.valor_final = final;
+  }
+
+  calcularValoresFinales() {
+    this.lineas.forEach(l => this.calcularValorFinalLinea(l));
+  }
+
+  actualizarFormatosLineas() {
+    this.lineas.forEach(l => {
+      l.descuentoFormateado = this.formatearNumeroInput(l.descuento);
+      l.recargoFormateado = this.formatearNumeroInput(l.recargo);
+    });
   }
 
   formatearNumeroInput(valor: number): string {
@@ -427,44 +461,43 @@ export class CrearContratoComponent implements OnInit {
     return valor.toLocaleString('es-CO');
   }
 
-  onDescuentoMatriculaInput(event: any) {
+  onDescuentoLineaInput(event: any, linea: LineaContrato) {
     let valorStr = event.target.value.replace(/\./g, '').replace(/\D/g, '');
-    this.descuento_matricula = valorStr ? parseInt(valorStr) : 0;
-    this.calcularValoresFinales();
-    this.actualizarFormatos();
-    event.target.value = this.formatearNumeroInput(this.descuento_matricula);
+    linea.descuento = valorStr ? parseInt(valorStr) : 0;
+    this.calcularValorFinalLinea(linea);
+    linea.descuentoFormateado = this.formatearNumeroInput(linea.descuento);
+    event.target.value = linea.descuentoFormateado;
   }
 
-  onRecargoMatriculaInput(event: any) {
+  onRecargoLineaInput(event: any, linea: LineaContrato) {
     let valorStr = event.target.value.replace(/\./g, '').replace(/\D/g, '');
-    this.recargo_matricula = valorStr ? parseInt(valorStr) : 0;
-    this.calcularValoresFinales();
-    this.actualizarFormatos();
-    event.target.value = this.formatearNumeroInput(this.recargo_matricula);
+    linea.recargo = valorStr ? parseInt(valorStr) : 0;
+    this.calcularValorFinalLinea(linea);
+    linea.recargoFormateado = this.formatearNumeroInput(linea.recargo);
+    event.target.value = linea.recargoFormateado;
   }
 
-  onDescuentoPensionInput(event: any) {
-    let valorStr = event.target.value.replace(/\./g, '').replace(/\D/g, '');
-    this.descuento_pension = valorStr ? parseInt(valorStr) : 0;
-    this.calcularValoresFinales();
-    this.actualizarFormatos();
-    event.target.value = this.formatearNumeroInput(this.descuento_pension);
+  /** Marca o desmarca un producto opcional del contrato */
+  toggleLinea(linea: LineaContrato) {
+    if (linea.obligatorio === 1) return;
+    linea.seleccionado = !linea.seleccionado;
   }
 
-  onRecargoPensionInput(event: any) {
-    let valorStr = event.target.value.replace(/\./g, '').replace(/\D/g, '');
-    this.recargo_pension = valorStr ? parseInt(valorStr) : 0;
-    this.calcularValoresFinales();
-    this.actualizarFormatos();
-    event.target.value = this.formatearNumeroInput(this.recargo_pension);
+  /** Líneas que efectivamente entran al contrato */
+  lineasSeleccionadas(): LineaContrato[] {
+    return this.lineas.filter(l => l.seleccionado);
+  }
+
+  hayLineas(): boolean {
+    return this.lineasSeleccionadas().length > 0;
   }
 
   hayDescuentos(): boolean {
-    return this.descuento_matricula > 0 || this.descuento_pension > 0;
+    return this.lineasSeleccionadas().some(l => (l.descuento || 0) > 0);
   }
 
   hayRecargos(): boolean {
-    return this.recargo_matricula > 0 || this.recargo_pension > 0;
+    return this.lineasSeleccionadas().some(l => (l.recargo || 0) > 0);
   }
 
   // Métodos para la tabla de valores mensuales
@@ -473,24 +506,27 @@ export class CrearContratoComponent implements OnInit {
     return valor.toLocaleString('es-CO');
   }
 
-  onInputValorTabla(event: any, vm: any, tipo: string) {
+  /** Cuota de un producto en un mes, si la tiene */
+  celdaDe(vm: ValorMensual, idProducto: string): ContratoValor | null {
+    return vm.celdas[idProducto] || null;
+  }
+
+  onInputValorTabla(event: any, vm: ValorMensual, idProducto: string) {
     // Obtener solo dígitos
     let valorStr = event.target.value.replace(/\./g, '').replace(/\D/g, '');
     const nuevoValor = valorStr ? parseInt(valorStr) : 0;
-    
-    // Actualizar el valor en el objeto
-    if (tipo === 'matricula' && vm.matricula) {
-      vm.matricula.valor = nuevoValor;
-    } else if (tipo === 'pension' && vm.pension) {
-      vm.pension.valor = nuevoValor;
-    }
-    
+
+    const celda = vm.celdas[idProducto];
+    if (!celda) return;
+
+    celda.valor = nuevoValor;
+
     // Actualizar el total del mes
-    vm.totalMes = (vm.matricula?.valor || 0) + (vm.pension?.valor || 0);
-    
+    vm.totalMes = this.totalDelMes(vm);
+
     // Recalcular el resumen
     this.calcularResumen();
-    
+
     // Formatear mientras escribe
     if (nuevoValor > 0) {
       const cursorPos = event.target.selectionStart;
@@ -503,15 +539,15 @@ export class CrearContratoComponent implements OnInit {
     }
   }
 
-  onBlurValorTabla(event: any, vm: any, tipo: string) {
+  onBlurValorTabla(event: any, vm: ValorMensual, idProducto: string) {
     // Al salir, asegurar formato correcto
-    let valor = 0;
-    if (tipo === 'matricula' && vm.matricula) {
-      valor = vm.matricula.valor || 0;
-    } else if (tipo === 'pension' && vm.pension) {
-      valor = vm.pension.valor || 0;
-    }
-    event.target.value = this.formatearNumeroTabla(valor);
+    const celda = vm.celdas[idProducto];
+    event.target.value = this.formatearNumeroTabla(celda ? celda.valor : 0);
+  }
+
+  private totalDelMes(vm: ValorMensual): number {
+    return Object.keys(vm.celdas)
+      .reduce((suma, idProducto) => suma + (vm.celdas[idProducto].valor || 0), 0);
   }
 
   // ==================== GESTIÓN DE VALORES ====================
@@ -549,7 +585,7 @@ export class CrearContratoComponent implements OnInit {
   private ejecutarGeneracionValores() {
     // Asegurar que los valores finales estén calculados
     this.calcularValoresFinales();
-    
+
     this.contratosMatriculaValoresService
       .generarValoresPorDefecto({
         id_grupo: this.estudiante.id_grupo,
@@ -559,9 +595,14 @@ export class CrearContratoComponent implements OnInit {
         cuotas_matricula: this.cuotasMatricula,
         // Dia en que vence cada cuota: define desde cuando corre la mora
         dia_vencimiento: this.model.dia_vencimiento || 1,
-        // Enviar valores finales (con descuentos/recargos aplicados)
-        valor_matricula: this.matriculaFinal,
-        valor_pension: this.pensionFinal
+        // Las lineas escogidas, con su descuento y recargo ya aplicados
+        lineas: this.lineasSeleccionadas().map(l => ({
+          id_producto_servicio: l.id_producto_servicio,
+          id_tipo_cobro: l.id_tipo_cobro,
+          codigo_tipo_cobro: l.codigo_tipo_cobro,
+          valor_final: l.valor_final,
+          orden: l.orden
+        }))
       })
       .subscribe({
         next: (response) => {
@@ -585,7 +626,7 @@ export class CrearContratoComponent implements OnInit {
 
     this.valores.forEach(valor => {
       const fecha = valor.fecha;
-      
+
       if (!grupos.has(fecha)) {
         const fechaObj = new Date(fecha + 'T00:00:00');
         grupos.set(fecha, {
@@ -593,27 +634,49 @@ export class CrearContratoComponent implements OnInit {
           fechaFormateada: this.formatearMesAnio(fechaObj),
           mes: fechaObj.getMonth() + 1,
           anio: fechaObj.getFullYear(),
-          matricula: null,
-          pension: null,
+          celdas: {},
           totalMes: 0
         });
       }
 
       const grupo = grupos.get(fecha)!;
-      
-      // Periodicidad 1 = Anual (Matrícula), 2 = Mensual (Pensión)
-      if (valor.id_periodicidad_cobro === 1 || valor.es_matricula) {
-        grupo.matricula = valor;
-      } else {
-        grupo.pension = valor;
-      }
-      
-      grupo.totalMes = (grupo.matricula?.valor || 0) + (grupo.pension?.valor || 0);
+
+      // Una celda por producto: el tipo de tarifa ya no define la columna
+      grupo.celdas[valor.id_producto_servicio] = valor;
+      grupo.totalMes = this.totalDelMes(grupo);
     });
 
-    this.valoresMensuales = Array.from(grupos.values()).sort((a, b) => 
+    this.valoresMensuales = Array.from(grupos.values()).sort((a, b) =>
       a.fecha.localeCompare(b.fecha)
     );
+
+    this.armarColumnasProductos();
+  }
+
+  /**
+   * Columnas de la grilla: un producto por columna, en el orden de la tarifa.
+   * Se arma desde los valores para que un contrato viejo también pinte bien.
+   */
+  armarColumnasProductos() {
+    const columnas: Map<string, ColumnaProducto> = new Map();
+
+    this.valores.forEach((valor: any) => {
+      if (columnas.has(valor.id_producto_servicio)) return;
+
+      const linea = this.lineas.find(
+        l => l.id_producto_servicio === valor.id_producto_servicio
+      );
+
+      columnas.set(valor.id_producto_servicio, {
+        id_producto_servicio: valor.id_producto_servicio,
+        nombre_producto: valor.nombre_producto || linea?.nombre_producto || 'Producto',
+        codigo_tipo_cobro: valor.codigo_tipo_cobro || linea?.codigo_tipo_cobro || '',
+        orden: valor.orden != null ? parseInt(valor.orden) : (linea?.orden || 99)
+      });
+    });
+
+    this.columnasProductos = Array.from(columnas.values())
+      .sort((a, b) => a.orden - b.orden);
   }
 
   formatearMesAnio(fecha: Date): string {
@@ -622,21 +685,20 @@ export class CrearContratoComponent implements OnInit {
     return `${mes} ${anio}`;
   }
 
-  onValorChange(valorMensual: ValorMensual, tipo: 'matricula' | 'pension', event: any) {
+  onValorChange(valorMensual: ValorMensual, idProducto: string, event: any) {
     const inputValue = event.target.value.replace(/[^\d]/g, '');
     const nuevoValor = inputValue === '' ? 0 : parseFloat(inputValue);
 
-    if (tipo === 'matricula' && valorMensual.matricula) {
-      valorMensual.matricula.valor = nuevoValor;
-    } else if (tipo === 'pension' && valorMensual.pension) {
-      valorMensual.pension.valor = nuevoValor;
+    const celda = valorMensual.celdas[idProducto];
+    if (celda) {
+      celda.valor = nuevoValor;
     }
 
-    valorMensual.totalMes = (valorMensual.matricula?.valor || 0) + (valorMensual.pension?.valor || 0);
-    
+    valorMensual.totalMes = this.totalDelMes(valorMensual);
+
     // Formatear el input
     event.target.value = nuevoValor > 0 ? nuevoValor.toLocaleString('es-CO') : '';
-    
+
     this.calcularResumen();
     this.actualizarModeloDesdeResumen();
   }
@@ -649,29 +711,55 @@ export class CrearContratoComponent implements OnInit {
   calcularResumen() {
     let totalMatricula = 0;
     let totalPension = 0;
+    let totalOtros = 0;
     let numeroCuotas = 0;
 
     this.valoresMensuales.forEach(vm => {
-      if (vm.matricula) {
-        totalMatricula += vm.matricula.valor;
-      }
-      if (vm.pension) {
-        totalPension += vm.pension.valor;
-        numeroCuotas++;
-      }
+      Object.keys(vm.celdas).forEach(idProducto => {
+        const celda: any = vm.celdas[idProducto];
+        const codigo = this.codigoTipoDeProducto(idProducto, celda);
+
+        if (codigo === 'MATRICULA') {
+          totalMatricula += celda.valor || 0;
+        } else if (codigo === 'PENSION') {
+          totalPension += celda.valor || 0;
+          numeroCuotas++;
+        } else {
+          totalOtros += celda.valor || 0;
+        }
+      });
     });
 
     this.resumenValores = {
       total_matricula: totalMatricula,
       total_pension: totalPension,
+      total_otros: totalOtros,
       numero_cuotas: numeroCuotas,
-      valor_total: totalMatricula + totalPension
+      valor_total: totalMatricula + totalPension + totalOtros
     };
+  }
+
+  /**
+   * Tipo de cobro de una cuota. Sale de la línea del contrato; si el contrato
+   * es viejo y no tiene líneas, se cae a la periodicidad como se hacía antes.
+   */
+  private codigoTipoDeProducto(idProducto: string, celda: any): string {
+    if (celda?.codigo_tipo_cobro) {
+      return celda.codigo_tipo_cobro;
+    }
+
+    const linea = this.lineas.find(l => l.id_producto_servicio === idProducto);
+    if (linea?.codigo_tipo_cobro) {
+      return linea.codigo_tipo_cobro;
+    }
+
+    return celda?.id_periodicidad_cobro == 1 ? 'MATRICULA' : 'PENSION';
   }
 
   actualizarModeloDesdeResumen() {
     this.model.valor_matricula = this.resumenValores.total_matricula;
     this.model.valor_pension = this.resumenValores.total_pension;
+    (this.model as any).valor_otros = this.resumenValores.total_otros;
     this.model.numero_cuotas = this.resumenValores.numero_cuotas;
     this.model.valor_total = this.resumenValores.valor_total;
   }
@@ -741,40 +829,54 @@ export class CrearContratoComponent implements OnInit {
   }
 
   redistribuirMatricula() {
-    if (!this.tarifaGrupo || this.cuotasMatricula < 1) return;
+    if (this.cuotasMatricula < 1) return;
 
-    const valorCuotaMatricula = Math.round(this.tarifaGrupo.valor_matricula / this.cuotasMatricula);
-    let cuotasAsignadas = 0;
+    const lineasMatricula = this.lineasSeleccionadas()
+      .filter(l => l.codigo_tipo_cobro === 'MATRICULA');
 
-    this.valoresMensuales.forEach((vm, index) => {
-      if (cuotasAsignadas < this.cuotasMatricula) {
-        // Agregar o actualizar cuota de matrícula
-        if (!vm.matricula) {
-          vm.matricula = {
-            id_producto_servicio: this.tarifaGrupo.id_producto_matricula,
-            nombre_producto: this.tarifaGrupo.nombre_matricula,
-            fecha: vm.fecha,
-            valor: valorCuotaMatricula,
-            id_periodicidad_cobro: 1,
-            es_matricula: true
-          };
-          this.valores.push(vm.matricula);
-        } else {
-          vm.matricula.valor = valorCuotaMatricula;
+    if (lineasMatricula.length === 0) return;
+
+    lineasMatricula.forEach(linea => {
+      const valorCuota = Math.round(linea.valor_final / this.cuotasMatricula);
+      let cuotasAsignadas = 0;
+
+      this.valoresMensuales.forEach(vm => {
+        const celda = vm.celdas[linea.id_producto_servicio];
+
+        if (cuotasAsignadas < this.cuotasMatricula) {
+          // Agregar o actualizar la cuota de matrícula del mes
+          if (!celda) {
+            const nueva: ContratoValor = {
+              id_producto_servicio: linea.id_producto_servicio,
+              nombre_producto: linea.nombre_producto,
+              fecha: vm.fecha,
+              valor: valorCuota,
+              id_periodicidad_cobro: linea.id_periodicidad_cobro,
+              id_tipo_cobro: linea.id_tipo_cobro,
+              codigo_tipo_cobro: linea.codigo_tipo_cobro,
+              orden: linea.orden,
+              es_matricula: true
+            };
+            vm.celdas[linea.id_producto_servicio] = nueva;
+            this.valores.push(nueva);
+          } else {
+            celda.valor = valorCuota;
+          }
+          cuotasAsignadas++;
+        } else if (celda) {
+          // Quitar la matrícula de este mes
+          const idx = this.valores.indexOf(celda);
+          if (idx > -1) {
+            this.valores.splice(idx, 1);
+          }
+          delete vm.celdas[linea.id_producto_servicio];
         }
-        cuotasAsignadas++;
-      } else if (vm.matricula) {
-        // Quitar matrícula de este mes
-        const idx = this.valores.indexOf(vm.matricula);
-        if (idx > -1) {
-          this.valores.splice(idx, 1);
-        }
-        vm.matricula = null;
-      }
-      
-      vm.totalMes = (vm.matricula?.valor || 0) + (vm.pension?.valor || 0);
+
+        vm.totalMes = this.totalDelMes(vm);
+      });
     });
 
+    this.armarColumnasProductos();
     this.calcularResumen();
     this.actualizarModeloDesdeResumen();
   }
@@ -927,6 +1029,7 @@ export class CrearContratoComponent implements OnInit {
       this.model.fecha_inicio &&
       this.model.fecha_fin &&
       this.model.lugar_firma &&
+      this.hayLineas() &&
       this.valoresGenerados &&
       this.valores.length > 0 &&
       this.model.acudientes &&
@@ -935,26 +1038,58 @@ export class CrearContratoComponent implements OnInit {
   }
 
   validarSumaCuotasMatricula(): boolean {
-    // Sumar todos los valores de matrícula en los valores detallados
-    const sumaMatricula = this.valores
-      .filter(v => v.id_periodicidad_cobro === 1) // Solo matrícula
-      .reduce((sum, v) => sum + (v.valor || 0), 0);
-    
-    // Comparar con el valor final de matrícula (con tolerancia de 1 peso por redondeo)
-    const diferencia = Math.abs(sumaMatricula - this.matriculaFinal);
-    
-    if (diferencia > 1) {
-      Swal.fire({
-        title: 'Error en valores de matrícula',
-        html: `La suma de las cuotas de matrícula (<strong>${this.formatearMoneda(sumaMatricula)}</strong>) 
-               no coincide con el valor de matrícula (<strong>${this.formatearMoneda(this.matriculaFinal)}</strong>).
-               <br><br>Diferencia: ${this.formatearMoneda(diferencia)}
-               <br><br>Por favor regenere los valores o ajuste manualmente.`,
-        icon: 'error'
-      });
-      return false;
+    // Cada línea de matrícula tiene que cuadrar contra sus cuotas
+    const lineasMatricula = this.lineasSeleccionadas()
+      .filter(l => l.codigo_tipo_cobro === 'MATRICULA');
+
+    for (const linea of lineasMatricula) {
+      const sumaCuotas = this.valores
+        .filter(v => v.id_producto_servicio === linea.id_producto_servicio)
+        .reduce((sum, v) => sum + (v.valor || 0), 0);
+
+      // Tolerancia de 1 peso por el redondeo del reparto en cuotas
+      const diferencia = Math.abs(sumaCuotas - linea.valor_final);
+
+      if (diferencia > 1) {
+        Swal.fire({
+          title: 'Error en valores de matrícula',
+          html: `La suma de las cuotas de ${linea.nombre_producto} (<strong>${this.formatearMoneda(sumaCuotas)}</strong>) 
+                 no coincide con el valor de la línea (<strong>${this.formatearMoneda(linea.valor_final)}</strong>).
+                 <br><br>Diferencia: ${this.formatearMoneda(diferencia)}
+                 <br><br>Por favor regenere los valores o ajuste manualmente.`,
+          icon: 'error'
+        });
+        return false;
+      }
     }
+
     return true;
+  }
+
+  /**
+   * Deja el modelo listo para guardar. Los totales de la cabecera salen de las
+   * líneas y el back los vuelve a derivar del calendario al guardar.
+   * Los descuentos y recargos de la cabecera se conservan como suma de las
+   * líneas, para no romper lo que ya los lee.
+   */
+  prepararModeloParaGuardar() {
+    const seleccionadas = this.lineasSeleccionadas();
+    const deTipo = (codigo: string) =>
+      seleccionadas.filter(l => l.codigo_tipo_cobro === codigo);
+
+    const sumar = (lineas: LineaContrato[], campo: 'descuento' | 'recargo') =>
+      lineas.reduce((suma, l) => suma + (l[campo] || 0), 0);
+
+    (this.model as any).cuotas_matricula = this.cuotasMatricula;
+    (this.model as any).descuento_matricula = sumar(deTipo('MATRICULA'), 'descuento');
+    (this.model as any).recargo_matricula = sumar(deTipo('MATRICULA'), 'recargo');
+    (this.model as any).descuento_pension = sumar(deTipo('PENSION'), 'descuento');
+    (this.model as any).recargo_pension = sumar(deTipo('PENSION'), 'recargo');
+    (this.model as any).razon_descuento = this.razon_descuento;
+    (this.model as any).razon_recargo = this.razon_recargo;
+
+    // Totales derivados del calendario que ya está en pantalla
+    this.actualizarModeloDesdeResumen();
   }
 
   async grabar() {
@@ -977,18 +1112,7 @@ export class CrearContratoComponent implements OnInit {
     this.model.id_usuario_genera =
       this.utilService.obtenerIdUsuarioActual() ?? undefined;
     
-    // Agregar campos adicionales al modelo
-    (this.model as any).cuotas_matricula = this.cuotasMatricula;
-    (this.model as any).descuento_matricula = this.descuento_matricula;
-    (this.model as any).recargo_matricula = this.recargo_matricula;
-    (this.model as any).descuento_pension = this.descuento_pension;
-    (this.model as any).recargo_pension = this.recargo_pension;
-    (this.model as any).razon_descuento = this.razon_descuento;
-    (this.model as any).razon_recargo = this.razon_recargo;
-    
-    // Actualizar valores del modelo con los finales
-    this.model.valor_matricula = this.matriculaFinal;
-    this.model.valor_pension = this.pensionFinal;
+    this.prepararModeloParaGuardar();
 
     try {
       if (this.accion === 'crear') {
@@ -998,6 +1122,12 @@ export class CrearContratoComponent implements OnInit {
           .toPromise();
         
         const idContrato = responseContrato.id;
+
+        // Primero las lineas y despues el calendario: los totales de la
+        // cabecera se derivan del calendario contra las lineas.
+        await this.contratosMatriculaProductosService
+          .guardarLineas(idContrato, this.lineasSeleccionadas())
+          .toPromise();
 
         // Guardar valores detallados
         await this.contratosMatriculaValoresService
@@ -1016,6 +1146,10 @@ export class CrearContratoComponent implements OnInit {
       } else {
         // Actualizar contrato
         await this.contratosMatriculaService.actualizar(this.model).toPromise();
+
+        await this.contratosMatriculaProductosService
+          .guardarLineas(this.model.id!, this.lineasSeleccionadas())
+          .toPromise();
 
         // Guardar valores detallados
         await this.contratosMatriculaValoresService
@@ -1058,18 +1192,7 @@ export class CrearContratoComponent implements OnInit {
     this.model.id_usuario_genera =
       this.utilService.obtenerIdUsuarioActual() ?? undefined;
     
-    // Agregar campos adicionales al modelo
-    (this.model as any).cuotas_matricula = this.cuotasMatricula;
-    (this.model as any).descuento_matricula = this.descuento_matricula;
-    (this.model as any).recargo_matricula = this.recargo_matricula;
-    (this.model as any).descuento_pension = this.descuento_pension;
-    (this.model as any).recargo_pension = this.recargo_pension;
-    (this.model as any).razon_descuento = this.razon_descuento;
-    (this.model as any).razon_recargo = this.razon_recargo;
-    
-    // Actualizar valores del modelo con los finales
-    this.model.valor_matricula = this.matriculaFinal;
-    this.model.valor_pension = this.pensionFinal;
+    this.prepararModeloParaGuardar();
 
     try {
       // Crear contrato
@@ -1078,6 +1201,10 @@ export class CrearContratoComponent implements OnInit {
         .toPromise();
       
       const idContrato = responseContrato.id;
+
+      await this.contratosMatriculaProductosService
+        .guardarLineas(idContrato, this.lineasSeleccionadas())
+        .toPromise();
 
       // Guardar valores detallados
       await this.contratosMatriculaValoresService
@@ -1304,7 +1431,13 @@ export class CrearContratoComponent implements OnInit {
     this.guardando = true;
 
     try {
+      this.prepararModeloParaGuardar();
+
       await this.contratosMatriculaService.actualizar(this.model).toPromise();
+
+      await this.contratosMatriculaProductosService
+        .guardarLineas(this.model.id, this.lineasSeleccionadas())
+        .toPromise();
 
       await this.contratosMatriculaValoresService
         .guardarValores(this.model.id, this.valores)

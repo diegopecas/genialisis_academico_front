@@ -19,6 +19,10 @@ export interface ContratoValor {
   id_periodicidad_cobro?: number;
   periodicidad?: string;
   es_matricula?: boolean;
+  // Tipo de cobro del producto al que pertenece la cuota
+  id_tipo_cobro?: string;
+  codigo_tipo_cobro?: string;
+  orden?: number;
   mes?: number;
   anio?: number;
   // Para UI
@@ -28,8 +32,19 @@ export interface ContratoValor {
 export interface ResumenValores {
   total_matricula: number;
   total_pension: number;
+  // Total de los productos distintos de matricula y pension
+  total_otros: number;
   numero_cuotas: number;
   valor_total: number;
+}
+
+/** Linea del contrato que se envia para generar el calendario */
+export interface LineaGenerarValores {
+  id_producto_servicio: string;
+  id_tipo_cobro?: string;
+  codigo_tipo_cobro?: string;
+  valor_final: number;
+  orden?: number;
 }
 
 export interface GenerarValoresRequest {
@@ -40,8 +55,9 @@ export interface GenerarValoresRequest {
   cuotas_matricula?: number;
   // Dia del mes en que vence cada cuota generada (1-31).
   dia_vencimiento?: number;
-  valor_matricula?: number;  // Valor final con descuentos/recargos aplicados
-  valor_pension?: number;    // Valor final con descuentos/recargos aplicados
+  // Lineas escogidas en el contrato, con descuentos/recargos ya aplicados.
+  // Si no vienen, el back usa las filas obligatorias de la tarifa del grupo.
+  lineas?: LineaGenerarValores[];
 }
 
 export interface GenerarValoresResponse {

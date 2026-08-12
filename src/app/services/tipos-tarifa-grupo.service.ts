@@ -9,18 +9,42 @@ import { Observable, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { httpOptions } from './http';
 
+export interface TipoTarifaGrupo {
+  id: string;
+  codigo: string;
+  nombre: string;
+  activo?: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
-export class TarifasGruposService {
+export class TiposTarifaGrupoService {
 
-  private servicio = environment.api + 'tarifas-grupos';
+  private servicio = environment.api + 'tipos-tarifa-grupo';
 
   constructor(private http: HttpClient) { }
 
   obtenerTodos() {
     return this.http
       .get<HttpResponse<Object>>(this.servicio, { observe: 'response' })
+      .pipe(
+        tap((response: HttpResponse<Object>) => {
+          let respuesta: any = response.body;
+          if (respuesta.error) {
+            throw respuesta.error;
+          }
+          return response;
+        }),
+        catchError(this.handleError)
+      );
+  }
+
+  obtenerActivos() {
+    return this.http
+      .get<HttpResponse<Object>>(this.servicio + '/activos', {
+        observe: 'response',
+      })
       .pipe(
         tap((response: HttpResponse<Object>) => {
           let respuesta: any = response.body;
@@ -50,9 +74,9 @@ export class TarifasGruposService {
       );
   }
 
-  obtenerByGrupo(idGrupo: any) {
+  obtenerByCodigo(codigo: string) {
     return this.http
-      .get<HttpResponse<Object>>(this.servicio + `/grupo/${idGrupo}`, {
+      .get<HttpResponse<Object>>(this.servicio + `/codigo/${codigo}`, {
         observe: 'response',
       })
       .pipe(
@@ -67,60 +91,8 @@ export class TarifasGruposService {
       );
   }
 
-  obtenerByGrupoAnio(idGrupo: any, anio: any) {
-    return this.http
-      .get<HttpResponse<Object>>(this.servicio + `/grupo/${idGrupo}/anio/${anio}`, {
-        observe: 'response',
-      })
-      .pipe(
-        tap((response: HttpResponse<Object>) => {
-          let respuesta: any = response.body;
-          if (respuesta.error) {
-            throw respuesta.error;
-          }
-          return response;
-        }),
-        catchError(this.handleError)
-      );
-  }
-
-  obtenerByAnio(anio: any) {
-    return this.http
-      .get<HttpResponse<Object>>(this.servicio + `/anio/${anio}`, {
-        observe: 'response',
-      })
-      .pipe(
-        tap((response: HttpResponse<Object>) => {
-          let respuesta: any = response.body;
-          if (respuesta.error) {
-            throw respuesta.error;
-          }
-          return response;
-        }),
-        catchError(this.handleError)
-      );
-  }
-
-  /**
-   * Guarda de un golpe todas las filas de tarifa de un grupo en un año.
-   * Espera { id_grupo, anio, tarifas: [], eliminar: [] }
-   */
-  guardarLote(datos: any) {
-    const body = JSON.stringify(datos);
-    return this.http.post<any>(this.servicio + '/guardar-lote', body, httpOptions).pipe(
-      tap((respuesta: any) => {
-        if (respuesta.error) {
-          throw respuesta.error;
-        }
-        return respuesta;
-      }),
-      catchError(this.handleError)
-    );
-  }
-
-  crear(tarifa: any) {
-    const body = JSON.stringify(tarifa);
-
+  crear(tipo: any) {
+    const body = JSON.stringify(tipo);
     return this.http.post<any>(this.servicio, body, httpOptions).pipe(
       tap((respuesta: any) => {
         if (respuesta.error) {
@@ -132,8 +104,8 @@ export class TarifasGruposService {
     );
   }
 
-  actualizar(tarifa: any) {
-    const body = JSON.stringify(tarifa);
+  actualizar(tipo: any) {
+    const body = JSON.stringify(tipo);
     return this.http.put<any>(this.servicio, body, httpOptions).pipe(
       tap((respuesta: any) => {
         if (respuesta.error) throw respuesta.error;

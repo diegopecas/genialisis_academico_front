@@ -1,0 +1,187 @@
+<div class="grupo-tarifas">
+
+    <div *ngIf="!idGrupo" class="alert alert-warning">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        Guarde primero el grupo para poder configurar sus tarifas.
+    </div>
+
+    <div *ngIf="idGrupo">
+
+        <!-- Año y acción -->
+        <div class="row g-3 align-items-end mb-4">
+            <div class="col-12 col-md-4">
+                <label class="form-label">Año <span class="text-danger">*</span></label>
+                <select class="form-select" [(ngModel)]="anioTarifa" (change)="onAnioTarifaChange()">
+                    <option *ngFor="let anio of aniosEscolares" [value]="anio">{{ anio }}</option>
+                </select>
+            </div>
+            <div class="col-12 col-md-8" *ngIf="editable">
+                <button class="btn btn-outline-primary w-100" (click)="abrirModalProductos()">
+                    <i class="fas fa-plus me-2"></i>Agregar productos
+                </button>
+            </div>
+        </div>
+
+        <!-- Sin productos -->
+        <div *ngIf="filas.length === 0" class="alert alert-secondary text-center py-4">
+            <i class="fas fa-dollar-sign fa-2x mb-2 d-block"></i>
+            <p class="mb-1">No hay productos en la tarifa {{ anioTarifa }}.</p>
+            <small class="text-muted">Agregue la matrícula, las pensiones y los demás cobros del grupo.</small>
+        </div>
+
+        <!-- Una tarjeta por producto -->
+        <div class="tarifa-card" *ngFor="let fila of filas; let i = index">
+
+            <div class="tarifa-card-header">
+                <span class="orden-badge">{{ fila.orden }}</span>
+                <div class="tarifa-nombre">
+                    <strong>{{ fila.nombre_producto }}</strong>
+                    <div class="tarifa-etiquetas">
+                        <span class="badge" [ngClass]="{
+                                'bg-primary': fila.codigo_tipo_cobro === 'MATRICULA',
+                                'bg-success': fila.codigo_tipo_cobro === 'PENSION',
+                                'bg-secondary': fila.codigo_tipo_cobro !== 'MATRICULA' && fila.codigo_tipo_cobro !== 'PENSION'
+                            }">
+                            {{ fila.nombre_tipo_cobro || 'Otro' }}
+                        </span>
+                        <span class="badge bg-light text-dark" *ngIf="fila.nombre_periodicidad">
+                            {{ fila.nombre_periodicidad }}
+                        </span>
+                    </div>
+                </div>
+                <div class="tarifa-acciones" *ngIf="editable">
+                    <button class="btn btn-sm btn-link text-secondary" (click)="subirFila(i)" [disabled]="i === 0"
+                        title="Subir">
+                        <i class="fas fa-chevron-up"></i>
+                    </button>
+                    <button class="btn btn-sm btn-link text-secondary" (click)="bajarFila(i)"
+                        [disabled]="i === filas.length - 1" title="Bajar">
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <button class="btn btn-sm btn-link text-danger" (click)="quitarFila(i)" title="Quitar">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="row g-3 align-items-end">
+                <div class="col-12 col-md-5">
+                    <label class="form-label">Valor <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input type="text" inputmode="numeric" class="form-control text-end"
+                            [value]="fila.valorFormateado" (input)="onValorInput($event, fila)" placeholder="0"
+                            [disabled]="!editable" />
+                    </div>
+                    <small class="text-muted" *ngIf="fila.valor_sugerido && fila.valor_sugerido !== fila.valor">
+                        Sugerido en el producto: {{ formatearMoneda(fila.valor_sugerido) }}
+                    </small>
+                </div>
+                <div class="col-12 col-md-7">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" role="switch"
+                            [checked]="fila.obligatorio === 1" (change)="toggleObligatorio(fila)"
+                            [disabled]="!editable" [id]="'obligatorio-' + i" />
+                        <label class="form-check-label" [for]="'obligatorio-' + i">
+                            <strong>Obligatorio</strong>
+                            <small class="d-block text-muted">
+                                {{ fila.obligatorio === 1
+                                    ? 'Se agrega automáticamente al contrato de todo el grupo'
+                                    : 'Se ofrece al matricular y el acudiente decide si lo toma' }}
+                            </small>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Guardar -->
+        <div class="mt-4" *ngIf="editable">
+            <button class="btn btn-primary w-100" (click)="guardarTarifas()" [disabled]="guardando">
+                <i class="fas fa-save me-2"></i>
+                {{ guardando ? 'Guardando...' : 'Guardar tarifas ' + anioTarifa }}
+            </button>
+        </div>
+
+        <!-- Años ya configurados -->
+        <div class="mt-4" *ngIf="tarifasGrupo.length > 0">
+            <h6 class="text-muted small">Años configurados</h6>
+            <div class="anio-chip" *ngFor="let anio of aniosConTarifa()" [class.activo]="anio == anioTarifa"
+                (click)="anioTarifa = anio; onAnioTarifaChange()">
+                <strong>{{ anio }}</strong>
+                <small class="d-block text-muted">
+                    {{ filasDelAnio(anio).length }} productos · {{ formatearMoneda(totalAnio(anio)) }}
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de selección de productos -->
+<div class="modal-overlay" *ngIf="mostrarModalProductos" (click)="cerrarModalProductos()">
+    <div class="modal-content-custom" (click)="$event.stopPropagation()">
+        <div class="modal-header-custom">
+            <h3>Agregar productos</h3>
+            <button type="button" class="btn-close-custom" (click)="cerrarModalProductos()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="modal-body-custom">
+            <div class="search-box">
+                <input type="text" class="form-control" placeholder="Buscar producto..."
+                    [(ngModel)]="busquedaProducto" (input)="filtrarProductos()" />
+                <i class="fas fa-search"></i>
+            </div>
+
+            <!-- Filtro por tipo de cobro -->
+            <div class="filtros-tipo">
+                <button type="button" class="chip-tipo" [class.activo]="filtroTipoCobro === ''"
+                    (click)="seleccionarFiltroTipo('')">
+                    Todos <span class="conteo">{{ contarPorTipo('') }}</span>
+                </button>
+                <button type="button" class="chip-tipo" *ngFor="let t of tiposCobro"
+                    [class.activo]="filtroTipoCobro === t.codigo" (click)="seleccionarFiltroTipo(t.codigo)">
+                    {{ t.nombre }} <span class="conteo">{{ contarPorTipo(t.codigo) }}</span>
+                </button>
+            </div>
+
+            <div *ngIf="productosFiltrados.length === 0" class="sin-resultados">
+                <i class="fas fa-search"></i>
+                <p class="mb-0">No hay productos para agregar</p>
+            </div>
+
+            <div class="producto-item" *ngFor="let p of productosFiltrados"
+                [class.seleccionado]="estaSeleccionado(p.id)" (click)="toggleSeleccionModal(p.id)">
+                <input class="form-check-input" type="checkbox" [checked]="estaSeleccionado(p.id)"
+                    (click)="$event.stopPropagation()" (change)="toggleSeleccionModal(p.id)" />
+                <div class="producto-datos">
+                    <strong>{{ p.nombre }}</strong>
+                    <div class="mt-1">
+                        <span class="badge" [ngClass]="{
+                                'bg-primary': p.codigo_tipo_cobro === 'MATRICULA',
+                                'bg-success': p.codigo_tipo_cobro === 'PENSION',
+                                'bg-secondary': p.codigo_tipo_cobro !== 'MATRICULA' && p.codigo_tipo_cobro !== 'PENSION'
+                            }">
+                            {{ p.nombre_tipo_cobro || 'Otro' }}
+                        </span>
+                        <span class="badge bg-light text-dark" *ngIf="p.nombre_periodicidad">
+                            {{ p.nombre_periodicidad }}
+                        </span>
+                        <span class="badge bg-light text-dark" *ngIf="p.valor_sugerido">
+                            {{ formatearMoneda(p.valor_sugerido) }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer-custom">
+            <button class="btn btn-secondary" (click)="cerrarModalProductos()">Cancelar</button>
+            <button class="btn btn-primary" (click)="agregarSeleccionados()"
+                [disabled]="totalSeleccionados() === 0">
+                Agregar {{ totalSeleccionados() > 0 ? totalSeleccionados() : '' }}
+            </button>
+        </div>
+    </div>
+</div>

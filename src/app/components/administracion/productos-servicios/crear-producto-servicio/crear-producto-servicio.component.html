@@ -101,6 +101,21 @@
         </select>
       </div>
       <div class="col-sm-12 col-md-6">
+        <label for="tipoCobro" class="form-label">Tipo de Cobro <span class="text-danger">*</span></label>
+        <select 
+          class="form-select form-select-lg" 
+          id="tipoCobro" 
+          [(ngModel)]="model.id_tipo_cobro"
+          [ngClass]="{'is-invalid': !model.id_tipo_cobro && submitted}"
+          [disabled]="!editable">
+          <option value="">Seleccionar</option>
+          <ng-container *ngFor="let t of listas.tiposCobro">
+            <option [value]="t.id">{{ t.nombre }}</option>
+          </ng-container>
+        </select>
+        <small class="form-text text-muted">Define si entra al contrato como matrícula, pensión u otro</small>
+      </div>
+      <div class="col-sm-12 col-md-6">
         <label for="valor" class="form-label">Valor Sugerido</label>
         <div class="input-group input-group-lg">
           <span class="input-group-text">$</span>

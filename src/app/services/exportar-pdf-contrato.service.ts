@@ -145,6 +145,11 @@ export class ExportarPdfContratoService {
           ? Math.round(contrato.valor_pension / contrato.numero_cuotas) 
           : contrato.valor_pension
       ),
+      // Total de los productos distintos de matricula y pension (materiales,
+      // piscina, onces, almuerzo). Sale derivado de las lineas del contrato.
+      '{{valor_otros_formateado}}': this.formatearMoneda(
+        contrato.valor_otros || 0
+      ),
       '{{numero_cuotas}}': contrato.numero_cuotas.toString(),
       '{{texto_primera_cuota}}': textoPrimeraCuota,
       '{{numero_cuotas_restantes}}': numeroCuotasRestantes.toString(),

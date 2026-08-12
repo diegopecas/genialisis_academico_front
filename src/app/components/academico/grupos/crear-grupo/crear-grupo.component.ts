@@ -8,10 +8,8 @@ import { GradosService } from '../../../../services/grados.service';
 import { GradosXGrupoService } from '../../../../services/grados-x-grupo.service';
 import { AreasAcademicasService } from '../../../../services/areas-academicas.service';
 import { AreaAcademicaXGrupoService } from '../../../../services/area-academica-x-grupo.service';
-import { TarifasGruposService } from '../../../../services/tarifas-grupos.service';
-import { ProductosServiciosService } from '../../../../services/productos-servicios.service';
-import { InstitucionConfigService } from '../../../../services/institucion-config.service';
 import { GrupoHorariosComponent } from '../grupo-horarios/grupo-horarios.component';
+import { GrupoTarifasComponent } from '../grupo-tarifas/grupo-tarifas.component';
 import { HttpClient } from '@angular/common/http';
 import Swal from 'sweetalert2';
 
@@ -20,7 +18,7 @@ import Swal from 'sweetalert2';
   templateUrl: './crear-grupo.component.html',
   styleUrl: './crear-grupo.component.scss',
   standalone: true,
-  imports: [CommonModule, FormsModule, HeaderComponent, GrupoHorariosComponent]
+  imports: [CommonModule, FormsModule, HeaderComponent, GrupoHorariosComponent, GrupoTarifasComponent]
 })
 export class CrearGrupoComponent implements OnInit {
 
@@ -50,24 +48,6 @@ export class CrearGrupoComponent implements OnInit {
   areasAsociadas: any[] = [];
   areasSeleccionadas: { [key: string]: boolean } = {};
 
-  // Tarifas
-  tarifasGrupo: any[] = [];
-  productosMatricula: any[] = [];
-  productosPension: any[] = [];
-  aniosEscolares: number[] = [];
-  anioTarifa: number = new Date().getFullYear();
-  valorMatriculaFormateado: string = '';
-  valorPensionFormateado: string = '';
-  tarifaActual: any = {
-    id: null,
-    id_grupo: null,
-    id_producto_matricula: null,
-    id_producto_pension: null,
-    valor_matricula: 0,
-    valor_pension: 0,
-    anio: new Date().getFullYear()
-  };
-
   model = {
     id: null,
     nombre: '',
@@ -83,9 +63,6 @@ export class CrearGrupoComponent implements OnInit {
     private gradosXGrupoService: GradosXGrupoService,
     private areasAcademicasService: AreasAcademicasService,
     private areaAcademicaXGrupoService: AreaAcademicaXGrupoService,
-    private tarifasGruposService: TarifasGruposService,
-    private productosServiciosService: ProductosServiciosService,
-    private institucionConfigService: InstitucionConfigService,
     private http: HttpClient,
     private route: ActivatedRoute,
     private router: Router
@@ -108,9 +85,6 @@ export class CrearGrupoComponent implements OnInit {
         this.cargarGradosAsociados(id);
         this.cargarAreasDisponibles(id);
         this.cargarAreasAsociadas(id);
-        this.cargarTarifasGrupo(id);
-        this.cargarProductos();
-        this.cargarAniosEscolares();
       } else if (this.accion === 'consultar') {
         this.titulo = "Consultar Grupo";
         this.editable = false;
@@ -443,204 +417,5 @@ export class CrearGrupoComponent implements OnInit {
         }
       });
     }
-  }
-
-
-  // ==================== TARIFAS ====================
-
-  cargarProductos() {
-    this.productosServiciosService.obtenerTodos().subscribe({
-      next: (response: any) => {
-        const productos = response.body || [];
-        this.productosMatricula = productos.filter((p: any) => 
-          p.clasificacion_codigo === 'ACADEMICO' && p.id_periodicidad_cobro == 1
-        );
-        this.productosPension = productos.filter((p: any) => 
-          p.clasificacion_codigo === 'ACADEMICO' && p.id_periodicidad_cobro == 2
-        );
-      },
-      error: (error: any) => {
-        console.error("Error al cargar productos", error);
-      }
-    });
-  }
-
-  cargarTarifasGrupo(idGrupo: any) {
-    this.tarifasGruposService.obtenerByGrupo(idGrupo).subscribe({
-      next: (response: any) => {
-        this.tarifasGrupo = response.body || [];
-        this.seleccionarTarifaAnio();
-      },
-      error: (error: any) => {
-        console.error("Error al cargar tarifas", error);
-      }
-    });
-  }
-
-  cargarAniosEscolares() {
-    const annos = this.institucionConfigService.getAnnosEscolares();
-    this.aniosEscolares = annos.map((a: any) => a.id);
-    if (this.aniosEscolares.length > 0 && !this.anioTarifa) {
-      this.anioTarifa = this.aniosEscolares[0];
-    }
-  }
-
-  seleccionarTarifaAnio() {
-    const tarifaExistente = this.tarifasGrupo.find(t => t.anio == this.anioTarifa);
-    if (tarifaExistente) {
-      this.tarifaActual = { ...tarifaExistente };
-    } else {
-      this.tarifaActual = {
-        id: null,
-        id_grupo: this.model.id,
-        id_producto_matricula: null,
-        id_producto_pension: null,
-        valor_matricula: 0,
-        valor_pension: 0,
-        anio: this.anioTarifa
-      };
-    }
-    this.valorMatriculaFormateado = this.formatearNumero(this.tarifaActual.valor_matricula);
-    this.valorPensionFormateado = this.formatearNumero(this.tarifaActual.valor_pension);
-  }
-
-  onAnioTarifaChange() {
-    this.tarifaActual.anio = this.anioTarifa;
-    this.seleccionarTarifaAnio();
-  }
-
-  formatearNumero(valor: number): string {
-    if (!valor || valor === 0) return '';
-    return valor.toLocaleString('es-CO');
-  }
-
-  onValorMatriculaInput(event: any) {
-    let valor = event.target.value.replace(/\./g, '').replace(/\D/g, '');
-    this.tarifaActual.valor_matricula = valor ? parseInt(valor) : 0;
-    
-    if (this.tarifaActual.valor_matricula > 0) {
-      event.target.value = this.tarifaActual.valor_matricula.toLocaleString('es-CO');
-    } else {
-      event.target.value = '';
-    }
-  }
-
-  onValorPensionInput(event: any) {
-    let valor = event.target.value.replace(/\./g, '').replace(/\D/g, '');
-    this.tarifaActual.valor_pension = valor ? parseInt(valor) : 0;
-    
-    if (this.tarifaActual.valor_pension > 0) {
-      event.target.value = this.tarifaActual.valor_pension.toLocaleString('es-CO');
-    } else {
-      event.target.value = '';
-    }
-  }
-
-  onProductoMatriculaChange() {
-    if (this.tarifaActual.id_producto_matricula) {
-      const producto = this.productosMatricula.find((p: any) => p.id == this.tarifaActual.id_producto_matricula);
-      if (producto && producto.valor_sugerido) {
-        this.tarifaActual.valor_matricula = producto.valor_sugerido;
-        this.valorMatriculaFormateado = this.formatearNumero(this.tarifaActual.valor_matricula);
-      }
-    } else {
-      this.tarifaActual.valor_matricula = 0;
-      this.valorMatriculaFormateado = '';
-    }
-  }
-
-  onProductoPensionChange() {
-    if (this.tarifaActual.id_producto_pension) {
-      const producto = this.productosPension.find((p: any) => p.id == this.tarifaActual.id_producto_pension);
-      if (producto && producto.valor_sugerido) {
-        this.tarifaActual.valor_pension = producto.valor_sugerido;
-        this.valorPensionFormateado = this.formatearNumero(this.tarifaActual.valor_pension);
-      }
-    } else {
-      this.tarifaActual.valor_pension = 0;
-      this.valorPensionFormateado = '';
-    }
-  }
-
-  guardarTarifa() {
-    if (!this.tarifaActual.id_producto_matricula) {
-      Swal.fire('Advertencia', 'Debe seleccionar un producto de matrícula', 'warning');
-      return;
-    }
-    if (!this.tarifaActual.id_producto_pension) {
-      Swal.fire('Advertencia', 'Debe seleccionar un producto de pensión', 'warning');
-      return;
-    }
-    if (!this.tarifaActual.valor_matricula || this.tarifaActual.valor_matricula <= 0) {
-      Swal.fire('Advertencia', 'Debe ingresar el valor de matrícula', 'warning');
-      return;
-    }
-    if (!this.tarifaActual.valor_pension || this.tarifaActual.valor_pension <= 0) {
-      Swal.fire('Advertencia', 'Debe ingresar el valor de pensión', 'warning');
-      return;
-    }
-
-    const data = {
-      id_grupo: this.model.id,
-      id_producto_matricula: this.tarifaActual.id_producto_matricula,
-      id_producto_pension: this.tarifaActual.id_producto_pension,
-      valor_matricula: this.tarifaActual.valor_matricula,
-      valor_pension: this.tarifaActual.valor_pension,
-      anio: parseInt(this.tarifaActual.anio)
-    } as any;
-
-    console.log('Tarifa actual:', this.tarifaActual);
-    console.log('Data a enviar:', data);
-
-    if (this.tarifaActual.id) {
-      data.id = this.tarifaActual.id;
-      console.log('Actualizando tarifa con id:', data.id);
-      this.tarifasGruposService.actualizar(data).subscribe({
-        next: (response: any) => {
-          console.log('Respuesta actualizar:', response);
-          Swal.fire({
-            toast: true,
-            position: 'top-end',
-            icon: 'success',
-            title: 'Tarifa actualizada',
-            showConfirmButton: false,
-            timer: 2000
-          });
-          this.cargarTarifasGrupo(this.model.id);
-        },
-        error: (error: any) => {
-          console.error("Error al actualizar tarifa", error);
-          Swal.fire('Error', 'No se pudo actualizar la tarifa', 'error');
-        }
-      });
-    } else {
-      console.log('Creando nueva tarifa');
-      this.tarifasGruposService.crear(data).subscribe({
-        next: (response: any) => {
-          console.log('Respuesta crear:', response);
-          Swal.fire({
-            toast: true,
-            position: 'top-end',
-            icon: 'success',
-            title: 'Tarifa creada',
-            showConfirmButton: false,
-            timer: 2000
-          });
-          this.cargarTarifasGrupo(this.model.id);
-        },
-        error: (error: any) => {
-          console.error("Error al crear tarifa", error);
-          Swal.fire('Error', 'No se pudo crear la tarifa', 'error');
-        }
-      });
-    }
-  }
-
-  formatearMoneda(valor: number): string {
-    return valor?.toLocaleString('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0,
-    }) || '$0';
   }
 }

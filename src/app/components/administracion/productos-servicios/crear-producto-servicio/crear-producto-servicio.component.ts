@@ -8,6 +8,7 @@ import { CategoriaProductosServiciosService } from '../../../../services/categor
 import { ClasificacionProductosServiciosService } from '../../../../services/clasificacion-productos-servicios.service';
 import { HorariosAlimentacionService } from '../../../../services/horarios-alimentacion.service';
 import { PeriodicidadCobroService } from '../../../../services/periodicidad-cobro.service';
+import { TiposCobroProductoService } from '../../../../services/tipos-cobro-producto.service';
 import { ProductosServiciosService } from '../../../../services/productos-servicios.service';
 import { MoraConfiguracionService } from '../../../../services/mora-configuracion.service';
 import { TiposMoraService } from '../../../../services/tipos-mora.service';
@@ -49,6 +50,7 @@ export class CrearProductoServicioComponent implements OnInit {
     id_clasificacion_productos_servicios: '',
     id_categoria_productos_servicios: '',
     id_periodicidad_cobro: '',
+    id_tipo_cobro: '',
     valor_sugerido: '',
     id_horario_alimentacion_sugerido: '',
     disponible: 1,
@@ -59,6 +61,7 @@ export class CrearProductoServicioComponent implements OnInit {
     clasificaciones: [] as any[],
     categorias: [] as any[],
     periodicidades: [] as any[],
+    tiposCobro: [] as any[],
     horarios: [] as any[],
     tiposMora: [] as any[]
   };
@@ -70,6 +73,7 @@ export class CrearProductoServicioComponent implements OnInit {
     private clasificacionService: ClasificacionProductosServiciosService,
     private categoriaService: CategoriaProductosServiciosService,
     private periodicidadService: PeriodicidadCobroService,
+    private tiposCobroProductoService: TiposCobroProductoService,
     private horariosService: HorariosAlimentacionService,
     private moraConfiguracionService: MoraConfiguracionService,
     private tiposMoraService: TiposMoraService,
@@ -107,6 +111,10 @@ export class CrearProductoServicioComponent implements OnInit {
 
     this.periodicidadService.obtenerTodos().subscribe((response: any) => {
       this.listas.periodicidades = response.body;
+    });
+
+    this.tiposCobroProductoService.obtenerActivos().subscribe((response: any) => {
+      this.listas.tiposCobro = response.body;
     });
 
     this.horariosService.obtenerTodos().subscribe((response: any) => {
@@ -185,6 +193,7 @@ export class CrearProductoServicioComponent implements OnInit {
           id_clasificacion_productos_servicios: data.id_clasificacion_productos_servicios || '',
           id_categoria_productos_servicios: data.id_categoria_productos_servicios || '',
           id_periodicidad_cobro: data.id_periodicidad_cobro || '',
+          id_tipo_cobro: data.id_tipo_cobro || '',
           valor_sugerido: data.valor_sugerido || '',
           id_horario_alimentacion_sugerido: data.id_horario_alimentacion_sugerido || '',
           disponible: data.disponible,
@@ -249,6 +258,7 @@ export class CrearProductoServicioComponent implements OnInit {
       ...this.model,
       id_categoria_productos_servicios: this.model.id_categoria_productos_servicios || null,
       id_periodicidad_cobro: this.model.id_periodicidad_cobro || null,
+      id_tipo_cobro: this.model.id_tipo_cobro || null,
       id_horario_alimentacion_sugerido: this.model.id_horario_alimentacion_sugerido || null,
       valor_sugerido: this.model.valor_sugerido || null
     };
@@ -359,7 +369,8 @@ export class CrearProductoServicioComponent implements OnInit {
       this.model.nombre &&
       this.model.id_clasificacion_productos_servicios &&
       this.model.id_categoria_productos_servicios &&
-      this.model.id_periodicidad_cobro
+      this.model.id_periodicidad_cobro &&
+      this.model.id_tipo_cobro
     );
   }
 
