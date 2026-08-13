@@ -31,6 +31,7 @@ export class CrearProductoServicioComponent implements OnInit {
   productoServicioActivoSwitch = true;
   valorSugeridoFormateado = '';
   tabActiva = 'datos';
+  listasProductos: any[] = [];
 
   /* Configuracion de mora del producto. `cobra` es solo de pantalla: cuando
      queda en false se borra la configuracion al grabar. */
@@ -40,7 +41,12 @@ export class CrearProductoServicioComponent implements OnInit {
     id_tipo_mora: null as any,
     valor_recargo: null as any,
     recargo_acumulable: 0,
-    porcentaje_mensual: null as any
+    porcentaje_mensual: null as any,
+    /* Producto bajo el cual nacen las cuentas por cobrar de mora.
+       modo: 'crear' genera uno nuevo, 'existente' usa el seleccionado. */
+    modo_producto_mora: 'crear',
+    id_producto_mora: null as any,
+    nombre_producto_mora: ''
   };
 
   model = {
@@ -124,6 +130,10 @@ export class CrearProductoServicioComponent implements OnInit {
     this.tiposMoraService.obtenerTodos().subscribe((response: any) => {
       this.listas.tiposMora = response.body;
     });
+
+    this.productosServiciosService.obtenerTodos().subscribe((response: any) => {
+      this.listasProductos = response.body || response;
+    });
   }
 
   cambiarTab(tab: string) {
@@ -151,7 +161,18 @@ export class CrearProductoServicioComponent implements OnInit {
       this.mora.valor_recargo = null;
       this.mora.recargo_acumulable = 0;
       this.mora.porcentaje_mensual = null;
+      return;
     }
+
+    // Al prender el cobro se sugiere el nombre del producto de mora.
+    if (!this.mora.nombre_producto_mora) {
+      this.mora.nombre_producto_mora = 'Mora - ' + (this.model.nombre || '');
+    }
+  }
+
+  /** Productos que se pueden elegir como producto de mora (excluye el propio). */
+  get productosParaMora(): any[] {
+    return this.listasProductos.filter((p: any) => p.id !== this.model.id);
   }
 
   /** Trae la configuracion de mora del producto, si la tiene. */
@@ -172,7 +193,11 @@ export class CrearProductoServicioComponent implements OnInit {
           id_tipo_mora: config.id_tipo_mora !== null ? Number(config.id_tipo_mora) : null,
           valor_recargo: config.valor_recargo,
           recargo_acumulable: Number(config.recargo_acumulable),
-          porcentaje_mensual: config.porcentaje_mensual
+          porcentaje_mensual: config.porcentaje_mensual,
+          /* Ya tiene producto de mora: por defecto se conserva ese. */
+          modo_producto_mora: config.id_producto_mora ? 'existente' : 'crear',
+          id_producto_mora: config.id_producto_mora || null,
+          nombre_producto_mora: ''
         };
       },
       error: (error: any) => {
@@ -340,9 +365,18 @@ export class CrearProductoServicioComponent implements OnInit {
       return;
     }
 
+    if (this.mora.modo_producto_mora === 'existente' && !this.mora.id_producto_mora) {
+      Swal.fire('Campos incompletos', 'Seleccione el producto donde se cobrará la mora', 'warning');
+      this.tabActiva = 'mora';
+      return;
+    }
+
     const dataMora: any = {
       id_producto_servicio: this.model.id,
       id_tipo_mora: Number(this.mora.id_tipo_mora),
+      modo_producto_mora: this.mora.modo_producto_mora,
+      id_producto_mora: this.mora.id_producto_mora,
+      nombre_producto_mora: this.mora.nombre_producto_mora,
       valor_recargo: this.esRecargoFijo ? Number(this.mora.valor_recargo) : null,
       recargo_acumulable: this.esRecargoFijo ? Number(this.mora.recargo_acumulable) : 0,
       porcentaje_mensual: this.esPorcentaje ? Number(this.mora.porcentaje_mensual) : null,

@@ -34,6 +34,35 @@
             <input type="number" step="0.001" class="form-control" [(ngModel)]="condiciones.porcentaje_mensual" placeholder="Ej: 2">
           </div>
         </div>
+
+        <div class="row mt-3">
+          <div class="col-12">
+            <label class="form-label"><b>¿Dónde se cobra la mora?</b></label>
+            <p class="text-muted small mb-2">
+              La mora nace como una cuenta por cobrar aparte, bajo su propio producto.
+            </p>
+          </div>
+          <div class="col-sm-12 col-md-4">
+            <select class="form-select" [(ngModel)]="condiciones.modo_producto_mora">
+              <option value="uno_por_producto">Un producto de mora por cada uno</option>
+              <option value="uno_para_todos">Un solo producto para todos</option>
+            </select>
+          </div>
+          <div class="col-sm-12 col-md-8" *ngIf="condiciones.modo_producto_mora === 'uno_para_todos'">
+            <select class="form-select" [(ngModel)]="condiciones.id_producto_mora">
+              <option [ngValue]="null">Seleccione el producto de mora</option>
+              <ng-container *ngFor="let p of productos">
+                <option [value]="p.id_producto_servicio">{{ p.nombre }}</option>
+              </ng-container>
+            </select>
+          </div>
+          <div class="col-12 mt-2" *ngIf="condiciones.modo_producto_mora === 'uno_por_producto'">
+            <small class="text-muted">
+              Se creará "Mora - &lt;nombre del producto&gt;" para cada uno, heredando su clasificación y categoría.
+              Los que ya tengan producto de mora conservan el suyo.
+            </small>
+          </div>
+        </div>
       </div>
     </div>
   </div>

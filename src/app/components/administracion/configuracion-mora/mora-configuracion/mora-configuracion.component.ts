@@ -55,7 +55,12 @@ export class MoraConfiguracionComponent implements OnInit {
     id_tipo_mora: null as any,
     valor_recargo: null as any,
     recargo_acumulable: 0,
-    porcentaje_mensual: null as any
+    porcentaje_mensual: null as any,
+    /* Producto donde se cobrara la mora del lote:
+         'uno_por_producto' -> se crea uno para cada producto marcado
+         'uno_para_todos'   -> todos comparten el producto seleccionado */
+    modo_producto_mora: 'uno_por_producto',
+    id_producto_mora: null as any
   };
 
   constructor(
@@ -231,6 +236,10 @@ export class MoraConfiguracionComponent implements OnInit {
       Swal.fire('Campos incompletos', 'El porcentaje mensual debe ser mayor que cero', 'warning');
       return;
     }
+    if (this.condiciones.modo_producto_mora === 'uno_para_todos' && !this.condiciones.id_producto_mora) {
+      Swal.fire('Campos incompletos', 'Seleccione el producto donde se cobrará la mora', 'warning');
+      return;
+    }
 
     const resumen = this.esRecargoFijo
       ? '$' + Number(this.condiciones.valor_recargo).toLocaleString('es-CO') + ' de recargo'
@@ -288,6 +297,8 @@ export class MoraConfiguracionComponent implements OnInit {
       payload.valor_recargo = this.esRecargoFijo ? Number(this.condiciones.valor_recargo) : null;
       payload.recargo_acumulable = this.esRecargoFijo ? Number(this.condiciones.recargo_acumulable) : 0;
       payload.porcentaje_mensual = this.esPorcentaje ? Number(this.condiciones.porcentaje_mensual) : null;
+      payload.modo_producto_mora = this.condiciones.modo_producto_mora;
+      payload.id_producto_mora = this.condiciones.id_producto_mora;
       payload.activo = 1;
     }
 
