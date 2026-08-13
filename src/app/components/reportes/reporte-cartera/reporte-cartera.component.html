@@ -849,7 +849,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr *ngFor="let mes of datosMensualesFiltrados">
+                  <tr *ngFor="let mes of datosMensualesVisibles">
                     <td>{{ mes.nombreMes }}</td>
                     <td class="text-end">{{ mes.cobrado | currency:'':'symbol':'1.0-0' }}</td>
                     <td class="text-end">{{ mes.pagado | currency:'':'symbol':'1.0-0' }}</td>
@@ -2232,7 +2232,7 @@
                   'fa-sort-down': columnaOrdenamientoSaldos === 'grupo_estudiante' && !ordenAscendenteSaldos
                 }"></i>
                     </th>
-                    <th class="text-center columna-mes" *ngFor="let mes of mesesDisponibles">
+                    <th class="text-center columna-mes" *ngFor="let mes of mesesConMovimiento">
                       {{ mes.nombre.substring(0, 3) }}
                     </th>
                     <th class="text-end columna-total sortable"
@@ -2253,7 +2253,7 @@
                   }">
                     <td class="columna-fija">{{ estudiante.nombre_estudiante }}</td>
                     <td class="columna-grupo">{{ estudiante.grupo_estudiante }}</td>
-                    <td class="text-end columna-mes" *ngFor="let mes of mesesDisponibles" [ngClass]="{
+                    <td class="text-end columna-mes" *ngFor="let mes of mesesConMovimiento" [ngClass]="{
                     'text-danger': getSaldoPendienteMes(estudiante, mes.valor) > 0,
                     'table-danger': getSaldoPendienteMes(estudiante, mes.valor) > 100000
                   }">
@@ -2270,7 +2270,7 @@
                     </td>
                   </tr>
                   <tr *ngIf="estudiantesSaldosPendientesFiltrados.length === 0">
-                    <td colspan="15" class="text-center text-muted py-4">
+                    <td [attr.colspan]="mesesConMovimiento.length + 3" class="text-center text-muted py-4">
                       {{ mostrarSoloConSaldoPendiente ?
                       'No se encontraron estudiantes con saldos pendientes' :
                       'No se encontraron estudiantes con los filtros aplicados' }}
@@ -2280,7 +2280,7 @@
                 <tfoot class="table-light">
                   <tr class="fw-bold">
                     <td colspan="2">TOTALES</td>
-                    <td class="text-end" *ngFor="let mes of mesesDisponibles">
+                    <td class="text-end" *ngFor="let mes of mesesConMovimiento">
                       {{ getTotalSaldoPendienteMes(mes.valor) | currency:'':'symbol':'1.0-0' }}
                     </td>
                     <td class="text-end text-danger">
@@ -2396,7 +2396,7 @@
                   'fa-sort-down': columnaOrdenamientoPagos === 'grupo_estudiante' && !ordenAscendentePagos
                 }"></i>
                     </th>
-                    <th class="text-center columna-mes" *ngFor="let mes of mesesDisponibles">
+                    <th class="text-center columna-mes" *ngFor="let mes of mesesConMovimiento">
                       {{ mes.nombre.substring(0, 3) }}
                     </th>
                     <th class="text-end columna-total sortable" (click)="ordenarPorPagosEstudiantes('totalPagadoMeses')">
@@ -2413,7 +2413,7 @@
                   <tr *ngFor="let estudiante of estudiantesPagosFiltrados">
                     <td class="columna-fija">{{ estudiante.nombre_estudiante }}</td>
                     <td class="columna-grupo">{{ estudiante.grupo_estudiante }}</td>
-                    <td class="text-end columna-mes" *ngFor="let mes of mesesDisponibles">
+                    <td class="text-end columna-mes" *ngFor="let mes of mesesConMovimiento">
                       <span *ngIf="getPagadoMes(estudiante, mes.valor) > 0" class="celda-pago text-success"
                         title="Ver los pagos de {{ mes.nombre }}" (click)="verDetallePagosMes(estudiante, mes.valor)">
                         {{ getPagadoMes(estudiante, mes.valor) | currency:'':'symbol':'1.0-0' }}
@@ -2427,7 +2427,7 @@
                     </td>
                   </tr>
                   <tr *ngIf="estudiantesPagosFiltrados.length === 0">
-                    <td colspan="15" class="text-center text-muted py-4">
+                    <td [attr.colspan]="mesesConMovimiento.length + 3" class="text-center text-muted py-4">
                       {{ mostrarSoloConPagos ?
                       'No se encontraron estudiantes con pagos registrados' :
                       'No se encontraron estudiantes con los filtros aplicados' }}
@@ -2437,7 +2437,7 @@
                 <tfoot class="table-light">
                   <tr class="fw-bold">
                     <td colspan="2">TOTALES</td>
-                    <td class="text-end" *ngFor="let mes of mesesDisponibles">
+                    <td class="text-end" *ngFor="let mes of mesesConMovimiento">
                       {{ getTotalPagadoMes(mes.valor) | currency:'':'symbol':'1.0-0' }}
                     </td>
                     <td class="text-end text-success">
@@ -2603,7 +2603,7 @@
                         'fa-sort-down': columnaOrdenamientoSaldosColaboradores === 'grupo_estudiante' && !ordenAscendenteSaldosColaboradores
                       }"></i>
                     </th>
-                    <th class="text-center columna-mes" *ngFor="let mes of mesesDisponibles">
+                    <th class="text-center columna-mes" *ngFor="let mes of mesesConMovimiento">
                       {{ mes.nombre.substring(0, 3) }}
                     </th>
                     <th class="text-end columna-total sortable"
@@ -2624,7 +2624,7 @@
                   }">
                     <td class="columna-fija">{{ colaborador.nombre_estudiante }}</td>
                     <td class="columna-grupo">{{ colaborador.grupo_estudiante }}</td>
-                    <td class="text-end columna-mes" *ngFor="let mes of mesesDisponibles" [ngClass]="{
+                    <td class="text-end columna-mes" *ngFor="let mes of mesesConMovimiento" [ngClass]="{
                       'text-danger': getSaldoPendienteMes(colaborador, mes.valor) > 0,
                       'table-danger': getSaldoPendienteMes(colaborador, mes.valor) > 100000
                     }">
@@ -2641,7 +2641,7 @@
                     </td>
                   </tr>
                   <tr *ngIf="colaboradoresSaldosPendientesFiltrados.length === 0">
-                    <td colspan="15" class="text-center text-muted py-4">
+                    <td [attr.colspan]="mesesConMovimiento.length + 3" class="text-center text-muted py-4">
                       {{ mostrarSoloConSaldoPendienteColaboradores ?
                       'No se encontraron colaboradores con saldos pendientes' :
                       'No se encontraron colaboradores con los filtros aplicados' }}
@@ -2651,7 +2651,7 @@
                 <tfoot class="table-light">
                   <tr class="fw-bold">
                     <td colspan="2">TOTALES</td>
-                    <td class="text-end" *ngFor="let mes of mesesDisponibles">
+                    <td class="text-end" *ngFor="let mes of mesesConMovimiento">
                       {{ getTotalSaldoPendienteMesColaboradores(mes.valor) | currency:'':'symbol':'1.0-0' }}
                     </td>
                     <td class="text-end text-danger">

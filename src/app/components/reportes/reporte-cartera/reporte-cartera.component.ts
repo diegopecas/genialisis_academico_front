@@ -311,6 +311,12 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
     { valor: 12, nombre: 'Diciembre' }
   ];
 
+  // Meses que se muestran en las matrices y en la vista mensual: solo aquellos
+  // en los que el jardín cobra algo. La mayoría maneja calendario de febrero a
+  // noviembre, así que enero y diciembre sobran; en Lumen, que tiene ingresos
+  // todo el año, quedan los doce.
+  public mesesConMovimiento: { valor: number, nombre: string }[] = [];
+
   // Ordenamiento
   public columnaOrdenamiento: string = 'saldoVencido';
   public ordenAscendente: boolean = false;
@@ -682,6 +688,8 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
     this.estudiantes = todasLasPersonas.filter(p => p.tipo_persona === 'Estudiante');
     this.colaboradores = todasLasPersonas.filter(p => p.tipo_persona === 'Colaborador');
 
+    this.calcularMesesConMovimiento();
+
     // Procesar clasificaciones
     this.datosClasificaciones = data.reporte_clasificaciones || [];
 
@@ -785,6 +793,41 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
       }
     });
   }
+  // El ancla es lo COBRADO, no lo pagado: así un mes que ya se facturó pero que
+  // todavía nadie ha pagado se sigue viendo, con su columna en ceros. Se calcula
+  // sobre todas las personas del año y no sobre el filtro, para que las columnas
+  // no cambien cuando se filtra por grupo.
+  calcularMesesConMovimiento(): void {
+    const conMovimiento = new Set<number>();
+    const personas = [...this.estudiantes, ...this.colaboradores];
+
+    for (let mes = 1; mes <= 12; mes++) {
+      const nombreMes = this.mesesDisponibles[mes - 1].nombre;
+
+      const hayCobro = personas.some(persona => {
+        const valoresMes = persona.valoresMensuales[mes];
+        return !!valoresMes && (valoresMes[`Cobrado ${nombreMes}`] || 0) > 0;
+      });
+
+      if (hayCobro) {
+        conMovimiento.add(mes);
+      }
+    }
+
+    // Si el año no tiene nada cobrado se dejan los doce meses, para no mostrar
+    // una tabla sin columnas.
+    this.mesesConMovimiento = conMovimiento.size > 0
+      ? this.mesesDisponibles.filter(mes => conMovimiento.has(mes.valor))
+      : [...this.mesesDisponibles];
+  }
+
+  // Filas visibles de la vista mensual: los mismos meses de las matrices
+  get datosMensualesVisibles(): DatoMensual[] {
+    return this.datosMensualesFiltrados.filter(dato =>
+      this.mesesConMovimiento.some(mes => mes.valor === dato.mes)
+    );
+  }
+
   generarDatosMensuales(): void {
     this.datosMensuales = [];
 
@@ -1725,7 +1768,7 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
     let maxSaldo = 0;
     let mesMax = '';
 
-    this.mesesDisponibles.forEach(mes => {
+    this.mesesConMovimiento.forEach(mes => {
       const totalMes = this.getTotalSaldoPendienteMes(mes.valor);
       if (totalMes > maxSaldo) {
         maxSaldo = totalMes;
@@ -1746,7 +1789,7 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
   exportarSaldosPendientesMensuales(): void {
     // Preparar encabezados
     const headers = ['Estudiante', 'Identificación', 'Grupo'];
-    this.mesesDisponibles.forEach(mes => {
+    this.mesesConMovimiento.forEach(mes => {
       headers.push(mes.nombre);
     });
     headers.push('Total');
@@ -1760,7 +1803,7 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
       };
 
       // Agregar saldos por mes
-      this.mesesDisponibles.forEach(mes => {
+      this.mesesConMovimiento.forEach(mes => {
         fila[mes.nombre] = this.getSaldoPendienteMes(est, mes.valor);
       });
 
@@ -1777,7 +1820,7 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
       'Grupo': ''
     };
 
-    this.mesesDisponibles.forEach(mes => {
+    this.mesesConMovimiento.forEach(mes => {
       totales[mes.nombre] = this.getTotalSaldoPendienteMes(mes.valor);
     });
 
@@ -2096,7 +2139,7 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
     let maxPagado = 0;
     let mesMax = '';
 
-    this.mesesDisponibles.forEach(mes => {
+    this.mesesConMovimiento.forEach(mes => {
       const totalMes = this.getTotalPagadoMes(mes.valor);
       if (totalMes > maxPagado) {
         maxPagado = totalMes;
@@ -2171,7 +2214,7 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
       };
 
       // Agregar pagos por mes
-      this.mesesDisponibles.forEach(mes => {
+      this.mesesConMovimiento.forEach(mes => {
         fila[mes.nombre] = this.getPagadoMes(est, mes.valor);
       });
 
@@ -2188,7 +2231,7 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
       'Grupo': ''
     };
 
-    this.mesesDisponibles.forEach(mes => {
+    this.mesesConMovimiento.forEach(mes => {
       totales[mes.nombre] = this.getTotalPagadoMes(mes.valor);
     });
 
@@ -3688,7 +3731,7 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
   getMesConMayorSaldoPendienteColaboradores(): string {
     let maxSaldo = 0;
     let mesMax = '';
-    this.mesesDisponibles.forEach(mes => {
+    this.mesesConMovimiento.forEach(mes => {
       const totalMes = this.getTotalSaldoPendienteMesColaboradores(mes.valor);
       if (totalMes > maxSaldo) {
         maxSaldo = totalMes;
@@ -3700,7 +3743,7 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
 
   exportarSaldosPendientesMensualesColaboradores(): void {
     const headers = ['Colaborador', 'Identificación', 'Cargo'];
-    this.mesesDisponibles.forEach(mes => headers.push(mes.nombre));
+    this.mesesConMovimiento.forEach(mes => headers.push(mes.nombre));
     headers.push('Total');
 
     const datos = this.colaboradoresSaldosPendientesFiltrados.map(col => {
@@ -3709,7 +3752,7 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
         'Identificación': col.numero_identificacion,
         'Cargo': col.grupo_estudiante
       };
-      this.mesesDisponibles.forEach(mes => {
+      this.mesesConMovimiento.forEach(mes => {
         fila[mes.nombre] = this.getSaldoPendienteMes(col, mes.valor);
       });
       fila['Total'] = col.totalSaldoPendiente || 0;
@@ -3717,7 +3760,7 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
     });
 
     const totales: any = { 'Colaborador': 'TOTALES', 'Identificación': '', 'Cargo': '' };
-    this.mesesDisponibles.forEach(mes => {
+    this.mesesConMovimiento.forEach(mes => {
       totales[mes.nombre] = this.getTotalSaldoPendienteMesColaboradores(mes.valor);
     });
     totales['Total'] = this.getTotalSaldosPendientesColaboradores();
