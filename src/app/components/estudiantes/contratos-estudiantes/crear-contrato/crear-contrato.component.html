@@ -193,7 +193,8 @@
             <p class="text-muted small mb-3">
               El descuento y el recargo son por producto. En las pensiones el valor es el de un mes.
             </p>
-            <div class="table-responsive">
+            <!-- Escritorio: tabla -->
+            <div class="table-responsive d-none d-lg-block">
               <table class="table table-sm table-bordered align-middle tabla-lineas">
                 <thead class="table-light">
                   <tr>
@@ -246,6 +247,63 @@
               </table>
             </div>
 
+            <!-- Movil: una tarjeta por producto -->
+            <div class="d-lg-none">
+              <div class="linea-card" *ngFor="let linea of lineas" [class.no-incluida]="!linea.seleccionado">
+                <div class="linea-card-header">
+                  <input class="form-check-input" type="checkbox" [checked]="linea.seleccionado"
+                    [disabled]="!editable || linea.obligatorio === 1" (change)="toggleLinea(linea)" />
+                  <div class="linea-nombre">
+                    <strong>{{ linea.nombre_producto }}</strong>
+                    <div class="linea-etiquetas">
+                      <span class="badge" [ngClass]="{
+                              'bg-primary': linea.codigo_tipo_cobro === 'MATRICULA',
+                              'bg-success': linea.codigo_tipo_cobro === 'PENSION',
+                              'bg-secondary': linea.codigo_tipo_cobro !== 'MATRICULA' && linea.codigo_tipo_cobro !== 'PENSION'
+                          }">
+                        {{ linea.nombre_tipo_cobro || linea.codigo_tipo_cobro }}
+                      </span>
+                      <span class="badge bg-light text-dark" *ngIf="linea.nombre_periodicidad">
+                        {{ linea.nombre_periodicidad }}
+                      </span>
+                      <span class="badge bg-light text-dark" *ngIf="linea.obligatorio === 1">Obligatorio</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="linea-valores" *ngIf="linea.seleccionado">
+                  <div class="row g-2">
+                    <div class="col-6">
+                      <label class="form-label small text-muted mb-1">Descuento</label>
+                      <div class="input-group input-group-sm">
+                        <span class="input-group-text">$</span>
+                        <input type="text" inputmode="numeric" class="form-control text-end"
+                          [value]="linea.descuentoFormateado" (input)="onDescuentoLineaInput($event, linea)"
+                          placeholder="0" [disabled]="!editable" />
+                      </div>
+                    </div>
+                    <div class="col-6">
+                      <label class="form-label small text-muted mb-1">Recargo</label>
+                      <div class="input-group input-group-sm">
+                        <span class="input-group-text">$</span>
+                        <input type="text" inputmode="numeric" class="form-control text-end"
+                          [value]="linea.recargoFormateado" (input)="onRecargoLineaInput($event, linea)"
+                          placeholder="0" [disabled]="!editable" />
+                      </div>
+                    </div>
+                  </div>
+                  <div class="linea-total">
+                    <span class="text-muted small">Base {{ formatearMoneda(linea.valor_base) }}</span>
+                    <strong>{{ formatearMoneda(linea.valor_final) }}</strong>
+                  </div>
+                </div>
+
+                <div class="linea-valores text-muted small" *ngIf="!linea.seleccionado">
+                  {{ formatearMoneda(linea.valor_base) }}
+                </div>
+              </div>
+            </div>
+
             <div class="row g-3">
               <!-- Razón del descuento -->
               <div class="col-md-6" *ngIf="hayDescuentos()">
@@ -290,7 +348,8 @@
 
         <!-- Tabla de valores por mes -->
         <div *ngIf="valoresGenerados && valoresMensuales.length > 0">
-          <div class="table-responsive">
+          <!-- Escritorio: tabla -->
+          <div class="table-responsive d-none d-lg-block">
             <table class="table table-hover table-valores">
               <thead class="table-light">
                 <tr>
@@ -319,6 +378,29 @@
                 </tr>
               </tbody>
             </table>
+          </div>
+
+          <!-- Movil: una tarjeta por mes -->
+          <div class="d-lg-none">
+            <div class="mes-card" *ngFor="let vm of valoresMensuales">
+              <div class="mes-card-header">
+                <strong>{{ vm.fechaFormateada }}</strong>
+                <span class="mes-total">{{ formatearMoneda(vm.totalMes) }}</span>
+              </div>
+              <ng-container *ngFor="let col of columnasProductos">
+                <div class="mes-fila" *ngIf="celdaDe(vm, col.id_producto_servicio)">
+                  <label class="mes-producto">{{ col.nombre_producto }}</label>
+                  <div class="input-group input-group-sm mes-input">
+                    <span class="input-group-text">$</span>
+                    <input type="text" inputmode="numeric" class="form-control text-end"
+                      [value]="formatearNumeroTabla(celdaDe(vm, col.id_producto_servicio)!.valor)"
+                      (input)="onInputValorTabla($event, vm, col.id_producto_servicio)"
+                      (blur)="onBlurValorTabla($event, vm, col.id_producto_servicio)"
+                      [disabled]="!editable" />
+                  </div>
+                </div>
+              </ng-container>
+            </div>
           </div>
           <!-- Resumen de valores -->
           <div class="resumen-valores mt-4 p-3 bg-light rounded">

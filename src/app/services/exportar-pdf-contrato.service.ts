@@ -203,6 +203,7 @@ export class ExportarPdfContratoService {
       ),
       '{{anio}}': contrato.anio.toString(),
       '{{fecha_fin}}': this.formatearFechaTexto(contrato.fecha_fin),
+      '{{fecha_fin_larga}}': this.formatearFechaLarga(contrato.fecha_fin),
       '{{lugar_firma}}': contrato.lugar_firma,
       '{{fecha_firma_larga}}': this.formatearFechaLarga(contrato.fecha_firma),
       '{{texto_autorizacion_imagenes}}':

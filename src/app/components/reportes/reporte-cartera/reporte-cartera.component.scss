@@ -19,6 +19,44 @@ $desktop: 992px;
   min-height: calc(100vh - 100px);
 }
 
+// Tabla de saldos y pagos mensuales (tabs Saldos Estudiantes, Saldos
+// Colaboradores y Pagos Estudiantes). Las clases se usaban desde el HTML pero
+// no estaban definidas en este scss.
+.tabla-saldos-mensuales {
+  overflow-x: auto;
+
+  .columna-fija {
+    min-width: 200px;
+    position: sticky;
+    left: 0;
+    background-color: inherit;
+    z-index: 1;
+  }
+
+  .columna-grupo {
+    min-width: 120px;
+  }
+
+  .columna-mes {
+    min-width: 80px;
+    font-size: 0.85rem;
+  }
+
+  .columna-total {
+    min-width: 110px;
+  }
+
+  // Valor de un mes con pagos: abre el modal de detalle
+  .celda-pago {
+    cursor: pointer;
+    text-decoration: underline dotted;
+
+    &:hover {
+      font-weight: 600;
+    }
+  }
+}
+
 // Estilos para las tarjetas de resumen
 .resumen-cartera-card {
   background-color: #fff;

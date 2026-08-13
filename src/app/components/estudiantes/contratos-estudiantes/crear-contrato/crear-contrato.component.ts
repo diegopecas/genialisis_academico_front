@@ -336,7 +336,10 @@ export class CrearContratoComponent implements OnInit {
             valor_final: parseFloat(l.valor_final) || 0,
             orden: parseInt(l.orden) || 1,
             id_periodicidad_cobro: l.id_periodicidad_cobro ? parseInt(l.id_periodicidad_cobro) : undefined,
-            obligatorio: 1,
+            // El obligatorio lo dice la tarifa del grupo, no el hecho de estar
+            // ya guardada: en un contrato sin firmar se debe poder cambiar de
+            // jornada. Lo que protege un contrato firmado es `editable`.
+            obligatorio: this.obligatorioEnTarifa(l.id_producto_servicio),
             seleccionado: true
           }));
 
@@ -393,6 +396,18 @@ export class CrearContratoComponent implements OnInit {
       });
   }
 
+  /**
+   * Dice si el producto es obligatorio segun la tarifa vigente del grupo.
+   * Un producto que ya no esta en la tarifa queda opcional, para poder
+   * sacarlo del contrato.
+   */
+  private obligatorioEnTarifa(idProducto: string): number {
+    const fila = (this.tarifaGrupo || []).find(
+      (t: any) => t.id_producto_servicio === idProducto
+    );
+    return fila && parseInt(fila.obligatorio) === 1 ? 1 : 0;
+  }
+
   /** Arma una línea del contrato a partir de una fila de la tarifa */
   private lineaDesdeTarifa(t: any): LineaContrato {
     const valorBase = parseFloat(t.valor) || 0;
@@ -430,6 +445,12 @@ export class CrearContratoComponent implements OnInit {
         linea.seleccionado = false;
         this.lineas.push(linea);
       }
+    });
+
+    // La tarifa puede llegar despues que las lineas guardadas: se refresca
+    // el obligatorio de las que ya estaban.
+    this.lineas.forEach(l => {
+      l.obligatorio = this.obligatorioEnTarifa(l.id_producto_servicio);
     });
 
     this.lineas.sort((a, b) => a.orden - b.orden);

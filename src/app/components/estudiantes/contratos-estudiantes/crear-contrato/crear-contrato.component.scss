@@ -328,3 +328,107 @@
     }
   }
 }
+
+/* ---------- Vista movil de productos y calendario ---------- */
+/* En celular las tablas no caben: cada producto y cada mes es una tarjeta */
+
+.linea-card {
+  border: 1px solid #dee2e6;
+  border-radius: 12px;
+  padding: 0.9rem;
+  margin-bottom: 0.75rem;
+  background: #fff;
+
+  &.no-incluida {
+    background: #f8f9fa;
+  }
+
+  .linea-card-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.7rem;
+  }
+
+  .linea-nombre {
+    min-width: 0;
+
+    strong {
+      display: block;
+      word-break: break-word;
+    }
+  }
+
+  .linea-etiquetas {
+    margin-top: 0.35rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+  }
+
+  .form-check-input {
+    margin-top: 0.15rem;
+    flex: 0 0 auto;
+    width: 1.2rem;
+    height: 1.2rem;
+    cursor: pointer;
+  }
+
+  .linea-valores {
+    margin-top: 0.75rem;
+  }
+
+  .linea-total {
+    margin-top: 0.6rem;
+    padding-top: 0.6rem;
+    border-top: 1px dashed #e9ecef;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+}
+
+.mes-card {
+  border: 1px solid #dee2e6;
+  border-radius: 12px;
+  padding: 0.9rem;
+  margin-bottom: 0.75rem;
+  background: #fff;
+
+  .mes-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding-bottom: 0.6rem;
+    margin-bottom: 0.6rem;
+    border-bottom: 1px solid #f1f1f1;
+  }
+
+  .mes-total {
+    font-weight: 600;
+  }
+
+  .mes-fila {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.5rem;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  .mes-producto {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 0.85rem;
+    color: #6c757d;
+    word-break: break-word;
+    margin: 0;
+  }
+
+  .mes-input {
+    flex: 0 0 auto;
+    width: 145px;
+  }
+}

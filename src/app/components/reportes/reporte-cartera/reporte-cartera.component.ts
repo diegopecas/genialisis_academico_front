@@ -7,6 +7,7 @@ import * as XLSX from 'xlsx';
 
 import { HeaderComponent } from '../../../common/header/header.component';
 import { CuentasPorCobrarService } from '../../../services/cuentas-por-cobrar.service';
+import { CuentaPagadaService } from '../../../services/cuenta-pagada.service';
 import { GruposService } from '../../../services/grupos.service';
 
 // Interfaces
@@ -43,6 +44,29 @@ interface EstudianteCartera {
 // Interfaz extendida para cuando necesitamos totalSaldoPendiente como requerido
 interface EstudianteCarteraConSaldoPendiente extends EstudianteCartera {
   totalSaldoPendiente: number;
+}
+
+// Interfaz extendida para el tab de pagos registrados por mes
+interface EstudianteCarteraConPagos extends EstudianteCartera {
+  totalPagadoMeses: number;
+}
+
+// Una aplicacion de pago (fila de cuenta_pagada) con el producto al que se aplico
+// y el pago recibido del que salio. Alimenta el modal de detalle del tab de pagos.
+interface AplicacionPago {
+  id_persona: string;
+  mes_cuenta: number;
+  fecha_cuenta: string;
+  id_cuenta_por_cobrar: string;
+  detalle_cuenta: string;
+  valor_aplicado: number;
+  id_pago_recibido: string;
+  fecha_pago: string;
+  referencia_bancaria: string;
+  tipo_pago: string;
+  id_producto_servicio: string;
+  nombre_producto: string;
+  nombre_clasificacion: string;
 }
 
 interface ValorCartera {
@@ -180,6 +204,7 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
   public filtroActivoColaboradores: string = 'activos';
   public filtroActivoSaldosEstudiantes: string = 'activos';
   public filtroActivoSaldosColaboradores: string = 'activos';
+  public filtroActivoPagosEstudiantes: string = 'activos';
 
   // Variables para saldos pendientes mensuales (estudiantes)
   public estudiantesSaldosPendientesFiltrados: EstudianteCarteraConSaldoPendiente[] = [];
@@ -192,6 +217,26 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
   public mostrarSoloConSaldoPendienteColaboradores: boolean = true;
   public columnaOrdenamientoSaldosColaboradores: string = 'totalSaldoPendiente';
   public ordenAscendenteSaldosColaboradores: boolean = false;
+
+  // Variables para pagos registrados mensuales (estudiantes)
+  public estudiantesPagosFiltrados: EstudianteCarteraConPagos[] = [];
+  public mostrarSoloConPagos: boolean = true;
+  public columnaOrdenamientoPagos: string = 'totalPagadoMeses';
+  public ordenAscendentePagos: boolean = false;
+
+  // Detalle de aplicaciones de pago del anio. Se trae en una sola llamada la
+  // primera vez que se abre el tab y se indexa por `id_persona-mes`, para que el
+  // clic en una celda de la matriz no tenga que ir al backend.
+  private aplicacionesPagosPorPersonaMes: Map<string, AplicacionPago[]> = new Map();
+  public aplicacionesPagosCargadas: boolean = false;
+  public cargandoAplicacionesPagos: boolean = false;
+  public errorAplicacionesPagos: string = '';
+
+  // Datos del modal de detalle de pagos de un mes
+  public estudianteDetallePagos: EstudianteCartera | null = null;
+  public mesDetallePagos: string = '';
+  public detallePagosMes: AplicacionPago[] = [];
+  public totalDetallePagosMes: number = 0;
 
   // Paginación colaboradores
   public paginaActualColaboradores: number = 1;
@@ -309,7 +354,8 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
   public productosUnicos: { id: string, nombre: string }[] = [];
   constructor(
     private cuentasPorCobrarService: CuentasPorCobrarService,
-    private gruposService: GruposService
+    private gruposService: GruposService,
+    private cuentaPagadaService: CuentaPagadaService
   ) {
     Chart.register(...registerables);
   }
@@ -785,6 +831,15 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
 
   cambiarAnio(): void {
     this.cargarDatosCartera();
+
+    // El detalle de pagos que esta en memoria es del anio anterior. Si el tab de
+    // pagos ya se habia abierto se recarga de una vez; si no, se deja para cuando
+    // lo abran.
+    const teniaDetalleCargado = this.aplicacionesPagosCargadas;
+    this.limpiarCacheAplicacionesPagos();
+    if (teniaDetalleCargado) {
+      this.cargarAplicacionesPagos();
+    }
   }
 
   filtrarTodosLosComponentes(): void {
@@ -997,6 +1052,7 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
     this.filtrarTodosLosComponentes();
     this.filtrarMovimientoDiario();
     this.aplicarFiltrosSaldosPendientes();
+    this.aplicarFiltrosPagosEstudiantes();
   }
 
   aplicarFiltrosColaboradores(): void {
@@ -1725,6 +1781,322 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
     // Descargar archivo
     const fecha = new Date().toISOString().split('T')[0];
     XLSX.writeFile(wb, `saldos_pendientes_mensuales_${this.anioSeleccionado}_${fecha}.xlsx`);
+  }
+
+  // ==========================================================================
+  // Tab: Pagos Estudiantes
+  //
+  // El valor pagado de un mes NO se toma de `Pagado {Mes}` del SP: ese valor lo
+  // agrupa sp_reporte_anual_cuentas_por_cobrar por MONTH(pr.fecha), es decir por
+  // el mes en que se recibio el pago. Si pagan en julio la pension de mayo, cae
+  // en julio y no cuadra contra el Excel del jardin.
+  //
+  // Se deriva de `Cobrado {Mes}` - `Saldo {Mes}`, que el SP si calcula por mes de
+  // la cuenta por cobrar (el mes de la pension), que es como el jardin lo lleva.
+  // ==========================================================================
+  getPagadoMes(estudiante: EstudianteCartera, mes: number): number {
+    const valoresMes = estudiante.valoresMensuales[mes];
+    if (!valoresMes) return 0;
+
+    const nombreMes = this.mesesDisponibles[mes - 1].nombre;
+    const cobrado = valoresMes[`Cobrado ${nombreMes}`] || 0;
+    const saldo = valoresMes[`Saldo ${nombreMes}`] || 0;
+    const pagado = cobrado - saldo;
+
+    return pagado > 0 ? pagado : 0;
+  }
+
+  calcularTotalPagadoEstudiante(estudiante: EstudianteCartera): number {
+    let total = 0;
+    for (let mes = 1; mes <= 12; mes++) {
+      total += this.getPagadoMes(estudiante, mes);
+    }
+    return total;
+  }
+
+  // Se dispara desde el boton del tab. La primera vez trae todo el detalle del
+  // anio en una sola llamada; despues el clic en la celda ya es local.
+  abrirTabPagosEstudiantes(): void {
+    this.aplicarFiltrosPagosEstudiantes();
+
+    if (!this.aplicacionesPagosCargadas && !this.cargandoAplicacionesPagos) {
+      this.cargarAplicacionesPagos();
+    }
+  }
+
+  cargarAplicacionesPagos(): void {
+    this.cargandoAplicacionesPagos = true;
+    this.errorAplicacionesPagos = '';
+
+    const sub = this.cuentaPagadaService.obtenerAplicacionesAnio(this.anioSeleccionado).subscribe({
+      next: (response: any) => {
+        this.indexarAplicacionesPagos(response.body || []);
+        this.aplicacionesPagosCargadas = true;
+        this.cargandoAplicacionesPagos = false;
+      },
+      error: (error) => {
+        console.error('Error al cargar el detalle de pagos:', error);
+        this.errorAplicacionesPagos = 'No se pudo cargar el detalle de pagos. Intenta de nuevo.';
+        this.cargandoAplicacionesPagos = false;
+      }
+    });
+
+    this.subscriptions.push(sub);
+  }
+
+  private indexarAplicacionesPagos(datos: any[]): void {
+    this.aplicacionesPagosPorPersonaMes = new Map();
+
+    datos.forEach(item => {
+      const aplicacion: AplicacionPago = {
+        id_persona: item.id_persona,
+        mes_cuenta: parseInt(item.mes_cuenta, 10),
+        fecha_cuenta: item.fecha_cuenta,
+        id_cuenta_por_cobrar: item.id_cuenta_por_cobrar,
+        detalle_cuenta: item.detalle_cuenta,
+        valor_aplicado: parseFloat(item.valor_aplicado) || 0,
+        id_pago_recibido: item.id_pago_recibido,
+        fecha_pago: item.fecha_pago,
+        referencia_bancaria: item.referencia_bancaria,
+        tipo_pago: item.tipo_pago,
+        id_producto_servicio: item.id_producto_servicio,
+        nombre_producto: item.nombre_producto,
+        nombre_clasificacion: item.nombre_clasificacion
+      };
+
+      const llave = `${aplicacion.id_persona}-${aplicacion.mes_cuenta}`;
+      const existentes = this.aplicacionesPagosPorPersonaMes.get(llave);
+
+      if (existentes) {
+        existentes.push(aplicacion);
+      } else {
+        this.aplicacionesPagosPorPersonaMes.set(llave, [aplicacion]);
+      }
+    });
+  }
+
+  private limpiarCacheAplicacionesPagos(): void {
+    this.aplicacionesPagosPorPersonaMes = new Map();
+    this.aplicacionesPagosCargadas = false;
+    this.errorAplicacionesPagos = '';
+  }
+
+  aplicarFiltrosPagosEstudiantes(): void {
+    let filtrados = [...this.estudiantes];
+
+    // Filtrar por activos/inactivos (filtro propio de este tab)
+    if (this.filtroActivoPagosEstudiantes === 'activos') {
+      filtrados = filtrados.filter(est => est.activo === 1);
+    } else if (this.filtroActivoPagosEstudiantes === 'inactivos') {
+      filtrados = filtrados.filter(est => est.activo === 0);
+    }
+
+    // Aplicar filtros globales de grupo, estado y búsqueda
+    if (this.grupoSeleccionado) {
+      const grupoSel = this.grupos.find(g => g.id.toString() === this.grupoSeleccionado);
+      if (grupoSel) {
+        filtrados = filtrados.filter(est => est.grupo_estudiante === grupoSel.nombre);
+      }
+    }
+    if (this.estadoSeleccionado) {
+      switch (this.estadoSeleccionado) {
+        case 'al_dia': filtrados = filtrados.filter(est => est.saldoTotal === 0); break;
+        case 'con_saldo': filtrados = filtrados.filter(est => est.saldoTotal > 0); break;
+        case 'vencido': filtrados = filtrados.filter(est => est.saldoVencido > 0); break;
+      }
+    }
+    if (this.busquedaEstudiante) {
+      const busqueda = this.busquedaEstudiante.toLowerCase();
+      filtrados = filtrados.filter(est => est.nombre_estudiante.toLowerCase().includes(busqueda));
+    }
+
+    let filtradosConPagos: EstudianteCarteraConPagos[] = filtrados.map(est => ({
+      ...est,
+      totalPagadoMeses: this.calcularTotalPagadoEstudiante(est)
+    }));
+
+    if (this.mostrarSoloConPagos) {
+      filtradosConPagos = filtradosConPagos.filter(est => est.totalPagadoMeses > 0);
+    }
+
+    this.estudiantesPagosFiltrados = filtradosConPagos;
+    this.aplicarOrdenamientoPagosEstudiantes();
+  }
+
+  ordenarPorPagosEstudiantes(columna: string): void {
+    if (this.columnaOrdenamientoPagos === columna) {
+      this.ordenAscendentePagos = !this.ordenAscendentePagos;
+    } else {
+      this.columnaOrdenamientoPagos = columna;
+      this.ordenAscendentePagos = columna === 'nombre_estudiante' || columna === 'grupo_estudiante';
+    }
+
+    this.aplicarOrdenamientoPagosEstudiantes();
+  }
+
+  aplicarOrdenamientoPagosEstudiantes(): void {
+    const multiplicador = this.ordenAscendentePagos ? 1 : -1;
+
+    this.estudiantesPagosFiltrados.sort((a, b) => {
+      let valorA: any;
+      let valorB: any;
+
+      if (this.columnaOrdenamientoPagos === 'totalPagadoMeses') {
+        valorA = a.totalPagadoMeses || 0;
+        valorB = b.totalPagadoMeses || 0;
+      } else {
+        valorA = a[this.columnaOrdenamientoPagos as keyof EstudianteCartera];
+        valorB = b[this.columnaOrdenamientoPagos as keyof EstudianteCartera];
+      }
+
+      if (typeof valorA === 'string') {
+        valorA = valorA.toLowerCase();
+        valorB = valorB.toLowerCase();
+      }
+
+      if (valorA < valorB) return -1 * multiplicador;
+      if (valorA > valorB) return 1 * multiplicador;
+      return 0;
+    });
+  }
+
+  getTotalPagadoMes(mes: number): number {
+    return this.estudiantesPagosFiltrados.reduce((total, est) => {
+      return total + this.getPagadoMes(est, mes);
+    }, 0);
+  }
+
+  getTotalPagosEstudiantes(): number {
+    return this.estudiantesPagosFiltrados.reduce((total, est) => {
+      return total + (est.totalPagadoMeses || 0);
+    }, 0);
+  }
+
+  getEstudiantesConPagos(): number {
+    return this.estudiantesPagosFiltrados.filter(est => (est.totalPagadoMeses || 0) > 0).length;
+  }
+
+  getMesConMayorPago(): string {
+    let maxPagado = 0;
+    let mesMax = '';
+
+    this.mesesDisponibles.forEach(mes => {
+      const totalMes = this.getTotalPagadoMes(mes.valor);
+      if (totalMes > maxPagado) {
+        maxPagado = totalMes;
+        mesMax = mes.nombre;
+      }
+    });
+
+    return mesMax || 'N/A';
+  }
+
+  getPromedioPagoEstudiante(): number {
+    const conPagos = this.getEstudiantesConPagos();
+    if (conPagos === 0) return 0;
+
+    return this.getTotalPagosEstudiantes() / conPagos;
+  }
+
+  // El detalle sale del Map en memoria, sin ir al backend.
+  verDetallePagosMes(estudiante: EstudianteCartera, mes: number): void {
+    if (this.getPagadoMes(estudiante, mes) <= 0) return;
+
+    this.estudianteDetallePagos = estudiante;
+    this.mesDetallePagos = this.mesesDisponibles[mes - 1].nombre;
+    this.detallePagosMes = this.aplicacionesPagosPorPersonaMes.get(`${estudiante.id_persona}-${mes}`) || [];
+
+    this.totalDetallePagosMes = this.detallePagosMes.reduce((total, ap) => total + ap.valor_aplicado, 0);
+
+    const modal = new (window as any).bootstrap.Modal(document.getElementById('modalDetallePagosMes'));
+    modal.show();
+  }
+
+  exportarPagosMensuales(): void {
+    // Preparar datos
+    const datos = this.estudiantesPagosFiltrados.map(est => {
+      const fila: any = {
+        'Estudiante': est.nombre_estudiante,
+        'Identificación': est.numero_identificacion,
+        'Grupo': est.grupo_estudiante
+      };
+
+      // Agregar pagos por mes
+      this.mesesDisponibles.forEach(mes => {
+        fila[mes.nombre] = this.getPagadoMes(est, mes.valor);
+      });
+
+      // Agregar total
+      fila['Total'] = est.totalPagadoMeses || 0;
+
+      return fila;
+    });
+
+    // Agregar fila de totales
+    const totales: any = {
+      'Estudiante': 'TOTALES',
+      'Identificación': '',
+      'Grupo': ''
+    };
+
+    this.mesesDisponibles.forEach(mes => {
+      totales[mes.nombre] = this.getTotalPagadoMes(mes.valor);
+    });
+
+    totales['Total'] = this.getTotalPagosEstudiantes();
+    datos.push(totales);
+
+    // Crear libro de Excel
+    const ws = XLSX.utils.json_to_sheet(datos);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Pagos Mensuales');
+
+    // Hoja con el detalle por concepto, para cuadrar contra el Excel del jardín
+    if (this.aplicacionesPagosCargadas) {
+      const personasVisibles = new Set(this.estudiantesPagosFiltrados.map(est => est.id_persona));
+      const detalle: any[] = [];
+
+      this.estudiantesPagosFiltrados.forEach(est => {
+        for (let mes = 1; mes <= 12; mes++) {
+          const aplicaciones = this.aplicacionesPagosPorPersonaMes.get(`${est.id_persona}-${mes}`) || [];
+          aplicaciones.forEach(ap => {
+            detalle.push({
+              'Estudiante': est.nombre_estudiante,
+              'Grupo': est.grupo_estudiante,
+              'Mes de la cuenta': this.mesesDisponibles[mes - 1].nombre,
+              'Concepto': ap.nombre_producto,
+              'Clasificación': ap.nombre_clasificacion,
+              'Fecha del pago': ap.fecha_pago,
+              'Forma de pago': ap.tipo_pago,
+              'Referencia': ap.referencia_bancaria,
+              'Valor aplicado': ap.valor_aplicado
+            });
+          });
+        }
+      });
+
+      if (detalle.length > 0 && personasVisibles.size > 0) {
+        const wsDetalle = XLSX.utils.json_to_sheet(detalle);
+        XLSX.utils.book_append_sheet(wb, wsDetalle, 'Detalle por concepto');
+      }
+    }
+
+    // Agregar hoja de resumen
+    const resumenData = [
+      ['Concepto', 'Valor'],
+      ['Total Estudiantes', this.estudiantesPagosFiltrados.length],
+      ['Estudiantes con Pagos', this.getEstudiantesConPagos()],
+      ['Total Pagado', this.getTotalPagosEstudiantes()],
+      ['Promedio por Estudiante', this.getPromedioPagoEstudiante()],
+      ['Mes con Mayor Pago', this.getMesConMayorPago()]
+    ];
+
+    const wsResumen = XLSX.utils.aoa_to_sheet(resumenData);
+    XLSX.utils.book_append_sheet(wb, wsResumen, 'Resumen');
+
+    // Descargar archivo
+    const fecha = new Date().toISOString().split('T')[0];
+    XLSX.writeFile(wb, `pagos_estudiantes_${this.anioSeleccionado}_${fecha}.xlsx`);
   }
 
   // Métodos de exportación

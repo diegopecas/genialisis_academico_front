@@ -64,6 +64,26 @@ export class CuentaPagadaService {
         catchError(this.handleError)
       );
   }
+  // Trae en una sola llamada todas las aplicaciones de pago del anio (cuenta_pagada
+  // cruzada con la cuenta por cobrar, el producto y el pago recibido). La usa el tab
+  // "Pagos Estudiantes" del reporte de cartera, que las indexa por persona y mes
+  // para no ir al backend en cada clic de la matriz.
+  obtenerAplicacionesAnio(anio: number) {
+    return this.http
+      .get<HttpResponse<Object>>(this.servicio + `/aplicaciones-anio/${anio}`, {
+        observe: 'response',
+      })
+      .pipe(
+        tap((response: HttpResponse<Object>) => {
+          let respuesta: any = response.body;
+          if (respuesta.error) {
+            throw respuesta.error;
+          }
+          return response;
+        }),
+        catchError(this.handleError)
+      );
+  }
   crear(elemento: any) {
     var body = JSON.stringify(elemento);
     return this.http.post<any>(this.servicio, body, httpOptions).pipe(

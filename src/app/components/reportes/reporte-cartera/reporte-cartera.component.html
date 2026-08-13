@@ -183,6 +183,13 @@
         </button>
       </li>
       <li class="nav-item" role="presentation">
+        <button class="nav-link" id="pagos-estudiantes-tab" data-bs-toggle="tab" data-bs-target="#pagos-estudiantes"
+          type="button" role="tab" aria-controls="pagos-estudiantes" aria-selected="false"
+          (click)="abrirTabPagosEstudiantes()">
+          <i class="fas fa-hand-holding-usd"></i> Pagos Estudiantes
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
         <button class="nav-link" id="saldos-colaboradores-tab" data-bs-toggle="tab" data-bs-target="#saldos-colaboradores"
           type="button" role="tab" aria-controls="saldos-colaboradores" aria-selected="false">
           <i class="fas fa-calendar-check"></i> Saldos Colaboradores
@@ -2291,6 +2298,155 @@
         </div>
       </div>
 
+      <!-- Tab: Pagos Registrados Mensuales (Estudiantes) -->
+      <div class="tab-pane fade" id="pagos-estudiantes" role="tabpanel" aria-labelledby="pagos-estudiantes-tab">
+        <div class="card">
+          <div class="card-body">
+            <!-- Controles de la tabla -->
+            <div class="row mb-3">
+              <div class="col-md-4">
+                <div class="form-check form-check-inline">
+                  <input class="form-check-input" type="checkbox" id="mostrarSoloConPagos"
+                    [(ngModel)]="mostrarSoloConPagos" (change)="aplicarFiltrosPagosEstudiantes()">
+                  <label class="form-check-label" for="mostrarSoloConPagos">
+                    Solo con pagos registrados
+                  </label>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label me-2">Estado:</label>
+                <select class="form-select form-select-sm d-inline-block w-auto"
+                  [(ngModel)]="filtroActivoPagosEstudiantes" (change)="aplicarFiltrosPagosEstudiantes()">
+                  <option value="todos">Todos</option>
+                  <option value="activos">Solo activos</option>
+                  <option value="inactivos">Solo inactivos</option>
+                </select>
+              </div>
+              <div class="col-md-4 text-end">
+                <button class="btn btn-sm btn-secondary" (click)="exportarPagosMensuales()">
+                  <i class="fas fa-file-excel"></i> Exportar tabla
+                </button>
+              </div>
+            </div>
+
+            <!-- Estado de la carga del detalle -->
+            <div *ngIf="cargandoAplicacionesPagos" class="alert alert-light py-2">
+              <span class="spinner-border spinner-border-sm me-2"></span>
+              Cargando el detalle de pagos del año...
+            </div>
+            <div *ngIf="errorAplicacionesPagos" class="alert alert-warning py-2 d-flex justify-content-between align-items-center">
+              <span><i class="fas fa-exclamation-triangle me-2"></i>{{ errorAplicacionesPagos }}</span>
+              <button class="btn btn-sm btn-outline-secondary" (click)="cargarAplicacionesPagos()">
+                Reintentar
+              </button>
+            </div>
+
+            <!-- Tabla de pagos mensuales -->
+            <div class="table-responsive tabla-saldos-mensuales">
+              <table class="table table-hover table-bordered table-sm">
+                <thead class="table-light sticky-top">
+                  <tr>
+                    <th class="columna-fija sortable" (click)="ordenarPorPagosEstudiantes('nombre_estudiante')">
+                      Estudiante
+                      <i class="fas fa-sort float-end" [ngClass]="{
+                  'fa-sort': columnaOrdenamientoPagos !== 'nombre_estudiante',
+                  'fa-sort-up': columnaOrdenamientoPagos === 'nombre_estudiante' && ordenAscendentePagos,
+                  'fa-sort-down': columnaOrdenamientoPagos === 'nombre_estudiante' && !ordenAscendentePagos
+                }"></i>
+                    </th>
+                    <th class="columna-grupo sortable" (click)="ordenarPorPagosEstudiantes('grupo_estudiante')">
+                      Grupo
+                      <i class="fas fa-sort float-end" [ngClass]="{
+                  'fa-sort': columnaOrdenamientoPagos !== 'grupo_estudiante',
+                  'fa-sort-up': columnaOrdenamientoPagos === 'grupo_estudiante' && ordenAscendentePagos,
+                  'fa-sort-down': columnaOrdenamientoPagos === 'grupo_estudiante' && !ordenAscendentePagos
+                }"></i>
+                    </th>
+                    <th class="text-center columna-mes" *ngFor="let mes of mesesDisponibles">
+                      {{ mes.nombre.substring(0, 3) }}
+                    </th>
+                    <th class="text-end columna-total sortable" (click)="ordenarPorPagosEstudiantes('totalPagadoMeses')">
+                      Total
+                      <i class="fas fa-sort float-end" [ngClass]="{
+                  'fa-sort': columnaOrdenamientoPagos !== 'totalPagadoMeses',
+                  'fa-sort-up': columnaOrdenamientoPagos === 'totalPagadoMeses' && ordenAscendentePagos,
+                  'fa-sort-down': columnaOrdenamientoPagos === 'totalPagadoMeses' && !ordenAscendentePagos
+                }"></i>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let estudiante of estudiantesPagosFiltrados">
+                    <td class="columna-fija">{{ estudiante.nombre_estudiante }}</td>
+                    <td class="columna-grupo">{{ estudiante.grupo_estudiante }}</td>
+                    <td class="text-end columna-mes" *ngFor="let mes of mesesDisponibles">
+                      <span *ngIf="getPagadoMes(estudiante, mes.valor) > 0" class="celda-pago text-success"
+                        title="Ver los pagos de {{ mes.nombre }}" (click)="verDetallePagosMes(estudiante, mes.valor)">
+                        {{ getPagadoMes(estudiante, mes.valor) | currency:'':'symbol':'1.0-0' }}
+                      </span>
+                      <span *ngIf="getPagadoMes(estudiante, mes.valor) === 0" class="text-muted">
+                        -
+                      </span>
+                    </td>
+                    <td class="text-end columna-total fw-bold">
+                      {{ estudiante.totalPagadoMeses | currency:'':'symbol':'1.0-0' }}
+                    </td>
+                  </tr>
+                  <tr *ngIf="estudiantesPagosFiltrados.length === 0">
+                    <td colspan="15" class="text-center text-muted py-4">
+                      {{ mostrarSoloConPagos ?
+                      'No se encontraron estudiantes con pagos registrados' :
+                      'No se encontraron estudiantes con los filtros aplicados' }}
+                    </td>
+                  </tr>
+                </tbody>
+                <tfoot class="table-light">
+                  <tr class="fw-bold">
+                    <td colspan="2">TOTALES</td>
+                    <td class="text-end" *ngFor="let mes of mesesDisponibles">
+                      {{ getTotalPagadoMes(mes.valor) | currency:'':'symbol':'1.0-0' }}
+                    </td>
+                    <td class="text-end text-success">
+                      {{ getTotalPagosEstudiantes() | currency:'':'symbol':'1.0-0' }}
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+
+            <!-- Resumen de pagos registrados -->
+            <div class="row mt-4">
+              <div class="col-md-12">
+                <div class="alert alert-info">
+                  <h6 class="alert-heading">
+                    <i class="fas fa-info-circle"></i> Resumen de Pagos Registrados
+                  </h6>
+                  <div class="row">
+                    <div class="col-md-4">
+                      <strong>Total estudiantes con pagos:</strong>
+                      {{ getEstudiantesConPagos() }} de {{ estudiantesPagosFiltrados.length }}
+                    </div>
+                    <div class="col-md-4">
+                      <strong>Mes con mayor recaudo:</strong>
+                      {{ getMesConMayorPago() }}
+                    </div>
+                    <div class="col-md-4">
+                      <strong>Promedio pagado por estudiante:</strong>
+                      {{ getPromedioPagoEstudiante() | currency:'':'symbol':'1.0-0' }}
+                    </div>
+                  </div>
+                  <hr class="my-2">
+                  <small>
+                    El mes de cada columna es el mes de la cuenta (el mes de la pensión), no la fecha
+                    en que se recibió el pago. Haz clic en un valor para ver por qué conceptos se pagó.
+                  </small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Tab: Saldos Pendientes Colaboradores -->
       <div class="tab-pane fade" id="saldos-colaboradores" role="tabpanel" aria-labelledby="saldos-colaboradores-tab">
         <div class="card">
@@ -2506,6 +2662,72 @@
         <button type="button" class="btn btn-primary" (click)="exportarDetalleEstudiante()">
           <i class="fas fa-download"></i> Exportar Detalle
         </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para detalle de pagos de un mes -->
+<div class="modal fade" id="modalDetallePagosMes" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-hand-holding-usd me-2"></i>
+          Pagos de {{ mesDetallePagos }} - {{ estudianteDetallePagos?.nombre_estudiante }}
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <strong>Identificación:</strong> {{ estudianteDetallePagos?.numero_identificacion }}<br>
+            <strong>Grupo:</strong> {{ estudianteDetallePagos?.grupo_estudiante }}
+          </div>
+          <div class="col-md-6 text-end">
+            <strong>Total aplicado en el mes:</strong>
+            <span class="text-success">{{ totalDetallePagosMes | currency:'':'symbol':'1.0-0' }}</span>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-sm table-hover">
+            <thead class="table-light">
+              <tr>
+                <th>Concepto</th>
+                <th>Clasificación</th>
+                <th>Fecha del pago</th>
+                <th>Forma de pago</th>
+                <th>Referencia</th>
+                <th class="text-end">Valor aplicado</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let aplicacion of detallePagosMes">
+                <td>{{ aplicacion.nombre_producto }}</td>
+                <td>{{ aplicacion.nombre_clasificacion }}</td>
+                <td>{{ aplicacion.fecha_pago | date:'dd/MM/yyyy' }}</td>
+                <td>{{ aplicacion.tipo_pago }}</td>
+                <td>{{ aplicacion.referencia_bancaria }}</td>
+                <td class="text-end">{{ aplicacion.valor_aplicado | currency:'':'symbol':'1.0-0' }}</td>
+              </tr>
+              <tr *ngIf="detallePagosMes.length === 0">
+                <td colspan="6" class="text-center text-muted py-3">
+                  No hay detalle de pagos para este mes
+                </td>
+              </tr>
+            </tbody>
+            <tfoot class="table-light" *ngIf="detallePagosMes.length > 0">
+              <tr class="fw-bold">
+                <td colspan="5">TOTAL</td>
+                <td class="text-end">{{ totalDetallePagosMes | currency:'':'symbol':'1.0-0' }}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
       </div>
     </div>
   </div>
