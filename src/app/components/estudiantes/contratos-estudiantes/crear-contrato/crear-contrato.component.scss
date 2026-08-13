@@ -306,6 +306,12 @@
     height: 1.15rem;
     cursor: pointer;
   }
+
+  /* Los campos de plata no tienen por que ocupar toda la celda */
+  .input-group {
+    max-width: 130px;
+    margin-left: auto;
+  }
 }
 
 /* La grilla mensual crece con el numero de productos del contrato */
@@ -314,6 +320,11 @@
   th,
   td {
     white-space: nowrap;
+  }
+
+  .input-group {
+    max-width: 140px;
+    margin-left: auto;
   }
 }
 

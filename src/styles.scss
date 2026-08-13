@@ -371,3 +371,101 @@ option:disabled {
     }
   }
 }
+
+// =====================================================
+// TABLAS CON LA PRIMERA COLUMNA FIJA
+// Se aplica poniendo la clase .tabla-columna-fija en el contenedor con scroll
+// (normalmente el mismo div .table-responsive). No hay que tocar las celdas:
+// la primera columna de thead, tbody y tfoot se fija sola.
+// Se excluyen las celdas con colspan del tbody, que son las de "no hay datos".
+// =====================================================
+.tabla-columna-fija,
+.tabla-saldos-mensuales {
+  overflow-x: auto;
+
+  thead > tr > th:first-child,
+  tbody > tr > td:first-child:not([colspan]),
+  tfoot > tr > td:first-child,
+  .columna-fija {
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    min-width: 200px;
+    // El fondo tiene que ser SOLIDO: si queda transparente, al hacer scroll
+    // horizontal el contenido de las otras columnas se ve por debajo. El corte
+    // entre la columna fija y el resto lo marcan el borde y la sombra.
+    background-color: #faf7f2;
+    border-right: 2px solid #D4A03C;
+    box-shadow: 4px 0 6px -4px rgba(0, 0, 0, 0.25);
+  }
+
+  thead > tr > th:first-child {
+    z-index: 3;
+    background-color: #D4A03C;
+    color: #000000;
+
+    i {
+      color: rgba(0, 0, 0, 0.6);
+    }
+  }
+
+  tfoot > tr > td:first-child {
+    background-color: #f0e6d2;
+  }
+
+  // Las filas de personas inactivas se ven en gris, en cursiva y atenuadas
+  tbody > tr.fila-inactivo {
+    background-color: #eceef0;
+    font-style: italic;
+    color: #6c757d;
+
+    > td:first-child:not([colspan]) {
+      background-color: #f2f1ee;
+      font-style: italic;
+      color: #6c757d;
+    }
+  }
+
+  .columna-grupo {
+    min-width: 120px;
+  }
+
+  .columna-mes {
+    min-width: 80px;
+    font-size: 0.85rem;
+  }
+
+  .columna-total {
+    min-width: 110px;
+  }
+
+  // Valor de una celda que abre el detalle
+  .celda-pago {
+    cursor: pointer;
+    text-decoration: underline dotted;
+
+    &:hover {
+      font-weight: 600;
+    }
+  }
+
+  // En movil la columna fija no se puede comer media pantalla
+  @media (max-width: 576px) {
+    thead > tr > th:first-child,
+    tbody > tr > td:first-child:not([colspan]),
+    tfoot > tr > td:first-child,
+    .columna-fija {
+      min-width: 130px;
+      font-size: 0.75rem;
+    }
+
+    .columna-grupo {
+      min-width: 90px;
+    }
+
+    .columna-mes {
+      min-width: 70px;
+      font-size: 0.75rem;
+    }
+  }
+}

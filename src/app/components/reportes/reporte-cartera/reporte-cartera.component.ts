@@ -232,9 +232,33 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
   public cargandoAplicacionesPagos: boolean = false;
   public errorAplicacionesPagos: string = '';
 
-  // Datos del modal de detalle de pagos de un mes
+  // Menú de tabs para móvil. En pantalla grande se ven los tabs de siempre; por
+  // debajo de 768px se reemplazan por este desplegable, porque nueve tabs se
+  // comen tres renglones de pantalla.
+  public menuMovilAbierto: boolean = false;
+  public tabActivo: string = 'estudiantes';
+  public tabsReporte = [
+    { id: 'estudiantes', nombre: 'Por Estudiante', icono: 'fas fa-users' },
+    { id: 'colaboradores', nombre: 'Por Colaborador', icono: 'fas fa-user-tie' },
+    { id: 'clasificaciones', nombre: 'Por Clasificación', icono: 'fas fa-tags' },
+    { id: 'productos', nombre: 'Por Producto', icono: 'fas fa-box' },
+    { id: 'mensual', nombre: 'Vista Mensual', icono: 'fas fa-calendar-alt' },
+    { id: 'diario', nombre: 'Movimiento Diario', icono: 'fas fa-calendar-day' },
+    { id: 'anulados', nombre: 'Anulados', icono: 'fas fa-ban' },
+    { id: 'saldos-pendientes', nombre: 'Saldos Estudiantes', icono: 'fas fa-calendar-check' },
+    { id: 'pagos-estudiantes', nombre: 'Pagos Estudiantes', icono: 'fas fa-hand-holding-usd' },
+    { id: 'saldos-colaboradores', nombre: 'Saldos Colaboradores', icono: 'fas fa-calendar-check' }
+  ];
+
+  // Vista de la matriz de pagos: 'mes' (columnas por mes) o 'concepto'
+  // (columnas por producto, como el bloque de conceptos del Excel del jardín)
+  public vistaPagos: string = 'mes';
+  public productosPagosColumnas: { id: string, nombre: string, clasificacion: string }[] = [];
+
+  // Datos del modal de detalle de pagos
   public estudianteDetallePagos: EstudianteCartera | null = null;
-  public mesDetallePagos: string = '';
+  public tituloDetallePagos: string = '';
+  public detallePagosPorProducto: boolean = false;
   public detallePagosMes: AplicacionPago[] = [];
   public totalDetallePagosMes: number = 0;
 
@@ -1784,6 +1808,40 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
   }
 
   // ==========================================================================
+  // Menú de tabs en móvil
+  // ==========================================================================
+  toggleMenuMovil(): void {
+    this.menuMovilAbierto = !this.menuMovilAbierto;
+  }
+
+  getNombreTab(): string {
+    const tab = this.tabsReporte.find(t => t.id === this.tabActivo);
+    return tab ? tab.nombre : '';
+  }
+
+  getIconoTab(): string {
+    const tab = this.tabsReporte.find(t => t.id === this.tabActivo);
+    return tab ? tab.icono : '';
+  }
+
+  // Los tab-panes los sigue manejando Bootstrap con data-bs-toggle, así que
+  // desde el menú se activa el mismo botón del tab en vez de duplicar la lógica.
+  seleccionarTab(id: string): void {
+    this.tabActivo = id;
+    this.menuMovilAbierto = false;
+
+    const boton = document.getElementById(`${id}-tab`);
+    if (boton) {
+      const tab = new (window as any).bootstrap.Tab(boton);
+      tab.show();
+    }
+
+    if (id === 'pagos-estudiantes') {
+      this.abrirTabPagosEstudiantes();
+    }
+  }
+
+  // ==========================================================================
   // Tab: Pagos Estudiantes
   //
   // El valor pagado de un mes NO se toma de `Pagado {Mes}` del SP: ese valor lo
@@ -1920,7 +1978,65 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
     }
 
     this.estudiantesPagosFiltrados = filtradosConPagos;
+    this.calcularProductosPagosColumnas();
     this.aplicarOrdenamientoPagosEstudiantes();
+  }
+
+  // Columnas de la vista por concepto: solo los productos que tienen algo pagado
+  // entre los estudiantes visibles, ordenados por clasificación y nombre.
+  calcularProductosPagosColumnas(): void {
+    const conPago = new Set<string>();
+
+    this.estudiantesPagosFiltrados.forEach(est => {
+      Object.keys(est.productos || {}).forEach(idProducto => {
+        if ((est.productos[idProducto].pagado || 0) > 0) {
+          conPago.add(idProducto);
+        }
+      });
+    });
+
+    this.productosPagosColumnas = this.datosProductos
+      .filter(prod => conPago.has(prod.id_producto))
+      .map(prod => ({
+        id: prod.id_producto,
+        nombre: prod.nombre_producto,
+        clasificacion: prod.nombre_clasificacion || 'Sin clasificación'
+      }))
+      .sort((a, b) => {
+        if (a.clasificacion !== b.clasificacion) {
+          return a.clasificacion.localeCompare(b.clasificacion);
+        }
+        return a.nombre.localeCompare(b.nombre);
+      });
+  }
+
+  cambiarVistaPagos(vista: string): void {
+    this.vistaPagos = vista;
+  }
+
+  getPagadoProducto(estudiante: EstudianteCartera, idProducto: string): number {
+    const producto = estudiante.productos[idProducto];
+    if (!producto) return 0;
+
+    return producto.pagado || 0;
+  }
+
+  getTotalProductosEstudiante(estudiante: EstudianteCartera): number {
+    return this.productosPagosColumnas.reduce((total, prod) => {
+      return total + this.getPagadoProducto(estudiante, prod.id);
+    }, 0);
+  }
+
+  getTotalPagadoProducto(idProducto: string): number {
+    return this.estudiantesPagosFiltrados.reduce((total, est) => {
+      return total + this.getPagadoProducto(est, idProducto);
+    }, 0);
+  }
+
+  getTotalPagosPorConcepto(): number {
+    return this.estudiantesPagosFiltrados.reduce((total, est) => {
+      return total + this.getTotalProductosEstudiante(est);
+    }, 0);
   }
 
   ordenarPorPagosEstudiantes(columna: string): void {
@@ -2003,13 +2119,46 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
     if (this.getPagadoMes(estudiante, mes) <= 0) return;
 
     this.estudianteDetallePagos = estudiante;
-    this.mesDetallePagos = this.mesesDisponibles[mes - 1].nombre;
+    this.tituloDetallePagos = `Pagos de ${this.mesesDisponibles[mes - 1].nombre}`;
+    this.detallePagosPorProducto = false;
     this.detallePagosMes = this.aplicacionesPagosPorPersonaMes.get(`${estudiante.id_persona}-${mes}`) || [];
 
+    this.abrirModalDetallePagos();
+  }
+
+  // Mismo modal, pero recorriendo los doce meses y filtrando por producto.
+  verDetallePagosProducto(estudiante: EstudianteCartera, producto: { id: string, nombre: string }): void {
+    if (this.getPagadoProducto(estudiante, producto.id) <= 0) return;
+
+    this.estudianteDetallePagos = estudiante;
+    this.tituloDetallePagos = `Pagos de ${producto.nombre}`;
+    this.detallePagosPorProducto = true;
+
+    const detalle: AplicacionPago[] = [];
+    for (let mes = 1; mes <= 12; mes++) {
+      const aplicaciones = this.aplicacionesPagosPorPersonaMes.get(`${estudiante.id_persona}-${mes}`) || [];
+      aplicaciones.forEach(ap => {
+        if (ap.id_producto_servicio === producto.id) {
+          detalle.push(ap);
+        }
+      });
+    }
+    this.detallePagosMes = detalle;
+
+    this.abrirModalDetallePagos();
+  }
+
+  private abrirModalDetallePagos(): void {
     this.totalDetallePagosMes = this.detallePagosMes.reduce((total, ap) => total + ap.valor_aplicado, 0);
 
     const modal = new (window as any).bootstrap.Modal(document.getElementById('modalDetallePagosMes'));
     modal.show();
+  }
+
+  getNombreMes(mes: number): string {
+    if (!mes || mes < 1 || mes > 12) return '';
+
+    return this.mesesDisponibles[mes - 1].nombre;
   }
 
   exportarPagosMensuales(): void {
@@ -2051,7 +2200,42 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Pagos Mensuales');
 
-    // Hoja con el detalle por concepto, para cuadrar contra el Excel del jardín
+    // Hoja con la matriz por concepto (el bloque de conceptos del Excel del jardín)
+    if (this.productosPagosColumnas.length > 0) {
+      const porConcepto = this.estudiantesPagosFiltrados.map(est => {
+        const fila: any = {
+          'Estudiante': est.nombre_estudiante,
+          'Identificación': est.numero_identificacion,
+          'Grupo': est.grupo_estudiante
+        };
+
+        this.productosPagosColumnas.forEach(prod => {
+          fila[prod.nombre] = this.getPagadoProducto(est, prod.id);
+        });
+
+        fila['Total'] = this.getTotalProductosEstudiante(est);
+
+        return fila;
+      });
+
+      const totalesConcepto: any = {
+        'Estudiante': 'TOTALES',
+        'Identificación': '',
+        'Grupo': ''
+      };
+
+      this.productosPagosColumnas.forEach(prod => {
+        totalesConcepto[prod.nombre] = this.getTotalPagadoProducto(prod.id);
+      });
+
+      totalesConcepto['Total'] = this.getTotalPagosPorConcepto();
+      porConcepto.push(totalesConcepto);
+
+      const wsConcepto = XLSX.utils.json_to_sheet(porConcepto);
+      XLSX.utils.book_append_sheet(wb, wsConcepto, 'Por concepto');
+    }
+
+    // Hoja con el detalle pago por pago, para cuadrar contra el Excel del jardín
     if (this.aplicacionesPagosCargadas) {
       const personasVisibles = new Set(this.estudiantesPagosFiltrados.map(est => est.id_persona));
       const detalle: any[] = [];

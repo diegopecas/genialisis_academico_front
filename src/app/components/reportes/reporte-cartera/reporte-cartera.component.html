@@ -132,52 +132,69 @@
       </div>
     </div>
 
+    <!-- Menú de tabs para móvil: mismo patrón de crear-curso-extra -->
+    <div class="tabs-movil mb-3">
+      <div class="tabs-movil-header">
+        <button class="tabs-movil-trigger" (click)="toggleMenuMovil()">
+          <i [class]="getIconoTab()"></i>
+          <span class="tabs-movil-label">{{ getNombreTab() }}</span>
+          <i class="fas fa-chevron-down tabs-movil-chevron" [class.rotado]="menuMovilAbierto"></i>
+        </button>
+      </div>
+      <div class="tabs-movil-dropdown" *ngIf="menuMovilAbierto">
+        <button class="tabs-movil-item" *ngFor="let tab of tabsReporte" [class.active]="tabActivo === tab.id"
+          (click)="seleccionarTab(tab.id)">
+          <i [class]="tab.icono"></i> {{ tab.nombre }}
+        </button>
+      </div>
+    </div>
+
     <!-- Tabs para diferentes vistas -->
-    <ul class="nav nav-tabs mb-3" role="tablist">
+    <ul class="nav nav-tabs mb-3 tabs-desktop" role="tablist">
       <li class="nav-item" role="presentation">
-        <button class="nav-link active" id="estudiantes-tab" data-bs-toggle="tab" data-bs-target="#estudiantes"
+        <button class="nav-link active" id="estudiantes-tab" data-bs-toggle="tab" (click)="tabActivo = 'estudiantes'" data-bs-target="#estudiantes"
           type="button" role="tab" aria-controls="estudiantes" aria-selected="true">
           <i class="fas fa-users"></i> Por Estudiante
         </button>
       </li>
       <li class="nav-item" role="presentation">
-        <button class="nav-link" id="colaboradores-tab" data-bs-toggle="tab" data-bs-target="#colaboradores-cartera"
+        <button class="nav-link" id="colaboradores-tab" data-bs-toggle="tab" (click)="tabActivo = 'colaboradores'" data-bs-target="#colaboradores-cartera"
           type="button" role="tab" aria-controls="colaboradores-cartera" aria-selected="false">
           <i class="fas fa-user-tie"></i> Por Colaborador
         </button>
       </li>
       <li class="nav-item" role="presentation">
-        <button class="nav-link" id="clasificaciones-tab" data-bs-toggle="tab" data-bs-target="#clasificaciones"
+        <button class="nav-link" id="clasificaciones-tab" data-bs-toggle="tab" (click)="tabActivo = 'clasificaciones'" data-bs-target="#clasificaciones"
           type="button" role="tab" aria-controls="clasificaciones" aria-selected="false">
           <i class="fas fa-tags"></i> Por Clasificación
         </button>
       </li>
       <li class="nav-item" role="presentation">
-        <button class="nav-link" id="productos-tab" data-bs-toggle="tab" data-bs-target="#productos" type="button"
+        <button class="nav-link" id="productos-tab" data-bs-toggle="tab" (click)="tabActivo = 'productos'" data-bs-target="#productos" type="button"
           role="tab" aria-controls="productos" aria-selected="false">
           <i class="fas fa-box"></i> Por Producto
         </button>
       </li>
       <li class="nav-item" role="presentation">
-        <button class="nav-link" id="mensual-tab" data-bs-toggle="tab" data-bs-target="#mensual" type="button"
+        <button class="nav-link" id="mensual-tab" data-bs-toggle="tab" (click)="tabActivo = 'mensual'" data-bs-target="#mensual" type="button"
           role="tab" aria-controls="mensual" aria-selected="false">
           <i class="fas fa-calendar-alt"></i> Vista Mensual
         </button>
       </li>
       <li class="nav-item" role="presentation">
-        <button class="nav-link" id="diario-tab" data-bs-toggle="tab" data-bs-target="#diario" type="button" role="tab"
+        <button class="nav-link" id="diario-tab" data-bs-toggle="tab" (click)="tabActivo = 'diario'" data-bs-target="#diario" type="button" role="tab"
           aria-controls="diario" aria-selected="false">
           <i class="fas fa-calendar-day"></i> Movimiento Diario
         </button>
       </li>
       <li class="nav-item" role="presentation">
-        <button class="nav-link" id="anulados-tab" data-bs-toggle="tab" data-bs-target="#anulados" type="button"
+        <button class="nav-link" id="anulados-tab" data-bs-toggle="tab" (click)="tabActivo = 'anulados'" data-bs-target="#anulados" type="button"
           role="tab" aria-controls="anulados" aria-selected="false">
           <i class="fas fa-ban"></i> Anulados
         </button>
       </li>
       <li class="nav-item" role="presentation">
-        <button class="nav-link" id="saldos-pendientes-tab" data-bs-toggle="tab" data-bs-target="#saldos-pendientes"
+        <button class="nav-link" id="saldos-pendientes-tab" data-bs-toggle="tab" (click)="tabActivo = 'saldos-pendientes'" data-bs-target="#saldos-pendientes"
           type="button" role="tab" aria-controls="saldos-pendientes" aria-selected="false">
           <i class="fas fa-calendar-check"></i> Saldos Estudiantes
         </button>
@@ -185,12 +202,12 @@
       <li class="nav-item" role="presentation">
         <button class="nav-link" id="pagos-estudiantes-tab" data-bs-toggle="tab" data-bs-target="#pagos-estudiantes"
           type="button" role="tab" aria-controls="pagos-estudiantes" aria-selected="false"
-          (click)="abrirTabPagosEstudiantes()">
+          (click)="tabActivo = 'pagos-estudiantes'; abrirTabPagosEstudiantes()">
           <i class="fas fa-hand-holding-usd"></i> Pagos Estudiantes
         </button>
       </li>
       <li class="nav-item" role="presentation">
-        <button class="nav-link" id="saldos-colaboradores-tab" data-bs-toggle="tab" data-bs-target="#saldos-colaboradores"
+        <button class="nav-link" id="saldos-colaboradores-tab" data-bs-toggle="tab" (click)="tabActivo = 'saldos-colaboradores'" data-bs-target="#saldos-colaboradores"
           type="button" role="tab" aria-controls="saldos-colaboradores" aria-selected="false">
           <i class="fas fa-calendar-check"></i> Saldos Colaboradores
         </button>
@@ -214,7 +231,7 @@
                 </select>
               </div>
             </div>
-            <div class="table-responsive">
+            <div class="table-responsive tabla-columna-fija">
               <table class="table table-hover table-striped">
                 <thead class="table-light">
                   <tr>
@@ -280,7 +297,8 @@
                 </thead>
                 <tbody>
                   <!-- Filas de estudiantes existentes -->
-                  <tr *ngFor="let estudiante of getEstudiantesPaginados()">
+                  <tr *ngFor="let estudiante of getEstudiantesPaginados()"
+                    [ngClass]="{'fila-inactivo': estudiante.activo === 0}">
                     <td>{{ estudiante.nombre_estudiante }}</td>
                     <td>{{ estudiante.numero_identificacion }}</td>
                     <td>{{ estudiante.grupo_estudiante }}</td>
@@ -374,7 +392,7 @@
                 </select>
               </div>
             </div>
-            <div class="table-responsive">
+            <div class="table-responsive tabla-columna-fija">
               <table class="table table-hover table-striped">
                 <thead class="table-light">
                   <tr>
@@ -439,7 +457,8 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr *ngFor="let colaborador of getColaboradoresPaginados()">
+                  <tr *ngFor="let colaborador of getColaboradoresPaginados()"
+                    [ngClass]="{'fila-inactivo': colaborador.activo === 0}">
                     <td>{{ colaborador.nombre_estudiante }}</td>
                     <td>{{ colaborador.numero_identificacion }}</td>
                     <td>{{ colaborador.grupo_estudiante }}</td>
@@ -519,7 +538,7 @@
       <div class="tab-pane fade" id="clasificaciones" role="tabpanel" aria-labelledby="clasificaciones-tab">
         <div class="card">
           <div class="card-body">
-            <div class="table-responsive">
+            <div class="table-responsive tabla-columna-fija">
               <table class="table table-hover">
                 <thead class="table-light">
                   <tr>
@@ -647,7 +666,7 @@
             </div>
 
             <!-- Tabla de productos agrupados por clasificación -->
-            <div class="table-responsive">
+            <div class="table-responsive tabla-columna-fija">
               <table class="table table-hover">
                 <thead class="table-light">
                   <tr>
@@ -818,7 +837,7 @@
       <div class="tab-pane fade" id="mensual" role="tabpanel" aria-labelledby="mensual-tab">
         <div class="card">
           <div class="card-body">
-            <div class="table-responsive">
+            <div class="table-responsive tabla-columna-fija">
               <table class="table table-hover">
                 <thead class="table-light">
                   <tr>
@@ -940,7 +959,7 @@
                           </div>
                         </div>
 
-                        <div class="table-responsive">
+                        <div class="table-responsive tabla-columna-fija">
                           <table class="table table-sm mb-0">
                             <thead class="table-light">
                               <tr>
@@ -1089,7 +1108,7 @@
                           </div>
                         </div>
 
-                        <div class="table-responsive">
+                        <div class="table-responsive tabla-columna-fija">
                           <!-- Tabla existente sin cambios -->
                           <table class="table table-sm mb-0">
                             <thead class="table-light">
@@ -1238,7 +1257,7 @@
                           </div>
                         </div>
 
-                        <div class="table-responsive">
+                        <div class="table-responsive tabla-columna-fija">
                           <!-- Tabla con la nueva columna Diferencia -->
                           <table class="table table-sm mb-0">
                             <thead class="table-light">
@@ -1386,7 +1405,7 @@
                           </div>
                         </div>
 
-                        <div class="table-responsive">
+                        <div class="table-responsive tabla-columna-fija">
                           <table class="table table-sm mb-0">
                             <thead class="table-light">
                               <tr>
@@ -1655,7 +1674,7 @@
                           </div>
                         </div>
 
-                        <div class="table-responsive">
+                        <div class="table-responsive tabla-columna-fija">
                           <table class="table table-sm mb-0">
                             <thead class="table-light">
                               <tr>
@@ -1798,7 +1817,7 @@
                           </div>
                         </div>
 
-                        <div class="table-responsive">
+                        <div class="table-responsive tabla-columna-fija">
                           <table class="table table-sm mb-0">
                             <thead class="table-light">
                               <tr>
@@ -1901,7 +1920,7 @@
                           </div>
                         </div>
 
-                        <div class="table-responsive">
+                        <div class="table-responsive tabla-columna-fija">
                           <table class="table table-sm mb-0">
                             <thead class="table-light">
                               <tr>
@@ -2004,7 +2023,7 @@
                           </div>
                         </div>
 
-                        <div class="table-responsive">
+                        <div class="table-responsive tabla-columna-fija">
                           <table class="table table-sm mb-0">
                             <thead class="table-light">
                               <tr>
@@ -2193,7 +2212,7 @@
             </div>
 
             <!-- Tabla de saldos pendientes mensuales -->
-            <div class="table-responsive tabla-saldos-mensuales">
+            <div class="table-responsive tabla-saldos-mensuales tabla-columna-fija">
               <table class="table table-hover table-bordered table-sm">
                 <thead class="table-light sticky-top">
                   <tr>
@@ -2228,8 +2247,10 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr *ngFor="let estudiante of estudiantesSaldosPendientesFiltrados"
-                    [ngClass]="{'table-warning': (estudiante.totalSaldoPendiente || 0) > 0}">
+                  <tr *ngFor="let estudiante of estudiantesSaldosPendientesFiltrados" [ngClass]="{
+                    'table-warning': (estudiante.totalSaldoPendiente || 0) > 0,
+                    'fila-inactivo': estudiante.activo === 0
+                  }">
                     <td class="columna-fija">{{ estudiante.nombre_estudiante }}</td>
                     <td class="columna-grupo">{{ estudiante.grupo_estudiante }}</td>
                     <td class="text-end columna-mes" *ngFor="let mes of mesesDisponibles" [ngClass]="{
@@ -2323,6 +2344,18 @@
                 </select>
               </div>
               <div class="col-md-4 text-end">
+                <div class="btn-group btn-group-sm selector-vista-pagos me-2" role="group">
+                  <button type="button" class="btn"
+                    [ngClass]="vistaPagos === 'mes' ? 'btn-primary' : 'btn-outline-primary'"
+                    (click)="cambiarVistaPagos('mes')">
+                    <i class="fas fa-calendar-alt"></i> Por mes
+                  </button>
+                  <button type="button" class="btn"
+                    [ngClass]="vistaPagos === 'concepto' ? 'btn-primary' : 'btn-outline-primary'"
+                    (click)="cambiarVistaPagos('concepto')">
+                    <i class="fas fa-tags"></i> Por concepto
+                  </button>
+                </div>
                 <button class="btn btn-sm btn-secondary" (click)="exportarPagosMensuales()">
                   <i class="fas fa-file-excel"></i> Exportar tabla
                 </button>
@@ -2342,7 +2375,8 @@
             </div>
 
             <!-- Tabla de pagos mensuales -->
-            <div class="table-responsive tabla-saldos-mensuales">
+            <div class="table-responsive tabla-saldos-mensuales tabla-columna-fija"
+              *ngIf="vistaPagos === 'mes'">
               <table class="table table-hover table-bordered table-sm">
                 <thead class="table-light sticky-top">
                   <tr>
@@ -2414,6 +2448,76 @@
               </table>
             </div>
 
+            <!-- Tabla de pagos por concepto -->
+            <div class="table-responsive tabla-saldos-mensuales tabla-columna-fija"
+              *ngIf="vistaPagos === 'concepto'">
+              <table class="table table-hover table-bordered table-sm">
+                <thead class="table-light sticky-top">
+                  <tr>
+                    <th class="columna-fija sortable" (click)="ordenarPorPagosEstudiantes('nombre_estudiante')">
+                      Estudiante
+                      <i class="fas fa-sort float-end" [ngClass]="{
+                  'fa-sort': columnaOrdenamientoPagos !== 'nombre_estudiante',
+                  'fa-sort-up': columnaOrdenamientoPagos === 'nombre_estudiante' && ordenAscendentePagos,
+                  'fa-sort-down': columnaOrdenamientoPagos === 'nombre_estudiante' && !ordenAscendentePagos
+                }"></i>
+                    </th>
+                    <th class="columna-grupo sortable" (click)="ordenarPorPagosEstudiantes('grupo_estudiante')">
+                      Grupo
+                      <i class="fas fa-sort float-end" [ngClass]="{
+                  'fa-sort': columnaOrdenamientoPagos !== 'grupo_estudiante',
+                  'fa-sort-up': columnaOrdenamientoPagos === 'grupo_estudiante' && ordenAscendentePagos,
+                  'fa-sort-down': columnaOrdenamientoPagos === 'grupo_estudiante' && !ordenAscendentePagos
+                }"></i>
+                    </th>
+                    <th class="text-center columna-mes" *ngFor="let producto of productosPagosColumnas"
+                      title="{{ producto.clasificacion }}">
+                      {{ producto.nombre }}
+                    </th>
+                    <th class="text-end columna-total">Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let estudiante of estudiantesPagosFiltrados"
+                    [ngClass]="{'fila-inactivo': estudiante.activo === 0}">
+                    <td class="columna-fija">{{ estudiante.nombre_estudiante }}</td>
+                    <td class="columna-grupo">{{ estudiante.grupo_estudiante }}</td>
+                    <td class="text-end columna-mes" *ngFor="let producto of productosPagosColumnas">
+                      <span *ngIf="getPagadoProducto(estudiante, producto.id) > 0" class="celda-pago text-success"
+                        title="Ver los pagos de {{ producto.nombre }}"
+                        (click)="verDetallePagosProducto(estudiante, producto)">
+                        {{ getPagadoProducto(estudiante, producto.id) | currency:'':'symbol':'1.0-0' }}
+                      </span>
+                      <span *ngIf="getPagadoProducto(estudiante, producto.id) === 0" class="text-muted">
+                        -
+                      </span>
+                    </td>
+                    <td class="text-end columna-total fw-bold">
+                      {{ getTotalProductosEstudiante(estudiante) | currency:'':'symbol':'1.0-0' }}
+                    </td>
+                  </tr>
+                  <tr *ngIf="estudiantesPagosFiltrados.length === 0">
+                    <td [attr.colspan]="productosPagosColumnas.length + 3" class="text-center text-muted py-4">
+                      {{ mostrarSoloConPagos ?
+                      'No se encontraron estudiantes con pagos registrados' :
+                      'No se encontraron estudiantes con los filtros aplicados' }}
+                    </td>
+                  </tr>
+                </tbody>
+                <tfoot class="table-light">
+                  <tr class="fw-bold">
+                    <td colspan="2">TOTALES</td>
+                    <td class="text-end" *ngFor="let producto of productosPagosColumnas">
+                      {{ getTotalPagadoProducto(producto.id) | currency:'':'symbol':'1.0-0' }}
+                    </td>
+                    <td class="text-end text-success">
+                      {{ getTotalPagosPorConcepto() | currency:'':'symbol':'1.0-0' }}
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+
             <!-- Resumen de pagos registrados -->
             <div class="row mt-4">
               <div class="col-md-12">
@@ -2479,7 +2583,7 @@
             </div>
 
             <!-- Tabla de saldos pendientes mensuales colaboradores -->
-            <div class="table-responsive tabla-saldos-mensuales">
+            <div class="table-responsive tabla-saldos-mensuales tabla-columna-fija">
               <table class="table table-hover table-bordered table-sm">
                 <thead class="table-light sticky-top">
                   <tr>
@@ -2514,8 +2618,10 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr *ngFor="let colaborador of colaboradoresSaldosPendientesFiltrados"
-                    [ngClass]="{'table-warning': (colaborador.totalSaldoPendiente || 0) > 0}">
+                  <tr *ngFor="let colaborador of colaboradoresSaldosPendientesFiltrados" [ngClass]="{
+                    'table-warning': (colaborador.totalSaldoPendiente || 0) > 0,
+                    'fila-inactivo': colaborador.activo === 0
+                  }">
                     <td class="columna-fija">{{ colaborador.nombre_estudiante }}</td>
                     <td class="columna-grupo">{{ colaborador.grupo_estudiante }}</td>
                     <td class="text-end columna-mes" *ngFor="let mes of mesesDisponibles" [ngClass]="{
@@ -2623,7 +2729,7 @@
 
         <!-- Detalle mensual del estudiante -->
         <h6 class="mb-3">Detalle por Mes</h6>
-        <div class="table-responsive">
+        <div class="table-responsive tabla-columna-fija">
           <table class="table table-sm table-hover">
             <thead class="table-light">
               <tr>
@@ -2674,7 +2780,7 @@
       <div class="modal-header">
         <h5 class="modal-title">
           <i class="fas fa-hand-holding-usd me-2"></i>
-          Pagos de {{ mesDetallePagos }} - {{ estudianteDetallePagos?.nombre_estudiante }}
+          {{ tituloDetallePagos }} - {{ estudianteDetallePagos?.nombre_estudiante }}
         </h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
@@ -2685,16 +2791,17 @@
             <strong>Grupo:</strong> {{ estudianteDetallePagos?.grupo_estudiante }}
           </div>
           <div class="col-md-6 text-end">
-            <strong>Total aplicado en el mes:</strong>
+            <strong>Total aplicado:</strong>
             <span class="text-success">{{ totalDetallePagosMes | currency:'':'symbol':'1.0-0' }}</span>
           </div>
         </div>
 
-        <div class="table-responsive">
+        <div class="table-responsive tabla-columna-fija">
           <table class="table table-sm table-hover">
             <thead class="table-light">
               <tr>
                 <th>Concepto</th>
+                <th *ngIf="detallePagosPorProducto">Mes de la cuenta</th>
                 <th>Clasificación</th>
                 <th>Fecha del pago</th>
                 <th>Forma de pago</th>
@@ -2705,6 +2812,7 @@
             <tbody>
               <tr *ngFor="let aplicacion of detallePagosMes">
                 <td>{{ aplicacion.nombre_producto }}</td>
+                <td *ngIf="detallePagosPorProducto">{{ getNombreMes(aplicacion.mes_cuenta) }}</td>
                 <td>{{ aplicacion.nombre_clasificacion }}</td>
                 <td>{{ aplicacion.fecha_pago | date:'dd/MM/yyyy' }}</td>
                 <td>{{ aplicacion.tipo_pago }}</td>
@@ -2712,14 +2820,14 @@
                 <td class="text-end">{{ aplicacion.valor_aplicado | currency:'':'symbol':'1.0-0' }}</td>
               </tr>
               <tr *ngIf="detallePagosMes.length === 0">
-                <td colspan="6" class="text-center text-muted py-3">
-                  No hay detalle de pagos para este mes
+                <td [attr.colspan]="detallePagosPorProducto ? 7 : 6" class="text-center text-muted py-3">
+                  No hay detalle de pagos para mostrar
                 </td>
               </tr>
             </tbody>
             <tfoot class="table-light" *ngIf="detallePagosMes.length > 0">
               <tr class="fw-bold">
-                <td colspan="5">TOTAL</td>
+                <td [attr.colspan]="detallePagosPorProducto ? 6 : 5">TOTAL</td>
                 <td class="text-end">{{ totalDetallePagosMes | currency:'':'symbol':'1.0-0' }}</td>
               </tr>
             </tfoot>

@@ -19,41 +19,137 @@ $desktop: 992px;
   min-height: calc(100vh - 100px);
 }
 
-// Tabla de saldos y pagos mensuales (tabs Saldos Estudiantes, Saldos
-// Colaboradores y Pagos Estudiantes). Las clases se usaban desde el HTML pero
-// no estaban definidas en este scss.
-.tabla-saldos-mensuales {
-  overflow-x: auto;
+// Las tablas con primera columna fija (.tabla-columna-fija) y sus clases de
+// columna viven ahora en styles.scss, para que apliquen en toda la app.
 
-  .columna-fija {
-    min-width: 200px;
-    position: sticky;
-    left: 0;
-    background-color: inherit;
-    z-index: 1;
+// =============================================
+// Menú de tabs en móvil (mismo patrón de crear-curso-extra)
+// =============================================
+$gold: #D4A03C;
+$light-gold: rgba(212, 160, 60, 0.12);
+
+.tabs-desktop {
+  display: flex;
+}
+
+.tabs-movil {
+  display: none;
+}
+
+.tabs-movil-header {
+  border-bottom: 2px solid $gold;
+}
+
+.tabs-movil-trigger {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 16px;
+  background: #fff;
+  border: none;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #222;
+
+  > i:first-child {
+    color: $gold;
+    font-size: 1.2rem;
+    width: 24px;
+    text-align: center;
   }
 
-  .columna-grupo {
-    min-width: 120px;
+  .tabs-movil-label {
+    flex: 1;
+    text-align: left;
   }
 
-  .columna-mes {
-    min-width: 80px;
-    font-size: 0.85rem;
-  }
+  .tabs-movil-chevron {
+    color: #999;
+    font-size: 0.75rem;
+    transition: transform 0.3s ease;
 
-  .columna-total {
-    min-width: 110px;
-  }
-
-  // Valor de un mes con pagos: abre el modal de detalle
-  .celda-pago {
-    cursor: pointer;
-    text-decoration: underline dotted;
-
-    &:hover {
-      font-weight: 600;
+    &.rotado {
+      transform: rotate(180deg);
     }
+  }
+}
+
+.tabs-movil-dropdown {
+  background: #fff;
+  border: 1px solid #e9ecef;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  animation: slideDownTabs 0.2s ease;
+}
+
+@keyframes slideDownTabs {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tabs-movil-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 20px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #495057;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid #f1f3f5;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  i {
+    color: $gold;
+    font-size: 1rem;
+    width: 20px;
+    text-align: center;
+  }
+
+  &:hover {
+    background-color: $light-gold;
+  }
+
+  &.active {
+    background-color: $light-gold;
+    color: #222;
+    font-weight: 600;
+    border-left: 3px solid $gold;
+    padding-left: 17px;
+  }
+}
+
+@media (max-width: 768px) {
+  .tabs-desktop {
+    display: none;
+  }
+
+  .tabs-movil {
+    display: block;
+  }
+}
+
+// Botones para cambiar entre la vista por mes y la vista por concepto
+.selector-vista-pagos {
+  .btn {
+    font-size: 0.85rem;
   }
 }
 
