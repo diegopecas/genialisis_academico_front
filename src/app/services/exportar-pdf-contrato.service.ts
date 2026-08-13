@@ -10,6 +10,9 @@ export interface DatosContratoPDF {
   estudiante: any;
   acudientes: any[];
   configuracion: any;
+  // Configuración de mora del producto de pensión del contrato. Puede venir
+  // null cuando ese producto no cobra mora.
+  mora_pension?: any;
 }
 
 // Interfaz para la configuración de firmas desde el JSON
@@ -96,6 +99,39 @@ export class ExportarPdfContratoService {
     }
   }
 
+  /**
+   * Arma la frase de mora que va en la cláusula de valor y forma de pago,
+   * a partir de la configuración del producto de pensión del contrato.
+   * Sin configuración se cae al texto general de tasa máxima legal, para que
+   * la cláusula no quede coja.
+   */
+  private armarTextoMoraPension(mora: any): string {
+    const textoPorDefecto =
+      'los intereses moratorios a la tasa máxima legal permitida';
+
+    if (!mora || mora.activo == 0) {
+      return textoPorDefecto;
+    }
+
+    if (mora.codigo_tipo_mora === 'RECARGO_FIJO') {
+      const valor = this.formatearMoneda(Number(mora.valor_recargo) || 0);
+      const acumula = Number(mora.recargo_acumulable) === 1
+        ? ', recargo que se acumula cada mes mientras persista la mora'
+        : '';
+      return `un recargo de ${valor} sobre cada mensualidad que se cancele después del plazo${acumula}`;
+    }
+
+    if (mora.codigo_tipo_mora === 'PORCENTAJE') {
+      const porcentaje = Number(mora.porcentaje_mensual) || 0;
+      const formateado = porcentaje.toLocaleString('es-CO', {
+        maximumFractionDigits: 3
+      });
+      return `un interés moratorio del ${formateado}% mensual sobre el saldo vencido`;
+    }
+
+    return textoPorDefecto;
+  }
+
   private reemplazarVariables(
     plantilla: PlantillaContrato,
     datos: DatosContratoPDF
@@ -150,6 +186,9 @@ export class ExportarPdfContratoService {
       '{{valor_otros_formateado}}': this.formatearMoneda(
         contrato.valor_otros || 0
       ),
+      // Frase de mora armada aqui y no un numero suelto: la plantilla no tiene
+      // condicionales y el producto puede no cobrar mora.
+      '{{texto_mora_pension}}': this.armarTextoMoraPension(datos.mora_pension),
       '{{numero_cuotas}}': contrato.numero_cuotas.toString(),
       '{{texto_primera_cuota}}': textoPrimeraCuota,
       '{{numero_cuotas_restantes}}': numeroCuotasRestantes.toString(),
