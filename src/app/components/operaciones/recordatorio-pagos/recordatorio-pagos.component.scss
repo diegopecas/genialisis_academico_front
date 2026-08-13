@@ -78,31 +78,8 @@ $tablet: 768px;
   margin-bottom: 1.5rem;
 }
 
-// Tabla de saldos mensuales
-.tabla-saldos-mensuales {
-  overflow-x: auto;
-
-  .columna-fija {
-    min-width: 200px;
-    position: sticky;
-    left: 0;
-    background-color: inherit;
-    z-index: 1;
-  }
-
-  .columna-grupo {
-    min-width: 120px;
-  }
-
-  .columna-mes {
-    min-width: 80px;
-    font-size: 0.85rem;
-  }
-
-  .columna-total {
-    min-width: 110px;
-  }
-}
+// La tabla con la primera columna fija (.tabla-columna-fija) y sus clases de
+// columna viven en styles.scss, para que apliquen igual en toda la app.
 
 // Columnas ordenables
 .sortable {

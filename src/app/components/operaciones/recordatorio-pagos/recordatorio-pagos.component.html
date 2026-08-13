@@ -94,7 +94,7 @@
     <!-- Tabla principal -->
     <div class="card">
       <div class="card-body">
-        <div class="table-responsive tabla-saldos-mensuales">
+        <div class="table-responsive tabla-saldos-mensuales tabla-columna-fija">
           <table class="table table-hover table-bordered table-sm">
             <thead class="table-light sticky-top">
               <tr>
@@ -535,7 +535,7 @@
           <p class="text-muted">Aún no se han enviado recordatorios para este estudiante.</p>
         </div>
 
-        <div *ngIf="!cargandoHistorial && historialPago.length > 0" class="table-responsive">
+        <div *ngIf="!cargandoHistorial && historialPago.length > 0" class="table-responsive tabla-columna-fija">
           <table class="table table-sm table-bordered table-hover">
             <thead class="table-light">
               <tr>
