@@ -220,6 +220,18 @@ export class MenuComponent implements OnInit {
   }
 
   /**
+   * Igual que normalizar, pero carácter por carácter, de modo que la cadena resultante
+   * conserva la longitud y las posiciones de la original.
+   * Se usa en resaltar() para ubicar la coincidencia sobre el label aunque tenga tildes.
+   */
+  private normalizarPosicional(texto: string): string {
+    return Array.from(texto)
+      .map((c) => c.normalize('NFD').replace(/[\u0300-\u036f]/g, '') || c)
+      .join('')
+      .toLowerCase();
+  }
+
+  /**
    * Un nodo coincide si el término está en su label o en alguno de sus keywords.
    */
   private coincideTexto(nodo: MenuNodo, termino: string): boolean {
@@ -278,7 +290,7 @@ export class MenuComponent implements OnInit {
       return label;
     }
 
-    const indice = label.toLowerCase().indexOf(termino.toLowerCase());
+    const indice = this.normalizarPosicional(label).indexOf(this.normalizarPosicional(termino));
     if (indice < 0) {
       return label;
     }
