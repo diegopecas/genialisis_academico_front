@@ -24,6 +24,18 @@
                 <small class="form-text text-muted">Los permisos del rol se asignan en Permisos por Rol y los usuarios en Usuarios por Rol</small>
             </div>
         </div>
+
+        <div class="row mt-4">
+            <div class="col-12">
+                <label for="portal" class="form-label">Portal <span class="text-danger">*</span></label>
+                <select class="form-select form-select-lg" id="portal" [(ngModel)]="model.portal" [disabled]="!editable">
+                    <option value="institucional">Portal Institucional</option>
+                    <option value="padres">Portal de Padres</option>
+                    <option value="ambos">Ambos portales</option>
+                </select>
+                <small class="form-text text-muted">Define en qué sección aparece el rol al crear o editar un usuario</small>
+            </div>
+        </div>
     </div>
 
     <div class="container mt-5">

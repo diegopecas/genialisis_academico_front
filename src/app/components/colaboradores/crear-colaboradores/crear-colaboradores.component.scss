@@ -497,3 +497,27 @@ $sidebar-width: 240px;
   border-top: 1px solid #dee2e6;
   margin-top: 1rem;
 }
+
+// Tarjetas de roles por portal
+.seccion-roles {
+  border: 1px solid #e6dcc3;
+  border-left: 4px solid #FFC107;
+  border-radius: 12px;
+  padding: 16px 18px;
+  background: #fffdf7;
+}
+
+.seccion-roles-padres {
+  border-left-color: #4caf50;
+  background: #f8fdf8;
+}
+
+.seccion-roles-titulo {
+  color: #6B4E0B;
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+
+.seccion-roles .form-check {
+  padding: 6px 0 6px 1.6em;
+}

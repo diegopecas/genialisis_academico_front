@@ -38,8 +38,9 @@ export class GestionUsuariosComponent implements OnInit {
       // Nombre completo para mostrar y filtrar en una sola columna
       this.datos = body.map(u => ({
         ...u,
+        // Las empresas no tienen nombres, se identifican por razón social
         nombre_completo: [u.primer_nombre, u.segundo_nombre, u.primer_apellido, u.segundo_apellido]
-          .filter(x => x).join(' '),
+          .filter(x => x).join(' ') || (u.razon_social || ''),
         estado_texto: (u.activo == 1 ? 'Activo' : 'Inactivo') + (u.super_admin == 1 ? ' ⭐' : '')
       }));
     });

@@ -83,6 +83,20 @@ export class PersonasService {
     );
   }
 
+  /**
+   * Actualiza únicamente el correo electrónico de la persona.
+   */
+  actualizarCorreo(id: string, correo_electronico: string) {
+    var body = JSON.stringify({ id, correo_electronico });
+    return this.http.put<any>(this.servicio + '/correo', body, httpOptions).pipe(
+      tap((respuesta: any) => {
+        if (respuesta.error) {
+          throw respuesta.error;
+        }
+      })
+    );
+  }
+
   actualizar(elemento: any) {
     var body = JSON.stringify(elemento);
     console.log('actualizar', body);

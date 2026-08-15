@@ -162,8 +162,36 @@
       <div *ngIf="seccionActiva === 'usuario' && model.idColaborador">
         <div *ngIf="!tieneUsuario() && editable" class="alert alert-warning d-flex align-items-center justify-content-between mb-4"><div><i class="fas fa-info-circle me-2"></i><strong>Usuario no creado.</strong> Este colaborador aún no tiene credenciales.</div><button class="btn-save" (click)="crearUsuario()"><i class="fas fa-plus-circle"></i> Crear Usuario</button></div>
         <div *ngIf="tieneUsuario()">
-          <div class="row"><div class="col-sm-12 col-md-6"><label class="form-label">Usuario</label><input class="form-control form-control-lg" type="text" [value]="model.numeroIdentificacion" readonly disabled /></div><div class="col-sm-12 col-md-6"><label class="form-label">Correo Electrónico <span class="text-danger">*</span></label><input class="form-control form-control-lg" type="email" [(ngModel)]="modelUsuario.correo_electronico" [ngClass]="{ 'is-invalid': !modelUsuario.correo_electronico && submittedUsuario }" [disabled]="!editable" /></div></div>
-          <div class="row mt-3"><div class="col-sm-12 col-md-4"><label class="form-label">Acceso Institucional</label><div class="form-check form-switch"><input class="form-check-input" type="checkbox" [(ngModel)]="modelUsuario.acceso_institucional" [disabled]="!editable" id="accesoInst" /><label class="form-check-label" for="accesoInst">{{ modelUsuario.acceso_institucional ? "Sí" : "No" }}</label></div></div><div class="col-sm-12 col-md-4"><label class="form-label">Acceso Portal Padres</label><div class="form-check form-switch"><input class="form-check-input" type="checkbox" [(ngModel)]="modelUsuario.acceso_portal_padres" [disabled]="!editable" id="accesoPortalPadres" /><label class="form-check-label" for="accesoPortalPadres">{{ modelUsuario.acceso_portal_padres ? "Con acceso" : "Sin acceso" }}</label></div></div><div class="col-sm-12 col-md-4"><label class="form-label">Estado</label><div class="form-check form-switch"><input class="form-check-input" type="checkbox" [(ngModel)]="modelUsuario.activo" [disabled]="!editable" id="usuarioActivo2" /><label class="form-check-label" for="usuarioActivo2">{{ modelUsuario.activo ? "Activo" : "Inactivo" }}</label></div></div></div>
+          <div class="row"><div class="col-sm-12 col-md-6"><label class="form-label">Usuario <span class="text-danger">*</span></label><input class="form-control form-control-lg" type="text" autocomplete="off" [(ngModel)]="modelUsuario.usuario" [disabled]="!editable" /><small class="text-muted">Por defecto es el número de identificación; se puede cambiar</small></div><div class="col-sm-12 col-md-6"><label class="form-label">Correo Electrónico <span class="text-danger">*</span></label><input class="form-control form-control-lg" type="email" readonly [(ngModel)]="modelUsuario.correo_electronico" [ngClass]="{ 'is-invalid': !modelUsuario.correo_electronico && submittedUsuario }" [disabled]="!editable" /></div></div>
+          <div class="row mt-3"><div class="col-sm-12 col-md-4"><label class="form-label">Portal Institucional</label><div class="form-check form-switch"><input class="form-check-input" type="checkbox" [(ngModel)]="modelUsuario.acceso_institucional" [disabled]="!editable" id="accesoInst" /><label class="form-check-label" for="accesoInst">{{ modelUsuario.acceso_institucional ? "Sí" : "No" }}</label></div></div><div class="col-sm-12 col-md-4"><label class="form-label">Portal de Padres</label><div class="form-check form-switch"><input class="form-check-input" type="checkbox" [(ngModel)]="modelUsuario.acceso_portal_padres" [disabled]="!editable" id="accesoPortalPadres" /><label class="form-check-label" for="accesoPortalPadres">{{ modelUsuario.acceso_portal_padres ? "Con acceso" : "Sin acceso" }}</label></div></div><div class="col-sm-12 col-md-4"><label class="form-label">Estado</label><div class="form-check form-switch"><input class="form-check-input" type="checkbox" [(ngModel)]="modelUsuario.activo" [disabled]="!editable" id="usuarioActivo2" /><label class="form-check-label" for="usuarioActivo2">{{ modelUsuario.activo ? "Activo" : "Inactivo" }}</label></div></div></div>
+          <!-- Roles del Portal Institucional -->
+          <div class="seccion-roles mt-4" *ngIf="modelUsuario.id && modelUsuario.acceso_institucional">
+            <h6 class="seccion-roles-titulo"><i class="fas fa-school me-2"></i>Roles del Portal Institucional</h6>
+            <div class="row">
+              <div class="col-sm-6 col-md-4" *ngFor="let rol of rolesInstitucional">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" [id]="'rol-inst-' + rol.id" [(ngModel)]="rol.seleccionado" [disabled]="!editable" />
+                  <label class="form-check-label" [for]="'rol-inst-' + rol.id">{{ rol.nombre }}</label>
+                </div>
+              </div>
+              <div class="col-12 text-muted" *ngIf="rolesInstitucional.length === 0">No hay roles creados para este portal</div>
+            </div>
+          </div>
+
+          <!-- Roles del Portal de Padres -->
+          <div class="seccion-roles seccion-roles-padres mt-3" *ngIf="modelUsuario.id && modelUsuario.acceso_portal_padres">
+            <h6 class="seccion-roles-titulo"><i class="fas fa-users me-2"></i>Roles del Portal de Padres</h6>
+            <div class="row">
+              <div class="col-sm-6 col-md-4" *ngFor="let rol of rolesPadres">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" [id]="'rol-padres-' + rol.id" [(ngModel)]="rol.seleccionado" [disabled]="!editable" />
+                  <label class="form-check-label" [for]="'rol-padres-' + rol.id">{{ rol.nombre }}</label>
+                </div>
+              </div>
+              <div class="col-12 text-muted" *ngIf="rolesPadres.length === 0">No hay roles creados para este portal</div>
+            </div>
+          </div>
+
           <div *ngIf="editable && modelUsuario.id" class="password-section mt-4"><h6 class="section-title mb-3"><i class="fas fa-key me-2"></i>Cambiar Contraseña</h6><div class="row align-items-end"><div class="col-sm-12 col-md-10"><label class="form-label">Nueva Contraseña <span class="text-danger">*</span></label><div class="input-group"><input class="form-control form-control-lg" [type]="mostrarClaveNueva ? 'text' : 'password'" [(ngModel)]="cambiarClaveModel.claveNueva" [ngClass]="{ 'is-invalid': !cambiarClaveModel.claveNueva && intentoCambiarClave }" placeholder="Mínimo 6 caracteres" /><button class="btn btn-outline-secondary" type="button" (click)="mostrarClaveNueva = !mostrarClaveNueva"><i [class]="mostrarClaveNueva ? 'fas fa-eye-slash' : 'fas fa-eye'"></i></button></div></div><div class="col-sm-12 col-md-2"><button class="btn-change-password w-100" (click)="cambiarContrasena()"><i class="fas fa-key"></i> Cambiar</button></div></div></div>
           <div class="row mt-4" *ngIf="editable"><div class="col-12 d-flex gap-2"><button class="btn-save" (click)="guardarUsuario()"><i class="fas fa-save"></i> Guardar Usuario</button><button class="btn-delete-user" (click)="confirmarEliminarUsuario()"><i class="fas fa-trash"></i> Eliminar Usuario</button></div></div>
         </div>

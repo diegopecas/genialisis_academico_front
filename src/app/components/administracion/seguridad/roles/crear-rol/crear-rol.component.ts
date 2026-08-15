@@ -23,7 +23,9 @@ export class CrearRolComponent implements OnInit {
 
   model = {
     id: null,
-    nombre: ''
+    nombre: '',
+    // Portal al que pertenece el rol: institucional, padres o ambos
+    portal: 'institucional'
   } as any;
 
   constructor(
@@ -80,7 +82,8 @@ export class CrearRolComponent implements OnInit {
     }
 
     const data = {
-      nombre: this.model.nombre.trim()
+      nombre: this.model.nombre.trim(),
+      portal: this.model.portal
     } as any;
 
     if (this.accion === 'crear') {

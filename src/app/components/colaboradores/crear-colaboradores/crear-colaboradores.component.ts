@@ -18,6 +18,9 @@ import { GruposService } from '../../../services/grupos.service';
 import { AreasAcademicasService } from '../../../services/areas-academicas.service';
 import { AreaAcademicaXGrupoService } from '../../../services/area-academica-x-grupo.service';
 import { UsuariosService } from '../../../services/usuarios.service';
+import { RolesService } from '../../../services/roles.service';
+import { RolesXUsuarioService } from '../../../services/roles-x-usuario.service';
+import { ConfiguracionGlobalService } from '../../../services/configuracion-global.service';
 import { HorariosColaboradoresService } from '../../../services/horarios-colaboradores.service';
 import Swal from 'sweetalert2';
 import { CargosService } from '../../../services/cargos.service';
@@ -110,12 +113,15 @@ export class CrearColaboradoresComponent implements OnInit {
     private areasAcademicasService: AreasAcademicasService, private areaAcademicaXGrupoService: AreaAcademicaXGrupoService,
     private cargosService: CargosService, private motivosRetiroService: MotivosRetiroService,
     private tiposContratoService: TiposContratoService, private usuariosService: UsuariosService,
+    private rolesSistemaService: RolesService, private configuracionGlobalService: ConfiguracionGlobalService,
+    private rolesXUsuarioService: RolesXUsuarioService,
     private horariosService: HorariosColaboradoresService
   ) {
     this.generarHorasGrilla();
   }
 
   ngOnInit() {
+    this.cargarRolesSistema();
     if (this.modoEmbebido && this.idColaboradorInput) {
       this.accion = 'editar';
       this.id = this.idColaboradorInput;
@@ -191,7 +197,7 @@ export class CrearColaboradoresComponent implements OnInit {
     this.seccionActiva = seccion; this.cerrarSidebar();
     if (seccion === 'grupos' && !!this.model.idDocente && !this.gruposCargados) this.consultarGruposAsignados();
     if (seccion === 'areas' && !!this.model.idDocente && !this.areasCargadas) this.consultarAreasAcademicas();
-    if (seccion === 'usuario' && !!this.model.idPersona && !this.usuarioCargado) this.cargarUsuario();
+    if (seccion === 'usuario' && !!this.model.idPersona) { if (!this.usuarioCargado) { this.cargarUsuario(); } if (this.rolesInstitucional.length === 0 && this.rolesPadres.length === 0) { this.cargarRolesSistema(); } }
     if (seccion === 'horarios' && !!this.model.idColaborador && !this.horariosCargados) this.cargarHorarios();
   }
 
@@ -297,16 +303,115 @@ export class CrearColaboradoresComponent implements OnInit {
   quitarArea(idAsignacion: any) { Swal.fire({ title: '¿Está seguro?', text: 'Eliminará la asignación del área', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Sí, eliminar', cancelButtonText: 'Cancelar' }).then((r) => { if (r.isConfirmed) { this.areaAcademicaXGrupoService.eliminar(idAsignacion).subscribe(() => { Swal.fire({ icon: 'success', title: 'Eliminada', timer: 2000, showConfirmButton: false }); this.consultarAreasAcademicas(); this.cargarAreasOcupadasGrupos(); }, () => Swal.fire({ icon: 'error', title: 'Error', text: 'Error al eliminar' })); } }); }
 
   // ========== USUARIO ==========
-  cargarUsuario() { this.usuarioCargado = true; this.usuariosService.obtenerPorPersona(this.model.idPersona).subscribe({ next: (r: any) => { const d = r.body; if (d && d.length > 0) { const u = d[0]; this.modelUsuario = { id: u.id, id_persona: u.id_persona, usuario: u.usuario, correo_electronico: u.correo_electronico, clave: '', activo: u.activo, acceso_institucional: u.acceso_institucional, acceso_portal_padres: u.acceso_portal_padres }; } else { this.resetearModeloUsuario(); } }, error: () => this.resetearModeloUsuario() }); }
+  cargarUsuario() { this.usuarioCargado = true; this.usuariosService.obtenerPorPersona(this.model.idPersona).subscribe({ next: (r: any) => { const d = r.body; if (d && d.length > 0) { const u = d[0]; this.modelUsuario = { id: u.id, id_persona: u.id_persona, usuario: u.usuario, correo_electronico: u.correo_electronico, clave: '', activo: u.activo, acceso_institucional: u.acceso_institucional, acceso_portal_padres: u.acceso_portal_padres }; this.cargarRolesDelUsuario(u.id); } else { this.resetearModeloUsuario(); } }, error: () => this.resetearModeloUsuario() }); }
   resetearModeloUsuario() { this.modelUsuario = { id: '', id_persona: this.model.idPersona, usuario: '', correo_electronico: '', clave: '', activo: 1, acceso_institucional: 0, acceso_portal_padres: 0 }; }
   tieneUsuario(): boolean { return !!this.modelUsuario.id; }
+  // Roles del sistema separados por portal, para el diálogo de crear usuario
+  public rolesInstitucional: any[] = [];
+  public rolesPadres: any[] = [];
+  public idRolDefaultAcudiente: string | null = null;
+
+  /**
+   * Carga los roles del sistema y el rol por defecto de acudiente.
+   */
+  /**
+   * Marca los roles que el usuario ya tiene asignados.
+   */
+  cargarRolesDelUsuario(idUsuario: string) {
+    this.rolesXUsuarioService.obtenerRolesPorUsuario(idUsuario).subscribe({
+      next: (response: any) => {
+        const asignados = (response.body as any[]).map(r => r.id);
+        this.rolesInstitucional.forEach(r => r.seleccionado = asignados.includes(r.id));
+        this.rolesPadres.forEach(r => r.seleccionado = asignados.includes(r.id));
+      }
+    });
+  }
+
+  cargarRolesSistema() {
+    this.rolesSistemaService.obtenerTodos().subscribe({
+      next: (response: any) => {
+        const body = response.body as any[];
+        this.rolesInstitucional = body.filter(r => r.portal !== 'padres');
+        this.rolesPadres = body.filter(r => r.portal === 'padres' || r.portal === 'ambos');
+        if (this.modelUsuario.id) {
+          this.cargarRolesDelUsuario(this.modelUsuario.id);
+        }
+      },
+      error: () => {
+        this.rolesInstitucional = [];
+        this.rolesPadres = [];
+      }
+    });
+
+    this.configuracionGlobalService.obtenerByClave('rol_default_acudiente').subscribe({
+      next: (response: any) => {
+        const body = response.body as any;
+        this.idRolDefaultAcudiente = Array.isArray(body) ? (body[0]?.valor_texto ?? null) : (body?.valor_texto ?? null);
+      },
+      error: () => {
+        this.idRolDefaultAcudiente = null;
+      }
+    });
+  }
+
+  /**
+   * Checkboxes de una sección de roles. La sección de padres llega con el
+   * rol por defecto marcado.
+   */
+  private htmlRoles(roles: any[], prefijo: string, marcarDefault: boolean): string {
+    if (roles.length === 0) {
+      return '<div class="text-muted small">No hay roles creados para este portal</div>';
+    }
+    return roles.map(r => `
+      <div class="form-check text-start">
+        <input class="form-check-input swal-rol-${prefijo}" type="checkbox" id="swal-rol-${prefijo}-${r.id}" value="${r.id}"
+          ${marcarDefault && r.id === this.idRolDefaultAcudiente ? 'checked' : ''}>
+        <label class="form-check-label" for="swal-rol-${prefijo}-${r.id}">${r.nombre}</label>
+      </div>`).join('');
+  }
+
   crearUsuario() {
     if (!this.model.idPersona) { Swal.fire({ icon: 'warning', title: 'Advertencia', text: 'Primero debe guardar los datos del colaborador' }); return; }
-    Swal.fire({ title: '<strong>Crear Usuario</strong>', icon: 'question', html: `<div class="text-start"><div class="mb-3"><label for="swal-email" class="form-label fw-semibold">Correo Electrónico <span class="text-danger">*</span></label><input type="email" id="swal-email" class="form-control form-control-lg" placeholder="usuario@example.com" style="border: 2px solid #e0e0e0; border-radius: 8px;"></div><div class="mb-3"><label for="swal-password" class="form-label fw-semibold">Contraseña <span class="text-danger">*</span></label><input type="password" id="swal-password" class="form-control form-control-lg" placeholder="Mínimo 6 caracteres" style="border: 2px solid #e0e0e0; border-radius: 8px;"><small class="text-muted">Debe tener al menos 6 caracteres</small></div><div class="form-check form-switch mt-3"><input class="form-check-input" type="checkbox" id="swal-acceso" style="width: 3em; height: 1.5em;"><label class="form-check-label ms-2 fw-semibold" for="swal-acceso">Acceso Institucional</label></div><div class="form-check form-switch mt-3"><input class="form-check-input" type="checkbox" id="swal-acceso-portal" style="width: 3em; height: 1.5em;"><label class="form-check-label ms-2 fw-semibold" for="swal-acceso-portal">Acceso Portal de Padres</label></div></div>`, showCancelButton: true, confirmButtonText: 'Crear Usuario', cancelButtonText: 'Cancelar', customClass: { confirmButton: 'btn btn-lg px-4', cancelButton: 'btn btn-outline-secondary btn-lg px-4' }, buttonsStyling: false, didOpen: () => { const b = Swal.getConfirmButton(); if (b) { b.style.background = 'linear-gradient(135deg, #f9a825 0%, #f57f17 100%)'; b.style.color = 'white'; b.style.border = 'none'; b.style.marginRight = '10px'; } },
-      preConfirm: () => { const email = (document.getElementById('swal-email') as HTMLInputElement).value; const pw = (document.getElementById('swal-password') as HTMLInputElement).value; const ai = (document.getElementById('swal-acceso') as HTMLInputElement).checked; const ap = (document.getElementById('swal-acceso-portal') as HTMLInputElement).checked; if (!email || !pw) { Swal.showValidationMessage('Complete todos los campos'); return false; } if (pw.length < 6) { Swal.showValidationMessage('Mínimo 6 caracteres'); return false; } return { correo_electronico: email, clave: pw, acceso_institucional: ai ? 1 : 0, acceso_portal_padres: ap ? 1 : 0 }; }
-    }).then((r) => { if (r.isConfirmed && r.value) { this.usuariosService.crear({ id_persona: this.model.idPersona, ...r.value, activo: 1 }).subscribe({ next: () => { Swal.fire({ icon: 'success', title: '¡Usuario Creado!', timer: 2000, showConfirmButton: false }); this.cargarUsuario(); }, error: (e: any) => Swal.fire({ icon: 'error', title: 'Error', text: e.error?.error || 'No se pudo crear' }) }); } });
+    Swal.fire({ title: '<strong>Crear Usuario</strong>', iconHtml: '<i class="fas fa-user-plus" style="color:#f9a825;"></i>',  html: `<div class="text-start"><div class="mb-3"><label for="swal-usuario" class="form-label fw-semibold">Usuario <span class="text-danger">*</span></label><input type="text" id="swal-usuario" class="form-control form-control-lg" value="${this.model.numeroIdentificacion || ''}" autocomplete="off" style="border:2px solid #e0e0e0;border-radius:8px;"><small class="text-muted">Por defecto es el número de identificación; se puede cambiar</small></div><div class="mb-3"><label for="swal-email" class="form-label fw-semibold">Correo Electrónico <span class="text-danger">*</span></label><input type="email" id="swal-email" class="form-control form-control-lg" value="${this.model.correoElectronico || ''}" placeholder="usuario@example.com" ${this.model.correoElectronico ? 'readonly' : ''} style="border: 2px solid #e0e0e0; border-radius: 8px;${this.model.correoElectronico ? 'background-color:#e9ecef;' : ''}"><small class="text-muted">${this.model.correoElectronico ? 'Es el correo registrado en los datos de la persona' : 'La persona no tiene correo; el que escriba aquí se guarda en sus datos'}</small></div><div class="mb-3"><label for="swal-password" class="form-label fw-semibold">Contraseña <span class="text-danger">*</span></label><input type="password" id="swal-password" class="form-control form-control-lg" placeholder="Mínimo 6 caracteres" style="border: 2px solid #e0e0e0; border-radius: 8px;"><small class="text-muted">Debe tener al menos 6 caracteres</small></div><div class="form-check form-switch mt-3"><input class="form-check-input" type="checkbox" id="swal-acceso" style="width: 3em; height: 1.5em;"><label class="form-check-label ms-2 fw-semibold" for="swal-acceso">Portal Institucional</label></div><div class="form-check form-switch mt-3"><input class="form-check-input" type="checkbox" id="swal-acceso-portal" style="width: 3em; height: 1.5em;"><label class="form-check-label ms-2 fw-semibold" for="swal-acceso-portal">Portal de Padres</label></div><div class="mt-4" id="swal-roles-inst" style="border:1px solid #e6dcc3;border-left:4px solid #FFC107;border-radius:12px;padding:12px 14px;background:#fffdf7;"><label class="form-label fw-semibold" style="color:#6B4E0B;">Roles del Portal Institucional</label>${this.htmlRoles(this.rolesInstitucional, 'inst', false)}</div><div class="mt-3" id="swal-roles-padres" style="border:1px solid #cfe6cf;border-left:4px solid #4caf50;border-radius:12px;padding:12px 14px;background:#f8fdf8;"><label class="form-label fw-semibold" style="color:#2e6b30;">Roles del Portal de Padres</label>${this.htmlRoles(this.rolesPadres, 'padres', true)}</div></div>`, showCancelButton: true, confirmButtonText: 'Crear Usuario', cancelButtonText: 'Cancelar', customClass: { icon: 'swal-icono-limpio', confirmButton: 'btn btn-lg px-4', cancelButton: 'btn btn-outline-secondary btn-lg px-4' }, buttonsStyling: false, didOpen: () => { const b = Swal.getConfirmButton(); if (b) { b.style.background = 'linear-gradient(135deg, #f9a825 0%, #f57f17 100%)'; b.style.color = 'white'; b.style.border = 'none'; b.style.marginRight = '10px'; }
+        // Cada bloque de roles aparece solo si su portal está encendido
+        const swInst = document.getElementById('swal-acceso') as HTMLInputElement;
+        const swPadres = document.getElementById('swal-acceso-portal') as HTMLInputElement;
+        const bloqueInst = document.getElementById('swal-roles-inst') as HTMLElement;
+        const bloquePadres = document.getElementById('swal-roles-padres') as HTMLElement;
+        const refrescar = () => {
+          if (bloqueInst) { bloqueInst.style.display = swInst && swInst.checked ? 'block' : 'none'; }
+          if (bloquePadres) { bloquePadres.style.display = swPadres && swPadres.checked ? 'block' : 'none'; }
+        };
+        if (swInst) { swInst.addEventListener('change', refrescar); }
+        if (swPadres) { swPadres.addEventListener('change', refrescar); }
+        refrescar();
+      },
+      preConfirm: () => { const usuario = (document.getElementById('swal-usuario') as HTMLInputElement).value; const email = (document.getElementById('swal-email') as HTMLInputElement).value; const pw = (document.getElementById('swal-password') as HTMLInputElement).value; const ai = (document.getElementById('swal-acceso') as HTMLInputElement).checked; const ap = (document.getElementById('swal-acceso-portal') as HTMLInputElement).checked; if (!usuario || !email || !pw) { Swal.showValidationMessage('Complete todos los campos'); return false; } if (pw.length < 6) { Swal.showValidationMessage('Mínimo 6 caracteres'); return false; } const selectores = [ai ? '.swal-rol-inst' : '', ap ? '.swal-rol-padres' : ''].filter(x => x).join(', '); const roles = selectores ? Array.from(document.querySelectorAll(selectores)).filter((el: any) => el.checked).map((el: any) => el.value) : []; return { usuario: usuario.trim(), correo_electronico: email, clave: pw, acceso_institucional: ai ? 1 : 0, acceso_portal_padres: ap ? 1 : 0, roles: roles }; }
+    }).then((r) => { if (r.isConfirmed && r.value) { if (!this.model.correoElectronico && r.value.correo_electronico) { this.personasService.actualizarCorreo(this.model.idPersona, r.value.correo_electronico).subscribe({ error: () => console.warn('No se pudo actualizar el correo de la persona') }); } this.usuariosService.crear({ id_persona: this.model.idPersona, ...r.value, activo: 1 }).subscribe({ next: () => { Swal.fire({ icon: 'success', title: '¡Usuario Creado!', timer: 2000, showConfirmButton: false }); this.cargarUsuario(); }, error: (e: any) => Swal.fire({ icon: 'error', title: 'Error', text: e.error?.error || 'No se pudo crear' }) }); } });
   }
-  guardarUsuario() { this.submittedUsuario = true; if (!this.modelUsuario.correo_electronico) { Swal.fire('Advertencia', 'Complete los campos requeridos', 'warning'); return; } this.usuariosService.actualizar({ id: this.modelUsuario.id, correo_electronico: this.modelUsuario.correo_electronico, activo: this.modelUsuario.activo ? 1 : 0, acceso_institucional: this.modelUsuario.acceso_institucional ? 1 : 0, acceso_portal_padres: this.modelUsuario.acceso_portal_padres ? 1 : 0 }).subscribe({ next: () => { Swal.fire('¡Éxito!', 'Usuario actualizado', 'success'); this.submittedUsuario = false; }, error: (e: any) => Swal.fire('Error', e.error?.error || 'No se pudo actualizar', 'error') }); }
+  guardarUsuario() { this.submittedUsuario = true; if (!this.modelUsuario.usuario || !this.modelUsuario.correo_electronico) { Swal.fire('Advertencia', 'Complete los campos requeridos', 'warning'); return; } this.usuariosService.actualizar({ id: this.modelUsuario.id, usuario: (this.modelUsuario.usuario || '').trim(), correo_electronico: this.modelUsuario.correo_electronico, activo: this.modelUsuario.activo ? 1 : 0, acceso_institucional: this.modelUsuario.acceso_institucional ? 1 : 0, acceso_portal_padres: this.modelUsuario.acceso_portal_padres ? 1 : 0 }).subscribe({ next: () => { this.sincronizarRolesUsuario(); }, error: (e: any) => Swal.fire('Error', e.error?.error || 'No se pudo actualizar', 'error') }); }
+
+  /**
+   * Guarda los roles marcados. Solo se envían los de los portales que el
+   * usuario tiene habilitados, para no dejar roles de un portal apagado.
+   */
+  sincronizarRolesUsuario() {
+    const roles: string[] = [];
+    if (this.modelUsuario.acceso_institucional) {
+      this.rolesInstitucional.filter(r => r.seleccionado).forEach(r => roles.push(r.id));
+    }
+    if (this.modelUsuario.acceso_portal_padres) {
+      this.rolesPadres.filter(r => r.seleccionado).forEach(r => { if (!roles.includes(r.id)) { roles.push(r.id); } });
+    }
+
+    this.rolesXUsuarioService.sincronizarUsuario({ id_usuario: this.modelUsuario.id, roles: roles }).subscribe({
+      next: () => {
+        Swal.fire('¡Éxito!', 'Usuario actualizado. Los cambios de roles aplican cuando vuelva a iniciar sesión.', 'success');
+        this.submittedUsuario = false;
+      },
+      error: () => Swal.fire('Atención', 'Se guardó el usuario pero falló la asignación de roles.', 'warning')
+    });
+  }
   cambiarContrasena() { this.intentoCambiarClave = true; if (!this.cambiarClaveModel.claveNueva) { Swal.fire('Advertencia', 'Ingrese la nueva contraseña', 'warning'); return; } if (this.cambiarClaveModel.claveNueva.length < 6) { Swal.fire('Advertencia', 'Mínimo 6 caracteres', 'warning'); return; } this.usuariosService.actualizar({ id: this.modelUsuario.id, clave: this.cambiarClaveModel.claveNueva }).subscribe({ next: () => { Swal.fire('¡Éxito!', 'Contraseña cambiada', 'success'); this.cambiarClaveModel.claveNueva = ''; this.intentoCambiarClave = false; this.mostrarClaveNueva = false; }, error: (e: any) => Swal.fire('Error', e.error?.message || 'No se pudo cambiar', 'error') }); }
   confirmarEliminarUsuario() { Swal.fire({ title: '¿Está seguro?', text: 'Eliminará el usuario', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Sí, eliminar', cancelButtonText: 'Cancelar' }).then((r) => { if (r.isConfirmed) this.eliminarUsuario(); }); }
   eliminarUsuario() { this.usuariosService.eliminar({ id: this.modelUsuario.id }).subscribe({ next: () => { Swal.fire('¡Eliminado!', 'Usuario eliminado', 'success'); this.resetearModeloUsuario(); }, error: (e: any) => Swal.fire('Error', e.error?.error || 'No se pudo eliminar', 'error') }); }

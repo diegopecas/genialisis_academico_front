@@ -5,3 +5,306 @@
     z-index: 10;
     width: calc(100% - 24px);
 }
+
+// Bloques del formulario, para que cada grupo de campos se lea aparte
+.seccion-form {
+    border: 1px solid #eee6d6;
+    border-radius: 12px;
+    padding: 18px;
+    background: #fffefb;
+}
+
+.seccion-form-titulo {
+    color: #6B4E0B;
+    font-weight: 700;
+    margin-bottom: 16px;
+}
+
+// Caja de búsqueda: se ve y se comporta como un campo, no como texto suelto
+.buscador-persona {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    border: 1.5px dashed #d9c99b;
+    border-radius: 12px;
+    background: #fffdf7;
+    cursor: pointer;
+    transition: all .15s ease;
+
+    &:hover {
+        border-color: #FFC107;
+        background: #fffaea;
+    }
+}
+
+.buscador-invalido {
+    border-color: #dc3545;
+}
+
+.buscador-persona-icono {
+    color: #A67C00;
+}
+
+.buscador-persona-texto {
+    flex: 1;
+    color: #8a7a5c;
+}
+
+.buscador-persona-accion {
+    background: #FFC107;
+    color: #4a3708;
+    font-weight: 700;
+    font-size: 13px;
+    padding: 5px 14px;
+    border-radius: 20px;
+}
+
+// Persona seleccionada
+.persona-elegida {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    border: 1px solid #e6dcc3;
+    border-left: 4px solid #FFC107;
+    border-radius: 12px;
+    padding: 14px 16px;
+    background: #fffdf7;
+}
+
+.persona-avatar {
+    width: 46px;
+    height: 46px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: #FFC107;
+    color: #4a3708;
+    font-weight: 800;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-transform: uppercase;
+}
+
+.persona-datos {
+    flex: 1;
+    min-width: 0;
+}
+
+.persona-linea {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 12px;
+}
+
+.persona-nombre {
+    font-weight: 700;
+    color: #6B4E0B;
+}
+
+.persona-doc {
+    color: #8a7a5c;
+    font-size: 13px;
+}
+
+.persona-vinculos {
+    margin-top: 6px;
+}
+
+.persona-cambiar {
+    flex-shrink: 0;
+}
+
+@media (max-width: 576px) {
+    .persona-elegida {
+        flex-wrap: wrap;
+    }
+
+    .persona-cambiar {
+        width: 100%;
+        margin-top: 10px;
+    }
+}
+
+// Filas del modal
+.fila-persona {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-align: left;
+}
+
+.fila-avatar {
+    width: 34px;
+    height: 34px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: #f1e9d4;
+    color: #6B4E0B;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-transform: uppercase;
+}
+
+.fila-datos {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+}
+
+.fila-nombre {
+    font-weight: 600;
+    color: #3b3b3b;
+}
+
+.fila-doc {
+    font-size: 12px;
+    color: #8a7a5c;
+}
+
+// Cada portal en su propia tarjeta, para que no se lean como una sola lista
+.seccion-roles {
+    border: 1px solid #e6dcc3;
+    border-left: 4px solid #FFC107;
+    border-radius: 12px;
+    padding: 16px 18px;
+    background: #fffdf7;
+}
+
+.seccion-roles-padres {
+    border-left-color: #4caf50;
+    background: #f8fdf8;
+}
+
+.seccion-roles-titulo {
+    color: #6B4E0B;
+    font-weight: 700;
+    margin-bottom: 14px;
+}
+
+.seccion-roles .form-check {
+    padding: 6px 0 6px 1.6em;
+}
+
+// Los switches necesitan aire propio en móvil
+.switch-item {
+    padding: 10px 0 10px 3.2em;
+
+    .form-check-input {
+        width: 2.6em;
+        height: 1.35em;
+        margin-left: -2.6em;
+    }
+
+    .form-check-label {
+        line-height: 1.35em;
+    }
+}
+
+@media (max-width: 576px) {
+    .switch-item {
+        padding-left: 3.6em;
+    }
+
+    .seccion-roles {
+        padding: 14px;
+    }
+}
+
+// Modal de búsqueda de persona
+.modal-persona-fondo {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, .45);
+    z-index: 1050;
+}
+
+.modal-persona {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: min(640px, 92vw);
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    background: #ffffff;
+    border-radius: 14px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, .25);
+    z-index: 1060;
+}
+
+.modal-persona-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 18px;
+    border-bottom: 1px solid #eee6d6;
+}
+
+.modal-persona-body {
+    padding: 18px;
+    overflow-y: auto;
+}
+
+// Las personas que ya tienen usuario se ven, pero apagadas
+.persona-con-usuario {
+    opacity: .65;
+}
+
+// Correo dentro de la tarjeta de la persona
+.persona-correo {
+    color: #8a7a5c;
+    font-size: 13px;
+    margin-top: 2px;
+}
+
+// Filtros por tipo de vínculo en el modal
+.filtros-tipo {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.chip-filtro {
+    border: 1px solid #e6dcc3;
+    background: #ffffff;
+    color: #6B4E0B;
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .15s ease;
+
+    &:hover {
+        background: #fffaea;
+    }
+
+    &.activo {
+        background: #FFC107;
+        border-color: #FFC107;
+        color: #4a3708;
+    }
+}
+
+.fila-vinculos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 4px;
+}
+
+.mini-badge {
+    background: #f1e9d4;
+    color: #6B4E0B;
+    border-radius: 10px;
+    padding: 1px 8px;
+    font-size: 11px;
+    font-weight: 600;
+}

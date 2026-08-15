@@ -469,3 +469,13 @@ option:disabled {
     }
   }
 }
+
+// Ícono de los diálogos de SweetAlert cuando usamos iconHtml propio
+.swal2-icon.swal-icono-limpio {
+  border: none;
+  font-size: 26px;
+}
+
+.swal2-icon.swal-icono-limpio .swal2-icon-content {
+  font-size: 46px;
+}

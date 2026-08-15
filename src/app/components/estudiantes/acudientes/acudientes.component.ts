@@ -75,7 +75,7 @@ export class AcudientesComponent {
       // Convertir booleano a texto
       acudiente.responsable_pago_texto = acudiente.es_responsable_pago ? 'Sí' : 'No';
       acudiente.autorizado_recoger_texto = acudiente.autorizado_recoger ? 'Sí' : 'No';
-      acudiente.autorizado_sistema_texto = acudiente.autorizado_sistema ? 'Sí' : 'No';
+      acudiente.ve_en_portal_padres_texto = acudiente.ve_en_portal_padres ? 'Sí' : 'No';
       acudiente.activo_texto = acudiente.activo ? 'Activo' : 'Inactivo';
       
       // Buscar y asignar el nombre del tipo de acudiente
@@ -126,7 +126,7 @@ export class AcudientesComponent {
         alinear: 'centrado',
       },
       {
-        clave: 'autorizado_sistema_texto',
+        clave: 've_en_portal_padres_texto',
         alias: 'Acceso Sistema',
         alinear: 'centrado',
       },

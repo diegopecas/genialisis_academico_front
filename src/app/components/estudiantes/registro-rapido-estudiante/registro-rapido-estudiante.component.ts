@@ -44,7 +44,7 @@ interface AcudienteForm extends PersonaForm {
   id_tipo_acudiente: any;
   es_responsable_pago: boolean;
   autorizado_recoger: boolean;
-  autorizado_sistema: boolean;
+  ve_en_portal_padres: boolean;
   incluir: boolean; // si false, no se registra este acudiente
 }
 
@@ -615,7 +615,7 @@ export class RegistroRapidoEstudianteComponent implements OnInit, OnDestroy {
         id_tipo_acudiente: a.id_tipo_acudiente,
         es_responsable_pago: a.es_responsable_pago ? 1 : 0,
         autorizado_recoger: a.autorizado_recoger ? 1 : 0,
-        autorizado_sistema: a.autorizado_sistema ? 1 : 0,
+        ve_en_portal_padres: a.ve_en_portal_padres ? 1 : 0,
       })),
     };
 
@@ -758,7 +758,7 @@ export class RegistroRapidoEstudianteComponent implements OnInit, OnDestroy {
       id_tipo_acudiente: '',
       es_responsable_pago: true,
       autorizado_recoger: true,
-      autorizado_sistema: true,
+      ve_en_portal_padres: true,
       incluir: true,
     };
   }

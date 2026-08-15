@@ -10,90 +10,159 @@
 
     <div class="container mt-5">
 
-        <!-- Selección de persona (solo al crear) -->
-        <div class="row mb-4" *ngIf="accion === 'crear'">
-            <div class="col-12">
-                <label class="form-label">Persona <span class="text-danger">*</span></label>
-                <input 
-                    class="form-control" 
-                    type="text" 
-                    [(ngModel)]="filtroPersona"
-                    (ngModelChange)="filtrarPersonas()"
-                    placeholder="Busque por nombre o número de identificación..."
-                    [ngClass]="{'is-invalid': !model.id_persona && submitted}">
-                <div class="list-group mt-1 lista-personas" *ngIf="filtroPersona && !model.id_persona">
-                    <button 
-                        type="button" 
-                        class="list-group-item list-group-item-action"
-                        *ngFor="let persona of personasFiltradas | slice:0:10"
-                        (click)="seleccionarPersona(persona)">
-                        {{ persona.nombre }} — {{ persona.numero_identificacion }}
-                    </button>
-                    <div class="list-group-item text-muted" *ngIf="personasFiltradas.length === 0">
-                        Sin resultados
+        <!-- Datos de la persona -->
+        <div class="seccion-form mb-4">
+            <h6 class="seccion-form-titulo"><i class="fas fa-user me-2"></i>Persona</h6>
+
+            <div class="row" *ngIf="accion === 'crear'">
+                <div class="col-12">
+                    <label class="form-label">Persona <span class="text-danger">*</span></label>
+
+                    <!-- Sin persona: caja de búsqueda -->
+                    <div class="buscador-persona" *ngIf="!model.id_persona"
+                         [class.buscador-invalido]="!model.id_persona && submitted"
+                         (click)="abrirModalPersona()">
+                        <i class="fas fa-search buscador-persona-icono"></i>
+                        <span class="buscador-persona-texto">Buscar persona por nombre o identificación</span>
+                        <span class="buscador-persona-accion">Buscar</span>
+                    </div>
+                    <div class="invalid-feedback d-block" *ngIf="!model.id_persona && submitted">
+                        Seleccione la persona
+                    </div>
+
+                    <!-- Con persona: tarjeta -->
+                    <div class="persona-elegida" *ngIf="model.id_persona">
+                        <div class="persona-avatar">{{ (model.nombre_persona || "?").charAt(0) }}</div>
+                        <div class="persona-datos">
+                            <div class="persona-linea">
+                                <span class="persona-nombre">{{ model.nombre_persona }}</span>
+                                <span class="persona-correo" *ngIf="correoDePersona">
+                                    <i class="fas fa-envelope me-1"></i>{{ model.correo_electronico }}
+                                </span>
+                            </div>
+                            <div class="persona-doc">{{ model.usuario }}</div>
+                            <div class="persona-vinculos">
+                                <span class="badge bg-secondary me-1" *ngIf="model.es_colaborador == 1">Colaborador</span>
+                                <span class="badge bg-secondary me-1" *ngIf="model.es_estudiante == 1">Estudiante</span>
+                                <span class="badge bg-secondary me-1" *ngIf="model.es_acudiente == 1">Acudiente</span>
+                                <span class="badge bg-light text-muted"
+                                      *ngIf="model.es_colaborador != 1 && model.es_estudiante != 1 && model.es_acudiente != 1">
+                                    Sin vínculo registrado
+                                </span>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-secondary persona-cambiar"
+                                (click)="abrirModalPersona()" [disabled]="!editable">
+                            <i class="fas fa-exchange-alt me-1"></i> Cambiar
+                        </button>
                     </div>
                 </div>
-                <small class="form-text text-muted" *ngIf="model.id_persona">
-                    Seleccionada: <b>{{ model.nombre_persona }}</b> — el usuario será su número de identificación: <b>{{ model.usuario }}</b>
-                </small>
+            </div>
+            <div class="row" *ngIf="accion !== 'crear'">
+                <div class="col-12">
+                    <div class="persona-elegida">
+                        <div class="persona-avatar">{{ (model.nombre_persona || "?").charAt(0) }}</div>
+                        <div class="persona-datos">
+                            <div class="persona-linea">
+                                <span class="persona-nombre">{{ model.nombre_persona }}</span>
+                                <span class="persona-correo" *ngIf="correoDePersona">
+                                    <i class="fas fa-envelope me-1"></i>{{ model.correo_electronico }}
+                                </span>
+                            </div>
+                            <div class="persona-doc">{{ model.numero_identificacion }}</div>
+                            <div class="persona-vinculos">
+                                <span class="badge bg-secondary me-1" *ngIf="model.es_colaborador == 1">Colaborador</span>
+                                <span class="badge bg-secondary me-1" *ngIf="model.es_estudiante == 1">Estudiante</span>
+                                <span class="badge bg-secondary me-1" *ngIf="model.es_acudiente == 1">Acudiente</span>
+                                <span class="badge bg-light text-muted"
+                                      *ngIf="model.es_colaborador != 1 && model.es_estudiante != 1 && model.es_acudiente != 1">
+                                    Sin vínculo registrado
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-3" *ngIf="model.id_persona && !correoDePersona">
+                <div class="col-12 col-lg-6">
+                    <label for="correo" class="form-label">Correo electrónico <span class="text-danger">*</span></label>
+                    <input
+                        class="form-control form-control-lg"
+                        type="email"
+                        id="correo"
+                        name="correo-usuario"
+                        autocomplete="off"
+                        [(ngModel)]="model.correo_electronico"
+                        placeholder="correo@ejemplo.com"
+                        [ngClass]="{'is-invalid': !model.correo_electronico && submitted}"
+                        [disabled]="!editable">
+                    <small class="form-text text-muted">Esta persona no tiene correo registrado; el que escriba aquí se guarda en sus datos</small>
+                </div>
             </div>
         </div>
 
-        <!-- Persona fija (editar / consultar) -->
-        <div class="row mb-4" *ngIf="accion !== 'crear'">
-            <div class="col-sm-6">
-                <label class="form-label">Persona</label>
-                <input class="form-control" type="text" [value]="model.nombre_persona" disabled>
-            </div>
-            <div class="col-sm-6">
-                <label class="form-label">Usuario</label>
-                <input class="form-control" type="text" [value]="model.usuario" disabled>
-            </div>
-        </div>
-
-        <div class="row mb-4">
-            <div class="col-sm-6">
-                <label for="correo" class="form-label">Correo electrónico <span class="text-danger">*</span></label>
-                <input 
-                    class="form-control" 
-                    type="email" 
-                    id="correo"
-                    [(ngModel)]="model.correo_electronico"
-                    placeholder="correo@ejemplo.com"
-                    [ngClass]="{'is-invalid': !model.correo_electronico && submitted}"
-                    [disabled]="!editable">
-            </div>
-            <div class="col-sm-6" *ngIf="accion === 'crear'">
-                <label for="clave" class="form-label">Clave <span class="text-danger">*</span></label>
-                <input 
-                    class="form-control" 
-                    type="password" 
-                    id="clave"
-                    [(ngModel)]="model.clave"
-                    placeholder="Clave inicial del usuario"
-                    [ngClass]="{'is-invalid': !model.clave && submitted}">
-                <small class="form-text text-muted">En editar, la clave se cambia con la acción Restablecer clave del listado</small>
+        <!-- Credenciales -->
+        <div class="seccion-form mb-4">
+            <h6 class="seccion-form-titulo"><i class="fas fa-key me-2"></i>Credenciales</h6>
+            <div class="row">
+                <div class="col-12 col-md-6">
+                    <label for="usuario" class="form-label">Usuario <span class="text-danger">*</span></label>
+                    <input
+                        class="form-control form-control-lg"
+                        type="text"
+                        id="usuario"
+                        name="usuario-nuevo"
+                        autocomplete="off"
+                        [(ngModel)]="model.usuario"
+                        placeholder="Número de identificación"
+                        [ngClass]="{'is-invalid': !model.usuario && submitted}"
+                        [disabled]="!editable">
+                    <small class="form-text text-muted">Por defecto es el número de identificación; se puede cambiar</small>
+                </div>
+                <div class="col-12 col-md-6 mt-3 mt-md-0" *ngIf="accion === 'editar'">
+                    <label class="form-label">Contraseña</label>
+                    <button type="button" class="btn btn-outline-warning btn-lg w-100" (click)="cambiarClave()">
+                        <i class="fas fa-key me-1"></i> Cambiar contraseña
+                    </button>
+                    <small class="form-text text-muted">Se pide la nueva contraseña en una ventana aparte</small>
+                </div>
+                <div class="col-12 col-md-6 mt-3 mt-md-0" *ngIf="accion === 'crear'">
+                    <label for="clave" class="form-label">Clave <span class="text-danger">*</span></label>
+                    <input
+                        class="form-control form-control-lg"
+                        type="password"
+                        id="clave"
+                        name="clave-nueva"
+                        autocomplete="new-password"
+                        [(ngModel)]="model.clave"
+                        [ngClass]="{'is-invalid': !model.clave && submitted}">
+                    <small class="form-text text-muted">En editar, la clave se cambia con la acción Restablecer clave del listado</small>
+                </div>
             </div>
         </div>
 
         <!-- Accesos -->
-        <div class="row mb-4">
-            <div class="col-sm-3 form-check form-switch ms-3">
+        <div class="seccion-form mb-4">
+            <h6 class="seccion-form-titulo"><i class="fas fa-toggle-on me-2"></i>Accesos</h6>
+        <div class="row">
+            <div class="col-6 col-sm-3 form-check form-switch switch-item">
                 <input class="form-check-input" type="checkbox" id="activo" [(ngModel)]="model.activo" [disabled]="!editable">
                 <label class="form-check-label" for="activo">Activo</label>
             </div>
-            <div class="col-sm-3 form-check form-switch">
-                <input class="form-check-input" type="checkbox" id="accInst" [(ngModel)]="model.acceso_institucional" [disabled]="!editable">
-                <label class="form-check-label" for="accInst">Acceso institucional</label>
+            <div class="col-6 col-sm-3 form-check form-switch switch-item">
+                <input class="form-check-input" type="checkbox" id="accInst" [(ngModel)]="model.acceso_institucional" (ngModelChange)="onCambioAccesoInstitucional()" [disabled]="!editable">
+                <label class="form-check-label" for="accInst">Portal Institucional</label>
             </div>
-            <div class="col-sm-3 form-check form-switch">
-                <input class="form-check-input" type="checkbox" id="accPortal" [(ngModel)]="model.acceso_portal_padres" [disabled]="!editable">
-                <label class="form-check-label" for="accPortal">Portal de padres</label>
+            <div class="col-6 col-sm-3 form-check form-switch switch-item">
+                <input class="form-check-input" type="checkbox" id="accPortal" [(ngModel)]="model.acceso_portal_padres" (ngModelChange)="onCambioAccesoPadres()" [disabled]="!editable">
+                <label class="form-check-label" for="accPortal">Portal de Padres</label>
             </div>
-            <div class="col-sm-2 form-check form-switch">
+            <div class="col-6 col-sm-2 form-check form-switch switch-item">
                 <input class="form-check-input" type="checkbox" id="accWa" [(ngModel)]="model.acceso_chat_wa" [disabled]="!editable">
                 <label class="form-check-label" for="accWa">Chat WhatsApp</label>
             </div>
+        </div>
         </div>
 
         <!-- Super administrador: solo visible y editable para super admins -->
@@ -105,23 +174,54 @@
             </div>
         </div>
 
-        <!-- Roles -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <label class="form-label">Roles del usuario</label>
+        <!-- Roles del Portal Institucional -->
+        <div class="row mb-4" *ngIf="model.acceso_institucional">
+            <div class="col-12 seccion-roles">
+                <h6 class="seccion-roles-titulo"><i class="fas fa-school me-2"></i>Roles del Portal Institucional</h6>
                 <div class="row">
-                    <div class="col-sm-4" *ngFor="let rol of roles">
+                    <div class="col-sm-4" *ngFor="let rol of rolesInstitucional">
                         <div class="form-check">
                             <input 
                                 class="form-check-input" 
                                 type="checkbox" 
-                                [id]="'rol-' + rol.id"
+                                [id]="'rol-inst-' + rol.id"
                                 [(ngModel)]="rol.seleccionado"
                                 [disabled]="!editable">
-                            <label class="form-check-label" [for]="'rol-' + rol.id">{{ rol.nombre }}</label>
+                            <label class="form-check-label" [for]="'rol-inst-' + rol.id">{{ rol.nombre }}</label>
                         </div>
                     </div>
+                    <div class="col-12 text-muted" *ngIf="rolesInstitucional.length === 0">
+                        No hay roles creados para este portal
+                    </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Roles del Portal de Padres -->
+        <div class="row mb-4" *ngIf="model.acceso_portal_padres">
+            <div class="col-12 seccion-roles seccion-roles-padres">
+                <h6 class="seccion-roles-titulo"><i class="fas fa-users me-2"></i>Roles del Portal de Padres</h6>
+                <div class="row">
+                    <div class="col-sm-4" *ngFor="let rol of rolesPadres">
+                        <div class="form-check">
+                            <input 
+                                class="form-check-input" 
+                                type="checkbox" 
+                                [id]="'rol-padres-' + rol.id"
+                                [(ngModel)]="rol.seleccionado"
+                                [disabled]="!editable">
+                            <label class="form-check-label" [for]="'rol-padres-' + rol.id">{{ rol.nombre }}</label>
+                        </div>
+                    </div>
+                    <div class="col-12 text-muted" *ngIf="rolesPadres.length === 0">
+                        No hay roles creados para este portal
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-12">
                 <small class="form-text text-muted">Los permisos que recibe el usuario dependen de sus roles (Permisos por Rol)</small>
             </div>
         </div>
@@ -138,6 +238,50 @@
                 <button class="btn btn-lg btn-secondary w-100" (click)="volver()">
                     Volver
                 </button>
+            </div>
+        </div>
+    </div>
+    <!-- Modal de búsqueda de persona -->
+    <div class="modal-persona-fondo" *ngIf="modalPersonaAbierto" (click)="cerrarModalPersona()"></div>
+    <div class="modal-persona" *ngIf="modalPersonaAbierto">
+        <div class="modal-persona-header">
+            <h6 class="mb-0">Buscar persona</h6>
+            <button type="button" class="btn-close" (click)="cerrarModalPersona()"></button>
+        </div>
+        <div class="modal-persona-body">
+            <input class="form-control mb-3" type="text" autocomplete="off"
+                   [(ngModel)]="filtroPersona" (ngModelChange)="filtrarPersonas()"
+                   placeholder="Busque por nombre o número de identificación...">
+
+            <div class="filtros-tipo mb-3">
+                <button type="button" class="chip-filtro" [class.activo]="filtroTipo === 'todos'" (click)="cambiarFiltroTipo('todos')">Todos</button>
+                <button type="button" class="chip-filtro" [class.activo]="filtroTipo === 'colaborador'" (click)="cambiarFiltroTipo('colaborador')">Colaboradores</button>
+                <button type="button" class="chip-filtro" [class.activo]="filtroTipo === 'estudiante'" (click)="cambiarFiltroTipo('estudiante')">Estudiantes</button>
+                <button type="button" class="chip-filtro" [class.activo]="filtroTipo === 'acudiente'" (click)="cambiarFiltroTipo('acudiente')">Acudientes</button>
+            </div>
+            <div class="list-group">
+                <button type="button" class="list-group-item list-group-item-action fila-persona"
+                        *ngFor="let persona of personasFiltradas | slice:0:30"
+                        [class.persona-con-usuario]="persona.tiene_usuario == 1"
+                        (click)="seleccionarPersona(persona)">
+                    <span class="fila-avatar">{{ (persona.nombre || "?").charAt(0) }}</span>
+                    <span class="fila-datos">
+                        <span class="fila-nombre">
+                            {{ persona.nombre || "(Sin nombre)" }}
+                            <i class="fas fa-building ms-1 text-muted" *ngIf="persona.es_empresa" title="Empresa"></i>
+                        </span>
+                        <span class="fila-doc">{{ persona.numero_identificacion }}</span>
+                        <span class="fila-vinculos">
+                            <span class="mini-badge" *ngIf="persona.es_colaborador == 1">Colaborador</span>
+                            <span class="mini-badge" *ngIf="persona.es_estudiante == 1">Estudiante</span>
+                            <span class="mini-badge" *ngIf="persona.es_acudiente == 1">Acudiente</span>
+                        </span>
+                    </span>
+                    <span class="badge bg-warning text-dark" *ngIf="persona.tiene_usuario == 1">Ya tiene usuario</span>
+                </button>
+                <div class="list-group-item text-muted" *ngIf="personasFiltradas.length === 0">
+                    Sin resultados
+                </div>
             </div>
         </div>
     </div>

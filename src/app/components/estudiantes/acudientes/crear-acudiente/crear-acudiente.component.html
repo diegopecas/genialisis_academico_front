@@ -378,6 +378,7 @@
               [(ngModel)]="model.activo"
               [disabled]="!editable"
             />
+            <small class="text-muted d-block mt-1">Es el correo registrado en los datos de la persona</small>
             <label class="form-check-label" for="activo">
               <strong>Acudiente Activo</strong>
             </label>
@@ -417,15 +418,15 @@
             <input
               class="form-check-input"
               type="checkbox"
-              id="autorizadoSistema"
-              [(ngModel)]="model.autorizadoSistema"
+              id="veEnPortalPadres"
+              [(ngModel)]="model.veEnPortalPadres"
               [disabled]="!editable"
             />
-            <label class="form-check-label" for="autorizadoSistema">
-              Autorizado para acceder al sistema
+            <label class="form-check-label" for="veEnPortalPadres">
+              Ve a este estudiante en el Portal de Padres
             </label>
             <small class="d-block mt-1 text-muted"
-              >Permite el acceso al sistema institucional</small
+              >Permite que este acudiente vea a este estudiante cuando entra al Portal de Padres. El acceso al portal se activa en la pestaña Usuario</small
             >
           </div>
         </div>
@@ -497,7 +498,7 @@
         <div>
           <i class="fas fa-info-circle me-2"></i>
           <strong>Usuario no creado.</strong> Este acudiente aún no tiene
-          credenciales de acceso al sistema.
+          credenciales de acceso al Portal de Padres.
         </div>
         <button class="btn-save" (click)="crearUsuario()">
           <i class="fas fa-plus-circle"></i> Crear Usuario
@@ -508,14 +509,15 @@
       <div *ngIf="tieneUsuario()">
         <div class="row">
           <div class="col-sm-12 col-md-6">
-            <label class="form-label">Usuario (Número de Identificación)</label>
+            <label class="form-label">Usuario <span class="text-danger">*</span></label>
             <input
               class="form-control form-control-lg"
               type="text"
-              [value]="model.numeroIdentificacion"
-              readonly
-              disabled
+              autocomplete="off"
+              [(ngModel)]="modelUsuario.usuario"
+              [disabled]="!editable"
             />
+            <small class="text-muted d-block mt-1">Por defecto es el número de identificación; se puede cambiar</small>
           </div>
           <div class="col-sm-12 col-md-6">
             <label class="form-label"
@@ -524,6 +526,7 @@
             <input
               class="form-control form-control-lg"
               type="email"
+              readonly
               [(ngModel)]="modelUsuario.correo_electronico"
               [ngClass]="{
                 'is-invalid':
@@ -573,6 +576,20 @@
             <small class="text-muted d-block mt-1">
               Permite al acudiente ingresar al Portal de Padres
             </small>
+          </div>
+        </div>
+
+        <!-- Roles del Portal de Padres -->
+        <div class="seccion-roles seccion-roles-padres mt-4" *ngIf="modelUsuario.id && modelUsuario.acceso_portal_padres">
+          <h6 class="seccion-roles-titulo"><i class="fas fa-users me-2"></i>Roles del Portal de Padres</h6>
+          <div class="row">
+            <div class="col-sm-6 col-md-4" *ngFor="let rol of rolesPadres">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" [id]="'rol-padres-' + rol.id" [(ngModel)]="rol.seleccionado" [disabled]="!editable" />
+                <label class="form-check-label" [for]="'rol-padres-' + rol.id">{{ rol.nombre }}</label>
+              </div>
+            </div>
+            <div class="col-12 text-muted" *ngIf="rolesPadres.length === 0">No hay roles creados para este portal</div>
           </div>
         </div>
 
@@ -646,7 +663,7 @@
       <!-- Mensaje si está en modo solo lectura y no tiene usuario -->
       <div *ngIf="!tieneUsuario() && !editable" class="alert alert-secondary">
         <i class="fas fa-info-circle me-2"></i>
-        Este acudiente no tiene credenciales de acceso al sistema.
+        Este acudiente no tiene credenciales de acceso al Portal de Padres.
       </div>
     </div>
 

@@ -201,8 +201,8 @@
                 <span *ngIf="acudiente.autorizado_recoger == 1" class="badge bg-info">
                   <i class="fas fa-child"></i> Recoger
                 </span>
-                <span *ngIf="acudiente.autorizado_sistema == 1" class="badge bg-primary">
-                  <i class="fas fa-key"></i> Sistema
+                <span *ngIf="acudiente.ve_en_portal_padres == 1" class="badge bg-primary">
+                  <i class="fas fa-key"></i> Portal de Padres
                 </span>
               </div>
 
@@ -242,7 +242,7 @@
                     <span class="info-value">
                       <span class="text-muted">Responsable de pago:</span> {{ acudiente.es_responsable_pago == 1 ? 'Sí' : 'No' }}<br>
                       <span class="text-muted">Autorizado para recoger:</span> {{ acudiente.autorizado_recoger == 1 ? 'Sí' : 'No' }}<br>
-                      <span class="text-muted">Acceso al sistema:</span> {{ acudiente.autorizado_sistema == 1 ? 'Sí' : 'No' }}
+                      <span class="text-muted">Ve al estudiante en el Portal de Padres:</span> {{ acudiente.ve_en_portal_padres == 1 ? 'Sí' : 'No' }}
                     </span>
                   </div>
                 </div>
@@ -415,7 +415,7 @@
                 <div class="acudiente-badges">
                   <span *ngIf="acudiente.es_responsable_pago == 1" class="badge bg-success me-1">Responsable pago</span>
                   <span *ngIf="acudiente.autorizado_recoger == 1" class="badge bg-info me-1">Autorizado recoger</span>
-                  <span *ngIf="acudiente.autorizado_sistema == 1" class="badge bg-primary me-1">Acceso sistema</span>
+                  <span *ngIf="acudiente.ve_en_portal_padres == 1" class="badge bg-primary me-1">Portal de Padres</span>
                 </div>
               </div>
               <div class="acudiente-body show">
@@ -455,7 +455,7 @@
                           <span class="small">
                             Responsable de pago: <strong>{{ acudiente.es_responsable_pago == 1 ? 'Sí' : 'No' }}</strong> | 
                             Autorizado para recoger: <strong>{{ acudiente.autorizado_recoger == 1 ? 'Sí' : 'No' }}</strong> | 
-                            Acceso al sistema: <strong>{{ acudiente.autorizado_sistema == 1 ? 'Sí' : 'No' }}</strong>
+                            Ve al estudiante en el Portal de Padres: <strong>{{ acudiente.ve_en_portal_padres == 1 ? 'Sí' : 'No' }}</strong>
                           </span>
                         </p>
                       </div>

@@ -13,6 +13,9 @@ import { TiposIdentificacionService } from '../../../../services/tipos-identific
 import { CiudadesService } from '../../../../services/ciudades.service';
 import { UtilService } from '../../../../common/constantes/util.service';
 import { UsuariosService } from '../../../../services/usuarios.service';
+import { RolesService } from '../../../../services/roles.service';
+import { RolesXUsuarioService } from '../../../../services/roles-x-usuario.service';
+import { ConfiguracionGlobalService } from '../../../../services/configuracion-global.service';
 import { DocumentosPersonaComponent } from '../../../../common/documentos-persona/documentos-persona.component';
 import { FotoPersonaComponent } from '../../../../common/foto-persona/foto-persona.component';
 
@@ -39,7 +42,7 @@ interface AcudienteModel {
   telefonoOficina: string;
   responsablePago: boolean;
   autorizadoRecoger: boolean;
-  autorizadoSistema: boolean;
+  veEnPortalPadres: boolean;
   activo: boolean;
   idAcudiente: string;
 }
@@ -130,7 +133,7 @@ export class CrearAcudienteComponent implements OnInit {
     telefonoOficina: "",
     responsablePago: false,
     autorizadoRecoger: false,
-    autorizadoSistema: false,
+    veEnPortalPadres: false,
     activo: true,
     idAcudiente: ''
   };
@@ -145,10 +148,14 @@ export class CrearAcudienteComponent implements OnInit {
     private estudiantesService: EstudiantesService,
     private acudientesService: AcudientesService,
     private ciudadesService: CiudadesService,
-    private usuariosService: UsuariosService
+    private usuariosService: UsuariosService,
+    private rolesService: RolesService,
+    private rolesXUsuarioService: RolesXUsuarioService,
+    private configuracionGlobalService: ConfiguracionGlobalService
   ) { }
 
   ngOnInit(): void {
+    this.cargarRolesPortalPadres();
     this.route.params.subscribe(params => {
       this.accion = params['accion'];
       this.id = params['id'];
@@ -326,7 +333,7 @@ export class CrearAcudienteComponent implements OnInit {
                 this.model.telefonoOficina = acudiente.telefono_oficina || '';
                 this.model.responsablePago = acudiente.es_responsable_pago === 1;
                 this.model.autorizadoRecoger = acudiente.autorizado_recoger === 1;
-                this.model.autorizadoSistema = acudiente.autorizado_sistema === 1;
+                this.model.veEnPortalPadres = acudiente.ve_en_portal_padres === 1;
                 this.model.activo = acudiente.activo === 1;
                 this.cargarUsuario();
               },
@@ -488,7 +495,7 @@ export class CrearAcudienteComponent implements OnInit {
       telefono_oficina: acudiente.telefonoOficina || null,
       es_responsable_pago: acudiente.responsablePago ? 1 : 0,
       autorizado_recoger: acudiente.autorizadoRecoger ? 1 : 0,
-      autorizado_sistema: acudiente.autorizadoSistema ? 1 : 0,
+      ve_en_portal_padres: acudiente.veEnPortalPadres ? 1 : 0,
       activo: acudiente.activo ? 1 : 0
     };
 
@@ -655,7 +662,7 @@ export class CrearAcudienteComponent implements OnInit {
       telefonoOficina: "",
       responsablePago: false,
       autorizadoRecoger: false,
-      autorizadoSistema: false,
+      veEnPortalPadres: false,
       activo: true,
       idAcudiente: ''
     };
@@ -692,6 +699,10 @@ export class CrearAcudienteComponent implements OnInit {
   establecerValoresPorDefecto(): void {
     this.model.nacionalidad = 'Colombiana';
     this.model.activo = true;
+    // El acudiente nuevo arranca autorizado para recoger y viendo al
+    // estudiante en el Portal de Padres; se puede desmarcar en la pestaña.
+    this.model.autorizadoRecoger = true;
+    this.model.veEnPortalPadres = true;
   }
 
   guardarDatosPersonales() {
@@ -780,7 +791,7 @@ export class CrearAcudienteComponent implements OnInit {
       telefono_oficina: this.model.telefonoOficina || null,
       es_responsable_pago: this.model.responsablePago ? 1 : 0,
       autorizado_recoger: this.model.autorizadoRecoger ? 1 : 0,
-      autorizado_sistema: this.model.autorizadoSistema ? 1 : 0,
+      ve_en_portal_padres: this.model.veEnPortalPadres ? 1 : 0,
       activo: this.model.activo ? 1 : 0,
       id_estudiante: this.idEstudiante,
     };
@@ -856,6 +867,8 @@ export class CrearAcudienteComponent implements OnInit {
             acceso_institucional: usuario.acceso_institucional,
             acceso_portal_padres: usuario.acceso_portal_padres,
           };
+
+          this.cargarRolesDelUsuario(usuario.id);
         } else {
           this.resetearModeloUsuario();
         }
@@ -880,28 +893,102 @@ export class CrearAcudienteComponent implements OnInit {
     };
   }
 
+  // Roles del Portal de Padres para escoger al crear el usuario del acudiente
+  public rolesPadres: any[] = [];
+  public idRolDefaultAcudiente: string | null = null;
+
+  /**
+   * Carga los roles del Portal de Padres y cuál es el que el tenant asigna
+   * por defecto, para dejarlo marcado en el diálogo de crear usuario.
+   */
+  /**
+   * Marca los roles que el usuario ya tiene.
+   */
+  cargarRolesDelUsuario(idUsuario: string) {
+    this.rolesXUsuarioService.obtenerRolesPorUsuario(idUsuario).subscribe({
+      next: (response: any) => {
+        const asignados = (response.body as any[]).map(r => r.id);
+        this.rolesPadres.forEach(r => r.seleccionado = asignados.includes(r.id));
+      }
+    });
+  }
+
+  /**
+   * Guarda los roles marcados del Portal de Padres.
+   */
+  sincronizarRolesUsuario() {
+    const roles = this.rolesPadres.filter(r => r.seleccionado).map(r => r.id);
+    this.rolesXUsuarioService.sincronizarUsuario({ id_usuario: this.modelUsuario.id, roles: roles }).subscribe({
+      next: () => {
+        Swal.fire('¡Éxito!', 'Usuario actualizado. Los cambios de roles aplican cuando vuelva a iniciar sesión.', 'success');
+        this.submittedUsuario = false;
+      },
+      error: () => Swal.fire('Atención', 'Se guardó el usuario pero falló la asignación de roles.', 'warning')
+    });
+  }
+
+  cargarRolesPortalPadres() {
+    this.rolesService.obtenerTodos().subscribe({
+      next: (response: any) => {
+        const body = response.body as any[];
+        this.rolesPadres = body.filter(r => r.portal === 'padres' || r.portal === 'ambos').map(r => ({ ...r, seleccionado: false }));
+        if (this.modelUsuario && this.modelUsuario.id) {
+          this.cargarRolesDelUsuario(this.modelUsuario.id);
+        }
+      },
+      error: () => {
+        this.rolesPadres = [];
+      }
+    });
+
+    this.configuracionGlobalService.obtenerByClave('rol_default_acudiente').subscribe({
+      next: (response: any) => {
+        const body = response.body as any;
+        this.idRolDefaultAcudiente = Array.isArray(body) ? (body[0]?.valor_texto ?? null) : (body?.valor_texto ?? null);
+      },
+      error: () => {
+        this.idRolDefaultAcudiente = null;
+      }
+    });
+  }
+
   crearUsuario() {
     const correoPersona = this.model.correoElectronico || '';
     const numeroIdentificacion = this.model.numeroIdentificacion || '';
+
+    // Checkboxes de roles, con el rol por defecto ya marcado
+    const rolesHtml = this.rolesPadres.length > 0
+      ? this.rolesPadres.map(r => `
+          <div class="form-check text-start">
+            <input class="form-check-input swal-rol" type="checkbox" id="swal-rol-${r.id}" value="${r.id}"
+              ${r.id === this.idRolDefaultAcudiente ? 'checked' : ''}>
+            <label class="form-check-label" for="swal-rol-${r.id}">${r.nombre}</label>
+          </div>`).join('')
+      : '<div class="text-muted">No hay roles creados para el Portal de Padres</div>';
     
     Swal.fire({
       title: 'Crear Usuario',
+      iconHtml: '<i class="fas fa-user-plus" style="color:#f9a825;"></i>',
       html: `
         <div class="text-start">
           <div class="mb-3">
             <label class="form-label">Usuario</label>
-            <input id="swal-usuario" type="text" class="form-control" value="${numeroIdentificacion}" disabled 
-              style="background-color: #e9ecef;">
-            <small class="text-muted">El usuario es el número de identificación</small>
+            <input id="swal-usuario" type="text" class="form-control" value="${numeroIdentificacion}" autocomplete="off">
+            <small class="text-muted">Por defecto es el número de identificación; se puede cambiar</small>
           </div>
           <div class="mb-3">
             <label class="form-label">Correo Electrónico <span class="text-danger">*</span></label>
-            <input id="swal-email" type="email" class="form-control" placeholder="usuario@correo.com" value="${correoPersona}">
-            <small class="text-muted">Se usa para recuperar contraseña</small>
+            <input id="swal-email" type="email" class="form-control" placeholder="usuario@correo.com" value="${correoPersona}" ${correoPersona ? 'readonly style="background-color:#e9ecef;"' : ''}>
+            <small class="text-muted">${correoPersona ? 'Es el correo registrado en los datos de la persona' : 'La persona no tiene correo; el que escriba aquí se guarda en sus datos'}</small>
           </div>
           <div class="mb-3">
             <label class="form-label">Contraseña <span class="text-danger">*</span></label>
             <input id="swal-password" type="password" class="form-control" placeholder="Mínimo 6 caracteres">
+          </div>
+          <div class="mb-2">
+            <label class="form-label">Roles del Portal de Padres</label>
+            ${rolesHtml}
+            <small class="text-muted">Los permisos que recibe dependen de sus roles</small>
           </div>
         </div>
       `,
@@ -909,6 +996,7 @@ export class CrearAcudienteComponent implements OnInit {
       confirmButtonText: 'Crear',
       cancelButtonText: 'Cancelar',
       customClass: {
+        icon: 'swal-icono-limpio',
         confirmButton: 'btn btn-lg px-4',
         cancelButton: 'btn btn-outline-secondary btn-lg px-4',
       },
@@ -924,8 +1012,14 @@ export class CrearAcudienteComponent implements OnInit {
         }
       },
       preConfirm: () => {
+        const usuario = (document.getElementById('swal-usuario') as HTMLInputElement).value;
         const email = (document.getElementById('swal-email') as HTMLInputElement).value;
         const password = (document.getElementById('swal-password') as HTMLInputElement).value;
+
+        if (!usuario) {
+          Swal.showValidationMessage('El usuario es requerido');
+          return false;
+        }
 
         if (!email) {
           Swal.showValidationMessage('El correo electrónico es requerido');
@@ -948,23 +1042,38 @@ export class CrearAcudienteComponent implements OnInit {
           return false;
         }
 
+        const roles = Array.from(document.querySelectorAll('.swal-rol'))
+          .filter((el: any) => el.checked)
+          .map((el: any) => el.value);
+
         return {
+          usuario: usuario.trim(),
           correo_electronico: email,
           clave: password,
           acceso_institucional: 0,
           acceso_portal_padres: 1,
+          roles: roles,
         };
       },
     }).then((result) => {
       if (result.isConfirmed && result.value) {
         const nuevoUsuario = {
           id_persona: this.model.idPersona,
+          usuario: result.value.usuario,
           correo_electronico: result.value.correo_electronico,
           clave: result.value.clave,
           activo: 1,
           acceso_institucional: result.value.acceso_institucional,
           acceso_portal_padres: result.value.acceso_portal_padres,
+          roles: result.value.roles,
         };
+
+        // Si la persona no tenía correo, el que se digitó queda también en sus datos
+        if (!correoPersona && result.value.correo_electronico) {
+          this.personasService.actualizarCorreo(this.model.idPersona, result.value.correo_electronico).subscribe({
+            error: () => console.warn('No se pudo actualizar el correo de la persona')
+          });
+        }
 
         this.usuariosService.crear(nuevoUsuario).subscribe({
           next: (response: any) => {
@@ -1012,6 +1121,7 @@ export class CrearAcudienteComponent implements OnInit {
 
     const datosActualizar = {
       id: this.modelUsuario.id,
+      usuario: (this.modelUsuario.usuario || '').trim(),
       correo_electronico: this.modelUsuario.correo_electronico,
       activo: this.modelUsuario.activo ? 1 : 0,
       acceso_institucional: this.modelUsuario.acceso_institucional ? 1 : 0,
@@ -1020,7 +1130,7 @@ export class CrearAcudienteComponent implements OnInit {
 
     this.usuariosService.actualizar(datosActualizar).subscribe({
       next: (response: any) => {
-        Swal.fire('¡Éxito!', 'Usuario actualizado correctamente', 'success');
+        this.sincronizarRolesUsuario();
         this.submittedUsuario = false;
       },
       error: (error: any) => {
