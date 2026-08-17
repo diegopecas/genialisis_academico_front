@@ -1,0 +1,32 @@
+.tarjeta {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.tarjeta-titulo {
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.tarjeta-metrica {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  text-align: center;
+}
+
+.metrica-valor {
+  display: block;
+  font-size: 2rem;
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+.metrica-label {
+  display: block;
+  color: #6c757d;
+  font-size: 0.875rem;
+}

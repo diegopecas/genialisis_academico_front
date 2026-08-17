@@ -1,0 +1,179 @@
+<div class="modulo">
+    <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [raiz]="'/'" [regresar]="'/operaciones'"></app-header>
+
+    <div class="container-fluid mt-4">
+
+        <div class="alert alert-danger" *ngIf="mensajeError">{{ mensajeError }}</div>
+        <div class="alert alert-success" *ngIf="mensajeExito">{{ mensajeExito }}</div>
+
+        <div class="row">
+
+            <div class="col-lg-6 mb-4">
+                <div class="tarjeta">
+                    <h5 class="tarjeta-titulo">Mensaje</h5>
+
+                    <div class="mb-3">
+                        <label class="form-label">Título</label>
+                        <input type="text" class="form-control" maxlength="255" [(ngModel)]="form.titulo"
+                            placeholder="Ej: Salida pedagógica del viernes" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Mensaje</label>
+                        <textarea class="form-control" rows="6" [(ngModel)]="form.cuerpo"
+                            placeholder="Escriba aquí el contenido de la notificación"></textarea>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Categoría</label>
+                            <select class="form-select" [(ngModel)]="form.id_categoria">
+                                <option value="">Seleccione...</option>
+                                <option *ngFor="let categoria of categorias" [value]="categoria.id">{{ categoria.nombre }}</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Pedir respuesta</label>
+                            <select class="form-select" [(ngModel)]="form.id_respuesta_tipo">
+                                <option value="">Sin respuesta (solo informativa)</option>
+                                <option *ngFor="let tipo of tiposRespuesta" [value]="tipo.id">{{ tipo.nombre }}</option>
+                            </select>
+                            <small class="text-muted" *ngIf="opcionesDelTipoSeleccionado.length > 0">
+                                Botones: <span *ngFor="let opcion of opcionesDelTipoSeleccionado; let ultimo = last">{{ opcion.etiqueta }}<span *ngIf="!ultimo">, </span></span>
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">A quién va dirigida</label>
+                        <input type="text" class="form-control" maxlength="500" [(ngModel)]="form.criterio_texto"
+                            placeholder="Ej: Grupo Párvulos, Extracurricular natación" />
+                        <small class="text-muted">Texto descriptivo que verá el acudiente y queda en el historial.</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Adjunto</label>
+                        <input type="file" class="form-control" (change)="seleccionarArchivo($event)"
+                            accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" />
+                        <div class="mt-2" *ngIf="archivoSeleccionado">
+                            <span class="badge bg-secondary">{{ archivoSeleccionado.name }}</span>
+                            <button type="button" class="btn btn-sm btn-link text-danger" (click)="quitarArchivo()">Quitar</button>
+                        </div>
+                    </div>
+
+                    <hr />
+
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="chkWhatsapp" [(ngModel)]="form.incluir_whatsapp" />
+                        <label class="form-check-label" for="chkWhatsapp">Incluir botón para responder por WhatsApp</label>
+                    </div>
+
+                    <div class="mb-3" *ngIf="form.incluir_whatsapp">
+                        <label class="form-label">Número de WhatsApp</label>
+                        <input type="text" class="form-control" maxlength="30" [(ngModel)]="form.whatsapp_numero"
+                            placeholder="573001112233" />
+                        <small class="text-muted">Formato internacional sin signos. Se precarga el número del jardín y es editable.</small>
+                    </div>
+
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="chkCorreo" [(ngModel)]="form.enviar_correo" disabled />
+                        <label class="form-check-label text-muted" for="chkCorreo">
+                            Enviar también por correo electrónico (no disponible todavía)
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6 mb-4">
+                <div class="tarjeta">
+                    <h5 class="tarjeta-titulo">Destinatarios</h5>
+
+                    <div class="mb-3">
+                        <label class="form-label">Alcance</label>
+                        <select class="form-select" [(ngModel)]="alcance" (ngModelChange)="cambiarAlcance()">
+                            <option value="">Seleccione...</option>
+                            <option [value]="ALCANCE_TODOS">Todos los estudiantes activos</option>
+                            <option *ngFor="let grupo of grupos" [value]="grupo.id">{{ grupo.nombre }}</option>
+                        </select>
+                    </div>
+
+                    <p class="text-muted" *ngIf="cargandoAcudientes">Cargando acudientes...</p>
+
+                    <div *ngIf="arbol.length > 0">
+
+                        <div class="mb-3">
+                            <label class="form-label d-block">Notificar a estos roles</label>
+                            <div class="form-check form-check-inline" *ngFor="let rol of roles">
+                                <input class="form-check-input" type="checkbox" [id]="'rol-' + rol.id"
+                                    [(ngModel)]="rol.marcado" (ngModelChange)="alternarRol(rol)" />
+                                <label class="form-check-label" [for]="'rol-' + rol.id">
+                                    <span *ngIf="rol.icono">{{ rol.icono }} </span>{{ rol.nombre }}
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="mb-2 d-flex gap-2">
+                            <input type="text" class="form-control form-control-sm" [(ngModel)]="filtroTexto"
+                                placeholder="Buscar estudiante o acudiente..." />
+                            <button type="button" class="btn btn-sm btn-outline-secondary text-nowrap" (click)="marcarTodos(true)">Todos</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary text-nowrap" (click)="marcarTodos(false)">Ninguno</button>
+                        </div>
+
+                        <p class="text-muted small" *ngIf="arbolFiltrado.length === 0">
+                            Ningún estudiante tiene acudientes de los roles seleccionados.
+                        </p>
+
+                        <div class="arbol" *ngIf="arbolFiltrado.length > 0">
+                            <div class="arbol-estudiante" *ngFor="let estudiante of arbolFiltrado">
+                                <div class="estudiante-cabecera">
+                                    <input class="form-check-input me-2" type="checkbox"
+                                        [checked]="estudianteCompleto(estudiante)"
+                                        (change)="alternarEstudiante(estudiante, $any($event.target).checked)" />
+                                    <span class="estudiante-nombre">{{ estudiante.nombre }}</span>
+                                    <span class="estudiante-grupo" *ngIf="estudiante.grupo">{{ estudiante.grupo }}</span>
+                                </div>
+
+                                <div class="acudiente" *ngFor="let acudiente of acudientesVisibles(estudiante)">
+                                    <input class="form-check-input me-2" type="checkbox"
+                                        [id]="'ac-' + estudiante.id + '-' + acudiente.id_persona"
+                                        [(ngModel)]="acudiente.seleccionado" />
+                                    <label class="form-check-label" [for]="'ac-' + estudiante.id + '-' + acudiente.id_persona">
+                                        <span class="acudiente-rol">
+                                            <span *ngIf="acudiente.tipo_icono">{{ acudiente.tipo_icono }} </span>{{ acudiente.tipo_nombre }}
+                                        </span>
+                                        {{ acudiente.nombre }}
+                                    </label>
+                                    <span class="badge bg-warning text-dark ms-2" *ngIf="!acudiente.tieneUsuario"
+                                        title="No tiene usuario del portal de padres: verá el mensaje cuando se le cree">sin usuario</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr />
+
+                        <p class="mb-1">
+                            Acudientes seleccionados: <strong>{{ seleccionados.length }}</strong> de {{ totalAcudientes }}
+                        </p>
+                        <p class="mb-1">
+                            Estudiantes cubiertos: <strong>{{ estudiantesAlcanzados }}</strong> de {{ totalEstudiantesVisibles }}
+                        </p>
+                        <p class="text-muted small mb-3" *ngIf="sinUsuario > 0">
+                            {{ sinUsuario }} de los seleccionados aún no tienen usuario del portal: quedarán registrados y verán el mensaje cuando se les cree.
+                        </p>
+
+                        <button type="button" class="btn btn-primary" (click)="enviar()" [disabled]="enviando">
+                            <span *ngIf="!enviando">Enviar notificación</span>
+                            <span *ngIf="enviando">Enviando...</span>
+                        </button>
+                    </div>
+
+                    <p class="text-muted" *ngIf="arbol.length === 0 && alcance && !cargando && !cargandoAcudientes">
+                        No se encontraron acudientes habilitados en el portal de padres para ese alcance.
+                    </p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>

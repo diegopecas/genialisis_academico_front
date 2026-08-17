@@ -214,6 +214,38 @@
                 </div>
             </div>
 
+            <!-- Notificaciones -->
+            <div class="col-lg-3 col-md-6 mb-4" *ngIf="tieneAlguno(['operaciones.notificaciones_envio', 'operaciones.notificaciones_monitoreo'])">
+                <div class="card-maestro menu-principal" [class.active]="menuActivo === 'notificaciones'" (click)="toggleMenu('notificaciones', $event)">
+                    <div class="card-maestro-content">
+                        <div class="icono-container notificaciones">
+                            <img src="assets/images/notificaciones.png" alt="Notificaciones" />
+                        </div>
+                        <h3 class="card-titulo">Notificaciones</h3>
+                        <p class="card-descripcion">Avisos al portal de padres y seguimiento</p>
+                        <div class="card-footer-custom">
+                            <span class="link-accion">Ver opciones <i class="fas fa-chevron-down"></i></span>
+                        </div>
+                    </div>
+                    <div class="submenu-container">
+                        <div class="row g-2">
+                            <div class="col-6" *ngIf="permisosService.tienePermiso('operaciones.notificaciones_envio')">
+                                <div class="submenu-item" (click)="seleccionarOpcion('notificaciones-envio')">
+                                    <img src="assets/images/notificacion-envio.png" alt="Envío de Notificaciones" />
+                                    <span>Envío</span>
+                                </div>
+                            </div>
+                            <div class="col-6" *ngIf="permisosService.tienePermiso('operaciones.notificaciones_monitoreo')">
+                                <div class="submenu-item" (click)="seleccionarOpcion('notificaciones-monitoreo')">
+                                    <img src="assets/images/notificacion-monitoreo.png" alt="Monitoreo de Notificaciones" />
+                                    <span>Monitoreo</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Financiero -->
             <div class="col-lg-3 col-md-6 mb-4" *ngIf="tieneAlguno(['operaciones.recordatorio_pagos'])">
                 <div class="card-maestro menu-principal" [class.active]="menuActivo === 'financiero'" (click)="toggleMenu('financiero', $event)">

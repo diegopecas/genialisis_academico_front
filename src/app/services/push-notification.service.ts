@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { AuthService } from './auth.service';
 import { environment } from '../../environments/environment';
 
 @Injectable({
@@ -11,7 +12,10 @@ export class PushNotificationService {
   // Clave pública VAPID
   private readonly VAPID_PUBLIC_KEY = 'BObkU8JSPUs8tC4Hk3m31gc_yfV9bPkrVPWxJPL9qpFd3wSnL8q4kDBTcnrYWn4ll9CUv5rcyebb8jU5o9ZL1vQ';
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private authService: AuthService
+  ) {}
 
   /**
    * Inicializa el sistema de push notifications.
@@ -79,8 +83,14 @@ export class PushNotificationService {
     const usuario = JSON.parse(usuarioStr);
     const keys = subscription.toJSON().keys;
 
+    // El portal se toma del claim del token en lugar de fijarlo en el codigo:
+    // asi este servicio sigue siendo identico en los dos portales y la
+    // suscripcion queda marcada con el origen real de la sesion.
+    const payloadToken = this.authService.getTokenPayload();
+
     const payload = {
       id_usuario: usuario.id,
+      portal: payloadToken?.portal || '',
       endpoint: subscription.endpoint,
       p256dh: keys?.['p256dh'] || '',
       auth: keys?.['auth'] || '',

@@ -92,6 +92,12 @@ export class OperacionesComponent {
       case 'observaciones-informe':
         this.router.navigate(['/operaciones/observaciones-informe']);
         break;
+      case 'notificaciones-envio':
+        this.router.navigate(['/operaciones/notificaciones-envio']);
+        break;
+      case 'notificaciones-monitoreo':
+        this.router.navigate(['/operaciones/notificaciones-monitoreo']);
+        break;
       default:
         console.log('Opción no reconocida:', opcion);
         break;

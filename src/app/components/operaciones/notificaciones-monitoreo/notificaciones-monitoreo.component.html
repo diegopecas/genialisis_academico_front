@@ -1,0 +1,143 @@
+<div class="modulo">
+    <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [raiz]="'/'" [regresar]="'/operaciones'"></app-header>
+
+    <div class="container-fluid mt-4">
+
+        <div class="alert alert-danger" *ngIf="mensajeError">{{ mensajeError }}</div>
+
+        <div *ngIf="!notificacionSeleccionada">
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <input type="text" class="form-control" [(ngModel)]="filtroTexto"
+                        placeholder="Buscar por título, categoría o destinatarios..." />
+                </div>
+                <div class="col-md-6 text-end">
+                    <button type="button" class="btn btn-outline-secondary" (click)="cargarNotificaciones()" [disabled]="cargando">
+                        Actualizar
+                    </button>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Título</th>
+                            <th>Categoría</th>
+                            <th>Dirigida a</th>
+                            <th class="text-center">Enviadas</th>
+                            <th class="text-center">Leídas</th>
+                            <th class="text-center">Respondidas</th>
+                            <th class="text-center">Adjuntos</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let notificacion of notificacionesFiltradas">
+                            <td>{{ notificacion.fecha_envio }}</td>
+                            <td>{{ notificacion.titulo }}</td>
+                            <td>
+                                <span class="badge" [style.background-color]="notificacion.categoria_color || '#6c757d'">
+                                    {{ notificacion.categoria_nombre }}
+                                </span>
+                            </td>
+                            <td>{{ notificacion.criterio_texto }}</td>
+                            <td class="text-center">{{ notificacion.total_destinatarios }}</td>
+                            <td class="text-center">{{ notificacion.total_leidas }}</td>
+                            <td class="text-center">{{ notificacion.total_respondidas }}</td>
+                            <td class="text-center">{{ notificacion.total_adjuntos }}</td>
+                            <td class="text-end">
+                                <button type="button" class="btn btn-sm btn-primary" (click)="verDetalle(notificacion)">Ver</button>
+                            </td>
+                        </tr>
+                        <tr *ngIf="notificacionesFiltradas.length === 0 && !cargando">
+                            <td colspan="9" class="text-center text-muted">No hay notificaciones para mostrar.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div *ngIf="notificacionSeleccionada">
+            <button type="button" class="btn btn-link mb-3" (click)="cerrarDetalle()">&larr; Volver al listado</button>
+
+            <div class="tarjeta mb-4">
+                <h5 class="tarjeta-titulo">{{ notificacionSeleccionada.titulo }}</h5>
+                <p class="text-muted mb-1">{{ notificacionSeleccionada.criterio_texto }}</p>
+                <p class="mb-0">{{ notificacionSeleccionada.cuerpo }}</p>
+            </div>
+
+            <div class="row mb-4" *ngIf="resumen">
+                <div class="col-md-4 mb-3">
+                    <div class="tarjeta-metrica">
+                        <span class="metrica-valor">{{ resumen.total }}</span>
+                        <span class="metrica-label">Acudientes notificados</span>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="tarjeta-metrica">
+                        <span class="metrica-valor">{{ resumen.leidas }}</span>
+                        <span class="metrica-label">Leyeron ({{ porcentaje(resumen.leidas, resumen.total) }}%)</span>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="tarjeta-metrica">
+                        <span class="metrica-valor">{{ resumen.respondidas }}</span>
+                        <span class="metrica-label">Respondieron ({{ porcentaje(resumen.respondidas, resumen.total) }}%)</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tarjeta mb-4" *ngIf="resumen && resumen.por_opcion && resumen.por_opcion.length > 0">
+                <h6 class="tarjeta-titulo">Respuestas</h6>
+                <div class="d-flex flex-wrap gap-3">
+                    <div *ngFor="let opcion of resumen.por_opcion">
+                        <span class="badge bg-secondary">{{ opcion.etiqueta }}: {{ opcion.cantidad }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <select class="form-select w-auto" [(ngModel)]="filtroEstado">
+                    <option value="todos">Todos los destinatarios</option>
+                    <option value="sin_leer">Solo los que no han leído</option>
+                    <option value="sin_responder">Solo los que no han respondido</option>
+                </select>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-sm table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Estudiante</th>
+                            <th>Acudiente</th>
+                            <th>Leída</th>
+                            <th>Respuesta</th>
+                            <th>Fecha respuesta</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let destinatario of destinatariosFiltrados">
+                            <td>{{ nombreEstudiante(destinatario) }}</td>
+                            <td>{{ nombreAcudiente(destinatario) }}</td>
+                            <td>
+                                <span *ngIf="destinatario.fecha_lectura">{{ destinatario.fecha_lectura }}</span>
+                                <span *ngIf="!destinatario.fecha_lectura" class="text-muted">Sin leer</span>
+                            </td>
+                            <td>
+                                <span *ngIf="destinatario.respuesta_etiqueta">{{ destinatario.respuesta_etiqueta }}</span>
+                                <span *ngIf="!destinatario.respuesta_etiqueta" class="text-muted">—</span>
+                            </td>
+                            <td>{{ destinatario.fecha_respuesta }}</td>
+                        </tr>
+                        <tr *ngIf="destinatariosFiltrados.length === 0 && !cargandoDetalle">
+                            <td colspan="5" class="text-center text-muted">No hay destinatarios con ese filtro.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>

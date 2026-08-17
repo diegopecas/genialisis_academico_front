@@ -1,0 +1,62 @@
+.tarjeta {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  height: 100%;
+}
+
+.tarjeta-titulo {
+  font-weight: 600;
+  margin-bottom: 1.25rem;
+}
+
+.arbol {
+  max-height: 420px;
+  overflow-y: auto;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 0.75rem;
+}
+
+.arbol-estudiante {
+  padding-bottom: 0.75rem;
+  margin-bottom: 0.75rem;
+  border-bottom: 1px solid #f1f1f1;
+
+  &:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+}
+
+.estudiante-cabecera {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-bottom: 0.35rem;
+}
+
+.estudiante-nombre {
+  font-weight: 600;
+}
+
+.estudiante-grupo {
+  color: #6c757d;
+  font-size: 0.8rem;
+  margin-left: 0.5rem;
+}
+
+.acudiente {
+  display: flex;
+  align-items: center;
+  padding-left: 1.75rem;
+  font-size: 0.9rem;
+  line-height: 1.9;
+}
+
+.acudiente-rol {
+  color: #6c757d;
+  margin-right: 0.35rem;
+}
