@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { EstudiantesService } from '../../services/estudiantes.service';
 import { AsistenciaEstudiantesService } from '../../services/asistencia-estudiantes.service';
 import { ConstantesService } from '../../common/constantes/constantes.service';
-import { ObservacionesEstudiantesService } from '../../services/observaciones-estudiantes.service';
 import { AcudientesService } from '../../services/acudientes.service';
 import { PersonasService } from '../../services/personas.service';
 import { AutorizadosRecogerService } from '../../services/autorizados-recoger.service';
@@ -89,7 +88,6 @@ export class AsistenciaComponent implements OnInit {
     private asistenciaEstudiantesService: AsistenciaEstudiantesService,
     private estudiantesService: EstudiantesService,
     private gruposService: GruposService,
-    private observacionesEstudiantesService: ObservacionesEstudiantesService,
     private acudientesService: AcudientesService,
     private personasService: PersonasService,
     private autorizadosRecogerService: AutorizadosRecogerService,
@@ -179,42 +177,46 @@ export class AsistenciaComponent implements OnInit {
     }
   }
 
-  crearObservacion(estudiante: any, tipo: string, descripcion: string) {
-    if (!descripcion || descripcion.trim() === '') return;
-
-    const tipoObservacionId = tipo === 'ingreso' ? '5' : '6';
-    const id_usuario = this.utilService.obtenerIdUsuarioActual();
-
-    const observacion = {
-      id: 0,
-      id_estudiante: estudiante.id_estudiante || estudiante.id,
-      id_tipo_observacion_estudiante: tipoObservacionId,
-      descripcion: `Observacion de ${tipo}: ${descripcion}`,
-      fecha: this.obtenerFechaActual(),
-      id_estudiante_afectado: null,
-      fecha_informe_padre: null,
-      firma_informe_padre: null,
-      fecha_informe_padre_afectado: null,
-      firma_informe_padre_afectado: null,
-      id_usuario: id_usuario,
-      fecha_registro: new Date().toISOString()
-    };
-
-    this.observacionesEstudiantesService.crear(observacion).subscribe({
-      next: (response: any) => {
-        console.log('Observacion creada automaticamente', response);
-      },
-      error: (error) => {
-        console.error('Error al crear observacion automatica:', error);
-      }
-    });
-  }
-
   private obtenerHoraActual(): string {
     const ahora = new Date();
     const horas = String(ahora.getHours()).padStart(2, '0');
     const minutos = String(ahora.getMinutes()).padStart(2, '0');
     return `${horas}:${minutos}`;
+  }
+
+  // El backend devuelve el resultado de la observación del observador del
+  // estudiante junto con el registro de asistencia. Si no quedó, hay que
+  // decirlo: antes esto se perdia en un console.error y la docente creia que
+  // habia quedado todo.
+  //
+  // Siempre aclara que la asistencia SI se registro, porque eso pasa primero y
+  // es independiente de la observacion.
+  private avisarObservacionEstudiante(resultado: any, tipo: string) {
+    // motivo en null = no habia nada que guardar (no escribio observacion).
+    if (!resultado || resultado.creada || !resultado.motivo) return;
+
+    let detalle: string;
+    switch (resultado.motivo) {
+      case 'tipo_no_configurado':
+        detalle = `Falta configurar el tipo de observación "${tipo}" en el sistema.`;
+        break;
+      case 'sin_sprint':
+        detalle = 'No hay un sprint que cubra la fecha de hoy.';
+        break;
+      default:
+        detalle = 'Hubo un error al guardarla.';
+    }
+
+    Swal.fire({
+      toast: true,
+      position: 'top-end',
+      icon: 'warning',
+      title: 'La observación no quedó en la ficha del niño',
+      text: `El registro de ${tipo} sí se guardó. ${detalle}`,
+      showConfirmButton: false,
+      timer: 6000,
+      timerProgressBar: true
+    });
   }
 
   /**
@@ -359,7 +361,10 @@ export class AsistenciaComponent implements OnInit {
         this.asistenciaEstudiantesService.registroIngreso(estudiante.id, this.observacionActual).subscribe((response: any) => {
           if (response) {
             const idAsistencia = response.body?.id || response.id;
-            this.crearObservacion(estudiante, "ingreso", this.observacionActual);
+            this.avisarObservacionEstudiante(
+              response.body?.observacion_estudiante || response.observacion_estudiante,
+              'ingreso'
+            );
             this.ejecutarCobrosAutomaticos(estudiante, idAsistencia);
             this.consultaNoIngresos();
             this.consultaNoSalidas();
@@ -386,7 +391,11 @@ export class AsistenciaComponent implements OnInit {
         this.asistenciaEstudiantesService.registroSalida(estudiante.id, this.observacionActual).subscribe((response: any) => {
           if (response) {
             const idAsistencia = estudiante.id;
-            this.crearObservacion(estudiante, "salida", this.observacionActual);
+            const filas = response.body || response;
+            this.avisarObservacionEstudiante(
+              Array.isArray(filas) ? filas[0]?.observacion_estudiante : filas?.observacion_estudiante,
+              'salida'
+            );
             this.ejecutarCobrosAutomaticos(estudiante, idAsistencia);
             this.consultaNoSalidas();
             this.consultaNoIngresos();
