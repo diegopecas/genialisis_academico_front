@@ -72,7 +72,19 @@
       <span><i class="fas fa-check estado-si"></i> Lo trajo</span>
       <span><i class="fas fa-times estado-no"></i> No lo trajo</span>
       <span><i class="far fa-circle estado-sin"></i> Sin verificar</span>
-      <button class="btn btn-sm btn-outline-secondary ms-auto" (click)="alternarTodo()">
+      <span class="estado-guardado ms-auto" [ngClass]="'estado-' + estadoGuardado" *ngIf="estadoGuardado !== 'limpio'">
+        <i class="fas"
+          [ngClass]="{
+            'fa-circle-notch fa-spin': estadoGuardado === 'guardando',
+            'fa-check': estadoGuardado === 'guardado',
+            'fa-clock': estadoGuardado === 'pendiente',
+            'fa-exclamation-triangle': estadoGuardado === 'error'
+          }"></i>
+        {{ textoEstadoGuardado }}
+        <a *ngIf="estadoGuardado === 'error'" (click)="reintentarGuardado()">Reintentar</a>
+      </span>
+
+      <button class="btn btn-sm btn-outline-secondary" [class.ms-auto]="estadoGuardado === 'limpio'" (click)="alternarTodo()">
         {{ todoMarcado() ? 'Limpiar todo' : 'Marcar todo' }}
       </button>
     </div>
@@ -157,7 +169,7 @@
   </div>
 
   <div class="container-fluid mb-5" *ngIf="!cargando && estudiantes.length > 0">
-    <button class="btn btn-lg btn-warning w-100" (click)="guardar()" [disabled]="guardando">
+    <button class="btn btn-lg btn-warning w-100" (click)="guardar(false)" [disabled]="guardando">
       <span *ngIf="!hayPendientes">Confirmar el día como está</span>
       <span *ngIf="hayPendientes">Grabar {{ totalPendientes }} cambio(s)</span>
     </button>

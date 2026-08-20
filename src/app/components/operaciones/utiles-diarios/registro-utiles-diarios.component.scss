@@ -242,3 +242,26 @@
   padding: 2px 10px 0;
   word-break: break-word;
 }
+
+// Indicador del autoguardado
+.estado-guardado {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.76rem;
+
+  i {
+    font-size: 0.72rem;
+  }
+
+  a {
+    cursor: pointer;
+    text-decoration: underline;
+    margin-left: 4px;
+  }
+
+  &.estado-pendiente { color: #9a8038; }
+  &.estado-guardando { color: #6c757d; }
+  &.estado-guardado  { color: #2e9e63; }
+  &.estado-error     { color: #dc3545; font-weight: 600; }
+}

@@ -1,6 +1,7 @@
 import {
   HttpClient,
   HttpErrorResponse,
+  HttpHeaders,
   HttpResponse,
 } from '@angular/common/http';
 import { Injectable } from '@angular/core';
@@ -8,6 +9,16 @@ import { environment } from '../../environments/environment';
 import { throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { httpOptions } from './http';
+
+// Opciones para el autoguardado. El header X-Silent le dice al
+// loading.interceptor que no muestre el spinner ni el toast de error: el
+// estado se ve en el indicador de la pantalla, no bloqueando la vista.
+const silentPostOptions = {
+  headers: new HttpHeaders({
+    'Content-Type': 'application/json',
+    'X-Silent': 'true'
+  })
+};
 
 @Injectable({
   providedIn: 'root'
@@ -20,14 +31,15 @@ export class RegistroUtilesDiariosService {
 
   // Arma la grilla del dia de un grupo. El backend siembra el dia de los
   // estudiantes que aun no lo tengan, con lo del ultimo dia registrado.
-  obtenerDiaGrupo(idGrupo: any, fecha: string, soloPresentes: boolean, idUsuario: any) {
+  obtenerDiaGrupo(idGrupo: any, fecha: string, soloPresentes: boolean, idUsuario: any, silencioso: boolean = false) {
     const body = JSON.stringify({
       id_grupo: idGrupo,
       fecha: fecha,
       solo_presentes: soloPresentes ? 1 : 0,
       id_usuario: idUsuario
     });
-    return this.http.post<any>(this.servicio + '/dia-grupo', body, httpOptions).pipe(
+    const opciones = silencioso ? silentPostOptions : httpOptions;
+    return this.http.post<any>(this.servicio + '/dia-grupo', body, opciones).pipe(
       tap((respuesta: any) => {
         if (respuesta.error) throw respuesta.error;
         return respuesta;
@@ -89,7 +101,9 @@ export class RegistroUtilesDiariosService {
   // Todo el guardado va en un solo viaje: los checks que cambiaron, los
   // utiles que se agregaron con el + y los que se quitaron. Mientras no se
   // presione Grabar, en la base no se toca nada.
-  guardarLote(modo: string, cambios: any[], idUsuario: any, nuevos: any[] = [], eliminados: any[] = []) {
+  // silencioso en true lo manda sin spinner: es el autoguardado. El boton de
+  // Grabar lo llama con el comportamiento normal, con su spinner y su aviso.
+  guardarLote(modo: string, cambios: any[], idUsuario: any, nuevos: any[] = [], eliminados: any[] = [], silencioso: boolean = false) {
     const body = JSON.stringify({
       modo: modo,
       cambios: cambios,
@@ -97,7 +111,8 @@ export class RegistroUtilesDiariosService {
       eliminados: eliminados,
       id_usuario: idUsuario
     });
-    return this.http.post<any>(this.servicio + '/guardar-lote', body, httpOptions).pipe(
+    const opciones = silencioso ? silentPostOptions : httpOptions;
+    return this.http.post<any>(this.servicio + '/guardar-lote', body, opciones).pipe(
       tap((respuesta: any) => {
         if (respuesta.error) throw respuesta.error;
         return respuesta;

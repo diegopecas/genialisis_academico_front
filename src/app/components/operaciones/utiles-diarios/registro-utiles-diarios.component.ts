@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HeaderComponent } from '../../../common/header/header.component';
@@ -14,7 +14,7 @@ import Swal from 'sweetalert2';
   standalone: true,
   imports: [CommonModule, FormsModule, HeaderComponent]
 })
-export class RegistroUtilesDiariosComponent implements OnInit {
+export class RegistroUtilesDiariosComponent implements OnInit, OnDestroy {
 
   titulo = "Útiles y Accesorios Diarios";
 
@@ -56,6 +56,18 @@ export class RegistroUtilesDiariosComponent implements OnInit {
   // Consecutivo para los ids temporales de los utiles agregados con el +.
   private consecutivoNuevo = 0;
 
+  // ==== AUTOGUARDADO ====
+  // Los cambios se graban solos segundo y medio despues de que la usuaria
+  // pare de marcar, sin spinner. El boton de abajo sigue existiendo para
+  // grabar de una y ver la confirmacion.
+  private temporizador: any = null;
+  private readonly esperaAutoguardado = 1500;
+
+  // 'limpio' | 'pendiente' | 'guardando' | 'guardado' | 'error'
+  public estadoGuardado: string = 'limpio';
+  public horaUltimoGuardado: string = '';
+  private guardadoEnVuelo = false;
+
   constructor(
     private registroUtilesDiariosService: RegistroUtilesDiariosService,
     private gruposService: GruposService,
@@ -91,7 +103,9 @@ export class RegistroUtilesDiariosComponent implements OnInit {
     });
   }
 
-  consultarDia() {
+  // silencioso en true recarga sin spinner. Se usa despues de un autoguardado
+  // que creo o borro utiles, porque esas filas necesitan su id real.
+  consultarDia(silencioso: boolean = false) {
     if (!this.fecha) {
       return;
     }
@@ -101,10 +115,16 @@ export class RegistroUtilesDiariosComponent implements OnInit {
       return;
     }
 
-    this.cargando = true;
+    this.cargando = !silencioso;
+
+    if (!silencioso) {
+      // Dia nuevo en pantalla: el indicador arranca en blanco.
+      this.estadoGuardado = 'limpio';
+    }
+
     const idUsuario = this.utilService.obtenerIdUsuarioActual();
 
-    this.registroUtilesDiariosService.obtenerDiaGrupo(this.idGrupo, this.fecha, this.soloPresentes, idUsuario).subscribe({
+    this.registroUtilesDiariosService.obtenerDiaGrupo(this.idGrupo, this.fecha, this.soloPresentes, idUsuario, silencioso).subscribe({
       next: (respuesta: any) => {
         this.estudiantes = respuesta.estudiantes || [];
         this.columnas = respuesta.columnas || [];
@@ -113,7 +133,9 @@ export class RegistroUtilesDiariosComponent implements OnInit {
       },
       error: () => {
         this.cargando = false;
-        Swal.fire('Error', 'No se pudo cargar el registro del día', 'error');
+        if (!silencioso) {
+          Swal.fire('Error', 'No se pudo cargar el registro del día', 'error');
+        }
       }
     });
   }
@@ -206,6 +228,24 @@ export class RegistroUtilesDiariosComponent implements OnInit {
   }
 
   // Al tocar la celda cicla: sin verificar -> lo trajo -> no lo trajo -> ...
+  // Arranca la cuenta regresiva del autoguardado. Si se sigue marcando, se
+  // reinicia, para que salga una sola peticion con todo junto.
+  private programarAutoguardado() {
+    this.estadoGuardado = 'pendiente';
+
+    if (this.temporizador) {
+      clearTimeout(this.temporizador);
+    }
+
+    this.temporizador = setTimeout(() => this.guardar(true), this.esperaAutoguardado);
+  }
+
+  ngOnDestroy(): void {
+    if (this.temporizador) {
+      clearTimeout(this.temporizador);
+    }
+  }
+
   alternar(fila: any) {
     if (!fila || this.estaBloqueado(fila)) return;
 
@@ -221,6 +261,7 @@ export class RegistroUtilesDiariosComponent implements OnInit {
     }
 
     this.pendientes.set(fila.id, siguiente);
+    this.programarAutoguardado();
   }
 
   private marcarFilas(filas: any[], valor: number | null) {
@@ -228,6 +269,7 @@ export class RegistroUtilesDiariosComponent implements OnInit {
       if (this.estaBloqueado(fila)) return;
       this.pendientes.set(fila.id, valor);
     });
+    this.programarAutoguardado();
   }
 
   // ---- Marcar todo: los tres niveles ----
@@ -263,6 +305,20 @@ export class RegistroUtilesDiariosComponent implements OnInit {
 
   // Los eliminados tambien cuentan como cambio sin guardar, aunque no dejen
   // pendiente en el mapa.
+  reintentarGuardado() {
+    this.guardar(true);
+  }
+
+  get textoEstadoGuardado(): string {
+    switch (this.estadoGuardado) {
+      case 'pendiente': return 'Sin guardar...';
+      case 'guardando': return 'Guardando...';
+      case 'guardado': return `Guardado ${this.horaUltimoGuardado}`;
+      case 'error': return 'No se pudo guardar';
+      default: return '';
+    }
+  }
+
   get hayPendientes(): boolean {
     return this.pendientes.size > 0 || this.eliminados.length > 0 || this.notasPendientes.size > 0;
   }
@@ -271,11 +327,24 @@ export class RegistroUtilesDiariosComponent implements OnInit {
     return this.pendientes.size + this.eliminados.length;
   }
 
-  guardar() {
+  // silencioso en true es el autoguardado: sin spinner y sin toast. En false
+  // es el boton, que sí confirma en pantalla.
+  guardar(silencioso: boolean = false) {
     // Se puede grabar aunque no haya cambios: que todos hayan traído todo es
     // un resultado válido y la docente necesita poder confirmarlo. En ese caso
     // se mandan los valores tal como están, que además deja registrado quién
     // revisó el día y cuándo.
+    // Si ya hay una guardando, se reprograma en vez de mandar otra encima.
+    if (this.guardadoEnVuelo) {
+      this.programarAutoguardado();
+      return;
+    }
+
+    if (this.temporizador) {
+      clearTimeout(this.temporizador);
+      this.temporizador = null;
+    }
+
     const cambios = [] as any[];
     const nuevos = [] as any[];
 
@@ -318,17 +387,21 @@ export class RegistroUtilesDiariosComponent implements OnInit {
     }
 
     if (cambios.length === 0 && nuevos.length === 0 && this.eliminados.length === 0) {
-      Swal.fire('Sin datos', 'No hay útiles que confirmar en este grupo.', 'info');
+      if (!silencioso) {
+        Swal.fire('Sin datos', 'No hay útiles que confirmar en este grupo.', 'info');
+      }
       return;
     }
 
-    this.guardando = true;
+    this.guardando = !silencioso;
+    this.guardadoEnVuelo = true;
+    this.estadoGuardado = 'guardando';
     const idUsuario = this.utilService.obtenerIdUsuarioActual();
     const eraConfirmacion = this.pendientes.size === 0;
 
     const huboNuevosOBorrados = nuevos.length > 0 || this.eliminados.length > 0;
 
-    this.registroUtilesDiariosService.guardarLote(this.modo, cambios, idUsuario, nuevos, this.eliminados).subscribe({
+    this.registroUtilesDiariosService.guardarLote(this.modo, cambios, idUsuario, nuevos, this.eliminados, silencioso).subscribe({
       next: () => {
         // Se refleja en las filas que ya están en pantalla para no tener que
         // recargar toda la grilla.
@@ -353,25 +426,38 @@ export class RegistroUtilesDiariosComponent implements OnInit {
         this.notasPendientes.clear();
         this.eliminados = [];
         this.guardando = false;
+        this.guardadoEnVuelo = false;
+        this.estadoGuardado = 'guardado';
+        this.horaUltimoGuardado = new Date().toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
 
         // Los agregados y los quitados necesitan recargar, porque las filas
         // nuevas todavía no tienen su id real de la base.
         if (huboNuevosOBorrados) {
-          this.consultarDia();
+          this.consultarDia(silencioso);
         }
 
-        Swal.fire({
-          toast: true,
-          position: 'top-end',
-          icon: 'success',
-          title: eraConfirmacion ? 'Día confirmado' : 'Cambios guardados',
-          showConfirmButton: false,
-          timer: 2500
-        });
+        if (!silencioso) {
+          Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'success',
+            title: eraConfirmacion ? 'Día confirmado' : 'Cambios guardados',
+            showConfirmButton: false,
+            timer: 2500
+          });
+        }
       },
       error: () => {
         this.guardando = false;
-        Swal.fire('Error', 'No se pudieron guardar los cambios', 'error');
+        this.guardadoEnVuelo = false;
+        this.estadoGuardado = 'error';
+
+        // Los cambios NO se pierden: siguen en la cola. Si fue el
+        // autoguardado, reintenta solo; si fue el botón, la usuaria ya vio el
+        // error del interceptor y puede volver a darle.
+        if (silencioso) {
+          this.temporizador = setTimeout(() => this.guardar(true), 8000);
+        }
       }
     });
   }
@@ -426,6 +512,7 @@ export class RegistroUtilesDiariosComponent implements OnInit {
     // Entra marcado como que sí lo trajo, que es la razón por la que se
     // agrega, y queda pendiente igual que cualquier otro cambio.
     this.pendientes.set(idTemporal, 1);
+    this.programarAutoguardado();
   }
 
   async quitarSuelto(fila: any) {
@@ -448,6 +535,7 @@ export class RegistroUtilesDiariosComponent implements OnInit {
 
     this.filas = this.filas.filter((f: any) => f.id !== fila.id);
     this.pendientes.delete(fila.id);
+    this.programarAutoguardado();
   }
 
   // Horas de todas las entradas y salidas del niño ese día, para mostrarlas
@@ -490,6 +578,8 @@ export class RegistroUtilesDiariosComponent implements OnInit {
     if (!this.pendientes.has(fila.id)) {
       this.pendientes.set(fila.id, this.estado(fila));
     }
+
+    this.programarAutoguardado();
   }
 
   jornadasTexto(estudiante: any): string {
