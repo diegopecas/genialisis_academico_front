@@ -353,7 +353,7 @@ export class DashboardFinancieroComponent implements OnInit, OnChanges, OnDestro
       lista = lista.filter(m =>
         (m.nombre_persona || '').toLowerCase().includes(q) ||
         (m.grupo_o_cargo || '').toLowerCase().includes(q) ||
-        (m.numero_identificacion || '').toLowerCase().includes(q)
+        String(m.numero_identificacion ?? '').toLowerCase().includes(q)
       );
     }
 

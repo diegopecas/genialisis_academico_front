@@ -310,14 +310,43 @@
       <div class="mt-2">Cargando...</div>
     </div>
 
+    <div class="barra-busqueda" *ngIf="!cargandoDetalleAsistencia && gruposDetalleAsistencia.length > 0">
+      <div class="busqueda-grupo">
+        <div class="input-limpiable">
+          <input type="text" class="form-control form-control-sm" placeholder="Buscar por nombre, grupo, estado o ID..."
+                 [(ngModel)]="busquedaAsistencia" (input)="buscarAsistencia()" />
+          <button type="button" class="btn-limpiar" *ngIf="busquedaAsistencia" (click)="busquedaAsistencia = ''; buscarAsistencia()" title="Limpiar">&times;</button>
+        </div>
+      </div>
+      <small class="text-muted" *ngIf="busquedaAsistencia || grupoFiltrado">
+        {{ totalCoincidenciasAsistencia }} de {{ totalAsistencia }} estudiante(s)
+      </small>
+    </div>
+
+    <div class="filtros-grupo" *ngIf="!cargandoDetalleAsistencia && gruposDetalleAsistencia.length > 1">
+      <button type="button" class="btn btn-sm"
+        [ngClass]="!grupoFiltrado ? 'btn-warning' : 'btn-outline-secondary'"
+        (click)="filtrarPorGrupo(null)">Todos</button>
+      <button type="button" class="btn btn-sm"
+        *ngFor="let g of gruposDetalleAsistencia"
+        [ngClass]="grupoFiltrado === g.id_grupo ? 'btn-warning' : 'btn-outline-secondary'"
+        (click)="filtrarPorGrupo(g.id_grupo)">
+        <img *ngIf="g.icono" [src]="g.icono" class="icono-boton-grupo" />{{ g.nombre_grupo }}
+      </button>
+    </div>
+
     <div *ngIf="!cargandoDetalleAsistencia && gruposDetalleAsistencia.length === 0" class="sin-datos">
       <em>No hay estudiantes activos registrados.</em>
+    </div>
+
+    <div *ngIf="!cargandoDetalleAsistencia && busquedaAsistencia && totalCoincidenciasAsistencia === 0" class="sin-datos">
+      <em>Ningún estudiante coincide con la búsqueda.</em>
     </div>
 
     <div *ngIf="!cargandoDetalleAsistencia && gruposDetalleAsistencia.length > 0" class="grupos-detalle">
       <div
         class="grupo-detalle"
-        *ngFor="let grupo of gruposDetalleAsistencia"
+        *ngFor="let grupo of gruposVisiblesAsistencia()"
         [style.border-left-color]="grupo.color"
       >
         <div class="grupo-detalle-header" (click)="toggleGrupoDetalle(grupo.id_grupo)">
@@ -338,6 +367,13 @@
             </span>
             <i class="fas ms-2" [ngClass]="gruposExpandidos[grupo.id_grupo] ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
           </div>
+        </div>
+
+        <!-- Cuanto del grupo ya llego, de un vistazo -->
+        <div class="barra-grupo" [title]="textoAsistenciaGrupo(grupo)">
+          <div class="segmento seg-presente" [style.width.%]="porcentaje(grupo, 'presentes')"></div>
+          <div class="segmento seg-salio" [style.width.%]="porcentaje(grupo, 'salieron')"></div>
+          <div class="segmento seg-ausente" [style.width.%]="porcentaje(grupo, 'ausentes')"></div>
         </div>
 
         <div class="grupo-detalle-body" *ngIf="gruposExpandidos[grupo.id_grupo]">
@@ -369,7 +405,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let est of grupo.estudiantes" [class.fila-ausente]="est.estado === 'No asistió'">
+                <tr *ngFor="let est of estudiantesFiltrados(grupo)" [class.fila-ausente]="est.estado === 'No asistió'">
                   <td>
                     {{ est.nombre_completo }}
                     <span class="tag-temporal" *ngIf="est.permanente == 0" title="Estudiante temporal">Temporal</span>
@@ -449,6 +485,19 @@
       <div class="detalle-spacer"></div>
     </div>
 
+    <div class="barra-busqueda" *ngIf="!cargandoDetalleColaboradores && detalleColaboradores.total > 0">
+      <div class="busqueda-grupo">
+        <div class="input-limpiable">
+          <input type="text" class="form-control form-control-sm" placeholder="Buscar por nombre, cargo, estado o ID..."
+                 [(ngModel)]="busquedaColab" (input)="buscarColaboradores()" />
+          <button type="button" class="btn-limpiar" *ngIf="busquedaColab" (click)="busquedaColab = ''; buscarColaboradores()" title="Limpiar">&times;</button>
+        </div>
+      </div>
+      <small class="text-muted" *ngIf="busquedaColab">
+        {{ colaboradoresOrdenados.length }} de {{ detalleColaboradores.total }} colaborador(es)
+      </small>
+    </div>
+
     <div class="resumen-colab" *ngIf="!cargandoDetalleColaboradores && colaboradoresOrdenados.length > 0">
       <span class="mini-badge mini-presente" *ngIf="resumenColaboradores.en_jornada > 0">
         🟢 {{ resumenColaboradores.en_jornada }} en jornada
@@ -469,7 +518,11 @@
       <div class="mt-2">Cargando...</div>
     </div>
 
-    <div *ngIf="!cargandoDetalleColaboradores && colaboradoresOrdenados.length === 0" class="sin-datos">
+    <div *ngIf="!cargandoDetalleColaboradores && colaboradoresOrdenados.length === 0 && busquedaColab" class="sin-datos">
+      <em>Ningún colaborador coincide con la búsqueda.</em>
+    </div>
+
+    <div *ngIf="!cargandoDetalleColaboradores && colaboradoresOrdenados.length === 0 && !busquedaColab" class="sin-datos">
       <em>No hay colaboradores activos registrados.</em>
     </div>
 

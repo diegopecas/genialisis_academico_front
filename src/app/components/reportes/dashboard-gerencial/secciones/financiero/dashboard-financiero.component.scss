@@ -1346,3 +1346,29 @@ $mobile: 576px;
     }
   }
 }
+// Input con la X para limpiar
+.input-limpiable {
+  position: relative;
+
+  input {
+    padding-right: 30px;
+  }
+
+  .btn-limpiar {
+    position: absolute;
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: 0;
+    background: transparent;
+    color: #adb5bd;
+    font-size: 1.15rem;
+    line-height: 1;
+    padding: 0 6px;
+    cursor: pointer;
+
+    &:hover {
+      color: #6c757d;
+    }
+  }
+}

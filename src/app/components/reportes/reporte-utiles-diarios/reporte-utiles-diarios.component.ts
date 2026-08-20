@@ -27,13 +27,13 @@ export class ReporteUtilesDiariosComponent implements OnInit {
   public estudiantes = [] as any[];
 
   // Los dos cortes conviven: se puede filtrar por grupo en un día o por
-  // estudiante en un rango. Todos los filtros son opcionales y se suman.
+  // estudiante en un rango. Todos los filtros son opcionales y se suman; sin
+  // grupo ni estudiante trae el jardin completo.
   public filtros = {
     id_grupo: null,
     id_estudiante: null,
     fecha_inicial: '',
-    fecha_final: '',
-    solo_faltantes: false
+    fecha_final: ''
   } as any;
 
   public consultado: boolean = false;
@@ -107,17 +107,12 @@ export class ReporteUtilesDiariosComponent implements OnInit {
   }
 
   consultar() {
-    if (!this.filtros.id_grupo && !this.filtros.id_estudiante) {
-      Swal.fire('Advertencia', 'Selecciona al menos un grupo o un estudiante', 'warning');
-      return;
-    }
-
     const filtros = {
       id_grupo: this.filtros.id_grupo || null,
       id_estudiante: this.filtros.id_estudiante || null,
       fecha_inicial: this.filtros.fecha_inicial || null,
       fecha_final: this.filtros.fecha_final || null,
-      solo_faltantes: this.filtros.solo_faltantes ? 1 : 0
+      solo_faltantes: 0
     };
 
     this.registroUtilesDiariosService.obtenerReporte(filtros).subscribe({
@@ -146,8 +141,7 @@ export class ReporteUtilesDiariosComponent implements OnInit {
       id_grupo: null,
       id_estudiante: null,
       fecha_inicial: hoy,
-      fecha_final: hoy,
-      solo_faltantes: false
+      fecha_final: hoy
     };
     this.estudiantes = [];
     this.datos = [];

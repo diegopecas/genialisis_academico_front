@@ -178,6 +178,7 @@ export class MenuArbolService {
             icono: '📋',
             hijos: [
               { id: 'reportes-estudiantes-general', label: 'Reporte Estudiantes', icono: '📋', ruta: '/reportes/estudiantes-general', permiso: 'reportes.estudiantes_general', keywords: ['listado estudiantes', 'alumnos'] },
+              { id: 'reportes-utiles-diarios', label: 'Reporte Útiles y Accesorios Diarios', icono: '🎒', ruta: '/reportes/utiles-diarios', permiso: 'reportes.utiles_diarios', keywords: ['utiles', 'utiles diarios', 'accesorios', 'inventario', 'inventario diario', 'personales', 'articulos personales', 'maleta', 'morral', 'que trajo', 'que se llevo', 'agenda', 'chaqueta', 'lonchera', 'termo', 'cosas del nino'] },
               { id: 'reportes-asistencia', label: 'Reporte Asistencia', icono: '✋', ruta: '/reportes/asistencia', permiso: 'reportes.asistencia', keywords: ['faltas', 'inasistencia'] },
               { id: 'reportes-alimentacion', label: 'Reporte Alimentación', icono: '🍎', ruta: '/reportes/alimentacion', permiso: 'reportes.alimentacion', keywords: ['comida', 'onces', 'refrigerios'] },
               { id: 'reportes-ejecucion-tareas', label: 'Ejecución de Tareas', icono: '📊', ruta: '/reportes/ejecucion-tareas', permiso: 'reportes.ejecucion_tareas' }
@@ -206,6 +207,14 @@ export class MenuArbolService {
               { id: 'operaciones-disponibilidad-cocina', label: 'Disponibilidad Cocina', icono: '🍳', ruta: '/operaciones/disponibilidad-cocina', permiso: 'operaciones.disponibilidad_cocina', keywords: ['cocina', 'menu'] },
               { id: 'operaciones-asignacion-onces', label: 'Asignación de Onces', icono: '🍱', ruta: '/operaciones/asignacion-onces', permiso: 'operaciones.asignacion_onces', keywords: ['onces', 'refrigerios'] }
             ]
+          },
+          {
+            id: 'operaciones-utiles-diarios',
+            label: 'Útiles y Accesorios Diarios',
+            icono: '🎒',
+            ruta: '/operaciones/utiles-diarios',
+            permiso: 'operaciones.utiles_diarios',
+            keywords: ['utiles', 'utiles diarios', 'accesorios', 'inventario', 'inventario diario', 'personales', 'articulos personales', 'maleta', 'morral', 'que trajo', 'que se llevo', 'agenda', 'chaqueta', 'lonchera', 'termo', 'cosas del nino']
           },
           {
             id: 'operaciones-productos',
@@ -310,7 +319,8 @@ export class MenuArbolService {
             hijos: [
               { id: 'administracion-oper-inicio', label: 'Operaciones', icono: '⚙️', ruta: '/administracion/operaciones', permiso: 'administracion.operaciones' },
               { id: 'administracion-entes-control', label: 'Entes de Control', icono: '🏛️', ruta: '/administracion/operaciones/entes-control', permiso: 'admin.entes_control', keywords: ['entes', 'control', 'vigilancia', 'secretaria', 'icbf'] },
-              { id: 'administracion-consulta-entes-control', label: 'Consulta Entes de Control', icono: '🔎', ruta: '/administracion/operaciones/consulta-entes-control', permiso: 'admin.consulta_entes_control', keywords: ['consulta', 'entes', 'control', 'visita', 'documentos', 'reportes'] }
+              { id: 'administracion-consulta-entes-control', label: 'Consulta Entes de Control', icono: '🔎', ruta: '/administracion/operaciones/consulta-entes-control', permiso: 'admin.consulta_entes_control', keywords: ['consulta', 'entes', 'control', 'visita', 'documentos', 'reportes'] },
+              { id: 'administracion-utiles-diarios', label: 'Útiles y Accesorios Diarios', icono: '🎒', ruta: '/administracion/operaciones/utiles-diarios', permiso: 'admin.utiles_diarios', keywords: ['utiles', 'utiles diarios', 'accesorios', 'inventario', 'inventario diario', 'personales', 'articulos personales', 'maleta', 'morral', 'que trajo', 'que se llevo', 'agenda', 'chaqueta', 'lonchera', 'termo', 'cosas del nino'] }
             ]
           },
           {

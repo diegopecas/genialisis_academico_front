@@ -1,87 +1,57 @@
-.tabla-utiles {
-  .columna-estudiante {
-    min-width: 220px;
+// Leyenda de los tres estados
+.leyenda-estados {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-size: 0.8rem;
+  color: #6c757d;
+  padding: 8px 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+
+  i {
+    margin-right: 4px;
   }
 
-  .columna-accion {
-    width: 60px;
-  }
-
-  .encabezado-util {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 3px;
-
-    i {
-      font-size: 1.1rem;
-    }
-  }
-
-  .check-util {
-    width: 1.4rem;
-    height: 1.4rem;
-    cursor: pointer;
-  }
-
-  .chips {
-    margin-top: 4px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-  }
-
-  .chip {
-    font-size: 0.75rem;
-    padding: 2px 8px;
-    border-radius: 12px;
-    background: #f1f1f1;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-  }
-
-  .chip-marcado {
-    background: #d4edda;
-  }
-
-  .chip-bloqueado {
-    opacity: 0.5;
-  }
-
-  .chip-quitar {
-    cursor: pointer;
-    font-weight: bold;
-    margin-left: 2px;
-  }
-
-  .fila-faltante {
-    background-color: #fff3cd;
-  }
+  .estado-si { color: #198754; }
+  .estado-no { color: #dc3545; }
+  .estado-sin { color: #adb5bd; }
 }
 
-// Vista movil: tarjeta por nino
+// Una tarjeta por niño. Misma vista en celular y en computador.
 .tarjeta-nino {
   border: 1px solid #dee2e6;
   border-radius: 10px;
-  padding: 12px;
-  margin-bottom: 12px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
   background: #fff;
 
   &.tarjeta-faltante {
-    background-color: #fff3cd;
+    background-color: #fff8e6;
     border-color: #ffe08a;
   }
 
   .tarjeta-encabezado {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
     gap: 8px;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
 
     .nombre {
       font-weight: 600;
+      line-height: 1.2;
+    }
+
+    .jornadas {
+      font-size: 0.75rem;
+      color: #6c757d;
+      margin-top: 3px;
+
+      i {
+        margin-right: 3px;
+      }
     }
 
     .acciones {
@@ -90,40 +60,167 @@
       flex-shrink: 0;
     }
   }
+}
 
-  .lista-utiles {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
+// Los útiles como chips: entran varios por línea y se adaptan al ancho.
+.chips-utiles {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+
+  @media (max-width: 992px) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .item-util {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 8px 4px;
-    border-top: 1px solid #f1f1f1;
+  @media (max-width: 640px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
 
-    &.item-bloqueado {
-      opacity: 0.5;
-    }
+.chip-util {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border-radius: 20px;
+  border: 1px solid #dee2e6;
+  background: #fff;
+  font-size: 0.82rem;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color .12s, border-color .12s;
+  min-width: 0;
 
-    .form-check-input {
-      width: 2.4rem;
-      height: 1.3rem;
-    }
+  .texto {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 
-    .quitar {
-      cursor: pointer;
-      font-weight: bold;
-      padding: 0 8px;
-      color: #999;
-    }
+  .estado-icono {
+    flex-shrink: 0;
+    width: 14px;
+    text-align: center;
+    font-size: 0.8rem;
+  }
+
+  .quitar {
+    flex-shrink: 0;
+    font-weight: bold;
+    color: #adb5bd;
+    padding: 0 2px;
+  }
+
+  &.chip-si {
+    background: #e8f5ec;
+    border-color: #a3d9b6;
+    .estado-icono { color: #198754; }
+  }
+
+  &.chip-no {
+    background: #fdeaea;
+    border-color: #f0a9a9;
+    .estado-icono { color: #dc3545; }
+    .texto { text-decoration: line-through; }
+  }
+
+  &.chip-sin {
+    background: #fff;
+    .estado-icono { color: #ced4da; }
+    .texto { color: #6c757d; }
+  }
+
+  &.chip-bloqueado {
+    opacity: .45;
+    cursor: not-allowed;
   }
 }
 
 .aviso-faltante {
   font-size: 0.78rem;
   color: #856404;
-  margin-top: 6px;
+  margin-top: 8px;
+}
+
+// Botones para marcar un útil en todos los niños del grupo
+.acciones-columna {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+
+  .etiqueta {
+    font-size: 0.78rem;
+    color: #6c757d;
+    margin-right: 2px;
+  }
+
+  .btn i {
+    margin-right: 4px;
+  }
+}
+
+// Buscador de niño
+.busqueda-nino {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+
+  .input-limpiable {
+    position: relative;
+    flex: 1;
+    min-width: 220px;
+    max-width: 420px;
+
+    input {
+      padding-right: 32px;
+    }
+
+    .btn-limpiar {
+      position: absolute;
+      right: 4px;
+      top: 50%;
+      transform: translateY(-50%);
+      border: 0;
+      background: transparent;
+      color: #adb5bd;
+      font-size: 1.3rem;
+      line-height: 1;
+      padding: 0 8px;
+      cursor: pointer;
+
+      &:hover { color: #6c757d; }
+    }
+  }
+}
+
+// Sección por grupo, solo visible cuando se ven todos los grupos
+.seccion-grupo {
+  margin-bottom: 18px;
+
+  .encabezado-seccion {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 2px;
+    margin-bottom: 8px;
+    border-bottom: 2px solid #f0c14b;
+
+    .nombre-grupo {
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .conteo {
+      font-size: 0.72rem;
+      background: #f0c14b;
+      color: #5c4708;
+      border-radius: 10px;
+      padding: 1px 8px;
+    }
+  }
 }

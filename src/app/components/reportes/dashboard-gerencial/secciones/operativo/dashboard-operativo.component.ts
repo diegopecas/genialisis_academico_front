@@ -114,6 +114,14 @@ export class DashboardOperativoComponent implements OnInit, OnChanges, OnDestroy
   public gruposDetalleAsistencia: any[] = [];
   public gruposExpandidos: { [id: string]: boolean } = {};
 
+  // Filtro de la tabla. No toca los resumenes por grupo: esos siguen
+  // mostrando el total real del grupo, no el de lo filtrado.
+  public busquedaAsistencia: string = '';
+
+  // Filtro por grupo. Los botones salen de los grupos que ya estan cargados
+  // en pantalla, no de otra consulta al backend.
+  public grupoFiltrado: string | null = null;
+
   public columnaOrdenAsistencia: ColumnaAsistencia = 'nombre_completo';
   public direccionOrdenAsistencia: DireccionOrden = 'asc';
 
@@ -132,6 +140,8 @@ export class DashboardOperativoComponent implements OnInit, OnChanges, OnDestroy
   };
   public colaboradoresOrdenados: any[] = [];
   public resumenColaboradores = { en_jornada: 0, en_descanso: 0, salieron: 0, no_marcaron: 0 };
+
+  public busquedaColab: string = '';
 
   public columnaOrdenColab: ColumnaColaborador = 'nombre_completo';
   public direccionOrdenColab: DireccionOrden = 'asc';
@@ -326,6 +336,71 @@ export class DashboardOperativoComponent implements OnInit, OnChanges, OnDestroy
     }
   }
 
+  // Porcentaje de cada estado dentro del grupo, para la barra del encabezado.
+  porcentaje(grupo: any, estado: 'presentes' | 'salieron' | 'ausentes'): number {
+    const total = (grupo?.estudiantes || []).length;
+    if (!total) return 0;
+    return ((grupo.resumen?.[estado] || 0) / total) * 100;
+  }
+
+  textoAsistenciaGrupo(grupo: any): string {
+    const r = grupo?.resumen || {};
+    const total = (grupo?.estudiantes || []).length;
+    return `${r.presentes || 0} en el jardín, ${r.salieron || 0} salieron, ${r.ausentes || 0} sin asistir, de ${total}`;
+  }
+
+  filtrarPorGrupo(idGrupo: string | null) {
+    this.grupoFiltrado = this.grupoFiltrado === idGrupo ? null : idGrupo;
+  }
+
+  buscarAsistencia() {
+    // No hay que recargar ni reagrupar: el filtro se aplica al pintar.
+  }
+
+  // Estudiantes de un grupo que coinciden con la busqueda. Si no hay texto,
+  // devuelve todos.
+  estudiantesFiltrados(grupo: any): any[] {
+    const q = (this.busquedaAsistencia || '').trim().toLowerCase();
+    const estudiantes = grupo?.estudiantes || [];
+
+    if (q.length === 0) {
+      return estudiantes;
+    }
+
+    return estudiantes.filter((e: any) =>
+      String(e.nombre_completo ?? '').toLowerCase().includes(q) ||
+      String(e.nombre_grupo ?? '').toLowerCase().includes(q) ||
+      String(e.estado ?? '').toLowerCase().includes(q) ||
+      String(e.numero_identificacion ?? '').toLowerCase().includes(q)
+    );
+  }
+
+  // Los grupos que quedan sin ninguna coincidencia se ocultan, para no dejar
+  // encabezados vacios cuando se busca un nino puntual.
+  gruposVisiblesAsistencia(): any[] {
+    let grupos = this.gruposDetalleAsistencia;
+
+    if (this.grupoFiltrado) {
+      grupos = grupos.filter((g: any) => g.id_grupo === this.grupoFiltrado);
+    }
+
+    const q = (this.busquedaAsistencia || '').trim();
+    if (q.length === 0) {
+      return grupos;
+    }
+    return grupos.filter((g: any) => this.estudiantesFiltrados(g).length > 0);
+  }
+
+  get totalCoincidenciasAsistencia(): number {
+    return this.gruposVisiblesAsistencia().reduce(
+      (suma: number, grupo: any) => suma + this.estudiantesFiltrados(grupo).length, 0);
+  }
+
+  get totalAsistencia(): number {
+    return this.gruposDetalleAsistencia.reduce(
+      (suma: number, grupo: any) => suma + (grupo.estudiantes?.length || 0), 0);
+  }
+
   toggleGrupoDetalle(idGrupo: string) {
     this.gruposExpandidos[idGrupo] = !this.gruposExpandidos[idGrupo];
   }
@@ -419,9 +494,9 @@ export class DashboardOperativoComponent implements OnInit, OnChanges, OnDestroy
   }
 
   private procesarColaboradores() {
-    this.colaboradoresOrdenados = [...(this.detalleColaboradores.registros || [])];
     this.resumenColaboradores = { en_jornada: 0, en_descanso: 0, salieron: 0, no_marcaron: 0 };
-    this.colaboradoresOrdenados.forEach((c: any) => {
+    // El resumen se calcula sobre la lista completa, no sobre la filtrada.
+    (this.detalleColaboradores.registros || []).forEach((c: any) => {
       switch (c.estado) {
         case 'En jornada':
         case 'Marcó entrada':
@@ -451,9 +526,27 @@ export class DashboardOperativoComponent implements OnInit, OnChanges, OnDestroy
     this.aplicarOrdenColab();
   }
 
+  buscarColaboradores() {
+    this.aplicarOrdenColab();
+  }
+
   private aplicarOrdenColab() {
+    let lista = [...(this.detalleColaboradores.registros || [])];
+
+    const q = (this.busquedaColab || '').trim().toLowerCase();
+    if (q.length > 0) {
+      lista = lista.filter((c: any) =>
+        String(c.nombre_completo ?? '').toLowerCase().includes(q) ||
+        String(c.cargo ?? '').toLowerCase().includes(q) ||
+        String(c.estado ?? '').toLowerCase().includes(q) ||
+        String(c.numero_identificacion ?? '').toLowerCase().includes(q)
+      );
+    }
+
     const factor = this.direccionOrdenColab === 'asc' ? 1 : -1;
-    this.colaboradoresOrdenados.sort((a: any, b: any) => this.compararColab(a, b) * factor);
+    lista.sort((a: any, b: any) => this.compararColab(a, b) * factor);
+
+    this.colaboradoresOrdenados = lista;
   }
 
   private compararColab(a: any, b: any): number {

@@ -12,7 +12,7 @@
       <div class="col-12 col-md-4">
         <label for="grupo" class="form-label">Grupo</label>
         <select class="form-select form-select-lg" id="grupo" [(ngModel)]="idGrupo" (change)="consultarDia()">
-          <option [ngValue]="null">Selecciona un grupo</option>
+          <option [ngValue]="null">Todos los grupos</option>
           <option *ngFor="let grupo of grupos" [ngValue]="grupo.id">{{ grupo.nombre }}</option>
         </select>
       </div>
@@ -43,129 +43,113 @@
     <p class="text-center">Cargando...</p>
   </div>
 
-  <div class="container-fluid mt-4" *ngIf="!cargando && idGrupo && estudiantes.length === 0">
+  <div class="container-fluid mt-4" *ngIf="!cargando && estudiantes.length === 0">
     <p class="text-center">
       No hay estudiantes para mostrar. Recuerda que solo aparecen los que ya tienen la entrada registrada en Asistencia.
     </p>
   </div>
 
-  <!-- ESCRITORIO: tabla -->
-  <div class="container-fluid mt-4" *ngIf="!cargando && !esMovil && estudiantes.length > 0">
-    <div class="table-responsive">
-      <table class="table table-bordered align-middle tabla-utiles">
-        <thead>
-          <tr>
-            <th class="columna-estudiante">
-              <div class="d-flex align-items-center gap-2">
-                <input type="checkbox" class="form-check-input m-0"
-                  [checked]="todoMarcado()" (change)="alternarTodo()"
-                  title="Marcar todo">
-                <span>Estudiante</span>
-              </div>
-            </th>
-            <th class="text-center" *ngFor="let columna of columnas">
-              <div class="encabezado-util">
-                <i *ngIf="columna.icono" [class]="columna.icono"></i>
-                <span>{{ columna.nombre }}</span>
-                <input type="checkbox" class="form-check-input m-0"
-                  [checked]="columnaMarcada(columna.id)" (change)="alternarColumna(columna.id)"
-                  title="Marcar toda la columna">
-              </div>
-            </th>
-            <th class="text-center columna-accion"></th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let estudiante of estudiantes" [ngClass]="{'fila-faltante': tieneFaltantes(estudiante.id_estudiante)}">
-            <td>
-              <div class="d-flex align-items-center gap-2">
-                <input type="checkbox" class="form-check-input m-0"
-                  [checked]="estudianteMarcado(estudiante.id_estudiante)"
-                  (change)="alternarEstudiante(estudiante.id_estudiante)"
-                  title="Marcar todo lo del niño">
-                <span>{{ nombreEstudiante(estudiante) }}</span>
-              </div>
-              <div class="chips" *ngIf="obtenerSueltos(estudiante.id_estudiante).length > 0">
-                <span class="chip" *ngFor="let suelto of obtenerSueltos(estudiante.id_estudiante)"
-                  [ngClass]="{'chip-marcado': estaMarcado(suelto), 'chip-bloqueado': estaBloqueado(suelto)}">
-                  <input type="checkbox"
-                    [checked]="estaMarcado(suelto)"
-                    [disabled]="estaBloqueado(suelto)"
-                    (change)="alternar(suelto)">
-                  {{ suelto.nombre }}
-                  <a class="chip-quitar" (click)="quitarSuelto(suelto)" title="Quitar">&times;</a>
-                </span>
-              </div>
-              <div class="aviso-faltante" *ngIf="tieneFaltantes(estudiante.id_estudiante)">
-                Se va sin todo lo que trajo
-              </div>
-            </td>
-            <td class="text-center" *ngFor="let columna of columnas">
-              <ng-container *ngIf="obtenerFila(estudiante.id_estudiante, columna.id) as fila; else sinFila">
-                <span *ngIf="estaBloqueado(fila)" class="text-muted">&mdash;</span>
-                <input *ngIf="!estaBloqueado(fila)" type="checkbox"
-                  class="form-check-input check-util"
-                  [checked]="estaMarcado(fila)"
-                  (change)="alternar(fila)">
-              </ng-container>
-              <ng-template #sinFila>
-                <span class="text-muted">&mdash;</span>
-              </ng-template>
-            </td>
-            <td class="text-center">
-              <button class="btn btn-sm btn-outline-secondary" (click)="agregarUtil(estudiante)" title="Agregar útil">
-                <i class="fas fa-plus"></i>
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+  <div class="container-fluid mt-3" *ngIf="!cargando && estudiantes.length > 0">
+    <div class="busqueda-nino">
+      <div class="input-limpiable">
+        <input type="text" class="form-control" placeholder="Buscar un niño por nombre..."
+               [(ngModel)]="busquedaEstudiante" />
+        <button type="button" class="btn-limpiar" *ngIf="busquedaEstudiante"
+                (click)="busquedaEstudiante = ''" title="Limpiar">&times;</button>
+      </div>
+      <small class="text-muted" *ngIf="busquedaEstudiante">
+        {{ estudiantesFiltrados.length }} de {{ totalEstudiantes }} niño(s)
+      </small>
     </div>
   </div>
 
-  <!-- MOVIL: una tarjeta por niño, sin scroll horizontal -->
-  <div class="container-fluid mt-4" *ngIf="!cargando && esMovil && estudiantes.length > 0">
-    <div class="d-flex justify-content-end mb-3">
-      <button class="btn btn-outline-secondary btn-sm" (click)="alternarTodo()">
-        {{ todoMarcado() ? 'Desmarcar todo' : 'Marcar todo' }}
+  <div class="container-fluid mt-3" *ngIf="!cargando && estudiantes.length > 0 && estudiantesFiltrados.length === 0">
+    <p class="text-center">Ningún niño coincide con la búsqueda.</p>
+  </div>
+
+  <div class="container-fluid mt-3" *ngIf="!cargando && estudiantes.length > 0">
+    <div class="leyenda-estados">
+      <span><i class="fas fa-check estado-si"></i> Lo trajo</span>
+      <span><i class="fas fa-times estado-no"></i> No lo trajo</span>
+      <span><i class="far fa-circle estado-sin"></i> Sin verificar</span>
+      <button class="btn btn-sm btn-outline-secondary ms-auto" (click)="alternarTodo()">
+        {{ todoMarcado() ? 'Limpiar todo' : 'Marcar todo' }}
       </button>
     </div>
 
-    <div class="tarjeta-nino" *ngFor="let estudiante of estudiantes"
+    <!-- Marcar un útil para todo el grupo de una, sin ir niño por niño. -->
+    <div class="acciones-columna" *ngIf="columnas.length > 0">
+      <span class="etiqueta">Marcar para todos:</span>
+      <button type="button" class="btn btn-sm"
+        *ngFor="let columna of columnas"
+        [ngClass]="columnaMarcada(columna.id) ? 'btn-warning' : 'btn-outline-secondary'"
+        (click)="alternarColumna(columna.id)">
+        <i *ngIf="columna.icono" [class]="columna.icono"></i>
+        {{ columna.nombre }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Una tarjeta por niño, con los útiles en chips. Sirve igual en celular
+       que en computador, así que no hay dos vistas que mantener. -->
+  <div class="container-fluid mt-3 mb-5" *ngIf="!cargando && estudiantes.length > 0">
+   <div class="seccion-grupo" *ngFor="let seccion of secciones">
+
+    <!-- El encabezado de grupo solo aparece cuando se están viendo todos.
+         Si ya se filtró por grupo arriba, sobra. -->
+    <div class="encabezado-seccion" *ngIf="seccion.nombre_grupo">
+      <span class="nombre-grupo">{{ seccion.nombre_grupo }}</span>
+      <span class="conteo">{{ seccion.estudiantes.length }}</span>
+    </div>
+
+    <div class="tarjeta-nino" *ngFor="let estudiante of seccion.estudiantes"
       [ngClass]="{'tarjeta-faltante': tieneFaltantes(estudiante.id_estudiante)}">
+
       <div class="tarjeta-encabezado">
-        <div class="nombre">{{ nombreEstudiante(estudiante) }}</div>
+        <div class="datos">
+          <div class="nombre">{{ nombreEstudiante(estudiante) }}</div>
+          <div class="jornadas" *ngIf="jornadasTexto(estudiante)">
+            <i class="far fa-clock"></i> {{ jornadasTexto(estudiante) }}
+          </div>
+        </div>
         <div class="acciones">
           <button class="btn btn-sm btn-outline-secondary" (click)="alternarEstudiante(estudiante.id_estudiante)">
-            {{ estudianteMarcado(estudiante.id_estudiante) ? 'Ninguno' : 'Todos' }}
+            {{ estudianteMarcado(estudiante.id_estudiante) ? 'Limpiar' : 'Todos' }}
           </button>
-          <button class="btn btn-sm btn-outline-secondary" (click)="agregarUtil(estudiante)">
+          <button class="btn btn-sm btn-outline-secondary" (click)="agregarUtil(estudiante)" title="Agregar útil">
             <i class="fas fa-plus"></i>
           </button>
         </div>
       </div>
 
-      <div class="lista-utiles">
-        <div class="item-util" *ngFor="let fila of obtenerFilasEstudiante(estudiante.id_estudiante)"
-          [ngClass]="{'item-bloqueado': estaBloqueado(fila)}">
-          <label class="form-check form-switch m-0 d-flex align-items-center gap-2">
-            <input class="form-check-input m-0" type="checkbox" role="switch"
-              [checked]="estaMarcado(fila)"
-              [disabled]="estaBloqueado(fila)"
-              (change)="alternar(fila)">
-            <span>{{ fila.nombre }}</span>
-          </label>
-          <a class="quitar" *ngIf="!fila.id_util_diario" (click)="quitarSuelto(fila)">&times;</a>
-        </div>
+      <div class="chips-utiles">
+        <button type="button" class="chip-util"
+          *ngFor="let fila of obtenerFilasEstudiante(estudiante.id_estudiante)"
+          [ngClass]="{
+            'chip-si': estaMarcado(fila),
+            'chip-no': esNegativo(fila),
+            'chip-sin': sinVerificar(fila),
+            'chip-bloqueado': estaBloqueado(fila)
+          }"
+          [disabled]="estaBloqueado(fila)"
+          (click)="alternar(fila)">
+          <i class="estado-icono fas"
+            [ngClass]="{'fa-check': estaMarcado(fila), 'fa-times': esNegativo(fila), 'fa-circle-notch': sinVerificar(fila)}"></i>
+          <i *ngIf="fila.icono" [class]="fila.icono"></i>
+          <span class="texto">{{ fila.nombre }}</span>
+          <a class="quitar" *ngIf="!fila.id_util_diario" (click)="quitarSuelto(fila); $event.stopPropagation()">&times;</a>
+        </button>
       </div>
 
       <div class="aviso-faltante" *ngIf="tieneFaltantes(estudiante.id_estudiante)">
-        Se va sin todo lo que trajo
+        Se va sin algo que trajo
       </div>
     </div>
+
+   </div>
   </div>
 
-  <div class="container-fluid mt-4 mb-5" *ngIf="!cargando && estudiantes.length > 0">
+  <div class="container-fluid mb-5" *ngIf="!cargando && estudiantes.length > 0">
     <button class="btn btn-lg btn-warning w-100" (click)="guardar()" [disabled]="guardando">
       <span *ngIf="!hayPendientes">Confirmar el día como está</span>
       <span *ngIf="hayPendientes">Grabar {{ totalPendientes }} cambio(s)</span>

@@ -99,7 +99,7 @@
                     </label>
                     <div class="d-flex gap-2">
                       <button type="button" class="btn btn-sm btn-outline-secondary" (click)="alternarTodosLosUtiles()">
-                        {{ todosLosUtilesMarcados ? 'Ninguno' : 'Todos' }}
+                        {{ todosLosUtilesMarcados ? 'Limpiar' : 'Todos' }}
                       </button>
                       <button type="button" class="btn btn-sm btn-outline-secondary"
                         *ngIf="tipoEventoActual === 'ingreso'" (click)="agregarUtilEnPanel()" title="Agregar útil">
@@ -108,22 +108,31 @@
                     </div>
                   </div>
 
-                  <div class="lista-utiles">
-                    <label class="item-util" *ngFor="let item of listas.utiles">
-                      <span class="form-check form-switch m-0">
-                        <input class="form-check-input m-0" type="checkbox" role="switch"
-                          [checked]="item.marcado" (change)="alternarUtil(item)">
-                      </span>
+                  <div class="chips-utiles">
+                    <button type="button" class="chip-util"
+                      *ngFor="let item of listas.utiles"
+                      [ngClass]="{
+                        'chip-si': utilEnSi(item),
+                        'chip-no': utilEnNo(item),
+                        'chip-sin': utilSinVerificar(item)
+                      }"
+                      (click)="alternarUtil(item)">
+                      <i class="estado-icono fas"
+                        [ngClass]="{'fa-check': utilEnSi(item), 'fa-times': utilEnNo(item), 'fa-circle-notch': utilSinVerificar(item)}"></i>
                       <i *ngIf="item.icono" [class]="item.icono"></i>
-                      <span class="nombre-util">{{ item.nombre }}</span>
-                    </label>
+                      <span class="texto">{{ item.nombre }}</span>
+                    </button>
+                  </div>
+
+                  <div class="leyenda-utiles">
+                    Toca para cambiar: sin verificar, lo trajo, no lo trajo.
                   </div>
 
                   <div class="alert alert-secondary py-2 mt-2 mb-0" *ngIf="tipoEventoActual === 'ingreso' && !hayUtilesMarcados">
-                    Si no marcas nada, no se registran los útiles de hoy. Lo puede hacer después la docente en clase.
+                    Si no revisas la maleta, quedan como sin verificar. Lo puede completar después la docente en clase.
                   </div>
                   <div class="alert alert-warning py-2 mt-2 mb-0" *ngIf="tipoEventoActual === 'salida' && hayUtilesPendientes">
-                    ⚠️ Queda registrado que se va sin lo desmarcado.
+                    ⚠️ Queda registrado que se va sin lo que marcaste en rojo.
                   </div>
                 </div>
                 <div class="mb-3">

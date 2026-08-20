@@ -1394,3 +1394,90 @@ $mobile: 576px;
     .busqueda-grupo { max-width: 100%; min-width: 0; }
   }
 }
+// ============================================
+// Buscador de las tablas de asistencia y colaboradores
+// ============================================
+.barra-busqueda {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 12px 0;
+
+  .busqueda-grupo {
+    flex: 1;
+    min-width: 220px;
+    max-width: 360px;
+  }
+}
+
+@media (max-width: 768px) {
+  .barra-busqueda .busqueda-grupo {
+    max-width: 100%;
+    min-width: 0;
+  }
+}
+
+// Input con la X para limpiar
+.input-limpiable {
+  position: relative;
+
+  input {
+    padding-right: 30px;
+  }
+
+  .btn-limpiar {
+    position: absolute;
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: 0;
+    background: transparent;
+    color: #adb5bd;
+    font-size: 1.15rem;
+    line-height: 1;
+    padding: 0 6px;
+    cursor: pointer;
+
+    &:hover {
+      color: #6c757d;
+    }
+  }
+}
+
+// Botones de filtro por grupo
+.filtros-grupo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+// Barra de asistencia por grupo: presentes, salieron y ausentes
+.barra-grupo {
+  display: flex;
+  height: 5px;
+  border-radius: 3px;
+  overflow: hidden;
+  background: #eceff1;
+  margin: 0 14px 10px;
+
+  .segmento {
+    height: 100%;
+    transition: width .25s ease;
+  }
+
+  .seg-presente { background: #2e9e63; }
+  .seg-salio    { background: #7aa7d9; }
+  .seg-ausente  { background: #e2b93b; }
+}
+
+// Icono dentro de los botones de filtro por grupo
+.filtros-grupo .icono-boton-grupo {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  margin-right: 5px;
+  vertical-align: -3px;
+}

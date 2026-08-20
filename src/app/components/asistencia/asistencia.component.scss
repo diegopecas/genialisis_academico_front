@@ -248,38 +248,71 @@
 }
 // Utiles y accesorios diarios dentro del panel de ingreso y salida
 .bloque-utiles {
-  .lista-utiles {
-    border: 1px solid #dee2e6;
-    border-radius: 8px;
-    overflow: hidden;
+  .chips-utiles {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+
+    @media (max-width: 992px) {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    @media (max-width: 640px) {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
   }
 
-  .item-util {
+  .chip-util {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 10px 12px;
-    margin: 0;
+    gap: 6px;
+    padding: 8px 10px;
+    border-radius: 20px;
+    border: 1px solid #dee2e6;
+    background: #fff;
+    font-size: 0.82rem;
+    text-align: left;
     cursor: pointer;
+    transition: background-color .12s, border-color .12s;
+    min-width: 0;
 
-    & + .item-util {
-      border-top: 1px solid #f1f1f1;
-    }
-
-    .form-check-input {
-      width: 2.4rem;
-      height: 1.3rem;
-      cursor: pointer;
-    }
-
-    i {
-      width: 20px;
-      text-align: center;
-      color: #6c757d;
-    }
-
-    .nombre-util {
+    .texto {
       flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
+
+    .estado-icono {
+      flex-shrink: 0;
+      width: 14px;
+      text-align: center;
+      font-size: 0.8rem;
+    }
+
+    &.chip-si {
+      background: #e8f5ec;
+      border-color: #a3d9b6;
+      .estado-icono { color: #198754; }
+    }
+
+    &.chip-no {
+      background: #fdeaea;
+      border-color: #f0a9a9;
+      .estado-icono { color: #dc3545; }
+      .texto { text-decoration: line-through; }
+    }
+
+    &.chip-sin {
+      .estado-icono { color: #ced4da; }
+      .texto { color: #6c757d; }
+    }
+  }
+
+  .leyenda-utiles {
+    font-size: 0.72rem;
+    color: #adb5bd;
+    margin-top: 6px;
   }
 }

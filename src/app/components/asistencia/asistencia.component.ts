@@ -247,11 +247,11 @@ export class AsistenciaComponent implements OnInit {
         next: (response: any) => {
           const body = (response.body as any[]) || [];
           // En salida solo tiene sentido revisar lo que el nino trajo: no se
-          // puede llevar lo que nunca entro. Y aqui si arranca marcado, porque
-          // lo normal es que se lleve todo.
+          // puede llevar lo que nunca entro. Aqui arranca en lo que ya este
+          // registrado, y sin verificar si todavia nadie lo reviso.
           this.listas.utiles = body.filter((i: any) => i.trajo == 1);
           this.listas.utiles.forEach((item: any) => {
-            item.marcado = (item.regreso === null || item.regreso === undefined) ? true : item.regreso == 1;
+            item.estadoUtil = (item.regreso === null || item.regreso === undefined) ? null : (item.regreso == 1 ? 1 : 0);
           });
         },
         error: (error) => {
@@ -265,7 +265,10 @@ export class AsistenciaComponent implements OnInit {
     this.registroUtilesDiariosService.obtenerPropuesta(idEstudiante, fecha).subscribe({
       next: (response: any) => {
         const body = (response.body as any[]) || [];
-        this.listas.utiles = body.map((item: any) => ({ ...item, marcado: false }));
+        // Todos arrancan sin verificar. Es distinto de decir que no trajo: si
+        // la docente no alcanza a revisar la maleta, eso queda registrado como
+        // tal y lo completa despues la docente principal en clase.
+        this.listas.utiles = body.map((item: any) => ({ ...item, estadoUtil: null }));
       },
       error: (error) => {
         console.error('Error al consultar los utiles del dia:', error);
@@ -277,12 +280,12 @@ export class AsistenciaComponent implements OnInit {
   // Marcar o desmarcar todo de una, para cuando la docente si alcanzo a
   // revisar y el nino trajo todo.
   get todosLosUtilesMarcados(): boolean {
-    return this.listas.utiles.length > 0 && this.listas.utiles.every((item: any) => item.marcado);
+    return this.listas.utiles.length > 0 && this.listas.utiles.every((item: any) => item.estadoUtil === 1);
   }
 
   alternarTodosLosUtiles() {
-    const valor = !this.todosLosUtilesMarcados;
-    this.listas.utiles.forEach((item: any) => item.marcado = valor);
+    const valor = this.todosLosUtilesMarcados ? null : 1;
+    this.listas.utiles.forEach((item: any) => item.estadoUtil = valor);
   }
 
   // Agrega un util suelto a este nino, en un solo paso.
@@ -303,39 +306,58 @@ export class AsistenciaComponent implements OnInit {
       id_util_diario: null,
       nombre_libre: texto.trim(),
       nombre: texto.trim(),
-      marcado: true
+      estadoUtil: 1
     });
   }
 
-  // Lo que se manda al registrar el ingreso: la lista completa con su marcado.
-  // El backend aplica la regla de todo o nada.
+  // Lo que se manda al registrar el ingreso: la lista completa con el estado
+  // de cada util (1 lo trajo, 0 no lo trajo, null sin verificar).
   private obtenerUtilesParaGuardar(): any[] {
     return this.listas.utiles.map((item: any) => ({
       id_util_diario: item.id_util_diario || null,
       nombre_libre: item.nombre_libre || null,
-      marcado: !!item.marcado
+      trajo: item.estadoUtil === null || item.estadoUtil === undefined ? null : item.estadoUtil
     }));
   }
 
+  // Cicla: sin verificar -> lo trajo -> no lo trajo -> sin verificar.
   alternarUtil(item: any) {
-    item.marcado = !item.marcado;
+    if (item.estadoUtil === null || item.estadoUtil === undefined) {
+      item.estadoUtil = 1;
+    } else if (item.estadoUtil === 1) {
+      item.estadoUtil = 0;
+    } else {
+      item.estadoUtil = null;
+    }
+  }
+
+  utilEnSi(item: any): boolean {
+    return item.estadoUtil === 1;
+  }
+
+  utilEnNo(item: any): boolean {
+    return item.estadoUtil === 0;
+  }
+
+  utilSinVerificar(item: any): boolean {
+    return item.estadoUtil === null || item.estadoUtil === undefined;
   }
 
   // Ids de las filas que la usuaria dejo desmarcadas. En la salida viajan al
   // backend para que las marque como no regresadas.
   private obtenerUtilesNoMarcados(): any[] {
     return this.listas.utiles
-      .filter((item: any) => !item.marcado)
+      .filter((item: any) => item.estadoUtil === 0)
       .map((item: any) => item.id);
   }
 
-  // Si no hay ni uno marcado, no se registra nada: es la regla de todo o nada.
+  // Si nadie reviso nada, el aviso le recuerda que lo puede hacer la docente.
   get hayUtilesMarcados(): boolean {
-    return this.listas.utiles.some((item: any) => item.marcado);
+    return this.listas.utiles.some((item: any) => item.estadoUtil !== null && item.estadoUtil !== undefined);
   }
 
   get hayUtilesPendientes(): boolean {
-    return this.listas.utiles.some((item: any) => !item.marcado);
+    return this.listas.utiles.some((item: any) => item.estadoUtil === 0);
   }
 
   private obtenerFechaActual(): string {

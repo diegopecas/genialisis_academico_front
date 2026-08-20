@@ -1,4 +1,4 @@
-import { Component, OnInit, HostListener } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HeaderComponent } from '../../../common/header/header.component';
@@ -19,7 +19,11 @@ export class RegistroUtilesDiariosComponent implements OnInit {
   titulo = "Útiles y Accesorios Diarios";
 
   public grupos = [] as any[];
+  // null significa todos los grupos: la docente ve el jardin completo y
+  // filtra en pantalla.
   public idGrupo: any = null;
+
+  public busquedaEstudiante: string = '';
   public fecha: string = '';
 
   // Los que todavía no han salido. Ojo: la grilla nunca muestra a quien no
@@ -35,11 +39,12 @@ export class RegistroUtilesDiariosComponent implements OnInit {
 
   public cargando: boolean = false;
   public guardando: boolean = false;
-  public esMovil: boolean = false;
 
   // Cambios pendientes de guardar, indexados por id de fila para que marcar
   // dos veces el mismo check no mande dos cambios.
-  private pendientes = new Map<string, boolean>();
+  // Cada pendiente guarda el estado nuevo de esa fila: 1 lo trajo, 0 no lo
+  // trajo, null todavia sin verificar.
+  private pendientes = new Map<string, number | null>();
 
   constructor(
     private registroUtilesDiariosService: RegistroUtilesDiariosService,
@@ -49,15 +54,8 @@ export class RegistroUtilesDiariosComponent implements OnInit {
 
   ngOnInit(): void {
     this.fecha = this.obtenerFechaActual();
-    this.revisarAncho();
     this.consultaGrupos();
-  }
-
-  @HostListener('window:resize')
-  revisarAncho() {
-    // En pantalla angosta la tabla obliga a hacer scroll horizontal, así que
-    // se cambia por una tarjeta por niño.
-    this.esMovil = window.innerWidth < 768;
+    this.consultarDia();
   }
 
   /**
@@ -84,7 +82,7 @@ export class RegistroUtilesDiariosComponent implements OnInit {
   }
 
   consultarDia() {
-    if (!this.idGrupo || !this.fecha) {
+    if (!this.fecha) {
       return;
     }
 
@@ -118,15 +116,46 @@ export class RegistroUtilesDiariosComponent implements OnInit {
     this.modo = modo;
   }
 
-  // Fila de un estudiante para una columna del catálogo.
-  obtenerFila(idEstudiante: any, idUtil: any) {
-    return this.filas.find((f: any) => f.id_estudiante === idEstudiante && f.id_util_diario === idUtil);
+  // Estudiantes que coinciden con la busqueda por nombre.
+  get estudiantesFiltrados(): any[] {
+    const q = (this.busquedaEstudiante || '').trim().toLowerCase();
+    if (q.length === 0) {
+      return this.estudiantes;
+    }
+    return this.estudiantes.filter((e: any) => this.nombreEstudiante(e).toLowerCase().includes(q));
   }
 
-  // Útiles sueltos del niño, los que se agregaron con el +. No son columna,
-  // se muestran como chips en su fila.
-  obtenerSueltos(idEstudiante: any) {
-    return this.filas.filter((f: any) => f.id_estudiante === idEstudiante && !f.id_util_diario);
+  // Con "Todos" los ninos se muestran en secciones por grupo. Con un grupo
+  // puntual no hay secciones, porque ya se esta filtrando arriba.
+  get secciones(): any[] {
+    const lista = this.estudiantesFiltrados;
+
+    if (this.idGrupo) {
+      return [{ id_grupo: null, nombre_grupo: null, estudiantes: lista }];
+    }
+
+    const mapa: { [id: string]: any } = {};
+    lista.forEach((e: any) => {
+      const id = e.id_grupo || 'sin-grupo';
+      if (!mapa[id]) {
+        mapa[id] = {
+          id_grupo: e.id_grupo,
+          nombre_grupo: e.nombre_grupo || 'Sin grupo',
+          orden_grupo: e.orden_grupo ?? 9999,
+          estudiantes: []
+        };
+      }
+      mapa[id].estudiantes.push(e);
+    });
+
+    return Object.values(mapa).sort((a: any, b: any) => {
+      if (a.orden_grupo !== b.orden_grupo) return a.orden_grupo - b.orden_grupo;
+      return String(a.nombre_grupo).localeCompare(String(b.nombre_grupo));
+    });
+  }
+
+  get totalEstudiantes(): number {
+    return this.estudiantes.length;
   }
 
   // Todas las filas de un niño, tanto de columna como sueltas. Es lo que
@@ -135,14 +164,29 @@ export class RegistroUtilesDiariosComponent implements OnInit {
     return this.filas.filter((f: any) => f.id_estudiante === idEstudiante);
   }
 
-  estaMarcado(fila: any): boolean {
-    if (!fila) return false;
+  // Estado de una fila: 1 lo trajo, 0 no lo trajo, null sin verificar.
+  estado(fila: any): number | null {
+    if (!fila) return null;
 
     if (this.pendientes.has(fila.id)) {
-      return this.pendientes.get(fila.id) === true;
+      return this.pendientes.get(fila.id) ?? null;
     }
 
-    return this.modo === 'entrada' ? fila.trajo == 1 : fila.regreso == 1;
+    const valor = this.modo === 'entrada' ? fila.trajo : fila.regreso;
+    if (valor === null || valor === undefined || valor === '') return null;
+    return valor == 1 ? 1 : 0;
+  }
+
+  estaMarcado(fila: any): boolean {
+    return this.estado(fila) === 1;
+  }
+
+  esNegativo(fila: any): boolean {
+    return this.estado(fila) === 0;
+  }
+
+  sinVerificar(fila: any): boolean {
+    return this.estado(fila) === null;
   }
 
   // En salida no se puede marcar lo que no entró en la mañana.
@@ -151,14 +195,25 @@ export class RegistroUtilesDiariosComponent implements OnInit {
     return this.modo === 'salida' && fila.trajo != 1;
   }
 
+  // Al tocar la celda cicla: sin verificar -> lo trajo -> no lo trajo -> ...
   alternar(fila: any) {
     if (!fila || this.estaBloqueado(fila)) return;
 
-    const valorActual = this.estaMarcado(fila);
-    this.pendientes.set(fila.id, !valorActual);
+    const actual = this.estado(fila);
+    let siguiente: number | null;
+
+    if (actual === null) {
+      siguiente = 1;
+    } else if (actual === 1) {
+      siguiente = 0;
+    } else {
+      siguiente = null;
+    }
+
+    this.pendientes.set(fila.id, siguiente);
   }
 
-  private marcarFilas(filas: any[], valor: boolean) {
+  private marcarFilas(filas: any[], valor: number | null) {
     filas.forEach((fila: any) => {
       if (this.estaBloqueado(fila)) return;
       this.pendientes.set(fila.id, valor);
@@ -173,8 +228,7 @@ export class RegistroUtilesDiariosComponent implements OnInit {
   }
 
   alternarTodo() {
-    const valor = !this.todoMarcado();
-    this.marcarFilas(this.filas, valor);
+    this.marcarFilas(this.filas, this.todoMarcado() ? null : 1);
   }
 
   columnaMarcada(idUtil: any): boolean {
@@ -183,7 +237,7 @@ export class RegistroUtilesDiariosComponent implements OnInit {
   }
 
   alternarColumna(idUtil: any) {
-    const valor = !this.columnaMarcada(idUtil);
+    const valor = this.columnaMarcada(idUtil) ? null : 1;
     this.marcarFilas(this.filas.filter((f: any) => f.id_util_diario === idUtil), valor);
   }
 
@@ -193,7 +247,7 @@ export class RegistroUtilesDiariosComponent implements OnInit {
   }
 
   alternarEstudiante(idEstudiante: any) {
-    const valor = !this.estudianteMarcado(idEstudiante);
+    const valor = this.estudianteMarcado(idEstudiante) ? null : 1;
     this.marcarFilas(this.obtenerFilasEstudiante(idEstudiante), valor);
   }
 
@@ -214,14 +268,14 @@ export class RegistroUtilesDiariosComponent implements OnInit {
 
     if (this.pendientes.size > 0) {
       this.pendientes.forEach((valor, id) => {
-        cambios.push({ id: id, valor: valor ? 1 : 0 });
+        cambios.push({ id: id, valor: valor });
       });
     } else {
       this.filas.forEach((fila: any) => {
         if (this.estaBloqueado(fila)) {
           return;
         }
-        cambios.push({ id: fila.id, valor: this.estaMarcado(fila) ? 1 : 0 });
+        cambios.push({ id: fila.id, valor: this.estado(fila) });
       });
     }
 
@@ -242,9 +296,9 @@ export class RegistroUtilesDiariosComponent implements OnInit {
           const fila = this.filas.find((f: any) => f.id === id);
           if (fila) {
             if (this.modo === 'entrada') {
-              fila.trajo = valor ? 1 : 0;
+              fila.trajo = valor;
             } else {
-              fila.regreso = valor ? 1 : 0;
+              fila.regreso = valor;
             }
           }
         });
@@ -291,8 +345,22 @@ export class RegistroUtilesDiariosComponent implements OnInit {
     };
 
     this.registroUtilesDiariosService.crear(dato).subscribe({
-      next: () => {
-        this.consultarDia();
+      next: (respuesta: any) => {
+        // Se agrega a la lista que ya esta en pantalla en vez de recargar el
+        // dia. Recargar botaba los cambios sin guardar, y como la fila si se
+        // habia creado en la base, al reintentar chocaba contra el indice
+        // unico con un "ya esta registrado" que no se entendia.
+        this.filas.push({
+          id: respuesta?.id,
+          id_estudiante: estudiante.id_estudiante,
+          id_util_diario: null,
+          nombre_libre: texto.trim(),
+          nombre: texto.trim(),
+          icono: null,
+          trajo: 1,
+          regreso: null,
+          orden: 999
+        });
       },
       error: (error: any) => {
         const mensaje = error?.error?.error || 'No se pudo agregar el útil';
@@ -315,12 +383,27 @@ export class RegistroUtilesDiariosComponent implements OnInit {
 
     this.registroUtilesDiariosService.eliminar(fila.id).subscribe({
       next: () => {
-        this.consultarDia();
+        // Igual que al agregar: se saca de la lista en pantalla para no botar
+        // los cambios que todavia no se han grabado.
+        this.filas = this.filas.filter((f: any) => f.id !== fila.id);
+        this.pendientes.delete(fila.id);
       },
       error: () => {
         Swal.fire('Error', 'No se pudo quitar el útil', 'error');
       }
     });
+  }
+
+  // Horas de todas las entradas y salidas del nino ese dia, para mostrarlas
+  // debajo del nombre. Un nino puede entrar y salir varias veces.
+  jornadasTexto(estudiante: any): string {
+    const jornadas = String(estudiante?.jornadas ?? '').trim();
+    if (!jornadas) return '';
+
+    return jornadas
+      .split('|')
+      .map((j: string) => j.trim().replace(/-\s*$/, '→'))
+      .join(' · ');
   }
 
   nombreEstudiante(estudiante: any): string {
@@ -338,7 +421,7 @@ export class RegistroUtilesDiariosComponent implements OnInit {
 
     return this.filas.some((f: any) => {
       if (f.id_estudiante !== idEstudiante || f.trajo != 1) return false;
-      return !this.estaMarcado(f);
+      return this.esNegativo(f);
     });
   }
 }
