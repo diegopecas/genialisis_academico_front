@@ -46,6 +46,16 @@ export class RegistroUtilesDiariosComponent implements OnInit {
   // trajo, null todavia sin verificar.
   private pendientes = new Map<string, number | null>();
 
+  // Filas que ya existen en la base y la usuaria quito con la equis. Se
+  // borran cuando presione Grabar, no antes.
+  private eliminados: string[] = [];
+
+  // Notas escritas y todavía sin grabar, por id de fila.
+  private notasPendientes = new Map<string, string | null>();
+
+  // Consecutivo para los ids temporales de los utiles agregados con el +.
+  private consecutivoNuevo = 0;
+
   constructor(
     private registroUtilesDiariosService: RegistroUtilesDiariosService,
     private gruposService: GruposService,
@@ -86,7 +96,7 @@ export class RegistroUtilesDiariosComponent implements OnInit {
       return;
     }
 
-    if (this.pendientes.size > 0) {
+    if (this.hayPendientes) {
       Swal.fire('Atención', 'Hay cambios sin guardar. Grábalos antes de cambiar de grupo o fecha.', 'warning');
       return;
     }
@@ -109,7 +119,7 @@ export class RegistroUtilesDiariosComponent implements OnInit {
   }
 
   cambiarModo(modo: string) {
-    if (this.pendientes.size > 0) {
+    if (this.hayPendientes) {
       Swal.fire('Atención', 'Hay cambios sin guardar. Grábalos antes de cambiar de entrada a salida.', 'warning');
       return;
     }
@@ -251,12 +261,14 @@ export class RegistroUtilesDiariosComponent implements OnInit {
     this.marcarFilas(this.obtenerFilasEstudiante(idEstudiante), valor);
   }
 
+  // Los eliminados tambien cuentan como cambio sin guardar, aunque no dejen
+  // pendiente en el mapa.
   get hayPendientes(): boolean {
-    return this.pendientes.size > 0;
+    return this.pendientes.size > 0 || this.eliminados.length > 0 || this.notasPendientes.size > 0;
   }
 
   get totalPendientes(): number {
-    return this.pendientes.size;
+    return this.pendientes.size + this.eliminados.length;
   }
 
   guardar() {
@@ -265,21 +277,47 @@ export class RegistroUtilesDiariosComponent implements OnInit {
     // se mandan los valores tal como están, que además deja registrado quién
     // revisó el día y cuándo.
     const cambios = [] as any[];
+    const nuevos = [] as any[];
+
+    const agregar = (fila: any, valor: number | null) => {
+      if (!fila) return;
+
+      if (fila.esNuevo) {
+        nuevos.push({
+          id_estudiante: fila.id_estudiante,
+          fecha: this.fecha,
+          id_util_diario: fila.id_util_diario || null,
+          nombre_libre: fila.nombre_libre || null,
+          valor: valor,
+          observacion: this.notaDe(fila) || null
+        });
+      } else {
+        const cambio: any = { id: fila.id, valor: valor };
+
+        // La clave observacion solo viaja si se editó, para no pisar la nota
+        // que ya estaba guardada.
+        if (this.notasPendientes.has(fila.id)) {
+          cambio.observacion = this.notasPendientes.get(fila.id);
+        }
+
+        cambios.push(cambio);
+      }
+    };
 
     if (this.pendientes.size > 0) {
       this.pendientes.forEach((valor, id) => {
-        cambios.push({ id: id, valor: valor });
+        agregar(this.filas.find((f: any) => f.id === id), valor);
       });
     } else {
       this.filas.forEach((fila: any) => {
         if (this.estaBloqueado(fila)) {
           return;
         }
-        cambios.push({ id: fila.id, valor: this.estado(fila) });
+        agregar(fila, this.estado(fila));
       });
     }
 
-    if (cambios.length === 0) {
+    if (cambios.length === 0 && nuevos.length === 0 && this.eliminados.length === 0) {
       Swal.fire('Sin datos', 'No hay útiles que confirmar en este grupo.', 'info');
       return;
     }
@@ -288,7 +326,9 @@ export class RegistroUtilesDiariosComponent implements OnInit {
     const idUsuario = this.utilService.obtenerIdUsuarioActual();
     const eraConfirmacion = this.pendientes.size === 0;
 
-    this.registroUtilesDiariosService.guardarLote(this.modo, cambios, idUsuario).subscribe({
+    const huboNuevosOBorrados = nuevos.length > 0 || this.eliminados.length > 0;
+
+    this.registroUtilesDiariosService.guardarLote(this.modo, cambios, idUsuario, nuevos, this.eliminados).subscribe({
       next: () => {
         // Se refleja en las filas que ya están en pantalla para no tener que
         // recargar toda la grilla.
@@ -302,8 +342,24 @@ export class RegistroUtilesDiariosComponent implements OnInit {
             }
           }
         });
+        this.notasPendientes.forEach((nota, id) => {
+          const fila = this.filas.find((f: any) => f.id === id);
+          if (fila) {
+            fila.observacion = nota;
+          }
+        });
+
         this.pendientes.clear();
+        this.notasPendientes.clear();
+        this.eliminados = [];
         this.guardando = false;
+
+        // Los agregados y los quitados necesitan recargar, porque las filas
+        // nuevas todavía no tienen su id real de la base.
+        if (huboNuevosOBorrados) {
+          this.consultarDia();
+        }
+
         Swal.fire({
           toast: true,
           position: 'top-end',
@@ -323,6 +379,10 @@ export class RegistroUtilesDiariosComponent implements OnInit {
   // Un solo paso: se escribe el nombre y listo. Antes había que pasar por un
   // select con todo el catálogo, que no aportaba nada porque esos útiles ya
   // son columna de la grilla.
+  // Un solo paso: se escribe el nombre y listo. El útil se agrega solo en
+  // pantalla, con un id temporal; a la base entra cuando se presione Grabar.
+  // Antes esto iba al backend de una, y quedaba grabado aunque la usuaria
+  // cerrara sin guardar.
   async agregarUtil(estudiante: any) {
     const { value: texto } = await Swal.fire({
       title: `Agregar a ${estudiante.primer_nombre}`,
@@ -335,38 +395,37 @@ export class RegistroUtilesDiariosComponent implements OnInit {
 
     if (!texto || texto.trim() === '') return;
 
-    const dato = {
-      id_estudiante: estudiante.id_estudiante,
-      fecha: this.fecha,
-      id_util_diario: null,
-      nombre_libre: texto.trim(),
-      trajo: 1,
-      id_usuario: this.utilService.obtenerIdUsuarioActual()
-    };
+    const nombre = texto.trim();
+    const yaEsta = this.filas.some((f: any) =>
+      f.id_estudiante === estudiante.id_estudiante &&
+      String(f.nombre || '').trim().toLowerCase() === nombre.toLowerCase()
+    );
 
-    this.registroUtilesDiariosService.crear(dato).subscribe({
-      next: (respuesta: any) => {
-        // Se agrega a la lista que ya esta en pantalla en vez de recargar el
-        // dia. Recargar botaba los cambios sin guardar, y como la fila si se
-        // habia creado en la base, al reintentar chocaba contra el indice
-        // unico con un "ya esta registrado" que no se entendia.
-        this.filas.push({
-          id: respuesta?.id,
-          id_estudiante: estudiante.id_estudiante,
-          id_util_diario: null,
-          nombre_libre: texto.trim(),
-          nombre: texto.trim(),
-          icono: null,
-          trajo: 1,
-          regreso: null,
-          orden: 999
-        });
-      },
-      error: (error: any) => {
-        const mensaje = error?.error?.error || 'No se pudo agregar el útil';
-        Swal.fire('Error', mensaje, 'error');
-      }
+    if (yaEsta) {
+      Swal.fire('Atención', `"${nombre}" ya está en la lista de ${estudiante.primer_nombre}.`, 'info');
+      return;
+    }
+
+    this.consecutivoNuevo++;
+    const idTemporal = `nuevo-${this.consecutivoNuevo}`;
+
+    this.filas.push({
+      id: idTemporal,
+      esNuevo: true,
+      id_estudiante: estudiante.id_estudiante,
+      id_util_diario: null,
+      nombre_libre: nombre,
+      nombre: nombre,
+      icono: null,
+      trajo: null,
+      regreso: null,
+      observacion: null,
+      orden: 999
     });
+
+    // Entra marcado como que sí lo trajo, que es la razón por la que se
+    // agrega, y queda pendiente igual que cualquier otro cambio.
+    this.pendientes.set(idTemporal, 1);
   }
 
   async quitarSuelto(fila: any) {
@@ -381,21 +440,58 @@ export class RegistroUtilesDiariosComponent implements OnInit {
 
     if (!result.isConfirmed) return;
 
-    this.registroUtilesDiariosService.eliminar(fila.id).subscribe({
-      next: () => {
-        // Igual que al agregar: se saca de la lista en pantalla para no botar
-        // los cambios que todavia no se han grabado.
-        this.filas = this.filas.filter((f: any) => f.id !== fila.id);
-        this.pendientes.delete(fila.id);
-      },
-      error: () => {
-        Swal.fire('Error', 'No se pudo quitar el útil', 'error');
-      }
-    });
+    // Solo se saca de la pantalla. Si ya existía en la base, se anota para
+    // borrarla al presionar Grabar.
+    if (!fila.esNuevo) {
+      this.eliminados.push(fila.id);
+    }
+
+    this.filas = this.filas.filter((f: any) => f.id !== fila.id);
+    this.pendientes.delete(fila.id);
   }
 
-  // Horas de todas las entradas y salidas del nino ese dia, para mostrarlas
-  // debajo del nombre. Un nino puede entrar y salir varias veces.
+  // Horas de todas las entradas y salidas del niño ese día, para mostrarlas
+  // debajo del nombre. Un niño puede entrar y salir varias veces.
+  // Nota que se ve hoy en el chip: la que se acabó de escribir si hay, o la
+  // que ya estaba guardada.
+  notaDe(fila: any): string {
+    if (!fila) return '';
+    if (this.notasPendientes.has(fila.id)) {
+      return this.notasPendientes.get(fila.id) || '';
+    }
+    return fila.observacion || '';
+  }
+
+  // Nota corta por útil, para cosas como "llegó rota" o "sin cuchara". Máximo
+  // 200 caracteres: es una nota, no una observación del estudiante.
+  async editarNota(fila: any, evento: Event) {
+    evento.stopPropagation();
+
+    const { value: texto } = await Swal.fire({
+      title: fila.nombre,
+      input: 'text',
+      inputLabel: 'Nota (opcional)',
+      inputValue: this.notaDe(fila),
+      inputPlaceholder: 'Ej: llegó rota',
+      inputAttributes: { maxlength: '200' },
+      showCancelButton: true,
+      confirmButtonText: 'Guardar nota',
+      cancelButtonText: 'Cancelar'
+    });
+
+    if (texto === undefined) return;
+
+    const nota = String(texto).trim();
+    this.notasPendientes.set(fila.id, nota === '' ? null : nota);
+
+    // La nota es un cambio como cualquier otro: si la fila no tenía nada
+    // pendiente, se registra con el estado que ya tiene para que entre en el
+    // mismo guardado.
+    if (!this.pendientes.has(fila.id)) {
+      this.pendientes.set(fila.id, this.estado(fila));
+    }
+  }
+
   jornadasTexto(estudiante: any): string {
     const jornadas = String(estudiante?.jornadas ?? '').trim();
     if (!jornadas) return '';

@@ -109,19 +109,26 @@
                   </div>
 
                   <div class="chips-utiles">
-                    <button type="button" class="chip-util"
-                      *ngFor="let item of listas.utiles"
-                      [ngClass]="{
-                        'chip-si': utilEnSi(item),
-                        'chip-no': utilEnNo(item),
-                        'chip-sin': utilSinVerificar(item)
-                      }"
-                      (click)="alternarUtil(item)">
-                      <i class="estado-icono fas"
-                        [ngClass]="{'fa-check': utilEnSi(item), 'fa-times': utilEnNo(item), 'fa-circle-notch': utilSinVerificar(item)}"></i>
-                      <i *ngIf="item.icono" [class]="item.icono"></i>
-                      <span class="texto">{{ item.nombre }}</span>
-                    </button>
+                    <div class="celda-util" *ngFor="let item of listas.utiles">
+                      <button type="button" class="chip-util"
+                        [ngClass]="{
+                          'chip-si': utilEnSi(item),
+                          'chip-no': utilEnNo(item),
+                          'chip-sin': utilSinVerificar(item)
+                        }"
+                        (click)="alternarUtil(item)">
+                        <i class="estado-icono fas"
+                          [ngClass]="{'fa-check': utilEnSi(item), 'fa-times': utilEnNo(item), 'fa-circle-notch': utilSinVerificar(item)}"></i>
+                        <i *ngIf="item.icono" [class]="item.icono"></i>
+                        <span class="texto">{{ item.nombre }}</span>
+                        <a class="accion-chip" [class.con-nota]="item.observacion"
+                           (click)="editarNotaUtil(item, $event)"
+                           [title]="item.observacion || 'Agregar nota'">
+                          <i class="fas fa-pencil-alt"></i>
+                        </a>
+                      </button>
+                      <div class="nota-util" *ngIf="item.observacion">{{ item.observacion }}</div>
+                    </div>
                   </div>
 
                   <div class="leyenda-utiles">

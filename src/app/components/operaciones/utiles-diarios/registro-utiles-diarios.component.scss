@@ -106,11 +106,16 @@
     font-size: 0.8rem;
   }
 
-  .quitar {
+  .accion-chip {
     flex-shrink: 0;
-    font-weight: bold;
-    color: #adb5bd;
-    padding: 0 2px;
+    color: #ced4da;
+    padding: 0 3px;
+    font-size: 0.72rem;
+    cursor: pointer;
+
+    &:hover { color: #6c757d; }
+
+    &.con-nota { color: #d39e00; }
   }
 
   &.chip-si {
@@ -223,4 +228,17 @@
       padding: 1px 8px;
     }
   }
+}
+
+// Nota corta debajo del útil
+.celda-util {
+  min-width: 0;
+}
+
+.nota-util {
+  font-size: 0.7rem;
+  color: #6c757d;
+  line-height: 1.25;
+  padding: 2px 10px 0;
+  word-break: break-word;
 }

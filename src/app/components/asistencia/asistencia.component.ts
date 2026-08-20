@@ -316,7 +316,8 @@ export class AsistenciaComponent implements OnInit {
     return this.listas.utiles.map((item: any) => ({
       id_util_diario: item.id_util_diario || null,
       nombre_libre: item.nombre_libre || null,
-      trajo: item.estadoUtil === null || item.estadoUtil === undefined ? null : item.estadoUtil
+      trajo: item.estadoUtil === null || item.estadoUtil === undefined ? null : item.estadoUtil,
+      observacion: item.observacion || null
     }));
   }
 
@@ -329,6 +330,29 @@ export class AsistenciaComponent implements OnInit {
     } else {
       item.estadoUtil = null;
     }
+  }
+
+  // Nota corta por util, para cosas como "llego rota". Maximo 200 caracteres:
+  // es una nota, no una observacion del estudiante.
+  async editarNotaUtil(item: any, evento: Event) {
+    evento.stopPropagation();
+
+    const { value: texto } = await Swal.fire({
+      title: item.nombre,
+      input: 'text',
+      inputLabel: 'Nota (opcional)',
+      inputValue: item.observacion || '',
+      inputPlaceholder: 'Ej: llegó rota',
+      inputAttributes: { maxlength: '200' },
+      showCancelButton: true,
+      confirmButtonText: 'Guardar nota',
+      cancelButtonText: 'Cancelar'
+    });
+
+    if (texto === undefined) return;
+
+    const nota = String(texto).trim();
+    item.observacion = nota === '' ? null : nota;
   }
 
   utilEnSi(item: any): boolean {

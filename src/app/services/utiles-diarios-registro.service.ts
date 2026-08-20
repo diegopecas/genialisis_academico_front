@@ -86,8 +86,17 @@ export class RegistroUtilesDiariosService {
 
   // Guarda los checks de la grilla en un solo viaje. El modo dice que columna
   // se esta editando: 'entrada' escribe trajo, 'salida' escribe regreso.
-  guardarLote(modo: string, cambios: any[], idUsuario: any) {
-    const body = JSON.stringify({ modo: modo, cambios: cambios, id_usuario: idUsuario });
+  // Todo el guardado va en un solo viaje: los checks que cambiaron, los
+  // utiles que se agregaron con el + y los que se quitaron. Mientras no se
+  // presione Grabar, en la base no se toca nada.
+  guardarLote(modo: string, cambios: any[], idUsuario: any, nuevos: any[] = [], eliminados: any[] = []) {
+    const body = JSON.stringify({
+      modo: modo,
+      cambios: cambios,
+      nuevos: nuevos,
+      eliminados: eliminados,
+      id_usuario: idUsuario
+    });
     return this.http.post<any>(this.servicio + '/guardar-lote', body, httpOptions).pipe(
       tap((respuesta: any) => {
         if (respuesta.error) throw respuesta.error;

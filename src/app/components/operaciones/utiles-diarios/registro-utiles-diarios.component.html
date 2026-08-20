@@ -123,22 +123,29 @@
       </div>
 
       <div class="chips-utiles">
-        <button type="button" class="chip-util"
-          *ngFor="let fila of obtenerFilasEstudiante(estudiante.id_estudiante)"
-          [ngClass]="{
-            'chip-si': estaMarcado(fila),
-            'chip-no': esNegativo(fila),
-            'chip-sin': sinVerificar(fila),
-            'chip-bloqueado': estaBloqueado(fila)
-          }"
-          [disabled]="estaBloqueado(fila)"
-          (click)="alternar(fila)">
-          <i class="estado-icono fas"
-            [ngClass]="{'fa-check': estaMarcado(fila), 'fa-times': esNegativo(fila), 'fa-circle-notch': sinVerificar(fila)}"></i>
-          <i *ngIf="fila.icono" [class]="fila.icono"></i>
-          <span class="texto">{{ fila.nombre }}</span>
-          <a class="quitar" *ngIf="!fila.id_util_diario" (click)="quitarSuelto(fila); $event.stopPropagation()">&times;</a>
-        </button>
+        <div class="celda-util" *ngFor="let fila of obtenerFilasEstudiante(estudiante.id_estudiante)">
+          <button type="button" class="chip-util"
+            [ngClass]="{
+              'chip-si': estaMarcado(fila),
+              'chip-no': esNegativo(fila),
+              'chip-sin': sinVerificar(fila),
+              'chip-bloqueado': estaBloqueado(fila)
+            }"
+            [disabled]="estaBloqueado(fila)"
+            (click)="alternar(fila)">
+            <i class="estado-icono fas"
+              [ngClass]="{'fa-check': estaMarcado(fila), 'fa-times': esNegativo(fila), 'fa-circle-notch': sinVerificar(fila)}"></i>
+            <i *ngIf="fila.icono" [class]="fila.icono"></i>
+            <span class="texto">{{ fila.nombre }}</span>
+            <a class="accion-chip" [class.con-nota]="notaDe(fila)" (click)="editarNota(fila, $event)"
+               [title]="notaDe(fila) || 'Agregar nota'">
+              <i class="fas fa-pencil-alt"></i>
+            </a>
+            <a class="accion-chip" *ngIf="!fila.id_util_diario" (click)="quitarSuelto(fila); $event.stopPropagation()"
+               title="Quitar">&times;</a>
+          </button>
+          <div class="nota-util" *ngIf="notaDe(fila)">{{ notaDe(fila) }}</div>
+        </div>
       </div>
 
       <div class="aviso-faltante" *ngIf="tieneFaltantes(estudiante.id_estudiante)">

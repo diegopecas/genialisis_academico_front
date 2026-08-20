@@ -308,6 +308,30 @@
       .estado-icono { color: #ced4da; }
       .texto { color: #6c757d; }
     }
+
+    .accion-chip {
+      flex-shrink: 0;
+      color: #ced4da;
+      padding: 0 3px;
+      font-size: 0.72rem;
+      cursor: pointer;
+
+      &:hover { color: #6c757d; }
+
+      &.con-nota { color: #d39e00; }
+    }
+  }
+
+  .celda-util {
+    min-width: 0;
+  }
+
+  .nota-util {
+    font-size: 0.7rem;
+    color: #6c757d;
+    line-height: 1.25;
+    padding: 2px 10px 0;
+    word-break: break-word;
   }
 
   .leyenda-utiles {
