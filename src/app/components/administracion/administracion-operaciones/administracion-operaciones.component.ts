@@ -27,6 +27,9 @@ export class AdministracionOperacionesComponent {
       case 'consulta-entes-control':
         this.router.navigate(['/administracion/operaciones/consulta-entes-control']);
         break;
+      case 'utiles-diarios':
+        this.router.navigate(['/administracion/operaciones/utiles-diarios']);
+        break;
     }
   }
 }

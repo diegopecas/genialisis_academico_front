@@ -1,0 +1,91 @@
+<div class="modulo">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="false"
+    [accion]="accion"
+    [raiz]="'/administracion/operaciones/elementos-inventario'"
+    [regresar]="regresar"
+    [iconoTitulo]="'/assets/images/actividades.png'"
+  ></app-header>
+
+  <div class="container mt-5">
+    <div class="row">
+      <div class="col-sm-12 col-md-6">
+        <label for="nombre" class="form-label">Nombre <span class="text-danger">*</span></label>
+        <input class="form-control form-control-lg" type="text" id="nombre"
+          [(ngModel)]="model.nombre" placeholder="Ej: Agenda, Chaqueta, Termo..."
+          required [ngClass]="{'is-invalid': !model.nombre && submitted}"
+          [disabled]="!editable">
+      </div>
+      <div class="col-sm-12 col-md-3">
+        <label for="icono" class="form-label">Icono (clase FontAwesome)</label>
+        <div class="input-group input-group-lg">
+          <span class="input-group-text"><i [class]="model.icono"></i></span>
+          <input class="form-control" type="text" id="icono"
+            [(ngModel)]="model.icono" placeholder="fas fa-book"
+            [disabled]="!editable">
+        </div>
+      </div>
+      <div class="col-sm-12 col-md-3">
+        <label for="orden" class="form-label">Orden</label>
+        <input class="form-control form-control-lg" type="number" id="orden"
+          [(ngModel)]="model.orden" [disabled]="!editable">
+      </div>
+    </div>
+
+    <div class="row mt-4">
+      <div class="col-sm-12 col-md-9">
+        <label for="descripcion" class="form-label">Descripción</label>
+        <input class="form-control form-control-lg" type="text" id="descripcion"
+          [(ngModel)]="model.descripcion" placeholder="Opcional"
+          [disabled]="!editable">
+      </div>
+      <div class="col-sm-12 col-md-3">
+        <label for="activo" class="form-label">Estado</label>
+        <select class="form-select form-select-lg" id="activo" [(ngModel)]="model.activo" [disabled]="!editable">
+          <option [ngValue]="1">Activo</option>
+          <option [ngValue]="0">Inactivo</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="container mt-5">
+    <div class="row">
+      <div class="col-12">
+        <label class="form-label">¿A qué grupos aplica?</label>
+        <div class="form-check mb-3">
+          <input class="form-check-input" type="checkbox" id="aplicaTodos"
+            [(ngModel)]="aplicaATodos" (change)="cambiarAplicaATodos()" [disabled]="!editable">
+          <label class="form-check-label" for="aplicaTodos">
+            Aplica a todos los grupos
+          </label>
+        </div>
+
+        <div class="row g-2" *ngIf="!aplicaATodos">
+          <div class="col-6 col-md-3" *ngFor="let grupo of grupos">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox"
+                [id]="'grupo-' + grupo.id"
+                [checked]="estaSeleccionado(grupo.id)"
+                (change)="alternarGrupo(grupo.id)"
+                [disabled]="!editable">
+              <label class="form-check-label" [for]="'grupo-' + grupo.id">{{ grupo.nombre }}</label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container mt-5">
+    <div class="row">
+      <div class="col-sm-6" *ngIf="editable">
+        <button class="btn btn-lg btn-warning w-100" (click)="guardar()">Grabar</button>
+      </div>
+      <div class="col-sm-6">
+        <button class="btn btn-lg btn-secondary w-100" (click)="volver()">Volver</button>
+      </div>
+    </div>
+  </div>
+</div>

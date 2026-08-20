@@ -1,0 +1,22 @@
+<div class="modulo">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="true"
+    [accion]="'ConsultarTodos'"
+    [raiz]="'/administracion/operaciones/elementos-inventario'"
+    [regresar]="'/administracion/operaciones'"
+    [iconoTitulo]="'/assets/images/actividades.png'"
+  ></app-header>
+
+  <app-tablas
+    [titulos]="titulos"
+    [datos]="datos"
+    [raiz]="'/administracion/operaciones/elementos-inventario'"
+    [acciones]="acciones"
+    [accionEditar]="true"
+    [accionEliminar]="true"
+    [mostrarBuscar]="true"
+    [columnasFiltro]="columnasFiltro"
+    (clicAccion)="clicAccion($event)"
+  ></app-tablas>
+</div>

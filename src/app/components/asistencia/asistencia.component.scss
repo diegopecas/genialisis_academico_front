@@ -246,3 +246,40 @@
     font-size: 0.72rem;
   }
 }
+// Utiles y accesorios diarios dentro del panel de ingreso y salida
+.bloque-utiles {
+  .lista-utiles {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .item-util {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    margin: 0;
+    cursor: pointer;
+
+    & + .item-util {
+      border-top: 1px solid #f1f1f1;
+    }
+
+    .form-check-input {
+      width: 2.4rem;
+      height: 1.3rem;
+      cursor: pointer;
+    }
+
+    i {
+      width: 20px;
+      text-align: center;
+      color: #6c757d;
+    }
+
+    .nombre-util {
+      flex: 1;
+    }
+  }
+}

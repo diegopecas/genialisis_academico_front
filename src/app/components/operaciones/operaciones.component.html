@@ -9,14 +9,14 @@
 
         <div class="row justify-content-center">
             <!-- Actividades -->
-            <div class="col-lg-3 col-md-6 mb-4" *ngIf="tieneAlguno(['operaciones.galerias', 'operaciones.registro_medidas'])">
+            <div class="col-lg-3 col-md-6 mb-4" *ngIf="tieneAlguno(['operaciones.galerias', 'operaciones.registro_medidas', 'operaciones.utiles_diarios'])">
                 <div class="card-maestro menu-principal" [class.active]="menuActivo === 'actividades'" (click)="toggleMenu('actividades', $event)">
                     <div class="card-maestro-content">
                         <div class="icono-container actividades">
                             <img src="assets/images/actividades.png" alt="Actividades" />
                         </div>
                         <h3 class="card-titulo">Actividades</h3>
-                        <p class="card-descripcion">Registro de medidas y gestión de galerías</p>
+                        <p class="card-descripcion">Medidas, galerías y útiles diarios</p>
                         <div class="card-footer-custom">
                             <span class="link-accion">Ver opciones <i class="fas fa-chevron-down"></i></span>
                         </div>
@@ -33,6 +33,12 @@
                                 <div class="submenu-item" (click)="seleccionarOpcion('galerias')">
                                     <img src="assets/images/galeria.png" alt="Gestión de Galerías" />
                                     <span>Gestión de Galerías</span>
+                                </div>
+                            </div>
+                            <div class="col-6" *ngIf="permisosService.tienePermiso('operaciones.utiles_diarios')">
+                                <div class="submenu-item" (click)="seleccionarOpcion('utiles-diarios')">
+                                    <img src="assets/images/utiles-diarios.png" alt="Útiles y Accesorios Diarios" />
+                                    <span>Útiles y Accesorios Diarios</span>
                                 </div>
                             </div>
                         </div>

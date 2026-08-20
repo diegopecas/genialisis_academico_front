@@ -91,6 +91,41 @@
                     placeholder="Observaciones opcionales..."
                   ></textarea>
                 </div>
+                <div class="mb-3 bloque-utiles" *ngIf="listas.utiles.length > 0">
+                  <div class="d-flex align-items-center justify-content-between mb-2">
+                    <label class="form-label fw-bold m-0">
+                      <span *ngIf="tipoEventoActual === 'ingreso'">¿Qué trajo?</span>
+                      <span *ngIf="tipoEventoActual === 'salida'">¿Se lleva todo?</span>
+                    </label>
+                    <div class="d-flex gap-2">
+                      <button type="button" class="btn btn-sm btn-outline-secondary" (click)="alternarTodosLosUtiles()">
+                        {{ todosLosUtilesMarcados ? 'Ninguno' : 'Todos' }}
+                      </button>
+                      <button type="button" class="btn btn-sm btn-outline-secondary"
+                        *ngIf="tipoEventoActual === 'ingreso'" (click)="agregarUtilEnPanel()" title="Agregar útil">
+                        <i class="fas fa-plus"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="lista-utiles">
+                    <label class="item-util" *ngFor="let item of listas.utiles">
+                      <span class="form-check form-switch m-0">
+                        <input class="form-check-input m-0" type="checkbox" role="switch"
+                          [checked]="item.marcado" (change)="alternarUtil(item)">
+                      </span>
+                      <i *ngIf="item.icono" [class]="item.icono"></i>
+                      <span class="nombre-util">{{ item.nombre }}</span>
+                    </label>
+                  </div>
+
+                  <div class="alert alert-secondary py-2 mt-2 mb-0" *ngIf="tipoEventoActual === 'ingreso' && !hayUtilesMarcados">
+                    Si no marcas nada, no se registran los útiles de hoy. Lo puede hacer después la docente en clase.
+                  </div>
+                  <div class="alert alert-warning py-2 mt-2 mb-0" *ngIf="tipoEventoActual === 'salida' && hayUtilesPendientes">
+                    ⚠️ Queda registrado que se va sin lo desmarcado.
+                  </div>
+                </div>
                 <div class="mb-3">
                   <button class="btn btn-sm btn-outline-info" (click)="mostrarDetalleEstudiante(estudianteSeleccionadoCobro)">
                     👥 Ver personas autorizadas

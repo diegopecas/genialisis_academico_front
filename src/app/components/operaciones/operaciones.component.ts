@@ -32,6 +32,9 @@ export class OperacionesComponent {
       case 'galerias':
         this.router.navigate(['/operaciones/galerias']);
         break;
+      case 'utiles-diarios':
+        this.router.navigate(['/operaciones/utiles-diarios']);
+        break;
       case 'movimientos-inventario':
         this.router.navigate(['/operaciones/movimientos-productos']);
         break;

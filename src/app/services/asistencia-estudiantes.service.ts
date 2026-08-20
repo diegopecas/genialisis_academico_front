@@ -72,9 +72,11 @@ export class AsistenciaEstudiantesService {
       );
   }
 
-  registroIngreso(id: any, observacion: any) {
+  // utilesDiarios es opcional: es lo que la docente marco en el panel. Quien
+  // ya llamaba este metodo con dos parametros sigue funcionando igual.
+  registroIngreso(id: any, observacion: any, utilesDiarios: any[] = []) {
     const id_usuario = this.utilService.obtenerIdUsuarioActual();
-    const body = JSON.stringify({ id_estudiante: id, observacion: observacion, id_usuario: id_usuario });
+    const body = JSON.stringify({ id_estudiante: id, observacion: observacion, id_usuario: id_usuario, utiles_diarios: utilesDiarios });
 
     return this.http.post<any>(this.servicio, body, httpOptions).pipe(
       tap((respuesta: any) => {
@@ -90,9 +92,14 @@ export class AsistenciaEstudiantesService {
     );
   }
 
-  registroSalida(id: any, observacion: any) {
+  // inventarioNoRegresa es opcional: son los ids de inventario_diario que el
+  // nino NO se lleva. Quien ya llamaba este metodo con dos parametros sigue
+  // funcionando igual.
+  // utilesNoRegresa es opcional: son los ids del registro de utiles que el
+  // nino NO se lleva. Quien ya llamaba con dos parametros sigue igual.
+  registroSalida(id: any, observacion: any, utilesNoRegresa: any[] = []) {
     const id_usuario = this.utilService.obtenerIdUsuarioActual();
-    const body = JSON.stringify({ id: id, observacion: observacion, id_usuario: id_usuario });
+    const body = JSON.stringify({ id: id, observacion: observacion, id_usuario: id_usuario, utiles_no_regresa: utilesNoRegresa });
     console.log("registroSalida", body)
     return this.http.put<any>(this.servicio, body, httpOptions).pipe(
       tap((respuesta: any) => {

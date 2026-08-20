@@ -16,6 +16,7 @@ import { BuscarComponent } from '../../common/buscar/buscar.component';
 import { GruposService } from '../../services/grupos.service';
 import { UtilService } from '../../common/constantes/util.service';
 import { SearchPipeGeneral } from '../../common/pipes/search';
+import { RegistroUtilesDiariosService } from '../../services/utiles-diarios-registro.service';
 
 @Component({
   selector: 'app-asistencia',
@@ -36,6 +37,9 @@ export class AsistenciaComponent implements OnInit {
     noIngresos: [] as any[],
     noSalidas: [] as any[],
     grupos: [] as any[],
+    // Utiles y accesorios del nino seleccionado en el panel. En ingreso se
+    // marca lo que trajo; en salida, lo que se lleva de vuelta.
+    utiles: [] as any[],
   };
 
   public model = {
@@ -95,7 +99,8 @@ export class AsistenciaComponent implements OnInit {
     private tiposIdentificacionService: TiposIdentificacionService,
     private tiposAcudienteService: TiposAcudienteService,
     private utilService: UtilService,
-    private searchPipeGeneral: SearchPipeGeneral
+    private searchPipeGeneral: SearchPipeGeneral,
+    private registroUtilesDiariosService: RegistroUtilesDiariosService
   ) { }
 
   ngOnInit(): void {
@@ -223,6 +228,116 @@ export class AsistenciaComponent implements OnInit {
    * Devuelve la fecha actual en formato YYYY-MM-DD usando hora local (no UTC).
    * No usar new Date().toISOString().split('T')[0] porque convierte a UTC y desfasa el día.
    */
+  // Utiles del dia del nino. En ingreso se pide la propuesta, que el backend
+  // arma sin escribir nada: si la docente cancela, no puede quedar creado un
+  // registro que nadie reviso.
+  //
+  // Arrancan TODOS DESMARCADOS a proposito. Si la docente no alcanza a revisar
+  // la maleta y confirma sin tocar nada, no se registra nada; lo hara despues
+  // la docente principal desde la grilla de Operaciones.
+  consultaUtiles(estudiante: any) {
+    this.listas.utiles = [];
+    const idEstudiante = estudiante.id_estudiante || estudiante.id;
+    if (!idEstudiante) return;
+
+    const fecha = this.obtenerFechaActual();
+
+    if (this.tipoEventoActual === 'salida') {
+      this.registroUtilesDiariosService.obtenerPorEstudiante(idEstudiante, fecha).subscribe({
+        next: (response: any) => {
+          const body = (response.body as any[]) || [];
+          // En salida solo tiene sentido revisar lo que el nino trajo: no se
+          // puede llevar lo que nunca entro. Y aqui si arranca marcado, porque
+          // lo normal es que se lleve todo.
+          this.listas.utiles = body.filter((i: any) => i.trajo == 1);
+          this.listas.utiles.forEach((item: any) => {
+            item.marcado = (item.regreso === null || item.regreso === undefined) ? true : item.regreso == 1;
+          });
+        },
+        error: (error) => {
+          console.error('Error al consultar los utiles del dia:', error);
+          this.listas.utiles = [];
+        }
+      });
+      return;
+    }
+
+    this.registroUtilesDiariosService.obtenerPropuesta(idEstudiante, fecha).subscribe({
+      next: (response: any) => {
+        const body = (response.body as any[]) || [];
+        this.listas.utiles = body.map((item: any) => ({ ...item, marcado: false }));
+      },
+      error: (error) => {
+        console.error('Error al consultar los utiles del dia:', error);
+        this.listas.utiles = [];
+      }
+    });
+  }
+
+  // Marcar o desmarcar todo de una, para cuando la docente si alcanzo a
+  // revisar y el nino trajo todo.
+  get todosLosUtilesMarcados(): boolean {
+    return this.listas.utiles.length > 0 && this.listas.utiles.every((item: any) => item.marcado);
+  }
+
+  alternarTodosLosUtiles() {
+    const valor = !this.todosLosUtilesMarcados;
+    this.listas.utiles.forEach((item: any) => item.marcado = valor);
+  }
+
+  // Agrega un util suelto a este nino, en un solo paso.
+  async agregarUtilEnPanel() {
+    const { value: texto } = await Swal.fire({
+      title: 'Agregar útil',
+      input: 'text',
+      inputPlaceholder: 'Ej: Inhalador',
+      showCancelButton: true,
+      confirmButtonText: 'Agregar',
+      cancelButtonText: 'Cancelar'
+    });
+
+    if (!texto || texto.trim() === '') return;
+
+    this.listas.utiles.push({
+      id: null,
+      id_util_diario: null,
+      nombre_libre: texto.trim(),
+      nombre: texto.trim(),
+      marcado: true
+    });
+  }
+
+  // Lo que se manda al registrar el ingreso: la lista completa con su marcado.
+  // El backend aplica la regla de todo o nada.
+  private obtenerUtilesParaGuardar(): any[] {
+    return this.listas.utiles.map((item: any) => ({
+      id_util_diario: item.id_util_diario || null,
+      nombre_libre: item.nombre_libre || null,
+      marcado: !!item.marcado
+    }));
+  }
+
+  alternarUtil(item: any) {
+    item.marcado = !item.marcado;
+  }
+
+  // Ids de las filas que la usuaria dejo desmarcadas. En la salida viajan al
+  // backend para que las marque como no regresadas.
+  private obtenerUtilesNoMarcados(): any[] {
+    return this.listas.utiles
+      .filter((item: any) => !item.marcado)
+      .map((item: any) => item.id);
+  }
+
+  // Si no hay ni uno marcado, no se registra nada: es la regla de todo o nada.
+  get hayUtilesMarcados(): boolean {
+    return this.listas.utiles.some((item: any) => item.marcado);
+  }
+
+  get hayUtilesPendientes(): boolean {
+    return this.listas.utiles.some((item: any) => !item.marcado);
+  }
+
   private obtenerFechaActual(): string {
     const ahora = new Date();
     const año = ahora.getFullYear();
@@ -254,6 +369,7 @@ export class AsistenciaComponent implements OnInit {
     this.observacionActual = '';
     this.cobrosDetectados = [];
     this.mostrarPanelCobros = true;
+    this.consultaUtiles(estudiante);
     this.evaluarReglasIngreso(estudiante);
   }
 
@@ -264,6 +380,7 @@ export class AsistenciaComponent implements OnInit {
     this.observacionActual = '';
     this.cobrosDetectados = [];
     this.mostrarPanelCobros = true;
+    this.consultaUtiles(estudiante);
     this.evaluarReglasSalida(estudiante);
   }
 
@@ -358,7 +475,7 @@ export class AsistenciaComponent implements OnInit {
       const body = response.body as any[];
       const noIngresado = body.some(obj => obj.id === estudiante.id);
       if (noIngresado) {
-        this.asistenciaEstudiantesService.registroIngreso(estudiante.id, this.observacionActual).subscribe((response: any) => {
+        this.asistenciaEstudiantesService.registroIngreso(estudiante.id, this.observacionActual, this.obtenerUtilesParaGuardar()).subscribe((response: any) => {
           if (response) {
             const idAsistencia = response.body?.id || response.id;
             this.avisarObservacionEstudiante(
@@ -388,7 +505,8 @@ export class AsistenciaComponent implements OnInit {
       const body = response.body as any[];
       const noSalida = body.some(obj => obj.id_estudiante === estudiante.id_estudiante);
       if (noSalida) {
-        this.asistenciaEstudiantesService.registroSalida(estudiante.id, this.observacionActual).subscribe((response: any) => {
+        const utilesNoRegresa = this.obtenerUtilesNoMarcados();
+        this.asistenciaEstudiantesService.registroSalida(estudiante.id, this.observacionActual, utilesNoRegresa).subscribe((response: any) => {
           if (response) {
             const idAsistencia = estudiante.id;
             const filas = response.body || response;
