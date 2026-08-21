@@ -8,13 +8,65 @@
         [iconoTitulo]="'/assets/images/notificacion-envio.png'">
     </app-header>
 
+    <!-- Barra de pestañas DESKTOP -->
+    <div class="tabs-container tabs-desktop" *ngIf="esEdicion">
+        <div class="tabs-nav">
+            <button
+                class="tab-item"
+                [class.active]="pestanaActiva === 'datos'"
+                (click)="pestanaActiva = 'datos'">
+                <i class="fas fa-file-lines"></i>
+                Datos
+            </button>
+            <button
+                class="tab-item"
+                [class.active]="pestanaActiva === 'acuses'"
+                (click)="pestanaActiva = 'acuses'">
+                <i class="fas fa-envelope-open-text"></i>
+                Envíos y lectura
+            </button>
+        </div>
+    </div>
+
+    <!-- Barra de pestañas MOVIL (hamburguesa) -->
+    <div class="tabs-container tabs-movil" *ngIf="esEdicion">
+        <div class="tabs-movil-header">
+            <button class="tabs-movil-trigger" (click)="menuMovilAbierto = !menuMovilAbierto">
+                <i class="fas" [ngClass]="menuMovilAbierto ? 'fa-times' : 'fa-bars'"></i>
+                <span class="tabs-movil-label">
+                    <ng-container [ngSwitch]="pestanaActiva">
+                        <ng-container *ngSwitchCase="'datos'"><i class="fas fa-file-lines"></i> Datos</ng-container>
+                        <ng-container *ngSwitchCase="'acuses'"><i class="fas fa-envelope-open-text"></i> Envíos y lectura</ng-container>
+                    </ng-container>
+                </span>
+                <i class="fas fa-chevron-down tabs-movil-chevron" [class.rotado]="menuMovilAbierto"></i>
+            </button>
+        </div>
+        <div class="tabs-movil-dropdown" *ngIf="menuMovilAbierto">
+            <button
+                class="tabs-movil-item"
+                [class.active]="pestanaActiva === 'datos'"
+                (click)="seleccionarPestana('datos')">
+                <i class="fas fa-file-lines"></i>
+                Datos
+            </button>
+            <button
+                class="tabs-movil-item"
+                [class.active]="pestanaActiva === 'acuses'"
+                (click)="seleccionarPestana('acuses')">
+                <i class="fas fa-envelope-open-text"></i>
+                Envíos y lectura
+            </button>
+        </div>
+    </div>
+
     <div class="container-fluid mt-4">
 
-        <div class="alert alert-info" *ngIf="esEdicion">
+        <div class="alert alert-info" *ngIf="esEdicion && pestanaActiva === 'datos'">
             Está editando una notificación ya enviada. Se corrige el contenido; los destinatarios y sus respuestas no cambian.
         </div>
 
-        <div class="row">
+        <div class="row tab-content" *ngIf="!esEdicion || pestanaActiva === 'datos'">
 
             <div class="col-lg-6 mb-4">
                 <div class="tarjeta">
@@ -211,10 +263,9 @@
         </div>
 
         <!-- ACUSES: solo al editar una notificación ya enviada -->
-        <div class="row" *ngIf="esEdicion">
+        <div class="row tab-content" *ngIf="esEdicion && pestanaActiva === 'acuses'">
             <div class="col-12">
                 <div class="tarjeta">
-                    <h5 class="tarjeta-titulo">Envíos y lectura</h5>
 
                     <p class="text-muted" *ngIf="cargandoAcuses">Cargando...</p>
 
@@ -292,7 +343,7 @@
 
     <div class="container mt-4">
         <div class="row">
-            <div class="col-sm-6" *ngIf="editable">
+            <div class="col-sm-6" *ngIf="editable && (!esEdicion || pestanaActiva === 'datos')">
                 <button class="btn btn-lg btn-warning w-100" (click)="guardar()" [disabled]="enviando">
                     <span *ngIf="!enviando">{{ esEdicion ? 'Grabar' : 'Enviar notificación' }}</span>
                     <span *ngIf="enviando">Procesando...</span>

@@ -83,6 +83,11 @@ export class CrearNotificacionComponent implements OnInit {
   public filtroAcuses: string = 'todos';
   public cargandoAcuses = false;
 
+  // Pestañas del formulario. Solo se muestran al editar, que es cuando
+  // ademas del contenido hay acuses que revisar.
+  public pestanaActiva: string = 'datos';
+  public menuMovilAbierto: boolean = false;
+
   model = {
     id: null,
     titulo: '',
@@ -181,6 +186,11 @@ export class CrearNotificacionComponent implements OnInit {
         Swal.fire('Error', 'No se pudo cargar la notificación', 'error');
       }
     });
+  }
+
+  seleccionarPestana(pestana: string) {
+    this.pestanaActiva = pestana;
+    this.menuMovilAbierto = false;
   }
 
   cargarAcuses(idNotificacion: any) {
