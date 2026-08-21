@@ -74,9 +74,13 @@ export class AsistenciaEstudiantesService {
 
   // utilesDiarios es opcional: es lo que la docente marco en el panel. Quien
   // ya llamaba este metodo con dos parametros sigue funcionando igual.
-  registroIngreso(id: any, observacion: any, utilesDiarios: any[] = []) {
+  // notificar es opcional: indica si este endpoint debe avisarle al portal de
+  // padres. Se manda en false cuando enseguida se van a ejecutar cobros, para
+  // que sea el motor de cobros el que notifique y el mensaje los incluya.
+  // Quien ya llamaba este metodo con dos o tres parametros sigue igual.
+  registroIngreso(id: any, observacion: any, utilesDiarios: any[] = [], notificar: boolean = true) {
     const id_usuario = this.utilService.obtenerIdUsuarioActual();
-    const body = JSON.stringify({ id_estudiante: id, observacion: observacion, id_usuario: id_usuario, utiles_diarios: utilesDiarios });
+    const body = JSON.stringify({ id_estudiante: id, observacion: observacion, id_usuario: id_usuario, utiles_diarios: utilesDiarios, notificar: notificar });
 
     return this.http.post<any>(this.servicio, body, httpOptions).pipe(
       tap((respuesta: any) => {
@@ -97,9 +101,10 @@ export class AsistenciaEstudiantesService {
   // funcionando igual.
   // utilesNoRegresa es opcional: son los ids del registro de utiles que el
   // nino NO se lleva. Quien ya llamaba con dos parametros sigue igual.
-  registroSalida(id: any, observacion: any, utilesNoRegresa: any[] = []) {
+  // notificar: mismo criterio que en registroIngreso.
+  registroSalida(id: any, observacion: any, utilesNoRegresa: any[] = [], notificar: boolean = true) {
     const id_usuario = this.utilService.obtenerIdUsuarioActual();
-    const body = JSON.stringify({ id: id, observacion: observacion, id_usuario: id_usuario, utiles_no_regresa: utilesNoRegresa });
+    const body = JSON.stringify({ id: id, observacion: observacion, id_usuario: id_usuario, utiles_no_regresa: utilesNoRegresa, notificar: notificar });
     console.log("registroSalida", body)
     return this.http.put<any>(this.servicio, body, httpOptions).pipe(
       tap((respuesta: any) => {

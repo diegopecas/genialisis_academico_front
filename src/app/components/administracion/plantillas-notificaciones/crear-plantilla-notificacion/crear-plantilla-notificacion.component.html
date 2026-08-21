@@ -1,0 +1,170 @@
+<div class="modulo">
+    <app-header
+        [tituloModulo]="titulo"
+        [mostrarCrear]="false"
+        [accion]="accion"
+        [raiz]="'/administracion/datos-maestros/plantillas-notificaciones'"
+        [regresar]="regresar"
+        [iconoTitulo]="'/assets/images/notificaciones.png'">
+    </app-header>
+
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-lg-8">
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="nombre" class="form-label">Nombre de la plantilla <span class="text-danger">*</span></label>
+                        <input
+                            class="form-control"
+                            type="text"
+                            id="nombre"
+                            maxlength="150"
+                            [(ngModel)]="model.nombre"
+                            placeholder="Ej: Salida temprano"
+                            required
+                            [ngClass]="{'is-invalid': !model.nombre && submitted}"
+                            [disabled]="!editable">
+                        <small class="form-text text-muted">Con este nombre la encontrará al enviar</small>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="categoria" class="form-label">Categoría</label>
+                        <select class="form-select" id="categoria" [(ngModel)]="model.id_categoria" [disabled]="!editable">
+                            <option value="">Sin categoría</option>
+                            <option *ngFor="let categoria of categorias" [value]="categoria.id">{{ categoria.nombre }}</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="descripcion" class="form-label">Descripción</label>
+                    <input
+                        class="form-control"
+                        type="text"
+                        id="descripcion"
+                        maxlength="300"
+                        [(ngModel)]="model.descripcion"
+                        placeholder="Para qué sirve esta plantilla"
+                        [disabled]="!editable">
+                </div>
+
+                <div class="mb-3">
+                    <label for="campo_titulo" class="form-label">Título <span class="text-danger">*</span></label>
+                    <input
+                        class="form-control"
+                        type="text"
+                        id="campo_titulo"
+                        maxlength="255"
+                        [(ngModel)]="model.titulo"
+                        (focus)="marcarCampoActivo('titulo')"
+                        placeholder="Ej: Salida temprano hoy"
+                        required
+                        [ngClass]="{'is-invalid': !model.titulo && submitted}"
+                        [disabled]="!editable">
+                </div>
+
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <label for="campo_cuerpo" class="form-label mb-0">Mensaje <span class="text-danger">*</span></label>
+                        <div *ngIf="editable">
+                            <button type="button" class="btn btn-sm btn-outline-secondary me-1"
+                                *ngIf="cuerpoAnterior !== null" (click)="deshacerMejora()">
+                                Deshacer
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-primary"
+                                (click)="mejorarConIa()" [disabled]="mejorando">
+                                <span *ngIf="!mejorando">✨ Sugerir con IA</span>
+                                <span *ngIf="mejorando">Redactando...</span>
+                            </button>
+                        </div>
+                    </div>
+                    <textarea
+                        class="form-control mt-2"
+                        id="campo_cuerpo"
+                        rows="7"
+                        [(ngModel)]="model.cuerpo"
+                        (focus)="marcarCampoActivo('cuerpo')"
+                        placeholder="Ej: Hoy tenemos salida a las {hora}. Por favor recoger a {nombre_estudiante} puntualmente."
+                        required
+                        [ngClass]="{'is-invalid': !model.cuerpo && submitted}"
+                        [disabled]="!editable"></textarea>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="respuesta" class="form-label">Pedir respuesta</label>
+                        <select class="form-select" id="respuesta" [(ngModel)]="model.id_respuesta_tipo" [disabled]="!editable">
+                            <option value="">Sin respuesta (solo informativa)</option>
+                            <option *ngFor="let tipo of tiposRespuesta" [value]="tipo.id">{{ tipo.nombre }}</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6 mb-3 d-flex align-items-end">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="incluirWhatsapp"
+                                [(ngModel)]="model.incluir_whatsapp" [disabled]="!editable">
+                            <label class="form-check-label" for="incluirWhatsapp">Incluir botón de WhatsApp</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3" *ngIf="variablesDetectadas.length > 0">
+                    <label class="form-label">Datos que se piden al enviar</label>
+                    <div class="variable-llenado" *ngFor="let variable of variablesDetectadas">
+                        <code>{{ marcador(variable) }}</code>
+                        <input type="text" class="form-control form-control-sm"
+                            [value]="etiquetaDe(variable)"
+                            (input)="cambiarEtiqueta(variable, $any($event.target).value)"
+                            [placeholder]="'Etiqueta para ' + variable"
+                            [disabled]="!editable">
+                    </div>
+                    <small class="form-text text-muted">Estas variables las escribe quien envía la notificación</small>
+                </div>
+
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="activo"
+                        [checked]="model.activo == 1"
+                        (change)="model.activo = $any($event.target).checked ? 1 : 0"
+                        [disabled]="!editable">
+                    <label class="form-check-label" for="activo">Plantilla activa</label>
+                </div>
+
+            </div>
+
+            <div class="col-lg-4">
+                <div class="panel-ayuda mb-3">
+                    <h6>Variables automáticas</h6>
+                    <p class="text-muted small">Las reemplaza el sistema con los datos de cada familia. Haga clic para insertarlas.</p>
+                    <button type="button" class="btn btn-sm btn-outline-secondary me-1 mb-1"
+                        *ngFor="let variable of variablesAutomaticas"
+                        (click)="insertarVariable(variable.variable)"
+                        [title]="variable.descripcion"
+                        [disabled]="!editable">
+                        {{ marcador(variable.variable) }}
+                    </button>
+                </div>
+
+                <div class="panel-ayuda">
+                    <h6>Vista previa</h6>
+                    <div class="vista-previa">{{ vistaPrevia }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-sm-6" *ngIf="editable">
+                <button class="btn btn-lg btn-warning w-100" (click)="guardar()">
+                    Grabar
+                </button>
+            </div>
+            <div class="col-sm-6">
+                <button class="btn btn-lg btn-secondary w-100" (click)="volver()">
+                    Volver
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

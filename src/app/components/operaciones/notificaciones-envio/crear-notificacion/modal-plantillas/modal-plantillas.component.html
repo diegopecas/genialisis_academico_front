@@ -1,0 +1,127 @@
+<div class="modal-fondo" (click)="cerrarModal()"></div>
+
+<div class="modal-caja">
+
+    <div class="modal-cabecera">
+        <h5 class="mb-0">
+            <span *ngIf="vista === 'lista'">Plantillas</span>
+            <span *ngIf="vista === 'variables'">{{ seleccionada?.nombre }}</span>
+            <span *ngIf="vista === 'crear'">Nueva plantilla</span>
+        </h5>
+        <button type="button" class="btn-cerrar" (click)="cerrarModal()">&times;</button>
+    </div>
+
+    <div class="modal-cuerpo">
+
+        <div class="alert alert-danger" *ngIf="mensajeError">{{ mensajeError }}</div>
+
+        <!-- LISTADO -->
+        <div *ngIf="vista === 'lista'">
+            <div class="d-flex gap-2 mb-3">
+                <input type="text" class="form-control form-control-sm" [(ngModel)]="filtroTexto"
+                    placeholder="Buscar plantilla..." />
+                <button type="button" class="btn btn-sm btn-primary text-nowrap" (click)="irACrear()">Nueva</button>
+            </div>
+
+            <p class="text-muted" *ngIf="cargando">Cargando...</p>
+
+            <div class="lista-plantillas">
+                <div class="plantilla" *ngFor="let plantilla of plantillasFiltradas" (click)="elegir(plantilla)">
+                    <div class="plantilla-nombre">
+                        {{ plantilla.nombre }}
+                        <span class="badge ms-2" *ngIf="plantilla.categoria_nombre"
+                            [style.background-color]="plantilla.categoria_color || '#6c757d'">
+                            {{ plantilla.categoria_nombre }}
+                        </span>
+                    </div>
+                    <div class="plantilla-titulo">{{ plantilla.titulo }}</div>
+                    <div class="plantilla-cuerpo">{{ plantilla.cuerpo }}</div>
+                </div>
+
+                <p class="text-center text-muted mt-3" *ngIf="plantillasFiltradas.length === 0 && !cargando">
+                    No hay plantillas todavía. Cree una con el botón Nueva.
+                </p>
+            </div>
+        </div>
+
+        <!-- LLENAR VARIABLES -->
+        <div *ngIf="vista === 'variables'">
+            <p class="text-muted">Complete los datos que cambian en cada envío.</p>
+
+            <div class="mb-3" *ngFor="let variable of variablesSeleccionada">
+                <label class="form-label">{{ variable.etiqueta }}</label>
+                <input type="text" class="form-control" [(ngModel)]="valores[variable.variable]"
+                    [placeholder]="variable.etiqueta" />
+            </div>
+
+            <div class="previsualizacion">{{ seleccionada?.cuerpo }}</div>
+        </div>
+
+        <!-- CREAR RAPIDO -->
+        <div *ngIf="vista === 'crear'">
+            <div class="mb-3">
+                <label class="form-label">Nombre de la plantilla</label>
+                <input type="text" class="form-control" maxlength="150" [(ngModel)]="nueva.nombre"
+                    placeholder="Ej: Salida temprano" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Título</label>
+                <input type="text" class="form-control" maxlength="255" [(ngModel)]="nueva.titulo" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Mensaje</label>
+                <textarea class="form-control" rows="5" [(ngModel)]="nueva.cuerpo"
+                    placeholder="Escriba entre llaves lo que cambia cada vez, por ejemplo {hora}"></textarea>
+                <small class="text-muted">
+                    Automáticas: &#123;nombre_estudiante&#125;, &#123;nombre_acudiente&#125;, &#123;grupo&#125;, &#123;nombre_colegio&#125;
+                </small>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Categoría</label>
+                    <select class="form-select" [(ngModel)]="nueva.id_categoria">
+                        <option value="">Sin categoría</option>
+                        <option *ngFor="let categoria of categorias" [value]="categoria.id">{{ categoria.nombre }}</option>
+                    </select>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Pedir respuesta</label>
+                    <select class="form-select" [(ngModel)]="nueva.id_respuesta_tipo">
+                        <option value="">Sin respuesta</option>
+                        <option *ngFor="let tipo of tiposRespuesta" [value]="tipo.id">{{ tipo.nombre }}</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="chkWaNueva" [(ngModel)]="nueva.incluir_whatsapp" />
+                <label class="form-check-label" for="chkWaNueva">Incluir botón de WhatsApp</label>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="modal-pie">
+        <button type="button" class="btn btn-outline-secondary" *ngIf="vista !== 'lista'" (click)="volverALista()">
+            Volver
+        </button>
+        <button type="button" class="btn btn-outline-secondary" *ngIf="vista === 'lista'" (click)="cerrarModal()">
+            Cancelar
+        </button>
+
+        <button type="button" class="btn btn-primary" *ngIf="vista === 'variables'"
+            (click)="confirmarVariables()" [disabled]="faltanValores">
+            Usar plantilla
+        </button>
+
+        <button type="button" class="btn btn-primary" *ngIf="vista === 'crear'"
+            (click)="guardarNueva()" [disabled]="guardando">
+            <span *ngIf="!guardando">Crear y usar</span>
+            <span *ngIf="guardando">Guardando...</span>
+        </button>
+    </div>
+
+</div>

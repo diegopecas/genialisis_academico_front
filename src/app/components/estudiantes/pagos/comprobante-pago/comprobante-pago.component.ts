@@ -128,11 +128,14 @@ export class ComprobantePagoComponent implements OnInit {
   }
 
   compartirPorWhatsApp(): void {
-    const mensaje = `*Comprobante de Pago N° ${this.pago.id}*
+    // Sin el numero: hasta la migracion a UUID el id servia de consecutivo,
+    // pero hoy es una cadena larga que no le dice nada al acudiente. Vuelve
+    // cuando exista un numero de comprobante de verdad por tenant.
+    const mensaje = `*Comprobante de Pago*
 📆 Fecha: ${this.formatearFecha(this.pago.fecha)}
-👨‍🎓 Estudiante: ${this.estudiante.nombre}
+👨‍🎓 Estudiante: ${this.estudiante?.nombre || ''}
 💰 Valor recibido: ${this.formatearMoneda(this.pago.valor_recibido)}
-🧾 Tipo de pago: ${this.tipoPago.nombre}
+🧾 Tipo de pago: ${this.tipoPago?.nombre || 'No especificado'}
 
 Este es un comprobante de pago del ${this.nombreInstitucion}. Gracias por su pago.`;
 

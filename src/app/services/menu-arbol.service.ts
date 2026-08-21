@@ -254,7 +254,9 @@ export class MenuArbolService {
             hijos: [
               { id: 'operaciones-recordatorio-pagos', label: 'Recordatorio Pagos', icono: '💬', ruta: '/operaciones/recordatorio-pagos', permiso: 'operaciones.recordatorio_pagos', keywords: ['cobro', 'whatsapp'] },
               { id: 'operaciones-seguimiento-asistencia', label: 'Seguimiento Asistencia', icono: '📋', ruta: '/operaciones/seguimiento-asistencia', permiso: 'operaciones.seguimiento_asistencia', keywords: ['faltas', 'inasistencia'] },
-              { id: 'operaciones-recordatorios-generales', label: 'Recordatorios Generales', icono: '📢', ruta: '/operaciones/recordatorios-generales', permiso: 'operaciones.recordatorios_generales', keywords: ['avisos', 'notificaciones', 'whatsapp'] }
+              { id: 'operaciones-recordatorios-generales', label: 'Recordatorios Generales', icono: '📢', ruta: '/operaciones/recordatorios-generales', permiso: 'operaciones.recordatorios_generales', keywords: ['avisos', 'notificaciones', 'whatsapp'] },
+              { id: 'operaciones-notificaciones-envio', label: 'Envío de Notificaciones', icono: '📨', ruta: '/operaciones/notificaciones-envio', permiso: 'operaciones.notificaciones_envio', keywords: ['notificaciones', 'avisos', 'circulares', 'comunicados', 'push', 'padres'] },
+              { id: 'operaciones-notificaciones-monitoreo', label: 'Monitoreo de Notificaciones', icono: '📊', ruta: '/operaciones/notificaciones-monitoreo', permiso: 'operaciones.notificaciones_monitoreo', keywords: ['notificaciones', 'seguimiento', 'acuse', 'lectura', 'respuestas'] }
             ]
           }
         ]
@@ -418,6 +420,7 @@ export class MenuArbolService {
             keywords: ['whatsapp', 'mensajes', 'wa'],
             hijos: [
               { id: 'administracion-plantillas-whatsapp', label: 'Plantillas WhatsApp', icono: '💬', ruta: '/administracion/datos-maestros/plantillas-whatsapp', permiso: 'admin.plantillas_whatsapp', keywords: ['whatsapp', 'wa', 'mensajes'] },
+              { id: 'administracion-plantillas-notificaciones', label: 'Plantillas de Notificaciones', icono: '📃', ruta: '/administracion/datos-maestros/plantillas-notificaciones', permiso: 'admin.plantillas_notificaciones', keywords: ['plantillas', 'notificaciones', 'avisos', 'circulares', 'textos'] },
               { id: 'administracion-conectar-whatsapp', label: 'Conexión WhatsApp', icono: '🔌', ruta: '/administracion/datos-maestros/conectar-whatsapp', permiso: 'admin.conectar_whatsapp', keywords: ['whatsapp', 'wa', 'conectar'] }
             ]
           },

@@ -125,11 +125,12 @@ export class ComprobantePagoColaboradorComponent implements OnInit {
   }
 
   compartirPorWhatsApp(): void {
-    const mensaje = `*Comprobante de Pago N° ${this.pago.id}*
+    // Sin el numero, por la misma razon que en la vista.
+    const mensaje = `*Comprobante de Pago*
 📆 Fecha: ${this.formatearFecha(this.pago.fecha)}
-👤 Colaborador: ${this.colaborador.nombre}
+👤 Colaborador: ${this.colaborador?.nombre || ''}
 💰 Valor recibido: ${this.formatearMoneda(this.pago.valor_recibido)}
-🧾 Tipo de pago: ${this.tipoPago.nombre}
+🧾 Tipo de pago: ${this.tipoPago?.nombre || 'No especificado'}
 
 Este es un comprobante de pago del ${this.nombreInstitucion}. Gracias por su pago.`;
 

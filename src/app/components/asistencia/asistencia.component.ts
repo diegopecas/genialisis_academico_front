@@ -521,7 +521,12 @@ export class AsistenciaComponent implements OnInit {
       const body = response.body as any[];
       const noIngresado = body.some(obj => obj.id === estudiante.id);
       if (noIngresado) {
-        this.asistenciaEstudiantesService.registroIngreso(estudiante.id, this.observacionActual, this.obtenerUtilesParaGuardar()).subscribe((response: any) => {
+        // Si hay cobros seleccionados, la notificacion al portal de padres la
+        // dispara el motor de cobros al terminar, para que el mensaje los
+        // incluya. Aqui se avisa que no notifique todavia.
+        const notificarDesdeAsistencia = !this.hayCobrosSeleccionados();
+
+        this.asistenciaEstudiantesService.registroIngreso(estudiante.id, this.observacionActual, this.obtenerUtilesParaGuardar(), notificarDesdeAsistencia).subscribe((response: any) => {
           if (response) {
             const idAsistencia = response.body?.id || response.id;
             this.avisarObservacionEstudiante(
@@ -552,7 +557,10 @@ export class AsistenciaComponent implements OnInit {
       const noSalida = body.some(obj => obj.id_estudiante === estudiante.id_estudiante);
       if (noSalida) {
         const utilesNoRegresa = this.obtenerUtilesNoMarcados();
-        this.asistenciaEstudiantesService.registroSalida(estudiante.id, this.observacionActual, utilesNoRegresa).subscribe((response: any) => {
+        // Mismo criterio que en el ingreso.
+        const notificarDesdeAsistencia = !this.hayCobrosSeleccionados();
+
+        this.asistenciaEstudiantesService.registroSalida(estudiante.id, this.observacionActual, utilesNoRegresa, notificarDesdeAsistencia).subscribe((response: any) => {
           if (response) {
             const idAsistencia = estudiante.id;
             const filas = response.body || response;
@@ -578,6 +586,14 @@ export class AsistenciaComponent implements OnInit {
     });
   }
 
+  /**
+   * Indica si el usuario dejo marcado algun cobro para ejecutar. De eso
+   * depende cual de los dos endpoints notifica al portal de padres.
+   */
+  private hayCobrosSeleccionados(): boolean {
+    return this.cobrosDetectados.some(c => c.seleccionado);
+  }
+
   private ejecutarCobrosAutomaticos(estudiante: any, idAsistencia: any) {
     const cobrosSeleccionados = this.cobrosDetectados.filter(c => c.seleccionado);
 
@@ -589,6 +605,10 @@ export class AsistenciaComponent implements OnInit {
     const idEstudiante = estudiante.id_estudiante || estudiante.id;
     const idUsuario = this.utilService.obtenerIdUsuarioActual();
 
+    // El tipo del movimiento viaja para que el backend redacte bien la
+    // notificacion: en la salida el registro ya existia desde la manana.
+    const tipoAsistencia = estudiante.id_estudiante ? 'salida' : 'ingreso';
+
     const data = {
       cobros: cobrosSeleccionados.map(c => ({
         id_regla: c.id_regla,
@@ -596,6 +616,7 @@ export class AsistenciaComponent implements OnInit {
         id_asistencia: idAsistencia,
         valor: c.valor
       })),
+      tipo_asistencia: tipoAsistencia,
       id_estudiante: idEstudiante,
       id_usuario: idUsuario,
       fecha: this.obtenerFechaActual()

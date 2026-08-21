@@ -29,7 +29,10 @@ export class MotorCobrosAutomaticosService {
     );
   }
 
-  ejecutar(data: { cobros: any[], id_estudiante: any, id_usuario: any, fecha?: string }) {
+  // tipo_asistencia es opcional: le dice al backend si el movimiento fue un
+  // ingreso o una salida, para redactar la notificacion al portal de padres.
+  // Si no se manda, el backend lo deduce de la fila de asistencia.
+  ejecutar(data: { cobros: any[], id_estudiante: any, id_usuario: any, fecha?: string, tipo_asistencia?: string }) {
     const body = JSON.stringify(data);
     return this.http.post<any>(this.servicio + '/ejecutar', body, httpOptions).pipe(
       tap((respuesta: any) => {

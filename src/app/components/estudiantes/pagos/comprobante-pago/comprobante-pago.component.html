@@ -28,7 +28,10 @@
     </div>
     <div class="datos-comprobante">
       <h2 class="titulo-comprobante">COMPROBANTE DE PAGO</h2>
-      <p class="numero-comprobante">No. {{pago.id}}</p>
+      <!-- El numero de comprobante queda oculto a proposito. Antes se imprimia
+           el id, que desde la migracion a UUID es una cadena larga sin sentido
+           para el papa ni para contabilidad. Se vuelve a mostrar cuando exista
+           un consecutivo de verdad por tenant. -->
       <p class="fecha-comprobante">Fecha: {{formatearFecha(pago.fecha)}}</p>
     </div>
   </div>

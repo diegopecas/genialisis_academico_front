@@ -87,12 +87,15 @@ export class ExportarPdfComprobanteService {
       // Logo dentro del círculo - más pequeño y centrado
       doc.addImage(datos.logoBase64, 'PNG', 22, yPos + 2, 20, 20);
     } else {
-      // Círculo con iniciales si no hay logo
+      // Círculo con iniciales si no hay logo. Las iniciales salen del nombre
+      // de la institución: antes estaban quemadas en 'LL' y en cualquier
+      // jardín que no fuera Lumen quedaban mal.
       doc.setFillColor(34, 34, 34);
       doc.circle(30, yPos + 10, 12, 'F');
       doc.setFontSize(14);
       doc.setTextColor(goldColor);
-      doc.text('LL', 30, yPos + 10, { align: 'center', baseline: 'middle' });
+      doc.text(this.obtenerIniciales(this.institucionConfigService.getNombreInstitucion()),
+        30, yPos + 10, { align: 'center', baseline: 'middle' });
     }
 
     // Información de la institución - DINÁMICO
@@ -100,34 +103,80 @@ export class ExportarPdfComprobanteService {
     const direccionInstitucion = this.institucionConfigService.getDireccionInstitucion();
     const nitInstitucion = this.institucionConfigService.getNitInstitucion();
 
-    doc.setTextColor(primaryColor);
-    doc.setFontSize(18);
-    doc.setFont('helvetica', 'bold');
-    doc.text(nombreInstitucion, 45, yPos + 8);
+    // La cabecera se reparte en dos zonas que no se pisan: la institución a la
+    // izquierda y el título con el número a la derecha. Antes las dos escribían
+    // sin límite de ancho y con nombres largos o números de comprobante largos
+    // el texto se montaba encima.
+    const xIzquierda = 45;
+    const xDerecha = pageWidth - 15;
+    const anchoDerecha = 62;
+    const anchoIzquierda = xDerecha - anchoDerecha - xIzquierda - 4;
 
+    // El nombre se parte en varias líneas y baja de tamaño si sigue sin caber,
+    // para que no invada la zona de la derecha.
+    let tamanoNombre = 18;
+    let lineasNombre: string[] = [];
+    doc.setFont('helvetica', 'bold');
+
+    do {
+      doc.setFontSize(tamanoNombre);
+      lineasNombre = doc.splitTextToSize(nombreInstitucion, anchoIzquierda);
+      if (lineasNombre.length <= 2) {
+        break;
+      }
+      tamanoNombre -= 1;
+    } while (tamanoNombre > 10);
+
+    doc.setTextColor(primaryColor);
+    doc.setFontSize(tamanoNombre);
+    let yNombre = yPos + 8;
+    lineasNombre.slice(0, 2).forEach((linea: string) => {
+      doc.text(linea, xIzquierda, yNombre);
+      yNombre += tamanoNombre * 0.42;
+    });
+
+    // La dirección y el NIT arrancan debajo del nombre, no en una posición
+    // fija: si el nombre ocupó dos líneas, bajan con él.
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(grayColor);
-    doc.text(direccionInstitucion, 45, yPos + 14);
-    doc.text(`NIT: ${nitInstitucion}`, 45, yPos + 19);
+    const lineasDireccion = doc.splitTextToSize(direccionInstitucion, anchoIzquierda);
+    doc.text(lineasDireccion[0], xIzquierda, yNombre + 2);
+    doc.text(`NIT: ${nitInstitucion}`, xIzquierda, yNombre + 7);
 
     // Título y número del comprobante (derecha)
-    doc.setFontSize(16);
+    doc.setFontSize(13);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(primaryColor);
-    doc.text('COMPROBANTE DE PAGO', pageWidth - 15, yPos + 8, { align: 'right' });
+    doc.text('COMPROBANTE DE PAGO', xDerecha, yPos + 7, { align: 'right' });
 
-    // Número en color azul como en la evaluación
-    doc.setFontSize(14);
-    doc.setTextColor(52, 152, 219);
-    doc.setFont('helvetica', 'bold');
-    doc.text(`No. ${datos.pago.id}`, pageWidth - 15, yPos + 15, { align: 'right' });
+    // El numero de comprobante queda oculto a proposito. Antes se imprimia el
+    // id, que desde la migracion a UUID es una cadena larga que no sirve como
+    // consecutivo ni se puede dictar por telefono. Se vuelve a mostrar cuando
+    // exista un numero de verdad por tenant.
+    const yNumero = yPos + 10;
 
     // Fecha en gris
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(grayColor);
-    doc.text(`Fecha: ${this.formatearFecha(datos.pago.fecha)}`, pageWidth - 15, yPos + 21, { align: 'right' });
+    doc.text(`Fecha: ${this.formatearFecha(datos.pago.fecha)}`, xDerecha, yNumero + 2, { align: 'right' });
+  }
+
+  /**
+   * Iniciales para el círculo cuando no hay logo: la primera letra de las dos
+   * primeras palabras largas del nombre de la institución.
+   */
+  private obtenerIniciales(nombre: string): string {
+    const palabras = String(nombre || '')
+      .split(/\s+/)
+      .filter((p: string) => p.length > 2);
+
+    if (palabras.length === 0) {
+      return 'G';
+    }
+
+    return palabras.slice(0, 2).map((p: string) => p.charAt(0).toUpperCase()).join('');
   }
 
   private dibujarInformacionPersonas(doc: jsPDF, datos: DatosComprobantePDF, yPos: number,
@@ -151,9 +200,9 @@ export class ExportarPdfComprobanteService {
     doc.setFont('helvetica', 'normal');
 
     const datosEstudiante = [
-      { label: 'Nombre:', valor: datos.estudiante.nombre },
-      { label: 'Documento:', valor: datos.estudiante.documento },
-      { label: 'Grado:', valor: datos.estudiante.grado }
+      { label: 'Nombre:', valor: datos.estudiante?.nombre || '' },
+      { label: 'Documento:', valor: datos.estudiante?.documento || '' },
+      { label: 'Grado:', valor: datos.estudiante?.grado || '' }
     ];
 
     let yOffset = yPos + 16;
@@ -177,10 +226,12 @@ export class ExportarPdfComprobanteService {
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
 
+    // Sin el || '' salia el texto "undefined" impreso en el comprobante cuando
+    // el pago no tenia acudiente asociado. En la vista salia vacio.
     const datosAcudiente = [
-      { label: 'Nombre:', valor: datos.acudiente.nombre },
-      { label: 'Documento:', valor: datos.acudiente.documento },
-      { label: 'Tipo de Pago:', valor: datos.tipoPago.nombre || 'No especificado' }
+      { label: 'Nombre:', valor: datos.acudiente?.nombre || '' },
+      { label: 'Documento:', valor: datos.acudiente?.documento || '' },
+      { label: 'Tipo de Pago:', valor: datos.tipoPago?.nombre || 'No especificado' }
     ];
 
     yOffset = yPos + 16;
