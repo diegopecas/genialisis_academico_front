@@ -34,6 +34,9 @@ interface CuentaAplicadaModel {
 interface PagoModel {
   id: string;
   fecha: string;
+  anio?: number;
+  numero?: number;
+  numero_comprobante?: string;
   valor_recibido: number;
   saldo: number;
   id_tipo_pago: string;
@@ -128,11 +131,14 @@ export class ComprobantePagoComponent implements OnInit {
   }
 
   compartirPorWhatsApp(): void {
-    // Sin el numero: hasta la migracion a UUID el id servia de consecutivo,
-    // pero hoy es una cadena larga que no le dice nada al acudiente. Vuelve
-    // cuando exista un numero de comprobante de verdad por tenant.
+    // El numero va primero para que el acudiente lo pueda citar por telefono.
+    // Si el pago todavia no tiene numero, la linea simplemente no se agrega.
+    const lineaNumero = this.pago.numero_comprobante
+      ? `#️⃣ No. ${this.pago.numero_comprobante}\n`
+      : '';
+
     const mensaje = `*Comprobante de Pago*
-📆 Fecha: ${this.formatearFecha(this.pago.fecha)}
+${lineaNumero}📆 Fecha: ${this.formatearFecha(this.pago.fecha)}
 👨‍🎓 Estudiante: ${this.estudiante?.nombre || ''}
 💰 Valor recibido: ${this.formatearMoneda(this.pago.valor_recibido)}
 🧾 Tipo de pago: ${this.tipoPago?.nombre || 'No especificado'}

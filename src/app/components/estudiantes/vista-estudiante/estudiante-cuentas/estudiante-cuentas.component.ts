@@ -1115,7 +1115,8 @@ export class EstudianteCuentasComponent implements OnInit {
         resultado.sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime());
 
         return resultado.map((item, i) => ({
-            id: i + 1,
+            // El numero del recibo reemplaza al contador de fila
+            id: item.numero_comprobante || '-',
             fecha: this.formatearFecha(item.fecha),
             acudiente: item.nombre_acudiente || '-',
             tipoPago: item.tipo_pago || '-',
@@ -1227,7 +1228,8 @@ export class EstudianteCuentasComponent implements OnInit {
         pagosFiltrados.sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime());
 
         return pagosFiltrados.map((item, i) => ({
-            id: (i + 1).toString(),
+            // El numero del recibo reemplaza al contador de fila
+            id: item.numero_comprobante || '-',
             fecha: this.formatearFecha(item.fecha),
             acudiente: item.nombre_acudiente || '',
             tipoPago: item.tipo_pago || '',

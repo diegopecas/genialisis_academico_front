@@ -63,6 +63,11 @@ export class ReportePagosRecibidosComponent implements OnInit {
         alinear: 'centrado',
       },
       {
+        clave: 'numero_comprobante',
+        alias: 'No.',
+        alinear: 'centrado',
+      },
+      {
         clave: 'fecha',
         alias: 'Fecha',
         alinear: 'centrado',

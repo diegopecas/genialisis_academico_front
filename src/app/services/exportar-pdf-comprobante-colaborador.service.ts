@@ -32,32 +32,73 @@ export class ExportarPdfComprobanteColaboradorService {
       } catch (error) {
         console.error('Error al agregar logo:', error);
       }
+    } else {
+      // Sin logo se dibuja un círculo con las iniciales de la institución, en
+      // lugar de dejar el espacio vacío.
+      doc.setFillColor(34, 34, 34);
+      doc.circle(margin + 12, margin + 12, 12, 'F');
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(212, 175, 55);
+      doc.text(this.obtenerIniciales(this.institucionConfigService.getNombreInstitucion()),
+        margin + 12, margin + 12, { align: 'center', baseline: 'middle' });
+      doc.setTextColor(0);
     }
 
     // Encabezado institución
-    doc.setFontSize(16);
-    doc.setFont('helvetica', 'bold');
     const nombreInstitucion = this.institucionConfigService.getNombreInstitucion();
     const direccionInstitucion = this.institucionConfigService.getDireccionInstitucion();
     const nitInstitucion = this.institucionConfigService.getNitInstitucion();
-    
-    doc.text(nombreInstitucion, margin + 30, margin + 8);
-    
+
+    // La cabecera se reparte en dos zonas que no se pisan: la institución a la
+    // izquierda y el título con la fecha a la derecha. Antes las dos escribían
+    // sin límite de ancho y con nombres largos el texto se montaba encima.
+    const xIzquierda = margin + 30;
+    const tituloX = pageWidth - margin;
+    const anchoDerecha = 58;
+    const anchoIzquierda = tituloX - anchoDerecha - xIzquierda - 4;
+
+    // El nombre se parte en varias líneas y baja de tamaño si sigue sin caber.
+    let tamanoNombre = 16;
+    let lineasNombre: string[] = [];
+
+    doc.setFont('helvetica', 'bold');
+    do {
+      doc.setFontSize(tamanoNombre);
+      lineasNombre = doc.splitTextToSize(nombreInstitucion, anchoIzquierda);
+      if (lineasNombre.length <= 2) {
+        break;
+      }
+      tamanoNombre -= 1;
+    } while (tamanoNombre > 9);
+
+    doc.setFontSize(tamanoNombre);
+    let yNombre = margin + 8;
+    lineasNombre.slice(0, 2).forEach((linea: string) => {
+      doc.text(linea, xIzquierda, yNombre);
+      yNombre += tamanoNombre * 0.42;
+    });
+
+    // La dirección y el NIT arrancan debajo del nombre, no en una posición
+    // fija: si el nombre ocupó dos líneas, bajan con él.
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
-    doc.text(direccionInstitucion, margin + 30, margin + 14);
-    doc.text(`NIT: ${nitInstitucion}`, margin + 30, margin + 19);
+    const lineasDireccion = doc.splitTextToSize(direccionInstitucion, anchoIzquierda);
+    doc.text(lineasDireccion[0], xIzquierda, yNombre + 2);
+    doc.text(`NIT: ${nitInstitucion}`, xIzquierda, yNombre + 7);
 
     // Título del comprobante (derecha)
-    doc.setFontSize(14);
+    doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
-    const tituloX = pageWidth - margin;
-    doc.text('COMPROBANTE DE PAGO', tituloX, margin + 8, { align: 'right' });
-    
-    doc.setFontSize(11);
+    doc.text('COMPROBANTE DE PAGO', tituloX, margin + 7, { align: 'right' });
+
+    // El numero de comprobante queda oculto a proposito. Antes se imprimia el
+    // id, que desde la migracion a UUID es una cadena larga que no sirve como
+    // consecutivo ni se puede dictar por telefono. Se vuelve a mostrar cuando
+    // exista un numero de verdad por tenant.
+    doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
-    doc.text(`No. ${datos.pago.id}`, tituloX, margin + 15, { align: 'right' });
-    doc.text(`Fecha: ${this.formatearFecha(datos.pago.fecha)}`, tituloX, margin + 21, { align: 'right' });
+    doc.text(`Fecha: ${this.formatearFecha(datos.pago.fecha)}`, tituloX, margin + 13, { align: 'right' });
 
     // Línea separadora
     doc.setDrawColor(200, 200, 200);
@@ -277,5 +318,21 @@ export class ExportarPdfComprobanteColaboradorService {
     } catch (error) {
       return '';
     }
+  }
+
+  /**
+   * Iniciales para el círculo cuando no hay logo: la primera letra de las dos
+   * primeras palabras largas del nombre de la institución.
+   */
+  private obtenerIniciales(nombre: string): string {
+    const palabras = String(nombre || '')
+      .split(/\s+/)
+      .filter((p: string) => p.length > 2);
+
+    if (palabras.length === 0) {
+      return 'G';
+    }
+
+    return palabras.slice(0, 2).map((p: string) => p.charAt(0).toUpperCase()).join('');
   }
 }

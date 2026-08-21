@@ -28,10 +28,10 @@
     </div>
     <div class="datos-comprobante">
       <h2 class="titulo-comprobante">COMPROBANTE DE PAGO</h2>
-      <!-- El numero de comprobante queda oculto a proposito. Antes se imprimia
-           el id, que desde la migracion a UUID es una cadena larga sin sentido
-           para el colaborador ni para contabilidad. Se vuelve a mostrar cuando
-           exista un consecutivo de verdad por tenant. -->
+      <!-- Consecutivo por tenant y anio, armado en el back con los parametros
+           de configuracion_global. El *ngIf cubre los pagos viejos que aun no
+           hayan pasado por la retronumeracion. -->
+      <p class="numero-comprobante" *ngIf="pago.numero_comprobante">No. {{pago.numero_comprobante}}</p>
       <p class="fecha-comprobante">Fecha: {{formatearFecha(pago.fecha)}}</p>
     </div>
   </div>

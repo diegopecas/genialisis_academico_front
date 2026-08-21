@@ -113,23 +113,9 @@ export class PagosRecibidosService {
     );
   }
 
-  eliminar(elemento: any) {
-    var body = JSON.stringify(elemento);
-    return this.http.request<any>('DELETE', this.servicio, {
-      body: body,
-      headers: httpOptions.headers
-    }).pipe(
-      tap((respuesta: any) => {
-        if (respuesta.error) {
-          console.log(respuesta);
-          throw respuesta.error;
-        }
-        console.log(respuesta);
-        return respuesta;
-      }),
-      catchError(this.handleError)
-    );
-  }
+  // eliminar() se retiro junto con la ruta DELETE /pagos-recibidos del back.
+  // Borrar fisicamente un pago numerado hace que el siguiente reutilice su
+  // consecutivo. La baja de un pago se hace con anular().
 
   anular(elemento: any) {
     var body = JSON.stringify(elemento);

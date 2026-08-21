@@ -150,17 +150,24 @@ export class ExportarPdfComprobanteService {
     doc.setTextColor(primaryColor);
     doc.text('COMPROBANTE DE PAGO', xDerecha, yPos + 7, { align: 'right' });
 
-    // El numero de comprobante queda oculto a proposito. Antes se imprimia el
-    // id, que desde la migracion a UUID es una cadena larga que no sirve como
-    // consecutivo ni se puede dictar por telefono. Se vuelve a mostrar cuando
-    // exista un numero de verdad por tenant.
+    // Numero del comprobante: consecutivo por tenant y anio, ya formateado por
+    // el back. Los pagos anteriores a la retronumeracion no lo traen, y en ese
+    // caso la fecha sube a ocupar el espacio.
     const yNumero = yPos + 10;
+    const numeroComprobante = datos.pago?.numero_comprobante;
+
+    if (numeroComprobante) {
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(primaryColor);
+      doc.text(`No. ${numeroComprobante}`, xDerecha, yNumero + 2, { align: 'right' });
+    }
 
     // Fecha en gris
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(grayColor);
-    doc.text(`Fecha: ${this.formatearFecha(datos.pago.fecha)}`, xDerecha, yNumero + 2, { align: 'right' });
+    doc.text(`Fecha: ${this.formatearFecha(datos.pago.fecha)}`, xDerecha, yNumero + (numeroComprobante ? 7 : 2), { align: 'right' });
   }
 
   /**

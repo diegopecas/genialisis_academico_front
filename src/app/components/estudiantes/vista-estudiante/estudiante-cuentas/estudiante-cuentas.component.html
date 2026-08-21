@@ -508,7 +508,7 @@
             <table class="tabla-moderna">
                 <thead>
                     <tr>
-                        <th>#</th>
+                        <th>No.</th>
                         <th>Fecha</th>
                         <th>Acudiente</th>
                         <th>Tipo de pago</th>
@@ -524,7 +524,7 @@
                         <td colspan="9" class="text-center">No se encontraron pagos.</td>
                     </tr>
                     <tr *ngFor="let pago of pagosFiltrados; let i = index" [class.anulado]="pago.estado === 'Anulado'" [class.contabilizado]="pago.estado === 'Contabilizado'">
-                        <td>{{ i + 1 }}</td>
+                        <td>{{ pago.numero_comprobante || '-' }}</td>
                         <td>{{ pago.fecha | date:'dd/MM/yyyy' }}</td>
                         <td>{{ pago.nombre_acudiente }}</td>
                         <td>{{ pago.tipo_pago }}</td>
@@ -580,7 +580,7 @@
              [class.anulado-card]="pago.estado === 'Anulado'" [class.contabilizado-card]="pago.estado === 'Contabilizado'">
             <div class="card-header">
                 <div class="fecha-numero">
-                    <span class="numero">#{{ i + 1 }}</span>
+                    <span class="numero">{{ pago.numero_comprobante || '-' }}</span>
                     <span class="fecha">{{ pago.fecha | date:'dd/MM/yyyy' }}</span>
                 </div>
                 <span class="estado-badge" [class.anulado]="pago.estado === 'Anulado'" [class.contabilizado]="pago.estado === 'Contabilizado'" [class.registrado]="pago.estado === 'Registrado'">

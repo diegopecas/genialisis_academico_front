@@ -49,7 +49,11 @@ export class ReportesAcademicosEstudianteComponent {
       console.log("consumo servicio obtenerEstudiantesXGrupo", body);
       this.datos = body;
       this.datos.forEach((e: any) => {
-        e.nombre_completo = `${e.primer_nombre} ${e.segundo_nombre} ${e.primer_apellido} ${e.segundo_apellido}`;
+        // Un template literal convierte null en la cadena "null" y la imprime en
+        // el listado. Se filtran los vacios antes de unir.
+        e.nombre_completo = [e.primer_nombre, e.segundo_nombre, e.primer_apellido, e.segundo_apellido]
+          .filter((parte: any) => !!parte && String(parte).trim() !== '')
+          .join(' ');
         e.color = e.activo === 0 ? "#e2e9f3" : "";
         e.estado = e.activo === 0 ? "Inactivo" : "Activo";
         e.alimentacion = e.alimentacion === 0 ? "No" : "Sí";

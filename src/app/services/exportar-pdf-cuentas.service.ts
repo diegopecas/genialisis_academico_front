@@ -466,8 +466,11 @@ export class ExportarPdfCuentasService {
 
         this.currentY += 8;
 
-        const headers = ['#', 'Fecha', 'Acudiente', 'Tipo', 'Recibido', 'Aplicado', 'Saldo', 'Estado'];
-        const columnWidths = [8, 20, 40, 22, 22, 22, 22, 18];
+        // La primera columna ya no es un contador de fila sino el numero del
+        // recibo, asi que necesita ancho; se lo quitamos a Acudiente para no
+        // cambiar el ancho total de la tabla.
+        const headers = ['No.', 'Fecha', 'Acudiente', 'Tipo', 'Recibido', 'Aplicado', 'Saldo', 'Estado'];
+        const columnWidths = [22, 20, 26, 22, 22, 22, 22, 18];
 
         this.dibujarEncabezadoTabla(headers, columnWidths, primaryRgb);
 

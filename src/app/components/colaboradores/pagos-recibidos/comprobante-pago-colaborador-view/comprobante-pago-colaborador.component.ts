@@ -27,6 +27,9 @@ interface CuentaAplicadaModel {
 interface PagoModel {
   id: string;
   fecha: string;
+  anio?: number;
+  numero?: number;
+  numero_comprobante?: string;
   valor_recibido: number;
   saldo: number;
   id_tipo_pago: string;
@@ -125,9 +128,14 @@ export class ComprobantePagoColaboradorComponent implements OnInit {
   }
 
   compartirPorWhatsApp(): void {
-    // Sin el numero, por la misma razon que en la vista.
+    // El numero va primero para que el colaborador lo pueda citar. Si el pago
+    // todavia no tiene numero, la linea simplemente no se agrega.
+    const lineaNumero = this.pago.numero_comprobante
+      ? `#️⃣ No. ${this.pago.numero_comprobante}\n`
+      : '';
+
     const mensaje = `*Comprobante de Pago*
-📆 Fecha: ${this.formatearFecha(this.pago.fecha)}
+${lineaNumero}📆 Fecha: ${this.formatearFecha(this.pago.fecha)}
 👤 Colaborador: ${this.colaborador?.nombre || ''}
 💰 Valor recibido: ${this.formatearMoneda(this.pago.valor_recibido)}
 🧾 Tipo de pago: ${this.tipoPago?.nombre || 'No especificado'}
