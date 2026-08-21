@@ -8,6 +8,7 @@ import { NotificacionesService } from '../../../../services/notificaciones.servi
 import { NotificacionesCategoriasService } from '../../../../services/notificaciones-categorias.service';
 import { NotificacionesRespuestasTiposService } from '../../../../services/notificaciones-respuestas-tipos.service';
 import { NotificacionesAdjuntosService } from '../../../../services/notificaciones-adjuntos.service';
+import { NotificacionesDestinatariosService } from '../../../../services/notificaciones-destinatarios.service';
 import { NotificacionesPlantillasService } from '../../../../services/notificaciones-plantillas.service';
 import { IaMejorarTextoService } from '../../../../services/ia-mejorar-texto.service';
 import { GruposService } from '../../../../services/grupos.service';
@@ -76,6 +77,12 @@ export class CrearNotificacionComponent implements OnInit {
   public archivoSeleccionado: File | null = null;
   public mostrarModalPlantillas = false;
 
+  // Acuses de la notificación, solo cuando se está editando una ya enviada.
+  public resumenAcuses: any = null;
+  public destinatariosEnviados: any[] = [];
+  public filtroAcuses: string = 'todos';
+  public cargandoAcuses = false;
+
   model = {
     id: null,
     titulo: '',
@@ -94,6 +101,7 @@ export class CrearNotificacionComponent implements OnInit {
     private categoriasService: NotificacionesCategoriasService,
     private tiposRespuestaService: NotificacionesRespuestasTiposService,
     private adjuntosService: NotificacionesAdjuntosService,
+    private destinatariosService: NotificacionesDestinatariosService,
     private plantillasService: NotificacionesPlantillasService,
     private iaMejorarTextoService: IaMejorarTextoService,
     private gruposService: GruposService,
@@ -161,12 +169,63 @@ export class CrearNotificacionComponent implements OnInit {
         this.model.whatsapp_numero = notificacion.whatsapp_numero || this.model.whatsapp_numero;
 
         this.titulo = (this.esEdicion ? "Editar Notificación: " : "Reenviar: ") + this.model.titulo;
+
+        // Al editar interesa ver a quién llegó y quién la leyó: es la razón
+        // más común para abrir una notificación ya enviada.
+        if (this.esEdicion) {
+          this.cargarAcuses(notificacion.id);
+        }
       },
       error: (error: any) => {
         console.error("Error al cargar notificación", error);
         Swal.fire('Error', 'No se pudo cargar la notificación', 'error');
       }
     });
+  }
+
+  cargarAcuses(idNotificacion: any) {
+    this.cargandoAcuses = true;
+
+    this.destinatariosService.obtenerResumen(idNotificacion).subscribe({
+      next: (response: any) => { this.resumenAcuses = response.body || null; },
+      error: (error: any) => { console.error("Error al cargar el resumen", error); }
+    });
+
+    this.destinatariosService.obtenerByNotificacion(idNotificacion).subscribe({
+      next: (response: any) => {
+        this.destinatariosEnviados = response.body || [];
+        this.cargandoAcuses = false;
+      },
+      error: (error: any) => {
+        console.error("Error al cargar destinatarios", error);
+        this.cargandoAcuses = false;
+      }
+    });
+  }
+
+  get destinatariosFiltrados(): any[] {
+    if (this.filtroAcuses === 'sin_leer') {
+      return this.destinatariosEnviados.filter(d => !d.fecha_lectura);
+    }
+    if (this.filtroAcuses === 'sin_responder') {
+      return this.destinatariosEnviados.filter(d => !d.id_respuesta_opcion);
+    }
+    return this.destinatariosEnviados;
+  }
+
+  nombreAcudiente(destinatario: any): string {
+    return [destinatario.acudiente_primer_nombre, destinatario.acudiente_primer_apellido,
+            destinatario.acudiente_segundo_apellido].filter(p => !!p).join(' ');
+  }
+
+  nombreEstudiante(destinatario: any): string {
+    return [destinatario.estudiante_primer_nombre, destinatario.estudiante_primer_apellido]
+      .filter(p => !!p).join(' ');
+  }
+
+  porcentaje(parte: number, total: number): number {
+    if (!total) return 0;
+    return Math.round((parte / total) * 100);
   }
 
   cargarCatalogos() {

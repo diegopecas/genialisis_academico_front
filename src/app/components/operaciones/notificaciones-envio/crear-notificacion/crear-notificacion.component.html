@@ -209,6 +209,85 @@
             </div>
 
         </div>
+
+        <!-- ACUSES: solo al editar una notificación ya enviada -->
+        <div class="row" *ngIf="esEdicion">
+            <div class="col-12">
+                <div class="tarjeta">
+                    <h5 class="tarjeta-titulo">Envíos y lectura</h5>
+
+                    <p class="text-muted" *ngIf="cargandoAcuses">Cargando...</p>
+
+                    <div class="row mb-3" *ngIf="resumenAcuses">
+                        <div class="col-md-4 mb-2">
+                            <div class="metrica">
+                                <span class="metrica-valor">{{ resumenAcuses.total }}</span>
+                                <span class="metrica-label">Acudientes notificados</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <div class="metrica">
+                                <span class="metrica-valor">{{ resumenAcuses.leidas }}</span>
+                                <span class="metrica-label">Leyeron ({{ porcentaje(resumenAcuses.leidas, resumenAcuses.total) }}%)</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <div class="metrica">
+                                <span class="metrica-valor">{{ resumenAcuses.respondidas }}</span>
+                                <span class="metrica-label">Respondieron ({{ porcentaje(resumenAcuses.respondidas, resumenAcuses.total) }}%)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-wrap gap-2 mb-3"
+                        *ngIf="resumenAcuses && resumenAcuses.por_opcion && resumenAcuses.por_opcion.length > 0">
+                        <span class="badge bg-secondary" *ngFor="let opcion of resumenAcuses.por_opcion">
+                            {{ opcion.etiqueta }}: {{ opcion.cantidad }}
+                        </span>
+                    </div>
+
+                    <div class="mb-3">
+                        <select class="form-select w-auto" [(ngModel)]="filtroAcuses">
+                            <option value="todos">Todos los destinatarios</option>
+                            <option value="sin_leer">Solo los que no han leído</option>
+                            <option value="sin_responder">Solo los que no han respondido</option>
+                        </select>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Estudiante</th>
+                                    <th>Acudiente</th>
+                                    <th>Leída</th>
+                                    <th>Respuesta</th>
+                                    <th>Fecha respuesta</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let destinatario of destinatariosFiltrados">
+                                    <td>{{ nombreEstudiante(destinatario) }}</td>
+                                    <td>{{ nombreAcudiente(destinatario) }}</td>
+                                    <td>
+                                        <span *ngIf="destinatario.fecha_lectura">{{ destinatario.fecha_lectura }}</span>
+                                        <span *ngIf="!destinatario.fecha_lectura" class="text-muted">Sin leer</span>
+                                    </td>
+                                    <td>
+                                        <span *ngIf="destinatario.respuesta_etiqueta">{{ destinatario.respuesta_etiqueta }}</span>
+                                        <span *ngIf="!destinatario.respuesta_etiqueta" class="text-muted">—</span>
+                                    </td>
+                                    <td>{{ destinatario.fecha_respuesta }}</td>
+                                </tr>
+                                <tr *ngIf="destinatariosFiltrados.length === 0 && !cargandoAcuses">
+                                    <td colspan="5" class="text-center text-muted">No hay destinatarios con ese filtro.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="container mt-4">
