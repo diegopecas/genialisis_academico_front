@@ -91,6 +91,17 @@
                     placeholder="Observaciones opcionales..."
                   ></textarea>
                 </div>
+                <div class="mb-3 bloque-compromisos" *ngIf="listas.compromisos.length > 0">
+                  <label class="form-label fw-bold m-0">Compromisos de hoy</label>
+                  <div class="compromiso" *ngFor="let compromiso of listas.compromisos">
+                    <span class="icono">{{ compromiso.tipo_icono }}</span>
+                    <div class="texto">
+                      <strong>{{ compromiso.tipo_nombre }}</strong>
+                      <div>{{ compromiso.descripcion }}</div>
+                    </div>
+                    <span class="estado" [style.color]="compromiso.estado_color">{{ compromiso.estado_nombre }}</span>
+                  </div>
+                </div>
                 <div class="mb-3 bloque-utiles" *ngIf="listas.utiles.length > 0">
                   <div class="d-flex align-items-center justify-content-between mb-2">
                     <label class="form-label fw-bold m-0">

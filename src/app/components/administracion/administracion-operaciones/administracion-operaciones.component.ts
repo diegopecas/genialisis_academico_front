@@ -30,6 +30,9 @@ export class AdministracionOperacionesComponent {
       case 'utiles-diarios':
         this.router.navigate(['/administracion/operaciones/utiles-diarios']);
         break;
+      case 'compromisos':
+        this.router.navigate(['/administracion/operaciones/compromisos']);
+        break;
     }
   }
 }

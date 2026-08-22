@@ -252,6 +252,50 @@
                 </div>
             </div>
 
+            <!-- Solicitudes acudientes -->
+            <div class="col-lg-3 col-md-6 mb-4" *ngIf="tieneAlguno(['operaciones.solicitudes_acudientes', 'operaciones.solicitudes_aprobar', 'operaciones.notificaciones_colaboradores'])">
+                <div class="card-maestro menu-principal" [class.active]="menuActivo === 'solicitudes'" (click)="toggleMenu('solicitudes', $event)">
+                    <div class="card-maestro-content">
+                        <div class="icono-container solicitudes">
+                            <img src="assets/images/solicitudes-acudientes.png" alt="Solicitudes acudientes" />
+                        </div>
+                        <h3 class="card-titulo">Solicitudes acudientes</h3>
+                        <p class="card-descripcion">Lo que piden los papás y hay que cumplir hoy</p>
+                        <div class="card-footer-custom">
+                            <span class="link-accion">Ver opciones <i class="fas fa-chevron-down"></i></span>
+                        </div>
+                    </div>
+                    <div class="submenu-container">
+                        <div class="row g-2">
+                            <div class="col-6" *ngIf="permisosService.tienePermiso('operaciones.solicitudes_acudientes')">
+                                <div class="submenu-item" (click)="seleccionarOpcion('solicitudes-acudientes')">
+                                    <img src="assets/images/compromisos-dia.png" alt="Compromisos del Día" />
+                                    <span>Compromisos del Día</span>
+                                </div>
+                            </div>
+                            <div class="col-6" *ngIf="permisosService.tienePermiso('operaciones.solicitudes_acudientes')">
+                                <div class="submenu-item" (click)="seleccionarOpcion('registrar-solicitud')">
+                                    <img src="assets/images/registrar-solicitud.png" alt="Registrar Solicitud" />
+                                    <span>Registrar Solicitud</span>
+                                </div>
+                            </div>
+                            <div class="col-6" *ngIf="permisosService.tienePermiso('operaciones.solicitudes_aprobar')">
+                                <div class="submenu-item" (click)="seleccionarOpcion('aprobar-solicitudes')">
+                                    <img src="assets/images/aprobar-solicitudes.png" alt="Aprobar Solicitudes" />
+                                    <span>Aprobar Solicitudes</span>
+                                </div>
+                            </div>
+                            <div class="col-6" *ngIf="permisosService.tienePermiso('operaciones.notificaciones_colaboradores')">
+                                <div class="submenu-item" (click)="seleccionarOpcion('mis-alertas')">
+                                    <img src="assets/images/mis-alertas.png" alt="Mis Alertas" />
+                                    <span>Mis Alertas</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Financiero -->
             <div class="col-lg-3 col-md-6 mb-4" *ngIf="tieneAlguno(['operaciones.recordatorio_pagos'])">
                 <div class="card-maestro menu-principal" [class.active]="menuActivo === 'financiero'" (click)="toggleMenu('financiero', $event)">

@@ -101,6 +101,18 @@ export class OperacionesComponent {
       case 'notificaciones-monitoreo':
         this.router.navigate(['/operaciones/notificaciones-monitoreo']);
         break;
+      case 'solicitudes-acudientes':
+        this.router.navigate(['/operaciones/solicitudes-acudientes']);
+        break;
+      case 'registrar-solicitud':
+        this.router.navigate(['/operaciones/solicitudes-acudientes/registrar']);
+        break;
+      case 'aprobar-solicitudes':
+        this.router.navigate(['/operaciones/aprobar-solicitudes']);
+        break;
+      case 'mis-alertas':
+        this.router.navigate(['/operaciones/mis-alertas']);
+        break;
       default:
         console.log('Opción no reconocida:', opcion);
         break;

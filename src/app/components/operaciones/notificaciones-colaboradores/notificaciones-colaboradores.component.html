@@ -1,0 +1,42 @@
+<div class="modulo">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="false"
+    [raiz]="'/operaciones/mis-alertas'"
+    [regresar]="'/operaciones'"
+    [iconoTitulo]="'/assets/images/mis-alertas.png'"
+  ></app-header>
+
+  <div class="container-fluid contenedor-alertas">
+
+    <div class="barra">
+      <label class="check-no-leidas">
+        <input type="checkbox" [(ngModel)]="soloNoLeidas" />
+        Solo sin leer
+        <span class="contador" *ngIf="totalNoLeidas > 0">{{ totalNoLeidas }}</span>
+      </label>
+      <button class="btn btn-sm btn-outline-secondary" (click)="cargar()">Actualizar</button>
+    </div>
+
+    <div *ngIf="cargando" class="text-center py-4">Cargando...</div>
+
+    <div *ngIf="!cargando">
+      <div class="alerta"
+           *ngFor="let alerta of listado"
+           [class.no-leida]="!alerta.fecha_lectura"
+           (click)="abrir(alerta)">
+        <span class="icono">{{ alerta.tipo_icono }}</span>
+        <div class="texto">
+          <strong>{{ alerta.titulo }}</strong>
+          <div class="cuerpo">{{ alerta.cuerpo }}</div>
+          <small class="pie">{{ alerta.tipo_nombre }} · {{ alerta.fecha_envio }}</small>
+        </div>
+        <span class="punto" *ngIf="!alerta.fecha_lectura"></span>
+      </div>
+
+      <div class="text-center py-4 text-muted" *ngIf="listado.length === 0">
+        No tienes alertas.
+      </div>
+    </div>
+  </div>
+</div>

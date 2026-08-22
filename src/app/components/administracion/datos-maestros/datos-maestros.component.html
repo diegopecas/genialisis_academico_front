@@ -179,7 +179,7 @@
       </div>
 
       <!-- Configuración -->
-      <div class="col-lg-4 col-md-6 mb-4" *ngIf="tieneAlguno(['admin.cargos', 'admin.conectar_whatsapp', 'admin.configuracion_geofence', 'admin.configuracion_global', 'admin.configuracion_google', 'admin.configuracion_ia', 'admin.datos_estudiantes', 'admin.institucion', 'admin.tipos_documentos'])">
+      <div class="col-lg-4 col-md-6 mb-4" *ngIf="tieneAlguno(['admin.cargos', 'admin.conectar_whatsapp', 'admin.configuracion_geofence', 'admin.configuracion_global', 'admin.configuracion_google', 'admin.configuracion_ia', 'admin.datos_estudiantes', 'admin.institucion', 'admin.jornada_laboral', 'admin.tipos_documentos'])">
         <div class="card-maestro menu-principal" [class.active]="menuActivo === 'configuracion'" (click)="toggleMenu('configuracion', $event)">
           <div class="card-maestro-content">
             <div class="icono-container configuracion">
@@ -198,6 +198,12 @@
                 <div class="submenu-item" (click)="seleccionarOpcion('configuracion-global')">
                   <img src="assets/images/configuracion.png" alt="Configuración Global" />
                   <span>Configuración Global</span>
+                </div>
+              </div>
+              <div class="col-6" *ngIf="permisosService.tienePermiso('admin.jornada_laboral')">
+                <div class="submenu-item" (click)="seleccionarOpcion('jornada-laboral')">
+                  <img src="assets/images/jornada-laboral.png" alt="Jornada Laboral" />
+                  <span>Jornada Laboral</span>
                 </div>
               </div>
               <div class="col-6" *ngIf="permisosService.tienePermiso('admin.cargos')">

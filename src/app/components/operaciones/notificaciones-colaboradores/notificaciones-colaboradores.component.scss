@@ -1,0 +1,73 @@
+.contenedor-alertas {
+  padding: 20px;
+}
+
+.barra {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.check-no-leidas {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.contador {
+  background: #d9534f;
+  color: #fff;
+  border-radius: 10px;
+  padding: 1px 8px;
+  font-size: 0.75rem;
+}
+
+.alerta {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  background: #fff;
+  border: 1px solid #e6e6e6;
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 10px;
+  cursor: pointer;
+}
+
+.alerta.no-leida {
+  border-left: 4px solid #4a90d9;
+  background: #f7fbff;
+}
+
+.alerta .icono {
+  font-size: 1.4rem;
+}
+
+.alerta .texto {
+  flex: 1;
+}
+
+.alerta .cuerpo {
+  font-size: 0.9rem;
+  color: #444;
+}
+
+.alerta .pie {
+  color: #888;
+}
+
+.punto {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #4a90d9;
+  margin-top: 6px;
+}
+
+// El contenido vive dentro de .modulo, que trae el fondo del portal.
+:host {
+  color: #1A1A1A;
+}

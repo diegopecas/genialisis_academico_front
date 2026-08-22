@@ -1,0 +1,96 @@
+<div class="modulo">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="false"
+    [raiz]="'/operaciones/solicitudes-acudientes'"
+    [regresar]="'/operaciones'"
+    [iconoTitulo]="'/assets/images/compromisos-dia.png'"
+  ></app-header>
+
+  <div class="container-fluid contenedor-solicitudes">
+
+    <div class="row filtros">
+      <div class="col-md-3 mb-2">
+        <label>Fecha</label>
+        <input type="date" class="form-control" [(ngModel)]="fecha" (change)="cambiarFecha()" />
+      </div>
+      <div class="col-md-3 mb-2">
+        <label>Grupo</label>
+        <select class="form-control" [(ngModel)]="idGrupo">
+          <option [ngValue]="null">Todos</option>
+          <option *ngFor="let grupo of grupos" [ngValue]="grupo.id">{{ grupo.nombre }}</option>
+        </select>
+      </div>
+      <div class="col-md-4 mb-2">
+        <label>Buscar niño</label>
+        <input type="text" class="form-control" [(ngModel)]="busquedaEstudiante" placeholder="Nombre del estudiante" />
+      </div>
+      <div class="col-md-2 mb-2 d-flex align-items-end">
+        <button class="btn btn-outline-secondary w-100" (click)="cargarAgenda()">Actualizar</button>
+      </div>
+    </div>
+
+    <div *ngIf="cargando" class="text-center py-4">Cargando...</div>
+
+    <div *ngIf="!cargando">
+
+      <!-- Sin hora: se tienen presentes toda la jornada -->
+      <div class="bloque-sin-hora" *ngIf="sinHora.length > 0">
+        <h5>Para tener presente hoy</h5>
+        <div class="tarjeta-nota" *ngFor="let ocurrencia of sinHora">
+          <span class="icono">{{ ocurrencia.tipo_icono }}</span>
+          <div class="texto">
+            <strong>{{ ocurrencia.estudiante_nombre }}</strong>
+            <small *ngIf="ocurrencia.grupo_nombre"> · {{ ocurrencia.grupo_nombre }}</small>
+            <div>{{ ocurrencia.descripcion }}</div>
+          </div>
+          <div class="acciones" *ngIf="ocurrencia.id_estado === ESTADO_PENDIENTE">
+            <button class="btn btn-sm btn-success" (click)="marcarCumplida(ocurrencia)">Cumplida</button>
+          </div>
+          <div class="acciones" *ngIf="ocurrencia.id_estado !== ESTADO_PENDIENTE">
+            <span class="estado" [style.color]="ocurrencia.estado_color">{{ ocurrencia.estado_nombre }}</span>
+            <button class="btn btn-sm btn-link" (click)="desmarcar(ocurrencia)">Deshacer</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Con hora: la linea de tiempo del dia -->
+      <h5 class="mt-3" *ngIf="conHora.length > 0">Compromisos con hora</h5>
+      <div class="tarjeta-hora"
+           *ngFor="let ocurrencia of conHora"
+           [class.vencida]="estaVencida(ocurrencia)"
+           [class.cerrada]="ocurrencia.id_estado !== ESTADO_PENDIENTE">
+        <div class="hora">{{ horaCorta(ocurrencia.hora_programada) }}</div>
+        <div class="texto">
+          <strong>{{ ocurrencia.estudiante_nombre }}</strong>
+          <small *ngIf="ocurrencia.grupo_nombre"> · {{ ocurrencia.grupo_nombre }}</small>
+          <div class="tipo">{{ ocurrencia.tipo_icono }} {{ ocurrencia.tipo_nombre }}</div>
+          <div>{{ ocurrencia.descripcion }}</div>
+          <div class="detalle" *ngIf="ocurrencia.id_estado === ESTADO_CUMPLIDA">
+            Registrado a las {{ horaCorta(ocurrencia.hora_real) }}
+            <span *ngIf="ocurrencia.cumplio_nombre">por {{ ocurrencia.cumplio_nombre }}</span>
+          </div>
+          <div class="detalle" *ngIf="ocurrencia.id_estado === ESTADO_NO_CUMPLIDA">
+            No cumplida: {{ ocurrencia.motivo_no_cumplida }}
+          </div>
+          <div class="aviso-vencida" *ngIf="estaVencida(ocurrencia)">Se pasó la hora y no se ha marcado</div>
+        </div>
+        <div class="acciones">
+          <ng-container *ngIf="ocurrencia.id_estado === ESTADO_PENDIENTE">
+            <button class="btn btn-sm btn-success" (click)="marcarCumplida(ocurrencia)">Cumplida</button>
+            <button class="btn btn-sm btn-outline-danger" (click)="marcarNoCumplida(ocurrencia)">No cumplida</button>
+          </ng-container>
+          <ng-container *ngIf="ocurrencia.id_estado !== ESTADO_PENDIENTE">
+            <span class="estado" [style.color]="ocurrencia.estado_color">{{ ocurrencia.estado_nombre }}</span>
+            <button class="btn btn-sm btn-link" (click)="desmarcar(ocurrencia)">Deshacer</button>
+          </ng-container>
+        </div>
+      </div>
+
+      <div class="text-center py-4 text-muted" *ngIf="sinHora.length === 0 && conHora.length === 0">
+        No hay compromisos para esta fecha.
+      </div>
+
+    </div>
+  </div>
+</div>

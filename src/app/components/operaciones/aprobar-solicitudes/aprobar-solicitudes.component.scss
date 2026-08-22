@@ -1,0 +1,63 @@
+.contenedor-aprobar {
+  padding: 20px;
+}
+
+.tarjeta-pendiente {
+  background: #fff;
+  border: 1px solid #e6e6e6;
+  border-left: 4px solid #f0ad4e;
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 14px;
+}
+
+.encabezado {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.encabezado .icono {
+  font-size: 1.6rem;
+}
+
+.encabezado .tipo {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.badge-pendiente {
+  margin-left: auto;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 12px;
+}
+
+.cuerpo {
+  margin: 12px 0;
+}
+
+.descripcion {
+  margin-bottom: 8px;
+}
+
+.dato {
+  font-size: 0.85rem;
+  color: #555;
+}
+
+.dato span {
+  font-weight: 600;
+}
+
+.acciones {
+  display: flex;
+  gap: 10px;
+}
+
+// El contenido vive dentro de .modulo, que trae el fondo del portal.
+:host {
+  color: #1A1A1A;
+}

@@ -1,0 +1,119 @@
+<div class="modulo">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="false"
+    [raiz]="'/operaciones/solicitudes-acudientes'"
+    [regresar]="'/operaciones/solicitudes-acudientes'"
+    [iconoTitulo]="'/assets/images/registrar-solicitud.png'"
+  ></app-header>
+
+  <div class="container-fluid contenedor-crear">
+
+    <p class="ayuda">
+      Para cuando el papá llama o lo dice al entregar al niño. Queda de parte suya, así que
+      también la ve en su portal y no tiene que volver a preguntar si se hizo.
+    </p>
+
+    <div class="tarjeta">
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label>Niño</label>
+          <select class="form-control" [(ngModel)]="idEstudiante" (change)="cambioEstudiante()">
+            <option [ngValue]="null">Escoja</option>
+            <option *ngFor="let estudiante of estudiantes" [ngValue]="estudiante.id">
+              {{ nombreEstudiante(estudiante) }}
+            </option>
+          </select>
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <label>De parte de</label>
+          <select class="form-control" [(ngModel)]="idPersonaSolicita" [disabled]="!idEstudiante">
+            <option [ngValue]="null">Escoja el acudiente</option>
+            <option *ngFor="let acudiente of acudientes" [ngValue]="acudiente.id_persona">
+              {{ nombreAcudiente(acudiente) }}
+            </option>
+          </select>
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <label>Tipo</label>
+          <select class="form-control" [(ngModel)]="idTipoSolicitud" (change)="cambioTipo()">
+            <option [ngValue]="null">Escoja</option>
+            <option *ngFor="let tipo of tipos" [ngValue]="tipo.id">{{ tipo.icono }} {{ tipo.nombre }}</option>
+          </select>
+          <small *ngIf="tipoSeleccionado?.descripcion">{{ tipoSeleccionado.descripcion }}</small>
+          <small class="aviso" *ngIf="exigeSoporte">
+            Este tipo exige soporte adjunto: la solicitud la tiene que enviar el acudiente desde su portal.
+          </small>
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <label>¿Qué pidió?</label>
+          <input type="text" class="form-control" [(ngModel)]="descripcion"
+                 placeholder="Ej: hoy lo recojo a las 4" />
+        </div>
+
+        <div class="col-md-3 mb-3">
+          <label>{{ manejaHoras ? 'Desde' : 'Día' }}</label>
+          <input type="date" class="form-control" [(ngModel)]="fechaInicio" />
+        </div>
+
+        <div class="col-md-3 mb-3" *ngIf="manejaHoras">
+          <label>Hasta</label>
+          <input type="date" class="form-control" [(ngModel)]="fechaFin" />
+        </div>
+
+        <div class="col-md-6 mb-3" *ngIf="manejaHoras">
+          <label>{{ admiteVariasHoras ? 'Horas' : 'Hora' }}</label>
+          <div class="fila-hora">
+            <input type="time" class="form-control" [(ngModel)]="nuevaHora" />
+            <button class="btn btn-outline-primary" (click)="agregarHora()">Agregar</button>
+          </div>
+          <div class="chips">
+            <span class="chip" *ngFor="let hora of horas">
+              {{ hora }}
+              <button class="quitar" (click)="quitarHora(hora)">×</button>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tarjeta">
+      <h5>Responsables adicionales</h5>
+      <p class="ayuda">
+        El titular del grupo y los cargos configurados en el tipo se agregan solos. Aquí puede
+        sumar a alguien más para este caso puntual.
+      </p>
+
+      <div class="row">
+        <div class="col-md-8 mb-2">
+          <select class="form-control" [(ngModel)]="nuevoResponsable">
+            <option [ngValue]="null">Escoja un colaborador</option>
+            <option *ngFor="let colaborador of colaboradores" [ngValue]="colaborador.id">
+              {{ nombreColaborador(colaborador) }}
+            </option>
+          </select>
+        </div>
+        <div class="col-md-4 mb-2">
+          <button class="btn btn-outline-primary w-100" (click)="agregarResponsable()">Agregar</button>
+        </div>
+      </div>
+
+      <div class="chips">
+        <span class="chip" *ngFor="let responsable of responsables">
+          {{ responsable.nombre }}
+          <button class="quitar" (click)="quitarResponsable(responsable)">×</button>
+        </span>
+      </div>
+    </div>
+
+    <div class="pie-acciones">
+      <button class="btn btn-secondary" (click)="volver()">Cancelar</button>
+      <button class="btn btn-primary" (click)="guardar()" [disabled]="guardando">
+        {{ guardando ? 'Guardando...' : 'Registrar' }}
+      </button>
+    </div>
+  </div>
+</div>

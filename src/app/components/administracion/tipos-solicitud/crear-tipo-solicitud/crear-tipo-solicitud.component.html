@@ -1,0 +1,190 @@
+<div class="modulo">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="false"
+    [raiz]="'/administracion/operaciones/compromisos'"
+    [regresar]="'/administracion/operaciones/compromisos'"
+    [iconoTitulo]="'/assets/images/compromisos.png'"
+  ></app-header>
+
+  <div class="container-fluid contenedor-tipo">
+
+    <div class="tarjeta">
+      <h5>Datos básicos</h5>
+
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label>Nombre</label>
+          <input type="text" class="form-control" [(ngModel)]="tipo.nombre" placeholder="Ej: Salida anticipada" />
+        </div>
+        <div class="col-md-2 mb-3">
+          <label>Ícono</label>
+          <input type="text" class="form-control" [(ngModel)]="tipo.icono" placeholder="🚗" />
+        </div>
+        <div class="col-md-2 mb-3">
+          <label>Orden</label>
+          <input type="number" class="form-control" [(ngModel)]="tipo.orden" />
+        </div>
+        <div class="col-md-2 mb-3">
+          <label>Activo</label>
+          <select class="form-control" [(ngModel)]="tipo.activo">
+            <option [ngValue]="1">Sí</option>
+            <option [ngValue]="0">No</option>
+          </select>
+        </div>
+        <div class="col-md-12 mb-3">
+          <label>Descripción</label>
+          <input type="text" class="form-control" [(ngModel)]="tipo.descripcion" />
+        </div>
+      </div>
+    </div>
+
+    <div class="tarjeta">
+      <h5>Comportamiento</h5>
+
+      <div class="row">
+        <div class="col-md-4 mb-3">
+          <label>Manejo de horas</label>
+          <select class="form-control" [(ngModel)]="tipo.manejo_horas" (change)="cambioManejoHoras()">
+            <option [ngValue]="0">Sin horas</option>
+            <option [ngValue]="1">Una hora</option>
+            <option [ngValue]="2">Varias horas</option>
+          </select>
+          <small>Define si la pantalla pide horas y rango de fechas.</small>
+        </div>
+
+        <div class="col-md-4 mb-3">
+          <label>Soporte adjunto</label>
+          <select class="form-control" [(ngModel)]="tipo.documento">
+            <option [ngValue]="0">No aplica</option>
+            <option [ngValue]="1">Opcional</option>
+            <option [ngValue]="2">Obligatorio</option>
+          </select>
+          <small>Foto o archivo, por ejemplo la fórmula del pediatra.</small>
+        </div>
+
+        <div class="col-md-4 mb-3">
+          <label>Avisar antes (minutos)</label>
+          <input type="number" class="form-control"
+                 [(ngModel)]="tipo.minutos_anticipacion"
+                 [disabled]="tipo.manejo_horas === 0"
+                 placeholder="Vacío = no avisa" />
+          <small>Salida ~20 min, medicamento ~5 min.</small>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-4 mb-2">
+          <label class="check">
+            <input type="checkbox" [ngModel]="tipo.requiere_aprobacion === 1"
+                   (ngModelChange)="tipo.requiere_aprobacion = $event ? 1 : 0" />
+            Requiere aprobación
+          </label>
+          <small>Nace pendiente y no genera compromisos hasta que la aprueben.</small>
+        </div>
+
+        <div class="col-md-4 mb-2">
+          <label class="check">
+            <input type="checkbox" [ngModel]="tipo.requiere_confirmacion === 1"
+                   (ngModelChange)="tipo.requiere_confirmacion = $event ? 1 : 0" />
+            Requiere confirmación de ejecución
+          </label>
+          <small>Si nadie la marca y se pasa la hora, queda resaltada como vencida.</small>
+        </div>
+
+        <div class="col-md-4 mb-2">
+          <label class="check">
+            <input type="checkbox" [ngModel]="tipo.notifica_acudiente_cumplido === 1"
+                   (ngModelChange)="tipo.notifica_acudiente_cumplido = $event ? 1 : 0" />
+            Avisar al acudiente al cumplir
+          </label>
+          <small>Ojo: un tratamiento de tres dosis son tres avisos al día.</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="tarjeta">
+      <h5>Quién queda responsable</h5>
+      <p class="ayuda">
+        La lista se arma al crear la solicitud y queda congelada. Si queda vacía, la solicitud
+        la ven todos los colaboradores.
+      </p>
+
+      <div class="row">
+        <div class="col-md-4 mb-2">
+          <label class="check">
+            <input type="checkbox" [ngModel]="tipo.titular_es_responsable === 1"
+                   (ngModelChange)="tipo.titular_es_responsable = $event ? 1 : 0" />
+            El titular del grupo es responsable
+          </label>
+        </div>
+        <div class="col-md-4 mb-2">
+          <label class="check">
+            <input type="checkbox" [ngModel]="tipo.titular_es_aprobador === 1"
+                   (ngModelChange)="tipo.titular_es_aprobador = $event ? 1 : 0" />
+            El titular del grupo es aprobador
+          </label>
+        </div>
+        <div class="col-md-4 mb-2">
+          <label class="check">
+            <input type="checkbox" [ngModel]="tipo.exige_responsable === 1"
+                   (ngModelChange)="tipo.exige_responsable = $event ? 1 : 0" />
+            Exigir al menos un responsable
+          </label>
+          <small>Actívelo en los tipos delicados: evita que quede visible para todo el jardín.</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="tarjeta" *ngIf="id && id !== 'nuevo'">
+      <h5>Cargos que se agregan solos</h5>
+      <p class="ayuda">
+        Al crear la solicitud se resuelve quién ocupa hoy estos cargos y se agrega a la lista.
+        Si agrega el cargo <strong>Docente</strong>, entran todas las docentes.
+      </p>
+
+      <div class="row">
+        <div class="col-md-5 mb-2">
+          <select class="form-control" [(ngModel)]="nuevoCargo">
+            <option [ngValue]="null">Escoja un cargo</option>
+            <option *ngFor="let cargo of cargos" [ngValue]="cargo.id">{{ cargo.nombre }}</option>
+          </select>
+        </div>
+        <div class="col-md-4 mb-2">
+          <select class="form-control" [(ngModel)]="nuevoRol">
+            <option [ngValue]="null">Escoja el rol</option>
+            <option *ngFor="let rol of roles" [ngValue]="rol.id">{{ rol.nombre }}</option>
+          </select>
+        </div>
+        <div class="col-md-3 mb-2">
+          <button class="btn btn-outline-primary w-100" (click)="agregarCargo()">Agregar</button>
+        </div>
+      </div>
+
+      <table class="table table-sm mt-2">
+        <thead>
+          <tr><th>Cargo</th><th>Rol</th><th></th></tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let cargo of cargosDelTipo">
+            <td>{{ cargo.cargo_nombre }}</td>
+            <td>{{ cargo.rol_nombre }}</td>
+            <td class="text-end">
+              <button class="btn btn-sm btn-outline-danger" (click)="quitarCargo(cargo)">Quitar</button>
+            </td>
+          </tr>
+          <tr *ngIf="cargosDelTipo.length === 0">
+            <td colspan="3" class="text-center text-muted">Sin cargos configurados.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="pie-acciones">
+      <button class="btn btn-secondary" (click)="volver()">Volver</button>
+      <button class="btn btn-primary" (click)="guardar()" [disabled]="guardando">
+        {{ guardando ? 'Guardando...' : 'Guardar' }}
+      </button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,54 @@
+<div class="modulo">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="false"
+    [raiz]="'/operaciones/aprobar-solicitudes'"
+    [regresar]="'/operaciones'"
+    [iconoTitulo]="'/assets/images/aprobar-solicitudes.png'"
+  ></app-header>
+
+  <div class="container-fluid contenedor-aprobar">
+
+    <div *ngIf="cargando" class="text-center py-4">Cargando...</div>
+
+    <div *ngIf="!cargando">
+
+      <div class="tarjeta-pendiente" *ngFor="let solicitud of solicitudes">
+        <div class="encabezado">
+          <span class="icono">{{ solicitud.tipo_icono }}</span>
+          <div>
+            <strong>{{ solicitud.estudiante_nombre }}</strong>
+            <small *ngIf="solicitud.grupo_nombre"> · {{ solicitud.grupo_nombre }}</small>
+            <div class="tipo">{{ solicitud.tipo_nombre }}</div>
+          </div>
+          <span class="badge-pendiente" [style.background]="solicitud.estado_color">{{ solicitud.estado_nombre }}</span>
+        </div>
+
+        <div class="cuerpo">
+          <p class="descripcion">{{ solicitud.descripcion }}</p>
+
+          <div class="dato"><span>Solicitó:</span> {{ solicitud.acudiente_nombre }} ({{ solicitud.origen_nombre }})</div>
+          <div class="dato">
+            <span>Vigencia:</span>
+            <ng-container *ngIf="solicitud.fecha_inicio === solicitud.fecha_fin">{{ solicitud.fecha_inicio }}</ng-container>
+            <ng-container *ngIf="solicitud.fecha_inicio !== solicitud.fecha_fin">
+              del {{ solicitud.fecha_inicio }} al {{ solicitud.fecha_fin }}
+            </ng-container>
+          </div>
+          <div class="dato" *ngIf="horasDe(solicitud.id)"><span>Horas:</span> {{ horasDe(solicitud.id) }}</div>
+          <div class="dato" *ngIf="solicitud.id_documento"><span>Soporte:</span> adjunto por el acudiente</div>
+        </div>
+
+        <div class="acciones">
+          <button class="btn btn-success" (click)="aprobar(solicitud)">Aprobar</button>
+          <button class="btn btn-outline-danger" (click)="rechazar(solicitud)">Rechazar</button>
+        </div>
+      </div>
+
+      <div class="text-center py-4 text-muted" *ngIf="solicitudes.length === 0">
+        No hay solicitudes pendientes de aprobación.
+      </div>
+
+    </div>
+  </div>
+</div>

@@ -17,6 +17,7 @@ import { GruposService } from '../../services/grupos.service';
 import { UtilService } from '../../common/constantes/util.service';
 import { SearchPipeGeneral } from '../../common/pipes/search';
 import { RegistroUtilesDiariosService } from '../../services/utiles-diarios-registro.service';
+import { SolicitudesService } from '../../services/solicitudes.service';
 
 @Component({
   selector: 'app-asistencia',
@@ -40,6 +41,10 @@ export class AsistenciaComponent implements OnInit {
     // Utiles y accesorios del nino seleccionado en el panel. En ingreso se
     // marca lo que trajo; en salida, lo que se lleva de vuelta.
     utiles: [] as any[],
+    // Solicitudes vigentes del nino en la fecha. Es solo lectura: aqui la
+    // docente ve lo que hay que cumplir hoy; marcar se hace en la agenda del
+    // dia, desde Operaciones.
+    compromisos: [] as any[],
   };
 
   public model = {
@@ -100,7 +105,8 @@ export class AsistenciaComponent implements OnInit {
     private tiposAcudienteService: TiposAcudienteService,
     private utilService: UtilService,
     private searchPipeGeneral: SearchPipeGeneral,
-    private registroUtilesDiariosService: RegistroUtilesDiariosService
+    private registroUtilesDiariosService: RegistroUtilesDiariosService,
+    private solicitudesService: SolicitudesService
   ) { }
 
   ngOnInit(): void {
@@ -235,6 +241,29 @@ export class AsistenciaComponent implements OnInit {
   // Arrancan TODOS DESMARCADOS a proposito. Si la docente no alcanza a revisar
   // la maleta y confirma sin tocar nada, no se registra nada; lo hara despues
   // la docente principal desde la grilla de Operaciones.
+  /**
+   * Compromisos vigentes del nino en la fecha. Entran los autorizados y los
+   * que siguen pendientes de aprobacion, para que la docente sepa que el papa
+   * ya lo pidio aunque todavia no lo hayan aprobado.
+   */
+  consultaCompromisos(estudiante: any) {
+    this.listas.compromisos = [];
+    const idEstudiante = estudiante.id_estudiante || estudiante.id;
+    if (!idEstudiante) return;
+
+    const fecha = this.obtenerFechaActual();
+
+    this.solicitudesService.obtenerPorEstudiante(idEstudiante, fecha).subscribe({
+      next: (response: any) => {
+        this.listas.compromisos = (response.body as any[]) || [];
+      },
+      error: (error) => {
+        console.error('Error al consultar los compromisos del dia:', error);
+        this.listas.compromisos = [];
+      }
+    });
+  }
+
   consultaUtiles(estudiante: any) {
     this.listas.utiles = [];
     const idEstudiante = estudiante.id_estudiante || estudiante.id;
@@ -416,6 +445,7 @@ export class AsistenciaComponent implements OnInit {
     this.cobrosDetectados = [];
     this.mostrarPanelCobros = true;
     this.consultaUtiles(estudiante);
+    this.consultaCompromisos(estudiante);
     this.evaluarReglasIngreso(estudiante);
   }
 
@@ -427,6 +457,7 @@ export class AsistenciaComponent implements OnInit {
     this.cobrosDetectados = [];
     this.mostrarPanelCobros = true;
     this.consultaUtiles(estudiante);
+    this.consultaCompromisos(estudiante);
     this.evaluarReglasSalida(estudiante);
   }
 

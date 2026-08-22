@@ -1,0 +1,65 @@
+<div class="modulo">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="false"
+    [raiz]="'/administracion/datos-maestros/jornada-laboral'"
+    [regresar]="'/administracion/datos-maestros'"
+    [iconoTitulo]="'/assets/images/jornada-laboral.png'"
+  ></app-header>
+
+  <div class="container-fluid mt-3 px-4">
+
+    <p class="subtitulo">
+      Horario de atención del jardín por día. Es lo que limita las horas que los acudientes
+      pueden pedir en sus solicitudes, y el horario por defecto de los cobros automáticos.
+    </p>
+
+    <div class="loading-container" *ngIf="cargando">
+      <div class="spinner"></div>
+      <span>Cargando...</span>
+    </div>
+
+    <div class="jornada-lista" *ngIf="!cargando">
+
+      <div class="dia-card" *ngFor="let dia of dias" [class.cerrado]="dia.atiende !== 1">
+
+        <div class="dia-nombre">
+          <span>{{ dia.dia_nombre }}</span>
+          <small *ngIf="dia.configurado === 0">Usando horario por defecto</small>
+        </div>
+
+        <label class="check-atiende">
+          <input type="checkbox" [checked]="dia.atiende === 1" (change)="cambioAtiende(dia)" />
+          Atiende
+        </label>
+
+        <div class="dia-horas" [class.deshabilitado]="dia.atiende !== 1">
+          <div class="campo">
+            <label class="form-label">Entrada</label>
+            <select class="form-select" [(ngModel)]="dia.hora_entrada" [disabled]="dia.atiende !== 1">
+              <option *ngFor="let op of opcionesHora" [value]="op.valor">{{ op.etiqueta }}</option>
+            </select>
+          </div>
+          <div class="campo">
+            <label class="form-label">Salida</label>
+            <select class="form-select" [(ngModel)]="dia.hora_salida" [disabled]="dia.atiende !== 1">
+              <option *ngFor="let op of opcionesHora" [value]="op.valor">{{ op.etiqueta }}</option>
+            </select>
+          </div>
+        </div>
+
+        <button class="btn-guardar-dia" (click)="guardar(dia)" [disabled]="guardando">
+          <i class="fas fa-check"></i>
+        </button>
+      </div>
+
+    </div>
+
+    <div class="pie-acciones" *ngIf="!cargando">
+      <button class="btn-guardar" (click)="guardarTodos()" [disabled]="guardando">
+        <i class="fas fa-floppy-disk"></i> {{ guardando ? 'Guardando...' : 'Guardar la semana' }}
+      </button>
+    </div>
+
+  </div>
+</div>

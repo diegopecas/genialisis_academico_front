@@ -66,6 +66,9 @@ export class DatosMaestrosComponent {
       case 'configuracion-global':
         this.router.navigate(['/administracion/datos-maestros/configuracion-global']);
         break;
+      case 'jornada-laboral':
+        this.router.navigate(['/administracion/datos-maestros/jornada-laboral']);
+        break;
       case 'plantillas-institucionales':
         this.router.navigate(['/administracion/datos-maestros/plantillas']);
         break;
