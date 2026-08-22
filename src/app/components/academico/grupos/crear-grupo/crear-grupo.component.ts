@@ -10,6 +10,7 @@ import { AreasAcademicasService } from '../../../../services/areas-academicas.se
 import { AreaAcademicaXGrupoService } from '../../../../services/area-academica-x-grupo.service';
 import { GrupoHorariosComponent } from '../grupo-horarios/grupo-horarios.component';
 import { GrupoTarifasComponent } from '../grupo-tarifas/grupo-tarifas.component';
+import { GrupoDocentesComponent } from '../grupo-docentes/grupo-docentes.component';
 import { HttpClient } from '@angular/common/http';
 import Swal from 'sweetalert2';
 
@@ -18,7 +19,7 @@ import Swal from 'sweetalert2';
   templateUrl: './crear-grupo.component.html',
   styleUrl: './crear-grupo.component.scss',
   standalone: true,
-  imports: [CommonModule, FormsModule, HeaderComponent, GrupoHorariosComponent, GrupoTarifasComponent]
+  imports: [CommonModule, FormsModule, HeaderComponent, GrupoHorariosComponent, GrupoTarifasComponent, GrupoDocentesComponent]
 })
 export class CrearGrupoComponent implements OnInit {
 

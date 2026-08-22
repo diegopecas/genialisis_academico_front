@@ -33,6 +33,14 @@
                 (click)="pestanaActiva = 'areas'">
                 <i class="fas fa-book-open"></i>
                 Áreas Académicas
+            </button>
+            <button 
+                *ngIf="accion === 'editar'"
+                class="tab-item" 
+                [class.active]="pestanaActiva === 'docentes'"
+                (click)="pestanaActiva = 'docentes'">
+                <i class="fas fa-chalkboard-user"></i>
+                Docentes
             </button>
             <button 
                 *ngIf="accion === 'editar'"
@@ -63,6 +71,7 @@
                         <ng-container *ngSwitchCase="'basico'"><i class="fas fa-info-circle"></i> Información Básica</ng-container>
                         <ng-container *ngSwitchCase="'grados'"><i class="fas fa-graduation-cap"></i> Grados</ng-container>
                         <ng-container *ngSwitchCase="'areas'"><i class="fas fa-book-open"></i> Áreas Académicas</ng-container>
+                        <ng-container *ngSwitchCase="'docentes'"><i class="fas fa-chalkboard-user"></i> Docentes</ng-container>
                         <ng-container *ngSwitchCase="'horarios'"><i class="fas fa-clock"></i> Horarios</ng-container>
                         <ng-container *ngSwitchCase="'tarifas'"><i class="fas fa-dollar-sign"></i> Tarifas</ng-container>
                     </ng-container>
@@ -93,6 +102,14 @@
                 (click)="seleccionarPestana('areas')">
                 <i class="fas fa-book-open"></i>
                 Áreas Académicas
+            </button>
+            <button 
+                *ngIf="accion === 'editar'"
+                class="tabs-movil-item" 
+                [class.active]="pestanaActiva === 'docentes'"
+                (click)="seleccionarPestana('docentes')">
+                <i class="fas fa-chalkboard-user"></i>
+                Docentes
             </button>
             <button 
                 *ngIf="accion === 'editar'"
@@ -355,7 +372,16 @@
                                 <div *ngIf="areasAsociadas.length > 0">
                                     <div class="grados-list">
                                         <div class="grado-item-asociado" *ngFor="let areaAsociada of areasAsociadas">
-                                            <span class="grado-nombre">{{ areaAsociada.nombre_area_academica }}</span>
+                                            <span class="grado-nombre">
+                                                {{ areaAsociada.nombre_area_academica }}
+                                                <!-- Informativo: la docente se asigna en la pestaña Docentes -->
+                                                <small class="area-docente" *ngIf="areaAsociada.id_docente">
+                                                    {{ areaAsociada.nombre_docente }}
+                                                </small>
+                                                <small class="area-docente sin-docente" *ngIf="!areaAsociada.id_docente">
+                                                    Sin docente asignada
+                                                </small>
+                                            </span>
                                             <button 
                                                 *ngIf="accion === 'editar'"
                                                 class="btn-desasociar" 
@@ -379,6 +405,16 @@
     </div>
 
     <!-- Contenido de Horarios -->
+    <!-- Contenido de Docentes -->
+    <div class="tab-content" *ngIf="pestanaActiva === 'docentes'">
+        <div class="container-fluid mt-5">
+            <app-grupo-docentes
+                [idGrupo]="model.id"
+                [editable]="accion === 'editar'">
+            </app-grupo-docentes>
+        </div>
+    </div>
+
     <div class="tab-content" *ngIf="pestanaActiva === 'horarios'">
         <div class="container-fluid mt-5">
             <app-grupo-horarios

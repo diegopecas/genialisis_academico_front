@@ -1147,3 +1147,17 @@ $light-gold: rgba(212, 175, 55, 0.1);
     height: 140px;
   }
 }
+// Docente que dicta cada área, mostrada como dato informativo en la pestaña
+// de Áreas. La asignación se hace en la pestaña Docentes.
+.area-docente {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 400;
+    color: #7a7a7a;
+    margin-top: 2px;
+
+    &.sin-docente {
+        color: #bdbdbd;
+        font-style: italic;
+    }
+}
