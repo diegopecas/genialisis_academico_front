@@ -18,14 +18,16 @@ import Swal from 'sweetalert2';
 })
 export class CrearTipoSolicitudComponent implements OnInit {
 
-  titulo = "Tipo de Compromiso";
-
-  public accion: string = 'crear';
-  public id: any = null;
+  titulo = "Crear Tipo de Solicitud";
+  accion: string = "";
+  regresar = '/administracion/operaciones/tipos-solicitud';
+  editable: boolean = true;
+  submitted: boolean = false;
 
   // Todo el comportamiento del modulo sale de estas banderas: el codigo no
   // pregunta "¿es medicamento?", pregunta por la configuracion del tipo.
-  public tipo: any = {
+  model = {
+    id: null,
     nombre: '',
     descripcion: '',
     icono: '',
@@ -40,7 +42,7 @@ export class CrearTipoSolicitudComponent implements OnInit {
     exige_responsable: 0,
     titular_es_responsable: 1,
     titular_es_aprobador: 0
-  };
+  } as any;
 
   public cargos = [] as any[];
   public roles = [] as any[];
@@ -48,8 +50,6 @@ export class CrearTipoSolicitudComponent implements OnInit {
 
   public nuevoCargo: any = null;
   public nuevoRol: any = null;
-
-  public guardando: boolean = false;
 
   constructor(
     private tiposService: TiposSolicitudService,
@@ -60,28 +60,49 @@ export class CrearTipoSolicitudComponent implements OnInit {
     private router: Router
   ) { }
 
-  ngOnInit() {
-    this.accion = this.route.snapshot.paramMap.get('accion') || 'crear';
-    this.id = this.route.snapshot.paramMap.get('id');
-
+  ngOnInit(): void {
     this.cargarCargos();
     this.cargarRoles();
 
-    if (this.id && this.id !== 'nuevo') {
-      this.cargarTipo();
-      this.cargarCargosDelTipo();
-    }
+    this.route.params.subscribe(params => {
+      this.accion = params['accion'];
+      const id = params['id'];
+
+      if (this.accion === 'crear') {
+        this.titulo = "Crear Tipo de Solicitud";
+        this.editable = true;
+      } else if (this.accion === 'editar') {
+        this.titulo = "Editar Tipo de Solicitud";
+        this.editable = true;
+        this.cargarTipo(id);
+        this.cargarCargosDelTipo(id);
+      } else if (this.accion === 'consultar') {
+        this.titulo = "Consultar Tipo de Solicitud";
+        this.editable = false;
+        this.cargarTipo(id);
+        this.cargarCargosDelTipo(id);
+      }
+    });
   }
 
-  cargarTipo() {
-    this.tiposService.obtenerById(this.id).subscribe({
+  cargarTipo(id: any) {
+    this.tiposService.obtenerById(id).subscribe({
       next: (response: any) => {
-        const filas = response.body || [];
-        if (filas.length > 0) {
-          this.tipo = filas[0];
+        const body = response.body;
+        if (body && body.length > 0) {
+          this.model = body[0];
+
+          if (this.accion === 'editar') {
+            this.titulo = "Editar Tipo de Solicitud: " + this.model.nombre;
+          } else if (this.accion === 'consultar') {
+            this.titulo = "Consultar Tipo de Solicitud: " + this.model.nombre;
+          }
         }
       },
-      error: () => { }
+      error: (error: any) => {
+        console.error("Error al cargar el tipo de solicitud", error);
+        Swal.fire('Error', 'No se pudo cargar el tipo de solicitud', 'error');
+      }
     });
   }
 
@@ -107,8 +128,8 @@ export class CrearTipoSolicitudComponent implements OnInit {
     });
   }
 
-  cargarCargosDelTipo() {
-    this.cargosTipoService.obtenerPorTipo(this.id).subscribe({
+  cargarCargosDelTipo(id: any) {
+    this.cargosTipoService.obtenerPorTipo(id).subscribe({
       next: (response: any) => {
         this.cargosDelTipo = response.body || [];
       },
@@ -119,75 +140,90 @@ export class CrearTipoSolicitudComponent implements OnInit {
   }
 
   /**
-   * Sin horas no hay a qué anticiparse: el aviso previo se calcula contra la
+   * Sin horas no hay a que anticiparse: el aviso previo se calcula contra la
    * hora programada de la ocurrencia.
    */
   cambioManejoHoras() {
-    if (Number(this.tipo.manejo_horas) === 0) {
-      this.tipo.minutos_anticipacion = null;
+    if (Number(this.model.manejo_horas) === 0) {
+      this.model.minutos_anticipacion = null;
     }
   }
 
   guardar() {
-    if (!this.tipo.nombre || this.tipo.nombre.trim() === '') {
-      Swal.fire('Falta el nombre', 'El nombre es obligatorio', 'warning');
+    this.submitted = true;
+
+    if (!this.model.nombre || this.model.nombre.trim() === '') {
+      Swal.fire('Advertencia', 'El nombre del tipo es obligatorio', 'warning');
       return;
     }
 
-    this.guardando = true;
+    const data = {
+      nombre: this.model.nombre.trim(),
+      descripcion: this.model.descripcion,
+      icono: this.model.icono,
+      orden: this.model.orden,
+      activo: this.model.activo,
+      requiere_aprobacion: this.model.requiere_aprobacion,
+      manejo_horas: this.model.manejo_horas,
+      documento: this.model.documento,
+      minutos_anticipacion: this.model.minutos_anticipacion,
+      requiere_confirmacion: this.model.requiere_confirmacion,
+      notifica_acudiente_cumplido: this.model.notifica_acudiente_cumplido,
+      exige_responsable: this.model.exige_responsable,
+      titular_es_responsable: this.model.titular_es_responsable,
+      titular_es_aprobador: this.model.titular_es_aprobador
+    } as any;
 
-    if (this.id && this.id !== 'nuevo') {
-      this.tiposService.actualizar(this.tipo).subscribe({
+    if (this.accion === 'crear') {
+      this.tiposService.crear(data).subscribe({
         next: () => {
-          this.guardando = false;
-          this.volver();
+          // Los cargos se agregan entrando a editar, porque necesitan el id
+          // del tipo ya creado.
+          Swal.fire('Éxito', 'Tipo creado correctamente. Entre a editarlo para agregar los cargos.', 'success');
+          this.router.navigate(['/administracion/operaciones/tipos-solicitud']);
         },
         error: (error: any) => {
-          this.guardando = false;
-          Swal.fire('Error', error?.error?.error || 'No se pudo guardar', 'error');
+          console.error("Error al crear el tipo de solicitud", error);
+          Swal.fire('Error', error?.error?.error || 'No se pudo crear el tipo', 'error');
         }
       });
-      return;
+    } else if (this.accion === 'editar') {
+      data.id = this.model.id;
+      this.tiposService.actualizar(data).subscribe({
+        next: () => {
+          Swal.fire('Éxito', 'Tipo actualizado correctamente', 'success');
+          this.router.navigate(['/administracion/operaciones/tipos-solicitud']);
+        },
+        error: (error: any) => {
+          console.error("Error al actualizar el tipo de solicitud", error);
+          Swal.fire('Error', error?.error?.error || 'No se pudo actualizar el tipo', 'error');
+        }
+      });
     }
-
-    this.tiposService.crear(this.tipo).subscribe({
-      next: (respuesta: any) => {
-        this.guardando = false;
-        // Se queda en la pantalla para que pueda agregar los cargos, que
-        // necesitan el id del tipo ya creado.
-        this.id = respuesta.id;
-        this.accion = 'editar';
-        Swal.fire('Guardado', 'Ahora puede agregar los cargos.', 'success');
-      },
-      error: (error: any) => {
-        this.guardando = false;
-        Swal.fire('Error', error?.error?.error || 'No se pudo guardar', 'error');
-      }
-    });
   }
 
   /**
    * Ojo con el alcance: agregar el cargo "Docente" mete a TODAS las docentes
-   * a la lista de la solicitud. Es a propósito, y por eso se avisa.
+   * a la lista de la solicitud. Es a proposito.
    */
   agregarCargo() {
     if (!this.nuevoCargo || !this.nuevoRol) {
-      Swal.fire('Faltan datos', 'Escoja el cargo y el rol', 'warning');
+      Swal.fire('Advertencia', 'Escoja el cargo y el rol', 'warning');
       return;
     }
 
     this.cargosTipoService.crear({
-      id_tipo_solicitud: this.id,
+      id_tipo_solicitud: this.model.id,
       id_cargo: this.nuevoCargo,
       id_rol: this.nuevoRol
     }).subscribe({
       next: () => {
         this.nuevoCargo = null;
         this.nuevoRol = null;
-        this.cargarCargosDelTipo();
+        this.cargarCargosDelTipo(this.model.id);
       },
       error: (error: any) => {
-        Swal.fire('Error', error?.error?.error || 'No se pudo agregar', 'error');
+        Swal.fire('Error', error?.error?.error || 'No se pudo agregar el cargo', 'error');
       }
     });
   }
@@ -195,15 +231,15 @@ export class CrearTipoSolicitudComponent implements OnInit {
   quitarCargo(cargo: any) {
     this.cargosTipoService.eliminar(cargo.id).subscribe({
       next: () => {
-        this.cargarCargosDelTipo();
+        this.cargarCargosDelTipo(this.model.id);
       },
       error: (error: any) => {
-        Swal.fire('Error', error?.error?.error || 'No se pudo quitar', 'error');
+        Swal.fire('Error', error?.error?.error || 'No se pudo quitar el cargo', 'error');
       }
     });
   }
 
   volver() {
-    this.router.navigate(['/administracion/operaciones/compromisos']);
+    this.router.navigate(['/administracion/operaciones/tipos-solicitud']);
   }
 }

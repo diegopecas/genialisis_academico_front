@@ -1,67 +1,22 @@
 <div class="modulo">
   <app-header
     [tituloModulo]="titulo"
-    [mostrarCrear]="false"
-    [raiz]="'/administracion/operaciones/compromisos'"
+    [mostrarCrear]="true"
+    [accion]="'ConsultarTodos'"
+    [raiz]="'/administracion/operaciones/tipos-solicitud'"
     [regresar]="'/administracion/operaciones'"
-    [iconoTitulo]="'/assets/images/compromisos.png'"
+    [iconoTitulo]="'/assets/images/solicitudes-acudientes.png'"
   ></app-header>
 
-  <div class="container-fluid contenedor-tipos">
-
-    <div class="barra">
-      <p class="ayuda">
-        Cada tipo define cómo se comporta la solicitud: si necesita aprobación, si maneja horas,
-        si exige soporte y quién queda responsable.
-      </p>
-      <button class="btn btn-primary" (click)="crear()">Nuevo tipo</button>
-    </div>
-
-    <div *ngIf="cargando" class="text-center py-4">Cargando...</div>
-
-    <table class="table table-hover" *ngIf="!cargando">
-      <thead>
-        <tr>
-          <th></th>
-          <th>Nombre</th>
-          <th>Horas</th>
-          <th>Soporte</th>
-          <th>Aprobación</th>
-          <th>Confirmación</th>
-          <th>Aviso</th>
-          <th>Estado</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let tipo of tipos" [class.inactivo]="tipo.activo !== 1">
-          <td class="icono">{{ tipo.icono }}</td>
-          <td>
-            <strong>{{ tipo.nombre }}</strong>
-            <div class="descripcion">{{ tipo.descripcion }}</div>
-          </td>
-          <td>{{ textoHoras(tipo) }}</td>
-          <td>{{ textoDocumento(tipo) }}</td>
-          <td>{{ tipo.requiere_aprobacion === 1 ? 'Sí' : 'No' }}</td>
-          <td>{{ tipo.requiere_confirmacion === 1 ? 'Sí' : 'No' }}</td>
-          <td>
-            <span *ngIf="tipo.minutos_anticipacion">{{ tipo.minutos_anticipacion }} min antes</span>
-            <span *ngIf="!tipo.minutos_anticipacion">No avisa</span>
-          </td>
-          <td>
-            <span class="badge-estado" [class.on]="tipo.activo === 1">
-              {{ tipo.activo === 1 ? 'Activo' : 'Inactivo' }}
-            </span>
-          </td>
-          <td class="acciones">
-            <button class="btn btn-sm btn-outline-primary" (click)="editar(tipo)">Editar</button>
-            <button class="btn btn-sm btn-outline-danger" (click)="eliminar(tipo)">Eliminar</button>
-          </td>
-        </tr>
-        <tr *ngIf="tipos.length === 0">
-          <td colspan="9" class="text-center text-muted py-4">No hay tipos configurados.</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+  <app-tablas
+    [titulos]="titulos"
+    [datos]="datos"
+    [raiz]="'/administracion/operaciones/tipos-solicitud'"
+    [acciones]="acciones"
+    [accionEditar]="true"
+    [accionEliminar]="true"
+    [mostrarBuscar]="true"
+    [columnasFiltro]="columnasFiltro"
+    (clicAccion)="clicAccion($event)"
+  ></app-tablas>
 </div>

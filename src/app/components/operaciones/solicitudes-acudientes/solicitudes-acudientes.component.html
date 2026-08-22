@@ -22,7 +22,7 @@
         </select>
       </div>
       <div class="col-md-4 mb-2">
-        <label>Buscar niño</label>
+        <label>Buscar estudiante</label>
         <input type="text" class="form-control" [(ngModel)]="busquedaEstudiante" placeholder="Nombre del estudiante" />
       </div>
       <div class="col-md-2 mb-2 d-flex align-items-end">
@@ -55,7 +55,7 @@
       </div>
 
       <!-- Con hora: la linea de tiempo del dia -->
-      <h5 class="mt-3" *ngIf="conHora.length > 0">Compromisos con hora</h5>
+      <h5 class="mt-3" *ngIf="conHora.length > 0">Solicitudes con hora</h5>
       <div class="tarjeta-hora"
            *ngFor="let ocurrencia of conHora"
            [class.vencida]="estaVencida(ocurrencia)"
@@ -88,7 +88,7 @@
       </div>
 
       <div class="text-center py-4 text-muted" *ngIf="sinHora.length === 0 && conHora.length === 0">
-        No hay compromisos para esta fecha.
+        No hay solicitudes para esta fecha.
       </div>
 
     </div>

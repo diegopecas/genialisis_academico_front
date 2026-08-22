@@ -209,6 +209,38 @@ export class MenuArbolService {
             ]
           },
           {
+            id: 'operaciones-solicitudes-acudientes',
+            label: 'Solicitudes de los Padres',
+            icono: '📝',
+            ruta: '/operaciones/solicitudes-acudientes',
+            permiso: 'operaciones.solicitudes_acudientes',
+            keywords: ['solicitudes', 'compromisos', 'compromisos del dia', 'agenda del dia', 'remedio', 'medicamento', 'recoger', 'salida anticipada', 'dieta', 'recomendaciones', 'papelito']
+          },
+          {
+            id: 'operaciones-registrar-solicitud',
+            label: 'Registrar Solicitud',
+            icono: '✏️',
+            ruta: '/operaciones/solicitudes-acudientes/registrar',
+            permiso: 'operaciones.solicitudes_acudientes',
+            keywords: ['registrar solicitud', 'anotar', 'llamo el papa', 'recepcion', 'crear compromiso']
+          },
+          {
+            id: 'operaciones-aprobar-solicitudes',
+            label: 'Aprobar Solicitudes',
+            icono: '✅',
+            ruta: '/operaciones/aprobar-solicitudes',
+            permiso: 'operaciones.solicitudes_aprobar',
+            keywords: ['aprobar', 'rechazar', 'pendientes', 'autorizar', 'medicamento', 'formula']
+          },
+          {
+            id: 'operaciones-mis-alertas',
+            label: 'Mis Alertas',
+            icono: '🔔',
+            ruta: '/operaciones/mis-alertas',
+            permiso: 'operaciones.notificaciones_colaboradores',
+            keywords: ['alertas', 'avisos', 'bandeja', 'notificaciones', 'recordatorios', 'pendientes']
+          },
+          {
             id: 'operaciones-utiles-diarios',
             label: 'Útiles y Accesorios Diarios',
             icono: '🎒',
@@ -322,7 +354,8 @@ export class MenuArbolService {
               { id: 'administracion-oper-inicio', label: 'Operaciones', icono: '⚙️', ruta: '/administracion/operaciones', permiso: 'administracion.operaciones' },
               { id: 'administracion-entes-control', label: 'Entes de Control', icono: '🏛️', ruta: '/administracion/operaciones/entes-control', permiso: 'admin.entes_control', keywords: ['entes', 'control', 'vigilancia', 'secretaria', 'icbf'] },
               { id: 'administracion-consulta-entes-control', label: 'Consulta Entes de Control', icono: '🔎', ruta: '/administracion/operaciones/consulta-entes-control', permiso: 'admin.consulta_entes_control', keywords: ['consulta', 'entes', 'control', 'visita', 'documentos', 'reportes'] },
-              { id: 'administracion-utiles-diarios', label: 'Útiles y Accesorios Diarios', icono: '🎒', ruta: '/administracion/operaciones/utiles-diarios', permiso: 'admin.utiles_diarios', keywords: ['utiles', 'utiles diarios', 'accesorios', 'inventario', 'inventario diario', 'personales', 'articulos personales', 'maleta', 'morral', 'que trajo', 'que se llevo', 'agenda', 'chaqueta', 'lonchera', 'termo', 'cosas del nino'] }
+              { id: 'administracion-utiles-diarios', label: 'Útiles y Accesorios Diarios', icono: '🎒', ruta: '/administracion/operaciones/utiles-diarios', permiso: 'admin.utiles_diarios', keywords: ['utiles', 'utiles diarios', 'accesorios', 'inventario', 'inventario diario', 'personales', 'articulos personales', 'maleta', 'morral', 'que trajo', 'que se llevo', 'agenda', 'chaqueta', 'lonchera', 'termo', 'cosas del nino'] },
+              { id: 'administracion-tipos-solicitud', label: 'Tipos de Solicitud', icono: '📝', ruta: '/administracion/operaciones/tipos-solicitud', permiso: 'admin.solicitudes_acudientes', keywords: ['solicitudes', 'tipos de solicitud', 'compromisos', 'medicamento', 'salida anticipada', 'recomendaciones', 'parametrizar solicitudes'] }
             ]
           },
           {
@@ -408,6 +441,7 @@ export class MenuArbolService {
               { id: 'administracion-config-ia', label: 'Configuración IA', icono: '🤖', ruta: '/administracion/datos-maestros/configuracion-ia', permiso: 'admin.configuracion_ia', keywords: ['ia', 'inteligencia artificial'] },
               { id: 'administracion-config-google', label: 'Configuración Google', icono: '📅', ruta: '/administracion/datos-maestros/configuracion-google', permiso: 'admin.configuracion_google', keywords: ['google', 'calendar', 'calendario'] },
               { id: 'administracion-config-geofence', label: 'Configuración Geofence', icono: '📍', ruta: '/administracion/datos-maestros/configuracion-geofence', permiso: 'admin.configuracion_geofence', keywords: ['ubicacion', 'zonas', 'gps'] },
+              { id: 'administracion-jornada-laboral', label: 'Jornada Laboral', icono: '⏰', ruta: '/administracion/datos-maestros/jornada-laboral', permiso: 'admin.jornada_laboral', keywords: ['jornada', 'horario', 'horario del jardin', 'hora de entrada', 'hora de salida', 'atencion', 'apertura', 'cierre'] },
               { id: 'administracion-cargos', label: 'Cargos', icono: '💼', ruta: '/administracion/datos-maestros/cargos', permiso: 'admin.cargos', keywords: ['puestos', 'roles'] },
               { id: 'administracion-tipos-documentos', label: 'Tipos Documentos', icono: '📄', ruta: '/administracion/datos-maestros/tipos-documentos', permiso: 'admin.tipos_documentos', keywords: ['documentos'] },
               { id: 'administracion-institucion', label: 'Institución', icono: '🏫', ruta: '/administracion/datos-maestros/institucion', permiso: 'admin.institucion', keywords: ['institucion', 'documentos institucionales', 'plan de emergencia'] }
