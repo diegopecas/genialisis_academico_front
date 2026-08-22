@@ -178,6 +178,26 @@ export class AreaAcademicaXGrupoService {
     );
   }
 
+  /**
+   * Guarda todas las áreas del grupo con su docente en un solo llamado.
+   *
+   * La pestaña trabaja en memoria y solo manda al grabar, así que aquí va el
+   * estado completo, no una operación suelta.
+   */
+  guardarGrupo(idGrupo: any, areas: any[]) {
+    const body = JSON.stringify({ id_grupo: idGrupo, areas: areas });
+
+    return this.http.put<any>(this.servicio + '/guardar-grupo', body, httpOptions).pipe(
+      tap((respuesta: any) => {
+        if (respuesta.error) {
+          throw respuesta.error;
+        }
+        return respuesta;
+      }),
+      catchError(this.handleError)
+    );
+  }
+
   private handleError(error: HttpErrorResponse) {
     return throwError(() => error);
   }

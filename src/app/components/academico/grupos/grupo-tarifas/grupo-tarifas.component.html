@@ -95,13 +95,11 @@
             </div>
         </div>
 
-        <!-- Guardar -->
-        <div class="mt-4" *ngIf="editable">
-            <button class="btn btn-primary w-100" (click)="guardarTarifas()" [disabled]="guardando">
-                <i class="fas fa-save me-2"></i>
-                {{ guardando ? 'Guardando...' : 'Guardar tarifas ' + anioTarifa }}
-            </button>
-        </div>
+        <!-- El guardado se hace con el botón Grabar del grupo, para no tener
+             dos botones de guardar en la misma pantalla. -->
+        <p class="text-muted small mt-4" *ngIf="editable">
+            Las tarifas de {{ anioTarifa }} se guardan con el botón <strong>Grabar</strong>.
+        </p>
 
         <!-- Años ya configurados -->
         <div class="mt-4" *ngIf="tarifasGrupo.length > 0">

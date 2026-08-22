@@ -1147,8 +1147,23 @@ $light-gold: rgba(212, 175, 55, 0.1);
     height: 140px;
   }
 }
-// Docente que dicta cada área, mostrada como dato informativo en la pestaña
-// de Áreas. La asignación se hace en la pestaña Docentes.
+// Área asociada: al hacer clic se despliega para escoger quién la dicta.
+.area-bloque {
+    border-bottom: 1px solid #f2f2f2;
+
+    &:last-child {
+        border-bottom: 0;
+    }
+}
+
+.area-clic {
+    cursor: pointer;
+
+    &:hover {
+        background: #fafafa;
+    }
+}
+
 .area-docente {
     display: block;
     font-size: 0.78rem;
@@ -1159,5 +1174,24 @@ $light-gold: rgba(212, 175, 55, 0.1);
     &.sin-docente {
         color: #bdbdbd;
         font-style: italic;
+    }
+}
+
+.area-docente-selector {
+    padding: 10px 14px 14px 14px;
+    background: #fafafa;
+
+    .form-label {
+        font-size: 12px;
+        font-weight: 600;
+        color: #616161;
+        margin-bottom: 4px;
+    }
+
+    .nota-docentes {
+        display: block;
+        margin-top: 6px;
+        color: #d9534f;
+        font-size: 0.76rem;
     }
 }

@@ -1,90 +1,92 @@
-<div class="grupo-docentes">
+<div class="grados-section">
 
-  <p class="ayuda">
-    Los docentes del grupo salen de los colaboradores con rol Docente. El titular es quien
-    queda como responsable por defecto de las solicitudes de los acudientes.
-  </p>
-
-  <div class="fila-agregar" *ngIf="editable">
-    <select class="form-select" [(ngModel)]="nuevoDocente">
-      <option [ngValue]="null">Seleccione un docente</option>
-      <option *ngFor="let doc of docentesDisponibles" [ngValue]="doc.id">
-        {{ doc.nombre_completo }}
-      </option>
-    </select>
-    <button class="btn btn-outline-primary" (click)="agregarDocente()">
-      <i class="fas fa-plus"></i> Agregar
-    </button>
+  <!-- El titular arriba, para que no se confunda con el área que dicta -->
+  <div class="titular-linea" [class.sin-titular]="!titular">
+    <i class="fas fa-star"></i>
+    <span class="titular-label">Titular del grupo:</span>
+    <span class="titular-nombre" *ngIf="titular">{{ titular.nombre_docente }}</span>
+    <span class="titular-nombre vacio" *ngIf="!titular">sin asignar</span>
   </div>
 
-  <div class="text-center py-4 text-muted" *ngIf="cargando">Cargando...</div>
+  <div class="row">
 
-  <div class="lista-docentes" *ngIf="!cargando">
-
-    <div class="docente-card" *ngFor="let asignado of asignados" [class.titular]="asignado.es_titular == 1">
-
-      <div class="docente-datos">
-        <div class="docente-nombre">
-          {{ asignado.nombre_docente }}
-          <span class="badge-titular" *ngIf="asignado.es_titular == 1">
-            <i class="fas fa-star"></i> Titular
-          </span>
+    <!-- Columna izquierda: Docentes Disponibles -->
+    <div class="col-md-6" *ngIf="editable">
+      <div class="grados-card disponibles">
+        <div class="card-header-subtle">
+          <span class="header-icon"><i class="fas fa-list"></i></span>
+          Docentes Disponibles
         </div>
-        <div class="docente-detalle">
-          <span *ngIf="asignado.cargo">{{ asignado.cargo }}</span>
-          <span *ngIf="asignado.nivel_escolaridad"> · {{ asignado.nivel_escolaridad }}</span>
-          <span *ngIf="asignado.numero_identificacion"> · {{ asignado.numero_identificacion }}</span>
+        <div class="card-body-subtle">
+          <div *ngIf="disponibles.length > 0">
+            <div class="grados-list">
+              <div class="grado-item" *ngFor="let doc of disponibles">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  [id]="'doc-' + doc.id"
+                  [(ngModel)]="seleccionados[doc.id]">
+                <label class="form-check-label" [for]="'doc-' + doc.id">
+                  {{ doc.nombre_completo }}
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="empty-state" *ngIf="disponibles.length === 0">
+            <i class="fas fa-inbox"></i>
+            <p>No hay docentes disponibles</p>
+          </div>
         </div>
       </div>
+      <button
+        class="btn btn-asociar mt-3 w-100"
+        (click)="asociarSeleccionados()"
+        *ngIf="disponibles.length > 0">
+        <i class="fas fa-arrow-right"></i> Asociar Seleccionados
+      </button>
+    </div>
 
-      <div class="docente-area">
-        <label class="form-label">Área que dicta</label>
-        <select
-          class="form-select"
-          [ngModel]="idAreaDe(asignado)"
-          (ngModelChange)="cambiarArea(asignado, $event)"
-          [disabled]="!editable">
-          <option [ngValue]="null">Ninguna</option>
-          <option *ngFor="let area of areasDisponiblesPara(asignado)" [ngValue]="area.id">
-            {{ area.nombre_area_academica }}
-          </option>
-        </select>
+    <!-- Columna derecha: Docentes del Grupo -->
+    <div [class]="editable ? 'col-md-6' : 'col-12'">
+      <div class="grados-card asociados">
+        <div class="card-header-subtle">
+          <span class="header-icon"><i class="fas fa-check-circle"></i></span>
+          Docentes del Grupo
+        </div>
+        <div class="card-body-subtle">
+          <div *ngIf="asignados.length > 0">
+            <div class="grados-list">
+              <div class="grado-item-asociado" *ngFor="let asignado of asignados">
+                <span class="grado-nombre">{{ asignado.nombre_docente }}</span>
+
+                <!-- La estrella marca el titular. Llena y dorada en quien lo
+                     es; hueca y gris en los demás, para cambiarlo. -->
+                <button
+                  *ngIf="editable"
+                  class="btn-titular"
+                  [class.activo]="asignado.es_titular === 1"
+                  (click)="marcarTitular(asignado)"
+                  [title]="asignado.es_titular === 1 ? 'Titular del grupo' : 'Marcar como titular'">
+                  <i class="fas fa-star" *ngIf="asignado.es_titular === 1"></i>
+                  <i class="far fa-star" *ngIf="asignado.es_titular !== 1"></i>
+                </button>
+
+                <button
+                  *ngIf="editable"
+                  class="btn-desasociar"
+                  (click)="quitar(asignado)"
+                  title="Quitar del grupo">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="empty-state" *ngIf="asignados.length === 0">
+            <i class="fas fa-inbox"></i>
+            <p>Sin docentes asignados</p>
+          </div>
+        </div>
       </div>
-
-      <div class="docente-acciones" *ngIf="editable">
-        <button
-          class="btn btn-sm btn-outline-warning"
-          *ngIf="asignado.es_titular != 1"
-          (click)="marcarTitular(asignado)"
-          title="Marcar como titular">
-          <i class="fas fa-star"></i>
-        </button>
-        <button class="btn btn-sm btn-outline-danger" (click)="quitarDocente(asignado)" title="Quitar del grupo">
-          <i class="fas fa-user-minus"></i>
-        </button>
-      </div>
-    </div>
-
-    <div class="empty-state" *ngIf="asignados.length === 0">
-      <i class="fas fa-chalkboard-user"></i>
-      <p>Este grupo todavía no tiene docentes asignados</p>
-      <small>Sin titular, las solicitudes de los acudientes que exigen responsable no se pueden crear.</small>
-    </div>
-
-    <div class="aviso-areas" *ngIf="asignados.length > 0 && areasSinDocente.length > 0">
-      <i class="fas fa-circle-info"></i>
-      Áreas del grupo sin docente:
-      <strong>{{ areasSinDocente.length }}</strong>
-      <span class="lista-areas">
-        <span *ngFor="let area of areasSinDocente; let ultimo = last">
-          {{ area.nombre_area_academica }}<span *ngIf="!ultimo">, </span>
-        </span>
-      </span>
-    </div>
-
-    <div class="aviso-areas sin-areas" *ngIf="areas.length === 0">
-      <i class="fas fa-circle-info"></i>
-      Este grupo no tiene áreas académicas asociadas. Se asocian en la pestaña Áreas Académicas.
     </div>
   </div>
 </div>

@@ -308,12 +308,13 @@ export class GrupoTarifasComponent implements OnInit, OnChanges {
    */
   guardarTarifas(): void {
     if (!this.idGrupo) {
-      Swal.fire('Advertencia', 'Primero debe guardar el grupo', 'warning');
       return;
     }
 
+    // Lo llama el boton Grabar del grupo, asi que si no hay nada que guardar
+    // se sale en silencio: no tiene sentido alertar por una pestana que el
+    // usuario quiza ni abrio.
     if (this.filas.length === 0 && this.filasAEliminar.length === 0) {
-      Swal.fire('Advertencia', 'No hay cambios para guardar', 'warning');
       return;
     }
 

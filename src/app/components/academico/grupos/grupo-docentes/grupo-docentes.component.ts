@@ -1,9 +1,6 @@
-import { Component, Input, OnInit, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { DocentesXGruposService } from '../../../../services/docentes-x-grupos.service';
-import { DocentesService } from '../../../../services/docentes.service';
-import { AreaAcademicaXGrupoService } from '../../../../services/area-academica-x-grupo.service';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -13,224 +10,107 @@ import Swal from 'sweetalert2';
   standalone: true,
   imports: [CommonModule, FormsModule]
 })
-export class GrupoDocentesComponent implements OnInit, OnChanges {
+export class GrupoDocentesComponent implements OnChanges {
 
   @Input() idGrupo: any;
   @Input() editable: boolean = true;
 
-  // Docentes asignados al grupo. El titular viene de primero.
+  // Los datos los carga el padre una sola vez, igual que con las areas.
+  // Este componente no consulta el back.
+  @Input() docentes: any[] = [];
+  @Input() asignadosOriginales: any[] = [];
+
+  // La lista viaja al padre en cada cambio: el guardado lo hace el boton
+  // Grabar general del grupo, no un boton propio de este tab.
+  @Output() listaCambiada = new EventEmitter<any[]>();
+
   public asignados = [] as any[];
-
-  // Candidatos: los colaboradores con rol DOCENTE. La tabla `docentes` se
-  // alimenta sola cuando a un colaborador se le pone ese rol, asi que es
-  // justo la lista que se necesita.
-  public docentes = [] as any[];
-
-  // Areas ya asociadas al grupo. El area por docente se guarda en
-  // area_academica_x_grupo.id_docente, que ya existe.
-  public areas = [] as any[];
-
-  public nuevoDocente: any = null;
-  public cargando: boolean = false;
-
-  constructor(
-    private docentesXGruposService: DocentesXGruposService,
-    private docentesService: DocentesService,
-    private areaXGrupoService: AreaAcademicaXGrupoService
-  ) { }
-
-  ngOnInit(): void {
-    this.cargarDocentes();
-
-    if (this.idGrupo) {
-      this.cargarAsignados();
-      this.cargarAreas();
-    }
-  }
+  public seleccionados: { [key: string]: boolean } = {};
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['idGrupo'] && !changes['idGrupo'].firstChange && this.idGrupo) {
-      this.cargarAsignados();
-      this.cargarAreas();
+    if (changes['asignadosOriginales']) {
+      this.reiniciar();
     }
   }
 
-  cargarDocentes() {
-    this.docentesService.obtenerTodos().subscribe({
-      next: (response: any) => {
-        const body = (response.body as any[]) || [];
-        this.docentes = body.filter(d => Number(d.activo) === 1);
-      },
-      error: () => {
-        this.docentes = [];
-      }
-    });
+  /**
+   * Copia la lista que llego del padre. Se clona para no tocar lo que el
+   * padre tiene cargado hasta que se grabe.
+   */
+  reiniciar() {
+    this.asignados = (this.asignadosOriginales || []).map(a => ({
+      id_docente: a.id_docente,
+      nombre_docente: a.nombre_docente,
+      cargo: a.cargo,
+      nivel_escolaridad: a.nivel_escolaridad,
+      es_titular: Number(a.es_titular) === 1 ? 1 : 0
+    }));
+
+    this.seleccionados = {};
   }
 
-  cargarAsignados() {
-    this.cargando = true;
-    this.docentesXGruposService.obtenerPorGrupo(this.idGrupo).subscribe({
-      next: (response: any) => {
-        this.asignados = (response.body as any[]) || [];
-        this.cargando = false;
-      },
-      error: () => {
-        this.asignados = [];
-        this.cargando = false;
-      }
-    });
-  }
-
-  cargarAreas() {
-    this.areaXGrupoService.obtenerPorGrupo(this.idGrupo).subscribe({
-      next: (response: any) => {
-        this.areas = (response.body as any[]) || [];
-      },
-      error: () => {
-        this.areas = [];
-      }
-    });
+  get titular(): any {
+    return this.asignados.find(a => Number(a.es_titular) === 1) || null;
   }
 
   /**
-   * Docentes que todavia no estan en el grupo. Es lo que alimenta el
-   * selector de agregar.
+   * Docentes que todavia no estan en el grupo.
    */
-  get docentesDisponibles(): any[] {
+  get disponibles(): any[] {
     const yaEstan = this.asignados.map(a => a.id_docente);
-    return this.docentes.filter(d => !yaEstan.includes(d.id));
+    return (this.docentes || []).filter(d => Number(d.activo) === 1 && !yaEstan.includes(d.id));
   }
 
-  /**
-   * Areas del grupo que puede escoger este docente: las que no tienen
-   * docente asignado, mas la que ya tenga el propio docente.
-   *
-   * area_academica_x_grupo guarda un solo id_docente por area y grupo, asi
-   * que si se ofrecieran las ocupadas, escogerla se la quitaria a la otra
-   * docente sin que nadie se entere.
-   */
-  areasDisponiblesPara(asignado: any): any[] {
-    return this.areas.filter(a =>
-      !a.id_docente || a.id_docente === asignado.id_docente
-    );
-  }
+  asociarSeleccionados() {
+    const ids = Object.keys(this.seleccionados).filter(k => this.seleccionados[k]);
 
-  /**
-   * Area que hoy dicta este docente en el grupo, o null si no tiene.
-   * Un docente sin area es normal: la coordinadora, una auxiliar.
-   */
-  areaDe(asignado: any): any {
-    return this.areas.find(a => a.id_docente === asignado.id_docente) || null;
-  }
-
-  idAreaDe(asignado: any): any {
-    const area = this.areaDe(asignado);
-    return area ? area.id : null;
-  }
-
-  agregarDocente() {
-    if (!this.nuevoDocente) {
-      Swal.fire('Advertencia', 'Escoja un docente', 'warning');
+    if (ids.length === 0) {
+      Swal.fire('Advertencia', 'Seleccione al menos un docente', 'warning');
       return;
     }
 
-    this.docentesXGruposService.crear({
-      id_docente: this.nuevoDocente,
-      id_grupo: this.idGrupo,
-      // El primero que entra al grupo queda de titular: es lo que casi
-      // siempre se quiere y evita que el grupo se quede sin titular.
-      es_titular: this.asignados.length === 0 ? 1 : 0
-    }).subscribe({
-      next: () => {
-        this.nuevoDocente = null;
-        this.cargarAsignados();
-      },
-      error: (error: any) => {
-        Swal.fire('Error', error?.error?.error || 'No se pudo agregar el docente', 'error');
-      }
+    ids.forEach(id => {
+      const docente = (this.docentes || []).find(d => d.id === id);
+
+      if (!docente) return;
+
+      this.asignados.push({
+        id_docente: docente.id,
+        nombre_docente: docente.nombre_completo,
+        cargo: docente.cargo,
+        nivel_escolaridad: docente.nivel_escolaridad,
+        // El primero que entra queda de titular: evita que el grupo se
+        // quede sin titular por olvido.
+        es_titular: this.asignados.length === 0 ? 1 : 0
+      });
     });
+
+    this.seleccionados = {};
+    this.avisar();
+  }
+
+  quitar(asignado: any) {
+    this.asignados = this.asignados.filter(a => a.id_docente !== asignado.id_docente);
+
+    // Si se quito el titular, el primero que quede toma el relevo.
+    if (Number(asignado.es_titular) === 1 && this.asignados.length > 0) {
+      this.asignados[0].es_titular = 1;
+    }
+
+    this.avisar();
   }
 
   marcarTitular(asignado: any) {
-    if (Number(asignado.es_titular) === 1) {
-      return;
-    }
-
-    this.docentesXGruposService.actualizarTitular(asignado.id, 1).subscribe({
-      next: () => {
-        this.cargarAsignados();
-      },
-      error: (error: any) => {
-        Swal.fire('Error', error?.error?.error || 'No se pudo cambiar el titular', 'error');
-      }
-    });
+    this.asignados.forEach(a => a.es_titular = 0);
+    asignado.es_titular = 1;
+    this.avisar();
   }
 
-  async quitarDocente(asignado: any) {
-    const result = await Swal.fire({
-      title: '¿Está seguro?',
-      text: `¿Desea quitar a ${asignado.nombre_docente} de este grupo?`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Sí, quitar',
-      cancelButtonText: 'Cancelar'
-    });
 
-    if (!result.isConfirmed) {
-      return;
-    }
-
-    this.docentesXGruposService.desactivar(asignado.id).subscribe({
-      next: () => {
-        this.cargarAsignados();
-        this.cargarAreas();
-      },
-      error: (error: any) => {
-        Swal.fire('Error', error?.error?.error || 'No se pudo quitar el docente', 'error');
-      }
-    });
-  }
-
-  /**
-   * Asigna o quita el area del docente.
-   *
-   * Primero libera la que tenia, si cambio de area, y despues asigna la
-   * nueva. El valor vacio deja el area sin docente.
-   */
-  cambiarArea(asignado: any, idAreaGrupo: any) {
-    const areaActual = this.areaDe(asignado);
-
-    const asignarNueva = () => {
-      if (!idAreaGrupo) {
-        this.cargarAreas();
-        return;
-      }
-
-      this.areaXGrupoService.actualizarDocente(idAreaGrupo, asignado.id_docente).subscribe({
-        next: () => {
-          this.cargarAreas();
-        },
-        error: (error: any) => {
-          Swal.fire('Error', error?.error?.error || 'No se pudo asignar el área', 'error');
-          this.cargarAreas();
-        }
-      });
-    };
-
-    if (areaActual && areaActual.id !== idAreaGrupo) {
-      this.areaXGrupoService.actualizarDocente(areaActual.id, null).subscribe({
-        next: () => asignarNueva(),
-        error: () => asignarNueva()
-      });
-      return;
-    }
-
-    asignarNueva();
-  }
-
-  get areasSinDocente(): any[] {
-    return this.areas.filter(a => !a.id_docente);
+  private avisar() {
+    this.listaCambiada.emit(this.asignados.map(a => ({
+      id_docente: a.id_docente,
+      es_titular: a.es_titular
+    })));
   }
 }

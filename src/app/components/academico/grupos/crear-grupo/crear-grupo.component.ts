@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -11,6 +11,8 @@ import { AreaAcademicaXGrupoService } from '../../../../services/area-academica-
 import { GrupoHorariosComponent } from '../grupo-horarios/grupo-horarios.component';
 import { GrupoTarifasComponent } from '../grupo-tarifas/grupo-tarifas.component';
 import { GrupoDocentesComponent } from '../grupo-docentes/grupo-docentes.component';
+import { DocentesXGruposService } from '../../../../services/docentes-x-grupos.service';
+import { DocentesService } from '../../../../services/docentes.service';
 import { HttpClient } from '@angular/common/http';
 import Swal from 'sweetalert2';
 
@@ -49,6 +51,26 @@ export class CrearGrupoComponent implements OnInit {
   areasAsociadas: any[] = [];
   areasSeleccionadas: { [key: string]: boolean } = {};
 
+  // Docentes del grupo. Se cargan una sola vez aqui, como las areas, para
+  // que el tab no consulte el back cada vez que se abre.
+  docentesDisponibles: any[] = [];
+  docentesAsignados: any[] = [];
+  docentesParaGuardar: any[] | null = null;
+
+  // Area desplegada en la pestana de Areas para escoger su docente.
+  areaExpandida: any = null;
+
+  // Las areas tambien se guardan con el boton Grabar, no en cada clic.
+  areasConCambios: boolean = false;
+
+  // Tabs ya abiertos. Un tab se crea la primera vez que se abre y de ahi en
+  // adelante solo se oculta, para que no vuelva a pedir sus datos al back
+  // cada vez que se entra.
+  tabsAbiertos: { [key: string]: boolean } = { basico: true };
+
+  // Tarifas guarda en un solo llamado y se dispara desde el Grabar general.
+  @ViewChild(GrupoTarifasComponent) grupoTarifas?: GrupoTarifasComponent;
+
   model = {
     id: null,
     nombre: '',
@@ -64,6 +86,8 @@ export class CrearGrupoComponent implements OnInit {
     private gradosXGrupoService: GradosXGrupoService,
     private areasAcademicasService: AreasAcademicasService,
     private areaAcademicaXGrupoService: AreaAcademicaXGrupoService,
+    private docentesXGruposService: DocentesXGruposService,
+    private docentesService: DocentesService,
     private http: HttpClient,
     private route: ActivatedRoute,
     private router: Router
@@ -86,12 +110,16 @@ export class CrearGrupoComponent implements OnInit {
         this.cargarGradosAsociados(id);
         this.cargarAreasDisponibles(id);
         this.cargarAreasAsociadas(id);
+        this.cargarDocentes();
+        this.cargarDocentesAsignados(id);
       } else if (this.accion === 'consultar') {
         this.titulo = "Consultar Grupo";
         this.editable = false;
         this.cargarGrupo(id);
         this.cargarGradosAsociados(id);
         this.cargarAreasAsociadas(id);
+        this.cargarDocentes();
+        this.cargarDocentesAsignados(id);
       }
     });
 
@@ -229,6 +257,9 @@ export class CrearGrupoComponent implements OnInit {
             showConfirmButton: false,
             timer: 2000
           });
+          this.guardarDocentes();
+          this.guardarAreas();
+          this.guardarTarifas();
         },
         error: (error: any) => {
           console.error("Error al actualizar grupo", error);
@@ -238,8 +269,112 @@ export class CrearGrupoComponent implements OnInit {
     }
   }
 
+  cargarDocentes() {
+    this.docentesService.obtenerTodos().subscribe({
+      next: (response: any) => {
+        this.docentesDisponibles = (response.body as any[]) || [];
+      },
+      error: (error: any) => {
+        console.error("Error al cargar docentes", error);
+        this.docentesDisponibles = [];
+      }
+    });
+  }
+
+  cargarDocentesAsignados(id_grupo: any) {
+    this.docentesXGruposService.obtenerPorGrupo(id_grupo).subscribe({
+      next: (response: any) => {
+        this.docentesAsignados = (response.body as any[]) || [];
+      },
+      error: (error: any) => {
+        console.error("Error al cargar los docentes del grupo", error);
+        this.docentesAsignados = [];
+      }
+    });
+  }
+
+  /**
+   * Guarda los docentes junto con el grupo. Solo manda si el tab tuvo
+   * cambios: si nadie lo abrio, no hay nada que grabar.
+   */
+  guardarDocentes() {
+    if (this.docentesParaGuardar === null) {
+      return;
+    }
+
+    this.docentesXGruposService.guardarGrupo(this.model.id, this.docentesParaGuardar).subscribe({
+      next: () => {
+        this.docentesParaGuardar = null;
+        this.cargarDocentesAsignados(this.model.id);
+      },
+      error: (error: any) => {
+        console.error("Error al guardar los docentes del grupo", error);
+        Swal.fire('Error', error?.error?.error || 'No se pudieron guardar los docentes', 'error');
+      }
+    });
+  }
+
+  /**
+   * Guarda las tarifas del año que este abierto. El componente ya manda todo
+   * en un solo llamado y se sale en silencio si no hay cambios.
+   */
+  guardarTarifas() {
+    if (this.grupoTarifas) {
+      this.grupoTarifas.guardarTarifas();
+    }
+  }
+
+  /**
+   * Guarda las areas del grupo con su docente. Un solo llamado con todo.
+   */
+  guardarAreas() {
+    if (!this.areasConCambios) {
+      return;
+    }
+
+    const areas = this.areasAsociadas.map(a => ({
+      id_area_academica: a.id_area_academica,
+      id_docente: a.id_docente
+    }));
+
+    this.areaAcademicaXGrupoService.guardarGrupo(this.model.id, areas).subscribe({
+      next: () => {
+        this.areasConCambios = false;
+        this.cargarAreasDisponibles(this.model.id);
+        this.cargarAreasAsociadas(this.model.id);
+      },
+      error: (error: any) => {
+        console.error("Error al guardar las áreas del grupo", error);
+        Swal.fire('Error', error?.error?.error || 'No se pudieron guardar las áreas', 'error');
+      }
+    });
+  }
+
+  /**
+   * Asigna o quita la docente del area. En memoria: se manda con el resto
+   * al grabar.
+   */
+  cambiarDocenteArea(areaAsociada: any, idDocente: any) {
+    areaAsociada.id_docente = idDocente || null;
+
+    const docente = this.docentesAsignados.find(d => d.id_docente === idDocente);
+    areaAsociada.nombre_docente = docente ? docente.nombre_docente : null;
+
+    this.areasConCambios = true;
+  }
+
+  /**
+   * Al hacer clic en un area se despliega para escoger la docente.
+   */
+  alternarArea(areaAsociada: any) {
+    this.areaExpandida = this.areaExpandida === areaAsociada.id_area_academica
+      ? null
+      : areaAsociada.id_area_academica;
+  }
+
   // Seleccionar pestaña y cerrar menú móvil
   seleccionarPestana(pestana: string) {
+    this.tabsAbiertos[pestana] = true;
     this.pestanaActiva = pestana;
     this.menuMovilAbierto = false;
   }
@@ -364,6 +499,10 @@ export class CrearGrupoComponent implements OnInit {
     });
   }
 
+  /**
+   * Mueve las areas escogidas a la lista del grupo. Trabaja en memoria: no
+   * va al back hasta que se grabe.
+   */
   asociarAreas() {
     const areasAAsociar = Object.keys(this.areasSeleccionadas)
       .filter(key => this.areasSeleccionadas[key]);
@@ -373,26 +512,31 @@ export class CrearGrupoComponent implements OnInit {
       return;
     }
 
-    const promesas = areasAAsociar.map(id_area => {
-      const data = {
-        id_area_academica: id_area,
+    areasAAsociar.forEach(id_area => {
+      const area = this.areasDisponibles.find(a => a.id === id_area);
+
+      if (!area) return;
+
+      this.areasAsociadas.push({
+        // Sin id: es una asociacion nueva que todavia no existe en la base.
+        id: null,
+        id_area_academica: area.id,
         id_grupo: this.model.id,
-        id_docente: null
-      };
-      return this.areaAcademicaXGrupoService.crear(data).toPromise();
+        id_docente: null,
+        nombre_area_academica: area.nombre,
+        nombre_docente: null
+      });
     });
 
-    Promise.all(promesas).then(() => {
-      Swal.fire('Éxito', 'Áreas académicas asociadas correctamente', 'success');
-      this.areasSeleccionadas = {};
-      this.cargarAreasDisponibles(this.model.id);
-      this.cargarAreasAsociadas(this.model.id);
-    }).catch(error => {
-      console.error("Error al asociar áreas", error);
-      Swal.fire('Error', 'No se pudieron asociar las áreas académicas', 'error');
-    });
+    this.areasDisponibles = this.areasDisponibles.filter(a => !areasAAsociar.includes(a.id));
+    this.areasSeleccionadas = {};
+    this.areasConCambios = true;
   }
 
+  /**
+   * Quita el area de la lista del grupo y la devuelve a disponibles. En
+   * memoria: se aplica al grabar.
+   */
   async desasociarArea(areaAsociada: any) {
     const result = await Swal.fire({
       title: '¿Está seguro?',
@@ -405,18 +549,23 @@ export class CrearGrupoComponent implements OnInit {
       cancelButtonText: 'Cancelar'
     });
 
-    if (result.isConfirmed) {
-      this.areaAcademicaXGrupoService.eliminar(areaAsociada.id).subscribe({
-        next: (response: any) => {
-          Swal.fire('Éxito', 'Área académica desasociada correctamente', 'success');
-          this.cargarAreasDisponibles(this.model.id);
-          this.cargarAreasAsociadas(this.model.id);
-        },
-        error: (error: any) => {
-          console.error("Error al desasociar área", error);
-          Swal.fire('Error', 'No se pudo desasociar el área académica', 'error');
-        }
-      });
+    if (!result.isConfirmed) {
+      return;
     }
+
+    this.areasAsociadas = this.areasAsociadas.filter(
+      a => a.id_area_academica !== areaAsociada.id_area_academica
+    );
+
+    this.areasDisponibles.push({
+      id: areaAsociada.id_area_academica,
+      nombre: areaAsociada.nombre_area_academica
+    });
+
+    if (this.areaExpandida === areaAsociada.id_area_academica) {
+      this.areaExpandida = null;
+    }
+
+    this.areasConCambios = true;
   }
 }

@@ -133,6 +133,24 @@ export class DocentesXGruposService {
     );
   }
 
+  /**
+   * Guarda toda la asignación del grupo en un solo llamado: quiénes son los
+   * docentes, cuál es el titular y qué área dicta cada uno.
+   *
+   * La pantalla trabaja en memoria y solo manda al grabar, así que aquí va
+   * el estado completo, no una operación suelta.
+   */
+  guardarGrupo(idGrupo: any, docentes: any[]) {
+    const body = JSON.stringify({ id_grupo: idGrupo, docentes: docentes });
+    return this.http.put<any>(this.servicio + '/guardar-grupo', body, httpOptions).pipe(
+      tap((respuesta: any) => {
+        if (respuesta.error) throw respuesta.error;
+        return respuesta;
+      }),
+      catchError(this.handleError)
+    );
+  }
+
   private handleError(error: HttpErrorResponse) {
     return throwError(() => error);
   }
