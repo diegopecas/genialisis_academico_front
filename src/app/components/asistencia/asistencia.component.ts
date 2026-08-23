@@ -69,6 +69,10 @@ export class AsistenciaComponent implements OnInit {
   public mostrarRegistroRapido = false;
   public registroRapidoEnProceso = false;
   public ninoCamposHabilitados = false;
+
+  // Datos del estudiante inactivo encontrado por documento: sus acudientes y
+  // su último grupo, para poder reactivarlo sin volver a digitar todo.
+  public estudianteInactivo: any = null;
   public acudCamposHabilitados = false;
   public listasRegistroRapido = {
     tiposIdentificacion: [] as any[],
@@ -1170,25 +1174,118 @@ export class AsistenciaComponent implements OnInit {
       return;
     }
 
-    this.personasService.obtenerByIdentificacion(m.nino_id_tipo_identificacion, m.nino_numero_identificacion).subscribe({
+    // El back resuelve el caso completo: si esa persona ya es estudiante y en
+    // qué estado. Antes solo se miraba si la persona existía, así que un
+    // estudiante ya matriculado pasaba derecho.
+    this.estudiantesService.consultarPorDocumento(m.nino_numero_identificacion).subscribe({
       next: (response: any) => {
-        const personas = response.body || response;
-        if (personas && personas.length > 0) {
-          const p = personas[0];
-          this.modelRegistroRapido.nino_primer_nombre = p.primer_nombre || '';
-          this.modelRegistroRapido.nino_segundo_nombre = p.segundo_nombre || '';
-          this.modelRegistroRapido.nino_primer_apellido = p.primer_apellido || '';
-          this.modelRegistroRapido.nino_segundo_apellido = p.segundo_apellido || '';
-          Swal.fire({ icon: 'info', title: 'Persona encontrada', text: 'Se cargaron los datos. Puede modificarlos si es necesario.', timer: 2000, showConfirmButton: false });
-        } else {
-          Swal.fire({ icon: 'info', title: 'Persona nueva', text: 'No se encontró en el sistema. Ingrese los datos.', timer: 2000, showConfirmButton: false });
+        const datos = response.body || response;
+        const persona = datos?.persona;
+
+        if (datos?.caso === 'estudiante_activo') {
+          const grupo = datos.grupo?.nombre ? ` Está en el grupo ${datos.grupo.nombre}.` : '';
+
+          Swal.fire({
+            icon: 'info',
+            title: 'Ya está matriculado',
+            html: `<strong>${this.nombreDePersona(persona)}</strong> ya está registrado y activo.${grupo}`
+              + '<br><br>Búsquelo en la lista de asistencia.',
+            confirmButtonText: 'Entendido'
+          });
+
+          this.modelRegistroRapido.nino_numero_identificacion = '';
+          this.ninoCamposHabilitados = false;
+          return;
         }
+
+        if (persona) {
+          this.modelRegistroRapido.nino_primer_nombre = persona.primer_nombre || '';
+          this.modelRegistroRapido.nino_segundo_nombre = persona.segundo_nombre || '';
+          this.modelRegistroRapido.nino_primer_apellido = persona.primer_apellido || '';
+          this.modelRegistroRapido.nino_segundo_apellido = persona.segundo_apellido || '';
+
+          // El tipo puede venir distinto al que se escogió: la búsqueda va
+          // por número, así que se corrige con el que tiene registrado.
+          if (persona.id_tipo_identificacion) {
+            this.modelRegistroRapido.nino_id_tipo_identificacion = persona.id_tipo_identificacion;
+          }
+        }
+
+        if (datos?.caso === 'estudiante_inactivo') {
+          this.estudianteInactivo = datos;
+
+          // Se preselecciona el grupo que tenía: casi siempre vuelve al mismo,
+          // y si no, se cambia en el combo.
+          if (datos.grupo?.id) {
+            this.modelRegistroRapido.id_grupo = datos.grupo.id;
+          }
+
+          const grupo = datos.grupo?.nombre ? ` Su último grupo fue ${datos.grupo.nombre}.` : '';
+          const cuantos = (datos.acudientes || []).length;
+          const acudientes = cuantos > 0
+            ? `<br><br>Tiene ${cuantos} acudiente(s) registrado(s); puede escoger uno abajo o registrar otro.`
+            : '';
+
+          Swal.fire({
+            icon: 'warning',
+            title: 'Estudiante inactivo',
+            html: `<strong>${this.nombreDePersona(persona)}</strong> ya fue estudiante y está inactivo.${grupo}`
+              + '<br><br>Al guardar se reactivará. Puede corregir sus datos.'
+              + acudientes,
+            confirmButtonText: 'Entendido'
+          });
+        } else {
+          this.estudianteInactivo = null;
+
+          Swal.fire({
+            icon: 'info',
+            title: persona ? 'Persona encontrada' : 'Persona nueva',
+            text: persona
+              ? 'Se cargaron los datos. Puede modificarlos si es necesario.'
+              : 'No se encontró en el sistema. Ingrese los datos.',
+            timer: 2000,
+            showConfirmButton: false
+          });
+        }
+
         this.ninoCamposHabilitados = true;
       },
       error: () => {
+        this.estudianteInactivo = null;
         this.ninoCamposHabilitados = true;
       }
     });
+  }
+
+  /**
+   * Nombre completo de una persona devuelta por el back.
+   */
+  nombreDePersona(persona: any): string {
+    if (!persona) return 'El estudiante';
+
+    return [persona.primer_nombre, persona.primer_apellido]
+      .filter(p => !!p)
+      .join(' ') || 'El estudiante';
+  }
+
+  /**
+   * Toma uno de los acudientes que el estudiante ya tenía, en lugar de
+   * volver a digitarlo.
+   */
+  usarAcudienteExistente(acudiente: any) {
+    this.modelRegistroRapido.acud_id_tipo_identificacion = acudiente.id_tipo_identificacion;
+    this.modelRegistroRapido.acud_numero_identificacion = acudiente.numero_identificacion;
+    this.modelRegistroRapido.acud_primer_nombre = acudiente.primer_nombre || '';
+    this.modelRegistroRapido.acud_segundo_nombre = acudiente.segundo_nombre || '';
+    this.modelRegistroRapido.acud_primer_apellido = acudiente.primer_apellido || '';
+    this.modelRegistroRapido.acud_segundo_apellido = acudiente.segundo_apellido || '';
+    this.modelRegistroRapido.acud_telefono = acudiente.telefono || '';
+
+    if (acudiente.id_tipo_acudiente) {
+      this.modelRegistroRapido.id_tipo_acudiente = acudiente.id_tipo_acudiente;
+    }
+
+    this.acudCamposHabilitados = true;
   }
 
   buscarPersonaAcudiente() {

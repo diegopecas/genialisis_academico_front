@@ -246,7 +246,16 @@ export class CrearAcudienteComponent implements OnInit {
       next: (response: any) => {
         console.log("consultaPersona", response.body);
         if (response.body && response.body.length > 0) {
-          this.llenarFormularioPersona(response.body[0]);
+          const persona = response.body[0];
+
+          // Se avisa aquí, apenas se sabe quién es, y no al final después de
+          // haber llenado todo el formulario.
+          if (this.accion === 'crear') {
+            this.verificarSiYaEsAcudiente(persona);
+            return;
+          }
+
+          this.llenarFormularioPersona(persona);
           this.documentoEncontrado = true;
           this.camposHabilitados = true;
           Swal.fire({
@@ -509,6 +518,57 @@ export class CrearAcudienteComponent implements OnInit {
     }
 
     return documentoEstudiante === documentoAcudiente;
+  }
+
+  /**
+   * Revisa si esa persona ya es acudiente de este estudiante antes de dejar
+   * llenar el formulario.
+   *
+   * Se consulta sin el tipo de acudiente: la misma persona no puede estar
+   * dos veces en el mismo estudiante, así la primera vez se haya registrado
+   * como Padre y ahora se intente como Otro.
+   */
+  verificarSiYaEsAcudiente(persona: any): void {
+    this.acudientesService.obtenerPorEstudiante(this.idEstudiante).subscribe({
+      next: (response: any) => {
+        const acudientes = (response.body as any[]) || [];
+        const existente = acudientes.find(a => a.id_persona === persona.id);
+
+        if (existente) {
+          const parentesco = existente.tipo_acudiente || existente.nombre_tipo_acudiente;
+
+          Swal.fire({
+            title: 'Ya es acudiente',
+            text: `${persona.primer_nombre} ${persona.primer_apellido} ya es acudiente de ${this.nombre_estudiante}`
+              + (parentesco ? `, registrado como ${parentesco}.` : '.'),
+            icon: 'warning',
+            confirmButtonText: 'Entendido'
+          });
+
+          this.model.numeroIdentificacion = '';
+          this.documentoEncontrado = false;
+          this.camposHabilitados = false;
+          return;
+        }
+
+        this.llenarFormularioPersona(persona);
+        this.documentoEncontrado = true;
+        this.camposHabilitados = true;
+        Swal.fire({
+          title: 'Persona encontrada',
+          text: 'Se encontró una persona con esta identificación',
+          icon: 'success',
+          confirmButtonText: 'Aceptar'
+        });
+      },
+      error: () => {
+        // Si la consulta falla no se bloquea al usuario: el backend valida
+        // igual al guardar.
+        this.llenarFormularioPersona(persona);
+        this.documentoEncontrado = true;
+        this.camposHabilitados = true;
+      }
+    });
   }
 
   /**

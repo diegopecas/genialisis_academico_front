@@ -298,6 +298,29 @@ export class EstudiantesService {
     );
   }
 
+  /**
+   * Resuelve el caso de un documento antes de abrir el registro rápido.
+   *
+   * Devuelve el campo `caso` con uno de cuatro valores: persona_nueva,
+   * persona_existente, estudiante_activo o estudiante_inactivo. En los dos
+   * últimos trae además el estudiante, su grupo y, si está inactivo, sus
+   * acudientes.
+   */
+  consultarPorDocumento(numeroIdentificacion: any) {
+    return this.http
+      .get<HttpResponse<Object>>(this.servicio + `/consultar-documento/${numeroIdentificacion}`, { observe: 'response' })
+      .pipe(
+        tap((response: HttpResponse<Object>) => {
+          let respuesta: any = response.body;
+          if (respuesta.error) {
+            throw respuesta.error;
+          }
+          return response;
+        }),
+        catchError(this.handleError)
+      );
+  }
+
   private handleError(error: HttpErrorResponse) {
     return throwError(() => error);
   }

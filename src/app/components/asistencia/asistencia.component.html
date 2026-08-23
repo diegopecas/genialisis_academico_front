@@ -278,11 +278,33 @@
                 <div *ngIf="!ninoCamposHabilitados" class="text-muted text-center mt-2">
                   <small>🔍 Verifique el documento para habilitar los campos</small>
                 </div>
+                <!-- Se reactiva al guardar; el usuario tiene que saberlo -->
+                <div class="aviso-reactivar" *ngIf="estudianteInactivo">
+                  ⚠️ Este estudiante estaba inactivo y se reactivará al guardar.
+                  <span *ngIf="estudianteInactivo.grupo?.nombre">Su último grupo fue {{ estudianteInactivo.grupo.nombre }}.</span>
+                </div>
               </div>
 
               <!-- COLUMNA DERECHA: DATOS DEL ACUDIENTE -->
               <div class="col-md-6">
                 <div class="panel-rr-seccion-titulo">👤 Datos del acudiente</div>
+
+                <!-- Acudientes que el estudiante ya tenía. Solo aparece cuando
+                     se está reactivando uno inactivo: evita volver a digitar
+                     a la mamá que ya estaba registrada. -->
+                <div class="acudientes-previos mb-3" *ngIf="estudianteInactivo?.acudientes?.length > 0">
+                  <div class="acudientes-previos-titulo">
+                    Acudientes que ya tenía — toque uno para usarlo
+                  </div>
+                  <button
+                    type="button"
+                    class="acudiente-previo"
+                    *ngFor="let acu of estudianteInactivo.acudientes"
+                    (click)="usarAcudienteExistente(acu)">
+                    <span class="acudiente-previo-nombre">{{ acu.nombre_persona }}</span>
+                    <small *ngIf="acu.tipo_acudiente">{{ acu.tipo_acudiente }}</small>
+                  </button>
+                </div>
 
                 <div class="row mb-2">
                   <div class="col-5">

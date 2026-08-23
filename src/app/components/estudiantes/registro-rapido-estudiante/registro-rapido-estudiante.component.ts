@@ -629,7 +629,12 @@ export class RegistroRapidoEstudianteComponent implements OnInit, OnDestroy {
       error: (error: any) => {
         this.guardando = false;
         console.error('Error al registrar el estudiante:', error);
-        Swal.fire('Error', 'No se pudo registrar el estudiante', 'error');
+
+        // El backend explica el caso: estudiante ya activo, documento
+        // repetido... Se muestra tal cual en vez de un mensaje genérico que
+        // no le dice nada al usuario.
+        const mensaje = error?.error?.error || 'No se pudo registrar el estudiante';
+        Swal.fire('Error', mensaje, 'error');
       },
     });
   }

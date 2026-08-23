@@ -371,3 +371,54 @@
     }
   }
 }
+
+// Estudiante inactivo encontrado por documento: se reactiva al guardar y hay
+// que decirlo, para que nadie crea que está creando uno nuevo.
+.aviso-reactivar {
+  background: #fff8e1;
+  border: 1px solid #ffe082;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #8B6914;
+  margin-top: 8px;
+}
+
+// Acudientes que el estudiante ya tenía, para no volver a digitarlos.
+.acudientes-previos {
+  .acudientes-previos-titulo {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #9e9e9e;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-bottom: 6px;
+  }
+
+  .acudiente-previo {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 20px;
+    padding: 4px 14px;
+    margin: 0 6px 6px 0;
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: #fff8e1;
+      border-color: #ffe082;
+    }
+
+    .acudiente-previo-nombre {
+      font-weight: 600;
+      color: #1A1A1A;
+    }
+
+    small {
+      color: #9e9e9e;
+      margin-left: 6px;
+    }
+  }
+}
