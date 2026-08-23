@@ -38,16 +38,18 @@
                 <label class="form-label">
                     Estudiante Afectado
                 </label>
-                <select class="form-select form-select-lg" [(ngModel)]="model.id_estudiante_afectado"
-                    (ngModelChange)="onEstudianteAfectadoChange()" [disabled]="!editable">
-                    <option value="">Ninguno</option>
-                    <ng-container *ngFor="let estudiante of listas.estudiantes">
-                        <option [value]="estudiante.id" *ngIf="estudiante.id != model.id_estudiante">
-                            {{ estudiante.primer_nombre }} {{ estudiante.segundo_nombre || '' }}
-                            {{ estudiante.primer_apellido }} {{ estudiante.segundo_apellido || '' }}
-                        </option>
-                    </ng-container>
-                </select>
+                <app-searchable-dropdown
+                    [items]="estudiantesDropdownItems"
+                    [ngModel]="model.id_estudiante_afectado"
+                    (ngModelChange)="model.id_estudiante_afectado = $event; onEstudianteAfectadoChange()"
+                    [disabled]="!editable"
+                    placeholder="Ninguno"
+                    searchPlaceholder="Buscar estudiante por nombre..."
+                    emptyMessage="No se encontraron estudiantes"
+                    maxHeight="300px"
+                    [clearable]="true"
+                    [showSearch]="true">
+                </app-searchable-dropdown>
                 <small class="text-muted" *ngIf="model.id_estudiante_afectado">
                     Estudiante seleccionado: {{ nombre_estudiante_afectado }}
                 </small>

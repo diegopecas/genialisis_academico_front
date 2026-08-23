@@ -11,6 +11,7 @@ import { TiposObservacionesEstudiantesService } from '../../../../services/tipos
 import { SignaturePadComponent } from '../../../../common/signature/signature-pad.component';
 import { MejorarTextoComponent } from '../../../../common/mejorar-texto/mejorar-texto.component';
 import { TranscribirAudioComponent } from '../../../../common/transcribir-audio/transcribir-audio.component';
+import { SearchableDropdownComponent } from '../../../../common/searchable-dropdown/searchable-dropdown.component';
 import { AsistenciaEstudiantesService } from '../../../../services/asistencia-estudiantes.service';
 import { SprintsService } from '../../../../services/sprints.service';
 
@@ -44,7 +45,8 @@ interface ObservacionModel {
         HeaderComponent,
         SignaturePadComponent,
         MejorarTextoComponent,
-        TranscribirAudioComponent
+        TranscribirAudioComponent,
+        SearchableDropdownComponent
     ],
     schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
@@ -61,6 +63,9 @@ export class CrearObservacionesComponent implements OnInit {
     public estudianteAfectado: any;
     public nombre_estudiante = "";
     public nombre_estudiante_afectado = "";
+
+    // Lista para el dropdown buscable del estudiante afectado.
+    public estudiantesDropdownItems: any[] = [];
     public titulo = "Registro de observaciones ";
     public regresar = '/estudiantes/observaciones/';
     public mostrarFirmaPadre = false;
@@ -217,8 +222,29 @@ export class CrearObservacionesComponent implements OnInit {
             this.listas.tiposObservaciones = response.body;
         });
 
-        this.estudiantesService.obtenerTodos().subscribe((response: any) => {
-            this.listas.estudiantes = response.body;
+        // Solo los activos: la lista traia retirados e inactivos, que no
+        // pueden ser el afectado de una observacion de hoy.
+        //
+        // obtenerActivos consulta estudiantes-x-grupos, asi que el id del
+        // estudiante llega en id_estudiante y ademas trae el grupo, que sirve
+        // para distinguir dos ninos con el mismo nombre.
+        this.estudiantesService.obtenerActivos().subscribe((response: any) => {
+            const filas = (response.body as any[]) || [];
+
+            this.listas.estudiantes = filas
+                .map(f => ({
+                    id: f.id_estudiante,
+                    primer_nombre: f.primer_nombre,
+                    segundo_nombre: f.segundo_nombre,
+                    primer_apellido: f.primer_apellido,
+                    segundo_apellido: f.segundo_apellido,
+                    nombre_grupo: f.nombre_grupo
+                }))
+                .sort((a, b) =>
+                    this.nombreCompletoEstudiante(a).localeCompare(this.nombreCompletoEstudiante(b), 'es')
+                );
+
+            this.armarEstudiantesDropdown();
         });
 
         // Cargar sprint actual + anteriores del año institucional vigente
@@ -276,6 +302,10 @@ export class CrearObservacionesComponent implements OnInit {
         this.observacionesService.obtenerById(id).subscribe((response: any) => {
             const body = response.body;
             this.model = body[0];
+
+            // El estudiante de la observacion cambio: hay que rearmar la lista
+            // del afectado para volver a excluirlo.
+            this.armarEstudiantesDropdown();
 
             // Normalizar id_sprint a string para el binding del select
             if (this.model.id_sprint !== null && this.model.id_sprint !== undefined) {
@@ -605,6 +635,32 @@ export class CrearObservacionesComponent implements OnInit {
     }
 
    
+    /**
+     * Nombre completo del estudiante, para ordenar y para pintar.
+     */
+    nombreCompletoEstudiante(estudiante: any): string {
+        return [
+            estudiante.primer_nombre,
+            estudiante.segundo_nombre,
+            estudiante.primer_apellido,
+            estudiante.segundo_apellido
+        ].filter(p => !!p).join(' ');
+    }
+
+    /**
+     * Arma la lista del dropdown buscable, dejando por fuera al estudiante de
+     * la observacion: no puede ser el afectado de si mismo.
+     */
+    armarEstudiantesDropdown() {
+        this.estudiantesDropdownItems = this.listas.estudiantes
+            .filter(e => e.id !== this.model.id_estudiante)
+            .map(e => ({
+                id: e.id,
+                nombre: this.nombreCompletoEstudiante(e),
+                descripcion: e.nombre_grupo || ''
+            }));
+    }
+
     onEstudianteAfectadoChange() {
         // Convertir cadena vacía a null
         if (this.model.id_estudiante_afectado === '' || !this.model.id_estudiante_afectado) {
