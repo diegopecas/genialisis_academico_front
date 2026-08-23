@@ -1002,11 +1002,49 @@ export class AsistenciaComponent implements OnInit {
     }
   }
 
+  /**
+   * Un estudiante no puede ser su propio acudiente.
+   *
+   * Se compara tipo Y numero: el mismo numero con distinto tipo son personas
+   * distintas. Como la persona todavia no existe cuando se registra un
+   * estudiante nuevo, la busqueda no la detecta y hay que compararlo aqui.
+   */
+  get documentosIguales(): boolean {
+    const m = this.modelRegistroRapido;
+
+    const documentoNino = String(m.nino_numero_identificacion || '').trim();
+    const documentoAcudiente = String(m.acud_numero_identificacion || '').trim();
+
+    if (!documentoNino || !documentoAcudiente) {
+      return false;
+    }
+
+    // Solo el número: el mismo documento registrado una vez como NUIP y otra
+    // como Cédula sigue siendo el mismo error.
+    return documentoNino === documentoAcudiente;
+  }
+
+  /**
+   * Devuelve el documento del estudiante a edición. El documento se bloquea
+   * al verificarlo para que no se cambie después de haber cargado los datos
+   * de esa persona.
+   */
+  cambiarDocumentoNino() {
+    this.ninoCamposHabilitados = false;
+    this.modelRegistroRapido.nino_numero_identificacion = '';
+  }
+
+  cambiarDocumentoAcudiente() {
+    this.acudCamposHabilitados = false;
+    this.modelRegistroRapido.acud_numero_identificacion = '';
+  }
+
   formularioRegistroRapidoValido(): boolean {
     const m = this.modelRegistroRapido;
     return Boolean(
       this.ninoCamposHabilitados &&
       this.acudCamposHabilitados &&
+      !this.documentosIguales &&
       m.nino_id_tipo_identificacion &&
       m.nino_numero_identificacion &&
       m.nino_primer_nombre &&
@@ -1021,6 +1059,16 @@ export class AsistenciaComponent implements OnInit {
   }
 
   ejecutarRegistroRapido() {
+    if (this.documentosIguales) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Documento repetido',
+        text: 'El documento del acudiente es el mismo del estudiante. Un estudiante no puede ser su propio acudiente.',
+        confirmButtonText: 'Entendido'
+      });
+      return;
+    }
+
     if (!this.formularioRegistroRapidoValido()) {
       Swal.fire({
         icon: 'warning',
@@ -1109,6 +1157,19 @@ export class AsistenciaComponent implements OnInit {
       return;
     }
 
+    // El acudiente puede haberse digitado primero: se revisa en los dos lados.
+    if (this.documentosIguales) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Documento repetido',
+        text: 'Ese documento ya está puesto como el del acudiente. Un estudiante no puede ser su propio acudiente.',
+        confirmButtonText: 'Entendido'
+      });
+      this.modelRegistroRapido.nino_numero_identificacion = '';
+      this.ninoCamposHabilitados = false;
+      return;
+    }
+
     this.personasService.obtenerByIdentificacion(m.nino_id_tipo_identificacion, m.nino_numero_identificacion).subscribe({
       next: (response: any) => {
         const personas = response.body || response;
@@ -1134,6 +1195,20 @@ export class AsistenciaComponent implements OnInit {
     const m = this.modelRegistroRapido;
     if (!m.acud_id_tipo_identificacion || !m.acud_numero_identificacion) {
       Swal.fire({ icon: 'warning', title: 'Datos incompletos', text: 'Seleccione tipo e ingrese número de documento del acudiente.', confirmButtonText: 'Entendido' });
+      return;
+    }
+
+    // Se avisa aquí y no al guardar: es el momento en que el usuario acaba
+    // de digitar el documento y todavía lo tiene en la cabeza.
+    if (this.documentosIguales) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Documento repetido',
+        text: 'Ese es el documento del estudiante. Un estudiante no puede ser su propio acudiente.',
+        confirmButtonText: 'Entendido'
+      });
+      this.modelRegistroRapido.acud_numero_identificacion = '';
+      this.acudCamposHabilitados = false;
       return;
     }
 

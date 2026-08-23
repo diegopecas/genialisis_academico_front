@@ -228,17 +228,18 @@
                 <div class="row mb-2">
                   <div class="col-5">
                     <label class="form-label form-label-sm">Tipo doc. *</label>
-                    <select class="form-select form-select-sm" [(ngModel)]="modelRegistroRapido.nino_id_tipo_identificacion">
+                    <select class="form-select form-select-sm" [(ngModel)]="modelRegistroRapido.nino_id_tipo_identificacion" [disabled]="ninoCamposHabilitados">
                       <option value="">Seleccione</option>
                       <option *ngFor="let tipo of listasRegistroRapido.tiposIdentificacion" [value]="tipo.id">{{ tipo.nombre }}</option>
                     </select>
                   </div>
                   <div class="col-5">
                     <label class="form-label form-label-sm">Número doc. *</label>
-                    <input type="text" class="form-control form-control-sm" [(ngModel)]="modelRegistroRapido.nino_numero_identificacion" placeholder="Número" />
+                    <input type="text" class="form-control form-control-sm" [(ngModel)]="modelRegistroRapido.nino_numero_identificacion" placeholder="Número" [disabled]="ninoCamposHabilitados" />
                   </div>
                   <div class="col-2 d-flex align-items-end">
-                    <button class="btn btn-sm btn-outline-warning w-100" (click)="buscarPersonaNino()" title="Verificar documento">🔍</button>
+                    <button class="btn btn-sm btn-outline-warning w-100" *ngIf="!ninoCamposHabilitados" (click)="buscarPersonaNino()" title="Verificar documento">🔍</button>
+                    <button class="btn btn-sm btn-outline-secondary w-100" *ngIf="ninoCamposHabilitados" (click)="cambiarDocumentoNino()" title="Cambiar documento">✏️</button>
                   </div>
                 </div>
 
@@ -286,17 +287,18 @@
                 <div class="row mb-2">
                   <div class="col-5">
                     <label class="form-label form-label-sm">Tipo doc. *</label>
-                    <select class="form-select form-select-sm" [(ngModel)]="modelRegistroRapido.acud_id_tipo_identificacion">
+                    <select class="form-select form-select-sm" [(ngModel)]="modelRegistroRapido.acud_id_tipo_identificacion" [disabled]="acudCamposHabilitados">
                       <option value="">Seleccione</option>
                       <option *ngFor="let tipo of listasRegistroRapido.tiposIdentificacion" [value]="tipo.id">{{ tipo.nombre }}</option>
                     </select>
                   </div>
                   <div class="col-5">
                     <label class="form-label form-label-sm">Número doc. *</label>
-                    <input type="text" class="form-control form-control-sm" [(ngModel)]="modelRegistroRapido.acud_numero_identificacion" placeholder="Número" />
+                    <input type="text" class="form-control form-control-sm" [(ngModel)]="modelRegistroRapido.acud_numero_identificacion" placeholder="Número" [disabled]="acudCamposHabilitados" />
                   </div>
                   <div class="col-2 d-flex align-items-end">
-                    <button class="btn btn-sm btn-outline-warning w-100" (click)="buscarPersonaAcudiente()" title="Verificar documento">🔍</button>
+                    <button class="btn btn-sm btn-outline-warning w-100" *ngIf="!acudCamposHabilitados" (click)="buscarPersonaAcudiente()" title="Verificar documento">🔍</button>
+                    <button class="btn btn-sm btn-outline-secondary w-100" *ngIf="acudCamposHabilitados" (click)="cambiarDocumentoAcudiente()" title="Cambiar documento">✏️</button>
                   </div>
                 </div>
 

@@ -482,8 +482,69 @@ export class CrearAcudienteComponent implements OnInit {
     };
   }
 
+  /**
+   * Un estudiante no puede ser su propio acudiente.
+   *
+   * Se revisa por id_persona Y por número de documento. Lo segundo es lo que
+   * de verdad atrapa el error: cuando la persona todavía no existe, el
+   * idPersona viene vacío y solo queda el documento digitado.
+   *
+   * El número se compara solo, sin el tipo: el mismo número puesto una vez
+   * como NUIP y otra como Cédula sigue siendo el mismo error.
+   */
+  esElMismoEstudiante(idPersona: any, numeroIdentificacion?: any): boolean {
+    if (!this.estudiante) {
+      return false;
+    }
+
+    if (idPersona && this.estudiante.id_persona === idPersona) {
+      return true;
+    }
+
+    const documentoEstudiante = String(this.estudiante.numero_identificacion || '').trim();
+    const documentoAcudiente = String(numeroIdentificacion || '').trim();
+
+    if (!documentoEstudiante || !documentoAcudiente) {
+      return false;
+    }
+
+    return documentoEstudiante === documentoAcudiente;
+  }
+
+  /**
+   * Verifica el documento antes de buscar la persona.
+   *
+   * Se avisa aquí, que es cuando el usuario todavía tiene el número en la
+   * cabeza, y no al final al intentar guardar.
+   */
+  verificarDocumento(): void {
+    if (this.esElMismoEstudiante(null, this.model.numeroIdentificacion)) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Documento repetido',
+        text: `Ese es el documento de ${this.nombre_estudiante}. Un estudiante no puede ser su propio acudiente.`,
+        confirmButtonText: 'Entendido'
+      });
+
+      this.model.numeroIdentificacion = '';
+      return;
+    }
+
+    this.consultaPersona(this.model.tipoIdentificacion, this.model.numeroIdentificacion);
+  }
+
   crearActualizarAcudiente(acudiente: any) {
     console.log("Enviar acudiente", acudiente);
+
+    if (this.esElMismoEstudiante(acudiente.idPersona, acudiente.numeroIdentificacion)) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'No se puede guardar',
+        text: `${this.nombre_estudiante} no puede ser su propio acudiente. Escoja o registre otra persona.`,
+        confirmButtonText: 'Entendido'
+      });
+      return;
+    }
 
     const acudienteData = {
       id: acudiente.idAcudiente || 0,
