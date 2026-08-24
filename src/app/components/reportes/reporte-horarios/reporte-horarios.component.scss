@@ -92,8 +92,8 @@ $alto-franja-movil: 6px;
   }
 }
 
-// Chip de área: fondo blanco, y el color del área en el borde y la letra.
-// El color pleno se reserva para las barras de la grilla.
+// Chip de área: fondo blanco, el color solo en el borde y la letra en negro
+// delgado, porque varios colores de área no se leen sobre blanco.
 .chip-area {
   border: 2px solid #dcdcdc;
   background: #fff;
@@ -101,7 +101,7 @@ $alto-franja-movil: 6px;
   border-radius: 20px;
   padding: 0.22rem 0.8rem;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 400;
   cursor: pointer;
   transition: all 0.2s ease;
 
@@ -111,6 +111,7 @@ $alto-franja-movil: 6px;
 
   &.activo {
     background: #fff;
+    color: #2b2b2b;
   }
 }
 

@@ -448,12 +448,32 @@ export class ReporteHorariosComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Fondo del bloque. Va con el color del grupo, no el del área: todos los
+   * bloques de un mismo grupo comparten el mismo tinte y lo que diferencia
+   * el área es la barra lateral. Se calcula sobre el color intensificado
+   * para que un grupo de color claro también se note contra el hueco vacío.
+   */
+  colorFondoBloque(color: string | null | undefined, alpha: number = 0.045): string | null {
+    if (!color) return null;
+    const hsl = this.aHsl(color);
+    if (!hsl) return null;
+    return `hsla(${hsl.matiz}, ${hsl.saturacion}%, ${hsl.luz}%, ${alpha})`;
+  }
+
+  /**
    * Versión intensa del color, para la barra lateral del bloque.
-   * Muchos colores de área son pastel y sobre fondo blanco casi no se ven,
+   * Muchos colores de área son pastel y sobre fondo claro casi no se ven,
    * así que se les sube la saturación y se les baja el brillo.
    */
   colorVivo(color: string | null | undefined): string {
-    if (!color) return '#b0b4ba';
+    const hsl = this.aHsl(color);
+    if (!hsl) return '#b0b4ba';
+    return `hsl(${hsl.matiz}, ${hsl.saturacion}%, ${hsl.luz}%)`;
+  }
+
+  /** Pasa un hex a HSL ya intensificado (saturación alta, brillo contenido) */
+  private aHsl(color: string | null | undefined): { matiz: number, saturacion: number, luz: number } | null {
+    if (!color) return null;
 
     const [r, g, b] = this.colorRgb(color).map(c => c / 255);
     const maximo = Math.max(r, g, b);
@@ -478,10 +498,11 @@ export class ReporteHorariosComponent implements OnInit, OnDestroy {
     }
 
     // Un gris se deja como está; a lo demás se le sube el color
-    const saturacionFinal = saturacion === 0 ? 0 : Math.min(Math.max(saturacion, 0.7), 1) * 100;
-    const luzFinal = saturacion === 0 ? luz * 100 : Math.min(luz, 0.52) * 100;
-
-    return `hsl(${Math.round(matiz)}, ${Math.round(saturacionFinal)}%, ${Math.round(luzFinal)}%)`;
+    return {
+      matiz: Math.round(matiz),
+      saturacion: Math.round(saturacion === 0 ? 0 : Math.min(Math.max(saturacion, 0.7), 1) * 100),
+      luz: Math.round(saturacion === 0 ? luz * 100 : Math.min(luz, 0.52) * 100)
+    };
   }
 
   // ========== Plegado de tableros ==========
@@ -784,8 +805,12 @@ export class ReporteHorariosComponent implements OnInit, OnDestroy {
           const y = topeGrilla + (indiceFranja * altoFranja);
           const alto = franjasBloque * altoFranja;
 
-          // Tinte suave del área de fondo y el color intenso en la barra lateral
-          const fondo = this.mezclarSobreBlanco(this.colorRgb(horario.area_academica_color), 0.14);
+          // Tinte del grupo de fondo, igual para todos los bloques de la
+          // columna; lo que diferencia el área es la barra lateral
+          const colorGrupo = this.vista === 'grupo' ? tablero.color : columna.color;
+          const fondo = colorGrupo
+            ? this.mezclarSobreBlanco(this.intensificarRgb(this.colorRgb(colorGrupo)), 0.045)
+            : [252, 252, 252];
           doc.setFillColor(fondo[0], fondo[1], fondo[2]);
           doc.setDrawColor(236, 238, 240);
           doc.setLineWidth(0.1);
