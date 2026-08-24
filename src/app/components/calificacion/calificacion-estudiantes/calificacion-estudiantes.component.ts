@@ -11,6 +11,7 @@ import { TareasXSprintsService } from '../../../services/tareas-x-sprints.servic
 import { TareasXSprintsXEstudianteService } from '../../../services/tareas-x-sprints-x-estudiante.service';
 import { CalificacionContextService } from '../../../services/calificacion-context.service';
 import { GruposService } from '../../../services/grupos.service';
+import { AreasAcademicasService } from '../../../services/areas-academicas.service';
 import { UtilService } from '../../../common/constantes/util.service';
 import collect from 'collect.js';
 import Swal from 'sweetalert2';
@@ -26,6 +27,7 @@ export class CalificacionEstudiantesComponent implements OnInit {
 
   public titulo = "Registro de calificaciones";
   public grupo: any = null;
+  public area: any = null;
   public actividadAcademica: any = null;
   public estudiantes: any[] = [];
   public estudiantesAusentes: any[] = [];
@@ -60,6 +62,7 @@ export class CalificacionEstudiantesComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private gruposService: GruposService,
+    private areasAcademicasService: AreasAcademicasService,
     private actividadesAcademicasService: ActividadesAcademicasService,
     private parametrosCalificacionesService: ParametrosCalificacionesService,
     private valoresParametrosCalificacionesService: ValoresParametrosCalificacionesService,
@@ -90,11 +93,34 @@ export class CalificacionEstudiantesComponent implements OnInit {
     this.gruposService.obtenerTodos().subscribe((resp: any) => {
       const grupos = resp.body || [];
       this.grupo = grupos.find((g: any) => g.id == this.idGrupo) || null;
+      this.actualizarTitulo();
       this.cargarActividad();
     });
 
+    this.areasAcademicasService.obtenerAreasAcademicasGrupo(this.idGrupo)
+      .subscribe((resp: any) => {
+        const areas = resp.body || [];
+        this.area = areas.find((a: any) => a.id_area_academica == this.idArea) || null;
+        this.actualizarTitulo();
+      });
+
     this.cargarParametrosCalificaciones();
     this.cargarBloquesHorario();
+  }
+
+  /**
+   * El título del header muestra el grupo y el área que se está calificando,
+   * para no perder el contexto al entrar desde el listado.
+   */
+  private actualizarTitulo(): void {
+    const partes: string[] = [];
+
+    if (this.grupo && this.grupo.nombre) partes.push(this.grupo.nombre);
+    if (this.area && this.area.nombre_area_academica) partes.push(this.area.nombre_area_academica);
+
+    this.titulo = partes.length > 0
+      ? 'Calificaciones: ' + partes.join(' - ')
+      : 'Registro de calificaciones';
   }
 
   private cargarBloquesHorario(): void {

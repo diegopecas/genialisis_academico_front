@@ -3,9 +3,10 @@
     <i class="fas fa-search buscar-icono"></i>
     <input
       type="text"
-      placeholder="Buscar... (Enter para filtrar)"
+      placeholder="Buscar..."
       class="buscar-input"
       [(ngModel)]="valor"
+      (ngModelChange)="escribir()"
       (keyup.enter)="enviar()" />
     <button
       *ngIf="valor"

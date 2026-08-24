@@ -236,6 +236,42 @@
 
     </ng-container>
 
+    <!-- Actividades finalizadas: solo con permiso para reabrirlas -->
+    <div class="row" *ngIf="puedeVerFinalizadas && !modoEdicion && !mostrarFormCrear">
+      <div class="col-12 mb-3">
+        <button class="btn-ver-finalizadas" (click)="toggleVerFinalizadas()">
+          {{ verFinalizadas ? '🔼 Ocultar finalizadas' : '🗂️ Ver actividades finalizadas (' + actividadesFinalizadas.length + ')' }}
+        </button>
+      </div>
+
+      <ng-container *ngIf="verFinalizadas">
+        <div class="col-12 mb-2">
+          <input type="text"
+                 class="form-control input-buscar-finalizadas"
+                 placeholder="Buscar entre las finalizadas..."
+                 [(ngModel)]="buscarFinalizadas" />
+        </div>
+
+        <div class="col-sm-12 col-md-4 px-3 mb-2"
+             *ngFor="let actividad of actividadesFinalizadas | SearchPipeGeneral : buscarFinalizadas">
+          <div class="text-center ficha ficha-actividad ficha-finalizada">
+            <span class="estado-badge">{{ actividad.nombre_estado }}</span>
+            <p class="texto-contenido mb-0" [innerHTML]="actividad.titulo"></p>
+            <span class="duracion-badge" *ngIf="actividad.minutos_duracion">
+              {{ actividad.minutos_duracion }}min
+            </span>
+            <button class="btn-reabrir"
+                    type="button"
+                    [disabled]="cambiandoEstado === actividad.id_tarea_x_sprint"
+                    (click)="reabrirActividad(actividad)">
+              <i class="fa" [ngClass]="cambiandoEstado === actividad.id_tarea_x_sprint ? 'fa-spinner fa-spin' : 'fa-rotate-left'"></i>
+              {{ cambiandoEstado === actividad.id_tarea_x_sprint ? 'Reabriendo...' : 'Volver a Pendiente' }}
+            </button>
+          </div>
+        </div>
+      </ng-container>
+    </div>
+
     <!-- Sin actividades -->
     <div class="row" *ngIf="actividadesPendientes.length === 0 && !mostrarFormCrear && !modoEdicion">
       <div class="col-12">

@@ -14,6 +14,7 @@ import { SprintsService } from '../../../services/sprints.service';
 import { TareasXSprintsService } from '../../../services/tareas-x-sprints.service';
 import { LogrosService } from '../../../services/logros.service';
 import { CalificacionContextService } from '../../../services/calificacion-context.service';
+import { PermisosService } from '../../../services/permisos.service';
 import { UtilService } from '../../../common/constantes/util.service';
 import collect from 'collect.js';
 import Swal from 'sweetalert2';
@@ -31,6 +32,16 @@ export class ListaActividadesComponent implements OnInit {
   public grupo: any = null;
   public area: any = null;
   public actividadesPendientes: any[] = [];
+
+  // Actividades ya ejecutadas o canceladas. Solo se listan si el usuario tiene
+  // el permiso para devolverlas a Pendiente.
+  public actividadesFinalizadas: any[] = [];
+  public verFinalizadas: boolean = false;
+  public buscarFinalizadas: string = '';
+  public cambiandoEstado: any = null;
+
+  // Estado al que se devuelve una actividad reabierta (estados_tareas: 1 Pendiente)
+  private readonly idEstadoPendiente: number = 1;
   public siguienteActividad: any = null;
   public verTodas: boolean = false;
   public buscar: string = '';
@@ -85,6 +96,7 @@ export class ListaActividadesComponent implements OnInit {
     private tareasXSprintsService: TareasXSprintsService,
     private logrosService: LogrosService,
     private calificacionContext: CalificacionContextService,
+    public permisosService: PermisosService,
     private utilService: UtilService
   ) {}
 
@@ -115,11 +127,7 @@ export class ListaActividadesComponent implements OnInit {
   private cargarActividades(): void {
     this.actividadesAcademicasService.obtenerByGrupoArea(this.idGrupo, this.idArea)
       .subscribe((response: any) => {
-        let actividades = collect(response.body)
-          .where("nombre_estado", "Pendiente")
-          .all();
-
-        actividades = actividades.map((actividad: any) => ({
+        const todas = (response.body || []).map((actividad: any) => ({
           ...actividad,
           titulo: this.limpiarHTML(actividad.titulo),
           descripcion: this.limpiarHTML(actividad.descripcion),
@@ -128,6 +136,16 @@ export class ListaActividadesComponent implements OnInit {
           nivel_dos: this.limpiarHTML(actividad.nivel_dos),
           indicador_logro_nombre: this.limpiarHTML(actividad.indicador_logro_nombre)
         }));
+
+        const actividades = collect(todas)
+          .where("nombre_estado", "Pendiente")
+          .all();
+
+        // Todo lo que no está pendiente se guarda aparte, para poder
+        // consultarlo y devolverlo a Pendiente si se tiene el permiso.
+        this.actividadesFinalizadas = collect(todas)
+          .filter((actividad: any) => actividad.nombre_estado !== 'Pendiente')
+          .all() as any[];
 
         this.actividadesPendientes = actividades;
         this.siguienteActividad = actividades.length > 0 ? actividades[0] : null;
@@ -175,6 +193,65 @@ export class ListaActividadesComponent implements OnInit {
 
   toggleVerTodas(): void {
     this.verTodas = !this.verTodas;
+  }
+
+  // ========================================================================
+  // ACTIVIDADES FINALIZADAS: consulta y regreso a Pendiente
+  // ========================================================================
+
+  /** El bloque de finalizadas solo existe si hay permiso y hay algo que mostrar */
+  get puedeVerFinalizadas(): boolean {
+    return this.permisosService.tienePermiso('calificaciones.reabrir_actividad')
+      && this.actividadesFinalizadas.length > 0;
+  }
+
+  toggleVerFinalizadas(): void {
+    this.verFinalizadas = !this.verFinalizadas;
+  }
+
+  /**
+   * Devuelve una actividad finalizada al estado Pendiente para poder
+   * volver a calificarla. Pide confirmación porque afecta el registro.
+   */
+  reabrirActividad(actividad: any): void {
+    if (!this.permisosService.tienePermiso('calificaciones.reabrir_actividad')) return;
+    if (this.cambiandoEstado) return;
+
+    Swal.fire({
+      title: '¿Reabrir la actividad?',
+      html: `La actividad pasará de <b>${actividad.nombre_estado}</b> a <b>Pendiente</b> y volverá al listado para calificarla.`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#F5A623',
+      cancelButtonColor: '#2C2C2C',
+      confirmButtonText: 'Sí, reabrir',
+      cancelButtonText: 'Cancelar'
+    }).then((result) => {
+      if (!result.isConfirmed) return;
+
+      this.cambiandoEstado = actividad.id_tarea_x_sprint;
+
+      this.tareasXSprintsService.actualizarEstado({
+        id: actividad.id_tarea_x_sprint,
+        id_estado_tarea: this.idEstadoPendiente
+      }).subscribe({
+        next: () => {
+          this.cambiandoEstado = null;
+          Swal.fire({
+            title: 'Actividad reabierta',
+            text: 'Ya puedes calificarla de nuevo.',
+            icon: 'success',
+            confirmButtonColor: '#F5A623'
+          });
+          this.cargarActividades();
+        },
+        error: (error: any) => {
+          this.cambiandoEstado = null;
+          console.error('Error al reabrir la actividad', error);
+          Swal.fire('Error', 'No se pudo cambiar el estado de la actividad.', 'error');
+        }
+      });
+    });
   }
 
   // ========================================================================
