@@ -121,9 +121,12 @@
                 </div>
             </div>
 
-            <div class="horario-row" *ngFor="let hora of horasDelDia; let indiceHora = index">
+            <div class="horario-row"
+                 *ngFor="let hora of horasDelDia; let indiceHora = index"
+                 [class.fila-etiqueta]="esFilaEtiqueta(hora)"
+                 [class.fila-hora-punto]="esFilaHoraEnPunto(hora)">
                 <div class="horario-cell horario-time-cell">
-                    {{ hora }}
+                    {{ etiquetaHora(hora) }}
                 </div>
 
                 <div class="horario-cell horario-content-cell"

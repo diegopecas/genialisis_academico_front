@@ -40,6 +40,12 @@ export class ReportesComponent {
       case 'cobertura-curricular':
         this.router.navigate(['/reportes/cobertura-curricular']);
         break;
+      case 'distribucion-malla':
+        this.router.navigate(['/reportes/distribucion-malla']);
+        break;
+      case 'horarios':
+        this.router.navigate(['/reportes/horarios']);
+        break;
       case 'ejecucion-tareas':
         this.router.navigate(['/reportes/ejecucion-tareas']);
         break;

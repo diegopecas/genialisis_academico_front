@@ -1,0 +1,332 @@
+$color-primary: #F5A623;
+$color-text: #2c3e50;
+$color-verde: rgb(64, 196, 160);
+$color-rojo: #e74c3c;
+$color-borde: #e8e8e8;
+
+.modulo {
+  padding-bottom: 2rem;
+}
+
+// ========== Selector de vista ==========
+
+.selector-vista-malla {
+  display: flex;
+  gap: 0;
+  border: 1px solid $color-borde;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fff;
+  width: fit-content;
+  max-width: 100%;
+
+  .btn-vista {
+    border: none;
+    background: #fff;
+    color: #777;
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 0.5rem 1.1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+
+    i {
+      margin-right: 6px;
+    }
+
+    &:hover {
+      background: #fafafa;
+    }
+
+    &.activo {
+      background: $color-primary;
+      color: #fff;
+    }
+  }
+}
+
+// ========== Filtro de grados ==========
+
+.filtro-grados {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  background: #fff;
+  border: 1px solid $color-borde;
+  border-radius: 10px;
+  padding: 0.6rem 0.9rem;
+}
+
+.filtro-grados-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: $color-primary;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.chip-grado {
+  border: 1px solid #dcdcdc;
+  background: #fff;
+  color: #666;
+  border-radius: 20px;
+  padding: 0.25rem 0.8rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: $color-primary;
+  }
+
+  &.activo {
+    background: rgba($color-primary, 0.15);
+    border-color: $color-primary;
+    color: #8a5a00;
+  }
+}
+
+// ========== Leyenda ==========
+
+.leyenda-malla {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  font-size: 0.78rem;
+  color: #666;
+}
+
+.leyenda-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.leyenda-color {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  border: 1px solid #ddd;
+  display: inline-block;
+
+  &.con-contenido {
+    background: rgba($color-verde, 0.55);
+  }
+
+  &.falta-contenido {
+    background: $color-rojo;
+  }
+
+  &.no-aplica {
+    background: #fff;
+  }
+}
+
+.leyenda-nota {
+  color: #999;
+  font-style: italic;
+}
+
+// ========== Tarjetas de resumen ==========
+
+.tarjeta-resumen {
+  background: #fff;
+  border: 1px solid $color-borde;
+  border-radius: 10px;
+  padding: 0.7rem 0.9rem;
+  text-align: center;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  margin-bottom: 0.5rem;
+
+  .resumen-valor {
+    display: block;
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: $color-text;
+    line-height: 1.2;
+  }
+
+  .resumen-label {
+    display: block;
+    font-size: 0.72rem;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  &.alerta .resumen-valor {
+    color: $color-rojo;
+  }
+
+  &.alerta.sin-alerta .resumen-valor {
+    color: $color-text;
+  }
+}
+
+// ========== Matriz ==========
+
+.matriz-scroll {
+  overflow-x: auto;
+  background: #fff;
+  border: 1px solid $color-borde;
+  border-radius: 10px;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.06);
+
+  &::-webkit-scrollbar {
+    height: 8px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 4px;
+  }
+}
+
+.tabla-matriz {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 3px;
+  font-size: 0.78rem;
+
+  th {
+    font-weight: 600;
+    color: #666;
+    text-align: center;
+    padding: 0.35rem 0.4rem;
+    font-size: 0.72rem;
+    white-space: nowrap;
+  }
+
+  .col-grado {
+    color: $color-text;
+    font-weight: 700;
+    border-bottom: 2px solid #f0f0f0;
+  }
+
+  .col-corte {
+    color: #999;
+    font-weight: 600;
+    min-width: 34px;
+  }
+
+  // La columna del área queda fija al hacer scroll horizontal
+  .col-area {
+    text-align: left;
+    position: sticky;
+    left: 0;
+    background: #fff;
+    z-index: 2;
+    min-width: 190px;
+    max-width: 230px;
+    padding: 0.35rem 0.6rem 0.35rem 0.2rem;
+    font-weight: 700;
+    color: $color-text;
+    text-transform: uppercase;
+    font-size: 0.72rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  td.celda-dato {
+    text-align: center;
+    border-radius: 5px;
+    padding: 0.4rem 0.3rem;
+    font-weight: 700;
+    color: $color-text;
+    min-width: 34px;
+    transition: transform 0.15s ease;
+    cursor: default;
+
+    &:hover {
+      transform: scale(1.12);
+    }
+  }
+
+  td.celda-falta-contenido {
+    color: #fff;
+  }
+
+  td.celda-no-aplica {
+    border: 1px solid #ededed;
+  }
+
+  .col-total,
+  .col-total-columna {
+    text-align: center;
+    font-weight: 700;
+    color: #777;
+    background: #fafafa;
+    border-radius: 5px;
+    padding: 0.4rem 0.5rem;
+  }
+
+  tfoot .col-area {
+    color: #777;
+  }
+
+  .sin-datos {
+    text-align: center;
+    color: #999;
+    padding: 1.5rem;
+    font-style: italic;
+  }
+}
+
+// ========== Responsive ==========
+
+@media (max-width: 768px) {
+  .selector-vista-malla {
+    width: 100%;
+
+    .btn-vista {
+      flex: 1;
+      font-size: 0.78rem;
+      padding: 0.5rem 0.5rem;
+
+      i {
+        display: none;
+      }
+    }
+  }
+
+  .leyenda-nota {
+    width: 100%;
+  }
+
+  .tabla-matriz {
+    font-size: 0.7rem;
+
+    .col-area {
+      min-width: 130px;
+      max-width: 140px;
+      font-size: 0.65rem;
+    }
+
+    td.celda-dato {
+      min-width: 28px;
+      padding: 0.3rem 0.15rem;
+    }
+
+    .col-corte {
+      min-width: 28px;
+      font-size: 0.65rem;
+    }
+  }
+
+  .tarjeta-resumen {
+    padding: 0.5rem;
+
+    .resumen-valor {
+      font-size: 1.1rem;
+    }
+
+    .resumen-label {
+      font-size: 0.62rem;
+    }
+  }
+}

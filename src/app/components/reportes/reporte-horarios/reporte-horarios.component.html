@@ -1,0 +1,168 @@
+<div class="modulo">
+  <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [raiz]="'/'" [regresar]="'/reportes'"></app-header>
+
+  <div class="container-fluid mt-3">
+
+    <!-- Vista y acciones -->
+    <div class="row mb-3 align-items-end">
+      <div class="col-lg-4 col-md-12 mb-2">
+        <label class="form-label">Vista:</label>
+        <div class="selector-vista-horarios">
+          <button type="button" class="btn-vista" [class.activo]="vista === 'grupo'" (click)="cambiarVista('grupo')">
+            <i class="fas fa-users"></i> Por grupo
+          </button>
+          <button type="button" class="btn-vista" [class.activo]="vista === 'dia'" (click)="cambiarVista('dia')">
+            <i class="fas fa-calendar-day"></i> Por día
+          </button>
+        </div>
+      </div>
+
+      <div class="col-lg-3 col-md-6 mb-2" *ngIf="vista === 'dia'">
+        <label for="diaSelector" class="form-label">Día:</label>
+        <select id="diaSelector" class="form-select" [(ngModel)]="diaSeleccionado" (change)="cambiarDia()">
+          <option *ngFor="let dia of diasSemana" [ngValue]="dia.id">{{ dia.nombre }}</option>
+        </select>
+      </div>
+
+      <div class="col-lg-5 col-md-6 mb-2 text-lg-end">
+        <button class="btn btn-success btn-sm me-2" (click)="exportarExcel()" [disabled]="!datosDisponibles">
+          <i class="fas fa-file-excel"></i> Excel
+        </button>
+        <button class="btn btn-danger btn-sm" (click)="exportarPDF()" [disabled]="!datosDisponibles">
+          <i class="fas fa-file-pdf"></i> PDF
+        </button>
+      </div>
+    </div>
+
+    <!-- Filtro de grupos -->
+    <div class="row mb-3" *ngIf="grupos.length > 0">
+      <div class="col-12">
+        <div class="filtro-grupos">
+          <span class="filtro-grupos-label">Grupos:</span>
+          <button type="button"
+                  class="chip-grupo"
+                  *ngFor="let grupo of grupos"
+                  [class.activo]="gruposSeleccionados[grupo.id]"
+                  (click)="toggleGrupo(grupo.id)">
+            {{ grupo.nombre }}
+          </button>
+          <button type="button" class="btn-todos" (click)="seleccionarTodosLosGrupos()">
+            Todos
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Aviso de cruces -->
+    <div class="row mb-3" *ngIf="datosDisponibles && totalCruces > 0">
+      <div class="col-12">
+        <div class="aviso-cruces">
+          <div class="aviso-cruces-titulo">
+            <i class="fas fa-triangle-exclamation"></i>
+            {{ totalCruces }} franjas con cruce de docente
+          </div>
+          <ul class="aviso-cruces-lista">
+            <li *ngFor="let cruce of listaCruces">
+              <strong>{{ cruce.docente }}</strong> · {{ cruce.dia }} {{ cruce.franja }} ·
+              {{ cruce.grupo }} / {{ cruce.area }}
+              <span class="cruce-contra">se cruza con {{ cruce.contra }}</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cargando -->
+    <div class="row" *ngIf="cargando">
+      <div class="col-12 text-center py-5">
+        <i class="fas fa-spinner fa-spin fa-2x"></i>
+        <p class="mt-2">Cargando horarios...</p>
+      </div>
+    </div>
+
+    <!-- Tableros -->
+    <div class="row" *ngIf="datosDisponibles && !cargando">
+      <div class="col-12" *ngFor="let tablero of tableros; trackBy: trackByTablero">
+        <div class="tablero-horario">
+
+          <div class="tablero-header">
+            <h5 class="tablero-titulo">{{ tablero.titulo }}</h5>
+            <div class="tablero-resumen">
+              <span><i class="fas fa-clock"></i> {{ horasDeMinutos(tablero.totalMinutos) }}</span>
+              <span><i class="fas fa-layer-group"></i> {{ tablero.totalFranjas }} franjas</span>
+              <span class="resumen-cruce" *ngIf="tablero.cruces > 0">
+                <i class="fas fa-triangle-exclamation"></i> {{ tablero.cruces }} con cruce
+              </span>
+            </div>
+          </div>
+
+          <div class="tablero-vacio" *ngIf="tablero.totalFranjas === 0">
+            <i class="fas fa-calendar-times"></i>
+            <p>Sin horarios configurados</p>
+          </div>
+
+          <div class="grilla-scroll" *ngIf="tablero.totalFranjas > 0">
+            <div class="grilla-horario"
+                 [style.grid-template-columns]="'52px repeat(' + tablero.columnas.length + ', minmax(96px, 1fr))'">
+
+              <!-- Encabezado -->
+              <div class="grilla-header grilla-header-hora">Hora</div>
+              <div class="grilla-header" *ngFor="let columna of tablero.columnas">
+                {{ columna.nombre }}
+              </div>
+
+              <!-- Franjas de 5 minutos -->
+              <ng-container *ngFor="let franja of franjas; let indiceFranja = index">
+                <div class="grilla-hora"
+                     [class.fila-etiqueta]="esFilaEtiqueta(franja)"
+                     [class.fila-hora-punto]="esFilaHoraEnPunto(franja)">
+                  {{ etiquetaFranja(franja) }}
+                </div>
+
+                <div class="grilla-celda"
+                     *ngFor="let columna of tablero.columnas"
+                     [class.fila-etiqueta]="esFilaEtiqueta(franja)"
+                     [class.fila-hora-punto]="esFilaHoraEnPunto(franja)">
+
+                  <div class="bloque-horario"
+                       *ngIf="celdaDe(tablero, columna.id, indiceFranja) as celda"
+                       [style.background-color]="celda.horario.area_academica_color || '#f0f0f0'"
+                       [class.es-inicio]="celda.esInicio"
+                       [class.es-fin]="celda.esFin"
+                       [class.es-intermedio]="celda.esIntermedio"
+                       [class.tiene-cruce]="celda.tieneCruce"
+                       [title]="tituloCelda(celda)">
+
+                    <ng-container *ngIf="celda.esInicio">
+                      <div class="bloque-area">
+                        <i class="fas fa-triangle-exclamation icono-cruce" *ngIf="celda.tieneCruce"></i>
+                        {{ celda.horario.area_academica_nombre }}
+                      </div>
+                      <div class="bloque-hora">
+                        {{ horaCorta(celda.horario.hora_inicial) }} - {{ horaCorta(celda.horario.hora_final) }}
+                        · {{ celda.horario.total_minutos }}min
+                      </div>
+                      <div class="bloque-docente" *ngIf="celda.horario.docente_nombre_completo">
+                        {{ celda.horario.docente_nombre_completo }}
+                      </div>
+                    </ng-container>
+                  </div>
+                </div>
+              </ng-container>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="col-12" *ngIf="tableros.length === 0">
+        <div class="tablero-vacio">
+          <i class="fas fa-calendar-times"></i>
+          <p>Selecciona al menos un grupo.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

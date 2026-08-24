@@ -168,6 +168,8 @@ export class MenuArbolService {
               { id: 'reportes-calif-estudiante', label: 'Calificaciones Estudiante', icono: '🎯', ruta: '/reportes/calificaciones/estudiante', permiso: 'reportes.calificaciones_estudiante', keywords: ['notas', 'boletin'] },
               { id: 'reportes-monitoreo-sprint', label: 'Monitoreo Sprint', icono: '🏃', ruta: '/reportes/monitoreo-sprint', permiso: 'reportes.monitoreo_sprint' },
               { id: 'reportes-malla', label: 'Malla Curricular', icono: '🗺️', ruta: '/reportes/malla-curricular', permiso: 'reportes.malla_curricular', keywords: ['plan de estudios', 'pensum'] },
+              { id: 'reportes-distribucion-malla', label: 'Distribución de la Malla', icono: '🧩', ruta: '/reportes/distribucion-malla', permiso: 'reportes.distribucion_malla', keywords: ['malla', 'distribucion', 'logros', 'indicadores', 'indicadores de logro', 'cobertura', 'faltantes', 'plan de estudios', 'pensum', 'matriz'] },
+              { id: 'reportes-horarios', label: 'Reporte de Horarios', icono: '🕐', ruta: '/reportes/horarios', permiso: 'reportes.horarios', keywords: ['horarios', 'horario', 'grupos', 'dias', 'franjas', 'clases', 'docentes', 'cruces', 'choques', 'semana'] },
               { id: 'reportes-cobertura', label: 'Cobertura Curricular', icono: '📈', ruta: '/reportes/cobertura-curricular', permiso: 'reportes.cobertura_curricular', keywords: ['avance'] },
               { id: 'reportes-cursos-extra', label: 'Reporte Cursos Extra', icono: '🎭', ruta: '/reportes/cursos-extra', permiso: 'reportes.cursos_extra', keywords: ['extracurriculares', 'talleres'] }
             ]

@@ -35,6 +35,11 @@ export class CalificacionEstudiantesComponent implements OnInit {
   // Acordeón ausentes
   public ausentesExpandido: boolean = false;
 
+  // Calificación masiva: valor elegido por parámetro antes de aplicar a todos
+  public valoresMasivos: { [idParametro: string]: any } = {};
+  public aplicandoMasivo: boolean = false;
+  public panelMasivoAbierto: boolean = true;
+
   // Observación general de la tarea
   public observacionTarea: string = '';
 
@@ -302,6 +307,99 @@ export class CalificacionEstudiantesComponent implements OnInit {
         parametro.guardado = response;
       },
       error: () => { Swal.fire({ toast: true, position: 'top-end', icon: 'error', title: 'Error al guardar calificación', showConfirmButton: false, timer: 2000 }); }
+    });
+  }
+
+  // ========== Calificación masiva ==========
+
+  togglePanelMasivo(): void {
+    this.panelMasivoAbierto = !this.panelMasivoAbierto;
+  }
+
+  /** Marca el valor que se va a aplicar a todos para ese parámetro (todavía no guarda) */
+  seleccionarValorMasivo(parametro: any, valorParametro: any): void {
+    this.valoresMasivos[parametro.id] = valorParametro;
+  }
+
+  valorMasivoSeleccionado(parametro: any): any {
+    return this.valoresMasivos[parametro.id] || null;
+  }
+
+  /** Cuántos estudiantes quedarían calificados si se aplica el valor de ese parámetro */
+  pendientesPorParametro(parametro: any): number {
+    return this.estudiantesParaMasivo
+      .filter(est => !this.tieneCalificacion(est, parametro.id))
+      .length;
+  }
+
+  /**
+   * Estudiantes a los que aplica la calificación masiva: los presentes y,
+   * cuando la actividad es de evaluación, también los ausentes.
+   */
+  private get estudiantesParaMasivo(): any[] {
+    return this.esEvaluacion
+      ? [...this.estudiantes, ...this.estudiantesAusentes]
+      : this.estudiantes;
+  }
+
+  private tieneCalificacion(estudiante: any, idParametro: any): boolean {
+    const parametro = (estudiante.parametrosCalificaciones || [])
+      .find((p: any) => p.id == idParametro);
+    return !!(parametro && parametro.seleccionado);
+  }
+
+  /**
+   * Aplica el valor elegido a todos los estudiantes que aún no tienen nota
+   * en ese parámetro. Los que ya están calificados no se tocan.
+   */
+  aplicarATodos(parametro: any): void {
+    const valorParametro = this.valoresMasivos[parametro.id];
+    if (!valorParametro || !this.actividadAcademica) return;
+
+    const pendientes = this.estudiantesParaMasivo
+      .filter(est => !this.tieneCalificacion(est, parametro.id));
+
+    if (pendientes.length === 0) {
+      Swal.fire({ toast: true, position: 'top-end', icon: 'info', title: 'Todos ya tienen calificación en ' + parametro.nombre, showConfirmButton: false, timer: 2500 });
+      return;
+    }
+
+    this.aplicandoMasivo = true;
+
+    this.calificacionesService.calificarLote(
+      this.actividadAcademica.id_tarea_x_sprint,
+      parametro.id,
+      valorParametro.id,
+      pendientes.map(est => est.id_estudiante)
+    ).subscribe({
+      next: (respuesta: any) => {
+        this.aplicandoMasivo = false;
+        const creadas = (respuesta && respuesta.creadas) || [];
+
+        creadas.forEach((creada: any) => {
+          const estudiante = this.estudiantesParaMasivo
+            .find(est => est.id_estudiante == creada.id_estudiante);
+          if (!estudiante) return;
+
+          const parametroEstudiante = (estudiante.parametrosCalificaciones || [])
+            .find((p: any) => p.id == parametro.id);
+          if (parametroEstudiante) {
+            parametroEstudiante.seleccionado = (parametroEstudiante.valores || [])
+              .find((v: any) => v.id == valorParametro.id);
+            parametroEstudiante.guardado = creada.id_calificacion;
+          }
+
+          if (!estudiante.idTareaEstudiante && creada.id_tarea_estudiante) {
+            estudiante.idTareaEstudiante = creada.id_tarea_estudiante;
+          }
+        });
+
+        Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: creadas.length + ' calificados en ' + parametro.nombre, showConfirmButton: false, timer: 2000 });
+      },
+      error: () => {
+        this.aplicandoMasivo = false;
+        Swal.fire({ toast: true, position: 'top-end', icon: 'error', title: 'Error al calificar en lote', showConfirmButton: false, timer: 2000 });
+      }
     });
   }
 

@@ -2,6 +2,8 @@ $color-primary: #ffbd31;
 $color-text: #555555;
 $color-star-checked: rgb(101, 245, 209);
 $color-ausente: #b0b0b0;
+// Estrellas todavía sin calificar
+$color-sin-calificar: #b0b4ba;
 
 .modulo {
   padding-bottom: 2rem;
@@ -233,7 +235,8 @@ $color-ausente: #b0b0b0;
 // ========== Calificación estrellas ==========
 .calificacion {
   font-size: 1.5em;
-  color: #ddd;
+  // Tono oscuro para que se note qué está sin calificar
+  color: $color-sin-calificar;
   cursor: pointer;
   transition: all 0.2s ease;
 
@@ -464,6 +467,116 @@ label {
   vertical-align: middle;
 }
 
+// ========== Calificación masiva ==========
+
+.masivo-container {
+  background: white;
+  border: 1px solid #e8e8e8;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.masivo-header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 18px;
+  background: #fafafa;
+  color: #444;
+  border: none;
+  border-bottom: 1px solid #f0f0f0;
+  cursor: pointer;
+  font-size: 0.95em;
+  font-weight: 600;
+  transition: background 0.2s ease;
+
+  &:hover {
+    background: #f5f5f5;
+  }
+
+  .masivo-titulo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    i {
+      color: $color-primary;
+    }
+  }
+}
+
+.masivo-contenido {
+  padding: 14px 18px;
+}
+
+.masivo-aviso {
+  font-size: 0.8em;
+  color: #777;
+  background: #fcfcfc;
+  border-left: 3px solid $color-primary;
+  padding: 8px 12px;
+  border-radius: 4px;
+  margin-bottom: 12px;
+  line-height: 1.4;
+
+  i {
+    margin-right: 5px;
+    color: $color-primary;
+  }
+}
+
+.masivo-parametro {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px dashed #f0f0f0;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  .parametro-label {
+    min-width: 140px;
+    margin-bottom: 0;
+  }
+
+  .estrellas-container {
+    flex: 1;
+    min-width: 140px;
+  }
+}
+
+.btn-masivo-aplicar {
+  background: $color-primary;
+  border: none;
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.8em;
+  border-radius: 8px;
+  padding: 6px 14px;
+  white-space: nowrap;
+  transition: opacity 0.2s ease;
+
+  &:hover:not(:disabled) {
+    opacity: 0.88;
+    color: #fff;
+  }
+
+  &:disabled {
+    background: #dcdcdc;
+    color: #888;
+    cursor: not-allowed;
+  }
+
+  i {
+    margin-right: 5px;
+  }
+}
+
 @media (max-width: 768px) {
   .calificacion { font-size: 1.3em; }
   .ficha-estudiante { margin-bottom: 15px; }
@@ -476,5 +589,32 @@ label {
   .acordeon-aviso {
     font-size: 0.78em;
     padding: 8px 14px;
+  }
+
+  .masivo-header {
+    padding: 10px 14px;
+    font-size: 0.88em;
+  }
+
+  .masivo-contenido {
+    padding: 12px 14px;
+  }
+
+  .masivo-aviso {
+    font-size: 0.78em;
+    padding: 8px 12px;
+  }
+
+  .masivo-parametro {
+    align-items: flex-start;
+    gap: 8px;
+
+    .parametro-label {
+      min-width: 100%;
+    }
+
+    .btn-masivo-aplicar {
+      width: 100%;
+    }
   }
 }

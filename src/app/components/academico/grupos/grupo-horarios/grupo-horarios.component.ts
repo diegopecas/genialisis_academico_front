@@ -57,8 +57,12 @@ export class GrupoHorariosComponent implements OnInit, OnChanges {
     total_clases: 1
   } as any;
 
-  // Rango de la grilla en minutos desde medianoche
-  private readonly minutosPorBloque: number = 30;
+  // Resolución de la grilla en minutos.
+  // Se trabaja en franjas de 5 min para soportar jardines con clases de
+  // 30, 40, 45 o 60 minutos. La etiqueta de hora solo se pinta cada
+  // minutosPorEtiqueta para que la grilla no se vea saturada.
+  private readonly minutosPorBloque: number = 5;
+  private readonly minutosPorEtiqueta: number = 30;
 
   constructor(
     private horariosService: HorariosService,
@@ -168,8 +172,10 @@ export class GrupoHorariosComponent implements OnInit, OnChanges {
   // ========== Grilla ==========
 
   /**
-   * Arma las filas de la grilla en bloques de 30 minutos, cubriendo los horarios
+   * Arma las filas de la grilla en franjas de 5 minutos, cubriendo los horarios
    * existentes, las franjas pendientes y un margen mínimo de 07:00 a 16:00.
+   * Los extremos se redondean a la media hora para que la primera y la última
+   * fila caigan siempre en una etiqueta visible.
    */
   calcularHorasDelDia(): void {
     let minutoMinimo = 7 * 60;
@@ -183,8 +189,8 @@ export class GrupoHorariosComponent implements OnInit, OnChanges {
       if (fin > minutoMaximo) minutoMaximo = fin;
     });
 
-    const inicioRedondeado = Math.floor(minutoMinimo / this.minutosPorBloque) * this.minutosPorBloque;
-    const finRedondeado = Math.ceil(minutoMaximo / this.minutosPorBloque) * this.minutosPorBloque;
+    const inicioRedondeado = Math.floor(minutoMinimo / this.minutosPorEtiqueta) * this.minutosPorEtiqueta;
+    const finRedondeado = Math.ceil(minutoMaximo / this.minutosPorEtiqueta) * this.minutosPorEtiqueta;
 
     const horas: string[] = [];
     for (let minutos = inicioRedondeado; minutos < finRedondeado; minutos += this.minutosPorBloque) {
@@ -225,7 +231,10 @@ export class GrupoHorariosComponent implements OnInit, OnChanges {
 
     const inicioFormato = (horario.hora_inicial || '').substring(0, 5);
     const finFormato = (horario.hora_final || '').substring(0, 5);
-    const esInicio = hora === inicioFormato;
+    // Se compara por rango y no por texto: así una franja que arranque en una
+    // hora que no cae exacta en la grilla igual pinta su encabezado.
+    const inicioHorario = this.aMinutos(horario.hora_inicial);
+    const esInicio = inicioHorario >= minutosCelda && inicioHorario < (minutosCelda + this.minutosPorBloque);
     const esFin = (minutosCelda + this.minutosPorBloque) >= this.aMinutos(horario.hora_final);
 
     return {
@@ -239,6 +248,21 @@ export class GrupoHorariosComponent implements OnInit, OnChanges {
 
   getClaseHorario(idDia: any, hora: string): string {
     return this.getHorarioInfo(idDia, hora) ? 'tiene-horario' : 'sin-horario';
+  }
+
+  /** true cuando la franja cae en una etiqueta visible (cada media hora) */
+  esFilaEtiqueta(hora: string): boolean {
+    return this.aMinutos(hora) % this.minutosPorEtiqueta === 0;
+  }
+
+  /** true en el arranque de cada hora, para pintar la línea más marcada */
+  esFilaHoraEnPunto(hora: string): boolean {
+    return this.aMinutos(hora) % 60 === 0;
+  }
+
+  /** Texto de la columna de horas: vacío en las franjas intermedias */
+  etiquetaHora(hora: string): string {
+    return this.esFilaEtiqueta(hora) ? hora : '';
   }
 
   obtenerColorArea(id_area: string): string {
@@ -388,9 +412,11 @@ export class GrupoHorariosComponent implements OnInit, OnChanges {
       return minutosCelda >= this.aMinutos(f.hora_inicial) && minutosCelda < this.aMinutos(f.hora_final);
     });
     if (!franja) return null;
+    // Igual que en getHorarioInfo: se compara por rango, no por texto
+    const inicioFranja = this.aMinutos(franja.hora_inicial);
     return {
       ...franja,
-      esInicio: hora === franja.hora_inicial
+      esInicio: inicioFranja >= minutosCelda && inicioFranja < (minutosCelda + this.minutosPorBloque)
     };
   }
 

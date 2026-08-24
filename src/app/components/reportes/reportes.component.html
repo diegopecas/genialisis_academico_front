@@ -9,7 +9,7 @@
   <div class="container-fluid mt-5">
     <div class="row justify-content-center">
       <!-- Académicos -->
-      <div class="col-lg-3 col-md-6 mb-4" *ngIf="tieneAlguno(['reportes.calificaciones_estudiante', 'reportes.calificaciones_sprint', 'reportes.cobertura_curricular', 'reportes.ejecucion_tareas', 'reportes.malla_curricular'])">
+      <div class="col-lg-3 col-md-6 mb-4" *ngIf="tieneAlguno(['reportes.calificaciones_estudiante', 'reportes.calificaciones_sprint', 'reportes.cobertura_curricular', 'reportes.ejecucion_tareas', 'reportes.malla_curricular', 'reportes.distribucion_malla', 'reportes.horarios'])">
         <div
           class="card-maestro menu-principal"
           [class.active]="menuActivo === 'academicos'"
@@ -80,6 +80,30 @@
                     alt="Cobertura Curricular"
                   />
                   <span>Cobertura Curricular</span>
+                </div>
+              </div>
+              <div class="col-6" *ngIf="permisosService.tienePermiso('reportes.distribucion_malla')">
+                <div
+                  class="submenu-item"
+                  (click)="seleccionarOpcion('distribucion-malla', $event)"
+                >
+                  <img
+                    src="assets/images/malla-curricular.png"
+                    alt="Distribución de la Malla"
+                  />
+                  <span>Distribución de la Malla</span>
+                </div>
+              </div>
+              <div class="col-6" *ngIf="permisosService.tienePermiso('reportes.horarios')">
+                <div
+                  class="submenu-item"
+                  (click)="seleccionarOpcion('horarios', $event)"
+                >
+                  <img
+                    src="assets/images/academico.png"
+                    alt="Horarios"
+                  />
+                  <span>Horarios</span>
                 </div>
               </div>
               <div class="col-6" *ngIf="permisosService.tienePermiso('reportes.ejecucion_tareas')">

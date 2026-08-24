@@ -103,6 +103,30 @@ export class CalificacionesService {
     );
   }
 
+  /**
+   * Califica en lote a varios estudiantes con el mismo valor para un parámetro.
+   * El backend solo llena los vacíos: los que ya tienen nota no se tocan.
+   */
+  calificarLote(id_tarea_x_sprint: any, id_parametro_calificacion: any, id_valor_parametro_calificacion: any, estudiantes: any[]) {
+    const body = JSON.stringify({
+      id_tarea_x_sprint: id_tarea_x_sprint,
+      id_parametro_calificacion: id_parametro_calificacion,
+      id_valor_parametro_calificacion: id_valor_parametro_calificacion,
+      estudiantes: estudiantes
+    });
+
+    return this.http.post<any>(`${this.servicio}/lote`, body, httpSilent).pipe(
+      tap((respuesta: any) => {
+        if (respuesta && respuesta.error) {
+          console.log(respuesta);
+          throw respuesta.error;
+        }
+        return respuesta;
+      }),
+      catchError(this.handleError)
+    );
+  }
+
   actualizarCalificacion(id: any, id_valor_parametro_calificacion: any) {
     const body = JSON.stringify({id: id, id_valor_parametro_calificacion: id_valor_parametro_calificacion});
     

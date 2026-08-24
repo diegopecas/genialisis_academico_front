@@ -70,6 +70,55 @@
       </div>
     </div>
 
+    <!-- Calificación masiva: asigna el mismo valor a todos los que no tienen nota -->
+    <div class="row mb-3"
+         *ngIf="actividadAcademica != null && actividadAcademica.id_docente_inicia != null && parametrosCalificaciones.length > 0 && estudiantes.length > 0">
+      <div class="col-12">
+        <div class="masivo-container">
+          <button class="masivo-header" type="button" (click)="togglePanelMasivo()">
+            <span class="masivo-titulo">
+              <i class="fa fa-users"></i>
+              Calificar a todos
+            </span>
+            <i class="fa" [ngClass]="panelMasivoAbierto ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+          </button>
+
+          <div class="masivo-contenido" *ngIf="panelMasivoAbierto">
+            <div class="masivo-aviso">
+              <i class="fa fa-info-circle"></i>
+              Elige el valor y aplícalo. Solo se califican los que están vacíos; los que ya tienen nota no se modifican y puedes seguir ajustándolos uno por uno.
+            </div>
+
+            <div class="masivo-parametro" *ngFor="let parametro of parametrosCalificaciones">
+              <label class="parametro-label">{{ parametro.nombre }}</label>
+              <div class="estrellas-container">
+                <span
+                  *ngFor="let valorParametro of parametro.valores"
+                  [ngClass]="[
+                    'calificacion', 'fa',
+                    valorParametro.icono || 'fa-star',
+                    valorMasivoSeleccionado(parametro) &&
+                    valorMasivoSeleccionado(parametro).valor_cuantitativo >= valorParametro.valor_cuantitativo ? 'checked' : ''
+                  ]"
+                  [title]="valorParametro.valor_cualitativo + ' (' + valorParametro.valor_cuantitativo + ')'"
+                  (click)="seleccionarValorMasivo(parametro, valorParametro)"
+                ></span>
+              </div>
+              <button
+                class="btn btn-sm btn-masivo-aplicar"
+                type="button"
+                [disabled]="!valorMasivoSeleccionado(parametro) || aplicandoMasivo || pendientesPorParametro(parametro) === 0"
+                (click)="aplicarATodos(parametro)"
+              >
+                <i class="fa fa-check-double"></i>
+                Aplicar a {{ pendientesPorParametro(parametro) }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Calificación de estudiantes -->
     <div class="row" *ngIf="actividadAcademica != null">
       <ng-container *ngIf="actividadAcademica.id_docente_inicia != null">

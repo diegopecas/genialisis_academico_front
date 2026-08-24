@@ -313,6 +313,22 @@ export class LogrosService {
       );
   }
   
+  // Distribución de la malla: conteos de logros e indicadores por área, grado y corte
+  obtenerDistribucionMalla(): Observable<HttpResponse<Object>> {
+    return this.http
+      .get<HttpResponse<Object>>(environment.api + 'logros-distribucion-malla', { observe: 'response' })
+      .pipe(
+        tap((response: HttpResponse<Object>) => {
+          let respuesta: any = response.body;
+          if (respuesta && respuesta.error) {
+            throw respuesta.error;
+          }
+          return response;
+        }),
+        catchError(this.handleError)
+      );
+  }
+
   private handleError(error: HttpErrorResponse): Observable<never> {
     console.error('Error en LogrosService:', error);
     return throwError(() => new Error(`Ocurrió un error; por favor intente más tarde. Status: ${error.status}`));

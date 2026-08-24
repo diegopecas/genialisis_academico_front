@@ -1,0 +1,167 @@
+<div class="modulo">
+  <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [raiz]="'/'" [regresar]="'/reportes'"></app-header>
+
+  <div class="container-fluid mt-3">
+
+    <!-- Selector de vista y acciones -->
+    <div class="row mb-3 align-items-end">
+      <div class="col-lg-5 col-md-12 mb-2">
+        <label class="form-label">Vista:</label>
+        <div class="selector-vista-malla">
+          <button type="button"
+                  class="btn-vista"
+                  [class.activo]="vista === 'indicadores'"
+                  (click)="cambiarVista('indicadores')">
+            <i class="fas fa-list-check"></i> Indicadores de logro
+          </button>
+          <button type="button"
+                  class="btn-vista"
+                  [class.activo]="vista === 'logros'"
+                  (click)="cambiarVista('logros')">
+            <i class="fas fa-bullseye"></i> Logros
+          </button>
+        </div>
+      </div>
+
+      <div class="col-lg-7 col-md-12 mb-2 text-lg-end">
+        <button class="btn btn-outline-secondary btn-sm me-2"
+                (click)="toggleSoloFaltantes()"
+                [class.active]="soloFaltantes">
+          <i class="fas fa-triangle-exclamation"></i>
+          {{ soloFaltantes ? 'Ver todas las áreas' : 'Solo áreas con faltantes' }}
+        </button>
+        <button class="btn btn-success btn-sm me-2" (click)="exportarExcel()" [disabled]="!datosDisponibles">
+          <i class="fas fa-file-excel"></i> Excel
+        </button>
+        <button class="btn btn-danger btn-sm" (click)="exportarPDF()" [disabled]="!datosDisponibles">
+          <i class="fas fa-file-pdf"></i> PDF
+        </button>
+      </div>
+    </div>
+
+    <!-- Filtro de grados -->
+    <div class="row mb-3" *ngIf="grados.length > 0">
+      <div class="col-12">
+        <div class="filtro-grados">
+          <span class="filtro-grados-label">Grados:</span>
+          <button type="button"
+                  class="chip-grado"
+                  *ngFor="let grado of grados"
+                  [class.activo]="gradosSeleccionados[grado.id]"
+                  (click)="toggleGrado(grado.id)">
+            {{ grado.nombre }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Leyenda -->
+    <div class="row mb-2" *ngIf="datosDisponibles">
+      <div class="col-12">
+        <div class="leyenda-malla">
+          <span class="leyenda-item">
+            <span class="leyenda-color con-contenido"></span> Con {{ vista === 'indicadores' ? 'indicadores' : 'logros' }}
+          </span>
+          <span class="leyenda-item">
+            <span class="leyenda-color falta-contenido"></span> Falta contenido
+          </span>
+          <span class="leyenda-item">
+            <span class="leyenda-color no-aplica"></span> No la ve ese grado
+          </span>
+          <span class="leyenda-nota">
+            Cada celda es un grado y un corte, el número es cuántos {{ vista === 'indicadores' ? 'indicadores' : 'logros' }} tiene.
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Resumen -->
+    <div class="row mb-3" *ngIf="datosDisponibles">
+      <div class="col-6 col-md-3">
+        <div class="tarjeta-resumen">
+          <span class="resumen-valor">{{ totalGeneral }}</span>
+          <span class="resumen-label">{{ etiquetaVista }}</span>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="tarjeta-resumen">
+          <span class="resumen-valor">{{ filas.length }}</span>
+          <span class="resumen-label">Áreas</span>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="tarjeta-resumen">
+          <span class="resumen-valor">{{ gradosVisibles.length }}</span>
+          <span class="resumen-label">Grados</span>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="tarjeta-resumen alerta" [class.sin-alerta]="totalCeldasFaltantes === 0">
+          <span class="resumen-valor">{{ totalCeldasFaltantes }}</span>
+          <span class="resumen-label">Celdas sin contenido</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cargando -->
+    <div class="row" *ngIf="cargando">
+      <div class="col-12 text-center py-5">
+        <i class="fas fa-spinner fa-spin fa-2x"></i>
+        <p class="mt-2">Cargando la malla...</p>
+      </div>
+    </div>
+
+    <!-- Matriz -->
+    <div class="row" *ngIf="datosDisponibles && !cargando">
+      <div class="col-12">
+        <div class="matriz-scroll">
+          <table class="tabla-matriz">
+            <thead>
+              <tr>
+                <th class="col-area" rowspan="2">Área académica</th>
+                <th class="col-grado" *ngFor="let grado of gradosVisibles" [attr.colspan]="cortes.length">
+                  {{ grado.nombre }}
+                </th>
+                <th class="col-total" rowspan="2">Total</th>
+              </tr>
+              <tr>
+                <ng-container *ngFor="let grado of gradosVisibles">
+                  <th class="col-corte" *ngFor="let corte of cortes" [title]="corte.nombre">
+                    {{ corte.nombre }}
+                  </th>
+                </ng-container>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let fila of filas; trackBy: trackByFila">
+                <td class="col-area" [title]="fila.nombreArea">{{ fila.nombreArea }}</td>
+                <td class="celda-dato"
+                    *ngFor="let celda of fila.celdas; trackBy: trackByCelda"
+                    [ngClass]="claseCelda(celda)"
+                    [style.background-color]="colorCelda(celda)"
+                    [title]="tituloCelda(fila, celda)">
+                  {{ textoCelda(celda) }}
+                </td>
+                <td class="col-total">{{ totalFila(fila) }}</td>
+              </tr>
+
+              <tr *ngIf="filas.length === 0">
+                <td class="sin-datos" [attr.colspan]="totalColumnas + 2">
+                  No hay áreas para mostrar con los filtros aplicados.
+                </td>
+              </tr>
+            </tbody>
+            <tfoot *ngIf="filas.length > 0">
+              <tr>
+                <td class="col-area">Total</td>
+                <td class="col-total-columna" *ngFor="let total of totalesPorColumna">{{ total }}</td>
+                <td class="col-total">{{ totalGeneral }}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
