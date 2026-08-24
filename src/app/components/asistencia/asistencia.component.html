@@ -403,7 +403,7 @@
           <button class="btn btn-sm btn-warning ms-2" (click)="abrirRegistroRapido()">⚡ Crear estudiante</button>
         </div>
         <ul class="lista-seleccionable">
-          <ng-container *ngFor="let estudiante of listas.noIngresos">
+          <ng-container *ngFor="let estudiante of listas.noIngresos; trackBy: trackByEstudiante">
             <li
               class="item-lista"
               (mouseover)="estudiante.over = true"
@@ -425,7 +425,7 @@
       <div class="col-md-12" *ngIf="model.opcion == 'salidas'">
         <app-buscar (buscar)="buscar($event)"></app-buscar>
         <ul class="lista-seleccionable">
-          <ng-container *ngFor="let estudiante of listas.noSalidas">
+          <ng-container *ngFor="let estudiante of listas.noSalidas; trackBy: trackByEstudiante">
             <li
               class="item-lista"
               (mouseover)="estudiante.over = true"
@@ -447,7 +447,7 @@
       </div>
       <div class="col-md-12" *ngIf="model.opcion == 'actual'">
         <div class="row mt-1 mb-5">
-          <ng-container *ngFor="let grupo of listas.grupos">
+          <ng-container *ngFor="let grupo of listas.grupos; trackBy: trackByGrupo">
             <div class="col-sm-12 col-md-4 px-3 mb-5">
               <div
                 class="text-center ficha"

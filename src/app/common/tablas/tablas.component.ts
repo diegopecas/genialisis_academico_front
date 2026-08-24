@@ -3,6 +3,7 @@ import { Component, EventEmitter, HostListener, Input, OnChanges, Output, Simple
 import Swal from 'sweetalert2';
 import { BuscarComponent } from '../buscar/buscar.component';
 import { CustomDecimalFormatPipe } from '../pipes/custom-decimal-format.pipe';
+import { normalizarTexto } from '../pipes/search';
 import { RouterModule } from '@angular/router';
 import collect from 'collect.js';
 import * as XLSX from 'xlsx';
@@ -249,13 +250,15 @@ export class TablasComponent implements OnChanges, OnInit {
   }
 
   filtrarOpciones(clave: string) {
-    const busqueda = this.busquedaFiltro[clave].toLowerCase();
+    const busqueda = normalizarTexto(this.busquedaFiltro[clave]);
     if (!busqueda) {
       this.opcionesFiltroFiltradas[clave] = [...this.opcionesFiltro[clave]];
       return;
     }
     this.opcionesFiltroFiltradas[clave] = this.opcionesFiltro[clave].filter(opcion => {
-      const valor = opcion.valor?.toString().toLowerCase() || '(sin valor)';
+      const valor = opcion.valor !== null && opcion.valor !== undefined
+        ? normalizarTexto(opcion.valor)
+        : '(sin valor)';
       return valor.includes(busqueda);
     });
   }
@@ -814,14 +817,14 @@ export class TablasComponent implements OnChanges, OnInit {
     let datosFiltrados = [...this.tabla.datos];
 
     if (this.buscarTexto && this.buscarTexto.trim() !== '') {
-      const termino = this.buscarTexto.toLowerCase();
+      const termino = normalizarTexto(this.buscarTexto);
       const clavesVisibles = this.tabla.titulos.map((t: any) => t.clave);
 
       datosFiltrados = datosFiltrados.filter((item: any) => {
         return clavesVisibles.some((clave: string) => {
           const valor = item[clave];
           if (valor === null || valor === undefined) return false;
-          return valor.toString().toLowerCase().includes(termino);
+          return normalizarTexto(valor).includes(termino);
         });
       });
     }

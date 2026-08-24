@@ -154,10 +154,26 @@ export class AsistenciaComponent implements OnInit {
     });
   }
 
+  /**
+   * Identidad de cada fila para el *ngFor. Sin esto, al filtrar Angular
+   * destruye y vuelve a crear todos los <li> en vez de reutilizarlos.
+   *
+   * Se combina con la fecha de ingreso porque en salidas un mismo niño
+   * podría aparecer más de una vez si tuvo varios ingresos en el día, y
+   * un trackBy repetido rompe el *ngFor.
+   */
+  trackByEstudiante(index: number, estudiante: any): any {
+    const id = estudiante.id_estudiante || estudiante.id || index;
+    return id + '|' + (estudiante.fecha_ingreso || '');
+  }
+
+  trackByGrupo(index: number, grupo: any): any {
+    return grupo.id || grupo.nombre || index;
+  }
+
   buscar(event: any) {
     console.log("buscar", event);
     this.buscarTexto = event;
-
     if (this.model.opcion === 'ingresos') {
       this.listas.noIngresos = this.searchPipeGeneral.transform(
         this.estudiantesCompletos,

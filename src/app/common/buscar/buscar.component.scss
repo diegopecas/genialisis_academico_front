@@ -1,3 +1,13 @@
+// El host se estira: dentro de un d-flex toma el espacio que sobra y fuera
+// de él ocupa el 100%. Así el buscador se ve del mismo tamaño en todos los
+// listados, comparta o no la fila con un botón.
+:host {
+  display: block;
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+}
+
 .buscar-container {
   width: 100%;
 }

@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HeaderComponent } from '../../../common/header/header.component';
 import { SearchPipeGeneral } from '../../../common/pipes/search';
+import { normalizarTexto } from '../../../common/pipes/search';
 import { ActividadesAcademicasService } from '../../../services/actividades-academicas.service';
 import { AreasAcademicasService } from '../../../services/areas-academicas.service';
 import { GruposService } from '../../../services/grupos.service';
@@ -558,9 +559,9 @@ export class ListaActividadesComponent implements OnInit {
   }
 
   indicadorFormCoincideBusqueda(ind: any): boolean {
-    const busqueda = (this.busquedaIndicadorForm || '').toLowerCase().trim();
+    const busqueda = normalizarTexto(this.busquedaIndicadorForm).trim();
     if (!busqueda) return true;
-    return ind.nombre.toLowerCase().includes(busqueda);
+    return normalizarTexto(ind.nombre).includes(busqueda);
   }
 
   tieneIndicadoresFormFiltrados(logro: any): boolean {
