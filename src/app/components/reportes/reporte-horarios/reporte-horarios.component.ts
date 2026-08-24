@@ -784,8 +784,9 @@ export class ReporteHorariosComponent implements OnInit, OnDestroy {
           const y = topeGrilla + (indiceFranja * altoFranja);
           const alto = franjasBloque * altoFranja;
 
-          // Fondo blanco y el color del área en una barra lateral marcada
-          doc.setFillColor(255, 255, 255);
+          // Tinte suave del área de fondo y el color intenso en la barra lateral
+          const fondo = this.mezclarSobreBlanco(this.colorRgb(horario.area_academica_color), 0.14);
+          doc.setFillColor(fondo[0], fondo[1], fondo[2]);
           doc.setDrawColor(236, 238, 240);
           doc.setLineWidth(0.1);
           doc.roundedRect(x + 0.4, y + 0.4, anchoColumna - 0.8, alto - 0.8, 0.6, 0.6, 'FD');

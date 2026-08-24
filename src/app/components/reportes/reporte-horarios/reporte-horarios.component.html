@@ -66,9 +66,8 @@
                   class="chip-area"
                   *ngFor="let area of areas"
                   [class.activo]="areasSeleccionadas[area.id]"
-                  [style.background-color]="areasSeleccionadas[area.id] ? colorVivo(area.color) : null"
                   [style.border-color]="areasSeleccionadas[area.id] ? colorVivo(area.color) : null"
-                  [style.color]="areasSeleccionadas[area.id] && area.color ? '#ffffff' : null"
+                  [style.color]="areasSeleccionadas[area.id] ? colorVivo(area.color) : null"
                   (click)="toggleArea(area.id)">
             {{ area.nombre }}
           </button>
@@ -163,6 +162,7 @@
 
                   <div class="bloque-horario"
                        *ngIf="celdaDe(tablero, columna.id, indiceFranja) as celda"
+                       [style.background-color]="colorSuave(celda.horario.area_academica_color, 0.14)"
                        [style.border-left-color]="colorVivo(celda.horario.area_academica_color)"
                        [class.es-inicio]="celda.esInicio"
                        [class.es-fin]="celda.esFin"
