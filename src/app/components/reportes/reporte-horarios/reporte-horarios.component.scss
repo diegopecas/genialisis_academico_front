@@ -3,9 +3,10 @@ $color-text: #2c3e50;
 $color-rojo: #dc3545;
 $color-borde: #e8e8e8;
 
-// Alto de cada franja de 5 minutos
-$alto-franja: 9px;
-$alto-franja-movil: 8px;
+// Alto de cada franja de 5 minutos. Con 7px un bloque de 40 min mide 56px,
+// suficiente para el área y la hora sin dejar la grilla tan alta.
+$alto-franja: 7px;
+$alto-franja-movil: 6px;
 
 .modulo {
   padding-bottom: 2rem;
@@ -91,6 +92,28 @@ $alto-franja-movil: 8px;
   }
 }
 
+// Chip de área: cuando está activo toma el color del área, igual que el
+// bloque en la grilla, para que se reconozca de una
+.chip-area {
+  border: 1px solid #dcdcdc;
+  background: #fff;
+  color: #aaa;
+  border-radius: 20px;
+  padding: 0.25rem 0.8rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: #bbb;
+  }
+
+  &.activo {
+    color: $color-text;
+  }
+}
+
 .btn-todos {
   border: none;
   background: none;
@@ -160,27 +183,51 @@ $alto-franja-movil: 8px;
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
-  padding: 0.7rem 1rem;
+  padding: 0.55rem 0.9rem;
   border-bottom: 1px solid #f2f2f2;
+  border-left: 4px solid transparent;
   background: #fafafa;
+  cursor: pointer;
+  transition: filter 0.15s ease;
+
+  &:hover {
+    filter: brightness(0.97);
+  }
+
+  &.plegado {
+    border-bottom: none;
+  }
 }
 
 .tablero-titulo {
   margin: 0;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   font-weight: 700;
   color: $color-text;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  .chevron {
+    font-size: 0.7rem;
+    color: #999;
+    transition: transform 0.2s ease;
+
+    &.girado {
+      transform: rotate(-90deg);
+    }
+  }
 }
 
 .tablero-resumen {
   display: flex;
   gap: 14px;
-  font-size: 0.75rem;
-  color: #888;
+  font-size: 0.72rem;
+  color: #999;
 
   i {
     margin-right: 4px;
-    color: $color-primary;
+    color: #c0c0c0;
   }
 
   .resumen-cruce {
@@ -189,21 +236,6 @@ $alto-franja-movil: 8px;
     i {
       color: $color-rojo;
     }
-  }
-}
-
-// Cuando el header lleva el color del grupo, los iconos heredan el texto
-// para que no se pierdan contra el fondo
-.tablero-header[style*="background-color"] {
-  .tablero-resumen i {
-    color: inherit;
-    opacity: 0.85;
-  }
-
-  .tablero-resumen .resumen-cruce,
-  .tablero-resumen .resumen-cruce i {
-    color: inherit;
-    font-weight: 700;
   }
 }
 
@@ -243,17 +275,22 @@ $alto-franja-movil: 8px;
   min-width: 700px;
 }
 
-// El degradado es el fallback: si el grupo tiene color, se sobreescribe inline
+// Encabezado claro por defecto; si el grupo tiene color, se tiñe suave inline
 .grilla-header {
-  background: linear-gradient(135deg, #F5A623 0%, #F76B1C 100%);
-  color: #fff;
+  background: #f6f7f8;
+  color: #6c757d;
   font-weight: 600;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   text-align: center;
-  padding: 0.5rem 0.3rem;
+  padding: 0.4rem 0.3rem;
+  border-bottom: 2px solid #e4e6e8;
   position: sticky;
   top: 0;
   z-index: 3;
+
+  &.header-coloreado {
+    color: $color-text;
+  }
 }
 
 .grilla-header-hora {
@@ -296,41 +333,40 @@ $alto-franja-movil: 8px;
   position: relative;
 }
 
+// El color pleno queda solo en la barra lateral izquierda; el fondo va suave
 .bloque-horario {
   position: relative;
   width: 100%;
   height: 100%;
-  border-left: 2px solid rgba(0, 0, 0, 0.08);
-  border-right: 2px solid rgba(0, 0, 0, 0.08);
+  border-left: 3px solid transparent;
   overflow: visible;
   cursor: default;
 
   &.es-inicio {
-    border-top: 2px solid rgba(0, 0, 0, 0.08);
-    border-top-left-radius: 5px;
-    border-top-right-radius: 5px;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
     padding: 2px 5px 0;
     z-index: 2;
   }
 
   &.es-fin {
-    border-bottom: 2px solid rgba(0, 0, 0, 0.08);
-    border-bottom-left-radius: 5px;
-    border-bottom-right-radius: 5px;
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 4px;
   }
 
   &.tiene-cruce {
-    border-color: $color-rojo;
-    border-style: dashed;
+    border-left-color: $color-rojo !important;
+    border-left-width: 4px;
+    box-shadow: inset 0 0 0 1px rgba($color-rojo, 0.35);
   }
 }
 
 .bloque-area {
-  font-size: 0.6rem;
+  font-size: 0.58rem;
   font-weight: 700;
-  color: #2c3e50;
+  color: #3d4b58;
   text-transform: uppercase;
-  line-height: 1.1;
+  line-height: 1.15;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -342,18 +378,18 @@ $alto-franja-movil: 8px;
 }
 
 .bloque-hora {
-  font-size: 0.53rem;
-  color: #46596b;
-  line-height: 1.1;
+  font-size: 0.52rem;
+  color: #8a97a3;
+  line-height: 1.15;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .bloque-docente {
-  font-size: 0.53rem;
-  color: #6b7c8c;
-  line-height: 1.1;
+  font-size: 0.52rem;
+  color: #9aa5b0;
+  line-height: 1.15;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

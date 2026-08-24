@@ -18,6 +18,17 @@
       </div>
 
       <div class="col-lg-8 col-md-12 mb-2 text-lg-end">
+        <button class="btn btn-outline-secondary btn-sm me-2"
+                (click)="toggleDocentes()"
+                [class.active]="mostrarDocentes">
+          <i class="fas fa-user"></i> {{ mostrarDocentes ? 'Ocultar docentes' : 'Ver docentes' }}
+        </button>
+        <button class="btn btn-outline-secondary btn-sm me-2"
+                (click)="hayTablerosPlegados ? desplegarTodos() : plegarTodos()"
+                [disabled]="!datosDisponibles">
+          <i class="fas" [ngClass]="hayTablerosPlegados ? 'fa-chevron-down' : 'fa-chevron-up'"></i>
+          {{ hayTablerosPlegados ? 'Desplegar todo' : 'Plegar todo' }}
+        </button>
         <button class="btn btn-success btn-sm me-2" (click)="exportarExcel()" [disabled]="!datosDisponibles">
           <i class="fas fa-file-excel"></i> Excel
         </button>
@@ -41,6 +52,28 @@
           </button>
           <button type="button" class="btn-todos" (click)="seleccionarTodosLosGrupos()">
             Todos
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filtro de áreas académicas -->
+    <div class="row mb-3" *ngIf="areas.length > 0">
+      <div class="col-12">
+        <div class="filtro-grupos">
+          <span class="filtro-grupos-label">Áreas:</span>
+          <button type="button"
+                  class="chip-area"
+                  *ngFor="let area of areas"
+                  [class.activo]="areasSeleccionadas[area.id]"
+                  [style.background-color]="areasSeleccionadas[area.id] ? (area.color || '#f0f0f0') : null"
+                  [style.border-color]="areasSeleccionadas[area.id] ? (area.color || '#dcdcdc') : null"
+                  [style.color]="areasSeleccionadas[area.id] && area.color ? colorTextoEncabezado(area.color) : null"
+                  (click)="toggleArea(area.id)">
+            {{ area.nombre }}
+          </button>
+          <button type="button" class="btn-todos" (click)="seleccionarTodasLasAreas()">
+            Todas
           </button>
         </div>
       </div>
@@ -79,14 +112,15 @@
         <div class="tablero-horario">
 
           <div class="tablero-header"
-               [style.background-color]="colorEncabezado(tablero)"
-               [style.color]="colorEncabezado(tablero) ? colorTextoEncabezado(colorEncabezado(tablero)) : null">
-            <h5 class="tablero-titulo"
-                [style.color]="colorEncabezado(tablero) ? colorTextoEncabezado(colorEncabezado(tablero)) : null">
+               [class.plegado]="estaPlegado(tablero)"
+               [style.background-color]="colorSuave(colorEncabezado(tablero), 0.18)"
+               [style.border-left-color]="colorEncabezado(tablero)"
+               (click)="togglePlegado(tablero)">
+            <h5 class="tablero-titulo">
+              <i class="fas fa-chevron-down chevron" [class.girado]="estaPlegado(tablero)"></i>
               {{ tablero.titulo }}
             </h5>
-            <div class="tablero-resumen"
-                 [style.color]="colorEncabezado(tablero) ? colorTextoEncabezado(colorEncabezado(tablero)) : null">
+            <div class="tablero-resumen">
               <span><i class="fas fa-clock"></i> {{ horasDeMinutos(tablero.totalMinutos) }}</span>
               <span><i class="fas fa-layer-group"></i> {{ tablero.totalFranjas }} franjas</span>
               <span class="resumen-cruce" *ngIf="tablero.cruces > 0">
@@ -100,7 +134,7 @@
             <p>Sin horarios configurados</p>
           </div>
 
-          <div class="grilla-scroll" *ngIf="tablero.totalFranjas > 0">
+          <div class="grilla-scroll" *ngIf="tablero.totalFranjas > 0 && !estaPlegado(tablero)">
             <div class="grilla-horario"
                  [style.grid-template-columns]="'52px repeat(' + tablero.columnas.length + ', minmax(96px, 1fr))'">
 
@@ -108,8 +142,9 @@
               <div class="grilla-header grilla-header-hora">Hora</div>
               <div class="grilla-header"
                    *ngFor="let columna of tablero.columnas"
-                   [style.background]="colorEncabezado(tablero, columna)"
-                   [style.color]="colorEncabezado(tablero, columna) ? colorTextoEncabezado(colorEncabezado(tablero, columna)) : null">
+                   [style.background]="colorSuave(colorEncabezado(tablero, columna), 0.22)"
+                   [style.border-bottom-color]="colorEncabezado(tablero, columna)"
+                   [class.header-coloreado]="colorEncabezado(tablero, columna)">
                 {{ columna.nombre }}
               </div>
 
@@ -128,7 +163,8 @@
 
                   <div class="bloque-horario"
                        *ngIf="celdaDe(tablero, columna.id, indiceFranja) as celda"
-                       [style.background-color]="celda.horario.area_academica_color || '#f0f0f0'"
+                       [style.background-color]="colorSuave(celda.horario.area_academica_color, 0.2)"
+                       [style.border-left-color]="celda.horario.area_academica_color || '#d0d0d0'"
                        [class.es-inicio]="celda.esInicio"
                        [class.es-fin]="celda.esFin"
                        [class.es-intermedio]="celda.esIntermedio"
@@ -142,9 +178,8 @@
                       </div>
                       <div class="bloque-hora">
                         {{ horaCorta(celda.horario.hora_inicial) }} - {{ horaCorta(celda.horario.hora_final) }}
-                        · {{ celda.horario.total_minutos }}min
                       </div>
-                      <div class="bloque-docente" *ngIf="celda.horario.docente_nombre_completo">
+                      <div class="bloque-docente" *ngIf="mostrarDocentes && celda.horario.docente_nombre_completo">
                         {{ celda.horario.docente_nombre_completo }}
                       </div>
                     </ng-container>

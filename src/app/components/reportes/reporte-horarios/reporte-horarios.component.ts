@@ -57,8 +57,21 @@ export class ReporteHorariosComponent implements OnInit, OnDestroy {
   public diasSemana: any[] = [];
   public horarios: any[] = [];
 
+  // Áreas académicas que aparecen en los horarios, para el filtro.
+  // Se arman con los propios horarios, no hay consulta aparte.
+  public areas: any[] = [];
+
   // Filtro de grupos (por defecto todos)
   public gruposSeleccionados: { [idGrupo: string]: boolean } = {};
+
+  // Filtro de áreas académicas (por defecto todas)
+  public areasSeleccionadas: { [idArea: string]: boolean } = {};
+
+  // El docente satura la grilla, así que se muestra bajo demanda
+  public mostrarDocentes: boolean = false;
+
+  // Tableros plegados, para no tener siete grillas abiertas al tiempo
+  public tablerosPlegados: { [idTablero: string]: boolean } = {};
 
   // Grilla
   public franjas: string[] = [];
@@ -110,6 +123,7 @@ export class ReporteHorariosComponent implements OnInit, OnDestroy {
           }
         });
 
+        this.armarCatalogoAreas();
         this.detectarCruces();
         this.construirVista();
 
@@ -142,12 +156,48 @@ export class ReporteHorariosComponent implements OnInit, OnDestroy {
     this.construirVista();
   }
 
+  /** Áreas académicas presentes en los horarios, sin repetir y ordenadas */
+  private armarCatalogoAreas(): void {
+    const indice = new Map<string, any>();
+
+    this.horarios.forEach(horario => {
+      if (!horario.id_area_academica || indice.has(horario.id_area_academica)) return;
+      indice.set(horario.id_area_academica, {
+        id: horario.id_area_academica,
+        nombre: horario.area_academica_nombre,
+        color: horario.area_academica_color
+      });
+    });
+
+    this.areas = Array.from(indice.values())
+      .sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
+
+    this.areas.forEach(area => {
+      if (this.areasSeleccionadas[area.id] === undefined) {
+        this.areasSeleccionadas[area.id] = true;
+      }
+    });
+  }
+
+  toggleArea(idArea: string): void {
+    this.areasSeleccionadas[idArea] = !this.areasSeleccionadas[idArea];
+    this.construirVista();
+  }
+
+  seleccionarTodasLasAreas(): void {
+    this.areas.forEach(area => this.areasSeleccionadas[area.id] = true);
+    this.construirVista();
+  }
+
   get gruposVisibles(): any[] {
     return this.grupos.filter(g => this.gruposSeleccionados[g.id]);
   }
 
+  /** Horarios que pasan los dos filtros: grupo y área académica */
   private get horariosFiltrados(): any[] {
-    return this.horarios.filter(h => this.gruposSeleccionados[h.id_grupo]);
+    return this.horarios.filter(h =>
+      this.gruposSeleccionados[h.id_grupo] && this.areasSeleccionadas[h.id_area_academica]
+    );
   }
 
   // ========== Cruces de docente ==========
@@ -256,13 +306,15 @@ export class ReporteHorariosComponent implements OnInit, OnDestroy {
 
   /**
    * Un tablero por grupo, con los días en las columnas.
-   * Solo salen los grupos que tienen horarios y solo los días que se usan.
+   * Solo salen los grupos que tienen horarios visibles con los filtros
+   * aplicados, y solo los días que se usan.
    */
   private construirTablerosPorGrupo(): Tablero[] {
     const tableros: Tablero[] = [];
+    const horariosVisibles = this.horariosFiltrados;
 
     this.gruposVisibles.forEach(grupo => {
-      const horariosGrupo = this.horarios.filter(h => String(h.id_grupo) === String(grupo.id));
+      const horariosGrupo = horariosVisibles.filter(h => String(h.id_grupo) === String(grupo.id));
       if (horariosGrupo.length === 0) return;
 
       // Solo los días en los que ese grupo tiene clase
@@ -383,6 +435,42 @@ export class ReporteHorariosComponent implements OnInit, OnDestroy {
   colorEncabezado(tablero: Tablero, columna?: Columna): string | null {
     const color = this.vista === 'grupo' ? tablero.color : (columna ? columna.color : null);
     return color ? color : null;
+  }
+
+  /**
+   * Versión desaturada de un color, para usarla de fondo sin que la grilla
+   * quede pesada. El color pleno se reserva para la barra lateral y los bordes.
+   */
+  colorSuave(color: string | null | undefined, alpha: number = 0.16): string | null {
+    if (!color) return null;
+    const rgb = this.colorRgb(color);
+    return `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${alpha})`;
+  }
+
+  // ========== Plegado de tableros ==========
+
+  togglePlegado(tablero: Tablero): void {
+    this.tablerosPlegados[tablero.id] = !this.tablerosPlegados[tablero.id];
+  }
+
+  estaPlegado(tablero: Tablero): boolean {
+    return !!this.tablerosPlegados[tablero.id];
+  }
+
+  plegarTodos(): void {
+    this.tableros.forEach(tablero => this.tablerosPlegados[tablero.id] = true);
+  }
+
+  desplegarTodos(): void {
+    this.tablerosPlegados = {};
+  }
+
+  get hayTablerosPlegados(): boolean {
+    return this.tableros.some(tablero => this.tablerosPlegados[tablero.id]);
+  }
+
+  toggleDocentes(): void {
+    this.mostrarDocentes = !this.mostrarDocentes;
   }
 
   /** Texto oscuro o claro según qué tan claro sea el fondo del grupo */
@@ -586,12 +674,12 @@ export class ReporteHorariosComponent implements OnInit, OnDestroy {
       const anchoColumna = (anchoPagina - (margen * 2) - anchoColumnaHora) / columnas.length;
       const altoFranja = Math.min(altoDisponible / Math.max(this.franjas.length, 1), 3.2);
 
-      // Encabezado de columnas.
+      // Encabezado de columnas, en tono suave para no cargar la hoja.
       // En la vista por grupo la franja completa lleva el color del grupo;
       // en la vista por día cada columna lleva el color de su grupo.
       const colorTablero = this.vista === 'grupo' && tablero.color
-        ? this.colorRgb(tablero.color)
-        : [245, 166, 35];
+        ? this.mezclarSobreBlanco(this.colorRgb(tablero.color), 0.22)
+        : [246, 247, 248];
 
       doc.setFillColor(colorTablero[0], colorTablero[1], colorTablero[2]);
       doc.rect(margen, topeGrilla - 7, anchoPagina - (margen * 2), 7, 'F');
@@ -600,18 +688,13 @@ export class ReporteHorariosComponent implements OnInit, OnDestroy {
       columnas.forEach((columna, indice) => {
         const x = margen + anchoColumnaHora + (indice * anchoColumna);
 
-        let colorColumna = colorTablero;
         if (this.vista === 'dia' && columna.color) {
-          colorColumna = this.colorRgb(columna.color);
+          const colorColumna = this.mezclarSobreBlanco(this.colorRgb(columna.color), 0.22);
           doc.setFillColor(colorColumna[0], colorColumna[1], colorColumna[2]);
           doc.rect(x, topeGrilla - 7, anchoColumna, 7, 'F');
         }
 
-        const textoClaro = this.colorTextoEncabezado(
-          '#' + colorColumna.map(c => c.toString(16).padStart(2, '0')).join('')
-        ) === '#ffffff';
-
-        doc.setTextColor(textoClaro ? 255 : 44, textoClaro ? 255 : 62, textoClaro ? 255 : 80);
+        doc.setTextColor(60, 72, 84);
         doc.text(columna.nombre, x + (anchoColumna / 2), topeGrilla - 2.2, {
           align: 'center',
           maxWidth: anchoColumna - 2
@@ -664,33 +747,38 @@ export class ReporteHorariosComponent implements OnInit, OnDestroy {
           const y = topeGrilla + (indiceFranja * altoFranja);
           const alto = franjasBloque * altoFranja;
 
-          const color = this.colorRgb(horario.area_academica_color);
+          const color = this.mezclarSobreBlanco(this.colorRgb(horario.area_academica_color), 0.22);
           doc.setFillColor(color[0], color[1], color[2]);
-          doc.setDrawColor(celda.tieneCruce ? 220 : 190, celda.tieneCruce ? 53 : 190, celda.tieneCruce ? 69 : 190);
-          doc.setLineWidth(celda.tieneCruce ? 0.5 : 0.15);
-          doc.roundedRect(x + 0.4, y + 0.4, anchoColumna - 0.8, alto - 0.8, 0.8, 0.8, 'FD');
+          doc.setDrawColor(232, 234, 236);
+          doc.setLineWidth(0.1);
+          doc.roundedRect(x + 0.4, y + 0.4, anchoColumna - 0.8, alto - 0.8, 0.6, 0.6, 'FD');
 
-          doc.setTextColor(44, 62, 80);
+          // Barra lateral con el color pleno del área
+          const barra = celda.tieneCruce ? [220, 53, 69] : this.colorRgb(horario.area_academica_color);
+          doc.setFillColor(barra[0], barra[1], barra[2]);
+          doc.rect(x + 0.4, y + 0.4, 0.9, alto - 0.8, 'F');
+
+          doc.setTextColor(61, 75, 88);
           doc.setFontSize(5.6);
 
           const textoArea = (celda.tieneCruce ? '! ' : '') + (horario.area_academica_nombre || '');
-          doc.text(textoArea, x + 1.4, y + 2.6, { maxWidth: anchoColumna - 2.6 });
+          doc.text(textoArea, x + 2.2, y + 2.6, { maxWidth: anchoColumna - 3.4 });
 
           if (alto > 5) {
             doc.setFontSize(4.8);
-            doc.setTextColor(90, 100, 110);
+            doc.setTextColor(138, 151, 163);
             doc.text(
               `${this.horaCorta(horario.hora_inicial)}-${this.horaCorta(horario.hora_final)} · ${horario.total_minutos}min`,
-              x + 1.4,
+              x + 2.2,
               y + 5,
-              { maxWidth: anchoColumna - 2.6 }
+              { maxWidth: anchoColumna - 3.4 }
             );
           }
 
-          if (alto > 8 && horario.docente_nombre_completo) {
+          if (alto > 8 && this.mostrarDocentes && horario.docente_nombre_completo) {
             doc.setFontSize(4.8);
-            doc.setTextColor(120, 130, 140);
-            doc.text(horario.docente_nombre_completo, x + 1.4, y + 7.4, { maxWidth: anchoColumna - 2.6 });
+            doc.setTextColor(154, 165, 176);
+            doc.text(horario.docente_nombre_completo, x + 2.2, y + 7.4, { maxWidth: anchoColumna - 3.4 });
           }
         });
       });
@@ -730,13 +818,21 @@ export class ReporteHorariosComponent implements OnInit, OnDestroy {
   /** Convierte un color '#rrggbb' a [r, g, b]; si no es válido usa un gris claro */
   private colorRgb(color: string): number[] {
     const limpio = (color || '').replace('#', '').trim();
-    if (limpio.length !== 6) return [240, 240, 240];
+    if (limpio.length !== 6) return [208, 208, 208];
 
     const r = parseInt(limpio.substring(0, 2), 16);
     const g = parseInt(limpio.substring(2, 4), 16);
     const b = parseInt(limpio.substring(4, 6), 16);
 
-    if (isNaN(r) || isNaN(g) || isNaN(b)) return [240, 240, 240];
+    if (isNaN(r) || isNaN(g) || isNaN(b)) return [208, 208, 208];
     return [r, g, b];
+  }
+
+  /**
+   * jsPDF no maneja transparencia en los rellenos, así que el tono suave se
+   * calcula mezclando el color con blanco.
+   */
+  private mezclarSobreBlanco(rgb: number[], alpha: number): number[] {
+    return rgb.map(canal => Math.round(255 + (canal - 255) * alpha));
   }
 }
