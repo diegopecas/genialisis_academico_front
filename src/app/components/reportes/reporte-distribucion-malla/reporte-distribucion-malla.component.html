@@ -119,14 +119,24 @@
             <thead>
               <tr>
                 <th class="col-area" rowspan="2">Área académica</th>
-                <th class="col-grado" *ngFor="let grado of gradosVisibles" [attr.colspan]="cortes.length">
-                  {{ grado.nombre }}
-                </th>
+                <ng-container *ngFor="let grado of gradosVisibles; let indiceGrado = index">
+                  <th class="col-grado"
+                      [attr.colspan]="cortes.length"
+                      [style.background-color]="colorGrado(indiceGrado)"
+                      [style.border-bottom-color]="colorBordeGrado(indiceGrado)"
+                      [class.inicio-grado]="indiceGrado > 0">
+                    {{ grado.nombre }}
+                  </th>
+                </ng-container>
                 <th class="col-total" rowspan="2">Total</th>
               </tr>
               <tr>
-                <ng-container *ngFor="let grado of gradosVisibles">
-                  <th class="col-corte" *ngFor="let corte of cortes" [title]="corte.nombre">
+                <ng-container *ngFor="let grado of gradosVisibles; let indiceGrado = index">
+                  <th class="col-corte"
+                      *ngFor="let corte of cortes; let indiceCorte = index"
+                      [style.background-color]="colorGrado(indiceGrado)"
+                      [class.inicio-grado]="indiceGrado > 0 && indiceCorte === 0"
+                      [title]="corte.nombre">
                     {{ corte.nombre }}
                   </th>
                 </ng-container>
@@ -136,10 +146,12 @@
               <tr *ngFor="let fila of filas; trackBy: trackByFila">
                 <td class="col-area" [title]="fila.nombreArea">{{ fila.nombreArea }}</td>
                 <td class="celda-dato"
-                    *ngFor="let celda of fila.celdas; trackBy: trackByCelda"
+                    *ngFor="let celda of fila.celdas; trackBy: trackByCelda; let indiceCelda = index"
                     [ngClass]="claseCelda(celda)"
+                    [class.inicio-grado]="indiceCelda > 0 && esInicioDeGrado(indiceCelda)"
                     [style.background-color]="colorCelda(celda)"
-                    [title]="tituloCelda(fila, celda)">
+                    [title]="tituloCelda(fila, celda)"
+                    (click)="abrirDetalle(fila, celda)">
                   {{ textoCelda(celda) }}
                 </td>
                 <td class="col-total">{{ totalFila(fila) }}</td>
@@ -154,7 +166,11 @@
             <tfoot *ngIf="filas.length > 0">
               <tr>
                 <td class="col-area">Total</td>
-                <td class="col-total-columna" *ngFor="let total of totalesPorColumna">{{ total }}</td>
+                <td class="col-total-columna"
+                    *ngFor="let total of totalesPorColumna; let indiceCelda = index"
+                    [class.inicio-grado]="indiceCelda > 0 && esInicioDeGrado(indiceCelda)">
+                  {{ total }}
+                </td>
                 <td class="col-total">{{ totalGeneral }}</td>
               </tr>
             </tfoot>
@@ -163,5 +179,70 @@
       </div>
     </div>
 
+  </div>
+</div>
+
+<!-- Modal de detalle de la celda -->
+<div class="modal fade" id="modalDetalleCeldaMalla" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-list-check"></i>
+          {{ modalArea }}
+          <small class="modal-contexto" *ngIf="modalContexto">
+            {{ modalContexto.nombre_grado }} · {{ modalContexto.nombre_corte }}
+          </small>
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+
+      <div class="modal-body">
+
+        <div class="modal-resumen" *ngIf="modalLogros.length > 0">
+          <span><strong>{{ modalLogros.length }}</strong> logros</span>
+          <span><strong>{{ totalIndicadoresModal }}</strong> indicadores de logro</span>
+        </div>
+
+        <div class="modal-vacio" *ngIf="modalLogros.length === 0">
+          <i class="fas fa-inbox"></i>
+          <p>No hay logros cargados para esta área en ese grado y corte.</p>
+        </div>
+
+        <div class="logro-card" *ngFor="let logro of modalLogros; trackBy: trackByLogro">
+          <div class="logro-nombre">{{ logro.nombre }}</div>
+
+          <div class="logro-meta">
+            <span *ngIf="logro.nombre_eje_curricular">
+              <i class="fas fa-diagram-project"></i> {{ logro.nombre_eje_curricular }}
+            </span>
+            <span *ngIf="logro.nombre_esfera_desarrollo">
+              <i class="fas fa-circle-nodes"></i> {{ logro.nombre_esfera_desarrollo }}
+            </span>
+            <span *ngIf="logro.nombre_competencia_cognitiva">
+              <i class="fas fa-brain"></i> {{ logro.nombre_competencia_cognitiva }}
+            </span>
+            <span *ngIf="logro.nombre_estandar_basico">
+              <i class="fas fa-check-double"></i> {{ logro.nombre_estandar_basico }}
+            </span>
+          </div>
+
+          <ul class="indicadores-lista" *ngIf="logro.indicadores && logro.indicadores.length > 0">
+            <li *ngFor="let indicador of logro.indicadores">{{ indicador.nombre }}</li>
+          </ul>
+
+          <div class="indicadores-vacio" *ngIf="!logro.indicadores || logro.indicadores.length === 0">
+            <i class="fas fa-triangle-exclamation"></i> Este logro no tiene indicadores cargados
+          </div>
+        </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+
+    </div>
   </div>
 </div>

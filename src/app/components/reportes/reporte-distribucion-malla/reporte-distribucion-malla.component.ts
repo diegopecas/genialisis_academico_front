@@ -62,6 +62,10 @@ export class ReporteDistribucionMallaComponent implements OnInit, OnDestroy {
   private conteos: any[] = [];
   private cobertura: any[] = [];
 
+  // Logros con sus indicadores, indexados por área|grado|corte.
+  // Todo llega en la carga inicial, así el modal no vuelve al servidor.
+  private logrosPorCelda: Map<string, any[]> = new Map();
+
   // Matriz calculada
   public filas: FilaMatriz[] = [];
 
@@ -73,6 +77,32 @@ export class ReporteDistribucionMallaComponent implements OnInit, OnDestroy {
   // Filtros
   public gradosSeleccionados: { [idGrado: string]: boolean } = {};
   public soloFaltantes: boolean = false;
+
+  // Modal de detalle de la celda
+  public modalContexto: any = null;
+  public modalLogros: any[] = [];
+  public modalCelda: Celda | null = null;
+  public modalArea: string = '';
+
+  // Tonos suaves para separar visualmente un grado del otro en el encabezado.
+  // Se rotan en el orden en que salen los grados.
+  private readonly paletaGrados: string[] = [
+    '#e3f2fd', // azul
+    '#fce4ec', // rosa
+    '#e8f5e9', // verde
+    '#fff3e0', // naranja
+    '#ede7f6', // morado
+    '#e0f7fa'  // turquesa
+  ];
+
+  private readonly paletaGradosBorde: string[] = [
+    '#90caf9',
+    '#f48fb1',
+    '#a5d6a7',
+    '#ffcc80',
+    '#b39ddb',
+    '#80deea'
+  ];
 
   constructor(private logrosService: LogrosService) { }
 
@@ -100,6 +130,7 @@ export class ReporteDistribucionMallaComponent implements OnInit, OnDestroy {
         this.areas = catalogos.areas || [];
         this.conteos = datos.conteos || [];
         this.cobertura = datos.cobertura || [];
+        this.indexarLogros(datos.logros || []);
 
         this.grados.forEach(grado => {
           if (this.gradosSeleccionados[grado.id] === undefined) {
@@ -312,6 +343,76 @@ export class ReporteDistribucionMallaComponent implements OnInit, OnDestroy {
 
   trackByCelda(index: number, celda: Celda): any {
     return celda.idGrado + '|' + celda.idCorte;
+  }
+
+  // ========== Separación visual por grado ==========
+
+  /** Fondo del encabezado del grado y de sus cortes */
+  colorGrado(indiceGrado: number): string {
+    return this.paletaGrados[indiceGrado % this.paletaGrados.length];
+  }
+
+  /** Borde que separa un grado del siguiente */
+  colorBordeGrado(indiceGrado: number): string {
+    return this.paletaGradosBorde[indiceGrado % this.paletaGradosBorde.length];
+  }
+
+  /** Índice del grado al que pertenece una celda, según su posición en la fila */
+  indiceGradoDeCelda(indiceCelda: number): number {
+    return this.cortes.length > 0 ? Math.floor(indiceCelda / this.cortes.length) : 0;
+  }
+
+  /** true en la primera columna de cada grado, para pintar el separador */
+  esInicioDeGrado(indiceCelda: number): boolean {
+    return this.cortes.length > 0 && indiceCelda % this.cortes.length === 0;
+  }
+
+  // ========== Modal de detalle ==========
+
+  /** Agrupa los logros por área|grado|corte una sola vez, al cargar */
+  private indexarLogros(logros: any[]): void {
+    const indice = new Map<string, any[]>();
+
+    logros.forEach(logro => {
+      const clave = this.clave(logro.id_area_academica, logro.id_grado, logro.id_corte_academico);
+      if (!indice.has(clave)) {
+        indice.set(clave, []);
+      }
+      indice.get(clave)!.push(logro);
+    });
+
+    this.logrosPorCelda = indice;
+  }
+
+  /**
+   * Abre el modal con los logros e indicadores de la celda.
+   * Los datos ya están en memoria desde la carga inicial, no se consulta nada.
+   * Las celdas que el grado no ve no abren nada.
+   */
+  abrirDetalle(fila: FilaMatriz, celda: Celda): void {
+    if (celda.estado === 'no-aplica') return;
+
+    this.modalCelda = celda;
+    this.modalArea = fila.nombreArea;
+    this.modalLogros = this.logrosPorCelda.get(this.clave(fila.idArea, celda.idGrado, celda.idCorte)) || [];
+    this.modalContexto = {
+      nombre_area: fila.nombreArea,
+      nombre_grado: this.nombreGrado(celda.idGrado),
+      nombre_corte: this.nombreCorte(celda.idCorte)
+    };
+
+    const modal = new (window as any).bootstrap.Modal(document.getElementById('modalDetalleCeldaMalla'));
+    modal.show();
+  }
+
+  /** Total de indicadores que se están mostrando en el modal */
+  get totalIndicadoresModal(): number {
+    return this.modalLogros
+      .reduce((total, logro) => total + (logro.indicadores ? logro.indicadores.length : 0), 0);
+  }
+
+  trackByLogro(index: number, logro: any): any {
+    return logro.id;
   }
 
   // ========== Exportar Excel ==========

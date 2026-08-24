@@ -192,6 +192,21 @@ $alto-franja-movil: 8px;
   }
 }
 
+// Cuando el header lleva el color del grupo, los iconos heredan el texto
+// para que no se pierdan contra el fondo
+.tablero-header[style*="background-color"] {
+  .tablero-resumen i {
+    color: inherit;
+    opacity: 0.85;
+  }
+
+  .tablero-resumen .resumen-cruce,
+  .tablero-resumen .resumen-cruce i {
+    color: inherit;
+    font-weight: 700;
+  }
+}
+
 .tablero-vacio {
   text-align: center;
   padding: 2rem 1rem;
@@ -228,6 +243,7 @@ $alto-franja-movil: 8px;
   min-width: 700px;
 }
 
+// El degradado es el fallback: si el grupo tiene color, se sobreescribe inline
 .grilla-header {
   background: linear-gradient(135deg, #F5A623 0%, #F76B1C 100%);
   color: #fff;

@@ -17,14 +17,7 @@
         </div>
       </div>
 
-      <div class="col-lg-3 col-md-6 mb-2" *ngIf="vista === 'dia'">
-        <label for="diaSelector" class="form-label">Día:</label>
-        <select id="diaSelector" class="form-select" [(ngModel)]="diaSeleccionado" (change)="cambiarDia()">
-          <option *ngFor="let dia of diasSemana" [ngValue]="dia.id">{{ dia.nombre }}</option>
-        </select>
-      </div>
-
-      <div class="col-lg-5 col-md-6 mb-2 text-lg-end">
+      <div class="col-lg-8 col-md-12 mb-2 text-lg-end">
         <button class="btn btn-success btn-sm me-2" (click)="exportarExcel()" [disabled]="!datosDisponibles">
           <i class="fas fa-file-excel"></i> Excel
         </button>
@@ -85,9 +78,15 @@
       <div class="col-12" *ngFor="let tablero of tableros; trackBy: trackByTablero">
         <div class="tablero-horario">
 
-          <div class="tablero-header">
-            <h5 class="tablero-titulo">{{ tablero.titulo }}</h5>
-            <div class="tablero-resumen">
+          <div class="tablero-header"
+               [style.background-color]="colorEncabezado(tablero)"
+               [style.color]="colorEncabezado(tablero) ? colorTextoEncabezado(colorEncabezado(tablero)) : null">
+            <h5 class="tablero-titulo"
+                [style.color]="colorEncabezado(tablero) ? colorTextoEncabezado(colorEncabezado(tablero)) : null">
+              {{ tablero.titulo }}
+            </h5>
+            <div class="tablero-resumen"
+                 [style.color]="colorEncabezado(tablero) ? colorTextoEncabezado(colorEncabezado(tablero)) : null">
               <span><i class="fas fa-clock"></i> {{ horasDeMinutos(tablero.totalMinutos) }}</span>
               <span><i class="fas fa-layer-group"></i> {{ tablero.totalFranjas }} franjas</span>
               <span class="resumen-cruce" *ngIf="tablero.cruces > 0">
@@ -107,7 +106,10 @@
 
               <!-- Encabezado -->
               <div class="grilla-header grilla-header-hora">Hora</div>
-              <div class="grilla-header" *ngFor="let columna of tablero.columnas">
+              <div class="grilla-header"
+                   *ngFor="let columna of tablero.columnas"
+                   [style.background]="colorEncabezado(tablero, columna)"
+                   [style.color]="colorEncabezado(tablero, columna) ? colorTextoEncabezado(colorEncabezado(tablero, columna)) : null">
                 {{ columna.nombre }}
               </div>
 
@@ -159,7 +161,7 @@
       <div class="col-12" *ngIf="tableros.length === 0">
         <div class="tablero-vacio">
           <i class="fas fa-calendar-times"></i>
-          <p>Selecciona al menos un grupo.</p>
+          <p>No hay horarios configurados para los grupos seleccionados.</p>
         </div>
       </div>
     </div>

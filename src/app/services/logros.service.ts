@@ -329,6 +329,25 @@ export class LogrosService {
       );
   }
 
+  // Detalle de una celda de la matriz: logros con sus indicadores
+  obtenerDetalleDistribucionMalla(idArea: string, idGrado: string, idCorte: string): Observable<HttpResponse<Object>> {
+    return this.http
+      .get<HttpResponse<Object>>(
+        environment.api + 'logros-distribucion-malla/detalle/' + idArea + '/' + idGrado + '/' + idCorte,
+        { observe: 'response' }
+      )
+      .pipe(
+        tap((response: HttpResponse<Object>) => {
+          let respuesta: any = response.body;
+          if (respuesta && respuesta.error) {
+            throw respuesta.error;
+          }
+          return response;
+        }),
+        catchError(this.handleError)
+      );
+  }
+
   private handleError(error: HttpErrorResponse): Observable<never> {
     console.error('Error en LogrosService:', error);
     return throwError(() => new Error(`Ocurrió un error; por favor intente más tarde. Status: ${error.status}`));

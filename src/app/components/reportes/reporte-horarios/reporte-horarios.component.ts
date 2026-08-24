@@ -1,6 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { Subscription, forkJoin } from 'rxjs';
 import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
@@ -13,6 +12,7 @@ import { DiasSemanaService } from '../../../services/dias-semana.service';
 interface Columna {
   id: any;
   nombre: string;
+  color?: string;
 }
 
 interface CeldaHorario {
@@ -26,6 +26,7 @@ interface CeldaHorario {
 interface Tablero {
   id: any;
   titulo: string;
+  color?: string;
   columnas: Columna[];
   celdas: Map<string, CeldaHorario>;
   totalMinutos: number;
@@ -36,7 +37,7 @@ interface Tablero {
 @Component({
   selector: 'app-reporte-horarios',
   standalone: true,
-  imports: [CommonModule, FormsModule, HeaderComponent],
+  imports: [CommonModule, HeaderComponent],
   templateUrl: './reporte-horarios.component.html',
   styleUrl: './reporte-horarios.component.scss'
 })
@@ -48,9 +49,8 @@ export class ReporteHorariosComponent implements OnInit, OnDestroy {
   public datosDisponibles: boolean = false;
   private subscriptions: Subscription[] = [];
 
-  // Vista activa: un tablero por grupo, o un solo tablero del día con todos los grupos
+  // Vista activa: un tablero por grupo, o un tablero por día con todos los grupos
   public vista: 'grupo' | 'dia' = 'grupo';
-  public diaSeleccionado: any = null;
 
   // Catálogos y datos
   public grupos: any[] = [];
@@ -110,10 +110,6 @@ export class ReporteHorariosComponent implements OnInit, OnDestroy {
           }
         });
 
-        if (this.diaSeleccionado === null && this.diasSemana.length > 0) {
-          this.diaSeleccionado = this.diasSemana[0].id;
-        }
-
         this.detectarCruces();
         this.construirVista();
 
@@ -133,10 +129,6 @@ export class ReporteHorariosComponent implements OnInit, OnDestroy {
 
   cambiarVista(vista: 'grupo' | 'dia'): void {
     this.vista = vista;
-    this.construirVista();
-  }
-
-  cambiarDia(): void {
     this.construirVista();
   }
 
@@ -230,14 +222,22 @@ export class ReporteHorariosComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Franjas de 5 minutos que cubren todos los horarios visibles, con un margen
-   * mínimo de 07:00 a 16:00. Los extremos se redondean a la media hora.
+   * Franjas de 5 minutos que cubren únicamente las horas con horarios cargados.
+   * Los extremos se redondean a la media hora para que la primera y la última
+   * fila caigan en una etiqueta visible. Si no hay datos, no hay franjas.
    */
   private calcularFranjas(): void {
-    let minutoMinimo = 7 * 60;
-    let minutoMaximo = 16 * 60;
+    const horarios = this.horariosFiltrados;
 
-    this.horariosFiltrados.forEach(horario => {
+    if (horarios.length === 0) {
+      this.franjas = [];
+      return;
+    }
+
+    let minutoMinimo = Number.MAX_SAFE_INTEGER;
+    let minutoMaximo = 0;
+
+    horarios.forEach(horario => {
       const inicio = this.aMinutos(horario.hora_inicial);
       const fin = this.aMinutos(horario.hora_final);
       if (inicio < minutoMinimo) minutoMinimo = inicio;
@@ -254,36 +254,68 @@ export class ReporteHorariosComponent implements OnInit, OnDestroy {
     this.franjas = franjas;
   }
 
+  /**
+   * Un tablero por grupo, con los días en las columnas.
+   * Solo salen los grupos que tienen horarios y solo los días que se usan.
+   */
   private construirTablerosPorGrupo(): Tablero[] {
-    const columnas: Columna[] = this.diasSemana.map(dia => ({ id: dia.id, nombre: dia.nombre }));
+    const tableros: Tablero[] = [];
 
-    return this.gruposVisibles.map(grupo => {
+    this.gruposVisibles.forEach(grupo => {
       const horariosGrupo = this.horarios.filter(h => String(h.id_grupo) === String(grupo.id));
-      return this.armarTablero(
+      if (horariosGrupo.length === 0) return;
+
+      // Solo los días en los que ese grupo tiene clase
+      const diasConDatos = new Set(horariosGrupo.map(h => String(h.id_dia_semana)));
+      const columnas: Columna[] = this.diasSemana
+        .filter(dia => diasConDatos.has(String(dia.id)))
+        .map(dia => ({ id: dia.id, nombre: dia.nombre }));
+
+      const tablero = this.armarTablero(
         grupo.id,
         grupo.nombre,
         columnas,
         horariosGrupo,
         (horario: any) => horario.id_dia_semana
       );
+      tablero.color = grupo.color || undefined;
+
+      tableros.push(tablero);
     });
+
+    return tableros;
   }
 
+  /**
+   * Un tablero por día, con los grupos en las columnas.
+   * Solo salen los días que tienen horarios y, en cada uno, solo los grupos
+   * que tienen clase ese día.
+   */
   private construirTableroPorDia(): Tablero[] {
-    const columnas: Columna[] = this.gruposVisibles.map(grupo => ({ id: grupo.id, nombre: grupo.nombre }));
+    const tableros: Tablero[] = [];
+    const horariosVisibles = this.horariosFiltrados;
 
-    const horariosDia = this.horariosFiltrados
-      .filter(h => String(h.id_dia_semana) === String(this.diaSeleccionado));
+    this.diasSemana.forEach(dia => {
+      const horariosDia = horariosVisibles
+        .filter(h => String(h.id_dia_semana) === String(dia.id));
 
-    const nombreDia = this.diasSemana.find(d => String(d.id) === String(this.diaSeleccionado))?.nombre || '';
+      if (horariosDia.length === 0) return;
 
-    return [this.armarTablero(
-      this.diaSeleccionado,
-      nombreDia,
-      columnas,
-      horariosDia,
-      (horario: any) => horario.id_grupo
-    )];
+      const gruposConDatos = new Set(horariosDia.map(h => String(h.id_grupo)));
+      const columnas: Columna[] = this.gruposVisibles
+        .filter(grupo => gruposConDatos.has(String(grupo.id)))
+        .map(grupo => ({ id: grupo.id, nombre: grupo.nombre, color: grupo.color || undefined }));
+
+      tableros.push(this.armarTablero(
+        dia.id,
+        dia.nombre,
+        columnas,
+        horariosDia,
+        (horario: any) => horario.id_grupo
+      ));
+    });
+
+    return tableros;
   }
 
   /**
@@ -341,6 +373,25 @@ export class ReporteHorariosComponent implements OnInit, OnDestroy {
 
   celdaDe(tablero: Tablero, idColumna: any, indice: number): CeldaHorario | undefined {
     return tablero.celdas.get(`${idColumna}|${indice}`);
+  }
+
+  /**
+   * Color del encabezado. En la vista por grupo lo pone el tablero (que es un
+   * grupo); en la vista por día lo pone cada columna (que es un grupo).
+   * Si el grupo no tiene color se cae al degradado naranja por defecto.
+   */
+  colorEncabezado(tablero: Tablero, columna?: Columna): string | null {
+    const color = this.vista === 'grupo' ? tablero.color : (columna ? columna.color : null);
+    return color ? color : null;
+  }
+
+  /** Texto oscuro o claro según qué tan claro sea el fondo del grupo */
+  colorTextoEncabezado(color: string | null): string {
+    if (!color) return '#ffffff';
+
+    const rgb = this.colorRgb(color);
+    const luminancia = (0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2]) / 255;
+    return luminancia > 0.65 ? '#2c3e50' : '#ffffff';
   }
 
   esFilaEtiqueta(franja: string): boolean {
@@ -508,14 +559,16 @@ export class ReporteHorariosComponent implements OnInit, OnDestroy {
       doc.setFontSize(13);
       doc.setTextColor(34, 34, 34);
       doc.text(
-        this.vista === 'grupo' ? `Horario · ${tablero.titulo}` : `Horarios del día · ${tablero.titulo}`,
+        this.vista === 'grupo' ? `Horario · ${tablero.titulo}` : `Horarios · ${tablero.titulo}`,
         margen,
         16
       );
 
       doc.setFontSize(8);
       doc.setTextColor(127, 140, 141);
-      let subtitulo = `${tablero.totalFranjas} franjas · ${this.horasDeMinutos(tablero.totalMinutos)} a la semana`;
+      let subtitulo = this.vista === 'grupo'
+        ? `${tablero.totalFranjas} franjas · ${this.horasDeMinutos(tablero.totalMinutos)} a la semana`
+        : `${tablero.totalFranjas} franjas · ${this.horasDeMinutos(tablero.totalMinutos)} · ${tablero.columnas.length} grupos`;
       if (tablero.cruces > 0) {
         subtitulo += ` · ${tablero.cruces} con cruce de docente`;
       }
@@ -533,13 +586,32 @@ export class ReporteHorariosComponent implements OnInit, OnDestroy {
       const anchoColumna = (anchoPagina - (margen * 2) - anchoColumnaHora) / columnas.length;
       const altoFranja = Math.min(altoDisponible / Math.max(this.franjas.length, 1), 3.2);
 
-      // Encabezado de columnas
-      doc.setFillColor(245, 166, 35);
+      // Encabezado de columnas.
+      // En la vista por grupo la franja completa lleva el color del grupo;
+      // en la vista por día cada columna lleva el color de su grupo.
+      const colorTablero = this.vista === 'grupo' && tablero.color
+        ? this.colorRgb(tablero.color)
+        : [245, 166, 35];
+
+      doc.setFillColor(colorTablero[0], colorTablero[1], colorTablero[2]);
       doc.rect(margen, topeGrilla - 7, anchoPagina - (margen * 2), 7, 'F');
+
       doc.setFontSize(7.5);
-      doc.setTextColor(255, 255, 255);
       columnas.forEach((columna, indice) => {
         const x = margen + anchoColumnaHora + (indice * anchoColumna);
+
+        let colorColumna = colorTablero;
+        if (this.vista === 'dia' && columna.color) {
+          colorColumna = this.colorRgb(columna.color);
+          doc.setFillColor(colorColumna[0], colorColumna[1], colorColumna[2]);
+          doc.rect(x, topeGrilla - 7, anchoColumna, 7, 'F');
+        }
+
+        const textoClaro = this.colorTextoEncabezado(
+          '#' + colorColumna.map(c => c.toString(16).padStart(2, '0')).join('')
+        ) === '#ffffff';
+
+        doc.setTextColor(textoClaro ? 255 : 44, textoClaro ? 255 : 62, textoClaro ? 255 : 80);
         doc.text(columna.nombre, x + (anchoColumna / 2), topeGrilla - 2.2, {
           align: 'center',
           maxWidth: anchoColumna - 2

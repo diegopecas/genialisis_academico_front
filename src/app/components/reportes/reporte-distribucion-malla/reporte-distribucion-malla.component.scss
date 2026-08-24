@@ -204,13 +204,24 @@ $color-borde: #e8e8e8;
   .col-grado {
     color: $color-text;
     font-weight: 700;
-    border-bottom: 2px solid #f0f0f0;
+    border-bottom: 3px solid transparent;
+    border-radius: 5px 5px 0 0;
   }
 
   .col-corte {
-    color: #999;
+    color: #7a7a7a;
     font-weight: 600;
     min-width: 34px;
+    border-radius: 0 0 4px 4px;
+  }
+
+  // Separador entre un grado y el siguiente
+  .inicio-grado {
+    border-left: 2px solid #cfcfcf;
+  }
+
+  th.inicio-grado {
+    border-left: 2px solid #fff;
   }
 
   // La columna del área queda fija al hacer scroll horizontal
@@ -239,20 +250,28 @@ $color-borde: #e8e8e8;
     font-weight: 700;
     color: $color-text;
     min-width: 34px;
-    transition: transform 0.15s ease;
-    cursor: default;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    cursor: pointer;
 
     &:hover {
       transform: scale(1.12);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+    }
+  }
+
+  // La celda que el grado no ve no abre nada
+  td.celda-no-aplica {
+    border: 1px solid #ededed;
+    cursor: default;
+
+    &:hover {
+      transform: none;
+      box-shadow: none;
     }
   }
 
   td.celda-falta-contenido {
     color: #fff;
-  }
-
-  td.celda-no-aplica {
-    border: 1px solid #ededed;
   }
 
   .col-total,
@@ -274,6 +293,114 @@ $color-borde: #e8e8e8;
     color: #999;
     padding: 1.5rem;
     font-style: italic;
+  }
+}
+
+// ========== Modal de detalle ==========
+
+::ng-deep #modalDetalleCeldaMalla {
+  .modal-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: $color-text;
+
+    i {
+      color: $color-primary;
+      margin-right: 6px;
+    }
+  }
+
+  .modal-contexto {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #999;
+    margin-top: 2px;
+  }
+}
+
+.modal-resumen {
+  display: flex;
+  gap: 18px;
+  font-size: 0.78rem;
+  color: #777;
+  padding-bottom: 0.7rem;
+  margin-bottom: 0.9rem;
+  border-bottom: 1px solid #f0f0f0;
+
+  strong {
+    color: $color-text;
+  }
+}
+
+.modal-vacio {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: #bbb;
+
+  i {
+    font-size: 1.8rem;
+    margin-bottom: 0.5rem;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.85rem;
+  }
+}
+
+.logro-card {
+  border: 1px solid $color-borde;
+  border-left: 3px solid $color-primary;
+  border-radius: 8px;
+  padding: 0.7rem 0.9rem;
+  margin-bottom: 0.8rem;
+  background: #fff;
+}
+
+.logro-nombre {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: $color-text;
+  line-height: 1.35;
+}
+
+.logro-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 0.4rem;
+  font-size: 0.7rem;
+  color: #999;
+
+  i {
+    margin-right: 4px;
+    color: #c4c4c4;
+  }
+}
+
+.indicadores-lista {
+  margin: 0.6rem 0 0;
+  padding-left: 1.1rem;
+  font-size: 0.78rem;
+  color: #555;
+
+  li {
+    margin-bottom: 0.25rem;
+    line-height: 1.35;
+  }
+}
+
+.indicadores-vacio {
+  margin-top: 0.6rem;
+  font-size: 0.73rem;
+  color: #c0392b;
+  background: #fff5f5;
+  border-radius: 5px;
+  padding: 5px 9px;
+
+  i {
+    margin-right: 5px;
   }
 }
 
