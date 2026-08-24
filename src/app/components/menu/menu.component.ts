@@ -36,7 +36,14 @@ interface PersonaResultado {
   destinos: PersonaDestino[];
   // Etiquetas sin repetir para las insignias del encabezado: quien es
   // acudiente de dos niños no debe mostrar dos veces "Acudiente".
-  resumen: { etiqueta: string; activo: boolean }[];
+  // Cada etiqueta lleva sus propios destinos, para que al hacerle clic se
+  // pueda navegar directo cuando solo hay uno.
+  resumen: { etiqueta: string; activo: boolean; destinos: PersonaDestino[] }[];
+  // Destinos que se están mostrando en la lista desplegada: todos, o solo los
+  // de un rol cuando se llegó por la insignia.
+  destinosMostrados: PersonaDestino[];
+  // Etiqueta por la que se filtró la lista desplegada (null = sin filtro)
+  filtroMostrado: string | null;
 }
 
 interface CumpleaneroInfo {
@@ -401,6 +408,8 @@ export class MenuComponent implements OnInit {
           numero_identificacion: fila.numero_identificacion,
           destinos: [],
           resumen: [],
+          destinosMostrados: [],
+          filtroMostrado: null,
         };
         agrupadas.set(fila.id_persona, persona);
       }
@@ -427,14 +436,22 @@ export class MenuComponent implements OnInit {
 
       // El resumen se arma aquí y no en el template, porque una función en el
       // HTML se reevalúa en cada ciclo de detección de cambios.
-      const vistas = new Map<string, boolean>();
+      const vistas = new Map<string, PersonaDestino[]>();
       for (const destino of persona.destinos) {
-        const activoPrevio = vistas.get(destino.etiqueta) || false;
-        vistas.set(destino.etiqueta, activoPrevio || destino.activo);
+        const previos = vistas.get(destino.etiqueta) || [];
+        previos.push(destino);
+        vistas.set(destino.etiqueta, previos);
       }
       persona.resumen = Array.from(vistas.entries()).map(
-        ([etiqueta, activo]) => ({ etiqueta, activo })
+        ([etiqueta, destinos]) => ({
+          etiqueta,
+          activo: destinos.some((d) => d.activo),
+          destinos,
+        })
       );
+
+      persona.destinosMostrados = persona.destinos;
+      persona.filtroMostrado = null;
     }
 
     resultados.sort((a, b) =>
@@ -511,7 +528,7 @@ export class MenuComponent implements OnInit {
   }
 
   /**
-   * Un solo destino: navega directo. Varios: despliega la lista.
+   * Un solo destino: navega directo. Varios: despliega la lista completa.
    */
   seleccionarPersona(persona: PersonaResultado): void {
     if (persona.destinos.length === 1) {
@@ -519,11 +536,50 @@ export class MenuComponent implements OnInit {
       return;
     }
 
-    if (this.personasExpandidas.has(persona.id_persona)) {
+    const yaAbierta =
+      this.personasExpandidas.has(persona.id_persona) &&
+      persona.filtroMostrado === null;
+
+    if (yaAbierta) {
       this.personasExpandidas.delete(persona.id_persona);
-    } else {
-      this.personasExpandidas.add(persona.id_persona);
+      return;
     }
+
+    persona.destinosMostrados = persona.destinos;
+    persona.filtroMostrado = null;
+    this.personasExpandidas.add(persona.id_persona);
+  }
+
+  /**
+   * Clic en la insignia de rol: se ahorra un paso y va derecho a la opción.
+   * Solo cuando ese rol tiene varios destinos (una acudiente con dos niños)
+   * no hay a dónde ir sin preguntar, y ahí se despliega la lista mostrando
+   * únicamente los destinos de ese rol.
+   */
+  clicEnEtiqueta(
+    event: Event,
+    persona: PersonaResultado,
+    etiqueta: { etiqueta: string; activo: boolean; destinos: PersonaDestino[] }
+  ): void {
+    event.stopPropagation();
+
+    if (etiqueta.destinos.length === 1) {
+      this.irADestino(etiqueta.destinos[0]);
+      return;
+    }
+
+    const yaAbierta =
+      this.personasExpandidas.has(persona.id_persona) &&
+      persona.filtroMostrado === etiqueta.etiqueta;
+
+    if (yaAbierta) {
+      this.personasExpandidas.delete(persona.id_persona);
+      return;
+    }
+
+    persona.destinosMostrados = etiqueta.destinos;
+    persona.filtroMostrado = etiqueta.etiqueta;
+    this.personasExpandidas.add(persona.id_persona);
   }
 
   irADestino(destino: PersonaDestino): void {

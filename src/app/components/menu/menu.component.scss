@@ -974,21 +974,40 @@ $confetti-colors: #FF6B6B, #FFD93D, #6BCB77, #4D96FF, #FF6BD6, #FF8C42, #A66CFF,
   gap: 6px;
 }
 
+// La insignia es un botón: lleva directo a la opción de ese rol
 .persona-badge {
   padding: 3px 10px;
   border-radius: 20px;
   background: rgba(255, 193, 7, 0.25);
   border: 1px solid rgba(255, 193, 7, 0.5);
   font-size: 11px;
+  font-family: inherit;
   font-weight: 700;
   color: $gold-text-dark;
   white-space: nowrap;
+  cursor: pointer;
+  transition: $transition-base;
+
+  &:hover {
+    background: $gold-primary;
+    border-color: $gold-primary;
+    color: $black-primary;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(255, 193, 7, 0.4);
+  }
 
   // Inactivo: en gris, sin el dorado de la marca
   &.inactivo {
     background: rgba(0, 0, 0, 0.06);
     border-color: rgba(0, 0, 0, 0.15);
     color: rgba(0, 0, 0, 0.45);
+
+    &:hover {
+      background: rgba(0, 0, 0, 0.12);
+      border-color: rgba(0, 0, 0, 0.25);
+      color: rgba(0, 0, 0, 0.6);
+      box-shadow: none;
+    }
   }
 }
 

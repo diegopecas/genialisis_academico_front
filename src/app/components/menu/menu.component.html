@@ -153,12 +153,16 @@
             <span class="persona-nombre" [innerHTML]="resaltar(persona.nombre_completo)"></span>
             <span class="persona-documento" [innerHTML]="resaltar(persona.numero_identificacion)"></span>
           </div>
+          <!-- La insignia lleva directo a la opción de ese rol -->
           <div class="persona-badges">
-            <span
+            <button
+              type="button"
               class="persona-badge"
               *ngFor="let etiqueta of persona.resumen"
               [class.inactivo]="!etiqueta.activo"
-            >{{ etiqueta.etiqueta }}</span>
+              (click)="clicEnEtiqueta($event, persona, etiqueta)"
+              [title]="etiqueta.destinos.length > 1 ? 'Ver los ' + etiqueta.destinos.length + ' registros' : 'Ir a ' + etiqueta.etiqueta"
+            >{{ etiqueta.etiqueta }}</button>
           </div>
           <span
             class="persona-chevron"
@@ -171,7 +175,7 @@
         <div class="persona-destinos" *ngIf="persona.destinos.length > 1 && esPersonaExpandida(persona)">
           <div
             class="persona-destino"
-            *ngFor="let destino of persona.destinos"
+            *ngFor="let destino of persona.destinosMostrados"
             [class.inactivo]="!destino.activo"
             (click)="irADestino(destino)"
           >
