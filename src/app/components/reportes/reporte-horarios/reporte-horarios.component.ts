@@ -453,7 +453,7 @@ export class ReporteHorariosComponent implements OnInit, OnDestroy {
    * el área es la barra lateral. Se calcula sobre el color intensificado
    * para que un grupo de color claro también se note contra el hueco vacío.
    */
-  colorFondoBloque(color: string | null | undefined, alpha: number = 0.045): string | null {
+  colorFondoBloque(color: string | null | undefined, alpha: number = 0.028): string | null {
     if (!color) return null;
     const hsl = this.aHsl(color);
     if (!hsl) return null;
@@ -809,8 +809,8 @@ export class ReporteHorariosComponent implements OnInit, OnDestroy {
           // columna; lo que diferencia el área es la barra lateral
           const colorGrupo = this.vista === 'grupo' ? tablero.color : columna.color;
           const fondo = colorGrupo
-            ? this.mezclarSobreBlanco(this.intensificarRgb(this.colorRgb(colorGrupo)), 0.045)
-            : [252, 252, 252];
+            ? this.mezclarSobreBlanco(this.intensificarRgb(this.colorRgb(colorGrupo)), 0.028)
+            : [253, 253, 253];
           doc.setFillColor(fondo[0], fondo[1], fondo[2]);
           doc.setDrawColor(236, 238, 240);
           doc.setLineWidth(0.1);
