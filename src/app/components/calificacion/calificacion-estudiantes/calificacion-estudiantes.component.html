@@ -72,7 +72,7 @@
 
     <!-- Calificación masiva: asigna el mismo valor a todos los que no tienen nota -->
     <div class="row mb-3"
-         *ngIf="actividadAcademica != null && actividadAcademica.id_docente_inicia != null && parametrosCalificaciones.length > 0 && estudiantes.length > 0">
+         *ngIf="actividadAcademica != null && actividadAcademica.id_docente_inicia != null && parametrosMasivosPendientes.length > 0 && estudiantes.length > 0">
       <div class="col-12">
         <div class="masivo-container">
           <button class="masivo-header" type="button" (click)="togglePanelMasivo()">
@@ -86,10 +86,10 @@
           <div class="masivo-contenido" *ngIf="panelMasivoAbierto">
             <div class="masivo-aviso">
               <i class="fa fa-info-circle"></i>
-              Elige el valor y aplícalo. Solo se califican los que están vacíos; los que ya tienen nota no se modifican y puedes seguir ajustándolos uno por uno.
+              Solo se califican los que están vacíos; puedes ajustar después uno por uno.
             </div>
 
-            <div class="masivo-parametro" *ngFor="let parametro of parametrosCalificaciones">
+            <div class="masivo-parametro" *ngFor="let parametro of parametrosMasivosPendientes">
               <label class="parametro-label">{{ parametro.nombre }}</label>
               <div class="estrellas-container">
                 <span
@@ -107,11 +107,17 @@
               <button
                 class="btn btn-sm btn-masivo-aplicar"
                 type="button"
-                [disabled]="!valorMasivoSeleccionado(parametro) || aplicandoMasivo || pendientesPorParametro(parametro) === 0"
+                [disabled]="!valorMasivoSeleccionado(parametro) || aplicandoMasivo"
                 (click)="aplicarATodos(parametro)"
               >
-                <i class="fa fa-check-double"></i>
-                Aplicar a {{ pendientesPorParametro(parametro) }}
+                <ng-container *ngIf="parametroAplicando === parametro.id">
+                  <i class="fa fa-spinner fa-spin"></i>
+                  Aplicando...
+                </ng-container>
+                <ng-container *ngIf="parametroAplicando !== parametro.id">
+                  <i class="fa fa-check-double"></i>
+                  Aplicar a {{ pendientesPorParametro(parametro) }}
+                </ng-container>
               </button>
             </div>
           </div>

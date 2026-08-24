@@ -530,23 +530,39 @@ label {
 .masivo-parametro {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 12px;
-  padding: 8px 0;
+  flex-wrap: nowrap;
+  gap: 10px;
+  padding: 6px 0;
   border-bottom: 1px dashed #f0f0f0;
 
   &:last-child {
     border-bottom: none;
   }
 
+  // El nombre se trunca antes de empujar el botón a otra línea
   .parametro-label {
-    min-width: 140px;
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: 150px;
     margin-bottom: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .estrellas-container {
-    flex: 1;
-    min-width: 140px;
+    flex: 1 1 auto;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+
+  .calificacion {
+    font-size: 1.15em;
+
+    &:hover {
+      transform: scale(1.1);
+    }
   }
 }
 
@@ -555,10 +571,13 @@ label {
   border: none;
   color: #fff;
   font-weight: 600;
-  font-size: 0.8em;
+  font-size: 0.78em;
   border-radius: 8px;
-  padding: 6px 14px;
+  padding: 5px 12px;
   white-space: nowrap;
+  flex: 0 0 auto;
+  // Ancho fijo para que el botón no salte al pasar a "Aplicando..."
+  min-width: 118px;
   transition: opacity 0.2s ease;
 
   &:hover:not(:disabled) {
@@ -592,29 +611,41 @@ label {
   }
 
   .masivo-header {
-    padding: 10px 14px;
-    font-size: 0.88em;
+    padding: 9px 12px;
+    font-size: 0.85em;
   }
 
   .masivo-contenido {
-    padding: 12px 14px;
+    padding: 10px 12px;
   }
 
   .masivo-aviso {
-    font-size: 0.78em;
-    padding: 8px 12px;
+    font-size: 0.75em;
+    padding: 6px 10px;
+    margin-bottom: 8px;
   }
 
+  // Se mantiene en una sola línea; solo se aprieta
   .masivo-parametro {
-    align-items: flex-start;
-    gap: 8px;
+    gap: 7px;
 
     .parametro-label {
-      min-width: 100%;
+      max-width: 92px;
+      font-size: 0.78em;
     }
 
-    .btn-masivo-aplicar {
-      width: 100%;
+    .calificacion {
+      font-size: 1em;
+    }
+  }
+
+  .btn-masivo-aplicar {
+    min-width: 96px;
+    padding: 5px 8px;
+    font-size: 0.72em;
+
+    i {
+      margin-right: 3px;
     }
   }
 }

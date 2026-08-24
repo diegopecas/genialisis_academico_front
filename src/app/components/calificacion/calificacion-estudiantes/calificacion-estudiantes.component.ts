@@ -38,6 +38,7 @@ export class CalificacionEstudiantesComponent implements OnInit {
   // Calificación masiva: valor elegido por parámetro antes de aplicar a todos
   public valoresMasivos: { [idParametro: string]: any } = {};
   public aplicandoMasivo: boolean = false;
+  public parametroAplicando: any = null;
   public panelMasivoAbierto: boolean = true;
 
   // Observación general de la tarea
@@ -325,6 +326,16 @@ export class CalificacionEstudiantesComponent implements OnInit {
     return this.valoresMasivos[parametro.id] || null;
   }
 
+  /**
+   * Parámetros que todavía tienen estudiantes sin calificar.
+   * Los que ya están completos desaparecen del panel, y cuando no queda
+   * ninguno el panel entero deja de mostrarse.
+   */
+  get parametrosMasivosPendientes(): any[] {
+    return this.parametrosCalificaciones
+      .filter(parametro => this.pendientesPorParametro(parametro) > 0);
+  }
+
   /** Cuántos estudiantes quedarían calificados si se aplica el valor de ese parámetro */
   pendientesPorParametro(parametro: any): number {
     return this.estudiantesParaMasivo
@@ -365,6 +376,7 @@ export class CalificacionEstudiantesComponent implements OnInit {
     }
 
     this.aplicandoMasivo = true;
+    this.parametroAplicando = parametro.id;
 
     this.calificacionesService.calificarLote(
       this.actividadAcademica.id_tarea_x_sprint,
@@ -374,6 +386,7 @@ export class CalificacionEstudiantesComponent implements OnInit {
     ).subscribe({
       next: (respuesta: any) => {
         this.aplicandoMasivo = false;
+        this.parametroAplicando = null;
         const creadas = (respuesta && respuesta.creadas) || [];
 
         creadas.forEach((creada: any) => {
@@ -398,6 +411,7 @@ export class CalificacionEstudiantesComponent implements OnInit {
       },
       error: () => {
         this.aplicandoMasivo = false;
+        this.parametroAplicando = null;
         Swal.fire({ toast: true, position: 'top-end', icon: 'error', title: 'Error al calificar en lote', showConfirmButton: false, timer: 2000 });
       }
     });
