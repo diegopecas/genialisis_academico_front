@@ -51,7 +51,13 @@ export class GaleriaImagenesService {
       return this.peticionToken;
     }
 
-    this.peticionToken = this.http.get<any>(`${this.servicio}/token`).pipe(
+    // Va silenciosa: esta peticion tambien se dispara sola desde
+    // programarRenovacion() cada pocos minutos, y sin el header el
+    // loading.interceptor montaba el spinner global encima de la pantalla
+    // que el usuario estuviera viendo, como si algo se estuviera cargando.
+    this.peticionToken = this.http.get<any>(`${this.servicio}/token`, {
+      headers: { 'X-Silent': 'true' },
+    }).pipe(
       map((respuesta: any) => {
         const vidaSegundos = respuesta.expira_en || 300;
         this.tokenImagenes = respuesta.token;
