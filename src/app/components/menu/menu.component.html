@@ -115,7 +115,7 @@
       <input
         type="text"
         class="buscador-input"
-        placeholder="Buscar una opción del menú..."
+        placeholder="Buscar una opción o una persona..."
         [value]="terminoBusqueda"
         (input)="onBuscar($event)"
         autocomplete="off"
@@ -127,11 +127,67 @@
         (click)="limpiarBusqueda()"
         title="Limpiar"
       >✕</button>
+      <!-- Refresco de la lista de personas (el menú no se refresca, va en código) -->
+      <button
+        class="buscador-refrescar"
+        [class.girando]="refrescandoPersonas"
+        [disabled]="refrescandoPersonas"
+        (click)="refrescarPersonas($event)"
+        [title]="tituloRefrescoPersonas"
+      >⟳</button>
     </div>
 
+    <!-- ====== RESULTADOS DE PERSONAS ====== -->
+    <section class="personas-resultados" *ngIf="personasVisibles.length > 0">
+      <div class="personas-header">
+        <span class="personas-titulo">👤 Personas</span>
+        <span class="personas-conteo" *ngIf="totalPersonasCoincidencias > personasVisibles.length">
+          Mostrando {{ personasVisibles.length }} de {{ totalPersonasCoincidencias }}
+        </span>
+      </div>
+
+      <div class="persona-card" *ngFor="let persona of personasVisibles; trackBy: trackByPersona">
+
+        <div class="persona-header" (click)="seleccionarPersona(persona)">
+          <div class="persona-datos">
+            <span class="persona-nombre" [innerHTML]="resaltar(persona.nombre_completo)"></span>
+            <span class="persona-documento" [innerHTML]="resaltar(persona.numero_identificacion)"></span>
+          </div>
+          <div class="persona-badges">
+            <span
+              class="persona-badge"
+              *ngFor="let etiqueta of persona.resumen"
+              [class.inactivo]="!etiqueta.activo"
+            >{{ etiqueta.etiqueta }}</span>
+          </div>
+          <span
+            class="persona-chevron"
+            *ngIf="persona.destinos.length > 1"
+            [class.abierto]="esPersonaExpandida(persona)"
+          >▸</span>
+        </div>
+
+        <!-- Con un solo destino el clic navega directo; con varios se escoge aquí -->
+        <div class="persona-destinos" *ngIf="persona.destinos.length > 1 && esPersonaExpandida(persona)">
+          <div
+            class="persona-destino"
+            *ngFor="let destino of persona.destinos"
+            [class.inactivo]="!destino.activo"
+            (click)="irADestino(destino)"
+          >
+            <span class="destino-tipo">{{ destino.etiqueta }}</span>
+            <span class="destino-detalle" *ngIf="destino.detalle">{{ destino.detalle }}</span>
+            <span class="destino-estado" *ngIf="!destino.activo">Inactivo</span>
+          </div>
+        </div>
+
+      </div>
+    </section>
+    <!-- ====== FIN RESULTADOS DE PERSONAS ====== -->
+
     <!-- Mensaje sin resultados -->
-    <div class="menu-sin-resultados" *ngIf="enBusqueda && arbolVisible.length === 0">
-      No se encontraron opciones para "{{ terminoBusqueda }}"
+    <div class="menu-sin-resultados" *ngIf="enBusqueda && arbolVisible.length === 0 && personasVisibles.length === 0">
+      No se encontraron opciones ni personas para "{{ terminoBusqueda }}"
     </div>
 
     <!-- Grilla de secciones raíz (tarjetas de vidrio) -->

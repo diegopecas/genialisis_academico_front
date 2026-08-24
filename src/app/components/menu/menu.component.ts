@@ -4,12 +4,40 @@ import { CommonModule } from '@angular/common';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import Swal from 'sweetalert2';
 import { InstitucionConfigService } from '../../services/institucion-config.service';
-import { PersonasService } from '../../services/personas.service';
+import { PersonasService, PersonaBuscador } from '../../services/personas.service';
 import { PermisosService } from '../../services/permisos.service';
 import { AyudaModalService } from '../../services/ayuda-modal.service';
 import { AccesosRapidosService, AccesoRapido } from '../../services/accesos-rapidos.service';
 import { MenuArbolService, MenuNodo } from '../../services/menu-arbol.service';
 import { DailyMessageComponent } from '../daily-message/daily-message.component';
+
+/**
+ * Un destino al que se puede ir desde una persona encontrada en el buscador.
+ * Es lo que llega del backend más la ruta ya resuelta y la etiqueta a mostrar.
+ */
+interface PersonaDestino {
+  tipo: 'estudiante' | 'colaborador' | 'acudiente';
+  etiqueta: string;
+  detalle: string | null;
+  ruta: string;
+  activo: boolean;
+}
+
+/**
+ * Una persona del resultado de búsqueda, con todos sus destinos agrupados.
+ * Si tiene un solo destino el clic navega directo; si tiene varios se
+ * despliega la lista para que el usuario escoja (el caso del acudiente con
+ * varios niños, o del colaborador que además es acudiente).
+ */
+interface PersonaResultado {
+  id_persona: string;
+  nombre_completo: string;
+  numero_identificacion: string;
+  destinos: PersonaDestino[];
+  // Etiquetas sin repetir para las insignias del encabezado: quien es
+  // acudiente de dos niños no debe mostrar dos veces "Acudiente".
+  resumen: { etiqueta: string; activo: boolean }[];
+}
 
 interface CumpleaneroInfo {
   nombre: string;
@@ -55,6 +83,20 @@ export class MenuComponent implements OnInit {
   // Ids de grupos expandidos manualmente (cuando NO hay búsqueda activa)
   private expandidos: Set<string> = new Set<string>();
 
+  // ---- Búsqueda de personas ----
+  // Mínimo de caracteres antes de mostrar personas: con una sola letra se
+  // descolgaría medio jardín.
+  private readonly MIN_CARACTERES_PERSONAS = 2;
+  // Tope de personas en pantalla; si hay más se avisa para que afine la búsqueda.
+  private readonly MAX_PERSONAS_VISIBLES = 30;
+
+  public personasVisibles: PersonaResultado[] = [];
+  public totalPersonasCoincidencias: number = 0;
+  public refrescandoPersonas: boolean = false;
+
+  // Ids de personas con la lista de destinos desplegada
+  private personasExpandidas: Set<string> = new Set<string>();
+
   constructor(
     private router: Router,
     private institucionConfigService: InstitucionConfigService,
@@ -75,6 +117,9 @@ export class MenuComponent implements OnInit {
     this.verificarCumpleanos();
     this.cargarAccesosRapidos();
     this.cargarArbolMenu();
+    // Se pide el buscador de personas por debajo. Si el cache de la sesión
+    // sigue vigente no genera petición; si está vencido se refresca solo.
+    this.personasService.cargarBuscador();
   }
 
   private cargarFondoTenant(): void {
@@ -171,17 +216,20 @@ export class MenuComponent implements OnInit {
     if (termino.length === 0) {
       this.enBusqueda = false;
       this.arbolVisible = this.arbolMenu;
+      this.limpiarPersonas();
       return;
     }
 
     this.enBusqueda = true;
     this.arbolVisible = this.filtrarPorTexto(this.arbolMenu, termino);
+    this.buscarPersonas(termino);
   }
 
   limpiarBusqueda(): void {
     this.terminoBusqueda = '';
     this.enBusqueda = false;
     this.arbolVisible = this.arbolMenu;
+    this.limpiarPersonas();
   }
 
   /**
@@ -301,6 +349,232 @@ export class MenuComponent implements OnInit {
     return this.sanitizer.bypassSecurityTrustHtml(
       `${antes}<mark class="menu-highlight">${match}</mark>${despues}`
     );
+  }
+
+  // ============================================
+  // BÚSQUEDA DE PERSONAS
+  // ============================================
+
+  private limpiarPersonas(): void {
+    this.personasVisibles = [];
+    this.totalPersonasCoincidencias = 0;
+    this.personasExpandidas.clear();
+  }
+
+  /**
+   * Busca sobre el cache de personas por nombre o por número de documento y
+   * agrupa los resultados por persona, para que quien tenga varios roles
+   * (o sea acudiente de varios niños) aparezca una sola vez con su lista.
+   */
+  private buscarPersonas(termino: string): void {
+    if (termino.length < this.MIN_CARACTERES_PERSONAS) {
+      this.limpiarPersonas();
+      return;
+    }
+
+    const filas = this.personasService.getBuscador();
+    if (filas.length === 0) {
+      this.limpiarPersonas();
+      return;
+    }
+
+    const t = this.normalizar(termino);
+    const agrupadas = new Map<string, PersonaResultado>();
+
+    for (const fila of filas) {
+      const permiso = this.permisoDeTipo(fila.tipo);
+      if (permiso && !this.permisosService.tienePermiso(permiso)) {
+        continue;
+      }
+
+      const nombre = this.normalizar(fila.nombre_completo || '');
+      const documento = this.normalizar(fila.numero_identificacion || '');
+      if (!nombre.includes(t) && !documento.includes(t)) {
+        continue;
+      }
+
+      let persona = agrupadas.get(fila.id_persona);
+      if (!persona) {
+        persona = {
+          id_persona: fila.id_persona,
+          nombre_completo: fila.nombre_completo,
+          numero_identificacion: fila.numero_identificacion,
+          destinos: [],
+          resumen: [],
+        };
+        agrupadas.set(fila.id_persona, persona);
+      }
+
+      persona.destinos.push({
+        tipo: fila.tipo,
+        etiqueta: this.etiquetaDeTipo(fila.tipo),
+        detalle: fila.detalle,
+        ruta: this.rutaDeDestino(fila),
+        activo: fila.activo === 1,
+      });
+    }
+
+    const resultados = Array.from(agrupadas.values());
+
+    // Dentro de cada persona: primero lo activo, luego por tipo.
+    for (const persona of resultados) {
+      persona.destinos.sort((a, b) => {
+        if (a.activo !== b.activo) {
+          return a.activo ? -1 : 1;
+        }
+        return this.ordenDeTipo(a.tipo) - this.ordenDeTipo(b.tipo);
+      });
+
+      // El resumen se arma aquí y no en el template, porque una función en el
+      // HTML se reevalúa en cada ciclo de detección de cambios.
+      const vistas = new Map<string, boolean>();
+      for (const destino of persona.destinos) {
+        const activoPrevio = vistas.get(destino.etiqueta) || false;
+        vistas.set(destino.etiqueta, activoPrevio || destino.activo);
+      }
+      persona.resumen = Array.from(vistas.entries()).map(
+        ([etiqueta, activo]) => ({ etiqueta, activo })
+      );
+    }
+
+    resultados.sort((a, b) =>
+      a.nombre_completo.localeCompare(b.nombre_completo, 'es')
+    );
+
+    this.totalPersonasCoincidencias = resultados.length;
+    this.personasVisibles = resultados.slice(0, this.MAX_PERSONAS_VISIBLES);
+    this.personasExpandidas.clear();
+  }
+
+  /**
+   * Permiso que gobierna cada tipo de destino. Si el usuario no lo tiene,
+   * ese destino no se lista; si a la persona no le queda ninguno, no aparece.
+   */
+  private permisoDeTipo(tipo: string): string | null {
+    switch (tipo) {
+      case 'estudiante':
+        return 'estudiantes.listado';
+      case 'colaborador':
+        return 'colaboradores.listado';
+      case 'acudiente':
+        return 'estudiantes.acudientes';
+      default:
+        return null;
+    }
+  }
+
+  private etiquetaDeTipo(tipo: string): string {
+    switch (tipo) {
+      case 'estudiante':
+        return 'Estudiante';
+      case 'colaborador':
+        return 'Colaborador';
+      case 'acudiente':
+        return 'Acudiente';
+      default:
+        return tipo;
+    }
+  }
+
+  private ordenDeTipo(tipo: string): number {
+    switch (tipo) {
+      case 'estudiante':
+        return 0;
+      case 'colaborador':
+        return 1;
+      case 'acudiente':
+        return 2;
+      default:
+        return 3;
+    }
+  }
+
+  /**
+   * Ruta destino según el tipo. En el acudiente el `id_destino` es el id del
+   * ESTUDIANTE, porque la pantalla de acudientes se abre por estudiante.
+   */
+  private rutaDeDestino(fila: PersonaBuscador): string {
+    switch (fila.tipo) {
+      case 'estudiante':
+        return '/estudiantes/opciones/' + fila.id_destino;
+      case 'colaborador':
+        return '/colaboradores/opciones/' + fila.id_destino;
+      case 'acudiente':
+        return '/estudiantes/acudientes/' + fila.id_destino;
+      default:
+        return '';
+    }
+  }
+
+  esPersonaExpandida(persona: PersonaResultado): boolean {
+    return this.personasExpandidas.has(persona.id_persona);
+  }
+
+  /**
+   * Un solo destino: navega directo. Varios: despliega la lista.
+   */
+  seleccionarPersona(persona: PersonaResultado): void {
+    if (persona.destinos.length === 1) {
+      this.irADestino(persona.destinos[0]);
+      return;
+    }
+
+    if (this.personasExpandidas.has(persona.id_persona)) {
+      this.personasExpandidas.delete(persona.id_persona);
+    } else {
+      this.personasExpandidas.add(persona.id_persona);
+    }
+  }
+
+  irADestino(destino: PersonaDestino): void {
+    if (destino.ruta) {
+      this.router.navigate([destino.ruta]);
+    }
+  }
+
+  trackByPersona(_index: number, persona: PersonaResultado): string {
+    return persona.id_persona;
+  }
+
+  /**
+   * Botón de refrescar del buscador: vuelve a traer la lista de personas.
+   * Al terminar se repite la búsqueda para que lo que está en pantalla
+   * refleje los datos recién traídos.
+   */
+  refrescarPersonas(event: Event): void {
+    event.stopPropagation();
+    if (this.refrescandoPersonas) {
+      return;
+    }
+
+    this.refrescandoPersonas = true;
+    this.personasService.refrescarBuscador().subscribe({
+      next: () => {
+        this.refrescandoPersonas = false;
+        const termino = this.terminoBusqueda.trim().toLowerCase();
+        if (termino.length > 0) {
+          this.buscarPersonas(termino);
+        }
+      },
+      error: () => {
+        this.refrescandoPersonas = false;
+      },
+    });
+  }
+
+  /**
+   * Texto del tooltip del botón de refrescar, con la hora del último cargue.
+   */
+  get tituloRefrescoPersonas(): string {
+    const fecha = this.personasService.getFechaCargaBuscador();
+    if (!fecha) {
+      return 'Actualizar la lista de personas';
+    }
+    const hora = fecha.toLocaleTimeString('es-CO', {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+    return 'Personas actualizadas a las ' + hora + '. Clic para actualizar.';
   }
 
   private cargarNombreUsuario(): void {
@@ -517,6 +791,7 @@ export class MenuComponent implements OnInit {
     }).then((result) => {
       if (result.isConfirmed) {
         this.accesosRapidosService.sincronizar();
+        this.personasService.limpiarCacheBuscador();
         sessionStorage.removeItem('usuario');
         sessionStorage.removeItem('token');
         sessionStorage.removeItem('institucion_actual');
