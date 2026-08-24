@@ -66,9 +66,9 @@
                   class="chip-area"
                   *ngFor="let area of areas"
                   [class.activo]="areasSeleccionadas[area.id]"
-                  [style.background-color]="areasSeleccionadas[area.id] ? (area.color || '#f0f0f0') : null"
-                  [style.border-color]="areasSeleccionadas[area.id] ? (area.color || '#dcdcdc') : null"
-                  [style.color]="areasSeleccionadas[area.id] && area.color ? colorTextoEncabezado(area.color) : null"
+                  [style.background-color]="areasSeleccionadas[area.id] ? colorVivo(area.color) : null"
+                  [style.border-color]="areasSeleccionadas[area.id] ? colorVivo(area.color) : null"
+                  [style.color]="areasSeleccionadas[area.id] && area.color ? '#ffffff' : null"
                   (click)="toggleArea(area.id)">
             {{ area.nombre }}
           </button>
@@ -113,8 +113,8 @@
 
           <div class="tablero-header"
                [class.plegado]="estaPlegado(tablero)"
-               [style.background-color]="colorSuave(colorEncabezado(tablero), 0.18)"
-               [style.border-left-color]="colorEncabezado(tablero)"
+               [style.background-color]="colorSuave(colorEncabezado(tablero), 0.14)"
+               [style.border-left-color]="colorVivo(colorEncabezado(tablero))"
                (click)="togglePlegado(tablero)">
             <h5 class="tablero-titulo">
               <i class="fas fa-chevron-down chevron" [class.girado]="estaPlegado(tablero)"></i>
@@ -163,8 +163,7 @@
 
                   <div class="bloque-horario"
                        *ngIf="celdaDe(tablero, columna.id, indiceFranja) as celda"
-                       [style.background-color]="colorSuave(celda.horario.area_academica_color, 0.2)"
-                       [style.border-left-color]="celda.horario.area_academica_color || '#d0d0d0'"
+                       [style.border-left-color]="colorVivo(celda.horario.area_academica_color)"
                        [class.es-inicio]="celda.esInicio"
                        [class.es-fin]="celda.esFin"
                        [class.es-intermedio]="celda.esIntermedio"

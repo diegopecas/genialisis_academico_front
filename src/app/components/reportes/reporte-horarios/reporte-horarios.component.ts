@@ -447,6 +447,43 @@ export class ReporteHorariosComponent implements OnInit, OnDestroy {
     return `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${alpha})`;
   }
 
+  /**
+   * Versión intensa del color, para la barra lateral del bloque.
+   * Muchos colores de área son pastel y sobre fondo blanco casi no se ven,
+   * así que se les sube la saturación y se les baja el brillo.
+   */
+  colorVivo(color: string | null | undefined): string {
+    if (!color) return '#b0b4ba';
+
+    const [r, g, b] = this.colorRgb(color).map(c => c / 255);
+    const maximo = Math.max(r, g, b);
+    const minimo = Math.min(r, g, b);
+    const luz = (maximo + minimo) / 2;
+
+    let matiz = 0;
+    let saturacion = 0;
+
+    if (maximo !== minimo) {
+      const delta = maximo - minimo;
+      saturacion = luz > 0.5 ? delta / (2 - maximo - minimo) : delta / (maximo + minimo);
+
+      if (maximo === r) {
+        matiz = ((g - b) / delta) + (g < b ? 6 : 0);
+      } else if (maximo === g) {
+        matiz = ((b - r) / delta) + 2;
+      } else {
+        matiz = ((r - g) / delta) + 4;
+      }
+      matiz = matiz * 60;
+    }
+
+    // Un gris se deja como está; a lo demás se le sube el color
+    const saturacionFinal = saturacion === 0 ? 0 : Math.min(Math.max(saturacion, 0.7), 1) * 100;
+    const luzFinal = saturacion === 0 ? luz * 100 : Math.min(luz, 0.52) * 100;
+
+    return `hsl(${Math.round(matiz)}, ${Math.round(saturacionFinal)}%, ${Math.round(luzFinal)}%)`;
+  }
+
   // ========== Plegado de tableros ==========
 
   togglePlegado(tablero: Tablero): void {
@@ -747,38 +784,39 @@ export class ReporteHorariosComponent implements OnInit, OnDestroy {
           const y = topeGrilla + (indiceFranja * altoFranja);
           const alto = franjasBloque * altoFranja;
 
-          const color = this.mezclarSobreBlanco(this.colorRgb(horario.area_academica_color), 0.22);
-          doc.setFillColor(color[0], color[1], color[2]);
-          doc.setDrawColor(232, 234, 236);
+          // Fondo blanco y el color del área en una barra lateral marcada
+          doc.setFillColor(255, 255, 255);
+          doc.setDrawColor(236, 238, 240);
           doc.setLineWidth(0.1);
           doc.roundedRect(x + 0.4, y + 0.4, anchoColumna - 0.8, alto - 0.8, 0.6, 0.6, 'FD');
 
-          // Barra lateral con el color pleno del área
-          const barra = celda.tieneCruce ? [220, 53, 69] : this.colorRgb(horario.area_academica_color);
+          const barra = celda.tieneCruce
+            ? [220, 53, 69]
+            : this.intensificarRgb(this.colorRgb(horario.area_academica_color));
           doc.setFillColor(barra[0], barra[1], barra[2]);
-          doc.rect(x + 0.4, y + 0.4, 0.9, alto - 0.8, 'F');
+          doc.rect(x + 0.4, y + 0.4, 1.6, alto - 0.8, 'F');
 
-          doc.setTextColor(61, 75, 88);
+          doc.setTextColor(52, 66, 78);
           doc.setFontSize(5.6);
 
           const textoArea = (celda.tieneCruce ? '! ' : '') + (horario.area_academica_nombre || '');
-          doc.text(textoArea, x + 2.2, y + 2.6, { maxWidth: anchoColumna - 3.4 });
+          doc.text(textoArea, x + 2.8, y + 2.6, { maxWidth: anchoColumna - 4 });
 
           if (alto > 5) {
             doc.setFontSize(4.8);
             doc.setTextColor(138, 151, 163);
             doc.text(
               `${this.horaCorta(horario.hora_inicial)}-${this.horaCorta(horario.hora_final)} · ${horario.total_minutos}min`,
-              x + 2.2,
+              x + 2.8,
               y + 5,
-              { maxWidth: anchoColumna - 3.4 }
+              { maxWidth: anchoColumna - 4 }
             );
           }
 
           if (alto > 8 && this.mostrarDocentes && horario.docente_nombre_completo) {
             doc.setFontSize(4.8);
             doc.setTextColor(154, 165, 176);
-            doc.text(horario.docente_nombre_completo, x + 2.2, y + 7.4, { maxWidth: anchoColumna - 3.4 });
+            doc.text(horario.docente_nombre_completo, x + 2.8, y + 7.4, { maxWidth: anchoColumna - 4 });
           }
         });
       });
@@ -834,5 +872,24 @@ export class ReporteHorariosComponent implements OnInit, OnDestroy {
    */
   private mezclarSobreBlanco(rgb: number[], alpha: number): number[] {
     return rgb.map(canal => Math.round(255 + (canal - 255) * alpha));
+  }
+
+  /**
+   * Sube la saturación y baja el brillo de un color, para que la barra
+   * lateral del PDF se note igual que en pantalla. Es el equivalente en
+   * rgb de colorVivo().
+   */
+  private intensificarRgb(rgb: number[]): number[] {
+    const maximo = Math.max(...rgb);
+    const minimo = Math.min(...rgb);
+
+    // Gris: no hay color que intensificar
+    if (maximo === minimo) return rgb;
+
+    // Se estira el rango hacia el color puro y se oscurece un poco
+    return rgb.map(canal => {
+      const estirado = ((canal - minimo) / (maximo - minimo)) * 255;
+      return Math.round(estirado * 0.82);
+    });
   }
 }
