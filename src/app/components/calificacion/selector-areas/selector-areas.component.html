@@ -177,7 +177,7 @@
             <div class="horario-header-dias">
               <div class="horario-cell horario-time-header">Hora</div>
               <div class="horario-cell horario-day-header" 
-                   *ngFor="let dia of diasSemana"
+                   *ngFor="let dia of diasConHorario"
                    [class.dia-actual]="esDiaActual(dia.id)">
                 {{ dia.nombre }}
               </div>
@@ -189,7 +189,7 @@
                  [class.fila-hora-punto]="esFilaHoraEnPunto(hora)">
               <div class="horario-cell horario-time-cell">{{ etiquetaHora(hora) }}</div>
               <div class="horario-cell horario-content-cell" 
-                   *ngFor="let dia of diasSemana"
+                   *ngFor="let dia of diasConHorario"
                    [ngClass]="getClaseHorario(dia.id, hora)"
                    [class.columna-dia-actual]="esDiaActual(dia.id)">
                 

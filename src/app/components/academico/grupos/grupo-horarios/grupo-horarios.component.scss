@@ -142,6 +142,10 @@ $light-gold: rgba(212, 175, 55, 0.1);
 
       .horario-content-cell.sin-horario {
         cursor: crosshair;
+
+        &:hover {
+          background-color: #f4f4f4;
+        }
       }
 
       .celda-vacia {
@@ -166,7 +170,7 @@ $light-gold: rgba(212, 175, 55, 0.1);
     display: grid;
     grid-template-columns: 60px repeat(7, 1fr);
     border-bottom: none;
-    min-height: 9px;
+    min-height: 7px;
 
     &.fila-etiqueta {
       border-top: 1px solid #ececec;
@@ -235,11 +239,13 @@ $light-gold: rgba(212, 175, 55, 0.1);
   .horario-content-cell {
     position: relative;
     cursor: pointer;
-    transition: background-color 0.2s ease;
     padding: 0;
 
+    // El hover por franja de 5 min se veía como un acordeón, así que solo
+    // se resalta en modo agregar, que es cuando hace falta apuntar.
+    // La clase modo-agregar vive en el contenedor de la grilla.
     &.sin-horario:hover {
-      background-color: #f0f0f0;
+      background-color: transparent;
     }
 
     &.tiene-horario {
@@ -294,10 +300,6 @@ $light-gold: rgba(212, 175, 55, 0.1);
     // sobre las franjas intermedias, que van vacías.
     overflow: visible;
 
-    &:hover {
-      filter: brightness(0.97);
-    }
-
     &.es-inicio {
       border-top-color: #eceef0;
       border-top-left-radius: 4px;
@@ -318,34 +320,41 @@ $light-gold: rgba(212, 175, 55, 0.1);
       border-top: none;
       border-bottom: none;
       padding: 0;
-      min-height: 9px;
+      min-height: 7px;
     }
 
-    &:hover {
-      transform: translateX(2px);
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-      z-index: 10;
-
-      .btn-eliminar-horario-calendar {
-        opacity: 1;
-      }
+    // Cada franja de 5 min es un div propio: al desplazar y sombrear solo la
+    // que está bajo el mouse, el bloque se veía como un acordeón. Se deja
+    // únicamente aparecer el botón de eliminar, sin mover nada.
+    &:hover .btn-eliminar-horario-calendar {
+      opacity: 1;
     }
 
+    // El texto se ancla al ancho de la celda y se desborda solo hacia abajo,
+    // así un nombre largo no empuja el bloque sobre la columna vecina
     .horario-block-titulo {
-      font-size: 0.58rem;
+      position: absolute;
+      top: 2px;
+      left: 7px;
+      right: 3px;
+      font-size: 0.56rem;
       font-weight: 700;
       color: #34424e;
       text-transform: uppercase;
-      line-height: 1.15;
+      line-height: 1.1;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
 
     .horario-block-hora {
-      font-size: 0.52rem;
+      position: absolute;
+      top: 11px;
+      left: 7px;
+      right: 3px;
+      font-size: 0.5rem;
       color: #8a97a3;
-      line-height: 1.15;
+      line-height: 1.1;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;

@@ -286,12 +286,15 @@ $color-text: #555555;
   display: flex;
   flex-direction: column;
   box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08);
-  min-width: 700px;
+  min-width: 560px;
 }
 
+// Las columnas se arman con auto-fit: solo se listan los días que tienen
+// clase, así no quedan columnas vacías ocupando espacio
 .horario-header-dias {
   display: grid;
-  grid-template-columns: grilla.$grilla-ancho-hora repeat(7, 1fr);
+  grid-template-columns: grilla.$grilla-ancho-hora repeat(auto-fit, minmax(0, 1fr));
+  grid-auto-flow: column;
   background: #f6f7f8;
   border-bottom: 2px solid #e4e6e8;
 
@@ -300,6 +303,11 @@ $color-text: #555555;
     font-weight: 800;
     color: #8a5a00;
   }
+}
+
+.horario-row {
+  grid-template-columns: grilla.$grilla-ancho-hora repeat(auto-fit, minmax(0, 1fr));
+  grid-auto-flow: column;
 }
 
 // El día de hoy se resalta con una columna apenas teñida

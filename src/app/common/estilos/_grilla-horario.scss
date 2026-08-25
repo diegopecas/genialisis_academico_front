@@ -163,14 +163,9 @@ $grilla-color-rojo: #dc3545;
   border-bottom: 1px solid transparent;
   overflow: visible;
   cursor: pointer;
-  transition: filter 0.15s ease;
   // Sin esto el texto en nowrap ensancha el bloque y se sale de su columna
   min-width: 0;
   box-sizing: border-box;
-
-  &:hover {
-    filter: brightness(0.97);
-  }
 
   // El texto vive en la franja donde arranca el bloque y se desborda hacia
   // abajo, sobre las franjas intermedias, que van vacías.
@@ -200,12 +195,15 @@ $grilla-color-rojo: #dc3545;
 
 .horario-block-titulo,
 .bloque-area {
-  max-width: 100%;
-  font-size: 0.58rem;
+  position: absolute;
+  top: 2px;
+  left: 7px;
+  right: 3px;
+  font-size: 0.56rem;
   font-weight: 700;
   color: $grilla-color-texto;
   text-transform: uppercase;
-  line-height: 1.15;
+  line-height: 1.1;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -213,10 +211,13 @@ $grilla-color-rojo: #dc3545;
 
 .horario-block-hora,
 .bloque-hora {
-  max-width: 100%;
-  font-size: 0.52rem;
+  position: absolute;
+  top: 11px;
+  left: 7px;
+  right: 3px;
+  font-size: 0.5rem;
   color: #8a97a3;
-  line-height: 1.15;
+  line-height: 1.1;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
