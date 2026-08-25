@@ -9,6 +9,7 @@ import { HeaderComponent } from '../../../common/header/header.component';
 import { CuentasPorCobrarService } from '../../../services/cuentas-por-cobrar.service';
 import { CuentaPagadaService } from '../../../services/cuenta-pagada.service';
 import { GruposService } from '../../../services/grupos.service';
+import { normalizarTexto } from '../../../common/pipes/search';
 
 // Interfaces
 interface EstudianteCartera {
@@ -1104,12 +1105,9 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
       }
     }
 
-    // Filtrar por búsqueda
+    // Filtrar por búsqueda: nombre o número de identificación
     if (this.busquedaEstudiante) {
-      const busqueda = this.busquedaEstudiante.toLowerCase();
-      filtrados = filtrados.filter(est =>
-        est.nombre_estudiante.toLowerCase().includes(busqueda)
-      );
+      filtrados = filtrados.filter(est => this.coincideBusqueda(est));
     }
 
     this.estudiantesFiltrados = filtrados;
@@ -1147,12 +1145,9 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
       }
     }
 
-    // Filtrar por búsqueda
+    // Filtrar por búsqueda: nombre o número de identificación
     if (this.busquedaEstudiante) {
-      const busqueda = this.busquedaEstudiante.toLowerCase();
-      filtrados = filtrados.filter(col =>
-        col.nombre_estudiante.toLowerCase().includes(busqueda)
-      );
+      filtrados = filtrados.filter(col => this.coincideBusqueda(col));
     }
 
     this.colaboradoresFiltrados = filtrados;
@@ -1205,6 +1200,43 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
     this.aplicarFiltros();
     this.aplicarFiltrosColaboradores();
     this.filtrarTodosLosComponentes();
+    this.filtrarAnulados();
+  }
+
+  limpiarBusquedaEstudiante(): void {
+    this.busquedaEstudiante = '';
+    this.buscarEstudiante();
+  }
+
+  /**
+   * Compara el texto buscado contra el nombre y el número de identificación
+   * de la persona, sin tildes y sin importar mayúsculas.
+   */
+  private coincideBusqueda(persona: any): boolean {
+    if (!this.busquedaEstudiante) return true;
+
+    const busqueda = normalizarTexto(this.busquedaEstudiante).trim();
+    if (!busqueda) return true;
+
+    return normalizarTexto(persona?.nombre_estudiante).includes(busqueda)
+      || normalizarTexto(persona?.numero_identificacion).includes(busqueda);
+  }
+
+  /**
+   * Ids de las personas que coinciden con la búsqueda, entre estudiantes y
+   * colaboradores. Los movimientos diarios y los anulados no traen el número
+   * de identificación, así que se filtran contra este conjunto.
+   */
+  private personasQueCoincidenConLaBusqueda(): Set<string> {
+    const ids = new Set<string>();
+
+    [...this.estudiantes, ...this.colaboradores].forEach(persona => {
+      if (this.coincideBusqueda(persona) && persona.id_persona) {
+        ids.add(persona.id_persona);
+      }
+    });
+
+    return ids;
   }
 
   resetearFiltros(): void {
@@ -1337,6 +1369,15 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
         // decidir si incluirlo o no según tu lógica de negocio
         return false; // o true si quieres incluir movimientos sin estudiante
       });
+    }
+
+    // Filtrar por la búsqueda de nombre o identificación. El movimiento no
+    // trae el número de identificación, así que se cruza por id_persona.
+    if (this.busquedaEstudiante) {
+      const personasBuscadas = this.personasQueCoincidenConLaBusqueda();
+      filtrados = filtrados.filter(mov => mov.id_persona
+        ? personasBuscadas.has(mov.id_persona)
+        : false);
     }
 
     this.movimientoDiarioFiltrado = filtrados;
@@ -1692,8 +1733,7 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
       }
     }
     if (this.busquedaEstudiante) {
-      const busqueda = this.busquedaEstudiante.toLowerCase();
-      filtrados = filtrados.filter(est => est.nombre_estudiante.toLowerCase().includes(busqueda));
+      filtrados = filtrados.filter(est => this.coincideBusqueda(est));
     }
 
     let filtradosConSaldo: EstudianteCarteraConSaldoPendiente[] = filtrados.map(est => ({
@@ -2007,8 +2047,7 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
       }
     }
     if (this.busquedaEstudiante) {
-      const busqueda = this.busquedaEstudiante.toLowerCase();
-      filtrados = filtrados.filter(est => est.nombre_estudiante.toLowerCase().includes(busqueda));
+      filtrados = filtrados.filter(est => this.coincideBusqueda(est));
     }
 
     let filtradosConPagos: EstudianteCarteraConPagos[] = filtrados.map(est => ({
@@ -3376,6 +3415,14 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
         }
         return false;
       });
+    }
+
+    // Filtrar por la búsqueda de nombre o identificación, cruzando por persona
+    if (this.busquedaEstudiante) {
+      const personasBuscadas = this.personasQueCoincidenConLaBusqueda();
+      filtrados = filtrados.filter(mov => mov.id_persona
+        ? personasBuscadas.has(mov.id_persona)
+        : false);
     }
 
     this.anuladosFiltrados = filtrados;

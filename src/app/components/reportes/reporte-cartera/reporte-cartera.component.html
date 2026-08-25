@@ -43,8 +43,12 @@
     <div class="col-md-6">
       <div class="input-group">
         <span class="input-group-text"><i class="fas fa-search"></i></span>
-        <input type="text" class="form-control" placeholder="Buscar estudiante por nombre..."
-          [(ngModel)]="busquedaEstudiante" (keyup)="buscarEstudiante()">
+        <input type="text" class="form-control" placeholder="Buscar por nombre o identificación..."
+          [(ngModel)]="busquedaEstudiante" (ngModelChange)="buscarEstudiante()">
+        <button class="btn btn-outline-secondary" type="button" *ngIf="busquedaEstudiante"
+          (click)="limpiarBusquedaEstudiante()" title="Limpiar búsqueda">
+          <i class="fas fa-times"></i>
+        </button>
       </div>
     </div>
     <div class="col-md-6 text-end">

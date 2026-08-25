@@ -28,8 +28,31 @@ $desktop: 992px;
 $gold: #D4A03C;
 $light-gold: rgba(212, 160, 60, 0.12);
 
+// Son diez tabs: en una sola fila no caben y al envolverse la segunda línea
+// se montaba sobre el contenido. Se dejan en una sola fila con scroll.
 .tabs-desktop {
   display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+
+  .nav-item {
+    flex: 0 0 auto;
+  }
+
+  &::-webkit-scrollbar {
+    height: 5px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #d0d0d0;
+    border-radius: 3px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
 }
 
 .tabs-movil {
@@ -284,8 +307,10 @@ $light-gold: rgba(212, 160, 60, 0.12);
   .nav-link {
     color: #6c757d;
     border: none;
-    padding: 0.75rem 1.5rem;
+    padding: 0.7rem 1rem;
     font-weight: 500;
+    font-size: 0.92rem;
+    white-space: nowrap;
     transition: all 0.3s ease;
 
     @media (max-width: $mobile) {
