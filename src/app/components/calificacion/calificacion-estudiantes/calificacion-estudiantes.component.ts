@@ -144,6 +144,33 @@ export class CalificacionEstudiantesComponent implements OnInit {
         pc.valores = (valores.where("id_parametros_calificaciones", pc.id) as any).items
           .sort((a: any, b: any) => a.valor_cuantitativo - b.valor_cuantitativo);
       });
+
+      // Los estudiantes y los parámetros se cargan en paralelo. Si los
+      // estudiantes llegaron primero, sus parámetros quedaron sin valores y
+      // las estrellas no se pintan, así que aquí se les completan.
+      this.sincronizarValoresEnEstudiantes();
+    });
+  }
+
+  /**
+   * Copia los valores de cada parámetro global a los parámetros que cuelgan de
+   * cada estudiante y resuelve cuál quedó seleccionado según su calificación.
+   */
+  private sincronizarValoresEnEstudiantes(): void {
+    const todos = [...this.estudiantes, ...this.estudiantesAusentes];
+
+    todos.forEach(estudiante => {
+      (estudiante.parametrosCalificaciones || []).forEach((epc: any) => {
+        if (!epc.valores || epc.valores.length === 0) {
+          const global = this.parametrosCalificaciones.find((pc: any) => pc.id == epc.id);
+          epc.valores = global && global.valores ? JSON.parse(JSON.stringify(global.valores)) : [];
+        }
+
+        if (epc.idValorSeleccionado && !epc.seleccionado) {
+          epc.seleccionado = (epc.valores || [])
+            .find((v: any) => v.id == epc.idValorSeleccionado);
+        }
+      });
     });
   }
 
@@ -191,6 +218,9 @@ export class CalificacionEstudiantesComponent implements OnInit {
 
         this.estudiantes = presentes;
         this.estudiantesAusentes = ausentes;
+
+        // Por si los valores de los parámetros llegaron antes que los estudiantes
+        this.sincronizarValoresEnEstudiantes();
       });
   }
 
@@ -211,6 +241,9 @@ export class CalificacionEstudiantesComponent implements OnInit {
         (c: any) => c.id_parametro_calificacion == epc.id
       );
       if (cal) {
+        // Se guarda el id aparte: si los valores todavía no llegaron, el
+        // seleccionado se resuelve después en sincronizarValoresEnEstudiantes
+        epc.idValorSeleccionado = cal.id_valor_parametro_calificacion;
         epc.seleccionado = (epc.valores || []).find(
           (v: any) => v.id == cal.id_valor_parametro_calificacion
         );
@@ -370,13 +403,12 @@ export class CalificacionEstudiantesComponent implements OnInit {
   }
 
   /**
-   * Estudiantes a los que aplica la calificación masiva: los presentes y,
-   * cuando la actividad es de evaluación, también los ausentes.
+   * Estudiantes a los que aplica la calificación masiva: únicamente los que
+   * están presentes en ese momento. Los ausentes quedan por fuera y, si hay
+   * que calificarlos, se hace uno por uno desde su acordeón.
    */
   private get estudiantesParaMasivo(): any[] {
-    return this.esEvaluacion
-      ? [...this.estudiantes, ...this.estudiantesAusentes]
-      : this.estudiantes;
+    return this.estudiantes;
   }
 
   private tieneCalificacion(estudiante: any, idParametro: any): boolean {
@@ -386,8 +418,9 @@ export class CalificacionEstudiantesComponent implements OnInit {
   }
 
   /**
-   * Aplica el valor elegido a todos los estudiantes que aún no tienen nota
-   * en ese parámetro. Los que ya están calificados no se tocan.
+   * Aplica el valor elegido a los estudiantes presentes que aún no tienen
+   * nota en ese parámetro. Los que ya están calificados no se tocan, y los
+   * ausentes nunca entran.
    */
   aplicarATodos(parametro: any): void {
     const valorParametro = this.valoresMasivos[parametro.id];
@@ -423,7 +456,10 @@ export class CalificacionEstudiantesComponent implements OnInit {
           const parametroEstudiante = (estudiante.parametrosCalificaciones || [])
             .find((p: any) => p.id == parametro.id);
           if (parametroEstudiante) {
-            parametroEstudiante.seleccionado = (parametroEstudiante.valores || [])
+            parametroEstudiante.idValorSeleccionado = valorParametro.id;
+            // Se busca contra los valores del parámetro global: los del
+            // estudiante podrían no estar cargados todavía
+            parametroEstudiante.seleccionado = (parametro.valores || [])
               .find((v: any) => v.id == valorParametro.id);
             parametroEstudiante.guardado = creada.id_calificacion;
           }
