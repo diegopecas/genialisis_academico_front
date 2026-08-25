@@ -385,14 +385,64 @@ export class CrearProductosServiciosComponent implements OnInit {
     }
   }
 
+  /**
+   * Convierte una fecha 'YYYY-MM-DD' del input en un Date en hora LOCAL.
+   *
+   * No se puede usar `new Date('2026-08-01')` porque JavaScript interpreta esa
+   * cadena como medianoche UTC, y en Colombia (UTC-5) eso equivale al 31 de
+   * julio a las 7 p.m. Al leerle el mes se obtenia julio, el ciclo arrancaba un
+   * mes antes y se generaba una cuenta de mas cuando la fecha inicial era el
+   * primero del mes.
+   *
+   * Devuelve null si la cadena viene vacia o con un formato que no se reconoce.
+   */
+  private fechaLocalDesdeTexto(texto: string): Date | null {
+    if (!texto) {
+      return null;
+    }
+
+    const partes = texto.split('-');
+    if (partes.length !== 3) {
+      return null;
+    }
+
+    const anio = Number(partes[0]);
+    const mes = Number(partes[1]);
+    const dia = Number(partes[2]);
+
+    if (!anio || !mes || !dia) {
+      return null;
+    }
+
+    return new Date(anio, mes - 1, dia);
+  }
+
+  /**
+   * Formatea un Date local como 'YYYY-MM-DD' sin pasar por UTC, que es lo que
+   * hace toISOString() y lo que corre el dia cuando la hora local esta cerca
+   * del limite.
+   */
+  private textoDesdeFechaLocal(fecha: Date): string {
+    const anio = fecha.getFullYear();
+    const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+    const dia = String(fecha.getDate()).padStart(2, '0');
+
+    return `${anio}-${mes}-${dia}`;
+  }
+
   crearCuentasMensuales() {
     if (!this.fechaInicial || !this.fechaFinal) {
       Swal.fire('Error', 'Debe especificar fecha inicial y fecha final para productos mensuales', 'error');
       return;
     }
 
-    const fechaIni = new Date(this.fechaInicial);
-    const fechaFin = new Date(this.fechaFinal);
+    const fechaIni = this.fechaLocalDesdeTexto(this.fechaInicial);
+    const fechaFin = this.fechaLocalDesdeTexto(this.fechaFinal);
+
+    if (!fechaIni || !fechaFin) {
+      Swal.fire('Error', 'La fecha inicial o la fecha final no son válidas', 'error');
+      return;
+    }
 
     if (fechaFin < fechaIni) {
       Swal.fire('Error', 'La fecha final debe ser posterior a la fecha inicial', 'error');
@@ -409,7 +459,9 @@ export class CrearProductosServiciosComponent implements OnInit {
         id: '',
         id_producto_servicio: this.model.id_producto_servicio,
         id_persona: this.model.id_persona,
-        fecha: currentDate.toISOString().split('T')[0],
+        // Se arma el texto a mano en vez de usar toISOString(), que convierte a
+        // UTC y puede correr el dia segun la hora.
+        fecha: this.textoDesdeFechaLocal(currentDate),
         valor: this.model.valor,
         detalle: this.model.detalle,
         id_usuario: this.model.id_usuario,
