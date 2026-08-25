@@ -381,6 +381,9 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
   public productosSeleccionados: string[] = [];
   public dropdownProductosAbierto: boolean = false;
   public busquedaProducto: string = '';
+  // true cuando hay filtro activo: en ese caso las columnas de cobrado a
+  // este mes y cobrado futuro no se pueden recalcular en el front
+  public productosConDesgloseParcial: boolean = false;
   public clasificacionesUnicasProductos: { id: string, nombre: string }[] = [];
   public productosUnicos: { id: string, nombre: string }[] = [];
   constructor(
@@ -3086,9 +3089,51 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
       );
     }
 
-    // Si hay filtros de grupo o estado aplicados
-    if (this.grupoSeleccionado || this.estadoSeleccionado || this.busquedaEstudiante) {
-      // Los datos ya vienen correctos del backend
+    // Con filtros de grupo, estado o búsqueda activos, los totales del backend
+    // corresponden a todo el jardín, así que se recalculan sumando solo lo de
+    // las personas que quedaron visibles.
+    this.productosConDesgloseParcial = !!(this.grupoSeleccionado || this.estadoSeleccionado || this.busquedaEstudiante);
+
+    if (this.productosConDesgloseParcial) {
+      const personasVisibles = [...this.estudiantesFiltrados, ...this.colaboradoresFiltrados];
+
+      filtrados = filtrados.map(producto => {
+        let cobrado = 0;
+        let pagado = 0;
+        let personasConProducto = 0;
+
+        personasVisibles.forEach(persona => {
+          const valores = persona.productos ? persona.productos[producto.id_producto] : null;
+          if (!valores) return;
+
+          cobrado += valores.cobrado || 0;
+          pagado += valores.pagado || 0;
+          if ((valores.cobrado || 0) > 0 || (valores.pagado || 0) > 0) {
+            personasConProducto++;
+          }
+        });
+
+        const saldo = cobrado - pagado;
+
+        return {
+          ...producto,
+          total_cobrado: cobrado,
+          total_pagado: pagado,
+          saldo_total: saldo,
+          // El desglose por persona solo guarda cobrado y pagado, así que
+          // "a este mes" y "futuro" no se pueden recalcular aquí. Se ponen en
+          // cero y la tabla los muestra como no disponibles mientras haya filtro.
+          total_cobrado_a_este_mes: 0,
+          total_cobrado_futuro: 0,
+          cantidad_estudiantes: personasConProducto,
+          porcentaje_recaudo: cobrado > 0 ? Math.round((pagado / cobrado) * 100) : 0
+        };
+      });
+
+      // Se ocultan los productos que ya no le aplican a nadie de los visibles
+      filtrados = filtrados.filter(producto =>
+        producto.total_cobrado > 0 || producto.total_pagado > 0
+      );
     }
 
     this.datosProductosFiltrados = filtrados;
@@ -3234,8 +3279,9 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
           'Producto': producto.nombre_producto,
           'Clasificación': producto.nombre_clasificacion,
           'Total Cobrado': producto.total_cobrado,
-          'Cobrado a Este Mes': producto.total_cobrado_a_este_mes,
-          'Cobrado Futuro': producto.total_cobrado_futuro,
+          // Con filtros activos el desglose no se puede calcular por persona
+          'Cobrado a Este Mes': this.productosConDesgloseParcial ? 'No disponible con filtros' : producto.total_cobrado_a_este_mes,
+          'Cobrado Futuro': this.productosConDesgloseParcial ? 'No disponible con filtros' : producto.total_cobrado_futuro,
           'Total Pagado': producto.total_pagado,
           'Saldo Total': producto.saldo_total,
           'Saldo Vencido': producto.saldo_vencido,

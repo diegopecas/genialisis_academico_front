@@ -669,6 +669,14 @@
               </div>
             </div>
 
+            <!-- Aviso cuando los totales están recalculados sobre lo filtrado -->
+            <div class="aviso-desglose-parcial" *ngIf="productosConDesgloseParcial">
+              <i class="fas fa-info-circle"></i>
+              Los totales corresponden solo a las personas que dejan ver los filtros.
+              <strong>Cobrado a Este Mes</strong> y <strong>Cobrado Futuro</strong> se muestran como
+              &mdash; porque ese desglose no se puede calcular por persona.
+            </div>
+
             <!-- Tabla de productos agrupados por clasificación -->
             <div class="table-responsive tabla-columna-fija">
               <table class="table table-hover">
@@ -705,8 +713,14 @@
                         <span class="badge bg-info">{{ producto.nombre_clasificacion }}</span>
                       </td>
                       <td class="text-end">{{ producto.total_cobrado | currency:'':'symbol':'1.0-0' }}</td>
-                      <td class="text-end">{{ producto.total_cobrado_a_este_mes | currency:'':'symbol':'1.0-0' }}</td>
-                      <td class="text-end">{{ producto.total_cobrado_futuro | currency:'':'symbol':'1.0-0' }}</td>
+                      <td class="text-end">
+                        <span *ngIf="!productosConDesgloseParcial">{{ producto.total_cobrado_a_este_mes | currency:'':'symbol':'1.0-0' }}</span>
+                        <span *ngIf="productosConDesgloseParcial" class="dato-no-disponible" title="No disponible con filtros aplicados">—</span>
+                      </td>
+                      <td class="text-end">
+                        <span *ngIf="!productosConDesgloseParcial">{{ producto.total_cobrado_futuro | currency:'':'symbol':'1.0-0' }}</span>
+                        <span *ngIf="productosConDesgloseParcial" class="dato-no-disponible" title="No disponible con filtros aplicados">—</span>
+                      </td>
                       <td class="text-end">{{ producto.total_pagado | currency:'':'symbol':'1.0-0' }}</td>
                       <td class="text-end" [ngClass]="{'text-danger': producto.saldo_total > 0}">
                         {{ producto.saldo_total | currency:'':'symbol':'1.0-0' }}
@@ -736,12 +750,14 @@
                         currency:'':'symbol':'1.0-0' }}
                       </td>
                       <td class="text-end">
-                        {{ getSubtotalClasificacionProductos(clasificacion.key, 'total_cobrado_a_este_mes') |
-                        currency:'':'symbol':'1.0-0' }}
+                        <span *ngIf="productosConDesgloseParcial" class="dato-no-disponible">—</span>
+                        <span *ngIf="!productosConDesgloseParcial">{{ getSubtotalClasificacionProductos(clasificacion.key, 'total_cobrado_a_este_mes') |
+                        currency:'':'symbol':'1.0-0' }}</span>
                       </td>
                       <td class="text-end">
-                        {{ getSubtotalClasificacionProductos(clasificacion.key, 'total_cobrado_futuro') |
-                        currency:'':'symbol':'1.0-0' }}
+                        <span *ngIf="productosConDesgloseParcial" class="dato-no-disponible">—</span>
+                        <span *ngIf="!productosConDesgloseParcial">{{ getSubtotalClasificacionProductos(clasificacion.key, 'total_cobrado_futuro') |
+                        currency:'':'symbol':'1.0-0' }}</span>
                       </td>
                       <td class="text-end">
                         {{ getSubtotalClasificacionProductos(clasificacion.key, 'total_pagado') |
@@ -786,9 +802,13 @@
                   <tr class="fw-bold">
                     <th colspan="2">TOTAL GENERAL</th>
                     <th class="text-end">{{ getTotalProductos('total_cobrado') | currency:'':'symbol':'1.0-0' }}</th>
-                    <th class="text-end">{{ getTotalProductos('total_cobrado_a_este_mes') | currency:'':'symbol':'1.0-0'
-                      }}</th>
-                    <th class="text-end">{{ getTotalProductos('total_cobrado_futuro') | currency:'':'symbol':'1.0-0' }}
+                    <th class="text-end">
+                      <span *ngIf="productosConDesgloseParcial" class="dato-no-disponible">—</span>
+                      <span *ngIf="!productosConDesgloseParcial">{{ getTotalProductos('total_cobrado_a_este_mes') | currency:'':'symbol':'1.0-0' }}</span>
+                    </th>
+                    <th class="text-end">
+                      <span *ngIf="productosConDesgloseParcial" class="dato-no-disponible">—</span>
+                      <span *ngIf="!productosConDesgloseParcial">{{ getTotalProductos('total_cobrado_futuro') | currency:'':'symbol':'1.0-0' }}</span>
                     </th>
                     <th class="text-end">{{ getTotalProductos('total_pagado') | currency:'':'symbol':'1.0-0' }}</th>
                     <th class="text-end" [ngClass]="{'text-danger': getTotalProductos('saldo_total') > 0}">
