@@ -14,8 +14,10 @@ import { httpOptions } from './http';
  * Fila del buscador de personas del menú principal.
  * Es una fila por DESTINO, no por persona: quien es colaboradora y además
  * acudiente de dos niños aparece en tres filas con el mismo id_persona.
- * - `id_destino` es el id del estudiante, del colaborador o del estudiante
- *   al que está asociado el acudiente, según el `tipo`.
+ * - `id_destino` es el id del registro al que se navega: el estudiante, el
+ *   colaborador o el acudiente, según el `tipo`.
+ * - `id_secundario` solo viene en el acudiente y trae el id del estudiante,
+ *   porque la pantalla de editar acudiente pide los dos en la ruta.
  * - `detalle` es el texto de apoyo (cargo del colaborador, "Madre de Sofía").
  */
 export interface PersonaBuscador {
@@ -24,6 +26,7 @@ export interface PersonaBuscador {
   numero_identificacion: string;
   tipo: 'estudiante' | 'colaborador' | 'acudiente';
   id_destino: string;
+  id_secundario: string | null;
   activo: number;
   detalle: string | null;
 }

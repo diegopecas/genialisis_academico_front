@@ -507,8 +507,12 @@ export class MenuComponent implements OnInit {
   }
 
   /**
-   * Ruta destino según el tipo. En el acudiente el `id_destino` es el id del
-   * ESTUDIANTE, porque la pantalla de acudientes se abre por estudiante.
+   * Ruta destino según el tipo.
+   *
+   * El acudiente va derecho a su pantalla de edición, que necesita el id del
+   * acudiente y el del estudiante. Esa ruta está protegida con
+   * `estudiantes.acudientes.administrar`; quien no lo tenga se queda en el
+   * listado de acudientes del estudiante, que sí puede ver.
    */
   private rutaDeDestino(fila: PersonaBuscador): string {
     switch (fila.tipo) {
@@ -517,7 +521,18 @@ export class MenuComponent implements OnInit {
       case 'colaborador':
         return '/colaboradores/opciones/' + fila.id_destino;
       case 'acudiente':
-        return '/estudiantes/acudientes/' + fila.id_destino;
+        if (
+          fila.id_secundario &&
+          this.permisosService.tienePermiso('estudiantes.acudientes.administrar')
+        ) {
+          return (
+            '/estudiantes/acudientes/editar/' +
+            fila.id_destino +
+            '/' +
+            fila.id_secundario
+          );
+        }
+        return '/estudiantes/acudientes/' + (fila.id_secundario || '');
       default:
         return '';
     }
