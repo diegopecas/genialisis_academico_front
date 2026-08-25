@@ -1,0 +1,300 @@
+// =====================================================================
+// Grilla de horario · estilos compartidos
+//
+// Lo usan todas las pantallas que dibujan una semana de horarios:
+//   - academico/grupos/grupo-horarios      (edición con arrastre)
+//   - calificacion/selector-areas          (consulta)
+//   - academico/sprints/crear-sprints      (consulta)
+//   - colaboradores/crear-colaboradores    (consulta)
+//   - reportes/reporte-horarios            (reporte, con sus propias clases)
+//
+// La grilla trabaja en franjas de 5 minutos, para soportar clases de 30,
+// 40, 45 o 60 minutos. Solo se pinta la línea cada media hora y se marca
+// más fuerte la hora en punto, para que no se vea saturada.
+//
+// Cómo usarlo desde el SCSS de un componente:
+//   @use '../../../common/estilos/grilla-horario' as grilla;
+//   (ajustando los ../ según la profundidad de la carpeta)
+//
+// Las clases quedan disponibles tal cual; no hace falta envolverlas.
+// =====================================================================
+
+$grilla-alto-franja: 7px;
+$grilla-alto-franja-movil: 6px;
+$grilla-ancho-hora: 60px;
+$grilla-ancho-hora-movil: 46px;
+
+$grilla-color-texto: #34424e;
+$grilla-color-linea: #f0f0f0;
+$grilla-color-linea-hora: #dcdcdc;
+$grilla-color-borde: #eceef0;
+$grilla-color-rojo: #dc3545;
+
+// ---------------------------------------------------------------------
+// Contenedor
+// ---------------------------------------------------------------------
+
+.horario-grid {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow-x: auto;
+  background: #fff;
+
+  &::-webkit-scrollbar {
+    height: 8px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 4px;
+  }
+}
+
+// ---------------------------------------------------------------------
+// Filas y celdas
+// ---------------------------------------------------------------------
+
+// Cada fila es una franja de 5 minutos: sin línea propia, salvo cada media
+// hora y, más marcada, en la hora en punto.
+.horario-row {
+  display: grid;
+  grid-template-columns: $grilla-ancho-hora repeat(7, 1fr);
+  border-bottom: none;
+  min-height: $grilla-alto-franja;
+
+  &.fila-etiqueta {
+    border-top: 1px solid $grilla-color-linea;
+  }
+
+  &.fila-hora-punto {
+    border-top: 1px solid $grilla-color-linea-hora;
+  }
+
+  &:first-child {
+    border-top: none;
+  }
+}
+
+.horario-cell {
+  padding: 0;
+  border-right: 1px solid #e0e0e0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+
+  &:last-child {
+    border-right: none;
+  }
+}
+
+// La columna de la hora queda fija al desplazar en horizontal
+.horario-time-cell {
+  background: #f8f9fa;
+  font-weight: 600;
+  color: #adb5bd;
+  font-size: 0.62rem;
+  padding: 0;
+  align-items: flex-start;
+  line-height: 1;
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  transform: translateY(-1px);
+  border-right: 1px solid #e4e6e8;
+}
+
+.fila-hora-punto .horario-time-cell {
+  color: #495057;
+  font-size: 0.68rem;
+}
+
+.horario-content-cell {
+  padding: 0;
+  position: relative;
+}
+
+// ---------------------------------------------------------------------
+// Encabezado
+// ---------------------------------------------------------------------
+
+.horario-header {
+  display: grid;
+  grid-template-columns: $grilla-ancho-hora repeat(7, 1fr);
+  background: #f6f7f8;
+  border-bottom: 2px solid #e4e6e8;
+  position: sticky;
+  top: 0;
+  z-index: 3;
+}
+
+.horario-time-header,
+.horario-day-header {
+  font-weight: 600;
+  color: #6c757d;
+  font-size: 0.7rem;
+  text-align: center;
+  padding: 0.4rem 0.3rem;
+}
+
+// La esquina superior izquierda queda fija en los dos ejes
+.horario-time-header {
+  position: sticky;
+  left: 0;
+  z-index: 4;
+  background: #f0f1f3;
+  border-right: 1px solid #e4e6e8;
+}
+
+// ---------------------------------------------------------------------
+// Bloques
+// ---------------------------------------------------------------------
+
+// El fondo va con un tinte apenas perceptible, solo para separar el bloque
+// del hueco vacío. Lo que identifica el área es la barra lateral viva, que
+// se pinta inline con el color del área.
+.horario-block {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-left: 5px solid transparent;
+  border-top: 1px solid transparent;
+  border-right: 1px solid transparent;
+  border-bottom: 1px solid transparent;
+  overflow: visible;
+  cursor: pointer;
+  transition: filter 0.15s ease;
+  // Sin esto el texto en nowrap ensancha el bloque y se sale de su columna
+  min-width: 0;
+  box-sizing: border-box;
+
+  &:hover {
+    filter: brightness(0.97);
+  }
+
+  // El texto vive en la franja donde arranca el bloque y se desborda hacia
+  // abajo, sobre las franjas intermedias, que van vacías.
+  &.es-inicio {
+    border-top-color: $grilla-color-borde;
+    border-right-color: $grilla-color-borde;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    padding: 2px 5px 0;
+    z-index: 2;
+  }
+
+  &.es-intermedio {
+    border-right-color: $grilla-color-borde;
+    border-radius: 0;
+    padding: 0;
+    min-height: $grilla-alto-franja;
+  }
+
+  &.es-fin {
+    border-right-color: $grilla-color-borde;
+    border-bottom-color: $grilla-color-borde;
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 4px;
+  }
+}
+
+.horario-block-titulo,
+.bloque-area {
+  max-width: 100%;
+  font-size: 0.58rem;
+  font-weight: 700;
+  color: $grilla-color-texto;
+  text-transform: uppercase;
+  line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.horario-block-hora,
+.bloque-hora {
+  max-width: 100%;
+  font-size: 0.52rem;
+  color: #8a97a3;
+  line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.horario-block-detalle,
+.bloque-docente {
+  font-size: 0.52rem;
+  color: #9aa5b0;
+  line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// Celda sin nada: en franjas de 5 min no cabe ningún icono, así que solo
+// se resalta al pasar por encima
+.celda-vacia {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ccc;
+  font-size: 0.9rem;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+
+  i {
+    display: none;
+  }
+
+  .horario-content-cell:hover & {
+    opacity: 1;
+  }
+}
+
+// ---------------------------------------------------------------------
+// Responsive
+// ---------------------------------------------------------------------
+
+@media (max-width: 768px) {
+  .horario-row,
+  .horario-header {
+    grid-template-columns: $grilla-ancho-hora-movil repeat(7, 1fr);
+  }
+
+  .horario-row {
+    min-height: $grilla-alto-franja-movil;
+  }
+
+  .horario-block.es-intermedio {
+    min-height: $grilla-alto-franja-movil;
+  }
+
+  .horario-time-cell {
+    font-size: 0.55rem;
+  }
+
+  .fila-hora-punto .horario-time-cell {
+    font-size: 0.6rem;
+  }
+
+  .horario-time-header,
+  .horario-day-header {
+    font-size: 0.62rem;
+    padding: 0.35rem 0.2rem;
+  }
+
+  .horario-block-titulo,
+  .bloque-area {
+    font-size: 0.55rem;
+  }
+
+  .horario-block-hora,
+  .horario-block-detalle,
+  .bloque-hora,
+  .bloque-docente {
+    font-size: 0.48rem;
+  }
+}

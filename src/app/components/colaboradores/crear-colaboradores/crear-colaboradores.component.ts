@@ -427,18 +427,39 @@ export class CrearColaboradoresComponent implements OnInit {
     if (activos.length > 0) {
       const minEntrada = Math.min(...activos.map(h => this.horaAMinutos(h.hora_entrada)));
       const maxSalida = Math.max(...activos.map(h => this.horaAMinutos(h.hora_salida)));
-      horaMin = Math.floor(minEntrada / 30) * 30;
-      horaMax = Math.ceil(maxSalida / 30) * 30;
-      if (horaMin > minEntrada - 30) horaMin = Math.max(0, horaMin - 30);
-      if (horaMax < maxSalida + 30) horaMax = Math.min(24 * 60, horaMax + 30);
+      horaMin = Math.floor(minEntrada / this.minutosPorEtiqueta) * this.minutosPorEtiqueta;
+      horaMax = Math.ceil(maxSalida / this.minutosPorEtiqueta) * this.minutosPorEtiqueta;
+      if (horaMin > minEntrada - this.minutosPorEtiqueta) horaMin = Math.max(0, horaMin - this.minutosPorEtiqueta);
+      if (horaMax < maxSalida + this.minutosPorEtiqueta) horaMax = Math.min(24 * 60, horaMax + this.minutosPorEtiqueta);
     }
 
+    // La grilla trabaja en franjas de 5 minutos, para soportar jornadas que
+    // no arrancan ni terminan en una media hora exacta
     this.horasGrilla = [];
-    for (let min = horaMin; min < horaMax; min += 30) {
+    for (let min = horaMin; min < horaMax; min += this.minutosPorBloque) {
       const h = Math.floor(min / 60);
       const m = min % 60;
       this.horasGrilla.push(`${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`);
     }
+  }
+
+  // Resolución de la grilla: franjas de 5 minutos con etiqueta cada media hora
+  private readonly minutosPorBloque: number = 5;
+  private readonly minutosPorEtiqueta: number = 30;
+
+  /** true cuando la franja cae en una etiqueta visible (cada media hora) */
+  esFilaEtiqueta(hora: string): boolean {
+    return this.horaAMinutos(hora) % this.minutosPorEtiqueta === 0;
+  }
+
+  /** true en el arranque de cada hora, para pintar la línea más marcada */
+  esFilaHoraEnPunto(hora: string): boolean {
+    return this.horaAMinutos(hora) % 60 === 0;
+  }
+
+  /** Texto de la columna de horas: vacío en las franjas intermedias */
+  etiquetaHora(hora: string): string {
+    return this.esFilaEtiqueta(hora) ? hora : '';
   }
 
   inicializarHorarios() {
@@ -487,9 +508,24 @@ export class CrearColaboradoresComponent implements OnInit {
   getCeldaLabel(diaValor: number, hora: string): string {
     const h = this.getHorarioDia(diaValor);
     if (!h || !h.activo) return '';
-    if (hora === h.hora_entrada) return `${h.hora_entrada} - ${h.hora_salida}`;
-    if (h.hora_inicio_descanso && hora === h.hora_inicio_descanso) return `${h.hora_inicio_descanso} - ${h.hora_fin_descanso}`;
+
+    // Se compara por rango y no por texto: una entrada a las 07:47 no coincide
+    // con ninguna franja de la grilla, pero sí cae dentro de la de 07:45
+    if (this.caeEnLaFranja(h.hora_entrada, hora)) {
+      return `${h.hora_entrada} - ${h.hora_salida}`;
+    }
+    if (h.hora_inicio_descanso && this.caeEnLaFranja(h.hora_inicio_descanso, hora)) {
+      return `${h.hora_inicio_descanso} - ${h.hora_fin_descanso}`;
+    }
     return '';
+  }
+
+  /** true si la hora dada cae dentro de la franja que arranca en horaFranja */
+  private caeEnLaFranja(hora: string, horaFranja: string): boolean {
+    if (!hora) return false;
+    const minutos = this.horaAMinutos(hora);
+    const inicioFranja = this.horaAMinutos(horaFranja);
+    return minutos >= inicioFranja && minutos < (inicioFranja + this.minutosPorBloque);
   }
 
   horaAMinutos(hora: string): number {

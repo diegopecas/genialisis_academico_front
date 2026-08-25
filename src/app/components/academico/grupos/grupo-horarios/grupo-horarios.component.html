@@ -85,13 +85,34 @@
                 Arrastra sobre la grilla desde la hora inicial hasta la final. Puedes marcar varias franjas y varios días antes de guardar.
             </p>
 
+            <!-- Rango que se está pintando ahora mismo -->
+            <div class="guia-arrastre" *ngIf="arrastrando && rangoArrastre">
+                <i class="fas fa-arrows-up-down"></i>
+                <strong>{{ diaArrastre }}</strong>
+                <span>{{ rangoArrastre }}</span>
+            </div>
+
             <!-- Franjas sin guardar -->
             <div class="pendientes" *ngIf="franjasPendientes.length > 0">
                 <div class="pendiente-item" *ngFor="let franja of franjasPendientes; let i = index">
                     <span class="pendiente-color" [style.background-color]="obtenerColorArea(franja.id_area_academica)"></span>
                     <span class="pendiente-area">{{ obtenerNombreArea(franja.id_area_academica) }}</span>
                     <span class="pendiente-dia">{{ nombreDia(franja.id_dia_semana) }}</span>
-                    <span class="pendiente-hora">{{ franja.hora_inicial }} - {{ franja.hora_final }}</span>
+                    <span class="pendiente-hora">
+                        <input type="time"
+                               class="input-hora-pendiente"
+                               step="300"
+                               [ngModel]="franja.hora_inicial"
+                               (ngModelChange)="ajustarHoraFranja(i, 'hora_inicial', $event)"
+                               title="Hora inicial">
+                        <span class="separador-hora">-</span>
+                        <input type="time"
+                               class="input-hora-pendiente"
+                               step="300"
+                               [ngModel]="franja.hora_final"
+                               (ngModelChange)="ajustarHoraFranja(i, 'hora_final', $event)"
+                               title="Hora final">
+                    </span>
                     <span class="pendiente-min">{{ franja.total_minutos }} min</span>
                     <label class="pendiente-clases">
                         Clases
@@ -142,7 +163,8 @@
                     <!-- Horario ya guardado -->
                     <div class="horario-block"
                          *ngIf="getHorarioInfo(dia.id, hora) as horarioInfo"
-                         [style.background-color]="obtenerColorArea(horarioInfo.id_area_academica)"
+                         [style.background-color]="colorFondoBloque(horarioInfo.id_area_academica)"
+                         [style.border-left-color]="colorVivoArea(horarioInfo.id_area_academica)"
                          [class.marcada-eliminar]="estaMarcadaParaEliminar(horarioInfo.id)"
                          [ngClass]="[horarioInfo.esInicio ? 'es-inicio' : '',
                                      horarioInfo.esFin ? 'es-fin' : '',
@@ -150,17 +172,12 @@
                          (click)="mostrarDetalleHorario(horarioInfo)"
                          [attr.title]="obtenerNombreArea(horarioInfo.id_area_academica) + ' - ' + horarioInfo.total_minutos + ' min'">
 
-                        <div *ngIf="horarioInfo.esInicio" class="horario-block-header">
-                            <strong>{{ obtenerNombreArea(horarioInfo.id_area_academica) }}</strong>
-                            <div class="horario-tiempo-small">
-                                {{ horarioInfo.duracionCompleta }}
-                            </div>
+                        <div *ngIf="horarioInfo.esInicio" class="horario-block-titulo">
+                            {{ obtenerNombreArea(horarioInfo.id_area_academica) }}
                         </div>
 
-                        <div *ngIf="horarioInfo.esInicio" class="horario-block-content">
-                            <div class="horario-minutos">
-                                {{ horarioInfo.total_minutos }}min
-                            </div>
+                        <div *ngIf="horarioInfo.esInicio" class="horario-block-hora">
+                            {{ horarioInfo.duracionCompleta }} · {{ horarioInfo.total_minutos }}min
                         </div>
 
                         <button *ngIf="horarioInfo.esInicio && editable"
@@ -175,12 +192,14 @@
                     <!-- Franja pendiente de guardar -->
                     <div class="horario-block bloque-pendiente"
                          *ngIf="!getHorarioInfo(dia.id, hora) && getFranjaPendiente(dia.id, hora) as pendiente"
-                         [style.background-color]="obtenerColorArea(pendiente.id_area_academica)">
-                        <div *ngIf="pendiente.esInicio" class="horario-block-header">
-                            <strong>{{ obtenerNombreArea(pendiente.id_area_academica) }}</strong>
-                            <div class="horario-tiempo-small">
-                                {{ pendiente.hora_inicial }} - {{ pendiente.hora_final }}
-                            </div>
+                         [style.background-color]="colorFondoBloque(pendiente.id_area_academica)"
+                         [style.border-left-color]="colorVivoArea(pendiente.id_area_academica)">
+                        <div *ngIf="pendiente.esInicio" class="horario-block-titulo">
+                            {{ obtenerNombreArea(pendiente.id_area_academica) }}
+                        </div>
+
+                        <div *ngIf="pendiente.esInicio" class="horario-block-hora">
+                            {{ pendiente.hora_inicial }} - {{ pendiente.hora_final }}
                         </div>
                         <span class="badge-pendiente" *ngIf="pendiente.esInicio">sin guardar</span>
                     </div>

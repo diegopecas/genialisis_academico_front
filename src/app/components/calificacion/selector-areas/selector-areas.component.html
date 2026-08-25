@@ -183,8 +183,11 @@
               </div>
             </div>
 
-            <div class="horario-row" *ngFor="let hora of horasDelDia">
-              <div class="horario-cell horario-time-cell">{{ hora }}</div>
+            <div class="horario-row"
+                 *ngFor="let hora of horasDelDia"
+                 [class.fila-etiqueta]="esFilaEtiqueta(hora)"
+                 [class.fila-hora-punto]="esFilaHoraEnPunto(hora)">
+              <div class="horario-cell horario-time-cell">{{ etiquetaHora(hora) }}</div>
               <div class="horario-cell horario-content-cell" 
                    *ngFor="let dia of diasSemana"
                    [ngClass]="getClaseHorario(dia.id, hora)"
@@ -192,18 +195,18 @@
                 
                 <div class="horario-block" 
                      *ngIf="getHorarioInfo(dia.id, hora) as horarioInfo"
-                     [style.background-color]="obtenerColorArea(horarioInfo.id_area_academica)"
+                     [style.background-color]="colorFondoBloque(horarioInfo.id_area_academica)"
+                     [style.border-left-color]="colorVivoArea(horarioInfo.id_area_academica)"
                      [ngClass]="[horarioInfo.esInicio ? 'es-inicio' : '',
                                horarioInfo.esFin ? 'es-fin' : '',
                                horarioInfo.esIntermedio ? 'es-intermedio' : '']">
                   
-                  <div *ngIf="horarioInfo.esInicio" class="horario-block-header">
-                    <strong>{{ obtenerNombreArea(horarioInfo.id_area_academica) }}</strong>
-                    <div class="horario-tiempo-small">{{ horarioInfo.duracionCompleta }}</div>
+                  <div *ngIf="horarioInfo.esInicio" class="horario-block-titulo">
+                    {{ obtenerNombreArea(horarioInfo.id_area_academica) }}
                   </div>
-                  
-                  <div *ngIf="horarioInfo.esInicio" class="horario-block-content">
-                    <div class="horario-minutos">{{ horarioInfo.total_minutos }}min</div>
+
+                  <div *ngIf="horarioInfo.esInicio" class="horario-block-hora">
+                    {{ horarioInfo.duracionCompleta }} · {{ horarioInfo.total_minutos }}min
                   </div>
                 </div>
               </div>

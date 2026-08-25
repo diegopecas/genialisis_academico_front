@@ -301,8 +301,6 @@ export class ReporteCoberturaCurricularComponent implements OnInit, OnDestroy {
       if (actCompleta.minutos_duracion) html += `<p><strong>Duración:</strong> ${actCompleta.minutos_duracion} min</p>`;
       if (actCompleta.descripcion) html += `<hr><p><strong>Descripción:</strong></p><div style="max-height:150px;overflow-y:auto;font-size:0.85rem;">${actCompleta.descripcion}</div>`;
       if (actCompleta.materiales) html += `<hr><p><strong>Materiales:</strong></p><p style="font-size:0.9rem;">${actCompleta.materiales}</p>`;
-      if (actCompleta.nivel_uno) html += `<hr><p><strong>Nivel 1:</strong></p><div style="max-height:150px;overflow-y:auto;font-size:0.85rem;">${actCompleta.nivel_uno}</div>`;
-      if (actCompleta.nivel_dos) html += `<p class="mt-2"><strong>Nivel 2:</strong></p><div style="max-height:150px;overflow-y:auto;font-size:0.85rem;">${actCompleta.nivel_dos}</div>`;
     }
 
     if (act.logros_adicionales_sugeridos?.length) {

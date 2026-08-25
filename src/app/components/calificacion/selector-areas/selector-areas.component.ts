@@ -8,6 +8,7 @@ import { DiasSemanaService } from '../../../services/dias-semana.service';
 import { GruposService } from '../../../services/grupos.service';
 import { CalificacionContextService } from '../../../services/calificacion-context.service';
 import { PermisosService } from '../../../services/permisos.service';
+import { colorVivo, colorFondoBloque } from '../../../common/constantes/color-horario';
 import { forkJoin } from 'rxjs';
 
 @Component({
@@ -211,9 +212,14 @@ export class SelectorAreasComponent implements OnInit {
     this.mostrarModalHorario = false;
   }
 
+  // Resolución de la grilla: franjas de 5 minutos con etiqueta cada media
+  // hora, para soportar clases de 30, 40, 45 o 60 minutos.
+  private readonly minutosPorBloque: number = 5;
+  private readonly minutosPorEtiqueta: number = 30;
+
   calcularHorasDelDia(): void {
     if (this.horariosGrupo.length === 0) {
-      this.horasDelDia = ['07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00'];
+      this.horasDelDia = [];
       return;
     }
 
@@ -230,16 +236,35 @@ export class SelectorAreasComponent implements OnInit {
     });
 
     const horas: string[] = [];
-    const horaInicioRedondeada = Math.floor(horaMinima / 30) * 30;
-    const horaFinRedondeada = Math.ceil(horaMaxima / 30) * 30;
+    // Los extremos se redondean a la etiqueta para que la primera y la
+    // última fila caigan siempre en una hora visible
+    const horaInicioRedondeada = Math.floor(horaMinima / this.minutosPorEtiqueta) * this.minutosPorEtiqueta;
+    const horaFinRedondeada = Math.ceil(horaMaxima / this.minutosPorEtiqueta) * this.minutosPorEtiqueta;
 
-    for (let minutos = horaInicioRedondeada; minutos < horaFinRedondeada; minutos += 30) {
+    for (let minutos = horaInicioRedondeada; minutos < horaFinRedondeada; minutos += this.minutosPorBloque) {
       const hora = Math.floor(minutos / 60);
       const min = minutos % 60;
       horas.push(`${hora.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`);
     }
 
     this.horasDelDia = horas;
+  }
+
+  /** true cuando la franja cae en una etiqueta visible (cada media hora) */
+  esFilaEtiqueta(hora: string): boolean {
+    const [horaNum, minutosNum] = hora.split(':').map(Number);
+    return ((horaNum * 60) + minutosNum) % this.minutosPorEtiqueta === 0;
+  }
+
+  /** true en el arranque de cada hora, para pintar la línea más marcada */
+  esFilaHoraEnPunto(hora: string): boolean {
+    const [horaNum, minutosNum] = hora.split(':').map(Number);
+    return ((horaNum * 60) + minutosNum) % 60 === 0;
+  }
+
+  /** Texto de la columna de horas: vacío en las franjas intermedias */
+  etiquetaHora(hora: string): string {
+    return this.esFilaEtiqueta(hora) ? hora : '';
   }
 
   getHorarioInfo(idDia: any, hora: string): any | null {
@@ -258,12 +283,16 @@ export class SelectorAreasComponent implements OnInit {
     if (horario) {
       const horaInicioFormato = horario.hora_inicial.substring(0, 5);
       const horaFinFormato = horario.hora_final.substring(0, 5);
-      const horaActualFormato = `${horaNum.toString().padStart(2, '0')}:${minutosNum.toString().padStart(2, '0')}`;
+      const [horaIni, minIni] = horario.hora_inicial.split(':').map(Number);
+      const minutosInicio = horaIni * 60 + minIni;
       const [horaFin, minFin] = horario.hora_final.split(':').map(Number);
       const minutosFin = horaFin * 60 + minFin;
-      const siguienteFrama = minutosHoraActual + 30;
-      const esUltimaCelda = siguienteFrama >= minutosFin;
-      const esInicio = horaActualFormato === horaInicioFormato;
+
+      // Se compara por rango y no por texto: así una franja que arranque en
+      // una hora que no cae exacta en la grilla igual pinta su encabezado
+      const esInicio = minutosInicio >= minutosHoraActual
+        && minutosInicio < (minutosHoraActual + this.minutosPorBloque);
+      const esUltimaCelda = (minutosHoraActual + this.minutosPorBloque) >= minutosFin;
 
       return {
         ...horario,
@@ -280,6 +309,16 @@ export class SelectorAreasComponent implements OnInit {
   obtenerColorArea(id_area: string): string {
     const area = this.areasAcademicas.find(a => a.id_area_academica === id_area);
     return area?.color || '#FFFFFF';
+  }
+
+  /** Barra lateral del bloque, en el color intenso del área */
+  colorVivoArea(id_area: string): string {
+    return colorVivo(this.obtenerColorArea(id_area));
+  }
+
+  /** Fondo del bloque, apenas teñido */
+  colorFondoBloque(id_area: string): string | null {
+    return colorFondoBloque(this.obtenerColorArea(id_area));
   }
 
   obtenerNombreArea(id_area: string): string {

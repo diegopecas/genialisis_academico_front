@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HorariosService } from '../../../../services/horarios.service';
 import { DiasSemanaService } from '../../../../services/dias-semana.service';
+import { colorVivo, colorFondoBloque } from '../../../../common/constantes/color-horario';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -39,7 +40,8 @@ export class GrupoHorariosComponent implements OnInit, OnChanges {
   public guardando: boolean = false;
 
   // Arrastre en curso
-  private arrastrando: boolean = false;
+  // Público: el template muestra la guía del rango mientras se arrastra
+  public arrastrando: boolean = false;
   private arrastreDia: any = null;
   private arrastreIndiceInicio: number = -1;
   public arrastreIndiceFin: number = -1;
@@ -279,6 +281,16 @@ export class GrupoHorariosComponent implements OnInit, OnChanges {
     return area?.nombre_area_academica || '';
   }
 
+  /** Barra lateral del bloque, en el color intenso del area */
+  colorVivoArea(id_area: string): string {
+    return colorVivo(this.obtenerColorArea(id_area));
+  }
+
+  /** Fondo del bloque, apenas tenido */
+  colorFondoBloque(id_area: string): string | null {
+    return colorFondoBloque(this.obtenerColorArea(id_area));
+  }
+
   // ========== Modo agregar (arrastre) ==========
 
   activarModoAgregar(): void {
@@ -341,6 +353,31 @@ export class GrupoHorariosComponent implements OnInit, OnChanges {
     this.arrastreIndiceFin = indice;
   }
 
+  /**
+   * Rango que se está pintando, en texto. Se muestra mientras se arrastra
+   * porque con franjas de 5 minutos es difícil atinarle a ojo.
+   */
+  get rangoArrastre(): string {
+    if (!this.arrastrando) return '';
+
+    const desde = Math.min(this.arrastreIndiceInicio, this.arrastreIndiceFin);
+    const hasta = Math.max(this.arrastreIndiceInicio, this.arrastreIndiceFin);
+    if (desde < 0 || hasta < 0 || !this.horasDelDia[desde]) return '';
+
+    const horaInicial = this.horasDelDia[desde];
+    const horaFinal = this.aTexto(this.aMinutos(this.horasDelDia[hasta]) + this.minutosPorBloque);
+    const minutos = this.aMinutos(horaFinal) - this.aMinutos(horaInicial);
+
+    return `${horaInicial} - ${horaFinal} · ${minutos} min`;
+  }
+
+  /** Nombre del día que se está pintando, para la guía del arrastre */
+  get diaArrastre(): string {
+    if (!this.arrastrando) return '';
+    const dia = this.diasSemana.find((d: any) => d.id == this.arrastreDia);
+    return dia?.nombre || '';
+  }
+
   /** Sigue el dedo sobre la grilla y traduce la posición a celda */
   moverArrastreTactil(evento: TouchEvent): void {
     if (!this.arrastrando) return;
@@ -397,6 +434,65 @@ export class GrupoHorariosComponent implements OnInit, OnChanges {
   quitarFranjaPendiente(indice: number): void {
     this.franjasPendientes.splice(indice, 1);
     this.calcularHorasDelDia();
+  }
+
+  /**
+   * Permite corregir a mano la hora inicial o final de una franja pendiente,
+   * para no depender de atinarle con el arrastre. Si el valor nuevo no sirve
+   * o se cruza con otra franja, se deja el anterior.
+   */
+  ajustarHoraFranja(indice: number, campo: 'hora_inicial' | 'hora_final', valor: string): void {
+    const franja = this.franjasPendientes[indice];
+    if (!franja || !valor) return;
+
+    const anterior = franja[campo];
+    const horaInicial = campo === 'hora_inicial' ? valor : franja.hora_inicial;
+    const horaFinal = campo === 'hora_final' ? valor : franja.hora_final;
+
+    const minutos = this.aMinutos(horaFinal) - this.aMinutos(horaInicial);
+
+    if (minutos < this.minutosPorBloque) {
+      franja[campo] = anterior;
+      Swal.fire('Rango inválido', 'La hora final debe ser posterior a la inicial.', 'warning');
+      return;
+    }
+
+    // Se ignora la franja que se está editando al buscar cruces
+    const otras = this.franjasPendientes.filter((_, i) => i !== indice);
+    const conflicto = this.buscarConflictoEntre(franja.id_dia_semana, horaInicial, horaFinal, otras);
+
+    if (conflicto) {
+      franja[campo] = anterior;
+      Swal.fire('Horario solapado', conflicto, 'warning');
+      return;
+    }
+
+    franja.hora_inicial = horaInicial;
+    franja.hora_final = horaFinal;
+    franja.total_minutos = minutos;
+    this.calcularHorasDelDia();
+  }
+
+  /** Igual que buscarConflicto, pero contra una lista de pendientes dada */
+  private buscarConflictoEntre(idDia: any, horaInicial: string, horaFinal: string, pendientes: any[]): string | null {
+    const inicio = this.aMinutos(horaInicial);
+    const fin = this.aMinutos(horaFinal);
+
+    const candidatos = [
+      ...this.horariosGrupo.filter(h => h.id_dia_semana == idDia && !this.estaMarcadaParaEliminar(h.id)),
+      ...pendientes.filter(f => f.id_dia_semana == idDia)
+    ];
+
+    for (const otro of candidatos) {
+      const otroInicio = this.aMinutos(otro.hora_inicial);
+      const otroFin = this.aMinutos(otro.hora_final);
+      if (inicio < otroFin && otroInicio < fin) {
+        return `Se cruza con ${this.obtenerNombreArea(otro.id_area_academica)} `
+          + `(${otro.hora_inicial.substring(0, 5)} - ${otro.hora_final.substring(0, 5)})`;
+      }
+    }
+
+    return null;
   }
 
   /** Recalcula los minutos cuando se edita la hora de una franja pendiente */

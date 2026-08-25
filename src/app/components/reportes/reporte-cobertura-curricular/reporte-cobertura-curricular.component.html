@@ -505,8 +505,6 @@
                             </div>
                             <div class="actividad-meta"><span *ngIf="act.minutos_duracion"><i class="fas fa-clock me-1"></i>{{ act.minutos_duracion }} min</span></div>
                             <div *ngIf="act.descripcion" class="actividad-descripcion" [innerHTML]="act.descripcion"></div>
-                            <div *ngIf="act.nivel_uno" class="actividad-nivel"><strong>Nivel 1:</strong> <span [innerHTML]="act.nivel_uno"></span></div>
-                            <div *ngIf="act.nivel_dos" class="actividad-nivel"><strong>Nivel 2:</strong> <span [innerHTML]="act.nivel_dos"></span></div>
                             <div *ngIf="act.materiales" class="actividad-materiales"><i class="fas fa-box-open me-1"></i>{{ act.materiales }}</div>
                           </div>
                         </div>

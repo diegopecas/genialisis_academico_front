@@ -130,8 +130,11 @@
                 <div class="dia-header-horas" *ngIf="obtenerResumenDiaHeader(dia.valor)">{{ obtenerResumenDiaHeader(dia.valor) }}</div>
               </div>
             </div>
-            <div class="horario-row" *ngFor="let hora of horasGrilla">
-              <div class="horario-cell horario-time-cell">{{ hora }}</div>
+            <div class="horario-row"
+                 *ngFor="let hora of horasGrilla"
+                 [class.fila-etiqueta]="esFilaEtiqueta(hora)"
+                 [class.fila-hora-punto]="esFilaHoraEnPunto(hora)">
+              <div class="horario-cell horario-time-cell">{{ etiquetaHora(hora) }}</div>
               <div class="horario-cell horario-content-cell"
                    *ngFor="let dia of diasSemana"
                    [ngClass]="getCeldaClase(dia.valor, hora)"

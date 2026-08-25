@@ -1,3 +1,5 @@
+@use '../../../common/estilos/grilla-horario' as grilla;
+
 $color-primary: #ffbd31;
 $color-text: #555555;
 
@@ -277,127 +279,34 @@ $color-text: #555555;
   &::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
 }
 
+// La grilla usa los estilos compartidos de common/estilos/_grilla-horario.
+// Aquí solo quedan los ajustes propios de este modal.
+
 .horario-grid {
   display: flex;
   flex-direction: column;
-  background: #fff;
-  border-radius: 8px;
-  overflow: hidden;
   box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08);
   min-width: 700px;
 }
 
 .horario-header-dias {
   display: grid;
-  grid-template-columns: 55px repeat(7, 1fr);
-  background: linear-gradient(135deg, #F5A623 0%, #F76B1C 100%);
-  color: white;
-  font-weight: 600;
-  font-size: 0.72rem;
+  grid-template-columns: grilla.$grilla-ancho-hora repeat(7, 1fr);
+  background: #f6f7f8;
+  border-bottom: 2px solid #e4e6e8;
 
   .dia-actual {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(245, 166, 35, 0.14);
     font-weight: 800;
+    color: #8a5a00;
   }
 }
 
-.horario-row {
-  display: grid;
-  grid-template-columns: 55px repeat(7, 1fr);
-  border-bottom: 1px solid #e8e8e8;
-  min-height: 46px;
-  &:last-child { border-bottom: none; }
+// El día de hoy se resalta con una columna apenas teñida
+.columna-dia-actual {
+  background: rgba(245, 166, 35, 0.04);
 }
 
-.horario-cell {
-  padding: 0.35rem;
-  border-right: 1px solid #e8e8e8;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.68rem;
-  &:last-child { border-right: none; }
-}
-
-.horario-time-header,
-.horario-day-header {
-  text-align: center;
-  padding: 0.5rem 0.3rem;
-  font-size: 0.72rem;
-}
-
-.horario-time-cell {
-  background: #f8f9fa;
-  font-weight: 600;
-  color: #495057;
-  font-size: 0.68rem;
-  padding: 0.25rem;
-}
-
-.horario-content-cell {
-  position: relative;
-  padding: 0;
-  &.tiene-horario { cursor: default; }
-  &.columna-dia-actual { background: rgba($color-primary, 0.04); }
-}
-
-.horario-block {
-  width: 100%;
-  height: 100%;
-  padding: 0.25rem;
-  position: relative;
-  border: 2px solid rgba(0, 0, 0, 0.1);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-
-  &.es-inicio {
-    border-top-left-radius: 6px;
-    border-top-right-radius: 6px;
-  }
-  &.es-fin {
-    border-bottom-left-radius: 6px;
-    border-bottom-right-radius: 6px;
-  }
-  &.es-intermedio {
-    border-radius: 0;
-    border-top: none;
-    border-bottom: none;
-    padding: 0;
-    min-height: 46px;
-  }
-
-  .horario-block-header {
-    text-align: center;
-    margin-bottom: 0.1rem;
-
-    strong {
-      font-size: 0.6rem;
-      color: #2c3e50;
-      display: block;
-      text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
-      line-height: 1.1;
-      font-weight: 700;
-      text-transform: uppercase;
-    }
-
-    .horario-tiempo-small {
-      font-size: 0.52rem;
-      opacity: 0.8;
-      color: #2c3e50;
-      margin-top: 0.05rem;
-    }
-  }
-
-  .horario-block-content {
-    text-align: center;
-    .horario-minutos {
-      font-size: 0.55rem;
-      font-weight: 700;
-      color: #2c3e50;
-    }
-  }
-}
 
 .horario-mobile { display: none; }
 .horario-desktop { display: block; }

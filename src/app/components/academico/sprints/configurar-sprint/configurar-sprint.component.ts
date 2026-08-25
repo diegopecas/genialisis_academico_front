@@ -790,13 +790,6 @@ export class ConfigurarSprintComponent implements OnInit {
         </div>`;
     }
 
-    if (tarea.nivel_uno) {
-      html += `<div style="margin-top: 0.5rem; font-size: 0.85rem;"><strong>Nivel 1:</strong> ${tarea.nivel_uno}</div>`;
-    }
-    if (tarea.nivel_dos) {
-      html += `<div style="margin-top: 0.25rem; font-size: 0.85rem;"><strong>Nivel 2:</strong> ${tarea.nivel_dos}</div>`;
-    }
-
     if (tarea.observaciones) {
       html += `
         <div style="margin-top: 1rem; padding: 0.75rem; background: #e8f4f8; border-radius: 0.375rem;">
@@ -851,13 +844,6 @@ export class ConfigurarSprintComponent implements OnInit {
           <strong style="font-size: 0.85rem;"><i class="fas fa-align-left me-1"></i> Descripción</strong>
           <p style="margin: 0.5rem 0 0; font-size: 0.85rem;">${actividad.descripcion}</p>
         </div>`;
-    }
-
-    if (actividad.nivel_uno) {
-      html += `<div style="margin-top: 0.5rem; font-size: 0.85rem;"><strong>Nivel 1:</strong> ${actividad.nivel_uno}</div>`;
-    }
-    if (actividad.nivel_dos) {
-      html += `<div style="margin-top: 0.25rem; font-size: 0.85rem;"><strong>Nivel 2:</strong> ${actividad.nivel_dos}</div>`;
     }
 
     if (actividad.materiales) {

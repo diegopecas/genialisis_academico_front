@@ -182,8 +182,9 @@ export class CrearActividadesAcademicasComponent implements OnInit, OnDestroy, A
     }
 
     this.initializeEditor('editor-descripcion', 'descripcion', 5000);
-    this.initializeEditor('editor-nivel-uno', 'nivel_uno', 3000);
-    this.initializeEditor('editor-nivel-dos', 'nivel_dos', 3000);
+    // Los editores de nivel uno y nivel dos ya no se inicializan: los campos
+    // se ocultaron del formulario. Las columnas siguen existiendo y se graban
+    // vacias, para no perder lo que ya tienen las actividades viejas.
   }
 
   initializeEditor(elementId: string, modelField: 'descripcion' | 'nivel_uno' | 'nivel_dos', maxChars: number) {
@@ -668,8 +669,6 @@ export class CrearActividadesAcademicasComponent implements OnInit, OnDestroy, A
     const camposValidos = !!(this.model.id_tipo_actividad_academica &&
       this.model.titulo && this.model.titulo.trim().length > 0 &&
       this.model.descripcion && this.stripHtml(this.model.descripcion).trim().length > 0 &&
-      this.model.nivel_uno && this.stripHtml(this.model.nivel_uno).trim().length > 0 &&
-      this.model.nivel_dos && this.stripHtml(this.model.nivel_dos).trim().length > 0 &&
       this.model.minutos_duracion && this.model.minutos_duracion > 0 &&
       this.model.materiales && this.model.materiales.trim().length > 0);
       
@@ -712,8 +711,6 @@ export class CrearActividadesAcademicasComponent implements OnInit, OnDestroy, A
     return !!(this.model.id_tipo_actividad_academica !== "" ||
            this.model.titulo !== "" ||
            (this.model.descripcion && this.stripHtml(this.model.descripcion).trim().length > 0) ||
-           (this.model.nivel_uno && this.stripHtml(this.model.nivel_uno).trim().length > 0) ||
-           (this.model.nivel_dos && this.stripHtml(this.model.nivel_dos).trim().length > 0) ||
            this.model.minutos_duracion ||
            this.model.materiales !== "");
   }

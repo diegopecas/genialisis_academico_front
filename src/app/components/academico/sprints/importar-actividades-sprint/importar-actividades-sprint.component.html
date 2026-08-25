@@ -147,14 +147,6 @@
             </div>
 
             <div class="detalle-grid">
-              <div class="detalle-item" *ngIf="tarea.nivel_uno">
-                <div class="detalle-label">Nivel 1</div>
-                <div class="detalle-valor" [innerHTML]="tarea.nivel_uno"></div>
-              </div>
-              <div class="detalle-item" *ngIf="tarea.nivel_dos">
-                <div class="detalle-label">Nivel 2</div>
-                <div class="detalle-valor" [innerHTML]="tarea.nivel_dos"></div>
-              </div>
               <div class="detalle-item" *ngIf="tarea.nombre_tipo_actividad">
                 <div class="detalle-label">Tipo</div>
                 <div class="detalle-valor">{{ tarea.nombre_tipo_actividad }}</div>
