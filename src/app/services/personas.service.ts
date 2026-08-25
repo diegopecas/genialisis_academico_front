@@ -49,7 +49,9 @@ export class PersonasService {
     environment.api + 'personas-x-identificacion';
 
   // ---- Cache del buscador de personas ----
-  private readonly LLAVE_CACHE_BUSCADOR = 'personas_buscador_cache';
+  // El cache vive SOLO en memoria, a propósito: así no puede sobrevivir a un
+  // despliegue con la forma vieja del dato. El precio es una consulta por cada
+  // recarga de la página, que es silenciosa y va en el arranque.
   private readonly MINUTOS_VIGENCIA_BUSCADOR = 10;
 
   private buscadorCache: PersonaBuscador[] = [];
@@ -235,10 +237,9 @@ export class PersonasService {
   }
 
   /**
-   * Deja el cache listo para usar.
-   * Primero intenta con lo guardado en sessionStorage; si no hay nada o ya
-   * está vencido, consulta al servidor por debajo. No devuelve nada a
-   * propósito: quien lo llama sigue leyendo con `getBuscador()`.
+   * Deja el cache listo para usar. Si ya está cargado y vigente no hace nada;
+   * si no, consulta al servidor por debajo. No devuelve nada a propósito:
+   * quien lo llama sigue leyendo con `getBuscador()`.
    *
    * @param forzar Ignora la vigencia y vuelve a consultar (botón de refrescar).
    */
@@ -247,13 +248,8 @@ export class PersonasService {
       return;
     }
 
-    if (!forzar) {
-      if (this.buscadorCache.length > 0 && this.buscadorEstaVigente()) {
-        return;
-      }
-      if (this.leerCacheDeSesion() && this.buscadorEstaVigente()) {
-        return;
-      }
+    if (!forzar && this.buscadorCache.length > 0 && this.buscadorEstaVigente()) {
+      return;
     }
 
     this.refrescarBuscador().subscribe({
@@ -276,7 +272,6 @@ export class PersonasService {
       tap((response: HttpResponse<Object>) => {
         this.buscadorCache = (response.body as PersonaBuscador[]) || [];
         this.buscadorFechaCarga = new Date();
-        this.guardarCacheEnSesion();
         this.buscadorCargando = false;
       }),
       catchError((error) => {
@@ -303,17 +298,12 @@ export class PersonasService {
   }
 
   /**
-   * Borra el cache en memoria y en sessionStorage. Se llama al cerrar sesión
-   * para no dejar los nombres de un jardín disponibles en la siguiente.
+   * Borra el cache. Se llama al cerrar sesión para no dejar los nombres de un
+   * jardín disponibles en la siguiente.
    */
   limpiarCacheBuscador(): void {
     this.buscadorCache = [];
     this.buscadorFechaCarga = null;
-    try {
-      sessionStorage.removeItem(this.LLAVE_CACHE_BUSCADOR);
-    } catch (e) {
-      console.error('Error al limpiar el cache del buscador:', e);
-    }
   }
 
   private buscadorEstaVigente(): boolean {
@@ -323,43 +313,6 @@ export class PersonasService {
     const minutos =
       (new Date().getTime() - this.buscadorFechaCarga.getTime()) / 60000;
     return minutos < this.MINUTOS_VIGENCIA_BUSCADOR;
-  }
-
-  private leerCacheDeSesion(): boolean {
-    try {
-      const crudo = sessionStorage.getItem(this.LLAVE_CACHE_BUSCADOR);
-      if (!crudo) {
-        return false;
-      }
-      const guardado = JSON.parse(crudo);
-      if (!guardado || !Array.isArray(guardado.data)) {
-        return false;
-      }
-      this.buscadorCache = guardado.data as PersonaBuscador[];
-      this.buscadorFechaCarga = guardado.fecha ? new Date(guardado.fecha) : null;
-      return true;
-    } catch (e) {
-      console.error('Error al leer el cache del buscador:', e);
-      return false;
-    }
-  }
-
-  private guardarCacheEnSesion(): void {
-    try {
-      sessionStorage.setItem(
-        this.LLAVE_CACHE_BUSCADOR,
-        JSON.stringify({
-          fecha: this.buscadorFechaCarga
-            ? this.buscadorFechaCarga.toISOString()
-            : null,
-          data: this.buscadorCache,
-        })
-      );
-    } catch (e) {
-      // Si sessionStorage está lleno o bloqueado se sigue con el cache en
-      // memoria; solo se pierde al recargar la página.
-      console.error('Error al guardar el cache del buscador:', e);
-    }
   }
 
   /**
