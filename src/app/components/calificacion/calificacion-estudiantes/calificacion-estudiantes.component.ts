@@ -237,9 +237,13 @@ export class CalificacionEstudiantesComponent implements OnInit {
     // Mapear calificaciones existentes a los parámetros
     const calificaciones = est.calificaciones || [];
     parametrosCalificaciones.forEach((epc: any) => {
-      const cal = calificaciones.find(
+      // Se toma la ÚLTIMA coincidencia, no la primera: el backend las manda
+      // ordenadas por fecha, así que si quedaran duplicados de una misma
+      // calificación se muestra la más reciente, que es la nota vigente.
+      const coincidencias = calificaciones.filter(
         (c: any) => c.id_parametro_calificacion == epc.id
       );
+      const cal = coincidencias.length > 0 ? coincidencias[coincidencias.length - 1] : null;
       if (cal) {
         // Se guarda el id aparte: si los valores todavía no llegaron, el
         // seleccionado se resuelve después en sincronizarValoresEnEstudiantes
@@ -325,7 +329,12 @@ export class CalificacionEstudiantesComponent implements OnInit {
 
   calificar(valorParametro: any, parametro: any, estudiante: any): void {
     parametro.seleccionado = valorParametro;
-    if (parametro.guardado > 0) {
+    parametro.idValorSeleccionado = valorParametro.id;
+
+    // guardado es el UUID de la calificación, no un número: compararlo contra 0
+    // daba siempre falso y por eso cada clic insertaba una fila nueva en vez de
+    // actualizar la que ya existía.
+    if (parametro.guardado) {
       this.actualizarCalificacion(parametro.guardado, valorParametro.id);
     } else {
       this.crearCalificacion(
@@ -364,7 +373,9 @@ export class CalificacionEstudiantesComponent implements OnInit {
       idValorParametro
     ).subscribe({
       next: (response: any) => {
-        parametro.guardado = response;
+        // La respuesta es { id: '...' }; guardar el objeto entero hacía que
+        // el siguiente clic no encontrara el id para actualizar
+        parametro.guardado = response && response.id ? response.id : response;
       },
       error: () => { Swal.fire({ toast: true, position: 'top-end', icon: 'error', title: 'Error al guardar calificación', showConfirmButton: false, timer: 2000 }); }
     });
