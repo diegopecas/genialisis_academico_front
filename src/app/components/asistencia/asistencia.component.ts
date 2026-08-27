@@ -577,7 +577,9 @@ export class AsistenciaComponent implements OnInit {
         // incluya. Aqui se avisa que no notifique todavia.
         const notificarDesdeAsistencia = !this.hayCobrosSeleccionados();
 
-        this.asistenciaEstudiantesService.registroIngreso(estudiante.id, this.observacionActual, this.obtenerUtilesParaGuardar(), notificarDesdeAsistencia).subscribe((response: any) => {
+        // La hora que viaja es la misma con la que se evaluaron los cobros:
+        // antes se perdia y el backend guardaba la hora del servidor.
+        this.asistenciaEstudiantesService.registroIngreso(estudiante.id, this.observacionActual, this.obtenerUtilesParaGuardar(), notificarDesdeAsistencia, this.horaIngresoEditable).subscribe((response: any) => {
           if (response) {
             const idAsistencia = response.body?.id || response.id;
             this.avisarObservacionEstudiante(
@@ -611,7 +613,8 @@ export class AsistenciaComponent implements OnInit {
         // Mismo criterio que en el ingreso.
         const notificarDesdeAsistencia = !this.hayCobrosSeleccionados();
 
-        this.asistenciaEstudiantesService.registroSalida(estudiante.id, this.observacionActual, utilesNoRegresa, notificarDesdeAsistencia).subscribe((response: any) => {
+        // Mismo criterio que en el ingreso: se guarda la hora del panel.
+        this.asistenciaEstudiantesService.registroSalida(estudiante.id, this.observacionActual, utilesNoRegresa, notificarDesdeAsistencia, this.horaSalidaEditable).subscribe((response: any) => {
           if (response) {
             const idAsistencia = estudiante.id;
             const filas = response.body || response;

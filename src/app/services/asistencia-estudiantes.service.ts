@@ -78,9 +78,12 @@ export class AsistenciaEstudiantesService {
   // padres. Se manda en false cuando enseguida se van a ejecutar cobros, para
   // que sea el motor de cobros el que notifique y el mensaje los incluya.
   // Quien ya llamaba este metodo con dos o tres parametros sigue igual.
-  registroIngreso(id: any, observacion: any, utilesDiarios: any[] = [], notificar: boolean = true) {
+  // hora es opcional (HH:MM o HH:MM:SS): es la que la usuaria puede corregir
+  // en el panel y la misma con la que se evaluan los cobros. Si no se manda,
+  // el backend guarda la hora del servidor, como hacia antes.
+  registroIngreso(id: any, observacion: any, utilesDiarios: any[] = [], notificar: boolean = true, hora: string | null = null) {
     const id_usuario = this.utilService.obtenerIdUsuarioActual();
-    const body = JSON.stringify({ id_estudiante: id, observacion: observacion, id_usuario: id_usuario, utiles_diarios: utilesDiarios, notificar: notificar });
+    const body = JSON.stringify({ id_estudiante: id, observacion: observacion, id_usuario: id_usuario, utiles_diarios: utilesDiarios, notificar: notificar, hora: hora });
 
     return this.http.post<any>(this.servicio, body, httpOptions).pipe(
       tap((respuesta: any) => {
@@ -102,9 +105,10 @@ export class AsistenciaEstudiantesService {
   // utilesNoRegresa es opcional: son los ids del registro de utiles que el
   // nino NO se lleva. Quien ya llamaba con dos parametros sigue igual.
   // notificar: mismo criterio que en registroIngreso.
-  registroSalida(id: any, observacion: any, utilesNoRegresa: any[] = [], notificar: boolean = true) {
+  // hora: mismo criterio que en registroIngreso.
+  registroSalida(id: any, observacion: any, utilesNoRegresa: any[] = [], notificar: boolean = true, hora: string | null = null) {
     const id_usuario = this.utilService.obtenerIdUsuarioActual();
-    const body = JSON.stringify({ id: id, observacion: observacion, id_usuario: id_usuario, utiles_no_regresa: utilesNoRegresa, notificar: notificar });
+    const body = JSON.stringify({ id: id, observacion: observacion, id_usuario: id_usuario, utiles_no_regresa: utilesNoRegresa, notificar: notificar, hora: hora });
     console.log("registroSalida", body)
     return this.http.put<any>(this.servicio, body, httpOptions).pipe(
       tap((respuesta: any) => {
