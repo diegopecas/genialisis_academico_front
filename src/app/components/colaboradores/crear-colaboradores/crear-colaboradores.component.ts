@@ -254,7 +254,7 @@ export class CrearColaboradoresComponent implements OnInit {
 
   validar(): boolean {
     this.submitted = true;
-    if (!this.model.tipoIdentificacion || !this.model.numeroIdentificacion || !this.model.primerNombre || !this.model.primerApellido || !this.model.fechaNacimiento || !this.model.rolColaborador || !this.model.nivelEscolaridad) { Swal.fire({ icon: 'warning', title: 'Campos incompletos', text: 'Por favor complete todos los campos requeridos' }); return false; }
+    if (!this.model.tipoIdentificacion || !this.model.numeroIdentificacion || !this.model.primerNombre || !this.model.primerApellido || !this.model.fechaNacimiento || !this.model.genero || !this.model.rolColaborador || !this.model.nivelEscolaridad) { Swal.fire({ icon: 'warning', title: 'Campos incompletos', text: 'Por favor complete todos los campos requeridos' }); return false; }
     return true;
   }
 
@@ -262,7 +262,7 @@ export class CrearColaboradoresComponent implements OnInit {
 
   guardarDatosPersonales() {
     this.submitted = true;
-    if (!this.model.tipoIdentificacion || !this.model.numeroIdentificacion || !this.model.primerNombre || !this.model.primerApellido || !this.model.fechaNacimiento) { Swal.fire({ icon: 'warning', title: 'Campos incompletos', text: 'Por favor complete todos los campos requeridos de datos personales' }); return; }
+    if (!this.model.tipoIdentificacion || !this.model.numeroIdentificacion || !this.model.primerNombre || !this.model.primerApellido || !this.model.fechaNacimiento || !this.model.genero) { Swal.fire({ icon: 'warning', title: 'Campos incompletos', text: 'Por favor complete todos los campos requeridos de datos personales' }); return; }
     const personaData = this.prepararDatosPersona(this.model);
     if (!!this.model.idPersona) { this.personasService.actualizar(personaData).subscribe({ next: () => Swal.fire({ icon: 'success', title: 'Datos Personales Actualizados', text: 'Los datos personales se han guardado correctamente', confirmButtonText: 'Aceptar' }), error: (e: any) => Swal.fire({ icon: 'error', title: 'Error', text: e.error?.error || 'Error al actualizar' }) }); }
     else { this.personasService.crear(personaData).subscribe({ next: (r: any) => { this.model.idPersona = r.id; Swal.fire({ icon: 'success', title: 'Datos Personales Creados', text: 'Ahora puede completar la información del colaborador.', confirmButtonText: 'Aceptar' }); }, error: (e: any) => Swal.fire({ icon: 'error', title: 'Error', text: e.error?.error || 'Error al crear' }) }); }
