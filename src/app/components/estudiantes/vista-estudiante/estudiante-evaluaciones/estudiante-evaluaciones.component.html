@@ -303,12 +303,12 @@
                             </div>
                             <div class="card-body">
                                 <!-- Secciones definidas en tipos_observaciones_estudiantes -->
-                                <div class="observaciones-tipo mb-4" *ngFor="let seccion of seccionesObservaciones">
+                                <div class="observaciones-tipo mb-4" *ngFor="let seccion of seccionesObservaciones; trackBy: trackBySeccion">
                                     <h6 class="mb-3" [style.color]="seccion.color">
                                         <i class="fas me-2" [ngClass]="seccion.icono"></i>Observaciones {{ seccion.nombre }}
                                     </h6>
                                     <div class="observaciones-lista">
-                                        <div *ngFor="let obs of seccion.observaciones"
+                                        <div *ngFor="let obs of seccion.observaciones; trackBy: trackByObservacion"
                                             class="observacion-item mb-3">
                                             <div class="observacion-fecha">
                                                 <small class="text-muted">{{ obs.fechaFormateada }}</small>
@@ -409,7 +409,7 @@
 
                                 <!-- Sistema de tarjetas para móviles -->
                                 <div class="logros-cards-container">
-                                    <div class="logro-card" *ngFor="let logro of logrosFiltrados">
+                                    <div class="logro-card" *ngFor="let logro of logrosFiltrados; trackBy: trackByLogro">
                                         <div class="area-nombre">
                                             {{ logro.area_academica_nombre }}
                                         </div>
@@ -429,7 +429,7 @@
                                         </div>
                                         <!-- Indicadores anidados (móvil) -->
                                         <div class="indicadores-anidados-mobile" *ngIf="logro.indicadores && logro.indicadores.length > 0">
-                                            <div class="indicador-anidado-mobile" *ngFor="let ind of logro.indicadores">
+                                            <div class="indicador-anidado-mobile" *ngFor="let ind of logro.indicadores; trackBy: trackByIndicador">
                                                 <span class="indicador-anidado-texto">{{ ind.descripcion_indicador_logro }}</span>
                                                 <span class="indicador-anidado-stats">
                                                     <span class="indicador-anidado-promedio">{{ ind.promedio | number:'1.1-1' }}</span>
@@ -459,7 +459,7 @@
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                <ng-container *ngFor="let logro of logrosFiltrados">
+                                                <ng-container *ngFor="let logro of logrosFiltrados; trackBy: trackByLogro">
                                                     <!-- Fila principal del logro -->
                                                     <tr class="fila-logro">
                                                         <td>{{ logro.area_academica_nombre }}</td>
@@ -473,7 +473,7 @@
                                                         </td>
                                                     </tr>
                                                     <!-- Sub-filas con indicadores anidados (letra pequeña) -->
-                                                    <tr class="fila-indicador-anidado" *ngFor="let ind of logro.indicadores">
+                                                    <tr class="fila-indicador-anidado" *ngFor="let ind of logro.indicadores; trackBy: trackByIndicador">
                                                         <td></td>
                                                         <td class="indicador-anidado-celda">
                                                             <i class="fas fa-arrow-turn-down me-1 text-muted"></i>

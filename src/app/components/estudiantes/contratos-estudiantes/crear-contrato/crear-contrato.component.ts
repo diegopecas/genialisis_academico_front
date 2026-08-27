@@ -67,6 +67,10 @@ export class CrearContratoComponent implements OnInit {
   public regresar = '/estudiantes/contratos/';
 
   public acudientesDisponibles = [] as any[];
+  /** Acudientes tal como vienen del backend, sin filtrar. Se conservan para
+   *  poder recalcular la lista visible cuando llegan los acudientes guardados
+   *  del contrato, que se cargan en una peticion aparte. */
+  private acudientesCrudos = [] as any[];
   /** Filas de la tarifa del grupo para el año del contrato */
   public tarifaGrupo: any[] = [];
   public emailsFirmantes: string[] = [];
@@ -219,19 +223,17 @@ export class CrearContratoComponent implements OnInit {
       .subscribe((response: any) => {
         const body = response.body as any[];
         console.log('=== ACUDIENTES RAW ===', body);
-        
-        this.acudientesDisponibles = body
+
+        this.acudientesCrudos = body
           .filter((a: any) => a.activo == 1)
           .map((a: any) => ({
             ...a,
             nombre_completo: a.nombre_persona?.trim() || 'Sin nombre',
           }));
 
-        console.log('=== ACUDIENTES PROCESADOS ===', this.acudientesDisponibles);
+        this.refrescarAcudientesDisponibles();
 
-        this.emailsFirmantes = this.acudientesDisponibles
-          .map((a: any) => a.correo_electronico)
-          .filter((email: string) => email && email.trim().length > 0);
+        console.log('=== ACUDIENTES PROCESADOS ===', this.acudientesDisponibles);
 
         if (this.accion === 'crear') {
           this.acudientesDisponibles.forEach((a) => {
@@ -240,7 +242,33 @@ export class CrearContratoComponent implements OnInit {
             }
           });
         }
+
+        this.recalcularEmailsFirmantes();
       });
+  }
+
+  /**
+   * Arma la lista de acudientes que se muestran como destinatarios del contrato.
+   * Solo los responsables de pago, mas los que ya esten guardados en el contrato
+   * aunque hoy no lo sean, para que al editar no desaparezcan en silencio.
+   */
+  refrescarAcudientesDisponibles() {
+    const seleccionados = this.model.acudientes || [];
+    this.acudientesDisponibles = this.acudientesCrudos.filter(
+      (a: any) => a.es_responsable_pago == 1 || seleccionados.includes(a.id)
+    );
+  }
+
+  /**
+   * Los firmantes son los acudientes marcados en el contrato, no todos los
+   * del estudiante. Este arreglo es el que se manda a firma digital.
+   */
+  recalcularEmailsFirmantes() {
+    const seleccionados = this.model.acudientes || [];
+    this.emailsFirmantes = this.acudientesCrudos
+      .filter((a: any) => seleccionados.includes(a.id))
+      .map((a: any) => a.correo_electronico)
+      .filter((email: string) => email && email.trim().length > 0);
   }
 
   obtenerContrato(id: any) {
@@ -284,6 +312,8 @@ export class CrearContratoComponent implements OnInit {
               this.model.acudientes = acudientes.map(
                 (a: any) => a.id_acudiente
               );
+              this.refrescarAcudientesDisponibles();
+              this.recalcularEmailsFirmantes();
             });
 
           // Cargar las lineas del contrato y despues el calendario
@@ -1037,6 +1067,7 @@ export class CrearContratoComponent implements OnInit {
     } else {
       this.model.acudientes.push(idAcudiente);
     }
+    this.recalcularEmailsFirmantes();
   }
 
   isAcudienteSeleccionado(idAcudiente: string): boolean {

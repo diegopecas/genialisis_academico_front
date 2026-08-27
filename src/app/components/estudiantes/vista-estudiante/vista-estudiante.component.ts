@@ -6,6 +6,7 @@ import { HeaderComponent } from '../../../common/header/header.component';
 import { FormsModule } from '@angular/forms';
 import { EstudiantesService } from '../../../services/estudiantes.service';
 import { PersonasService } from '../../../services/personas.service';
+import { PermisosService } from '../../../services/permisos.service';
 import { DocumentosPersonaComponent } from '../../../common/documentos-persona/documentos-persona.component';
 
 import { EstudianteDatosComponent } from './estudiante-datos/estudiante-datos.component';
@@ -23,7 +24,9 @@ import { EstudianteDatosAdicionalesComponent } from './estudiante-datos-adiciona
 interface PestanaInfo {
   id: string;
   nombre: string;
+  nombreCorto: string;
   icono: string;
+  permiso: string;
 }
 
 @Component({
@@ -53,7 +56,7 @@ export class VistaEstudianteComponent implements OnInit {
   public idEstudiante = '0';
   public idPersona = '';
   public nombreCompleto = '';
-  public pestanaActiva = 'datos';
+  public pestanaActiva = '';
   public cargando = false;
   public isMobile = false;
   public dropdownAbierto = false;
@@ -61,32 +64,37 @@ export class VistaEstudianteComponent implements OnInit {
   public usarSelectorDropdown = false;
 
   // Tabs que ya fueron visitados (lazy load + keep alive)
-  public tabsCargados = new Set<string>(['datos']);
+  public tabsCargados = new Set<string>();
 
   private pestanas: PestanaInfo[] = [
-    { id: 'datos', nombre: 'Datos Personales y Acudientes', icono: 'fas fa-user-circle' },
-    { id: 'datos-medicos', nombre: 'Datos Médicos', icono: 'fas fa-heartbeat' },
-    { id: 'datos-adicionales', nombre: 'Datos Adicionales', icono: 'fas fa-puzzle-piece' },
-    { id: 'medidas', nombre: 'Medidas', icono: 'fas fa-weight' },
-    { id: 'cuenta', nombre: 'Estado de Cuenta', icono: 'fas fa-file-invoice-dollar' },
-    { id: 'exenciones-mora', nombre: 'Exenciones de Mora', icono: 'fas fa-shield-alt' },
-    { id: 'observaciones', nombre: 'Observaciones', icono: 'fas fa-comment-alt' },
-    { id: 'asistencia', nombre: 'Asistencia', icono: 'fas fa-calendar-check' },
-    { id: 'evaluaciones', nombre: 'Evaluaciones', icono: 'fas fa-graduation-cap' },
-    { id: 'ead3', nombre: 'EAD-3', icono: 'fas fa-brain' },
-    { id: 'perfil-desarrollo', nombre: 'Perfil de Desarrollo', icono: 'fas fa-chart-line' },
-    { id: 'documentos', nombre: 'Documentos', icono: 'fas fa-file-alt' },
+    { id: 'datos', nombre: 'Datos Personales y Acudientes', nombreCorto: 'Datos Personales', icono: 'fas fa-user-circle', permiso: 'estudiantes.vista_360.datos' },
+    { id: 'datos-medicos', nombre: 'Datos Médicos', nombreCorto: 'Datos Médicos', icono: 'fas fa-heartbeat', permiso: 'estudiantes.vista_360.datos_medicos' },
+    { id: 'datos-adicionales', nombre: 'Datos Adicionales', nombreCorto: 'Datos Adicionales', icono: 'fas fa-puzzle-piece', permiso: 'estudiantes.vista_360.datos_adicionales' },
+    { id: 'medidas', nombre: 'Medidas', nombreCorto: 'Medidas', icono: 'fas fa-weight', permiso: 'estudiantes.vista_360.medidas' },
+    { id: 'cuenta', nombre: 'Estado de Cuenta', nombreCorto: 'Estado de Cuenta', icono: 'fas fa-file-invoice-dollar', permiso: 'estudiantes.vista_360.cuenta' },
+    { id: 'exenciones-mora', nombre: 'Exenciones de Mora', nombreCorto: 'Exenciones de Mora', icono: 'fas fa-shield-alt', permiso: 'estudiantes.vista_360.exenciones_mora' },
+    { id: 'observaciones', nombre: 'Observaciones', nombreCorto: 'Observaciones', icono: 'fas fa-comment-alt', permiso: 'estudiantes.vista_360.observaciones' },
+    { id: 'asistencia', nombre: 'Asistencia', nombreCorto: 'Asistencia', icono: 'fas fa-calendar-check', permiso: 'estudiantes.vista_360.asistencia' },
+    { id: 'evaluaciones', nombre: 'Evaluaciones', nombreCorto: 'Evaluaciones', icono: 'fas fa-graduation-cap', permiso: 'estudiantes.vista_360.evaluaciones' },
+    { id: 'ead3', nombre: 'EAD-3', nombreCorto: 'EAD-3', icono: 'fas fa-brain', permiso: 'estudiantes.vista_360.ead3' },
+    { id: 'perfil-desarrollo', nombre: 'Perfil de Desarrollo', nombreCorto: 'Perfil de Desarrollo', icono: 'fas fa-chart-line', permiso: 'estudiantes.vista_360.perfil_desarrollo' },
+    { id: 'documentos', nombre: 'Documentos', nombreCorto: 'Documentos', icono: 'fas fa-file-alt', permiso: 'estudiantes.vista_360.documentos' },
   ];
+
+  // Pestañas que el usuario puede ver según sus permisos
+  public pestanasVisibles: PestanaInfo[] = [];
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private estudiantesService: EstudiantesService,
-    private personasService: PersonasService
+    private personasService: PersonasService,
+    private permisosService: PermisosService
   ) {}
 
   ngOnInit(): void {
     this.checkDevice();
+    this.filtrarPestanasPorPermiso();
 
     this.route.params.subscribe((params) => {
       this.idEstudiante = params['id'];
@@ -98,6 +106,30 @@ export class VistaEstudianteComponent implements OnInit {
     });
 
     this.setupOutsideClickListener();
+  }
+
+  // Deja solo las pestañas con permiso y arranca en la primera disponible,
+  // porque 'datos' puede no estar habilitada para el rol.
+  private filtrarPestanasPorPermiso(): void {
+    this.pestanasVisibles = this.pestanas.filter((p) =>
+      this.permisosService.tienePermiso(p.permiso)
+    );
+
+    if (this.pestanasVisibles.length > 0) {
+      this.pestanaActiva = this.pestanasVisibles[0].id;
+      this.tabsCargados.add(this.pestanaActiva);
+    } else {
+      this.pestanaActiva = '';
+    }
+  }
+
+  // Usado por el template para no instanciar componentes sin permiso
+  puedeVer(idPestana: string): boolean {
+    return this.pestanasVisibles.some((p) => p.id === idPestana);
+  }
+
+  get sinPestanasVisibles(): boolean {
+    return this.pestanasVisibles.length === 0;
   }
 
   @HostListener('window:resize', ['$event'])
@@ -168,6 +200,8 @@ export class VistaEstudianteComponent implements OnInit {
   }
 
   cambiarPestana(pestana: string): void {
+    if (!this.puedeVer(pestana)) return;
+
     this.tabsCargados.add(pestana);
     this.pestanaActiva = pestana;
     if (this.isMobile) {
@@ -204,6 +238,10 @@ export class VistaEstudianteComponent implements OnInit {
     this.menuRapidoAbierto = false;
   }
 
+  trackByPestana(index: number, pestana: PestanaInfo): string {
+    return pestana.id;
+  }
+
   private startX = 0;
   private startY = 0;
 
@@ -222,11 +260,12 @@ export class VistaEstudianteComponent implements OnInit {
     const diffY = Math.abs(this.startY - endY);
 
     if (Math.abs(diffX) > 50 && diffY < 100) {
-      const currentIndex = this.pestanas.findIndex((p) => p.id === this.pestanaActiva);
-      if (diffX > 0 && currentIndex < this.pestanas.length - 1) {
-        this.cambiarPestana(this.pestanas[currentIndex + 1].id);
+      // El swipe recorre solo las pestañas visibles para el rol
+      const currentIndex = this.pestanasVisibles.findIndex((p) => p.id === this.pestanaActiva);
+      if (diffX > 0 && currentIndex < this.pestanasVisibles.length - 1) {
+        this.cambiarPestana(this.pestanasVisibles[currentIndex + 1].id);
       } else if (diffX < 0 && currentIndex > 0) {
-        this.cambiarPestana(this.pestanas[currentIndex - 1].id);
+        this.cambiarPestana(this.pestanasVisibles[currentIndex - 1].id);
       }
     }
   }

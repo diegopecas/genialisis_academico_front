@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnDestroy } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Chart, registerables } from 'chart.js';
@@ -48,6 +48,13 @@ interface Calificacion {
     logro_nombre?: string;
     [key: string]: any;
     color?: string;
+}
+
+interface SeccionObservaciones {
+    nombre: string;
+    color: string;
+    icono: string;
+    observaciones: ObservacionEstudiante[];
 }
 
 interface CalificacionPromedio {
@@ -153,6 +160,7 @@ export class EstudianteEvaluacionesComponent implements OnInit, OnDestroy {
 
     // Datos de observaciones
     public observaciones: ObservacionEstudiante[] = [];
+    public seccionesObservaciones: SeccionObservaciones[] = [];
     public tiposObservaciones: any[] = [];
 
     // Datos de medidas antropométricas
@@ -191,6 +199,16 @@ export class EstudianteEvaluacionesComponent implements OnInit, OnDestroy {
     // Propiedades para gráficos
     private charts: { [key: string]: Chart } = {};
 
+    // Handler de resize guardado en una propiedad: con .bind() en cada llamada
+    // el removeEventListener nunca lograba quitar el listener registrado.
+    private readonly resizeHandler = (): void => this.handleResize();
+    private resizeTimeout: any = null;
+    private graficosTimeout: any = null;
+
+    // Evitan el ciclo redibujar -> cambia layout -> resize -> redibujar
+    private generandoGraficos: boolean = false;
+    private anchoUltimosGraficos: number = 0;
+
     // Propiedades para filtros de logros
     public filtroLogros: string = '';
     public filtroAreaLogros: string = '';
@@ -205,7 +223,8 @@ export class EstudianteEvaluacionesComponent implements OnInit, OnDestroy {
         private tiposObservacionesService: TiposObservacionesEstudiantesService,
         private medidasXEstudianteService: MedidasXEstudianteService,
         private exportarPdfEvaluacionService: ExportarPdfEvaluacionService,
-        private institucionConfigService: InstitucionConfigService
+        private institucionConfigService: InstitucionConfigService,
+        private ngZone: NgZone
     ) {
         Chart.register(...registerables);
     }
@@ -214,27 +233,46 @@ export class EstudianteEvaluacionesComponent implements OnInit, OnDestroy {
         this.anioAcademico = this.institucionConfigService.getAnioAcademicoActual();
         this.consultarSprints();
         this.cargarTiposObservaciones();
-        window.addEventListener('resize', this.handleResize.bind(this));
+        window.addEventListener('resize', this.resizeHandler);
     }
 
     ngOnDestroy(): void {
         // Cancelar todas las suscripciones para evitar memory leaks
         this.subscriptions.forEach(sub => sub.unsubscribe());
 
+        // Cancelar temporizadores pendientes
+        if (this.resizeTimeout) {
+            clearTimeout(this.resizeTimeout);
+            this.resizeTimeout = null;
+        }
+        if (this.graficosTimeout) {
+            clearTimeout(this.graficosTimeout);
+            this.graficosTimeout = null;
+        }
+
         // Destruir todos los gráficos
         Object.values(this.charts).forEach(chart => chart.destroy());
+        this.charts = {};
 
         // Remover listener de resize
-        window.removeEventListener('resize', this.handleResize.bind(this));
+        window.removeEventListener('resize', this.resizeHandler);
     }
 
     private handleResize(): void {
-        // Regenerar gráficos cuando cambie el tamaño de la ventana
-        if (this.mostrarDashboard && this.datosPromedio.length > 0) {
-            setTimeout(() => {
-                this.generarGraficos();
-            }, 300);
+        // Regenerar gráficos cuando cambie el tamaño de la ventana.
+        // Solo se regenera si el ancho realmente cambió: al destruir y recrear
+        // los Chart cambia la altura del contenido y el navegador vuelve a
+        // disparar resize, lo que producía un ciclo infinito.
+        if (!this.mostrarDashboard || this.datosPromedio.length === 0) return;
+        if (window.innerWidth === this.anchoUltimosGraficos) return;
+
+        if (this.resizeTimeout) {
+            clearTimeout(this.resizeTimeout);
         }
+        this.resizeTimeout = setTimeout(() => {
+            this.resizeTimeout = null;
+            this.generarGraficos();
+        }, 300);
     }
 
     // SIN FILTRO DE SPRINTS DE EVALUACIÓN - Se mantiene como estaba originalmente
@@ -355,9 +393,14 @@ export class EstudianteEvaluacionesComponent implements OnInit, OnDestroy {
 
                 // Ordenar por fecha (más reciente primero)
                 this.observaciones.sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
+
+                // Reagrupar por sección con las observaciones ya filtradas
+                this.construirSeccionesObservaciones();
             },
             error: (error) => {
                 console.error('Error al cargar observaciones:', error);
+                this.observaciones = [];
+                this.construirSeccionesObservaciones();
             }
         });
 
@@ -407,7 +450,11 @@ export class EstudianteEvaluacionesComponent implements OnInit, OnDestroy {
                     this.mostrarDashboard = true;
 
                     // Generar gráficos después de que el DOM esté listo
-                    setTimeout(() => {
+                    if (this.graficosTimeout) {
+                        clearTimeout(this.graficosTimeout);
+                    }
+                    this.graficosTimeout = setTimeout(() => {
+                        this.graficosTimeout = null;
                         this.generarGraficos();
                     }, 500);
                 } else {
@@ -485,8 +532,10 @@ export class EstudianteEvaluacionesComponent implements OnInit, OnDestroy {
         return `${dia}/${mes}/${anio}`;
     }
 
-    // Método para obtener las observaciones agrupadas por tipo
-    get seccionesObservaciones(): { nombre: string; color: string; icono: string; observaciones: ObservacionEstudiante[] }[] {
+    // Método para obtener las observaciones agrupadas por tipo.
+    // Se calcula una sola vez al cargar las observaciones y no en cada ciclo de
+    // detección de cambios, que era lo que recreaba todo el DOM del *ngFor.
+    private construirSeccionesObservaciones(): void {
         const mapa = new Map<string, { orden: number; color: string; icono: string; observaciones: ObservacionEstudiante[] }>();
 
         this.observaciones.forEach(obs => {
@@ -505,7 +554,7 @@ export class EstudianteEvaluacionesComponent implements OnInit, OnDestroy {
             mapa.get(seccion)!.observaciones.push(obs);
         });
 
-        return Array.from(mapa.entries())
+        this.seccionesObservaciones = Array.from(mapa.entries())
             .sort((a, b) => {
                 const diff = a[1].orden - b[1].orden;
                 return diff !== 0 ? diff : a[0].localeCompare(b[0]);
@@ -812,14 +861,28 @@ export class EstudianteEvaluacionesComponent implements OnInit, OnDestroy {
     }
 
     generarGraficos(): void {
-        // Limpiar gráficos existentes
-        this.limpiarGraficos();
+        // Guarda de reentrada: impide que un resize disparado por el propio
+        // redibujado vuelva a entrar acá.
+        if (this.generandoGraficos) return;
+        this.generandoGraficos = true;
+        this.anchoUltimosGraficos = window.innerWidth;
 
-        // Generar gráficos si hay datos
-        if (this.datosPromedio.length > 0) {
-            this.generarGraficoPromedios();
-            this.generarGraficoPolar();
-        }
+        // Chart.js anima con requestAnimationFrame; dentro de la zona de Angular
+        // cada frame dispara detección de cambios sobre todo el dashboard.
+        this.ngZone.runOutsideAngular(() => {
+            try {
+                // Limpiar gráficos existentes
+                this.limpiarGraficos();
+
+                // Generar gráficos si hay datos
+                if (this.datosPromedio.length > 0) {
+                    this.generarGraficoPromedios();
+                    this.generarGraficoPolar();
+                }
+            } finally {
+                this.generandoGraficos = false;
+            }
+        });
     }
 
     limpiarGraficos(): void {
@@ -1402,6 +1465,24 @@ export class EstudianteEvaluacionesComponent implements OnInit, OnDestroy {
                 document.head.removeChild(style);
             }, 300);
         }, 3000);
+    }
+
+    // trackBy para los *ngFor del dashboard: evita que Angular destruya y
+    // reconstruya el DOM completo en cada ciclo de detección de cambios.
+    trackBySeccion(index: number, seccion: SeccionObservaciones): string {
+        return seccion.nombre;
+    }
+
+    trackByObservacion(index: number, observacion: ObservacionEstudiante): string {
+        return observacion.id;
+    }
+
+    trackByLogro(index: number, logro: LogroPromedio): string {
+        return logro.id_logro;
+    }
+
+    trackByIndicador(index: number, indicador: IndicadorLogroPromedio): string {
+        return indicador.id_indicador_logro;
     }
 
     // Métodos auxiliares para obtener información
