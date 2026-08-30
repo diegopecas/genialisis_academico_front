@@ -70,6 +70,36 @@ interface AplicacionPago {
   nombre_clasificacion: string;
 }
 
+// Fila del modal de detalle de pagos: una aplicacion de pago mas el nombre de la
+// persona, que se necesita cuando el detalle es el de la fila de TOTALES.
+interface FilaDetallePago extends AplicacionPago {
+  nombre_persona: string;
+  grupo_persona: string;
+}
+
+// Una cuenta por cobrar del anio que todavia tiene saldo. Alimenta el modal de
+// detalle de los tabs de saldos (estudiantes y colaboradores).
+interface CuentaPendiente {
+  id_persona: string;
+  mes_cuenta: number;
+  fecha_cuenta: string;
+  id_cuenta_por_cobrar: string;
+  detalle_cuenta: string;
+  valor_cuenta: number;
+  valor_abonado: number;
+  saldo_pendiente: number;
+  es_mora: number;
+  id_producto_servicio: string;
+  nombre_producto: string;
+  nombre_clasificacion: string;
+}
+
+// Fila del modal de saldos pendientes: la cuenta mas el nombre de la persona.
+interface FilaDetallePendiente extends CuentaPendiente {
+  nombre_persona: string;
+  grupo_persona: string;
+}
+
 interface ValorCartera {
   id_persona: string;
   tipo_valor: string;
@@ -260,8 +290,28 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
   public estudianteDetallePagos: EstudianteCartera | null = null;
   public tituloDetallePagos: string = '';
   public detallePagosPorProducto: boolean = false;
-  public detallePagosMes: AplicacionPago[] = [];
+  // true cuando el detalle es el de la fila de TOTALES: ahi se agrega la columna
+  // con el nombre del estudiante, porque las filas son de varias personas.
+  public detallePagosEsTotal: boolean = false;
+  public detallePagosMes: FilaDetallePago[] = [];
   public totalDetallePagosMes: number = 0;
+
+  // Detalle de cuentas pendientes del anio. Misma estrategia que el detalle de
+  // pagos: una sola llamada al abrir cualquiera de los dos tabs de saldos y un
+  // Map indexado por `id_persona-mes`. Sirve para estudiantes y colaboradores,
+  // porque las cuentas por cobrar van por persona.
+  private cuentasPendientesPorPersonaMes: Map<string, CuentaPendiente[]> = new Map();
+  public cuentasPendientesCargadas: boolean = false;
+  public cargandoCuentasPendientes: boolean = false;
+  public errorCuentasPendientes: string = '';
+
+  // Datos del modal de detalle de saldos pendientes
+  public personaDetallePendientes: EstudianteCartera | null = null;
+  public tituloDetallePendientes: string = '';
+  public detallePendientesEsTotal: boolean = false;
+  public etiquetaPersonaDetalle: string = 'Estudiante';
+  public detallePendientesMes: FilaDetallePendiente[] = [];
+  public totalDetallePendientesMes: number = 0;
 
   // Paginación colaboradores
   public paginaActualColaboradores: number = 1;
@@ -910,6 +960,13 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
     this.limpiarCacheAplicacionesPagos();
     if (teniaDetalleCargado) {
       this.cargarAplicacionesPagos();
+    }
+
+    // Lo mismo con el detalle de saldos pendientes.
+    const teniaPendientesCargados = this.cuentasPendientesCargadas;
+    this.limpiarCacheCuentasPendientes();
+    if (teniaPendientesCargados) {
+      this.cargarCuentasPendientes();
     }
   }
 
@@ -1711,6 +1768,157 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
     return total;
   }
 
+  // ==========================================================================
+  // Detalle de saldos pendientes (tabs Saldos Estudiantes y Saldos Colaboradores)
+  //
+  // El valor de la celda sigue saliendo de `Saldo {Mes}` del SP. El detalle son
+  // las cuentas por cobrar de ese mes que todavia tienen saldo, que se traen una
+  // sola vez por anio y se indexan por `id_persona-mes`, igual que el detalle de
+  // pagos, para que el clic en la celda no vaya al backend.
+  // ==========================================================================
+
+  // Se dispara desde el boton de cualquiera de los dos tabs de saldos. Un solo
+  // Map alimenta los dos, porque las cuentas por cobrar van por persona.
+  abrirTabSaldosPendientes(): void {
+    if (!this.cuentasPendientesCargadas && !this.cargandoCuentasPendientes) {
+      this.cargarCuentasPendientes();
+    }
+  }
+
+  cargarCuentasPendientes(): void {
+    this.cargandoCuentasPendientes = true;
+    this.errorCuentasPendientes = '';
+
+    const sub = this.cuentasPorCobrarService.obtenerPendientesAnio(this.anioSeleccionado).subscribe({
+      next: (response: any) => {
+        this.indexarCuentasPendientes(response.body || []);
+        this.cuentasPendientesCargadas = true;
+        this.cargandoCuentasPendientes = false;
+      },
+      error: (error) => {
+        console.error('Error al cargar el detalle de saldos pendientes:', error);
+        this.errorCuentasPendientes = 'No se pudo cargar el detalle de saldos pendientes. Intenta de nuevo.';
+        this.cargandoCuentasPendientes = false;
+      }
+    });
+
+    this.subscriptions.push(sub);
+  }
+
+  private indexarCuentasPendientes(datos: any[]): void {
+    this.cuentasPendientesPorPersonaMes = new Map();
+
+    datos.forEach(item => {
+      const cuenta: CuentaPendiente = {
+        id_persona: item.id_persona,
+        mes_cuenta: parseInt(item.mes_cuenta, 10),
+        fecha_cuenta: item.fecha_cuenta,
+        id_cuenta_por_cobrar: item.id_cuenta_por_cobrar,
+        detalle_cuenta: item.detalle_cuenta,
+        valor_cuenta: parseFloat(item.valor_cuenta) || 0,
+        valor_abonado: parseFloat(item.valor_abonado) || 0,
+        saldo_pendiente: parseFloat(item.saldo_pendiente) || 0,
+        es_mora: parseInt(item.es_mora, 10) || 0,
+        id_producto_servicio: item.id_producto_servicio,
+        nombre_producto: item.nombre_producto,
+        nombre_clasificacion: item.nombre_clasificacion
+      };
+
+      const llave = `${cuenta.id_persona}-${cuenta.mes_cuenta}`;
+      const existentes = this.cuentasPendientesPorPersonaMes.get(llave);
+
+      if (existentes) {
+        existentes.push(cuenta);
+      } else {
+        this.cuentasPendientesPorPersonaMes.set(llave, [cuenta]);
+      }
+    });
+  }
+
+  private limpiarCacheCuentasPendientes(): void {
+    this.cuentasPendientesPorPersonaMes = new Map();
+    this.cuentasPendientesCargadas = false;
+    this.errorCuentasPendientes = '';
+  }
+
+  private getPendientesPersonaMes(idPersona: string, mes: number): CuentaPendiente[] {
+    return this.cuentasPendientesPorPersonaMes.get(`${idPersona}-${mes}`) || [];
+  }
+
+  // Numero de columnas del modal de pendientes, para los colspan de la tabla
+  get columnasDetallePendientes(): number {
+    return this.detallePendientesEsTotal ? 7 : 6;
+  }
+
+  // Detalle de una celda: las cuentas pendientes de esa persona en ese mes.
+  verDetallePendientesMes(persona: EstudianteCartera, mes: number, esColaborador: boolean = false): void {
+    if (this.getSaldoPendienteMes(persona, mes) <= 0) return;
+
+    // Si el detalle todavia no esta en memoria no se abre un modal vacio: se
+    // dispara la carga y el usuario vuelve a hacer clic.
+    if (!this.cuentasPendientesCargadas) {
+      this.abrirTabSaldosPendientes();
+      return;
+    }
+
+    this.personaDetallePendientes = persona;
+    this.detallePendientesEsTotal = false;
+    this.etiquetaPersonaDetalle = esColaborador ? 'Colaborador' : 'Estudiante';
+    this.tituloDetallePendientes = `Pendientes de ${this.mesesDisponibles[mes - 1].nombre}`;
+    this.detallePendientesMes = this.getPendientesPersonaMes(persona.id_persona, mes).map(cuenta => ({
+      ...cuenta,
+      nombre_persona: persona.nombre_estudiante,
+      grupo_persona: persona.grupo_estudiante
+    }));
+
+    this.abrirModalDetallePendientes();
+  }
+
+  // Detalle de la fila de TOTALES: recorre las personas que quedaron visibles
+  // con los filtros del tab, para que el total del modal cuadre con la celda.
+  verDetalleTotalPendientesMes(mes: number, esColaborador: boolean = false): void {
+    if (!this.cuentasPendientesCargadas) {
+      this.abrirTabSaldosPendientes();
+      return;
+    }
+
+    const personas = esColaborador
+      ? this.colaboradoresSaldosPendientesFiltrados
+      : this.estudiantesSaldosPendientesFiltrados;
+
+    const filas: FilaDetallePendiente[] = [];
+
+    personas.forEach(persona => {
+      this.getPendientesPersonaMes(persona.id_persona, mes).forEach(cuenta => {
+        filas.push({
+          ...cuenta,
+          nombre_persona: persona.nombre_estudiante,
+          grupo_persona: persona.grupo_estudiante
+        });
+      });
+    });
+
+    if (filas.length === 0) return;
+
+    this.personaDetallePendientes = null;
+    this.detallePendientesEsTotal = true;
+    this.etiquetaPersonaDetalle = esColaborador ? 'Colaborador' : 'Estudiante';
+    this.tituloDetallePendientes =
+      `Pendientes de ${this.mesesDisponibles[mes - 1].nombre} - todos los ${esColaborador ? 'colaboradores' : 'estudiantes'} del filtro`;
+    this.detallePendientesMes = filas;
+
+    this.abrirModalDetallePendientes();
+  }
+
+  private abrirModalDetallePendientes(): void {
+    this.totalDetallePendientesMes = this.detallePendientesMes.reduce(
+      (total, cuenta) => total + cuenta.saldo_pendiente, 0
+    );
+
+    const modal = new (window as any).bootstrap.Modal(document.getElementById('modalDetallePendientesMes'));
+    modal.show();
+  }
+
   aplicarFiltrosSaldosPendientes(): void {
     let filtrados = [...this.estudiantes];
 
@@ -1924,6 +2132,10 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
 
     if (id === 'pagos-estudiantes') {
       this.abrirTabPagosEstudiantes();
+    }
+
+    if (id === 'saldos-pendientes' || id === 'saldos-colaboradores') {
+      this.abrirTabSaldosPendientes();
     }
   }
 
@@ -2199,6 +2411,11 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
     return this.getTotalPagosEstudiantes() / conPagos;
   }
 
+  // Numero de columnas del modal de pagos, para los colspan de la tabla
+  get columnasDetallePagos(): number {
+    return 6 + (this.detallePagosPorProducto ? 1 : 0) + (this.detallePagosEsTotal ? 1 : 0);
+  }
+
   // El detalle sale del Map en memoria, sin ir al backend.
   verDetallePagosMes(estudiante: EstudianteCartera, mes: number): void {
     if (this.getPagadoMes(estudiante, mes) <= 0) return;
@@ -2206,7 +2423,13 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
     this.estudianteDetallePagos = estudiante;
     this.tituloDetallePagos = `Pagos de ${this.mesesDisponibles[mes - 1].nombre}`;
     this.detallePagosPorProducto = false;
-    this.detallePagosMes = this.aplicacionesPagosPorPersonaMes.get(`${estudiante.id_persona}-${mes}`) || [];
+    this.detallePagosEsTotal = false;
+    this.detallePagosMes = (this.aplicacionesPagosPorPersonaMes.get(`${estudiante.id_persona}-${mes}`) || [])
+      .map(ap => ({
+        ...ap,
+        nombre_persona: estudiante.nombre_estudiante,
+        grupo_persona: estudiante.grupo_estudiante
+      }));
 
     this.abrirModalDetallePagos();
   }
@@ -2218,16 +2441,79 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
     this.estudianteDetallePagos = estudiante;
     this.tituloDetallePagos = `Pagos de ${producto.nombre}`;
     this.detallePagosPorProducto = true;
+    this.detallePagosEsTotal = false;
 
-    const detalle: AplicacionPago[] = [];
+    const detalle: FilaDetallePago[] = [];
     for (let mes = 1; mes <= 12; mes++) {
       const aplicaciones = this.aplicacionesPagosPorPersonaMes.get(`${estudiante.id_persona}-${mes}`) || [];
       aplicaciones.forEach(ap => {
         if (ap.id_producto_servicio === producto.id) {
-          detalle.push(ap);
+          detalle.push({
+            ...ap,
+            nombre_persona: estudiante.nombre_estudiante,
+            grupo_persona: estudiante.grupo_estudiante
+          });
         }
       });
     }
+    this.detallePagosMes = detalle;
+
+    this.abrirModalDetallePagos();
+  }
+
+  // Detalle de la fila de TOTALES del mes: recorre los estudiantes que quedaron
+  // visibles con los filtros del tab. No hay llamada nueva al backend, se usa el
+  // mismo Map que ya esta en memoria.
+  verDetalleTotalPagosMes(mes: number): void {
+    const detalle: FilaDetallePago[] = [];
+
+    this.estudiantesPagosFiltrados.forEach(estudiante => {
+      const aplicaciones = this.aplicacionesPagosPorPersonaMes.get(`${estudiante.id_persona}-${mes}`) || [];
+      aplicaciones.forEach(ap => {
+        detalle.push({
+          ...ap,
+          nombre_persona: estudiante.nombre_estudiante,
+          grupo_persona: estudiante.grupo_estudiante
+        });
+      });
+    });
+
+    if (detalle.length === 0) return;
+
+    this.estudianteDetallePagos = null;
+    this.detallePagosPorProducto = false;
+    this.detallePagosEsTotal = true;
+    this.tituloDetallePagos = `Pagos de ${this.mesesDisponibles[mes - 1].nombre} - todos los estudiantes del filtro`;
+    this.detallePagosMes = detalle;
+
+    this.abrirModalDetallePagos();
+  }
+
+  // Lo mismo para la fila de TOTALES de la vista por concepto.
+  verDetalleTotalPagosProducto(producto: { id: string, nombre: string }): void {
+    const detalle: FilaDetallePago[] = [];
+
+    this.estudiantesPagosFiltrados.forEach(estudiante => {
+      for (let mes = 1; mes <= 12; mes++) {
+        const aplicaciones = this.aplicacionesPagosPorPersonaMes.get(`${estudiante.id_persona}-${mes}`) || [];
+        aplicaciones.forEach(ap => {
+          if (ap.id_producto_servicio === producto.id) {
+            detalle.push({
+              ...ap,
+              nombre_persona: estudiante.nombre_estudiante,
+              grupo_persona: estudiante.grupo_estudiante
+            });
+          }
+        });
+      }
+    });
+
+    if (detalle.length === 0) return;
+
+    this.estudianteDetallePagos = null;
+    this.detallePagosPorProducto = true;
+    this.detallePagosEsTotal = true;
+    this.tituloDetallePagos = `Pagos de ${producto.nombre} - todos los estudiantes del filtro`;
     this.detallePagosMes = detalle;
 
     this.abrirModalDetallePagos();

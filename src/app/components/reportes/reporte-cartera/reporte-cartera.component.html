@@ -198,7 +198,7 @@
         </button>
       </li>
       <li class="nav-item" role="presentation">
-        <button class="nav-link" id="saldos-pendientes-tab" data-bs-toggle="tab" (click)="tabActivo = 'saldos-pendientes'" data-bs-target="#saldos-pendientes"
+        <button class="nav-link" id="saldos-pendientes-tab" data-bs-toggle="tab" (click)="tabActivo = 'saldos-pendientes'; abrirTabSaldosPendientes()" data-bs-target="#saldos-pendientes"
           type="button" role="tab" aria-controls="saldos-pendientes" aria-selected="false">
           <i class="fas fa-calendar-check"></i> Saldos Estudiantes
         </button>
@@ -211,7 +211,7 @@
         </button>
       </li>
       <li class="nav-item" role="presentation">
-        <button class="nav-link" id="saldos-colaboradores-tab" data-bs-toggle="tab" (click)="tabActivo = 'saldos-colaboradores'" data-bs-target="#saldos-colaboradores"
+        <button class="nav-link" id="saldos-colaboradores-tab" data-bs-toggle="tab" (click)="tabActivo = 'saldos-colaboradores'; abrirTabSaldosPendientes()" data-bs-target="#saldos-colaboradores"
           type="button" role="tab" aria-controls="saldos-colaboradores" aria-selected="false">
           <i class="fas fa-calendar-check"></i> Saldos Colaboradores
         </button>
@@ -2235,6 +2235,18 @@
               </div>
             </div>
 
+            <!-- Estado de la carga del detalle -->
+            <div *ngIf="cargandoCuentasPendientes" class="alert alert-light py-2">
+              <span class="spinner-border spinner-border-sm me-2"></span>
+              Cargando el detalle de saldos pendientes del año...
+            </div>
+            <div *ngIf="errorCuentasPendientes" class="alert alert-warning py-2 d-flex justify-content-between align-items-center">
+              <span><i class="fas fa-exclamation-triangle me-2"></i>{{ errorCuentasPendientes }}</span>
+              <button class="btn btn-sm btn-outline-secondary" (click)="cargarCuentasPendientes()">
+                Reintentar
+              </button>
+            </div>
+
             <!-- Tabla de saldos pendientes mensuales -->
             <div class="table-responsive tabla-saldos-mensuales tabla-columna-fija">
               <table class="table table-hover table-bordered table-sm">
@@ -2281,7 +2293,9 @@
                     'text-danger': getSaldoPendienteMes(estudiante, mes.valor) > 0,
                     'table-danger': getSaldoPendienteMes(estudiante, mes.valor) > 100000
                   }">
-                      <span *ngIf="getSaldoPendienteMes(estudiante, mes.valor) > 0">
+                      <span *ngIf="getSaldoPendienteMes(estudiante, mes.valor) > 0" class="celda-pago"
+                        title="Ver los cobros pendientes de {{ mes.nombre }}"
+                        (click)="verDetallePendientesMes(estudiante, mes.valor)">
                         {{ getSaldoPendienteMes(estudiante, mes.valor) | currency:'':'symbol':'1.0-0' }}
                       </span>
                       <span *ngIf="getSaldoPendienteMes(estudiante, mes.valor) === 0" class="text-muted">
@@ -2305,7 +2319,14 @@
                   <tr class="fw-bold">
                     <td colspan="2">TOTALES</td>
                     <td class="text-end" *ngFor="let mes of mesesConMovimiento">
-                      {{ getTotalSaldoPendienteMes(mes.valor) | currency:'':'symbol':'1.0-0' }}
+                      <span *ngIf="getTotalSaldoPendienteMes(mes.valor) > 0" class="celda-pago"
+                        title="Ver todos los cobros pendientes de {{ mes.nombre }}"
+                        (click)="verDetalleTotalPendientesMes(mes.valor)">
+                        {{ getTotalSaldoPendienteMes(mes.valor) | currency:'':'symbol':'1.0-0' }}
+                      </span>
+                      <span *ngIf="getTotalSaldoPendienteMes(mes.valor) === 0">
+                        {{ 0 | currency:'':'symbol':'1.0-0' }}
+                      </span>
                     </td>
                     <td class="text-end text-danger">
                       {{ getTotalSaldosPendientes() | currency:'':'symbol':'1.0-0' }}
@@ -2336,6 +2357,11 @@
                       {{ getPromedioSaldoPendiente() | currency:'':'symbol':'1.0-0' }}
                     </div>
                   </div>
+                  <hr class="my-2">
+                  <small>
+                    Haz clic en un valor para ver qué cobros quedaron pendientes ese mes. En la fila de
+                    TOTALES se ven los de todos los del filtro.
+                  </small>
                 </div>
               </div>
             </div>
@@ -2462,7 +2488,14 @@
                   <tr class="fw-bold">
                     <td colspan="2">TOTALES</td>
                     <td class="text-end" *ngFor="let mes of mesesConMovimiento">
-                      {{ getTotalPagadoMes(mes.valor) | currency:'':'symbol':'1.0-0' }}
+                      <span *ngIf="getTotalPagadoMes(mes.valor) > 0" class="celda-pago"
+                        title="Ver todos los pagos de {{ mes.nombre }}"
+                        (click)="verDetalleTotalPagosMes(mes.valor)">
+                        {{ getTotalPagadoMes(mes.valor) | currency:'':'symbol':'1.0-0' }}
+                      </span>
+                      <span *ngIf="getTotalPagadoMes(mes.valor) === 0">
+                        {{ 0 | currency:'':'symbol':'1.0-0' }}
+                      </span>
                     </td>
                     <td class="text-end text-success">
                       {{ getTotalPagosEstudiantes() | currency:'':'symbol':'1.0-0' }}
@@ -2532,7 +2565,14 @@
                   <tr class="fw-bold">
                     <td colspan="2">TOTALES</td>
                     <td class="text-end" *ngFor="let producto of productosPagosColumnas">
-                      {{ getTotalPagadoProducto(producto.id) | currency:'':'symbol':'1.0-0' }}
+                      <span *ngIf="getTotalPagadoProducto(producto.id) > 0" class="celda-pago"
+                        title="Ver todos los pagos de {{ producto.nombre }}"
+                        (click)="verDetalleTotalPagosProducto(producto)">
+                        {{ getTotalPagadoProducto(producto.id) | currency:'':'symbol':'1.0-0' }}
+                      </span>
+                      <span *ngIf="getTotalPagadoProducto(producto.id) === 0">
+                        {{ 0 | currency:'':'symbol':'1.0-0' }}
+                      </span>
                     </td>
                     <td class="text-end text-success">
                       {{ getTotalPagosPorConcepto() | currency:'':'symbol':'1.0-0' }}
@@ -2606,6 +2646,18 @@
               </div>
             </div>
 
+            <!-- Estado de la carga del detalle -->
+            <div *ngIf="cargandoCuentasPendientes" class="alert alert-light py-2">
+              <span class="spinner-border spinner-border-sm me-2"></span>
+              Cargando el detalle de saldos pendientes del año...
+            </div>
+            <div *ngIf="errorCuentasPendientes" class="alert alert-warning py-2 d-flex justify-content-between align-items-center">
+              <span><i class="fas fa-exclamation-triangle me-2"></i>{{ errorCuentasPendientes }}</span>
+              <button class="btn btn-sm btn-outline-secondary" (click)="cargarCuentasPendientes()">
+                Reintentar
+              </button>
+            </div>
+
             <!-- Tabla de saldos pendientes mensuales colaboradores -->
             <div class="table-responsive tabla-saldos-mensuales tabla-columna-fija">
               <table class="table table-hover table-bordered table-sm">
@@ -2652,7 +2704,9 @@
                       'text-danger': getSaldoPendienteMes(colaborador, mes.valor) > 0,
                       'table-danger': getSaldoPendienteMes(colaborador, mes.valor) > 100000
                     }">
-                      <span *ngIf="getSaldoPendienteMes(colaborador, mes.valor) > 0">
+                      <span *ngIf="getSaldoPendienteMes(colaborador, mes.valor) > 0" class="celda-pago"
+                        title="Ver los cobros pendientes de {{ mes.nombre }}"
+                        (click)="verDetallePendientesMes(colaborador, mes.valor, true)">
                         {{ getSaldoPendienteMes(colaborador, mes.valor) | currency:'':'symbol':'1.0-0' }}
                       </span>
                       <span *ngIf="getSaldoPendienteMes(colaborador, mes.valor) === 0" class="text-muted">
@@ -2676,7 +2730,14 @@
                   <tr class="fw-bold">
                     <td colspan="2">TOTALES</td>
                     <td class="text-end" *ngFor="let mes of mesesConMovimiento">
-                      {{ getTotalSaldoPendienteMesColaboradores(mes.valor) | currency:'':'symbol':'1.0-0' }}
+                      <span *ngIf="getTotalSaldoPendienteMesColaboradores(mes.valor) > 0" class="celda-pago"
+                        title="Ver todos los cobros pendientes de {{ mes.nombre }}"
+                        (click)="verDetalleTotalPendientesMes(mes.valor, true)">
+                        {{ getTotalSaldoPendienteMesColaboradores(mes.valor) | currency:'':'symbol':'1.0-0' }}
+                      </span>
+                      <span *ngIf="getTotalSaldoPendienteMesColaboradores(mes.valor) === 0">
+                        {{ 0 | currency:'':'symbol':'1.0-0' }}
+                      </span>
                     </td>
                     <td class="text-end text-danger">
                       {{ getTotalSaldosPendientesColaboradores() | currency:'':'symbol':'1.0-0' }}
@@ -2707,6 +2768,11 @@
                       {{ getPromedioSaldoPendienteColaboradores() | currency:'':'symbol':'1.0-0' }}
                     </div>
                   </div>
+                  <hr class="my-2">
+                  <small>
+                    Haz clic en un valor para ver qué cobros quedaron pendientes ese mes. En la fila de
+                    TOTALES se ven los de todos los del filtro.
+                  </small>
                 </div>
               </div>
             </div>
@@ -2810,9 +2876,12 @@
       </div>
       <div class="modal-body">
         <div class="row mb-3">
-          <div class="col-md-6">
+          <div class="col-md-6" *ngIf="estudianteDetallePagos">
             <strong>Identificación:</strong> {{ estudianteDetallePagos?.numero_identificacion }}<br>
             <strong>Grupo:</strong> {{ estudianteDetallePagos?.grupo_estudiante }}
+          </div>
+          <div class="col-md-6" *ngIf="!estudianteDetallePagos">
+            <strong>Registros:</strong> {{ detallePagosMes.length }}
           </div>
           <div class="col-md-6 text-end">
             <strong>Total aplicado:</strong>
@@ -2824,6 +2893,7 @@
           <table class="table table-sm table-hover">
             <thead class="table-light">
               <tr>
+                <th *ngIf="detallePagosEsTotal">Estudiante</th>
                 <th>Concepto</th>
                 <th *ngIf="detallePagosPorProducto">Mes de la cuenta</th>
                 <th>Clasificación</th>
@@ -2835,6 +2905,7 @@
             </thead>
             <tbody>
               <tr *ngFor="let aplicacion of detallePagosMes">
+                <td *ngIf="detallePagosEsTotal" class="columna-fija">{{ aplicacion.nombre_persona }}</td>
                 <td>{{ aplicacion.nombre_producto }}</td>
                 <td *ngIf="detallePagosPorProducto">{{ getNombreMes(aplicacion.mes_cuenta) }}</td>
                 <td>{{ aplicacion.nombre_clasificacion }}</td>
@@ -2844,15 +2915,93 @@
                 <td class="text-end">{{ aplicacion.valor_aplicado | currency:'':'symbol':'1.0-0' }}</td>
               </tr>
               <tr *ngIf="detallePagosMes.length === 0">
-                <td [attr.colspan]="detallePagosPorProducto ? 7 : 6" class="text-center text-muted py-3">
+                <td [attr.colspan]="columnasDetallePagos" class="text-center text-muted py-3">
                   No hay detalle de pagos para mostrar
                 </td>
               </tr>
             </tbody>
             <tfoot class="table-light" *ngIf="detallePagosMes.length > 0">
               <tr class="fw-bold">
-                <td [attr.colspan]="detallePagosPorProducto ? 6 : 5">TOTAL</td>
+                <td [attr.colspan]="columnasDetallePagos - 1">TOTAL</td>
                 <td class="text-end">{{ totalDetallePagosMes | currency:'':'symbol':'1.0-0' }}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: detalle de saldos pendientes de un mes -->
+<div class="modal fade" id="modalDetallePendientesMes" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-calendar-check me-2"></i>
+          {{ tituloDetallePendientes }}
+          <span *ngIf="personaDetallePendientes"> - {{ personaDetallePendientes?.nombre_estudiante }}</span>
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row mb-3">
+          <div class="col-md-6" *ngIf="personaDetallePendientes">
+            <strong>Identificación:</strong> {{ personaDetallePendientes?.numero_identificacion }}<br>
+            <strong>{{ etiquetaPersonaDetalle === 'Colaborador' ? 'Cargo' : 'Grupo' }}:</strong>
+            {{ personaDetallePendientes?.grupo_estudiante }}
+          </div>
+          <div class="col-md-6" *ngIf="!personaDetallePendientes">
+            <strong>Registros:</strong> {{ detallePendientesMes.length }}
+          </div>
+          <div class="col-md-6 text-end">
+            <strong>Total pendiente:</strong>
+            <span class="text-danger">{{ totalDetallePendientesMes | currency:'':'symbol':'1.0-0' }}</span>
+          </div>
+        </div>
+
+        <div class="table-responsive tabla-columna-fija">
+          <table class="table table-sm table-hover">
+            <thead class="table-light">
+              <tr>
+                <th *ngIf="detallePendientesEsTotal">{{ etiquetaPersonaDetalle }}</th>
+                <th>Concepto</th>
+                <th>Clasificación</th>
+                <th>Fecha de la cuenta</th>
+                <th class="text-end">Valor</th>
+                <th class="text-end">Abonado</th>
+                <th class="text-end">Saldo</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let cuenta of detallePendientesMes">
+                <td *ngIf="detallePendientesEsTotal" class="columna-fija">{{ cuenta.nombre_persona }}</td>
+                <td>
+                  {{ cuenta.nombre_producto }}
+                  <span *ngIf="cuenta.es_mora === 1" class="badge bg-warning text-dark ms-1">Mora</span>
+                  <br>
+                  <small class="text-muted" *ngIf="cuenta.detalle_cuenta">{{ cuenta.detalle_cuenta }}</small>
+                </td>
+                <td>{{ cuenta.nombre_clasificacion }}</td>
+                <td>{{ cuenta.fecha_cuenta | date:'dd/MM/yyyy' }}</td>
+                <td class="text-end">{{ cuenta.valor_cuenta | currency:'':'symbol':'1.0-0' }}</td>
+                <td class="text-end text-success">{{ cuenta.valor_abonado | currency:'':'symbol':'1.0-0' }}</td>
+                <td class="text-end text-danger fw-bold">{{ cuenta.saldo_pendiente | currency:'':'symbol':'1.0-0' }}</td>
+              </tr>
+              <tr *ngIf="detallePendientesMes.length === 0">
+                <td [attr.colspan]="columnasDetallePendientes" class="text-center text-muted py-3">
+                  No hay detalle de cobros pendientes para mostrar
+                </td>
+              </tr>
+            </tbody>
+            <tfoot class="table-light" *ngIf="detallePendientesMes.length > 0">
+              <tr class="fw-bold">
+                <td [attr.colspan]="columnasDetallePendientes - 1">TOTAL</td>
+                <td class="text-end text-danger">{{ totalDetallePendientesMes | currency:'':'symbol':'1.0-0' }}</td>
               </tr>
             </tfoot>
           </table>

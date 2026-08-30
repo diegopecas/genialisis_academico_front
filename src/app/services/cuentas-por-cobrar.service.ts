@@ -182,6 +182,22 @@ export class CuentasPorCobrarService {
       );
   }
 
+  // Cuentas por cobrar del anio que todavia tienen saldo. Alimenta el detalle de
+  // la matriz de saldos del reporte de cartera: una sola llamada por anio y el
+  // front la indexa por persona y mes.
+  obtenerPendientesAnio(anio: number) {
+    return this.http
+      .get<HttpResponse<Object>>(this.servicio + `/pendientes-anio/${anio}`, { observe: 'response' })
+      .pipe(
+        tap((response: HttpResponse<Object>) => {
+          let respuesta: any = response.body;
+          if (respuesta.error) throw respuesta.error;
+          return response;
+        }),
+        catchError(this.handleError)
+      );
+  }
+
   obtenerMultiplesByIds(ids: string[]) {
     const body = JSON.stringify({ ids: ids });
     return this.http.post<HttpResponse<Object>>(
