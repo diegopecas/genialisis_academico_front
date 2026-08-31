@@ -170,12 +170,14 @@
                        [title]="tituloCelda(celda)">
 
                     <ng-container *ngIf="celda.esInicio">
+                      <!-- Con nombre de franja, ese manda y el area baja al
+                           renglon de la hora. Sin nombre, se ve como siempre. -->
                       <div class="bloque-area">
                         <i class="fas fa-triangle-exclamation icono-cruce" *ngIf="celda.tieneCruce"></i>
-                        {{ celda.horario.area_academica_nombre }}
+                        {{ celda.horario.nombre_franja || celda.horario.area_academica_nombre }}
                       </div>
                       <div class="bloque-hora">
-                        {{ horaCorta(celda.horario.hora_inicial) }} - {{ horaCorta(celda.horario.hora_final) }}
+                        <span *ngIf="celda.horario.nombre_franja">{{ celda.horario.area_academica_nombre }} · </span>{{ horaCorta(celda.horario.hora_inicial) }} - {{ horaCorta(celda.horario.hora_final) }}
                       </div>
                       <div class="bloque-docente" *ngIf="mostrarDocentes && celda.horario.docente_nombre_completo">
                         {{ celda.horario.docente_nombre_completo }}

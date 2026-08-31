@@ -53,6 +53,7 @@ export class GrupoHorariosComponent implements OnInit, OnChanges {
     id: null,
     id_area_academica: null,
     id_dia_semana: null,
+    nombre_franja: '',
     hora_inicial: '',
     hora_final: '',
     total_minutos: 0,
@@ -379,6 +380,38 @@ export class GrupoHorariosComponent implements OnInit, OnChanges {
   }
 
   /** Sigue el dedo sobre la grilla y traduce la posición a celda */
+  /**
+   * Toque sobre una franja ya guardada en la grilla.
+   *
+   * En tactil no se depende del click sintetizado por el navegador: dentro de
+   * la grilla hay gestos propios (el arrastre para pintar) y ese click no
+   * siempre llega. Se atiende el touchend directamente y se corta con
+   * preventDefault para que no se dispare dos veces.
+   */
+  manejarToqueBloque(horarioInfo: any, evento: TouchEvent): void {
+    // Si venia arrastrando, este toque cierra el arrastre y no abre el detalle
+    if (this.arrastrando) {
+      this.terminarArrastre();
+      return;
+    }
+
+    evento.preventDefault();
+    evento.stopPropagation();
+    this.mostrarDetalleHorario(horarioInfo);
+  }
+
+  /** Toque sobre la equis de una franja guardada. Marca o desmarca, igual que el click. */
+  manejarToqueEliminar(horarioInfo: any, evento: TouchEvent): void {
+    if (this.arrastrando) {
+      this.terminarArrastre();
+      return;
+    }
+
+    evento.preventDefault();
+    evento.stopPropagation();
+    this.toggleEliminarFranja(horarioInfo);
+  }
+
   moverArrastreTactil(evento: TouchEvent): void {
     if (!this.arrastrando) return;
     evento.preventDefault();
@@ -423,6 +456,8 @@ export class GrupoHorariosComponent implements OnInit, OnChanges {
     this.franjasPendientes.push({
       id_dia_semana: idDia,
       id_area_academica: this.areaParaPintar,
+      // Se escribe despues, en la fila de la franja pendiente, al lado de Clases
+      nombre_franja: '',
       hora_inicial: horaInicial,
       hora_final: horaFinal,
       total_minutos: this.aMinutos(horaFinal) - this.aMinutos(horaInicial),
@@ -571,6 +606,7 @@ export class GrupoHorariosComponent implements OnInit, OnChanges {
       horarios: this.franjasPendientes.map(f => ({
         id_area_academica: f.id_area_academica,
         id_dia_semana: f.id_dia_semana,
+        nombre_franja: (f.nombre_franja || '').trim(),
         hora_inicial: f.hora_inicial,
         hora_final: f.hora_final,
         total_minutos: f.total_minutos,
@@ -626,6 +662,7 @@ export class GrupoHorariosComponent implements OnInit, OnChanges {
       id: null,
       id_area_academica: idAreaAcademica || null,
       id_dia_semana: idDiaSemana || null,
+      nombre_franja: '',
       hora_inicial: horaInicial,
       hora_final: horaFinal,
       total_minutos: horaInicial && horaFinal ? this.minutosPorBloque : 0,
@@ -689,6 +726,7 @@ export class GrupoHorariosComponent implements OnInit, OnChanges {
       id_grupo: this.idGrupo,
       id_area_academica: this.horarioModal.id_area_academica,
       id_dia_semana: this.horarioModal.id_dia_semana,
+      nombre_franja: (this.horarioModal.nombre_franja || '').trim(),
       hora_inicial: this.horarioModal.hora_inicial,
       hora_final: this.horarioModal.hora_final,
       total_minutos: this.horarioModal.total_minutos,
@@ -728,6 +766,7 @@ export class GrupoHorariosComponent implements OnInit, OnChanges {
       id: horario.id,
       id_area_academica: horario.id_area_academica,
       id_dia_semana: horario.id_dia_semana,
+      nombre_franja: horario.nombre_franja || '',
       hora_inicial: (horario.hora_inicial || '').substring(0, 5),
       hora_final: (horario.hora_final || '').substring(0, 5),
       total_minutos: horario.total_minutos,
@@ -779,6 +818,7 @@ export class GrupoHorariosComponent implements OnInit, OnChanges {
       title: 'Detalle de Horario',
       html: `
         <div class="text-start">
+          ${horarioInfo.nombre_franja ? `<p><strong>Franja:</strong> ${horarioInfo.nombre_franja}</p>` : ''}
           <p><strong>Área:</strong> ${area}</p>
           <p><strong>Horario:</strong> ${horarioInfo.duracionCompleta}</p>
           <p><strong>Duración:</strong> ${horarioInfo.total_minutos} minutos</p>

@@ -47,6 +47,8 @@ interface Horario {
   id_grupo: string;
   id_area_academica: string;
   id_dia_semana: number;
+  // Nombre libre que el jardin le pone a la franja (ej. 'Refrigerio'). Opcional
+  nombre_franja: string | null;
   hora_inicial: string;
   hora_final: string;
   total_minutos: number;
@@ -834,9 +836,10 @@ export class CalendarioColaboradoresComponent implements OnInit {
     const sobrenombre = horario.sobrenombre_docente || horario.nombre_docente;
 
     Swal.fire({
-      title: `📚 ${this.capitalizar(horario.nombre_area_academica)}`,
+      title: `📚 ${horario.nombre_franja || this.capitalizar(horario.nombre_area_academica)}`,
       html: `
         <div style="text-align: left;">
+          ${horario.nombre_franja ? `<p><strong>Área:</strong> ${this.capitalizar(horario.nombre_area_academica)}</p>` : ''}
           <p><strong>Colaborador:</strong> ${horario.nombre_docente}</p>
           <p><strong>Grupo:</strong> <span style="color: ${horario.color_grupo}">${horario.nombre_grupo}</span></p>
           <p><strong>Día:</strong> ${horario.nombre_dia_semana}</p>
@@ -1076,7 +1079,9 @@ export class CalendarioColaboradoresComponent implements OnInit {
     const inicio = this.formatearHora(horario.hora_inicial);
     const fin = this.formatearHora(horario.hora_final);
     const area = this.abreviarArea(horario.nombre_area_academica);
-    return `${horario.nombre_grupo} - ${area} - ${inicio} - ${fin}`;
+    // Con nombre de franja, ese reemplaza al area en el titulo compacto
+    const etiqueta = horario.nombre_franja ? horario.nombre_franja : area;
+    return `${horario.nombre_grupo} - ${etiqueta} - ${inicio} - ${fin}`;
   }
 
   /**

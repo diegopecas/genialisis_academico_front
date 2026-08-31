@@ -562,7 +562,10 @@ export class ReporteHorariosComponent implements OnInit, OnDestroy {
 
   tituloCelda(celda: CeldaHorario): string {
     const horario = celda.horario;
-    let texto = `${horario.area_academica_nombre} · ${this.horaCorta(horario.hora_inicial)} - ${this.horaCorta(horario.hora_final)} · ${horario.total_minutos} min`;
+    const etiqueta = horario.nombre_franja
+      ? `${horario.nombre_franja} · ${horario.area_academica_nombre}`
+      : horario.area_academica_nombre;
+    let texto = `${etiqueta} · ${this.horaCorta(horario.hora_inicial)} - ${this.horaCorta(horario.hora_final)} · ${horario.total_minutos} min`;
     if (horario.docente_nombre_completo) {
       texto += ` · ${horario.docente_nombre_completo}`;
     }
@@ -617,7 +620,10 @@ export class ReporteHorariosComponent implements OnInit, OnDestroy {
           const celda = this.celdaDe(tablero, columna.id, indice);
           if (celda && celda.esInicio) {
             const horario = celda.horario;
-            let texto = `${horario.area_academica_nombre} (${this.horaCorta(horario.hora_inicial)}-${this.horaCorta(horario.hora_final)}, ${horario.total_minutos} min)`;
+            const etiqueta = horario.nombre_franja
+              ? `${horario.nombre_franja} [${horario.area_academica_nombre}]`
+              : horario.area_academica_nombre;
+            let texto = `${etiqueta} (${this.horaCorta(horario.hora_inicial)}-${this.horaCorta(horario.hora_final)}, ${horario.total_minutos} min)`;
             if (horario.docente_nombre_completo) texto += ` - ${horario.docente_nombre_completo}`;
             if (celda.tieneCruce) texto += ' [CRUCE]';
             registro.push(texto);
@@ -825,14 +831,19 @@ export class ReporteHorariosComponent implements OnInit, OnDestroy {
           doc.setTextColor(52, 66, 78);
           doc.setFontSize(5.6);
 
-          const textoArea = (celda.tieneCruce ? '! ' : '') + (horario.area_academica_nombre || '');
-          doc.text(textoArea, x + 2.8, y + 2.6, { maxWidth: anchoColumna - 4 });
+          // El nombre de la franja tiene prioridad sobre el area en el renglon
+          // principal; el area baja a la linea de la hora, que es mas pequena.
+          const textoPrincipal = (celda.tieneCruce ? '! ' : '') +
+            (horario.nombre_franja || horario.area_academica_nombre || '');
+          doc.text(textoPrincipal, x + 2.8, y + 2.6, { maxWidth: anchoColumna - 4 });
 
           if (alto > 5) {
             doc.setFontSize(4.8);
             doc.setTextColor(138, 151, 163);
+            const detalle = (horario.nombre_franja ? `${horario.area_academica_nombre} · ` : '') +
+              `${this.horaCorta(horario.hora_inicial)}-${this.horaCorta(horario.hora_final)} · ${horario.total_minutos}min`;
             doc.text(
-              `${this.horaCorta(horario.hora_inicial)}-${this.horaCorta(horario.hora_final)} · ${horario.total_minutos}min`,
+              detalle,
               x + 2.8,
               y + 5,
               { maxWidth: anchoColumna - 4 }

@@ -137,10 +137,14 @@ $light-gold: rgba(212, 175, 55, 0.1);
 
     &.modo-agregar {
       user-select: none;
-      touch-action: none;
       box-shadow: 0 0 0 2px rgba($gold, 0.6), 0 6px 18px rgba(0, 0, 0, 0.12);
 
+      // touch-action: none va SOLO en las celdas vacias, que son las que se
+      // arrastran. Si se pone en toda la grilla, el navegador deja de generar
+      // el click a partir del toque y en tactil dejan de funcionar el detalle
+      // del bloque y su boton de eliminar.
       .horario-content-cell.sin-horario {
+        touch-action: none;
         cursor: crosshair;
 
         &:hover {
@@ -288,6 +292,8 @@ $light-gold: rgba(212, 175, 55, 0.1);
     padding: 0;
     position: relative;
     cursor: pointer;
+    // Se deja el gesto en manos del navegador para que el toque genere click
+    touch-action: auto;
     transition: filter 0.15s ease;
     border-left: 5px solid transparent;
     border-top: 1px solid transparent;
@@ -336,8 +342,8 @@ $light-gold: rgba(212, 175, 55, 0.1);
       top: 2px;
       left: 7px;
       right: 3px;
-      font-size: 0.56rem;
-      font-weight: 700;
+      font-size: 0.6rem;
+      font-weight: 800;
       color: #34424e;
       text-transform: uppercase;
       line-height: 1.1;
@@ -487,6 +493,11 @@ $light-gold: rgba(212, 175, 55, 0.1);
   margin-bottom: 1.25rem;
 }
 
+// La barra de la vista lista solo existe en movil, que es donde vive esa vista
+.barra-agregar-lista {
+  display: none;
+}
+
 // Selector de vista lista / calendario (solo movil)
 .selector-vista {
   display: none;
@@ -582,6 +593,7 @@ $light-gold: rgba(212, 175, 55, 0.1);
     margin-right: 0.35rem;
   }
 }
+
 
 .area-chips {
   display: flex;
@@ -729,11 +741,42 @@ $light-gold: rgba(212, 175, 55, 0.1);
   font-size: 0.75rem;
 }
 
+// Toma el espacio libre de la fila y empuja Clases contra el borde derecho
+.pendiente-nombre {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex: 1;
+  min-width: 140px;
+  margin: 0 0 0 auto;
+  font-size: 0.75rem;
+  color: #6c757d;
+
+  input {
+    flex: 1;
+    min-width: 0;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    padding: 0.15rem 0.4rem;
+    font-size: 0.8rem;
+
+    &:focus {
+      outline: none;
+      border-color: $gold;
+      box-shadow: 0 0 0 2px rgba(255, 193, 7, 0.18);
+    }
+
+    &::placeholder {
+      color: #b6bec6;
+    }
+  }
+}
+
 .pendiente-clases {
   display: flex;
   align-items: center;
   gap: 0.35rem;
-  margin: 0 0 0 auto;
+  margin: 0;
   font-size: 0.75rem;
   color: #6c757d;
 
@@ -1070,6 +1113,10 @@ $light-gold: rgba(212, 175, 55, 0.1);
     display: flex;
   }
 
+  .barra-agregar-lista {
+    display: block;
+  }
+
   .btn-toggle-filtros {
     display: flex;
     margin-bottom: 0;
@@ -1173,6 +1220,11 @@ $light-gold: rgba(212, 175, 55, 0.1);
 
   .pendiente-item {
     font-size: 0.75rem;
+  }
+
+  .pendiente-nombre {
+    flex-basis: 100%;
+    margin-left: 0;
   }
 
   .pendiente-clases {

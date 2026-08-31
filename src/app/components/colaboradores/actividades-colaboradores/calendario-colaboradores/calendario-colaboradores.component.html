@@ -236,7 +236,7 @@
               [style.border-left-color]="horario.color_grupo"
               (click)="verDetalleHorario(horario); $event.stopPropagation()">
               <span class="horario-icono">📚</span>
-              <span class="horario-texto">{{ capitalizar(horario.nombre_area_academica) }}</span>
+              <span class="horario-texto">{{ horario.nombre_franja || capitalizar(horario.nombre_area_academica) }}</span>
             </div>
 
             <!-- Tareas del día -->

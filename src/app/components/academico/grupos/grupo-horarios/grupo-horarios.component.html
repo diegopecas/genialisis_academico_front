@@ -51,6 +51,16 @@
         </button>
     </div>
 
+    <!-- Misma barra de la vista calendario, pero para la vista lista: alli no
+         se puede pintar arrastrando, asi que abre el modal de crear franja. -->
+    <div class="barra-agregar barra-agregar-lista"
+         *ngIf="editable && areasAsociadas.length > 0"
+         [class.movil-oculto]="vistaMovil !== 'lista'">
+        <button class="btn-modo-agregar" (click)="abrirModalHorario()">
+            <i class="fas fa-plus"></i> Agregar franjas
+        </button>
+    </div>
+
     <!-- Barra de acción: activar el modo pintar -->
     <div class="barra-agregar" *ngIf="editable && areasAsociadas.length > 0" [class.movil-oculto]="vistaMovil !== 'calendario'">
         <button class="btn-modo-agregar" *ngIf="!modoAgregar" (click)="activarModoAgregar()">
@@ -114,6 +124,13 @@
                                title="Hora final">
                     </span>
                     <span class="pendiente-min">{{ franja.total_minutos }} min</span>
+                    <label class="pendiente-nombre">
+                        Nombre
+                        <input type="text"
+                               maxlength="200"
+                               [(ngModel)]="franja.nombre_franja"
+                               placeholder="Opcional: Refrigerio, Descanso...">
+                    </label>
                     <label class="pendiente-clases">
                         Clases
                         <input type="number" min="1" [(ngModel)]="franja.total_clases">
@@ -170,20 +187,25 @@
                                      horarioInfo.esFin ? 'es-fin' : '',
                                      horarioInfo.esIntermedio ? 'es-intermedio' : '']"
                          (click)="mostrarDetalleHorario(horarioInfo)"
-                         [attr.title]="obtenerNombreArea(horarioInfo.id_area_academica) + ' - ' + horarioInfo.total_minutos + ' min'">
+                         (touchend)="manejarToqueBloque(horarioInfo, $event)"
+                         [attr.title]="(horarioInfo.nombre_franja ? horarioInfo.nombre_franja + ' - ' : '') + obtenerNombreArea(horarioInfo.id_area_academica) + ' - ' + horarioInfo.total_minutos + ' min'">
 
+                        <!-- Con nombre de franja, ese manda y el area baja al
+                             renglon chiquito junto con la hora. Sin nombre, se
+                             ve igual que siempre. -->
                         <div *ngIf="horarioInfo.esInicio" class="horario-block-titulo">
-                            {{ obtenerNombreArea(horarioInfo.id_area_academica) }}
+                            {{ horarioInfo.nombre_franja || obtenerNombreArea(horarioInfo.id_area_academica) }}
                         </div>
 
                         <div *ngIf="horarioInfo.esInicio" class="horario-block-hora">
-                            {{ horarioInfo.duracionCompleta }} · {{ horarioInfo.total_minutos }}min
+                            <span *ngIf="horarioInfo.nombre_franja">{{ obtenerNombreArea(horarioInfo.id_area_academica) }} · </span>{{ horarioInfo.duracionCompleta }} · {{ horarioInfo.total_minutos }}min
                         </div>
 
                         <button *ngIf="horarioInfo.esInicio && editable"
                                 class="btn-eliminar-horario-calendar"
                                 [class.marcada]="estaMarcadaParaEliminar(horarioInfo.id)"
                                 (click)="$event.stopPropagation(); toggleEliminarFranja(horarioInfo)"
+                                (touchend)="manejarToqueEliminar(horarioInfo, $event)"
                                 [title]="estaMarcadaParaEliminar(horarioInfo.id) ? 'Conservar' : 'Marcar para eliminar'">
                             <i class="fas" [ngClass]="estaMarcadaParaEliminar(horarioInfo.id) ? 'fa-undo' : 'fa-times'"></i>
                         </button>
@@ -195,11 +217,11 @@
                          [style.background-color]="colorFondoBloque(pendiente.id_area_academica)"
                          [style.border-left-color]="colorVivoArea(pendiente.id_area_academica)">
                         <div *ngIf="pendiente.esInicio" class="horario-block-titulo">
-                            {{ obtenerNombreArea(pendiente.id_area_academica) }}
+                            {{ pendiente.nombre_franja || obtenerNombreArea(pendiente.id_area_academica) }}
                         </div>
 
                         <div *ngIf="pendiente.esInicio" class="horario-block-hora">
-                            {{ pendiente.hora_inicial }} - {{ pendiente.hora_final }}
+                            <span *ngIf="pendiente.nombre_franja">{{ obtenerNombreArea(pendiente.id_area_academica) }} · </span>{{ pendiente.hora_inicial }} - {{ pendiente.hora_final }}
                         </div>
                         <span class="badge-pendiente" *ngIf="pendiente.esInicio">sin guardar</span>
                     </div>
@@ -232,7 +254,7 @@
                      (click)="mostrarDetalleHorarioMovil(horario)">
                     <div class="horario-dia-item-area">
                         <span class="horario-dia-color-dot" [style.background-color]="obtenerColorArea(horario.id_area_academica)"></span>
-                        {{ obtenerNombreArea(horario.id_area_academica) }}
+                        {{ horario.nombre_franja || obtenerNombreArea(horario.id_area_academica) }}
                         <button *ngIf="editable"
                                 type="button"
                                 class="btn-marcar-eliminar"
@@ -243,19 +265,13 @@
                     </div>
                     <div class="horario-dia-item-hora">
                         <i class="fas fa-clock"></i>
-                        {{ horario.hora_inicial | slice:0:5 }} - {{ horario.hora_final | slice:0:5 }}
+                        <span *ngIf="horario.nombre_franja">{{ obtenerNombreArea(horario.id_area_academica) }} · </span>{{ horario.hora_inicial | slice:0:5 }} - {{ horario.hora_final | slice:0:5 }}
                         <span class="horario-dia-item-min">· {{ horario.total_minutos }}min</span>
                     </div>
                 </div>
             </div>
         </div>
 
-        <button
-            *ngIf="editable"
-            class="btn-asociar mt-3 w-100"
-            (click)="abrirModalHorario()">
-            <i class="fas fa-plus"></i> Agregar Horario
-        </button>
     </div>
 
 
@@ -314,6 +330,13 @@
                             {{ dia.nombre }}
                         </option>
                     </select>
+                </div>
+
+                <div class="col-12 mb-3">
+                    <label class="form-label">Nombre de la franja</label>
+                    <input type="text" class="form-control" maxlength="200"
+                           [(ngModel)]="horarioModal.nombre_franja"
+                           placeholder="Opcional: Refrigerio, Círculo de lectura, Descanso...">
                 </div>
 
                 <div class="col-md-6 mb-3">
