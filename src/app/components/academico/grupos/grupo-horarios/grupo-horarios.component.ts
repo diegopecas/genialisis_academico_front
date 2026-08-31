@@ -752,6 +752,13 @@ export class GrupoHorariosComponent implements OnInit, OnChanges {
     if (result.isConfirmed) {
       this.horariosService.eliminar({ id: horario.id }).subscribe({
         next: () => {
+          // Si ademas estaba marcada para eliminar al guardar, se quita de la
+          // lista: ya no existe y el guardado en lote fallaria al borrarla.
+          const indiceMarcada = this.franjasAEliminar.indexOf(horario.id);
+          if (indiceMarcada >= 0) {
+            this.franjasAEliminar.splice(indiceMarcada, 1);
+          }
+
           Swal.fire('Éxito', 'Horario eliminado correctamente', 'success');
           this.cargarHorarios(this.idGrupo);
         },
@@ -765,6 +772,8 @@ export class GrupoHorariosComponent implements OnInit, OnChanges {
 
   mostrarDetalleHorario(horarioInfo: any): void {
     const area = this.obtenerNombreArea(horarioInfo.id_area_academica);
+    // Aviso cuando la franja ya venia marcada con la equis del calendario
+    const yaMarcada = this.estaMarcadaParaEliminar(horarioInfo.id);
 
     Swal.fire({
       title: 'Detalle de Horario',
@@ -774,16 +783,29 @@ export class GrupoHorariosComponent implements OnInit, OnChanges {
           <p><strong>Horario:</strong> ${horarioInfo.duracionCompleta}</p>
           <p><strong>Duración:</strong> ${horarioInfo.total_minutos} minutos</p>
           <p><strong>Clases:</strong> ${horarioInfo.total_clases}</p>
+          ${yaMarcada ? '<p class="text-danger mb-0"><strong>Marcada para eliminar.</strong> Se borra al guardar.</p>' : ''}
         </div>
       `,
       icon: 'info',
-      confirmButtonText: 'Cerrar',
-      showCancelButton: this.editable,
-      cancelButtonText: 'Editar',
-      cancelButtonColor: '#3085d6'
+      // Tres acciones: Editar (confirm), Eliminar (deny) y Cerrar (cancel).
+      // A diferencia de la equis del calendario, que solo marca la franja para
+      // el guardado en lote, este boton borra de una contra el backend.
+      showConfirmButton: this.editable,
+      confirmButtonText: 'Editar',
+      confirmButtonColor: '#3085d6',
+      showDenyButton: this.editable,
+      denyButtonText: 'Eliminar',
+      denyButtonColor: '#dc3545',
+      showCancelButton: true,
+      cancelButtonText: 'Cerrar'
     }).then((result) => {
-      if (result.isDismissed && result.dismiss === Swal.DismissReason.cancel) {
+      if (result.isConfirmed) {
         this.editarHorario(horarioInfo);
+        return;
+      }
+
+      if (result.isDenied) {
+        this.eliminarHorario(horarioInfo);
       }
     });
   }

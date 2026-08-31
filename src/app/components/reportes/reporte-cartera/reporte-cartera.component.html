@@ -2870,15 +2870,16 @@
       <div class="modal-header">
         <h5 class="modal-title">
           <i class="fas fa-hand-holding-usd me-2"></i>
-          {{ tituloDetallePagos }} - {{ estudianteDetallePagos?.nombre_estudiante }}
+          {{ tituloDetallePagos }}
+          <span *ngIf="estudianteDetallePagos"> - {{ estudianteDetallePagos.nombre_estudiante }}</span>
         </h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
         <div class="row mb-3">
           <div class="col-md-6" *ngIf="estudianteDetallePagos">
-            <strong>Identificación:</strong> {{ estudianteDetallePagos?.numero_identificacion }}<br>
-            <strong>Grupo:</strong> {{ estudianteDetallePagos?.grupo_estudiante }}
+            <strong>Identificación:</strong> {{ estudianteDetallePagos.numero_identificacion }}<br>
+            <strong>Grupo:</strong> {{ estudianteDetallePagos.grupo_estudiante }}
           </div>
           <div class="col-md-6" *ngIf="!estudianteDetallePagos">
             <strong>Registros:</strong> {{ detallePagosMes.length }}
@@ -2944,16 +2945,16 @@
         <h5 class="modal-title">
           <i class="fas fa-calendar-check me-2"></i>
           {{ tituloDetallePendientes }}
-          <span *ngIf="personaDetallePendientes"> - {{ personaDetallePendientes?.nombre_estudiante }}</span>
+          <span *ngIf="personaDetallePendientes"> - {{ personaDetallePendientes.nombre_estudiante }}</span>
         </h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
         <div class="row mb-3">
           <div class="col-md-6" *ngIf="personaDetallePendientes">
-            <strong>Identificación:</strong> {{ personaDetallePendientes?.numero_identificacion }}<br>
+            <strong>Identificación:</strong> {{ personaDetallePendientes.numero_identificacion }}<br>
             <strong>{{ etiquetaPersonaDetalle === 'Colaborador' ? 'Cargo' : 'Grupo' }}:</strong>
-            {{ personaDetallePendientes?.grupo_estudiante }}
+            {{ personaDetallePendientes.grupo_estudiante }}
           </div>
           <div class="col-md-6" *ngIf="!personaDetallePendientes">
             <strong>Registros:</strong> {{ detallePendientesMes.length }}

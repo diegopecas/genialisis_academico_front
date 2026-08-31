@@ -324,11 +324,10 @@ $light-gold: rgba(212, 175, 55, 0.1);
     }
 
     // Cada franja de 5 min es un div propio: al desplazar y sombrear solo la
-    // que está bajo el mouse, el bloque se veía como un acordeón. Se deja
-    // únicamente aparecer el botón de eliminar, sin mover nada.
-    &:hover .btn-eliminar-horario-calendar {
-      opacity: 1;
-    }
+    // que está bajo el mouse, el bloque se veía como un acordeón, así que el
+    // hover no altera el bloque. El botón de eliminar ya no depende del hover:
+    // queda siempre visible, porque en pantallas táctiles no hay hover y no
+    // había forma de borrar una franja desde el calendario.
 
     // El texto se ancla al ancho de la celda y se desborda solo hacia abajo,
     // así un nombre largo no empuja el bloque sobre la columna vecina
@@ -374,8 +373,8 @@ $light-gold: rgba(212, 175, 55, 0.1);
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      opacity: 0;
-      transition: opacity 0.2s ease;
+      opacity: 1;
+      transition: background-color 0.2s ease;
       z-index: 20;
 
       i {
@@ -1046,6 +1045,16 @@ $light-gold: rgba(212, 175, 55, 0.1);
 // Responsive
 // =============================================
 @media (max-width: 768px) {
+  // Área de toque mayor: 16px es muy poco para el dedo
+  .horario-block .btn-eliminar-horario-calendar {
+    width: 22px;
+    height: 22px;
+
+    i {
+      font-size: 0.7rem;
+    }
+  }
+
   // La grilla se mantiene visible con scroll horizontal para poder pintar
   .horario-vista-movil {
     display: block;
