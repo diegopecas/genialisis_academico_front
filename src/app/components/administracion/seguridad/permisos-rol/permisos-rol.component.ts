@@ -264,9 +264,41 @@ export class PermisosRolComponent implements OnInit {
   // MANEJO DE CHECKBOXES
   // =====================================================
 
+  /**
+   * Clic en el checkbox de un modulo.
+   *
+   * Cuando el modulo tiene permiso principal (el '.ver' que abre la seccion en
+   * el menu, como reportes.ver) el clic recorre tres estados, para poder darle
+   * a un rol el acceso a la seccion sin regalarle todos los reportes:
+   *
+   *   1. modulo apagado         -> marca SOLO el permiso principal
+   *   2. principal ya marcado   -> marca todo el modulo, hijos incluidos
+   *   3. todo marcado           -> apaga todo
+   *
+   * En el paso 1 el checkbox queda en indeterminado, que es lo correcto: hay
+   * algo marcado pero no todo.
+   *
+   * Los modulos sin permiso principal (agrupadores) siguen con el
+   * comportamiento de siempre: prender todo o apagar todo.
+   */
   toggleNodoCompleto(nodo: NodoArbol): void {
-    const nuevoEstado = !this.nodoEstaSeleccionado(nodo);
-    this.setEstadoRecursivo(nodo, nuevoEstado);
+    if (!nodo.permisoPrincipal) {
+      this.setEstadoRecursivo(nodo, !this.nodoEstaSeleccionado(nodo));
+      this.actualizarContadores();
+      return;
+    }
+
+    if (this.nodoEstaSeleccionado(nodo)) {
+      // Paso 3: estaba todo marcado, se apaga completo
+      this.setEstadoRecursivo(nodo, false);
+    } else if (nodo.permisoPrincipal.seleccionado) {
+      // Paso 2: el principal ya estaba, ahora si se marca todo
+      this.setEstadoRecursivo(nodo, true);
+    } else {
+      // Paso 1: solo el permiso principal, sin tocar los hijos
+      nodo.permisoPrincipal.seleccionado = true;
+    }
+
     this.actualizarContadores();
   }
 
