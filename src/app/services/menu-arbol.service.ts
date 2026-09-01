@@ -277,7 +277,8 @@ export class MenuArbolService {
               { id: 'operaciones-actualizacion-datos', label: 'Actualización Datos', icono: '🔄', ruta: '/operaciones/actualizacion-datos-estudiantes', permiso: 'operaciones.actualizacion_datos', keywords: ['datos estudiantes', 'actualizar'] },
               { id: 'operaciones-galerias', label: 'Galerías', icono: '🖼️', ruta: '/operaciones/galerias', permiso: 'operaciones.galerias', keywords: ['fotos', 'imagenes', 'album'] },
               { id: 'operaciones-inscripcion-cursos', label: 'Inscripción Cursos Extra', icono: '🎭', ruta: '/operaciones/inscripcion-cursos-extra', permiso: 'operaciones.inscripcion_cursos_extra', keywords: ['extracurriculares', 'talleres'] },
-              { id: 'operaciones-observaciones-informe', label: 'Observaciones para Informe', icono: '📝', ruta: '/operaciones/observaciones-informe', permiso: 'estudiantes.observaciones.administrar', keywords: ['observaciones', 'informe'] }
+              { id: 'operaciones-observaciones-informe', label: 'Observaciones para Informe', icono: '📝', ruta: '/operaciones/observaciones-informe', permiso: 'estudiantes.observaciones.administrar', keywords: ['observaciones', 'informe'] },
+              { id: 'operaciones-autorizacion-informes', label: 'Autorización de Informes', icono: '✅', ruta: '/operaciones/autorizacion-informes', permiso: 'operaciones.autorizacion_informes', keywords: ['autorizar', 'aprobar informe', 'aprobar informes', 'aprobar boletin', 'autorizar informes', 'habilitar informes', 'publicar informes', 'liberar informes', 'informes', 'informe', 'boletin', 'boletines', 'notas', 'calificaciones', 'publicar', 'portal de padres', 'acudientes', 'corte', 'corte academico', 'saldo vencido', 'cartera', 'deuda', 'moroso', 'paz y salvo', 'entrega de informes', 'bloquear informe'] }
             ]
           },
           {

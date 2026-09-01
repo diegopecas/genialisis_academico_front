@@ -1,0 +1,28 @@
+<div class="modulo">
+  <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [accion]="'ConsultarTodos'"
+    [raiz]="'/operaciones/autorizacion-informes'" [regresar]="'/operaciones'"
+    [iconoTitulo]="'/assets/images/aprobar_informes.png'"></app-header>
+
+  <div class="barra-filtros">
+    <label class="filtro-anio">
+      <i class="fas fa-calendar-alt"></i>
+      Año
+      <select [(ngModel)]="anioSeleccionado" (change)="cambiarAnio()">
+        <option *ngFor="let anio of anios" [value]="anio">{{ anio }}</option>
+      </select>
+    </label>
+
+    <p class="ayuda-filtros">
+      El acudiente ve el informe solo si el sprint del corte está finalizado y el estudiante autorizado.
+    </p>
+  </div>
+
+  <div *ngIf="cargando" class="alert alert-light py-2">
+    <span class="spinner-border spinner-border-sm me-2"></span>
+    Cargando cortes académicos...
+  </div>
+
+  <app-tablas [titulos]="titulos" [datos]="datos" [columnasFiltro]="columnasFiltro"
+    [raiz]="'/operaciones/autorizacion-informes'" [accionVer]="false" [accionEditar]="false"
+    [accionEliminar]="false" [acciones]="acciones" (clicAccion)="seleccionar($event)"></app-tablas>
+</div>

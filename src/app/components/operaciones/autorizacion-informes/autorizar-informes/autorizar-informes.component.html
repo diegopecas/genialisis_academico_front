@@ -1,0 +1,157 @@
+<div class="modulo">
+  <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [accion]="'ConsultarTodos'"
+    [raiz]="'/operaciones/autorizacion-informes'" [regresar]="'/operaciones/autorizacion-informes'"
+    [iconoTitulo]="'/assets/images/aprobar_informes.png'"></app-header>
+
+  <!-- Encabezado del corte: de un vistazo, si esto se puede publicar o no -->
+  <div class="corte-cabecera">
+    <div class="corte-datos">
+      <h4>{{ nombreCorte }}</h4>
+      <p *ngIf="sprintInforme">
+        <i class="fas fa-flag-checkered"></i>
+        {{ sprintInforme.nombre_sprint }}
+        <span class="chip chip-ok" *ngIf="sprintInforme.finalizado">Finalizado</span>
+        <span class="chip chip-alerta" *ngIf="!sprintInforme.finalizado">Sin finalizar</span>
+      </p>
+      <p class="sin-sprint" *ngIf="!sprintInforme">
+        <i class="fas fa-exclamation-triangle"></i>
+        Este corte no tiene sprint de informe marcado.
+      </p>
+    </div>
+
+    <div class="corte-contadores">
+      <div class="contador">
+        <span class="numero">{{ totalAutorizados }}</span>
+        <span class="etiqueta">Autorizados</span>
+      </div>
+      <div class="contador">
+        <span class="numero">{{ estudiantes.length }}</span>
+        <span class="etiqueta">Estudiantes</span>
+      </div>
+      <div class="contador contador-alerta" *ngIf="totalConSaldo > 0">
+        <span class="numero">{{ totalConSaldo }}</span>
+        <span class="etiqueta">Con saldo vencido</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="aviso-sin-finalizar" *ngIf="sprintInforme && !sprintInforme.finalizado">
+    <i class="fas fa-info-circle"></i>
+    Puedes autorizar desde ya, pero el acudiente no verá nada hasta que finalices el sprint.
+  </div>
+
+  <!-- Filtros -->
+  <div class="barra-filtros">
+    <div class="buscador">
+      <i class="fas fa-search"></i>
+      <input type="text" [(ngModel)]="filtroTexto" placeholder="Buscar por nombre o identificación...">
+      <button type="button" class="btn-limpiar" *ngIf="filtroTexto" (click)="filtroTexto = ''">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <select [(ngModel)]="filtroGrupo" class="select-grupo">
+      <option value="">Todos los grupos</option>
+      <option *ngFor="let grupo of grupos" [value]="grupo.id">{{ grupo.nombre }}</option>
+    </select>
+
+    <label class="check-saldo">
+      <input type="checkbox" [(ngModel)]="soloConSaldo">
+      Solo con saldo vencido
+    </label>
+
+    <button type="button" class="btn-limpiar-filtros" (click)="limpiarFiltros()"
+      *ngIf="filtroTexto || filtroGrupo || soloConSaldo">
+      Limpiar
+    </button>
+  </div>
+
+  <!-- Acciones masivas: actúan sobre lo filtrado -->
+  <div class="barra-masivos">
+    <span class="resultado">
+      {{ estudiantesFiltrados.length }}
+      {{ estudiantesFiltrados.length === 1 ? 'estudiante' : 'estudiantes' }}
+    </span>
+    <div class="botones-masivos">
+      <button type="button" class="btn-masivo btn-autorizar" (click)="autorizarTodos()">
+        <i class="fas fa-check-double"></i> Autorizar todos
+      </button>
+      <button type="button" class="btn-masivo btn-quitar" (click)="quitarTodos()">
+        <i class="fas fa-times"></i> Quitar todos
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="cargando" class="estado-carga">
+    <span class="spinner-border spinner-border-sm me-2"></span>
+    Cargando estudiantes...
+  </div>
+
+  <div *ngIf="!cargando && estudiantesFiltrados.length === 0" class="estado-vacio">
+    <i class="fas fa-user-slash"></i>
+    <p>No hay estudiantes que coincidan con los filtros.</p>
+  </div>
+
+  <!-- Tarjetas -->
+  <div class="tarjetas">
+    <div class="tarjeta" *ngFor="let estudiante of estudiantesFiltrados"
+      [class.tarjeta-autorizada]="estudiante.autorizado === 1">
+
+      <div class="avatar" [style.background-color]="estudiante.color_grupo || '#dee2e6'">
+        {{ iniciales(estudiante.nombre_estudiante) }}
+      </div>
+
+      <div class="tarjeta-datos">
+        <span class="nombre">{{ estudiante.nombre_estudiante }}</span>
+        <span class="grupo">
+          <i class="fas fa-users"></i> {{ estudiante.nombre_grupo }}
+        </span>
+
+        <button type="button" class="chip chip-saldo" *ngIf="estudiante.saldo_vencido > 0"
+          (click)="verConceptosVencidos(estudiante)"
+          title="Ver los cobros vencidos">
+          <i class="fas fa-exclamation-circle"></i>
+          {{ formatearMoneda(estudiante.saldo_vencido) }} vencido
+          <small>({{ estudiante.cuentas_vencidas }})</small>
+        </button>
+
+        <span class="chip chip-al-dia" *ngIf="estudiante.saldo_vencido <= 0">
+          <i class="fas fa-check-circle"></i> Al día
+        </span>
+      </div>
+
+      <div class="tarjeta-acciones">
+        <button type="button" class="btn-informe" (click)="generarInforme(estudiante)"
+          [disabled]="generandoInforme === estudiante.id_estudiante || !sprintInforme"
+          title="Generar el informe para revisarlo">
+          <span class="spinner-border spinner-border-sm"
+            *ngIf="generandoInforme === estudiante.id_estudiante"></span>
+          <i class="fas fa-file-pdf" *ngIf="generandoInforme !== estudiante.id_estudiante"></i>
+          <span class="texto-boton">Ver informe</span>
+        </button>
+
+        <button type="button" class="interruptor" [class.activo]="estudiante.autorizado === 1"
+          (click)="toggleAutorizado(estudiante)"
+          [title]="estudiante.autorizado === 1 ? 'Quitar la autorización' : 'Autorizar el informe'">
+          <span class="perilla"></span>
+          <span class="interruptor-texto">
+            {{ estudiante.autorizado === 1 ? 'Autorizado' : 'Sin autorizar' }}
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Barra de guardado, fija abajo mientras haya cambios -->
+  <div class="barra-guardar" *ngIf="hayCambiosPendientes">
+    <span class="cambios">
+      {{ totalCambios }}
+      {{ totalCambios === 1 ? 'cambio sin guardar' : 'cambios sin guardar' }}
+    </span>
+    <button type="button" class="btn-guardar" (click)="guardar()" [disabled]="guardando">
+      <span class="spinner-border spinner-border-sm me-2" *ngIf="guardando"></span>
+      <i class="fas fa-save me-1" *ngIf="!guardando"></i>
+      Guardar
+    </button>
+  </div>
+</div>

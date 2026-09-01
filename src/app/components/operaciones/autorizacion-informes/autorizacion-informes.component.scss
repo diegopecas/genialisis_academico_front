@@ -1,0 +1,77 @@
+$gold: #FFC107;
+$text-dark: #1A1A1A;
+$text-light: #6c757d;
+
+.barra-filtros {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+  background: #fff;
+  border-radius: 12px;
+  padding: 0.85rem 1.1rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.filtro-anio {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: $text-dark;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin: 0;
+
+  i {
+    color: $gold;
+  }
+
+  select {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 0.35rem 0.7rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: normal;
+    background: #fff;
+
+    &:focus {
+      outline: none;
+      border-color: $gold;
+      box-shadow: 0 0 0 2px rgba(255, 193, 7, 0.18);
+    }
+  }
+}
+
+.ayuda-filtros {
+  margin: 0;
+  font-size: 0.8rem;
+  color: $text-light;
+  flex: 1;
+  min-width: 220px;
+}
+
+@media (max-width: 768px) {
+  .barra-filtros {
+    gap: 0.6rem;
+    padding: 0.75rem;
+  }
+
+  .filtro-anio {
+    width: 100%;
+    justify-content: space-between;
+
+    select {
+      flex: 1;
+      margin-left: 0.5rem;
+    }
+  }
+
+  .ayuda-filtros {
+    font-size: 0.75rem;
+  }
+}

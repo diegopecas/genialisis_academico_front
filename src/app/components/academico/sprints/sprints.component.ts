@@ -19,7 +19,7 @@ export class SprintsComponent implements OnInit {
 
   public titulos: any[] = [];
   public datos: any[] = [];
-  public columnasFiltro = ['Año', 'Sprint', 'Corte Académico', 'Estado'];
+  public columnasFiltro = ['Año', 'Sprint', 'Corte Académico', 'Estado', 'Finalizado', 'Informe'];
   public acciones = [
     { id: 'configurar', label: 'Configurar Sprint', icono: '/assets/images/configurar_sprint.png' },
     { id: 'finalizar', label: 'Finalizar Sprint', icono: '/assets/images/finalizar.png' }
@@ -66,6 +66,14 @@ export class SprintsComponent implements OnInit {
           sprint.es_evaluacion_icon = sprint.es_evaluacion === 1
             ? '<i class="fas fa-clipboard-check text-info" title="Sprint de Evaluación"></i>'
             : '<i class="fas fa-circle text-muted" style="font-size: 0.5rem;" title="Sprint Regular"></i>';
+
+          // Estas dos van como texto y no como icono, porque el filtro de la
+          // tabla busca sobre el contenido de la columna y el HTML no le sirve.
+          sprint.finalizado_texto = Number(sprint.finalizado) === 1 ? 'Finalizado' : 'En curso';
+          sprint.finalizado_clase = Number(sprint.finalizado) === 1 ? 'badge-success' : 'badge-secondary';
+
+          sprint.sprint_informe_texto = Number(sprint.sprint_informe) === 1 ? 'Sí' : 'No';
+          sprint.sprint_informe_clase = Number(sprint.sprint_informe) === 1 ? 'badge-info' : 'badge-secondary';
         });
 
         this.datos = sprints;
@@ -221,6 +229,20 @@ export class SprintsComponent implements OnInit {
         alias: 'Evaluación',
         alinear: 'centrado',
         tipo: 'html'
+      },
+      {
+        clave: 'finalizado_texto',
+        alias: 'Finalizado',
+        alinear: 'centrado',
+        tipo: 'badge',
+        claseCSS: 'finalizado_clase'
+      },
+      {
+        clave: 'sprint_informe_texto',
+        alias: 'Informe',
+        alinear: 'centrado',
+        tipo: 'badge',
+        claseCSS: 'sprint_informe_clase'
       }
     ];
   }

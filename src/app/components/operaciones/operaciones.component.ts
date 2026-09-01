@@ -80,6 +80,9 @@ export class OperacionesComponent {
       case 'perfil-desarrollo':
         this.router.navigate(['/operaciones/perfil-desarrollo']);
         break;
+      case 'autorizacion-informes':
+        this.router.navigate(['/operaciones/autorizacion-informes']);
+        break;
       case 'recordatorio-pagos':
         this.router.navigate(['/operaciones/recordatorio-pagos']);
         break;

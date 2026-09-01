@@ -209,6 +209,12 @@
                                     <span>Inscripción Cursos Extra</span>
                                 </div>
                             </div>
+                            <div class="col-6" *ngIf="permisosService.tienePermiso('operaciones.autorizacion_informes')">
+                                <div class="submenu-item" (click)="seleccionarOpcion('autorizacion-informes')">
+                                    <img src="assets/images/aprobar_informes.png" alt="Autorización de Informes" />
+                                    <span>Autorización de Informes</span>
+                                </div>
+                            </div>
                             <div class="col-6" *ngIf="permisosService.tienePermiso('estudiantes.observaciones.administrar')">
                                 <div class="submenu-item" (click)="seleccionarOpcion('observaciones-informe')">
                                     <img src="assets/images/observaciones.png" alt="Observaciones para Informe" />
