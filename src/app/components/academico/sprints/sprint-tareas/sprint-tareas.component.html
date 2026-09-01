@@ -1,0 +1,298 @@
+<div class="tareas-wrapper">
+
+    <div class="tareas-header">
+        <h6 class="tareas-titulo">
+            <i class="fas fa-list-check"></i>
+            Tareas Asociadas al Sprint
+            <span class="contador">{{ tareasDelSprint.length }}</span>
+        </h6>
+
+        <div class="tareas-acciones">
+            <button class="btn-secundario" (click)="abrirModalHorarios()">
+                <i class="fas fa-calendar-week"></i>
+                <span>Ver Horarios</span>
+            </button>
+            <button class="btn-principal" (click)="abrirModalActividades()" *ngIf="editable">
+                <i class="fas fa-plus"></i>
+                <span>Asociar Actividades</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Límites de configuración -->
+    <div class="limites-aviso" *ngIf="limitesConfig.mensaje">
+        <i class="fas fa-info-circle"></i>
+        <div>
+            {{ limitesConfig.mensaje }}
+            <div class="limites-alerta" *ngIf="limitesConfig.alerta">
+                <i class="fas fa-exclamation-triangle"></i>
+                {{ limitesConfig.alerta }}
+            </div>
+        </div>
+    </div>
+
+    <div class="cargando" *ngIf="cargando">
+        <i class="fas fa-circle-notch fa-spin"></i>
+        Cargando tareas...
+    </div>
+
+    <div class="tabla-tareas" *ngIf="!cargando">
+        <app-tablas
+            [titulos]="titulosTareas"
+            [datos]="tareasDelSprint"
+            [raiz]="'/academico/sprints'"
+            (clicAccion)="seleccionarTarea($event)"
+            [accionEditar]="false"
+            [accionEliminar]="editable"
+            [accionVer]="false"
+            [acciones]="accionesTabla">
+        </app-tablas>
+    </div>
+</div>
+
+<!-- Modal de asociar actividades -->
+<div class="modal-overlay" *ngIf="mostrarModalActividades" (click)="cerrarModalActividades()">
+    <div class="modal-content-custom modal-ancho" (click)="$event.stopPropagation()">
+        <div class="modal-header-custom">
+            <h3><i class="fas fa-link"></i> Asociar Actividades al Sprint</h3>
+            <button type="button" class="btn-close-custom" (click)="cerrarModalActividades()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="modal-body-custom">
+            <!-- Selección obligatoria: Grupo y Área -->
+            <div class="row g-3 mb-3">
+                <div class="col-12 col-md-6">
+                    <label for="filtroGrupoModal" class="form-label">
+                        Seleccione Grupo <span class="text-danger">*</span>
+                    </label>
+                    <select class="form-select" id="filtroGrupoModal" [(ngModel)]="filtroGrupoModal"
+                        (ngModelChange)="onGrupoAreaModalChange()">
+                        <option value="">-- Seleccione un grupo --</option>
+                        <option *ngFor="let grupo of grupos" [value]="grupo.id">
+                            {{ grupo.nombre }}
+                        </option>
+                    </select>
+                </div>
+                <div class="col-12 col-md-6">
+                    <label for="filtroAreaModal" class="form-label">
+                        Seleccione Área Académica <span class="text-danger">*</span>
+                    </label>
+                    <select class="form-select" id="filtroAreaModal" [(ngModel)]="filtroAreaModal"
+                        (ngModelChange)="onGrupoAreaModalChange()">
+                        <option value="">-- Seleccione un área --</option>
+                        <option *ngFor="let area of areas" [value]="area.id">
+                            {{ area.nombre }}
+                        </option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Filtros opcionales: Esfera y Texto -->
+            <div class="row g-3 mb-3" *ngIf="filtroGrupoModal && filtroAreaModal">
+                <div class="col-12 col-md-4">
+                    <label for="filtroEsferaModal" class="form-label">Filtrar por Esfera</label>
+                    <select class="form-select" id="filtroEsferaModal" [(ngModel)]="filtroEsferaModal">
+                        <option value="">Todas las esferas</option>
+                        <option *ngFor="let esfera of esferas" [value]="esfera.id">
+                            {{ esfera.nombre }}
+                        </option>
+                    </select>
+                </div>
+                <div class="col-12 col-md-8">
+                    <label for="buscarActividad" class="form-label">Buscar por texto</label>
+                    <input type="text" class="form-control" id="buscarActividad" [(ngModel)]="actividadesBusqueda"
+                        placeholder="Buscar actividad...">
+                </div>
+            </div>
+
+            <!-- Mensaje cuando no se ha seleccionado grupo y área -->
+            <div *ngIf="!filtroGrupoModal || !filtroAreaModal" class="empty-state">
+                <i class="fas fa-hand-point-up"></i>
+                <p>Seleccione un grupo y un área académica para ver las actividades disponibles.</p>
+            </div>
+
+            <!-- Lista de actividades -->
+            <div *ngIf="filtroGrupoModal && filtroAreaModal">
+                <div class="lista-encabezado">
+                    <span>Actividades Disponibles</span>
+                    <span class="chip">{{ actividadesFiltradas.length }} disponibles</span>
+                    <span class="chip chip-activo" *ngIf="actividadesSeleccionadas.length > 0">
+                        {{ actividadesSeleccionadas.length }} seleccionadas
+                    </span>
+                </div>
+
+                <div class="actividades-list" [class.invalida]="actividadesSeleccionadas.length === 0 && actividadSubmitted">
+                    <div class="empty-state" *ngIf="actividadesFiltradas.length === 0">
+                        <i class="fas fa-search"></i>
+                        <p>No se encontraron actividades para el grupo y área seleccionados</p>
+                    </div>
+                    <div class="actividad-item" *ngFor="let actividad of actividadesFiltradas"
+                        [class.selected]="isActividadSeleccionada(actividad)"
+                        (click)="toggleActividadSeleccion(actividad)">
+                        <div class="actividad-info">
+                            <strong>{{ actividad.titulo }}</strong>
+                            <div class="actividad-meta">
+                                <span *ngIf="actividad.nombre_tipo_actividad">
+                                    <i class="fas fa-tag"></i>{{ actividad.nombre_tipo_actividad }}
+                                </span>
+                                <span>
+                                    <i class="fas fa-clock"></i>{{ actividad.minutos_duracion }} min
+                                </span>
+                                <span *ngIf="actividad.esferas">
+                                    <i class="fas fa-circle-notch"></i>{{ actividad.esferas }}
+                                </span>
+                            </div>
+                        </div>
+                        <i class="fas fa-check-circle check-icon" *ngIf="isActividadSeleccionada(actividad)"></i>
+                    </div>
+                </div>
+                <div *ngIf="actividadesSeleccionadas.length === 0 && actividadSubmitted" class="mensaje-invalido">
+                    Debe seleccionar al menos una actividad
+                </div>
+            </div>
+
+            <div class="resumen-seleccion" *ngIf="actividadesSeleccionadas.length > 0">
+                <strong>{{ actividadesSeleccionadas.length }} actividad{{ actividadesSeleccionadas.length > 1 ? 'es' : '' }} seleccionada{{ actividadesSeleccionadas.length > 1 ? 's' : '' }}</strong>
+                <p>
+                    Se crearán tareas para
+                    <strong>{{ obtenerNombreGrupo(filtroGrupoModal) }}</strong> -
+                    <strong>{{ obtenerNombreArea(filtroAreaModal) }}</strong>
+                </p>
+            </div>
+        </div>
+
+        <div class="modal-footer-custom">
+            <button type="button" class="btn-secundario" (click)="cerrarModalActividades()">
+                <i class="fas fa-times"></i> Cancelar
+            </button>
+            <button type="button" class="btn-principal" (click)="asociarActividades()"
+                [disabled]="!actividadesSeleccionadas || actividadesSeleccionadas.length === 0 || !filtroGrupoModal || !filtroAreaModal">
+                <i class="fas fa-link"></i>
+                Asociar {{ actividadesSeleccionadas.length || '' }} Actividad{{ actividadesSeleccionadas.length !== 1 ? 'es' : '' }}
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de horarios -->
+<div class="modal-overlay" *ngIf="mostrarModalHorarios" (click)="cerrarModalHorarios()">
+    <div class="modal-content-custom modal-ancho" (click)="$event.stopPropagation()">
+        <div class="modal-header-custom">
+            <h3><i class="fas fa-calendar-week"></i> Horarios por Grupo - {{ nombreSprint }}</h3>
+            <button type="button" class="btn-close-custom" (click)="cerrarModalHorarios()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="modal-body-custom">
+            <!-- Selector de grupo -->
+            <div class="grupos-chips">
+                <button class="grupo-chip" *ngFor="let grupo of grupos"
+                    [class.active]="grupoHorarioSeleccionado && grupoHorarioSeleccionado.id === grupo.id"
+                    (click)="seleccionarGrupoHorario(grupo.id)">
+                    <i class="fas fa-users"></i> {{ grupo.nombre }}
+                </button>
+            </div>
+
+            <div class="empty-state" *ngIf="!grupoHorarioSeleccionado">
+                <i class="fas fa-inbox"></i>
+                <p>No hay grupos para mostrar</p>
+            </div>
+
+            <div *ngIf="grupoHorarioSeleccionado">
+                <div class="horario-header">
+                    <h6>
+                        <i class="fas fa-users"></i>
+                        Horario de {{ grupoHorarioSeleccionado.nombre }}
+                    </h6>
+                    <div class="horario-stats">
+                        <span class="chip">
+                            <i class="fas fa-calendar-day"></i>
+                            {{ diasActivosGrupo(grupoHorarioSeleccionado.id) }} días activos
+                        </span>
+                        <span class="chip">
+                            <i class="fas fa-clock"></i>
+                            {{ horasSemanalesGrupo(grupoHorarioSeleccionado.id) }}h semanales
+                        </span>
+                    </div>
+                </div>
+
+                <div class="empty-state" *ngIf="horasDelDia.length === 0">
+                    <i class="fas fa-calendar-xmark"></i>
+                    <p>No hay horarios configurados</p>
+                </div>
+
+                <!-- Grilla de horarios -->
+                <div class="horario-grid-scroll" *ngIf="horasDelDia.length > 0">
+                    <div class="horario-grid">
+                        <div class="horario-row horario-header-dias">
+                            <div class="horario-cell horario-time-header">Hora</div>
+                            <div class="horario-cell horario-day-header" *ngFor="let dia of diasSemana">
+                                {{ dia.nombre }}
+                            </div>
+                        </div>
+
+                        <div class="horario-row" *ngFor="let hora of horasDelDia">
+                            <div class="horario-cell horario-time-cell">{{ hora }}</div>
+                            <div class="horario-cell horario-content-cell"
+                                *ngFor="let dia of diasSemana"
+                                [ngClass]="getClaseHorario(grupoHorarioSeleccionado.id, dia.id, hora)">
+
+                                <div class="horario-block"
+                                    *ngIf="getHorarioInfo(grupoHorarioSeleccionado.id, dia.id, hora) as horarioInfo"
+                                    [style.background-color]="obtenerColorArea(horarioInfo.id_area_academica)"
+                                    [ngClass]="[horarioInfo.esInicio ? 'es-inicio' : '',
+                                                horarioInfo.esFin ? 'es-fin' : '',
+                                                horarioInfo.esIntermedio ? 'es-intermedio' : '']"
+                                    (click)="mostrarDetalleHorario(horarioInfo)"
+                                    [attr.title]="getTooltipHorario(horarioInfo)">
+
+                                    <!-- Solo mostrar contenido en la primera celda del horario -->
+                                    <div *ngIf="horarioInfo.esInicio" class="horario-block-header">
+                                        <strong>{{ obtenerNombreArea(horarioInfo.id_area_academica) }}</strong>
+                                        <div class="horario-block-rango">{{ horarioInfo.duracionCompleta }}</div>
+                                    </div>
+
+                                    <div *ngIf="horarioInfo.esInicio" class="horario-block-content">
+                                        <div class="horario-tiempo">{{ horarioInfo.total_minutos }}min</div>
+                                        <div class="progress-mini">
+                                            <div class="progress-bar-mini"
+                                                [style.width.%]="calcularPorcentajeUsoHorario(grupoHorarioSeleccionado.id, horarioInfo.id_area_academica)"
+                                                [ngClass]="getClaseProgresoHorario(calcularPorcentajeUsoHorario(grupoHorarioSeleccionado.id, horarioInfo.id_area_academica))">
+                                            </div>
+                                        </div>
+                                        <small>{{ calcularPorcentajeUsoHorario(grupoHorarioSeleccionado.id, horarioInfo.id_area_academica) }}%</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Leyenda -->
+                <div class="horario-leyenda" *ngIf="getAreasDelGrupo(grupoHorarioSeleccionado.id).length > 0">
+                    <h6>Áreas Académicas</h6>
+                    <div class="leyenda-items">
+                        <label class="leyenda-item" *ngFor="let area of getAreasDelGrupo(grupoHorarioSeleccionado.id)">
+                            <input
+                                type="checkbox"
+                                [checked]="areasSeleccionadasFiltroHorarios[area.id]"
+                                (change)="toggleAreaFiltroHorario(area.id)">
+                            <span class="leyenda-color" [style.background-color]="obtenerColorArea(area.id)"></span>
+                            {{ area.nombre }}
+                            <small>({{ obtenerUsoPorcentualArea(grupoHorarioSeleccionado.id, area.id) }}% usado)</small>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer-custom">
+            <button type="button" class="btn-secundario" (click)="cerrarModalHorarios()">
+                <i class="fas fa-times"></i> Cerrar
+            </button>
+        </div>
+    </div>
+</div>

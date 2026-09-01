@@ -1,0 +1,648 @@
+// Variables de colores
+$gold: #d4af37;
+$black: #222;
+$light-gold: rgba(212, 175, 55, 0.1);
+
+.tareas-wrapper {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.tareas-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.tareas-titulo {
+  margin: 0;
+  font-weight: 600;
+  color: $black;
+  font-size: 1.05rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  i {
+    color: $gold;
+  }
+
+  .contador {
+    background: $light-gold;
+    border: 1px solid rgba($gold, 0.4);
+    color: $black;
+    border-radius: 20px;
+    padding: 0.1rem 0.65rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+}
+
+.tareas-acciones {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+// =============================================
+// Botones
+// =============================================
+.btn-principal,
+.btn-secundario {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 8px;
+  padding: 0.5rem 1.1rem;
+  font-size: 0.88rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-principal {
+  background: $gold;
+  border: 1px solid $gold;
+  color: #fff;
+
+  &:hover:not(:disabled) {
+    background: darken($gold, 8%);
+    border-color: darken($gold, 8%);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.btn-secundario {
+  background: #fff;
+  border: 1px solid #dee2e6;
+  color: #495057;
+
+  &:hover {
+    background: $light-gold;
+    border-color: rgba($gold, 0.6);
+  }
+}
+
+// =============================================
+// Avisos
+// =============================================
+.limites-aviso {
+  display: flex;
+  gap: 10px;
+  background: #e7f5ff;
+  border: 1px solid #a5d8ff;
+  border-radius: 10px;
+  padding: 0.85rem 1.1rem;
+  font-size: 0.87rem;
+  color: #1864ab;
+  margin-bottom: 1rem;
+
+  > i {
+    margin-top: 2px;
+  }
+
+  .limites-alerta {
+    margin-top: 0.4rem;
+    color: #c92a2a;
+    font-weight: 500;
+  }
+}
+
+.cargando {
+  text-align: center;
+  padding: 2rem;
+  color: #868e96;
+  font-size: 0.9rem;
+
+  i {
+    color: $gold;
+    margin-right: 8px;
+  }
+}
+
+.empty-state {
+  text-align: center;
+  padding: 2.5rem 1rem;
+  color: #adb5bd;
+
+  i {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+    display: block;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.9375rem;
+    color: #6c757d;
+  }
+}
+
+.tabla-tareas {
+  background: #fff;
+  border-radius: 12px;
+}
+
+// =============================================
+// Modales propios
+// =============================================
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050;
+  padding: 1rem;
+}
+
+.modal-content-custom {
+  background: #fff;
+  border-radius: 14px;
+  width: 100%;
+  max-width: 700px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+
+  &.modal-ancho {
+    max-width: 1000px;
+  }
+}
+
+.modal-header-custom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.35rem;
+  border-bottom: 1px solid #e9ecef;
+  background: #f8f9fa;
+
+  h3 {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: $black;
+
+    i {
+      color: $gold;
+      margin-right: 8px;
+    }
+  }
+}
+
+.btn-close-custom {
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  color: #868e96;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+
+  &:hover {
+    background: #e9ecef;
+    color: $black;
+  }
+}
+
+.modal-body-custom {
+  padding: 1.35rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.modal-footer-custom {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  padding: 0.9rem 1.35rem;
+  border-top: 1px solid #e9ecef;
+  background: #f8f9fa;
+  flex-wrap: wrap;
+}
+
+// =============================================
+// Lista de actividades
+// =============================================
+.lista-encabezado {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #495057;
+  flex-wrap: wrap;
+}
+
+.chip {
+  background: #f1f3f5;
+  border: 1px solid #e9ecef;
+  border-radius: 20px;
+  padding: 0.15rem 0.7rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #6c757d;
+
+  i {
+    color: $gold;
+    margin-right: 5px;
+  }
+
+  &.chip-activo {
+    background: $light-gold;
+    border-color: rgba($gold, 0.4);
+    color: $black;
+  }
+}
+
+.actividades-list {
+  max-height: 340px;
+  overflow-y: auto;
+  border: 1px solid #e9ecef;
+  border-radius: 10px;
+
+  &.invalida {
+    border-color: #dc3545;
+  }
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f8f9fa;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #ced4da;
+    border-radius: 3px;
+  }
+}
+
+.actividad-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #f1f3f5;
+  cursor: pointer;
+  transition: background 0.2s ease;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background: #f8f9fa;
+  }
+
+  &.selected {
+    background: $light-gold;
+  }
+
+  .actividad-info strong {
+    font-size: 0.9rem;
+    color: $black;
+  }
+
+  .actividad-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.85rem;
+    font-size: 0.76rem;
+    color: #868e96;
+    margin-top: 0.2rem;
+
+    i {
+      color: $gold;
+      margin-right: 4px;
+    }
+  }
+
+  .check-icon {
+    color: $gold;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+  }
+}
+
+.mensaje-invalido {
+  color: #dc3545;
+  font-size: 0.82rem;
+  margin-top: 0.4rem;
+}
+
+.resumen-seleccion {
+  margin-top: 1rem;
+  background: $light-gold;
+  border: 1px solid rgba($gold, 0.4);
+  border-radius: 10px;
+  padding: 0.8rem 1rem;
+  font-size: 0.88rem;
+  color: $black;
+
+  p {
+    margin: 0.25rem 0 0 0;
+    font-size: 0.8rem;
+    color: #6c757d;
+  }
+}
+
+// =============================================
+// Modal de horarios
+// =============================================
+.grupos-chips {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+}
+
+.grupo-chip {
+  background: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: 20px;
+  padding: 0.4rem 1rem;
+  font-size: 0.85rem;
+  color: #495057;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  i {
+    color: $gold;
+    margin-right: 6px;
+  }
+
+  &:hover {
+    background: $light-gold;
+  }
+
+  &.active {
+    background: $gold;
+    border-color: $gold;
+    color: #fff;
+
+    i {
+      color: #fff;
+    }
+  }
+}
+
+.horario-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+
+  h6 {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: $black;
+
+    i {
+      color: $gold;
+      margin-right: 8px;
+    }
+  }
+
+  .horario-stats {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+}
+
+.horario-grid-scroll {
+  overflow-x: auto;
+  border: 1px solid #e9ecef;
+  border-radius: 10px;
+}
+
+.horario-grid {
+  min-width: 640px;
+}
+
+.horario-row {
+  display: grid;
+  grid-template-columns: 70px repeat(5, 1fr);
+
+  &.horario-header-dias {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
+}
+
+.horario-cell {
+  border-right: 1px solid #f1f3f5;
+  border-bottom: 1px solid #f1f3f5;
+  min-height: 34px;
+
+  &:last-child {
+    border-right: none;
+  }
+}
+
+.horario-time-header,
+.horario-day-header {
+  background: #f8f9fa;
+  font-weight: 600;
+  font-size: 0.78rem;
+  color: #495057;
+  text-align: center;
+  padding: 0.5rem 0.25rem;
+}
+
+.horario-time-cell {
+  background: #fbfbfb;
+  font-size: 0.72rem;
+  color: #868e96;
+  text-align: center;
+  padding: 0.25rem;
+}
+
+.horario-content-cell {
+  position: relative;
+  padding: 0;
+
+  &.sin-horario {
+    background: #fff;
+  }
+}
+
+.horario-block {
+  height: 100%;
+  min-height: 34px;
+  cursor: pointer;
+  padding: 2px 4px;
+  color: #fff;
+  overflow: hidden;
+
+  &.es-inicio {
+    border-radius: 6px 6px 0 0;
+  }
+
+  &.es-fin {
+    border-radius: 0 0 6px 6px;
+  }
+}
+
+.horario-block-header {
+  strong {
+    font-size: 0.65rem;
+    line-height: 1.1;
+    display: block;
+  }
+
+  .horario-block-rango {
+    font-size: 0.55rem;
+    opacity: 0.85;
+  }
+}
+
+.horario-block-content {
+  margin-top: 2px;
+
+  .horario-tiempo {
+    font-size: 0.6rem;
+    opacity: 0.9;
+  }
+
+  small {
+    font-size: 0.55rem;
+  }
+}
+
+.progress-mini {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 2px;
+  overflow: hidden;
+  margin: 2px 0;
+}
+
+.progress-bar-mini {
+  height: 100%;
+
+  &.bg-success-mini {
+    background: #2e7d32;
+  }
+
+  &.bg-warning-mini {
+    background: #ef6c00;
+  }
+
+  &.bg-danger-mini {
+    background: #c62828;
+  }
+}
+
+.horario-leyenda {
+  margin-top: 1.25rem;
+
+  h6 {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.6rem;
+  }
+
+  .leyenda-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+
+  .leyenda-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 20px;
+    padding: 0.3rem 0.8rem;
+    font-size: 0.8rem;
+    color: #495057;
+    cursor: pointer;
+    margin: 0;
+
+    input {
+      accent-color: $gold;
+      cursor: pointer;
+    }
+
+    small {
+      color: #adb5bd;
+      font-size: 0.72rem;
+    }
+  }
+
+  .leyenda-color {
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    display: inline-block;
+  }
+}
+
+// =============================================
+// Responsive
+// =============================================
+@media (max-width: 768px) {
+  .tareas-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .tareas-acciones {
+    .btn-principal,
+    .btn-secundario {
+      flex: 1;
+      justify-content: center;
+    }
+  }
+
+  .modal-overlay {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .modal-content-custom {
+    max-width: 100%;
+    max-height: 95vh;
+    border-radius: 14px 14px 0 0;
+  }
+
+  .modal-footer-custom {
+    .btn-principal,
+    .btn-secundario {
+      flex: 1;
+      justify-content: center;
+    }
+  }
+
+  .actividades-list {
+    max-height: 45vh;
+  }
+}

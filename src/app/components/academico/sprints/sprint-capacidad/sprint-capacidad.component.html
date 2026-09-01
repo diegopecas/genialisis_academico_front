@@ -1,0 +1,189 @@
+<div class="capacidad-wrapper">
+
+    <div class="capacidad-header">
+        <h6 class="capacidad-titulo">
+            <i class="fas fa-gauge-high"></i>
+            Capacidad por Grupo y Área
+        </h6>
+
+        <div class="capacidad-controles">
+            <!-- Controles de ordenamiento -->
+            <div class="dropdown-orden">
+                <button class="btn-orden" type="button" (click)="toggleDropdownOrden()">
+                    <i class="fas fa-sort"></i>
+                    <span class="btn-orden-texto">{{ obtenerTextoOrdenamiento() }}</span>
+                    <i class="fas fa-chevron-down chevron" [class.rotado]="dropdownOrdenAbierto"></i>
+                </button>
+                <div class="dropdown-orden-menu" *ngIf="dropdownOrdenAbierto">
+                    <button class="dropdown-orden-item"
+                        [class.active]="ordenCapacidad.campo === 'porcentaje' && ordenCapacidad.direccion === 'desc'"
+                        (click)="cambiarOrdenCapacidad('porcentaje', 'desc'); dropdownOrdenAbierto = false">
+                        <i class="fas fa-sort-amount-down"></i>Mayor uso primero
+                    </button>
+                    <button class="dropdown-orden-item"
+                        [class.active]="ordenCapacidad.campo === 'porcentaje' && ordenCapacidad.direccion === 'asc'"
+                        (click)="cambiarOrdenCapacidad('porcentaje', 'asc'); dropdownOrdenAbierto = false">
+                        <i class="fas fa-sort-amount-up"></i>Menor uso primero
+                    </button>
+                    <button class="dropdown-orden-item"
+                        [class.active]="ordenCapacidad.campo === 'actividades'"
+                        (click)="cambiarOrdenCapacidad('actividades', 'desc'); dropdownOrdenAbierto = false">
+                        <i class="fas fa-tasks"></i>Más actividades primero
+                    </button>
+                    <button class="dropdown-orden-item" [class.active]="ordenCapacidad.campo === 'grupo'"
+                        (click)="cambiarOrdenCapacidad('grupo', 'asc'); dropdownOrdenAbierto = false">
+                        <i class="fas fa-users"></i>Por grupo (A-Z)
+                    </button>
+                    <button class="dropdown-orden-item" [class.active]="ordenCapacidad.campo === 'area'"
+                        (click)="cambiarOrdenCapacidad('area', 'asc'); dropdownOrdenAbierto = false">
+                        <i class="fas fa-book"></i>Por área (A-Z)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Botones de vista -->
+            <div class="vista-toggle">
+                <button type="button" [class.active]="vistaCapacidad === 'grid'" (click)="cambiarVistaCapacidad('grid')"
+                    title="Vista de tarjetas">
+                    <i class="fas fa-th"></i>
+                </button>
+                <button type="button" [class.active]="vistaCapacidad === 'tabla'" (click)="cambiarVistaCapacidad('tabla')"
+                    title="Vista de tabla">
+                    <i class="fas fa-table"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resumen general -->
+    <div class="resumen-capacidad" *ngIf="analisisTiempo && analisisTiempo.resumen">
+        <div class="resumen-item">
+            <span class="resumen-valor">{{ analisisTiempo.resumen.total_combinaciones }}</span>
+            <span class="resumen-label">Combinaciones</span>
+        </div>
+        <div class="resumen-item">
+            <span class="resumen-valor">{{ analisisTiempo.resumen.grupos_excedidos.length }}</span>
+            <span class="resumen-label">Excedidos</span>
+        </div>
+        <div class="resumen-item">
+            <span class="resumen-valor">{{ itemsCapacidadFiltrados.length }}</span>
+            <span class="resumen-label">Visibles</span>
+        </div>
+    </div>
+
+    <div class="cargando" *ngIf="cargando">
+        <i class="fas fa-circle-notch fa-spin"></i>
+        Calculando capacidad...
+    </div>
+
+    <div class="empty-state" *ngIf="!cargando && itemsCapacidadFiltrados.length === 0">
+        <i class="fas fa-inbox"></i>
+        <p>No hay información de capacidad para mostrar</p>
+    </div>
+
+    <!-- Vista de tarjetas -->
+    <div class="capacidad-grid" *ngIf="vistaCapacidad === 'grid' && itemsCapacidadFiltrados.length > 0">
+        <div class="tubo-card" *ngFor="let item of itemsCapacidadFiltrados" [class.excedido]="item.excedido"
+            (click)="verDetalleGrupoArea(item)">
+
+            <div class="tubo-header">
+                <h6>{{ item.nombre_grupo }}</h6>
+                <small>{{ item.nombre_area }}</small>
+            </div>
+
+            <div class="tubo-medidor">
+                <div class="porcentaje-encima">{{ item.porcentaje_usado }}%</div>
+
+                <div class="tubo-glass">
+                    <div class="tubo-liquido"
+                        [style.height.%]="item.porcentaje_usado > 100 ? 100 : item.porcentaje_usado"
+                        [class.bajo]="item.porcentaje_usado < 50"
+                        [class.medio]="item.porcentaje_usado >= 50 && item.porcentaje_usado < 90"
+                        [class.optimo]="item.porcentaje_usado >= 90 && item.porcentaje_usado <= 100"
+                        [class.desborde]="item.porcentaje_usado > 100">
+                    </div>
+                </div>
+
+                <div class="overflow-indicator" *ngIf="item.porcentaje_usado > 100">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+            </div>
+
+            <div class="tubo-stats">
+                <div class="stat-item">
+                    <i class="fas fa-clock"></i>
+                    <span>{{ item.horas_usadas }}h / {{ item.horas_disponibles }}h</span>
+                </div>
+                <div class="stat-item">
+                    <i class="fas fa-tasks"></i>
+                    <span>{{ item.cantidad_actividades }} actividades</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vista de tabla -->
+    <div class="capacidad-tabla" *ngIf="vistaCapacidad === 'tabla' && itemsCapacidadFiltrados.length > 0">
+        <div class="table-responsive">
+            <table class="table table-sm table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th class="sortable" (click)="cambiarOrdenCapacidad('grupo')">
+                            Grupo
+                            <i class="fas fa-sort" *ngIf="ordenCapacidad.campo !== 'grupo'"></i>
+                            <i class="fas fa-sort-up" *ngIf="ordenCapacidad.campo === 'grupo' && ordenCapacidad.direccion === 'asc'"></i>
+                            <i class="fas fa-sort-down" *ngIf="ordenCapacidad.campo === 'grupo' && ordenCapacidad.direccion === 'desc'"></i>
+                        </th>
+                        <th class="sortable" (click)="cambiarOrdenCapacidad('area')">
+                            Área
+                            <i class="fas fa-sort" *ngIf="ordenCapacidad.campo !== 'area'"></i>
+                            <i class="fas fa-sort-up" *ngIf="ordenCapacidad.campo === 'area' && ordenCapacidad.direccion === 'asc'"></i>
+                            <i class="fas fa-sort-down" *ngIf="ordenCapacidad.campo === 'area' && ordenCapacidad.direccion === 'desc'"></i>
+                        </th>
+                        <th>Capacidad</th>
+                        <th>Usado</th>
+                        <th class="sortable" (click)="cambiarOrdenCapacidad('actividades')">
+                            Actividades
+                            <i class="fas fa-sort" *ngIf="ordenCapacidad.campo !== 'actividades'"></i>
+                            <i class="fas fa-sort-up" *ngIf="ordenCapacidad.campo === 'actividades' && ordenCapacidad.direccion === 'asc'"></i>
+                            <i class="fas fa-sort-down" *ngIf="ordenCapacidad.campo === 'actividades' && ordenCapacidad.direccion === 'desc'"></i>
+                        </th>
+                        <th class="sortable" (click)="cambiarOrdenCapacidad('porcentaje')">
+                            Progreso
+                            <i class="fas fa-sort" *ngIf="ordenCapacidad.campo !== 'porcentaje'"></i>
+                            <i class="fas fa-sort-up" *ngIf="ordenCapacidad.campo === 'porcentaje' && ordenCapacidad.direccion === 'asc'"></i>
+                            <i class="fas fa-sort-down" *ngIf="ordenCapacidad.campo === 'porcentaje' && ordenCapacidad.direccion === 'desc'"></i>
+                        </th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let item of itemsCapacidadFiltrados" (click)="verDetalleGrupoArea(item)">
+                        <td data-label="Grupo">{{ item.nombre_grupo }}</td>
+                        <td data-label="Área">{{ item.nombre_area }}</td>
+                        <td data-label="Capacidad">{{ item.horas_disponibles }}h</td>
+                        <td data-label="Usado">{{ item.horas_usadas }}h</td>
+                        <td data-label="Actividades">{{ item.cantidad_actividades }}</td>
+                        <td data-label="Progreso">
+                            <div class="barra-progreso">
+                                <div class="barra-relleno"
+                                    [class.bajo]="item.porcentaje_usado < 50"
+                                    [class.medio]="item.porcentaje_usado >= 50 && item.porcentaje_usado < 90"
+                                    [class.optimo]="item.porcentaje_usado >= 90 && item.porcentaje_usado <= 100"
+                                    [class.desborde]="item.porcentaje_usado > 100"
+                                    [style.width.%]="item.porcentaje_usado > 100 ? 100 : item.porcentaje_usado">
+                                </div>
+                            </div>
+                            <small>{{ item.porcentaje_usado }}%</small>
+                        </td>
+                        <td data-label="Estado">
+                            <span class="badge-estado" [class.ok]="!item.excedido" [class.excedido]="item.excedido">
+                                {{ item.excedido ? 'Excedido' : 'OK' }}
+                            </span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

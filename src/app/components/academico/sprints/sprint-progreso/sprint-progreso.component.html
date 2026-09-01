@@ -1,0 +1,161 @@
+<div class="progreso-wrapper">
+
+    <!-- Tarjetas de resumen -->
+    <div class="resumen-cards">
+        <div class="resumen-card">
+            <div class="resumen-icono"><i class="fas fa-tasks"></i></div>
+            <div class="resumen-datos">
+                <div class="resumen-valor">{{ estadisticas.totalTareas }}</div>
+                <div class="resumen-label">Total Tareas</div>
+            </div>
+        </div>
+        <div class="resumen-card">
+            <div class="resumen-icono"><i class="fas fa-check-circle"></i></div>
+            <div class="resumen-datos">
+                <div class="resumen-valor">{{ estadisticas.tareasEjecutadas }}</div>
+                <div class="resumen-label">Tareas Ejecutadas</div>
+            </div>
+        </div>
+        <div class="resumen-card">
+            <div class="resumen-icono"><i class="fas fa-clock"></i></div>
+            <div class="resumen-datos">
+                <div class="resumen-valor">{{ estadisticas.totalTareas - estadisticas.tareasEjecutadas }}</div>
+                <div class="resumen-label">Tareas Pendientes</div>
+            </div>
+        </div>
+        <div class="resumen-card">
+            <div class="resumen-icono"><i class="fas fa-percentage"></i></div>
+            <div class="resumen-datos">
+                <div class="resumen-valor">{{ estadisticas.porcentajeGeneral }}%</div>
+                <div class="resumen-label">Completado</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="cargando" *ngIf="cargando">
+        <i class="fas fa-circle-notch fa-spin"></i>
+        Cargando progreso...
+    </div>
+
+    <!-- Progreso general -->
+    <div class="bloque">
+        <div class="card-header-subtle">
+            <span class="header-icon"><i class="fas fa-chart-simple"></i></span>
+            Progreso General del Sprint
+        </div>
+        <div class="card-body-subtle">
+            <div class="barra-grande">
+                <div class="barra-grande-relleno" [ngClass]="getClasePorcentaje(estadisticas.porcentajeGeneral)"
+                    [style.width.%]="estadisticas.porcentajeGeneral">
+                    <span *ngIf="estadisticas.porcentajeGeneral > 12">{{ estadisticas.porcentajeGeneral }}% Completado</span>
+                </div>
+                <span class="barra-grande-texto-fuera" *ngIf="estadisticas.porcentajeGeneral <= 12">
+                    {{ estadisticas.porcentajeGeneral }}% Completado
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Análisis de atención de logros -->
+    <div class="bloque">
+        <div class="card-header-subtle">
+            <span class="header-icon"><i class="fas fa-bullseye"></i></span>
+            Análisis de Atención de Logros
+            <span class="modo-vista">
+                {{ (!filtroGrupo && !filtroArea) ? 'Vista por Áreas' : 'Vista por Logros' }}
+            </span>
+        </div>
+        <div class="card-body-subtle">
+
+            <div class="aviso" *ngIf="!filtroGrupo && !filtroArea">
+                <i class="fas fa-info-circle"></i>
+                Vista general por áreas académicas. Haz clic en una barra para ver el detalle de logros de esa área.
+            </div>
+
+            <div class="logros-mini-cards">
+                <div class="logro-mini">
+                    <span class="logro-mini-valor">{{ estadisticas.logrosTotales.length }}</span>
+                    <span class="logro-mini-label">Total Logros</span>
+                </div>
+                <div class="logro-mini">
+                    <span class="logro-mini-valor destacado">{{ estadisticas.logrosAtendidosSprint.length }}</span>
+                    <span class="logro-mini-label">Atendidos Sprint</span>
+                </div>
+                <div class="logro-mini">
+                    <span class="logro-mini-valor">{{ estadisticas.logrosAtendidosCorte.length }}</span>
+                    <span class="logro-mini-label">Atendidos Corte</span>
+                </div>
+                <div class="logro-mini">
+                    <span class="logro-mini-valor alerta">
+                        {{ estadisticas.logrosTotales.length - estadisticas.logrosAtendidosCorte.length }}
+                    </span>
+                    <span class="logro-mini-label">Sin Atender</span>
+                </div>
+            </div>
+
+            <!-- Gráfico unificado -->
+            <div class="chart-container">
+                <canvas #graficoLogrosUnificado></canvas>
+            </div>
+
+            <div class="leyenda-grafico">
+                <span><i class="fas fa-square" style="color: #d4af37;"></i> Actividades asignadas en este sprint</span>
+                <span><i class="fas fa-square" style="color: #adb5bd;"></i> Total acumulado en todo el corte</span>
+            </div>
+
+            <div class="filtros-activos" *ngIf="filtroGrupo || filtroArea">
+                <i class="fas fa-filter"></i>
+                Filtros activos:
+                <span class="chip" *ngIf="filtroGrupo">Grupo: {{ obtenerNombreGrupo(filtroGrupo) }}</span>
+                <span class="chip" *ngIf="filtroArea">Área: {{ obtenerNombreArea(filtroArea) }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progreso por grupo y por área -->
+    <div class="row g-3">
+        <div class="col-12 col-lg-6" *ngIf="estadisticas.porGrupo.length > 0">
+            <div class="bloque h-100">
+                <div class="card-header-subtle">
+                    <span class="header-icon"><i class="fas fa-users"></i></span>
+                    Progreso por Grupo
+                </div>
+                <div class="card-body-subtle">
+                    <div class="item-progreso" *ngFor="let grupo of estadisticas.porGrupo">
+                        <div class="item-progreso-head">
+                            <span class="item-nombre">{{ grupo.nombre }}</span>
+                            <span class="item-detalle">{{ grupo.ejecutadas }}/{{ grupo.total }} tareas</span>
+                        </div>
+                        <div class="barra">
+                            <div class="barra-relleno" [ngClass]="getClasePorcentaje(grupo.porcentaje)"
+                                [style.width.%]="grupo.porcentaje"></div>
+                        </div>
+                        <span class="item-porcentaje">{{ grupo.porcentaje }}%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-6" *ngIf="estadisticas.porArea.length > 0">
+            <div class="bloque h-100">
+                <div class="card-header-subtle">
+                    <span class="header-icon"><i class="fas fa-book"></i></span>
+                    Progreso por Área
+                </div>
+                <div class="card-body-subtle">
+                    <div class="item-progreso" *ngFor="let area of estadisticas.porArea">
+                        <div class="item-progreso-head">
+                            <span class="item-nombre">{{ area.nombre }}</span>
+                            <span class="item-detalle">{{ area.ejecutadas }}/{{ area.total }} tareas</span>
+                        </div>
+                        <div class="barra">
+                            <div class="barra-relleno" [ngClass]="getClasePorcentaje(area.porcentaje)"
+                                [style.width.%]="area.porcentaje"></div>
+                        </div>
+                        <span class="item-porcentaje">{{ area.porcentaje }}%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
