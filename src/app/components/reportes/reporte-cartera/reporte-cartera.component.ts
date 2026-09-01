@@ -1591,7 +1591,17 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
 
     const labels = datosParaGrafico.map(mes => mes.nombreMes);
     const cobrados = datosParaGrafico.map(mes => mes.cobrado);
-    const pagados = datosParaGrafico.map(mes => mes.pagado);
+
+    // Dos lecturas distintas del pago, que antes se mezclaban en una sola barra:
+    //
+    // - "Pagado de lo cobrado": de las cuentas facturadas en ese mes, cuanto ya
+    //   entro. Sale de cobrado - saldo, porque `Saldo {Mes}` es el residuo de
+    //   las cuentas de ese mes. Nunca puede superar al cobrado.
+    // - "Recaudo de caja": la plata que entro durante ese mes, sin importar de
+    //   que mes era la cuenta. Es el `Pagado {Mes}` del reporte. Puede superar
+    //   al cobrado del mes cuando se pagan cuentas atrasadas, y eso es correcto.
+    const pagadoDeLoCobrado = datosParaGrafico.map(mes => Math.max(mes.cobrado - mes.saldo, 0));
+    const recaudoCaja = datosParaGrafico.map(mes => mes.pagado);
 
     try {
       this.charts['ingresos'] = new Chart(ctx, {
@@ -1607,10 +1617,17 @@ export class ReporteCarteraComponent implements OnInit, OnDestroy, AfterViewInit
               borderWidth: 1
             },
             {
-              label: 'Pagado',
-              data: pagados,
+              label: 'Pagado de lo cobrado',
+              data: pagadoDeLoCobrado,
               backgroundColor: 'rgba(75, 192, 192, 0.8)',
               borderColor: 'rgba(75, 192, 192, 1)',
+              borderWidth: 1
+            },
+            {
+              label: 'Recaudo de caja',
+              data: recaudoCaja,
+              backgroundColor: 'rgba(255, 159, 64, 0.8)',
+              borderColor: 'rgba(255, 159, 64, 1)',
               borderWidth: 1
             }
           ]
