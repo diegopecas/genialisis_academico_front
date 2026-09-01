@@ -60,6 +60,14 @@ export class SprintProgresoComponent implements OnInit, AfterViewInit, OnChanges
   public todasLasTareas: any[] = [];
   public tareasFiltradas: any[] = [];
 
+  // Datos crudos que devuelve el back. Se piden una sola vez al abrir el tab y
+  // de ahí en adelante los filtros se aplican en memoria, sin volver a
+  // consultar.
+  private datosLogrosSprint: AnalisisLogrosResponse | null = null;
+  private datosLogrosCorte: AnalisisLogrosResponse | null = null;
+  private datosAreasSprint: AnalisisAreasResponse | null = null;
+  private datosAreasCorte: AnalisisAreasResponse | null = null;
+
   // Estadísticas
   public estadisticas = {
     totalTareas: 0,
@@ -82,23 +90,20 @@ export class SprintProgresoComponent implements OnInit, AfterViewInit, OnChanges
 
   ngOnInit(): void {
     this.cargarTareas();
+    this.cargarAnalisisLogros();
   }
 
   ngAfterViewInit(): void {
     this.vistaLista = true;
-    this.cargarAnalisisLogros().then(() => {
-      this.actualizarGraficoUnificado();
-    });
+    // Si los datos ya llegaron mientras se armaba la vista, se pinta de una.
+    this.refrescarVista();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
+    // Cambiar un filtro NO vuelve al back: todo se recalcula en memoria.
     if (changes['filtroGrupo'] || changes['filtroArea']) {
       this.aplicarFiltros();
-      if (this.vistaLista) {
-        this.cargarAnalisisLogros().then(() => {
-          this.actualizarGraficoUnificado();
-        });
-      }
+      this.refrescarVista();
     }
   }
 
@@ -112,11 +117,7 @@ export class SprintProgresoComponent implements OnInit, AfterViewInit, OnChanges
   /** Lo llama el contenedor cuando cambian las tareas del sprint */
   recargar() {
     this.cargarTareas();
-    if (this.vistaLista) {
-      this.cargarAnalisisLogros().then(() => {
-        this.actualizarGraficoUnificado();
-      });
-    }
+    this.cargarAnalisisLogros();
   }
 
   cargarTareas() {
@@ -132,8 +133,9 @@ export class SprintProgresoComponent implements OnInit, AfterViewInit, OnChanges
         this.todasLasTareas = tareas.map((tarea: any) => ({
           ...tarea,
           estado_nombre: tarea.nombre_estado,
-          id_grupo: tarea.ids_grupos && tarea.ids_grupos.length > 0 ? tarea.ids_grupos[0] : null,
-          id_area: tarea.ids_areas && tarea.ids_areas.length > 0 ? tarea.ids_areas[0] : null
+          // El back entrega id_area_academica; se deja también como id_area
+          // porque es el nombre que usa el resto del componente.
+          id_area: tarea.id_area_academica
         }));
 
         this.aplicarFiltros();
@@ -163,21 +165,11 @@ export class SprintProgresoComponent implements OnInit, AfterViewInit, OnChanges
     let tareas = [...this.todasLasTareas];
 
     if (this.filtroGrupo) {
-      const nombreGrupo = this.obtenerNombreGrupo(this.filtroGrupo);
-      tareas = tareas.filter(t =>
-        t.id_grupo == this.filtroGrupo ||
-        (t.grupos && t.grupos.includes(nombreGrupo)) ||
-        (t.ids_grupos && t.ids_grupos.includes(this.filtroGrupo.toString()))
-      );
+      tareas = tareas.filter(t => t.id_grupo == this.filtroGrupo);
     }
 
     if (this.filtroArea) {
-      const nombreArea = this.obtenerNombreArea(this.filtroArea);
-      tareas = tareas.filter(t =>
-        t.id_area == this.filtroArea ||
-        (t.areas && t.areas.includes(nombreArea)) ||
-        (t.ids_areas && t.ids_areas.includes(this.filtroArea.toString()))
-      );
+      tareas = tareas.filter(t => t.id_area == this.filtroArea);
     }
 
     this.tareasFiltradas = tareas;
@@ -215,24 +207,21 @@ export class SprintProgresoComponent implements OnInit, AfterViewInit, OnChanges
     const estadisticasPorGrupo: { [key: string]: { total: number, ejecutadas: number } } = {};
 
     this.tareasFiltradas.forEach(tarea => {
-      let gruposParaProcesar: string[] = [];
+      // Cada tarea pertenece a un solo grupo; si no vino el nombre se resuelve
+      // con el id.
+      const grupo = tarea.nombre_grupo || this.obtenerNombreGrupo(tarea.id_grupo);
 
-      // Obtener grupos de diferentes fuentes
-      if (tarea.grupos) {
-        gruposParaProcesar = tarea.grupos.split(', ').map((g: string) => g.trim());
-      } else if (tarea.ids_grupos && tarea.ids_grupos.length > 0) {
-        gruposParaProcesar = tarea.ids_grupos.map((id: string) => this.obtenerNombreGrupo(id)).filter(Boolean);
+      if (!grupo) {
+        return;
       }
 
-      gruposParaProcesar.forEach((grupo: string) => {
-        if (!estadisticasPorGrupo[grupo]) {
-          estadisticasPorGrupo[grupo] = { total: 0, ejecutadas: 0 };
-        }
-        estadisticasPorGrupo[grupo].total++;
-        if (tarea.id_estado_tarea === 2) {
-          estadisticasPorGrupo[grupo].ejecutadas++;
-        }
-      });
+      if (!estadisticasPorGrupo[grupo]) {
+        estadisticasPorGrupo[grupo] = { total: 0, ejecutadas: 0 };
+      }
+      estadisticasPorGrupo[grupo].total++;
+      if (tarea.id_estado_tarea === 2) {
+        estadisticasPorGrupo[grupo].ejecutadas++;
+      }
     });
 
     this.estadisticas.porGrupo = Object.keys(estadisticasPorGrupo)
@@ -251,24 +240,21 @@ export class SprintProgresoComponent implements OnInit, AfterViewInit, OnChanges
     const estadisticasPorArea: { [key: string]: { total: number, ejecutadas: number } } = {};
 
     this.tareasFiltradas.forEach(tarea => {
-      let areasParaProcesar: string[] = [];
+      // Cada tarea pertenece a una sola área; si no vino el nombre se resuelve
+      // con el id.
+      const area = tarea.nombre_area || this.obtenerNombreArea(tarea.id_area);
 
-      // Obtener áreas de diferentes fuentes
-      if (tarea.areas) {
-        areasParaProcesar = tarea.areas.split(', ').map((a: string) => a.trim());
-      } else if (tarea.ids_areas && tarea.ids_areas.length > 0) {
-        areasParaProcesar = tarea.ids_areas.map((id: string) => this.obtenerNombreArea(id)).filter(Boolean);
+      if (!area) {
+        return;
       }
 
-      areasParaProcesar.forEach((area: string) => {
-        if (!estadisticasPorArea[area]) {
-          estadisticasPorArea[area] = { total: 0, ejecutadas: 0 };
-        }
-        estadisticasPorArea[area].total++;
-        if (tarea.id_estado_tarea === 2) {
-          estadisticasPorArea[area].ejecutadas++;
-        }
-      });
+      if (!estadisticasPorArea[area]) {
+        estadisticasPorArea[area] = { total: 0, ejecutadas: 0 };
+      }
+      estadisticasPorArea[area].total++;
+      if (tarea.id_estado_tarea === 2) {
+        estadisticasPorArea[area].ejecutadas++;
+      }
     });
 
     this.estadisticas.porArea = Object.keys(estadisticasPorArea)
@@ -292,46 +278,83 @@ export class SprintProgresoComponent implements OnInit, AfterViewInit, OnChanges
   // =========================================================
   // Análisis de logros
   // =========================================================
+
+  /**
+   * Única consulta al back de los cuatro análisis. Se llama al abrir el tab y
+   * cuando el contenedor avisa que cambiaron las tareas, nunca al filtrar.
+   */
   async cargarAnalisisLogros(): Promise<void> {
     if (!this.idSprint || !this.idCorteAcademico) {
       return;
     }
 
     try {
-      // Cargar análisis en paralelo
-      const [responseSprint, responseCorte] = await Promise.all([
-        firstValueFrom(this.logrosService.obtenerAnalisisPorSprint(this.idSprint)),
-        firstValueFrom(this.logrosService.obtenerAnalisisPorCorte(this.idCorteAcademico))
+      const [logrosSprint, logrosCorte, areasSprint, areasCorte] = await Promise.all([
+        this.obtenerAnalisisLogrosSprint(),
+        this.obtenerAnalisisLogrosCorte(),
+        this.obtenerAnalisisPorAreasSprint(),
+        this.obtenerAnalisisPorAreasCorte()
       ]);
 
-      const datosSprint = responseSprint.body as AnalisisLogrosResponse;
-      const datosCorte = responseCorte.body as AnalisisLogrosResponse;
+      this.datosLogrosSprint = logrosSprint;
+      this.datosLogrosCorte = logrosCorte;
+      this.datosAreasSprint = areasSprint;
+      this.datosAreasCorte = areasCorte;
 
-      if (datosSprint && datosCorte) {
-        // Aplicar filtros a los logros si están activos
-        let logrosSprint = datosSprint.logros || [];
-        let logrosCorte = datosCorte.logros || [];
-
-        // Filtrar por grupo si está activo
-        if (this.filtroGrupo) {
-          logrosSprint = logrosSprint.filter((l: any) => l.id_grupo == this.filtroGrupo);
-          logrosCorte = logrosCorte.filter((l: any) => l.id_grupo == this.filtroGrupo);
-        }
-
-        // Filtrar por área si está activo
-        if (this.filtroArea) {
-          logrosSprint = logrosSprint.filter((l: any) => l.id_area_academica == this.filtroArea);
-          logrosCorte = logrosCorte.filter((l: any) => l.id_area_academica == this.filtroArea);
-        }
-
-        // Actualizar estadísticas de logros
-        this.estadisticas.logrosTotales = logrosSprint;
-        this.estadisticas.logrosAtendidosSprint = logrosSprint.filter((l: any) => l.cantidad_actividades > 0);
-        this.estadisticas.logrosAtendidosCorte = logrosCorte.filter((l: any) => l.cantidad_actividades > 0);
-      }
+      this.refrescarVista();
     } catch (error) {
       console.error('Error cargando análisis de logros:', error);
     }
+  }
+
+  /** Recalcula tarjetas y gráfico desde lo que ya está en memoria */
+  private refrescarVista() {
+    if (!this.vistaLista) {
+      return;
+    }
+    this.recalcularLogros();
+    this.actualizarGraficoUnificado();
+  }
+
+  /** Aplica los filtros a los logros ya cargados, sin ir al back */
+  private recalcularLogros() {
+    const mostrarPorAreas = !this.filtroGrupo && !this.filtroArea;
+
+    if (mostrarPorAreas) {
+      // Vista general: los totales salen del análisis por áreas
+      if (this.datosAreasSprint && this.datosAreasCorte) {
+        const totalLogrosAreas = this.datosAreasSprint.total_logros || 0;
+        const atendidosSprint = this.datosAreasSprint.total_logros_atendidos || 0;
+        const atendidosCorte = this.datosAreasCorte.total_logros_atendidos || 0;
+
+        this.estadisticas.logrosTotales = Array(totalLogrosAreas).fill({});
+        this.estadisticas.logrosAtendidosSprint = Array(atendidosSprint).fill({});
+        this.estadisticas.logrosAtendidosCorte = Array(atendidosCorte).fill({});
+      }
+      return;
+    }
+
+    // Vista filtrada: se recortan los logros ya cargados
+    const logrosSprint = this.filtrarLogros(this.datosLogrosSprint?.logros || []);
+    const logrosCorte = this.filtrarLogros(this.datosLogrosCorte?.logros || []);
+
+    this.estadisticas.logrosTotales = logrosSprint;
+    this.estadisticas.logrosAtendidosSprint = logrosSprint.filter((l: any) => l.cantidad_actividades > 0);
+    this.estadisticas.logrosAtendidosCorte = logrosCorte.filter((l: any) => l.cantidad_actividades > 0);
+  }
+
+  private filtrarLogros(logros: any[]): any[] {
+    let resultado = [...logros];
+
+    if (this.filtroGrupo) {
+      resultado = resultado.filter((l: any) => l.id_grupo == this.filtroGrupo);
+    }
+
+    if (this.filtroArea) {
+      resultado = resultado.filter((l: any) => l.id_area_academica == this.filtroArea);
+    }
+
+    return resultado;
   }
 
   async obtenerAnalisisLogrosSprint(): Promise<AnalisisLogrosResponse | null> {
@@ -398,8 +421,11 @@ export class SprintProgresoComponent implements OnInit, AfterViewInit, OnChanges
     }
   }
 
-  // Métodos para el gráfico unificado
-  async actualizarGraficoUnificado() {
+  /**
+   * Repinta el gráfico con los datos que ya están en memoria. Sin filtros
+   * muestra el comparativo por áreas; con filtro muestra el detalle por logros.
+   */
+  actualizarGraficoUnificado() {
     if (!this.graficoLogrosUnificadoCanvas) {
       return;
     }
@@ -407,57 +433,25 @@ export class SprintProgresoComponent implements OnInit, AfterViewInit, OnChanges
     const mostrarPorAreas = !this.filtroGrupo && !this.filtroArea;
 
     if (mostrarPorAreas) {
-      const [datosSprint, datosCorte] = await Promise.all([
-        this.obtenerAnalisisPorAreasSprint(),
-        this.obtenerAnalisisPorAreasCorte()
-      ]);
-
-      if (datosSprint && datosCorte) {
-        // Actualizar estadísticas cuando se muestran áreas
-        const totalLogrosAreas = datosSprint.total_logros || 0;
-        const logrosAtendidosSprint = datosSprint.total_logros_atendidos || 0;
-        const logrosAtendidosCorte = datosCorte.total_logros_atendidos || 0;
-
-        // Si las estadísticas de logros no se han cargado, usar los datos de áreas
-        if (this.estadisticas.logrosTotales.length === 0) {
-          // Crear un array de logros ficticios basado en el total
-          this.estadisticas.logrosTotales = Array(totalLogrosAreas).fill({});
-          this.estadisticas.logrosAtendidosSprint = Array(logrosAtendidosSprint).fill({});
-          this.estadisticas.logrosAtendidosCorte = Array(logrosAtendidosCorte).fill({});
-        }
-
-        this.crearGraficoAreasUnificado(datosSprint.areas, datosCorte.areas);
+      if (this.datosAreasSprint && this.datosAreasCorte) {
+        this.crearGraficoAreasUnificado(this.datosAreasSprint.areas, this.datosAreasCorte.areas);
       }
-    } else {
-      const [datosSprint, datosCorte] = await Promise.all([
-        this.obtenerAnalisisLogrosSprint(),
-        this.obtenerAnalisisLogrosCorte()
-      ]);
+      return;
+    }
 
-      if (datosSprint && datosCorte) {
-        let logrosSprint = datosSprint.logros || [];
-        let logrosCorte = datosCorte.logros || [];
-
-        if (this.filtroGrupo) {
-          logrosSprint = logrosSprint.filter((l: any) => l.id_grupo == this.filtroGrupo);
-          logrosCorte = logrosCorte.filter((l: any) => l.id_grupo == this.filtroGrupo);
-        }
-        if (this.filtroArea) {
-          logrosSprint = logrosSprint.filter((l: any) => l.id_area_academica == this.filtroArea);
-          logrosCorte = logrosCorte.filter((l: any) => l.id_area_academica == this.filtroArea);
-        }
-
-        this.crearGraficoLogrosUnificado(logrosSprint, logrosCorte);
-
-        this.estadisticas.logrosTotales = logrosSprint;
-        this.estadisticas.logrosAtendidosSprint = logrosSprint.filter((l: any) => l.cantidad_actividades > 0);
-        this.estadisticas.logrosAtendidosCorte = logrosCorte.filter((l: any) => l.cantidad_actividades > 0);
-      }
+    if (this.datosLogrosSprint && this.datosLogrosCorte) {
+      const logrosSprint = this.filtrarLogros(this.datosLogrosSprint.logros || []);
+      const logrosCorte = this.filtrarLogros(this.datosLogrosCorte.logros || []);
+      this.crearGraficoLogrosUnificado(logrosSprint, logrosCorte);
     }
   }
 
   private crearGraficoLogrosUnificado(logrosSprint: any[], logrosCorte: any[]) {
     if (logrosSprint.length === 0) {
+      if (this.graficoLogrosUnificado) {
+        this.graficoLogrosUnificado.destroy();
+        this.graficoLogrosUnificado = null;
+      }
       return;
     }
 

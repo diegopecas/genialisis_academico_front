@@ -245,6 +245,32 @@ export class CuentasPorCobrarService {
         catchError(this.handleError)
       );
   }
+  // Estudiantes con grupo y estado para la pantalla de Registro Rapido de Cobros.
+  // Los productos se traen aparte del catalogo de productos-servicios.
+  obtenerDatosCobrosRapido() {
+    return this.http
+      .get<HttpResponse<Object>>(this.servicio + '/datos-cobros-rapido', { observe: 'response' })
+      .pipe(
+        tap((response: HttpResponse<Object>) => {
+          let respuesta: any = response.body;
+          if (respuesta.error) throw respuesta.error;
+          return response;
+        }),
+        catchError(this.handleError)
+      );
+  }
+
+  // Generacion masiva: un producto para varios estudiantes en un rango de meses.
+  generarMasivo(data: any) {
+    const body = JSON.stringify(data);
+    return this.http.post<any>(this.servicio + '/generar-masivo', body, httpOptions).pipe(
+      tap((respuesta: any) => {
+        return respuesta;
+      }),
+      catchError(this.handleError)
+    );
+  }
+
   generarDesdeCursoExtra(data: any) {
     const body = JSON.stringify(data);
     return this.http.post<any>(this.servicio + '/generar-desde-curso-extra', body, httpOptions).pipe(

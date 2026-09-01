@@ -29,6 +29,9 @@ export class FinancieroComponent {
       case 'registro-pagos-rapido':
         this.router.navigate(['/administracion/financiero/registro-pagos-rapido']);
         break;
+      case 'registro-cobros-rapido':
+        this.router.navigate(['/administracion/financiero/registro-cobros-rapido']);
+        break;
       case 'movimientos':
         this.router.navigate(['/administracion/financiero/movimientos-financieros']);
         break;

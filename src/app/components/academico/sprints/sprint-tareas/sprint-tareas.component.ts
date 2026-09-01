@@ -76,6 +76,16 @@ export class SprintTareasComponent implements OnInit, OnChanges {
     { id: 'cambiar_estado', label: 'Cambiar Estado', icono: '/assets/images/cambio_estado.png' }
   ];
 
+  /**
+   * Columnas por las que se puede filtrar dentro de la tabla.
+   * Duración y fecha de ejecución van por rango (desde / hasta).
+   */
+  public columnasFiltro: (string | { columna: string, tipoFiltro?: 'fecha' | 'normal' | 'rango' })[] = [
+    { columna: 'Duración (min)', tipoFiltro: 'rango' },
+    'Estado',
+    { columna: 'Fecha Ejecución', tipoFiltro: 'rango' }
+  ];
+
   public diasSemana = [
     { id: 1, nombre: 'Lunes' },
     { id: 2, nombre: 'Martes' },
@@ -172,8 +182,9 @@ export class SprintTareasComponent implements OnInit, OnChanges {
     const procesadas = tareas.map((tarea: any) => ({
       ...tarea,
       estado_nombre: tarea.nombre_estado,
-      id_grupo: tarea.ids_grupos && tarea.ids_grupos.length > 0 ? tarea.ids_grupos[0] : null,
-      id_area: tarea.ids_areas && tarea.ids_areas.length > 0 ? tarea.ids_areas[0] : null
+      // El back entrega id_area_academica; se deja también como id_area
+      // porque es el nombre que usa el resto del componente.
+      id_area: tarea.id_area_academica
     }));
 
     // Guardar copia de todas las tareas sin filtrar
@@ -203,22 +214,12 @@ export class SprintTareasComponent implements OnInit, OnChanges {
 
     // Filtro por grupo
     if (this.filtroGrupo) {
-      const nombreGrupo = this.obtenerNombreGrupo(this.filtroGrupo);
-      tareasFiltradas = tareasFiltradas.filter(t =>
-        t.id_grupo == this.filtroGrupo ||
-        (t.grupos && t.grupos.includes(nombreGrupo)) ||
-        (t.ids_grupos && t.ids_grupos.includes(this.filtroGrupo.toString()))
-      );
+      tareasFiltradas = tareasFiltradas.filter(t => t.id_grupo == this.filtroGrupo);
     }
 
     // Filtro por área
     if (this.filtroArea) {
-      const nombreArea = this.obtenerNombreArea(this.filtroArea);
-      tareasFiltradas = tareasFiltradas.filter(t =>
-        t.id_area == this.filtroArea ||
-        (t.areas && t.areas.includes(nombreArea)) ||
-        (t.ids_areas && t.ids_areas.includes(this.filtroArea.toString()))
-      );
+      tareasFiltradas = tareasFiltradas.filter(t => t.id_area == this.filtroArea);
     }
 
     this.tareasDelSprint = tareasFiltradas;
@@ -278,9 +279,20 @@ export class SprintTareasComponent implements OnInit, OnChanges {
         alinear: 'izquierda',
       },
       {
+        clave: 'nombre_grupo',
+        alias: 'Grupo',
+        alinear: 'izquierda',
+      },
+      {
+        clave: 'nombre_area',
+        alias: 'Área',
+        alinear: 'izquierda',
+      },
+      {
         clave: 'minutos_duracion',
         alias: 'Duración (min)',
         alinear: 'centrado',
+        tipo: 'number',
       },
       {
         clave: 'estado_nombre',
@@ -296,6 +308,9 @@ export class SprintTareasComponent implements OnInit, OnChanges {
         clave: 'fecha_ejecucion',
         alias: 'Fecha Ejecución',
         alinear: 'centrado',
+        // El tipo es lo que hace que el filtro de rango muestre calendarios
+        // en lugar de campos de texto.
+        tipo: 'datetime',
       }
     ];
   }

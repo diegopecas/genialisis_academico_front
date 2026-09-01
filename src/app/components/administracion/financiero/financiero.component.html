@@ -90,6 +90,15 @@
                   <span>Registro Rápido de Pagos</span>
                 </div>
               </div>
+              <div class="col-6" *ngIf="permisosService.tienePermiso('admin.registro_cobros_rapido')">
+                <div
+                  class="submenu-item"
+                  (click)="seleccionarOpcion('registro-cobros-rapido')"
+                >
+                  <img src="assets/images/registro-cobros-rapido.png" alt="Registro Rápido de Cobros" />
+                  <span>Registro Rápido de Cobros</span>
+                </div>
+              </div>
               <div class="col-6" *ngIf="permisosService.tienePermiso('admin.contabilizacion_multiple')">
                 <div
                   class="submenu-item"

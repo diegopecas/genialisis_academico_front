@@ -669,7 +669,12 @@ export class TablasComponent implements OnChanges, OnInit {
         if (valor === null || valor === undefined || valor === '') return false;
 
         if (tipoInput === 'date') {
-          const valorFecha = typeof valor === 'string' ? valor.split('T')[0] : valor;
+          // El valor puede venir como '2026-08-21', '2026-08-21T13:06:35' o
+          // '2026-08-21 13:06:35'. Se compara solo la parte de la fecha para
+          // que el 'hasta' incluya todo ese dia y no deje por fuera las horas.
+          const valorFecha = typeof valor === 'string'
+            ? valor.substring(0, 10)
+            : valor;
           if (desde && valorFecha < desde) return false;
           if (hasta && valorFecha > hasta) return false;
         } else {

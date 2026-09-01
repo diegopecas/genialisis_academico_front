@@ -17,6 +17,7 @@ import { TarifasGruposService } from '../../../../services/tarifas-grupos.servic
 import { DocumentosPersonasService } from '../../../../services/documentos-personas.service';
 import { TiposDocumentosService } from '../../../../services/tipos-documentos.service';
 import { CuentasPorCobrarService } from '../../../../services/cuentas-por-cobrar.service';
+import { ConfiguracionGlobalService } from '../../../../services/configuracion-global.service';
 import { 
   ContratosMatriculaValoresService, 
   ContratoValor,
@@ -140,7 +141,8 @@ export class CrearContratoComponent implements OnInit {
     private tiposDocumentosService: TiposDocumentosService,
     private contratosMatriculaValoresService: ContratosMatriculaValoresService,
     private contratosMatriculaProductosService: ContratosMatriculaProductosService,
-    private cuentasPorCobrarService: CuentasPorCobrarService
+    private cuentasPorCobrarService: CuentasPorCobrarService,
+    private configuracionGlobalService: ConfiguracionGlobalService
   ) {}
 
   ngOnInit() {
@@ -163,6 +165,7 @@ export class CrearContratoComponent implements OnInit {
         case 'crear':
           this.editable = true;
           this.titulo = 'Nuevo contrato de matrícula';
+          this.cargarDiaVencimientoPorDefecto();
           break;
         case 'editar':
           this.editable = true;
@@ -174,6 +177,26 @@ export class CrearContratoComponent implements OnInit {
           this.titulo = 'Consultar contrato de matrícula';
           this.obtenerContrato(this.id);
           break;
+      }
+    });
+  }
+
+  /**
+   * Dia de vencimiento por defecto de las cuotas. Sale del parametro
+   * 'cobros_dia_general' de la configuracion global, que es el mismo dia que
+   * usan las demas pantallas donde se generan cobros. Si el parametro no
+   * existe o falla la consulta se queda con el 1 que trae el modelo.
+   */
+  cargarDiaVencimientoPorDefecto() {
+    this.configuracionGlobalService.obtenerByClave('cobros_dia_general').subscribe({
+      next: (response: any) => {
+        const dia = parseInt(String(response.body?.valor_numero), 10);
+        if (!isNaN(dia) && dia >= 1 && dia <= 31) {
+          this.model.dia_vencimiento = dia;
+        }
+      },
+      error: () => {
+        console.warn('No se pudo leer cobros_dia_general, se usa el dia 1 por defecto.');
       }
     });
   }

@@ -15,6 +15,7 @@ import { UtilService } from '../../../../common/constantes/util.service';
 import { AsistenciaEstudiantesService } from '../../../../services/asistencia-estudiantes.service';
 import { CuentaPagadaService } from '../../../../services/cuenta-pagada.service';
 import { HorariosAlimentacionService } from '../../../../services/horarios-alimentacion.service';
+import { ConfiguracionGlobalService } from '../../../../services/configuracion-global.service';
 
 // Interfaz para el modelo de cuenta actualizada
 interface CuentaModel {
@@ -79,6 +80,11 @@ export class CrearProductosServiciosComponent implements OnInit {
   public fechaInicial = "";
   public fechaFinal = "";
 
+  // Dia general de cobro (parametro 'cobros_dia_general'). Solo se aplica a los
+  // productos de periodicidad mensual: los diarios siguen con la fecha de hoy
+  // porque su creacion valida la asistencia de ese dia.
+  public diaCobroGeneral: number | null = null;
+
   // Nuevas propiedades para manejar horarios de alimentación
   public esClasificacionAlimentacion = false;
   public esPeriodicidadDiaria = false;
@@ -120,10 +126,13 @@ export class CrearProductosServiciosComponent implements OnInit {
     private utilService: UtilService,
     private asistenciaEstudiantesService: AsistenciaEstudiantesService,
     private cuentaPagadaService: CuentaPagadaService,
-    private horariosAlimentacionService: HorariosAlimentacionService
+    private horariosAlimentacionService: HorariosAlimentacionService,
+    private configuracionGlobalService: ConfiguracionGlobalService
   ) { }
 
   ngOnInit() {
+    this.cargarDiaCobroGeneral();
+
     this.route.params.subscribe(params => {
       this.accion = params['accion'];
       this.id = params['id'];
@@ -688,6 +697,44 @@ export class CrearProductosServiciosComponent implements OnInit {
     }
   }
 
+  /**
+   * Lee el dia general de cobro de la configuracion global. Si no existe el
+   * parametro o falla la consulta se queda en null y las fechas siguen
+   * arrancando en hoy, como antes.
+   */
+  cargarDiaCobroGeneral() {
+    this.configuracionGlobalService.obtenerByClave('cobros_dia_general').subscribe({
+      next: (response: any) => {
+        const dia = parseInt(String(response.body?.valor_numero), 10);
+        if (!isNaN(dia) && dia >= 1 && dia <= 31) {
+          this.diaCobroGeneral = dia;
+        }
+      },
+      error: () => {
+        console.warn('No se pudo leer cobros_dia_general, las fechas arrancan en hoy.');
+      }
+    });
+  }
+
+  /**
+   * Para productos mensuales las fechas se paran en el dia general de cobro del
+   * mes en curso. Si el dia no existe en el mes (31 en febrero) se ajusta al
+   * ultimo dia de ese mes.
+   */
+  private aplicarDiaCobroGeneral() {
+    if (this.accion !== 'crear' || this.diaCobroGeneral === null) return;
+
+    const hoy = new Date();
+    const ultimoDia = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0).getDate();
+    const dia = Math.min(this.diaCobroGeneral, ultimoDia);
+
+    const fecha = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
+
+    this.model.fecha = fecha;
+    this.fechaInicial = fecha;
+    this.fechaFinal = fecha;
+  }
+
   asignarValorSugerido() {
     if (!this.camposBloqueados) {
       const producto = this.productosFiltrados.find(p => p.id === this.model.id_producto_servicio);
@@ -696,6 +743,13 @@ export class CrearProductosServiciosComponent implements OnInit {
         this.valorFormateado = this.formatearMoneda(this.model.valor);
 
         this.esProductoMensual = this.esProductoPeriodicidadMensual();
+
+        // Los cobros mensuales arrancan en el dia general de cobro; los demas
+        // conservan la fecha de hoy.
+        if (this.esProductoMensual) {
+          this.aplicarDiaCobroGeneral();
+        }
+
         this.esClasificacionAlimentacion = producto.clasificacion_codigo === 'ALIMENTACION';
         this.requiereHorarioAlimentacion = this.esClasificacionAlimentacion;
 

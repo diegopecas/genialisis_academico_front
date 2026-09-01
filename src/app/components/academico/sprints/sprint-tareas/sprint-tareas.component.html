@@ -40,6 +40,8 @@
         <app-tablas
             [titulos]="titulosTareas"
             [datos]="tareasDelSprint"
+            [mostrarBuscar]="true"
+            [columnasFiltro]="columnasFiltro"
             [raiz]="'/academico/sprints'"
             (clicAccion)="seleccionarTarea($event)"
             [accionEditar]="false"

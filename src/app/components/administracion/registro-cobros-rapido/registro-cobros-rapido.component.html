@@ -1,0 +1,283 @@
+<div class="modulo">
+  <app-header [tituloModulo]="titulo" [mostrarCrear]="false"
+    [raiz]="'/administracion/financiero'" [regresar]="regresar"></app-header>
+
+  <div class="container-fluid mt-4 px-4">
+    <div *ngIf="cargando" class="text-center py-5">
+      <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div>
+      <p class="mt-2 text-muted">Cargando estudiantes y productos...</p>
+    </div>
+
+    <div *ngIf="!cargando">
+
+      <!-- ============================== -->
+      <!-- CONFIGURACIÓN DEL COBRO        -->
+      <!-- ============================== -->
+      <div class="config-container mb-3">
+        <div class="row g-2 align-items-end">
+          <div class="col-12 col-lg-6">
+            <label class="form-label">Producto / Servicio <span class="text-danger">*</span></label>
+            <app-searchable-dropdown
+              [items]="productosDropdownItems"
+              [ngModel]="idProductoServicio"
+              (ngModelChange)="idProductoServicio = $event"
+              (selectionChange)="onProductoSeleccionado($event)"
+              [required]="true"
+              placeholder="Seleccionar producto o servicio"
+              searchPlaceholder="Buscar por nombre, categoría o clasificación..."
+              emptyMessage="No se encontraron productos"
+              maxHeight="350px"
+              [clearable]="true"
+              [showSearch]="true">
+            </app-searchable-dropdown>
+          </div>
+
+          <div class="col-12 col-lg-3">
+            <label class="form-label">Valor general</label>
+            <div class="input-group input-group-sm">
+              <span class="input-group-text">$</span>
+              <input type="text" class="form-control text-end" [value]="valorGeneralFormateado"
+                (input)="onInputValorGeneral($event)" placeholder="0" />
+            </div>
+          </div>
+
+          <div class="col-12 col-lg-3">
+            <div class="check-destacado">
+              <div class="form-check mb-0">
+                <input class="form-check-input" type="checkbox" id="cobroUnico"
+                  [(ngModel)]="cobroUnico" (change)="onCobroUnicoChange()" />
+                <label class="form-check-label" for="cobroUnico">
+                  Cobro único <small class="text-muted">(una sola cuenta)</small>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row g-2 align-items-end mt-1">
+          <div class="col-6 col-lg-3">
+            <label class="form-label">{{ cobroUnico ? 'Mes' : 'Mes inicial' }}</label>
+            <select class="form-select form-select-sm" [(ngModel)]="mesInicial" (change)="onMesInicialChange()">
+              <option *ngFor="let m of meses" [ngValue]="m.numero">{{ m.nombre }}</option>
+            </select>
+          </div>
+
+          <div class="col-6 col-lg-3" *ngIf="!cobroUnico">
+            <label class="form-label">Mes final</label>
+            <select class="form-select form-select-sm" [(ngModel)]="mesFinal">
+              <option *ngFor="let m of meses" [ngValue]="m.numero">{{ m.nombre }}</option>
+            </select>
+          </div>
+
+          <div class="col-6 col-lg-2">
+            <label class="form-label">Día</label>
+            <input type="number" min="1" max="31" class="form-control form-control-sm" [(ngModel)]="dia" />
+          </div>
+
+          <div class="col-12 col-lg-4">
+            <div class="info-rango">
+              <i class="fas fa-calendar-alt me-1"></i>
+              Año {{ anio }} &middot; <strong>{{ cantidadMeses }}</strong> cuenta(s) por estudiante
+            </div>
+          </div>
+        </div>
+
+        <!-- Fechas que se van a crear -->
+        <div class="bloque-fechas mt-3" *ngIf="fechasPreview.length > 0">
+          <div class="bloque-fechas-titulo">Cuentas a crear</div>
+          <div class="fechas-preview">
+            <span class="badge-fecha" *ngFor="let f of fechasPreview">{{ formatearFecha(f) }}</span>
+          </div>
+        </div>
+
+        <div class="row g-2 mt-2">
+          <div class="col-12">
+            <label class="form-label">Detalle general</label>
+            <input type="text" class="form-control form-control-sm" [(ngModel)]="detalleGeneral"
+              (ngModelChange)="onDetalleGeneralChange()" placeholder="Detalle que se copia a todas las filas" />
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================== -->
+      <!-- FILTROS DEL LISTADO            -->
+      <!-- ============================== -->
+      <div class="filtros-container mb-3">
+        <div class="row g-2 align-items-center">
+          <div class="col-12 col-md-4">
+            <div class="input-group input-group-sm">
+              <span class="input-group-text"><i class="fas fa-search"></i></span>
+              <input type="text" class="form-control" placeholder="Buscar estudiante..."
+                [(ngModel)]="busqueda" (input)="filtrarFilas()" />
+            </div>
+          </div>
+
+          <div class="col-6 col-md-3">
+            <select class="form-select form-select-sm" [(ngModel)]="filtroGrupo" (change)="filtrarFilas()">
+              <option value="">Todos los grupos</option>
+              <option *ngFor="let g of grupos" [value]="g">{{ g }}</option>
+            </select>
+          </div>
+
+          <div class="col-6 col-md-3">
+            <select class="form-select form-select-sm" [(ngModel)]="filtroEstado" (change)="filtrarFilas()">
+              <option value="activos">Activos</option>
+              <option value="inactivos">Inactivos</option>
+              <option value="todos">Todos los estados</option>
+            </select>
+          </div>
+
+          <div class="col-12 col-md-2">
+            <button class="btn btn-sm btn-outline-secondary w-100" (click)="limpiarFiltros()">
+              <i class="fas fa-eraser me-1"></i> Limpiar
+            </button>
+          </div>
+        </div>
+
+        <!-- Filtro por asistencia: los dos controles solo salen con el check -->
+        <div class="row g-2 align-items-center mt-1">
+          <div class="col-12 col-md-4">
+            <div class="check-destacado">
+              <div class="form-check mb-0">
+                <input class="form-check-input" type="checkbox" id="usarFiltroAsistencia"
+                  [(ngModel)]="usarFiltroAsistencia" (change)="onUsarFiltroAsistenciaChange()" />
+                <label class="form-check-label" for="usarFiltroAsistencia">
+                  Filtrar por asistencia
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-6 col-md-3" *ngIf="usarFiltroAsistencia">
+            <label class="form-label-inline">Fecha</label>
+            <input type="date" class="form-control form-control-sm" [(ngModel)]="fechaAsistencia"
+              (change)="onFechaAsistenciaChange()" />
+          </div>
+
+          <div class="col-6 col-md-3" *ngIf="usarFiltroAsistencia">
+            <label class="form-label-inline">Mostrar</label>
+            <select class="form-select form-select-sm" [(ngModel)]="filtroAsistencia"
+              (change)="filtrarFilas()" [disabled]="consultandoAsistencia">
+              <option value="asistieron">Asistieron</option>
+              <option value="no_asistieron">No asistieron</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row mt-2">
+          <div class="col-12 d-flex align-items-center gap-2 flex-wrap">
+            <span class="badge bg-info">{{ filasFiltradas.length }} estudiantes</span>
+            <span class="badge bg-primary" *ngIf="cantidadSeleccionados > 0">{{ cantidadSeleccionados }} marcados</span>
+            <span *ngIf="consultandoAsistencia" class="text-muted small">
+              <span class="spinner-border spinner-border-sm me-1"></span> Consultando asistencia...
+            </span>
+            <button *ngIf="mostrarResultados" class="btn btn-sm btn-outline-secondary ms-auto" (click)="limpiarResultados()">
+              <i class="fas fa-times me-1"></i> Ocultar resultados
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================== -->
+      <!-- LISTADO DE ESTUDIANTES         -->
+      <!-- ============================== -->
+      <div class="table-responsive tabla-cobros-container">
+        <table class="table table-bordered table-hover tabla-cobros">
+          <thead class="table-light">
+            <tr>
+              <th class="text-center col-check">
+                <input type="checkbox" class="form-check-input" (change)="seleccionarTodos($event)" />
+              </th>
+              <th class="col-estudiante">Estudiante</th>
+              <th class="col-grupo">Grupo</th>
+              <th class="col-estado text-center">Estado</th>
+              <th class="col-valor text-end">Valor</th>
+              <th class="col-detalle">Detalle</th>
+              <th class="col-resultado" *ngIf="mostrarResultados">Resultado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngIf="filasFiltradas.length === 0">
+              <td [attr.colspan]="mostrarResultados ? 7 : 6" class="text-center text-muted py-4">
+                No se encontraron estudiantes con los filtros actuales.
+              </td>
+            </tr>
+
+            <tr *ngFor="let fila of filasFiltradas; trackBy: trackByEstudiante"
+              [class.fila-seleccionada]="fila.seleccionado"
+              [class.fila-inactiva]="fila.estudiante.activo === 0">
+
+              <td class="text-center align-middle">
+                <input type="checkbox" class="form-check-input" [(ngModel)]="fila.seleccionado" />
+              </td>
+
+              <td class="align-middle">
+                <span class="nombre-estudiante">{{ fila.estudiante.nombre_estudiante }}</span>
+                <small class="d-block text-muted">{{ fila.estudiante.numero_identificacion }}</small>
+              </td>
+
+              <td class="align-middle"><span class="badge-grupo">{{ fila.estudiante.grupo_estudiante }}</span></td>
+
+              <td class="text-center align-middle">
+                <span class="badge" [class.bg-success]="fila.estudiante.activo === 1"
+                  [class.bg-secondary]="fila.estudiante.activo === 0">
+                  {{ fila.estudiante.activo === 1 ? 'Activo' : 'Inactivo' }}
+                </span>
+              </td>
+
+              <td class="align-middle">
+                <div class="input-group input-group-sm">
+                  <span class="input-group-text">$</span>
+                  <input type="text" class="form-control text-end" [value]="fila.valor_formateado"
+                    (input)="onInputValorFila(fila, $event)" [disabled]="!fila.seleccionado" placeholder="0" />
+                </div>
+              </td>
+
+              <td class="align-middle">
+                <input type="text" class="form-control form-control-sm" [(ngModel)]="fila.detalle"
+                  [disabled]="!fila.seleccionado" placeholder="Detalle" />
+              </td>
+
+              <td class="align-middle celda-resultado" *ngIf="mostrarResultados">
+                <span *ngIf="!fila.procesado" class="text-muted">—</span>
+                <ng-container *ngIf="fila.procesado">
+                  <span *ngIf="fila.creadas > 0" class="badge bg-success me-1">{{ fila.creadas }} creada(s)</span>
+                  <span *ngIf="fila.omitidas > 0" class="badge bg-warning text-dark"
+                    [title]="'Ya existían: ' + resumenOmitidas(fila)">
+                    {{ fila.omitidas }} ya existía(n)
+                  </span>
+                  <small *ngIf="fila.omitidas > 0" class="d-block text-muted texto-omitidas">
+                    {{ resumenOmitidas(fila) }}
+                  </small>
+                </ng-container>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ============================== -->
+      <!-- RESUMEN Y ACCIÓN               -->
+      <!-- ============================== -->
+      <div class="resumen-container mt-3">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <div class="resumen-datos">
+            <span class="resumen-item"><strong>{{ cantidadSeleccionados }}</strong> estudiante(s)</span>
+            <span class="resumen-separador">|</span>
+            <span class="resumen-item"><strong>{{ cuentasAGenerar }}</strong> cuenta(s) a generar</span>
+            <span class="resumen-separador">|</span>
+            <span class="resumen-item resumen-total">Total: <strong>${{ formatearMoneda(totalAGenerar) }}</strong></span>
+          </div>
+
+          <button class="btn btn-success" (click)="generarCobros()"
+            [disabled]="generando || cantidadSeleccionados === 0 || !idProductoServicio">
+            <span *ngIf="generando" class="spinner-border spinner-border-sm me-1"></span>
+            <i *ngIf="!generando" class="fas fa-file-invoice-dollar me-1"></i>
+            {{ generando ? 'Generando...' : 'Generar cobros' }}
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
