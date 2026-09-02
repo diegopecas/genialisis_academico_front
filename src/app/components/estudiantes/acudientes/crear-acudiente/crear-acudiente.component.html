@@ -8,60 +8,53 @@
     [iconoTitulo]="'/assets/images/familia.png'"
   ></app-header>
 
-  <!-- Foto del acudiente - Superior derecha -->
-  <div
-    class="foto-container"
-    *ngIf="(accion === 'editar' || accion === 'consultar') && model.idPersona"
-  >
-    <app-foto-persona
-      [idPersona]="model.idPersona"
-      [nombrePersona]="obtenerNombreCompleto()"
-      [soloLectura]="accion === 'consultar'"
-    >
-    </app-foto-persona>
-  </div>
+  <div class="layout-container mt-3">
 
-  <div class="container mt-5">
-    <!-- Tabs con nuevo estilo (solo cuando NO es nuevo o ya pasó al paso 2) -->
-    <ul class="custom-tabs mb-4" *ngIf="!nuevo">
-      <li class="custom-tab-item">
-        <a
-          class="custom-tab-link"
-          [class.active]="seccionActiva === 'datos-personales'"
-          (click)="cambiarSeccion('datos-personales')"
-        >
-          <i class="fas fa-user-circle"></i> Datos Personales
-        </a>
-      </li>
-      <li class="custom-tab-item">
-        <a
-          class="custom-tab-link"
-          [class.active]="seccionActiva === 'datos-acudiente'"
-          (click)="cambiarSeccion('datos-acudiente')"
-        >
-          <i class="fas fa-user-friends"></i> Información Acudiente
-        </a>
-      </li>
-      <li class="custom-tab-item" *ngIf="model.idAcudiente">
-        <a
-          class="custom-tab-link"
-          [class.active]="seccionActiva === 'documentos'"
-          (click)="cambiarSeccion('documentos')"
-        >
-          <i class="fas fa-file-alt"></i> Documentos
-        </a>
-      </li>
-      <li class="custom-tab-item" *ngIf="model.idAcudiente">
-        <a
-          class="custom-tab-link"
-          [class.active]="seccionActiva === 'usuario'"
-          (click)="cambiarSeccion('usuario')"
-        >
-          <i class="fas fa-user-tag"></i> Usuario
-        </a>
-      </li>
-    </ul>
+    <!-- SIDEBAR DESKTOP -->
+    <aside class="sidebar-desktop" *ngIf="!nuevo">
+      <div class="sidebar-foto" *ngIf="(accion === 'editar' || accion === 'consultar') && model.idPersona">
+        <app-foto-persona
+          [idPersona]="model.idPersona"
+          [nombrePersona]="obtenerNombreCompleto()"
+          [soloLectura]="accion === 'consultar'">
+        </app-foto-persona>
+      </div>
+      <nav class="sidebar-nav">
+        <a class="sidebar-link" [class.active]="seccionActiva === 'datos-personales'" (click)="cambiarSeccion('datos-personales')"><i class="fas fa-user-circle"></i> <span>Datos Personales</span></a>
+        <a class="sidebar-link" [class.active]="seccionActiva === 'datos-acudiente'" (click)="cambiarSeccion('datos-acudiente')"><i class="fas fa-user-friends"></i> <span>Información Acudiente</span></a>
+        <a class="sidebar-link" *ngIf="model.idAcudiente" [class.active]="seccionActiva === 'documentos'" (click)="cambiarSeccion('documentos')"><i class="fas fa-file-alt"></i> <span>Documentos</span></a>
+        <a class="sidebar-link" *ngIf="model.idAcudiente" [class.active]="seccionActiva === 'usuario'" (click)="cambiarSeccion('usuario')"><i class="fas fa-user-tag"></i> <span>Usuario</span></a>
+      </nav>
+    </aside>
 
+    <!-- MOBILE HEADER -->
+    <div class="mobile-header-bar" *ngIf="!nuevo">
+      <div class="mobile-foto" *ngIf="(accion === 'editar' || accion === 'consultar') && model.idPersona">
+        <app-foto-persona
+          [idPersona]="model.idPersona"
+          [nombrePersona]="obtenerNombreCompleto()"
+          [soloLectura]="accion === 'consultar'">
+        </app-foto-persona>
+      </div>
+      <button class="btn-seccion-mobile" (click)="toggleSidebar()">
+        <i [class]="obtenerIconoSeccion()"></i> <span>{{ obtenerNombreSeccion() }}</span> <i class="fas fa-bars ms-auto"></i>
+      </button>
+    </div>
+
+    <!-- SIDEBAR MOBILE OVERLAY -->
+    <div class="sidebar-overlay" *ngIf="sidebarAbierto" (click)="cerrarSidebar()"></div>
+    <aside class="sidebar-mobile" [class.abierto]="sidebarAbierto">
+      <div class="sidebar-mobile-header"><h6><i class="fas fa-th-list me-2"></i>Secciones</h6><button class="btn-cerrar-sidebar" (click)="cerrarSidebar()"><i class="fas fa-times"></i></button></div>
+      <nav class="sidebar-nav">
+        <a class="sidebar-link" [class.active]="seccionActiva === 'datos-personales'" (click)="cambiarSeccion('datos-personales')"><i class="fas fa-user-circle"></i> <span>Datos Personales</span></a>
+        <a class="sidebar-link" [class.active]="seccionActiva === 'datos-acudiente'" (click)="cambiarSeccion('datos-acudiente')"><i class="fas fa-user-friends"></i> <span>Información Acudiente</span></a>
+        <a class="sidebar-link" *ngIf="model.idAcudiente" [class.active]="seccionActiva === 'documentos'" (click)="cambiarSeccion('documentos')"><i class="fas fa-file-alt"></i> <span>Documentos</span></a>
+        <a class="sidebar-link" *ngIf="model.idAcudiente" [class.active]="seccionActiva === 'usuario'" (click)="cambiarSeccion('usuario')"><i class="fas fa-user-tag"></i> <span>Usuario</span></a>
+      </nav>
+    </aside>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="contenido-principal" [class.con-sidebar]="!nuevo">
     <!-- Sección Datos Personales -->
     <div *ngIf="seccionActiva === 'datos-personales' || nuevo">
       <!-- Documento de identidad SOLO en datos personales -->
@@ -664,7 +657,7 @@
 
     <!-- Sección de Documentos -->
     <div *ngIf="seccionActiva === 'documentos' && model.idPersona">
-      <div class="container mt-4">
+      <div class="mt-4">
         <app-documentos-persona
           [idPersona]="model.idPersona"
           [tipoPersona]="'acudiente'"
@@ -674,5 +667,7 @@
         </app-documentos-persona>
       </div>
     </div>
+
+    </main>
   </div>
 </div>

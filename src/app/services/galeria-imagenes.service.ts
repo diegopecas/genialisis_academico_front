@@ -28,7 +28,6 @@ export class GaleriaImagenesService {
   private tokenImagenes: string | null = null;
   private tokenExpiraEn = 0;
   private peticionToken: Observable<string> | null = null;
-  private renovacion: any = null;
 
   // Margen para renovar antes de que expire y evitar que una imagen cargada
   // tarde (lazy load, lightbox) pida con un token ya vencido.
@@ -51,10 +50,10 @@ export class GaleriaImagenesService {
       return this.peticionToken;
     }
 
-    // Va silenciosa: esta peticion tambien se dispara sola desde
-    // programarRenovacion() cada pocos minutos, y sin el header el
-    // loading.interceptor montaba el spinner global encima de la pantalla
-    // que el usuario estuviera viendo, como si algo se estuviera cargando.
+    // Va silenciosa: la renovacion tambien se dispara sola desde
+    // renovarSiVencido(), y sin el header el loading.interceptor montaba el
+    // spinner global encima de la pantalla que el usuario estuviera viendo,
+    // como si algo se estuviera cargando.
     this.peticionToken = this.http.get<any>(`${this.servicio}/token`, {
       headers: { 'X-Silent': 'true' },
     }).pipe(
@@ -63,7 +62,6 @@ export class GaleriaImagenesService {
         this.tokenImagenes = respuesta.token;
         this.tokenExpiraEn = Date.now() + vidaSegundos * 1000 - this.MARGEN_RENOVACION_MS;
         this.peticionToken = null;
-        this.programarRenovacion(vidaSegundos);
         return this.tokenImagenes as string;
       }),
       catchError((error: any) => {
@@ -77,22 +75,28 @@ export class GaleriaImagenesService {
   }
 
   /**
-   * Renueva el token antes de que expire, para que una galeria abierta un rato
-   * largo siga mostrando imagenes sin recargar la pagina.
+   * Renovacion perezosa: solo cuando alguien pide una URL y el token ya vencio.
+   *
+   * Antes habia un setTimeout que renovaba cada pocos minutos. Como este
+   * servicio es providedIn:'root' y vive mientras viva la pestaña, ese
+   * temporizador se reprogramaba solo y seguia pidiendo /token aunque el
+   * usuario ya hubiera salido de la galeria y no hubiera ni una imagen en
+   * pantalla. Ademas, cada renovacion cambiaba el token de todas las URLs y
+   * obligaba al navegador a descargar de nuevo las miniaturas ya cacheadas.
    */
-  private programarRenovacion(vidaSegundos: number): void {
-    if (this.renovacion) {
-      clearTimeout(this.renovacion);
+  private renovarSiVencido(): void {
+    if (this.tokenImagenes && Date.now() < this.tokenExpiraEn) {
+      return;
     }
 
-    const ms = Math.max(vidaSegundos * 1000 - this.MARGEN_RENOVACION_MS, 30000);
-    this.renovacion = setTimeout(() => {
-      this.tokenImagenes = null;
-      this.tokenExpiraEn = 0;
-      this.inicializarTokenImagenes().subscribe({
-        error: () => { /* si falla, la proxima llamada reintenta */ },
-      });
-    }, ms);
+    // Si ya hay una peticion en curso no se duplica.
+    if (this.peticionToken) {
+      return;
+    }
+
+    this.inicializarTokenImagenes().subscribe({
+      error: () => { /* si falla, la proxima llamada reintenta */ },
+    });
   }
 
   /**
@@ -101,6 +105,10 @@ export class GaleriaImagenesService {
    * Sincrona: requiere haber llamado antes a inicializarTokenImagenes().
    */
   obtenerUrlImagen(guid: string, size: ImageSize = 'thumb'): string {
+    // Sincrona por contrato, asi que la renovacion va en segundo plano: esta
+    // llamada devuelve el token que haya y la siguiente ya sale con el nuevo.
+    this.renovarSiVencido();
+
     const token = this.tokenImagenes || '';
     const tenant = sessionStorage.getItem('institucion_actual') || '';
     return `${this.servicio}/servir/${guid}?token=${token}&tenant=${tenant}&size=${size}`;

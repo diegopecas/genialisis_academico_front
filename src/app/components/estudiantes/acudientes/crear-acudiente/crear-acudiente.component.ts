@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import Swal from 'sweetalert2';
 import { HeaderComponent } from '../../../../common/header/header.component';
@@ -69,6 +69,7 @@ export class CrearAcudienteComponent implements OnInit {
   public documentoEncontrado = false;
   public camposHabilitados = false;
   public seccionActiva: 'datos-personales' | 'datos-acudiente' | 'documentos' | 'usuario' = 'datos-personales';
+  public sidebarAbierto = false;
 
   public listas = {
     tiposIdentificacion: [] as any[],
@@ -958,6 +959,41 @@ export class CrearAcudienteComponent implements OnInit {
 
   cambiarSeccion(seccion: 'datos-personales' | 'datos-acudiente' | 'documentos' | 'usuario') {
     this.seccionActiva = seccion;
+    this.cerrarSidebar();
+  }
+
+  toggleSidebar(): void {
+    this.sidebarAbierto = !this.sidebarAbierto;
+  }
+
+  cerrarSidebar(): void {
+    this.sidebarAbierto = false;
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    this.cerrarSidebar();
+  }
+
+  // Nombre e icono de la seccion activa: los usa el boton del sidebar movil.
+  obtenerNombreSeccion(): string {
+    const nombres: Record<string, string> = {
+      'datos-personales': 'Datos Personales',
+      'datos-acudiente': 'Información Acudiente',
+      'documentos': 'Documentos',
+      'usuario': 'Usuario',
+    };
+    return nombres[this.seccionActiva] || '';
+  }
+
+  obtenerIconoSeccion(): string {
+    const iconos: Record<string, string> = {
+      'datos-personales': 'fas fa-user-circle',
+      'datos-acudiente': 'fas fa-user-friends',
+      'documentos': 'fas fa-file-alt',
+      'usuario': 'fas fa-user-tag',
+    };
+    return iconos[this.seccionActiva] || 'fas fa-circle';
   }
 
   tieneUsuario(): boolean {

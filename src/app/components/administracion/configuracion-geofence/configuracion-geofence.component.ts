@@ -15,7 +15,7 @@ import * as L from 'leaflet';
   styleUrl: './configuracion-geofence.component.scss',
 })
 export class ConfiguracionGeofenceComponent implements OnInit, AfterViewInit, OnDestroy {
-  public titulo = 'Configuración Zona de Asistencia';
+  public titulo = 'Polígono de la Institución';
   public cargando = true;
   public guardando = false;
   public poligono: number[][] = [];
@@ -87,7 +87,10 @@ export class ConfiguracionGeofenceComponent implements OnInit, AfterViewInit, On
       maxZoom: 19,
     });
 
-    this.capaCallejero.addTo(this.mapa);
+    // Arranca en satelital: para calcar los linderos del jardin se necesita la
+    // foto aerea, y con ella van los rotulos de calles.
+    this.capaSatelital.addTo(this.mapa);
+    this.capaEtiquetas.addTo(this.mapa);
 
     L.control.layers(
       { 'Callejero': this.capaCallejero, 'Satelital': this.capaSatelital },
