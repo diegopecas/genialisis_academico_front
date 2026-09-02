@@ -271,6 +271,33 @@ export class CuentasPorCobrarService {
     );
   }
 
+  // Cuentas candidatas a anulacion masiva (rango de fechas y, opcional, producto).
+  buscarParaAnular(filtros: any) {
+    const body = JSON.stringify(filtros);
+    return this.http.post<HttpResponse<Object>>(this.servicio + '/buscar-para-anular', body, {
+      ...httpOptions,
+      observe: 'response'
+    }).pipe(
+      tap((response: HttpResponse<Object>) => {
+        let respuesta: any = response.body;
+        if (respuesta.error) throw respuesta.error;
+        return response;
+      }),
+      catchError(this.handleError)
+    );
+  }
+
+  // Anulacion masiva. Las cuentas con pagos aplicados las rechaza el backend.
+  anularMasivo(data: any) {
+    const body = JSON.stringify(data);
+    return this.http.put<any>(this.servicio + '/anular-masivo', body, httpOptions).pipe(
+      tap((respuesta: any) => {
+        return respuesta;
+      }),
+      catchError(this.handleError)
+    );
+  }
+
   generarDesdeCursoExtra(data: any) {
     const body = JSON.stringify(data);
     return this.http.post<any>(this.servicio + '/generar-desde-curso-extra', body, httpOptions).pipe(

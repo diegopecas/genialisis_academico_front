@@ -32,6 +32,9 @@ export class FinancieroComponent {
       case 'registro-cobros-rapido':
         this.router.navigate(['/administracion/financiero/registro-cobros-rapido']);
         break;
+      case 'anulacion-masiva-cobros':
+        this.router.navigate(['/administracion/financiero/anulacion-masiva-cobros']);
+        break;
       case 'movimientos':
         this.router.navigate(['/administracion/financiero/movimientos-financieros']);
         break;

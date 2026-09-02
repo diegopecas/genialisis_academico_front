@@ -1,0 +1,170 @@
+$primary-color: #007bff;
+$success-color: #28a745;
+$danger-color: #dc3545;
+$warning-color: #ffc107;
+$info-color: #17a2b8;
+$text-dark: #2c3e50;
+$text-muted: #7f8c8d;
+$border-color: #dee2e6;
+$bg-light: #f8f9fa;
+
+.modulo {
+  min-height: 100vh;
+  background-color: #fff;
+  padding: 1rem;
+}
+
+.config-container {
+  background: #fff;
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  border: 1px solid $border-color;
+  border-top: 3px solid $danger-color;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.05);
+
+  .form-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.2rem;
+  }
+}
+
+.nota-pagos {
+  font-size: 0.78rem;
+  color: #856404;
+  background: #fff8e1;
+  border: 1px solid #ffe08a;
+  border-radius: 6px;
+  padding: 0.45rem 0.7rem;
+}
+
+.filtros-container {
+  background: $bg-light;
+  border-radius: 8px;
+  padding: 0.85rem 1.25rem;
+  border: 1px solid $border-color;
+}
+
+.tabla-cobros-container {
+  background: white;
+  border-radius: 8px;
+  border: 1px solid $border-color;
+  max-height: 60vh;
+  overflow-y: auto;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+
+  &::-webkit-scrollbar { width: 6px; height: 6px; }
+  &::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 3px; }
+  &::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; &:hover { background: #aaa; } }
+}
+
+.tabla-cobros {
+  font-size: 0.82rem;
+  margin-bottom: 0;
+
+  thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: $bg-light;
+  }
+
+  th {
+    white-space: nowrap;
+    padding: 0.5rem 0.4rem;
+    font-weight: 600;
+    color: #495057;
+    border-bottom: 2px solid $border-color;
+    font-size: 0.78rem;
+  }
+
+  td {
+    padding: 0.35rem 0.4rem;
+    vertical-align: middle;
+  }
+
+  .col-check { width: 35px; }
+  .col-estudiante { min-width: 170px; }
+  .col-grupo { width: 100px; }
+  .col-producto { min-width: 190px; }
+  .col-fecha { width: 100px; }
+  .col-valor { width: 110px; }
+  .col-pagado { width: 120px; }
+  .col-resultado { min-width: 150px; }
+
+  input[disabled] {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
+.fila-seleccionada {
+  background-color: rgba($danger-color, 0.05) !important;
+  &:hover { background-color: rgba($danger-color, 0.08) !important; }
+}
+
+// Las cuentas con pago quedan visualmente aparte: no se pueden marcar.
+.fila-con-pago {
+  background-color: rgba($warning-color, 0.12) !important;
+  border-left: 3px solid $warning-color !important;
+  &:hover { background-color: rgba($warning-color, 0.18) !important; }
+}
+
+.fila-anulada {
+  opacity: 0.6;
+  text-decoration: line-through;
+}
+
+.nombre-estudiante { font-weight: 500; color: $text-dark; font-size: 0.8rem; }
+
+.badge-grupo {
+  background-color: #e8f4f8;
+  color: #2980b9;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 0.72rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.texto-detalle { font-size: 0.68rem; line-height: 1.1; }
+
+.resumen-container {
+  background: white;
+  border-radius: 8px;
+  padding: 0.75rem 1.25rem;
+  border: 1px solid $border-color;
+  border-top: 3px solid $danger-color;
+  position: sticky;
+  bottom: 0;
+  z-index: 20;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.resumen-datos { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+.resumen-item { font-size: 0.9rem; color: $text-dark; }
+.resumen-separador { color: $border-color; }
+.resumen-total { font-size: 1.05rem; color: $danger-color; }
+
+// ============================================
+// Responsive
+// ============================================
+@media (max-width: 768px) {
+  .modulo { padding: 0.5rem; }
+
+  .config-container { padding: 0.75rem; }
+
+  .tabla-cobros-container { max-height: 50vh; }
+
+  .tabla-cobros {
+    font-size: 0.72rem;
+    th, td { padding: 0.25rem; }
+    .col-grupo { display: none; }
+    .col-producto { min-width: 130px; }
+  }
+
+  .resumen-container { padding: 0.5rem 0.75rem; }
+  .resumen-datos { flex-direction: column; align-items: flex-start; gap: 0.25rem; }
+  .resumen-separador { display: none; }
+}

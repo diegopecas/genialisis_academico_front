@@ -104,7 +104,7 @@
       <div class="tarjeta-datos">
         <span class="nombre">{{ estudiante.nombre_estudiante }}</span>
         <span class="grupo">
-          <i class="fas fa-users"></i> {{ estudiante.nombre_grupo }}
+          <i class="fas fa-users"></i> {{ estudiante.nombre_grupo || 'Sin grupo asignado' }}
         </span>
 
         <button type="button" class="chip chip-saldo" *ngIf="estudiante.saldo_vencido > 0"

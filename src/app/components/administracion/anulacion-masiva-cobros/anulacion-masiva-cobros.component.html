@@ -1,0 +1,184 @@
+<div class="modulo">
+  <app-header [tituloModulo]="titulo" [mostrarCrear]="false"
+    [raiz]="'/administracion/financiero'" [regresar]="regresar"></app-header>
+
+  <div class="container-fluid mt-4 px-4">
+
+    <!-- ============================== -->
+    <!-- FILTROS DE BÚSQUEDA            -->
+    <!-- ============================== -->
+    <div class="config-container mb-3">
+      <div class="row g-2 align-items-end">
+        <div class="col-12 col-lg-5">
+          <label class="form-label">Producto / Servicio</label>
+          <app-searchable-dropdown
+            [items]="productosDropdownItems"
+            [ngModel]="idProductoServicio"
+            (ngModelChange)="idProductoServicio = $event"
+            (selectionChange)="onProductoSeleccionado($event)"
+            placeholder="Todos los productos"
+            searchPlaceholder="Buscar por nombre, categoría o clasificación..."
+            emptyMessage="No se encontraron productos"
+            maxHeight="350px"
+            [clearable]="true"
+            [showSearch]="true">
+          </app-searchable-dropdown>
+        </div>
+
+        <div class="col-6 col-lg-2">
+          <label class="form-label">Fecha inicial <span class="text-danger">*</span></label>
+          <input type="date" class="form-control form-control-sm" [(ngModel)]="fechaInicial" />
+        </div>
+
+        <div class="col-6 col-lg-2">
+          <label class="form-label">Fecha final <span class="text-danger">*</span></label>
+          <input type="date" class="form-control form-control-sm" [(ngModel)]="fechaFinal" />
+        </div>
+
+        <div class="col-12 col-lg-3">
+          <button class="btn btn-primary w-100" (click)="buscar()" [disabled]="buscando">
+            <span *ngIf="buscando" class="spinner-border spinner-border-sm me-1"></span>
+            <i *ngIf="!buscando" class="fas fa-search me-1"></i>
+            {{ buscando ? 'Buscando...' : 'Buscar cobros' }}
+          </button>
+        </div>
+      </div>
+
+      <div class="nota-pagos mt-2">
+        <i class="fas fa-info-circle me-1"></i>
+        Los cobros que ya tienen pagos aplicados aparecen en el listado pero no se pueden anular aquí.
+        Primero hay que anular o devolver el pago desde el módulo de pagos.
+      </div>
+    </div>
+
+    <!-- ============================== -->
+    <!-- RESULTADO DE LA BÚSQUEDA       -->
+    <!-- ============================== -->
+    <div *ngIf="busquedaRealizada">
+
+      <div class="filtros-container mb-3">
+        <div class="row g-2 align-items-center">
+          <div class="col-12 col-md-5">
+            <div class="input-group input-group-sm">
+              <span class="input-group-text"><i class="fas fa-search"></i></span>
+              <input type="text" class="form-control" placeholder="Buscar estudiante, producto o detalle..."
+                [(ngModel)]="busqueda" (input)="filtrarFilas()" />
+            </div>
+          </div>
+
+          <div class="col-6 col-md-3">
+            <select class="form-select form-select-sm" [(ngModel)]="filtroGrupo" (change)="filtrarFilas()">
+              <option value="">Todos los grupos</option>
+              <option *ngFor="let g of grupos" [value]="g">{{ g }}</option>
+            </select>
+          </div>
+
+          <div class="col-6 col-md-2">
+            <button class="btn btn-sm btn-outline-secondary w-100" (click)="limpiarFiltros()">
+              <i class="fas fa-eraser me-1"></i> Limpiar
+            </button>
+          </div>
+        </div>
+
+        <div class="row mt-2">
+          <div class="col-12 d-flex align-items-center gap-2 flex-wrap">
+            <span class="badge bg-info">{{ filasFiltradas.length }} cobro(s)</span>
+            <span class="badge bg-success" *ngIf="cantidadAnulables > 0">{{ cantidadAnulables }} anulable(s)</span>
+            <span class="badge bg-warning text-dark" *ngIf="cantidadConPago > 0">{{ cantidadConPago }} con pago</span>
+            <span class="badge bg-primary" *ngIf="cantidadSeleccionados > 0">{{ cantidadSeleccionados }} marcados</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-responsive tabla-cobros-container">
+        <table class="table table-bordered table-hover tabla-cobros">
+          <thead class="table-light">
+            <tr>
+              <th class="text-center col-check">
+                <input type="checkbox" class="form-check-input" (change)="seleccionarTodos($event)" />
+              </th>
+              <th class="col-estudiante">Estudiante</th>
+              <th class="col-grupo">Grupo</th>
+              <th class="col-producto">Producto / Servicio</th>
+              <th class="col-fecha">Fecha</th>
+              <th class="col-valor text-end">Valor</th>
+              <th class="col-pagado text-end">Pagado</th>
+              <th class="col-resultado" *ngIf="mostrarResultados">Resultado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngIf="filasFiltradas.length === 0">
+              <td [attr.colspan]="mostrarResultados ? 8 : 7" class="text-center text-muted py-4">
+                No se encontraron cobros con esos filtros.
+              </td>
+            </tr>
+
+            <tr *ngFor="let fila of filasFiltradas; trackBy: trackByCuenta"
+              [class.fila-seleccionada]="fila.seleccionado"
+              [class.fila-con-pago]="fila.cuenta.tiene_pago === 1"
+              [class.fila-anulada]="fila.anulada">
+
+              <td class="text-center align-middle">
+                <input type="checkbox" class="form-check-input" [(ngModel)]="fila.seleccionado"
+                  [disabled]="!puedeAnular(fila)" />
+              </td>
+
+              <td class="align-middle">
+                <span class="nombre-estudiante">{{ fila.cuenta.nombre_estudiante }}</span>
+                <small class="d-block text-muted">{{ fila.cuenta.numero_identificacion }}</small>
+              </td>
+
+              <td class="align-middle"><span class="badge-grupo">{{ fila.cuenta.grupo_estudiante }}</span></td>
+
+              <td class="align-middle">
+                <span>{{ fila.cuenta.nombre_producto_servicio }}</span>
+                <small *ngIf="fila.cuenta.detalle" class="d-block text-muted texto-detalle">{{ fila.cuenta.detalle }}</small>
+              </td>
+
+              <td class="align-middle">{{ formatearFecha(fila.cuenta.fecha) }}</td>
+
+              <td class="text-end align-middle">${{ formatearMoneda(fila.cuenta.valor) }}</td>
+
+              <td class="text-end align-middle">
+                <span *ngIf="fila.cuenta.tiene_pago === 1" class="badge bg-warning text-dark"
+                  title="Anule o devuelva el pago desde el módulo de pagos antes de anular este cobro">
+                  <i class="fas fa-lock me-1"></i> ${{ formatearMoneda(fila.cuenta.total_pagado) }}
+                </span>
+                <span *ngIf="fila.cuenta.tiene_pago === 0" class="text-muted">—</span>
+              </td>
+
+              <td class="align-middle celda-resultado" *ngIf="mostrarResultados">
+                <span *ngIf="!fila.procesada" class="text-muted">—</span>
+                <ng-container *ngIf="fila.procesada">
+                  <span *ngIf="fila.anulada" class="badge bg-success">Anulada</span>
+                  <span *ngIf="!fila.anulada" class="badge bg-danger" [title]="fila.motivoOmision">No anulada</span>
+                  <small *ngIf="!fila.anulada && fila.motivoOmision" class="d-block text-muted texto-detalle">
+                    {{ fila.motivoOmision }}
+                  </small>
+                </ng-container>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="resumen-container mt-3">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <div class="resumen-datos">
+            <span class="resumen-item"><strong>{{ cantidadSeleccionados }}</strong> cobro(s) marcado(s)</span>
+            <span class="resumen-separador">|</span>
+            <span class="resumen-item resumen-total">Total: <strong>${{ formatearMoneda(totalSeleccionado) }}</strong></span>
+          </div>
+
+          <button class="btn btn-danger" (click)="anularSeleccionadas()"
+            [disabled]="anulando || cantidadSeleccionados === 0">
+            <span *ngIf="anulando" class="spinner-border spinner-border-sm me-1"></span>
+            <i *ngIf="!anulando" class="fas fa-ban me-1"></i>
+            {{ anulando ? 'Anulando...' : 'Anular marcados' }}
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

@@ -12,7 +12,7 @@
     <div class="row justify-content-center">
       <!-- Ingresos y Egresos -->
       <div class="col-lg-4 col-md-6 mb-4">
-        <div class="card-maestro menu-principal">
+        <div class="card-maestro menu-principal" [class.active]="menuActivo === 'ingresos-egresos'">
           <div class="card-maestro-content">
             <div class="icono-container ingresos-egresos">
               <img
@@ -25,7 +25,7 @@
               Gestiona y aprueba movimientos financieros
             </p>
             <div class="card-footer-custom">
-              <span class="link-accion"
+              <span class="link-accion" (click)="toggleMenu('ingresos-egresos', $event)"
                 >Ver opciones <i class="fas fa-chevron-down"></i
               ></span>
             </div>
@@ -59,7 +59,7 @@
 
       <!-- Pagos Institucionales -->
       <div class="col-lg-4 col-md-6 mb-4">
-        <div class="card-maestro menu-principal">
+        <div class="card-maestro menu-principal" [class.active]="menuActivo === 'pagos-institucionales'">
           <div class="card-maestro-content">
             <div class="icono-container pagos-institucionales">
               <img
@@ -72,7 +72,7 @@
               Registro rápido y contabilización de pagos
             </p>
             <div class="card-footer-custom">
-              <span class="link-accion"
+              <span class="link-accion" (click)="toggleMenu('pagos-institucionales', $event)"
                 >Ver opciones <i class="fas fa-chevron-down"></i
               ></span>
             </div>
@@ -99,6 +99,15 @@
                   <span>Registro Rápido de Cobros</span>
                 </div>
               </div>
+              <div class="col-6" *ngIf="permisosService.tienePermiso('admin.anulacion_masiva_cobros')">
+                <div
+                  class="submenu-item"
+                  (click)="seleccionarOpcion('anulacion-masiva-cobros')"
+                >
+                  <img src="assets/images/anulacion-masiva-cobros.png" alt="Anulación Masiva de Cobros" />
+                  <span>Anulación Masiva de Cobros</span>
+                </div>
+              </div>
               <div class="col-6" *ngIf="permisosService.tienePermiso('admin.contabilizacion_multiple')">
                 <div
                   class="submenu-item"
@@ -115,7 +124,7 @@
 
       <!-- Cobros Automáticos (NUEVO) -->
       <div class="col-lg-4 col-md-6 mb-4">
-        <div class="card-maestro menu-principal" style="--color-principal: #e65100; --color-secundario: #ff9800;">
+        <div class="card-maestro menu-principal" style="--color-principal: #e65100; --color-secundario: #ff9800;" [class.active]="menuActivo === 'cobros-automaticos'">
           <div class="card-maestro-content">
             <div class="icono-container cobros-automaticos">
               <img
@@ -128,7 +137,7 @@
               Configura convenios y reglas de cobro automático por asistencia
             </p>
             <div class="card-footer-custom">
-              <span class="link-accion"
+              <span class="link-accion" (click)="toggleMenu('cobros-automaticos', $event)"
                 >Ver opciones <i class="fas fa-chevron-down"></i
               ></span>
             </div>

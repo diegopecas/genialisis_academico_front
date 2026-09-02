@@ -58,6 +58,9 @@ $color-cobros-automaticos: #e65100;
     border-radius: 20px 20px 0 0;
   }
 
+  // El realce de la tarjeta sigue al mouse, pero el submenu ya no: se abre y se
+  // cierra con el clic en "Ver opciones" (clase .active), asi no se cierra solo
+  // al mover el mouse y tambien funciona en tablet y celular.
   &:hover,
   &.active {
     transform: translateY(-10px);
@@ -73,10 +76,12 @@ $color-cobros-automaticos: #e65100;
 
     .link-accion {
       color: var(--color-principal);
+    }
+  }
 
-      i {
-        transform: rotate(180deg);
-      }
+  &.active {
+    .link-accion i {
+      transform: rotate(180deg);
     }
 
     .submenu-container {
@@ -158,6 +163,8 @@ $color-cobros-automaticos: #e65100;
   align-items: center;
   gap: 0.5rem;
   transition: all 0.3s ease;
+  cursor: pointer;
+  user-select: none;
 
   i {
     transition: transform 0.3s ease;
