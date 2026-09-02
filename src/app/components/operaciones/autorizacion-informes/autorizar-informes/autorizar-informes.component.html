@@ -67,6 +67,20 @@
       <option value="vencido">Con saldo vencido</option>
     </select>
 
+    <div class="tope-cartera">
+      <label for="maxDias">Hasta</label>
+      <input type="number" id="maxDias" min="0" step="1"
+        [(ngModel)]="maxDiasVencidos" placeholder="0">
+      <span>días vencidos</span>
+    </div>
+
+    <div class="tope-cartera">
+      <label for="maxSaldo">Hasta $</label>
+      <input type="number" id="maxSaldo" min="0" step="1000"
+        [(ngModel)]="maxSaldoVencido" placeholder="0">
+      <span>vencido</span>
+    </div>
+
     <button type="button" class="btn-limpiar-filtros" (click)="limpiarFiltros()"
       *ngIf="hayFiltrosPuestos">
       Limpiar

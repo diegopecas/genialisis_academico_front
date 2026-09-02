@@ -20,6 +20,7 @@ interface EstudianteAutorizacion {
   fecha_autorizacion: string | null;
   saldo_vencido: number;
   cuentas_vencidas: number;
+  dias_vencido_max: number;
 }
 
 @Component({
@@ -47,6 +48,10 @@ export class AutorizarInformesComponent implements OnInit, OnDestroy {
   public filtroAutorizacion: string = '';
   // Vacio es todos. 'al_dia' son los que no tienen saldo vencido.
   public filtroCartera: string = '';
+  // Topes de cartera. Null es sin tope. Pasan los que deben hasta ese valor,
+  // incluidos los que estan al dia.
+  public maxDiasVencidos: number | null = null;
+  public maxSaldoVencido: number | null = null;
 
   public cargando: boolean = false;
   public guardando: boolean = false;
@@ -112,7 +117,8 @@ export class AutorizarInformesComponent implements OnInit, OnDestroy {
           ...e,
           autorizado: Number(e.autorizado) || 0,
           saldo_vencido: parseFloat(e.saldo_vencido) || 0,
-          cuentas_vencidas: Number(e.cuentas_vencidas) || 0
+          cuentas_vencidas: Number(e.cuentas_vencidas) || 0,
+          dias_vencido_max: Number(e.dias_vencido_max) || 0
         }));
 
         this.estadoOriginal = new Map();
@@ -157,6 +163,9 @@ export class AutorizarInformesComponent implements OnInit, OnDestroy {
       if (this.filtroCartera === 'vencido' && e.saldo_vencido <= 0) return false;
       if (this.filtroCartera === 'al_dia' && e.saldo_vencido > 0) return false;
 
+      if (this.topeDias !== null && e.dias_vencido_max > this.topeDias) return false;
+      if (this.topeSaldo !== null && e.saldo_vencido > this.topeSaldo) return false;
+
       if (texto) {
         const nombre = (e.nombre_estudiante || '').toLowerCase();
         const identificacion = (e.numero_identificacion || '').toLowerCase();
@@ -179,8 +188,32 @@ export class AutorizarInformesComponent implements OnInit, OnDestroy {
     return this.estudiantes.filter(e => e.autorizado !== 1).length;
   }
 
+  // El input numerico puede quedar en null o en cadena vacia al borrarlo, y en
+  // los dos casos significa que no hay tope.
+  private normalizarTope(valor: any): number | null {
+    if (valor === null || valor === undefined || valor === '') return null;
+
+    const numero = Number(valor);
+    return isNaN(numero) ? null : numero;
+  }
+
+  get topeDias(): number | null {
+    return this.normalizarTope(this.maxDiasVencidos);
+  }
+
+  get topeSaldo(): number | null {
+    return this.normalizarTope(this.maxSaldoVencido);
+  }
+
   get hayFiltrosPuestos(): boolean {
-    return !!(this.filtroTexto || this.filtroGrupo || this.filtroAutorizacion || this.filtroCartera);
+    return !!(
+      this.filtroTexto ||
+      this.filtroGrupo ||
+      this.filtroAutorizacion ||
+      this.filtroCartera ||
+      this.topeDias !== null ||
+      this.topeSaldo !== null
+    );
   }
 
   get hayCambiosPendientes(): boolean {
@@ -210,6 +243,8 @@ export class AutorizarInformesComponent implements OnInit, OnDestroy {
     this.filtroGrupo = '';
     this.filtroAutorizacion = '';
     this.filtroCartera = '';
+    this.maxDiasVencidos = null;
+    this.maxSaldoVencido = null;
   }
 
   verConceptosVencidos(estudiante: EstudianteAutorizacion): void {
@@ -322,7 +357,10 @@ export class AutorizarInformesComponent implements OnInit, OnDestroy {
     }).subscribe({
       next: () => {
         this.guardando = false;
-        this.estudiantes.forEach(e => this.estadoOriginal.set(e.id_estudiante, e.autorizado));
+
+        // Se vuelve a leer del back para que la lista y los filtros muestren
+        // lo que realmente quedo grabado, no lo que quedo en memoria.
+        this.cargarEstudiantes();
 
         Swal.fire({
           icon: 'success',

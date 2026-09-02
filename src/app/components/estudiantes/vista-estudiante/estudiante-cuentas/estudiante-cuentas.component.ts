@@ -178,7 +178,7 @@ export class EstudianteCuentasComponent implements OnInit {
                 const fechasUnicas = new Set<string>();
 
                 this.datos = body.map(item => {
-                    const fechaItem = new Date(item.fecha);
+                    const fechaItem = this.fechaLocal(item.fecha) || new Date(item.fecha);
                     const vencido = fechaActual > fechaItem && item.saldo > 0;
                     const fechaFormateada = this.formatearFecha(item.fecha);
                     fechasUnicas.add(fechaFormateada);
@@ -208,12 +208,12 @@ export class EstudianteCuentasComponent implements OnInit {
 
                 // Separar por año
                 this.datosAnioActual = this.datosOriginales.filter(item => {
-                    const anio = new Date(item.fecha).getFullYear();
+                    const anio = this.obtenerAnio(item.fecha);
                     return anio === this.anioAcademico;
                 });
 
                 this.datosHistoricos = this.datosOriginales.filter(item => {
-                    const anio = new Date(item.fecha).getFullYear();
+                    const anio = this.obtenerAnio(item.fecha);
                     return anio < this.anioAcademico;
                 });
 
@@ -236,6 +236,39 @@ export class EstudianteCuentasComponent implements OnInit {
                 this.cargandoProductos = false;
             }
         });
+    }
+
+    /**
+     * Convierte una fecha 'YYYY-MM-DD' (o 'YYYY-MM-DDTHH:mm:ss') a un Date en
+     * hora local.
+     *
+     * new Date('2026-01-01') lo interpreta como medianoche UTC, que en Colombia
+     * es el 31/12/2025 a las 7pm: por eso los cobros y pagos del 1 de enero
+     * quedaban clasificados en el año anterior. Partiendo la cadena a mano el
+     * año, el mes y el dia quedan tal como vienen de la base.
+     */
+    private fechaLocal(fecha: string): Date | null {
+        if (!fecha) return null;
+
+        const texto = String(fecha);
+        const soloFecha = texto.includes('T') ? texto.substring(0, 10) : texto;
+
+        if (soloFecha.match(/^\d{4}-\d{2}-\d{2}$/)) {
+            const [anio, mes, dia] = soloFecha.split('-').map(Number);
+            return new Date(anio, mes - 1, dia);
+        }
+
+        const date = new Date(texto);
+        return isNaN(date.getTime()) ? null : date;
+    }
+
+    /**
+     * Año de una fecha, leido en hora local. Es lo que decide si un movimiento
+     * va al sub-tab del año actual o al de años anteriores.
+     */
+    private obtenerAnio(fecha: string): number {
+        const date = this.fechaLocal(fecha);
+        return date ? date.getFullYear() : 0;
     }
 
     formatearFecha(fecha: string): string {
@@ -305,12 +338,12 @@ export class EstudianteCuentasComponent implements OnInit {
 
                 // Separar pagos por año
                 this.pagosAnioActual = this.datosPagos.filter(item => {
-                    const anio = new Date(item.fecha).getFullYear();
+                    const anio = this.obtenerAnio(item.fecha);
                     return anio === this.anioAcademico;
                 });
 
                 this.pagosHistoricos = this.datosPagos.filter(item => {
-                    const anio = new Date(item.fecha).getFullYear();
+                    const anio = this.obtenerAnio(item.fecha);
                     return anio < this.anioAcademico;
                 });
 
@@ -855,8 +888,8 @@ export class EstudianteCuentasComponent implements OnInit {
 
         if (!ultimoPago) return 'Sin pagos registrados';
 
-        const fecha = new Date(ultimoPago.fecha);
-        return `Realizado el ${fecha.toLocaleDateString()}`;
+        const fecha = this.fechaLocal(ultimoPago.fecha);
+        return fecha ? `Realizado el ${fecha.toLocaleDateString('es-CO')}` : 'Sin pagos registrados';
     }
 
     obtenerSaldoAFavor(): number {
