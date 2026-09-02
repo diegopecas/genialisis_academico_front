@@ -168,4 +168,16 @@ $black: #222;
   .mapa-leaflet { height: 350px; }
   .acciones-mapa { flex-direction: column; align-items: flex-start; }
   .estado-poligono { margin-left: 0; }
+
+  // El selector de capas de Leaflet queda muy pequeño para el dedo
+  ::ng-deep .leaflet-control-layers-toggle {
+    width: 44px;
+    height: 44px;
+    background-size: 26px 26px;
+  }
+
+  ::ng-deep .leaflet-control-layers-list {
+    font-size: 15px;
+    line-height: 1.6;
+  }
 }

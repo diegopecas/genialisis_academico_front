@@ -25,6 +25,12 @@ export class ConfiguracionGeofenceComponent implements OnInit, AfterViewInit, On
   public dibujando = false;
   public puntosTemporales: number[][] = [];
 
+  // Capas base del mapa. Se guardan como propiedades para poder encender y
+  // apagar los rotulos al cambiar de capa.
+  private capaCallejero: L.TileLayer | null = null;
+  private capaSatelital: L.TileLayer | null = null;
+  private capaEtiquetas: L.TileLayer | null = null;
+
   private latDefault = 4.8691;
   private lngDefault = -74.0617;
   private zoomDefault = 17;
@@ -59,10 +65,50 @@ export class ConfiguracionGeofenceComponent implements OnInit, AfterViewInit, On
       doubleClickZoom: false,
     });
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors',
-      maxZoom: 20,
-    }).addTo(this.mapa);
+    // Callejero: OpenStreetMap estandar. maxZoom 19 porque OSM no publica
+    // teselas mas alla de ese nivel y al acercarse mas salian cuadros grises.
+    this.capaCallejero = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; colaboradores de <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      maxZoom: 19,
+    });
+
+    // Satelital: sirve para calcar los linderos reales sobre la foto aerea.
+    this.capaSatelital = L.tileLayer(
+      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      attribution: 'Imágenes &copy; Esri, Maxar, Earthstar Geographics y la comunidad de usuarios de GIS',
+      maxZoom: 19,
+    });
+
+    // Rotulos de calles para superponer al satelital, que por si solo no los trae.
+    this.capaEtiquetas = L.tileLayer(
+      'https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; <a href="https://carto.com/attributions">CARTO</a>',
+      subdomains: 'abcd',
+      maxZoom: 19,
+    });
+
+    this.capaCallejero.addTo(this.mapa);
+
+    L.control.layers(
+      { 'Callejero': this.capaCallejero, 'Satelital': this.capaSatelital },
+      { 'Nombres de calles': this.capaEtiquetas },
+      { collapsed: true }
+    ).addTo(this.mapa);
+
+    L.control.scale({ imperial: false }).addTo(this.mapa);
+
+    // Al pasar a satelital se encienden los rotulos; al volver al callejero se
+    // apagan, porque ahi ya vienen dibujados en la tesela.
+    this.mapa.on('baselayerchange', (e: L.LayersControlEvent) => {
+      if (!this.mapa || !this.capaEtiquetas) return;
+      if (e.name === 'Satelital') {
+        if (!this.mapa.hasLayer(this.capaEtiquetas)) {
+          this.mapa.addLayer(this.capaEtiquetas);
+        }
+      } else if (this.mapa.hasLayer(this.capaEtiquetas)) {
+        this.mapa.removeLayer(this.capaEtiquetas);
+      }
+    });
 
     // Forzar recalcular tamaño del mapa
     setTimeout(() => { this.mapa?.invalidateSize(); }, 300);

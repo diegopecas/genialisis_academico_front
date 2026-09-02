@@ -54,6 +54,8 @@ export class OpcionesEstudianteComponent implements OnInit {
     { id: 'registro_acudientes', label: 'Acudientes', icono: '/assets/images/familia.png', categoria: 'Información', permiso: 'estudiantes.acudientes', ruta: '/estudiantes/acudientes/' },
     { id: 'registro_medidas', label: 'Medidas', icono: '/assets/images/medidas.png', categoria: 'Información', permiso: 'estudiantes.medidas', ruta: '/estudiantes/medidas/' },
     { id: 'observaciones', label: 'Observaciones', icono: '/assets/images/observaciones.png', categoria: 'Información', permiso: 'estudiantes.observaciones', ruta: '/estudiantes/observaciones/' },
+    { id: 'informes', label: 'Informes', icono: '/assets/images/informes-estudiante.png', categoria: 'Información', permiso: 'estudiantes.informes', ruta: '/estudiantes/informes/' },
+    { id: 'estado_cuenta', label: 'Estado de Cuenta', icono: '/assets/images/estado-cuenta.png', categoria: 'Servicios y cobros', permiso: 'estudiantes.estado_cuenta', ruta: '/estudiantes/estado-cuenta/' },
     { id: 'pagos', label: 'Pagos', icono: '/assets/images/pagos.png', categoria: 'Servicios y cobros', permiso: 'estudiantes.pagos', ruta: '/estudiantes/pagos/' },
     { id: 'productos_servicios', label: 'Productos', icono: '/assets/images/productos.png', categoria: 'Servicios y cobros', permiso: 'estudiantes.productos_servicios', ruta: '/estudiantes/productos-servicios/' },
     { id: 'contratos', label: 'Contratos', icono: '/assets/images/contratos.png', categoria: 'Servicios y cobros', permiso: 'estudiantes.contratos', ruta: '/estudiantes/contratos/' },

@@ -1,0 +1,15 @@
+<div class="modulo">
+  <app-header-anidado
+    [tituloModulo]="titulo"
+    [mostrarCrear]="false"
+    [accion]="'ConsultarTodos'"
+    [raiz]="'/estudiantes/estado-cuenta'"
+    [regresar]="'/estudiantes/opciones/' + idEstudiante"
+    [iconoTitulo]="'/assets/images/estado-cuenta.png'"
+  ></app-header-anidado>
+
+  <!-- El componente se instancia solo cuando ya hay id, porque carga en su ngOnInit -->
+  <div class="contenido-estado-cuenta" *ngIf="idEstudiante && idEstudiante !== '0'">
+    <app-estudiante-cuentas [idEstudiante]="idEstudiante"></app-estudiante-cuentas>
+  </div>
+</div>
