@@ -1,4 +1,4 @@
-import { Component, OnInit, HostListener } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import Swal from 'sweetalert2';
@@ -52,7 +52,7 @@ interface PestanaInfo {
   templateUrl: './vista-estudiante.component.html',
   styleUrl: './vista-estudiante.component.scss',
 })
-export class VistaEstudianteComponent implements OnInit {
+export class VistaEstudianteComponent implements OnInit, OnDestroy {
   public idEstudiante = '0';
   public idPersona = '';
   public nombreCompleto = '';
@@ -145,16 +145,28 @@ export class VistaEstudianteComponent implements OnInit {
     }
   }
 
+  /**
+   * El handler se guarda en una propiedad para poder removerlo en ngOnDestroy.
+   * Antes se registraba como funcion anonima: no habia forma de quitarlo, asi
+   * que cada visita a la vista 360 dejaba un listener de click vivo sobre
+   * document reteniendo el componente destruido.
+   */
+  private outsideClickHandler = (event: MouseEvent): void => {
+    const target = event.target as HTMLElement;
+    if (this.dropdownAbierto && !target.closest('.mobile-tab-selector')) {
+      this.dropdownAbierto = false;
+    }
+    if (this.menuRapidoAbierto && !target.closest('.mobile-quick-nav')) {
+      this.menuRapidoAbierto = false;
+    }
+  };
+
   setupOutsideClickListener() {
-    document.addEventListener('click', (event: MouseEvent) => {
-      const target = event.target as HTMLElement;
-      if (this.dropdownAbierto && !target.closest('.mobile-tab-selector')) {
-        this.dropdownAbierto = false;
-      }
-      if (this.menuRapidoAbierto && !target.closest('.mobile-quick-nav')) {
-        this.menuRapidoAbierto = false;
-      }
-    });
+    document.addEventListener('click', this.outsideClickHandler);
+  }
+
+  ngOnDestroy(): void {
+    document.removeEventListener('click', this.outsideClickHandler);
   }
 
   cargarDatosBasicosEstudiante(): void {

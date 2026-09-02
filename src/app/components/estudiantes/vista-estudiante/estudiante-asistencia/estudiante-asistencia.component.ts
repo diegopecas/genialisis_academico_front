@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, AfterViewInit } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Chart, registerables } from 'chart.js';
@@ -47,7 +47,7 @@ interface EstadisticasMensuales {
   templateUrl: './estudiante-asistencia.component.html',
   styleUrl: './estudiante-asistencia.component.scss'
 })
-export class EstudianteAsistenciaComponent implements OnInit, AfterViewInit {
+export class EstudianteAsistenciaComponent implements OnInit, OnDestroy, AfterViewInit {
   @Input() idEstudiante: string = "0";
 
   // Variables para la selección de meses y filtros
@@ -342,6 +342,21 @@ export class EstudianteAsistenciaComponent implements OnInit, AfterViewInit {
   }
 
   // Inicializar los gráficos
+  /**
+   * Los Chart son responsive: mientras sigan vivos mantienen su observador de
+   * tamaño sobre canvas que ya salieron del DOM. Hay que destruirlos al salir.
+   */
+  ngOnDestroy(): void {
+    if (this.chartAsistenciaDiaria) {
+      this.chartAsistenciaDiaria.destroy();
+      this.chartAsistenciaDiaria = null;
+    }
+    if (this.chartAsistenciaMensual) {
+      this.chartAsistenciaMensual.destroy();
+      this.chartAsistenciaMensual = null;
+    }
+  }
+
   inicializarGraficos(): void {
     // Comprobar si hay datos para inicializar los gráficos
     if (this.diasDelMes.length === 0) {

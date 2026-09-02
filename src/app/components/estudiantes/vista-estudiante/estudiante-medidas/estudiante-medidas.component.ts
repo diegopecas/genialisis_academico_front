@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Chart, registerables } from 'chart.js';
@@ -56,7 +56,7 @@ const COLORES_SERIES = [
   templateUrl: './estudiante-medidas.component.html',
   styleUrl: './estudiante-medidas.component.scss'
 })
-export class EstudianteMedidasComponent implements OnInit {
+export class EstudianteMedidasComponent implements OnInit, OnDestroy {
   @Input() idEstudiante: string = "0";
 
   // Datos
@@ -90,6 +90,17 @@ export class EstudianteMedidasComponent implements OnInit {
     this.anioAcademico = this.institucionConfigService.getAnioAcademicoActual();
     if (this.idEstudiante && this.idEstudiante !== "0") {
       this.cargarDatos();
+    }
+  }
+
+  /**
+   * El Chart es responsive: mientras siga vivo mantiene su observador de tamaño
+   * sobre un canvas que ya salio del DOM. Hay que destruirlo al salir.
+   */
+  ngOnDestroy(): void {
+    if (this.chart) {
+      this.chart.destroy();
+      this.chart = null;
     }
   }
 

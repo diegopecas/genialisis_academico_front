@@ -1367,8 +1367,18 @@ export class EstudianteCuentasComponent implements OnInit {
         window.open(urlWhatsApp, '_blank');
     }
 
+    /**
+     * La referencia del handler se guarda en una propiedad. Antes se registraba
+     * con this.checkScroll.bind(this) y se removia con otro bind: cada bind crea
+     * una funcion distinta, asi que el removeEventListener nunca quitaba nada y
+     * los listeners de scroll se acumulaban en cada visita.
+     */
+    private scrollHandler = (): void => {
+        this.checkScroll();
+    };
+
     private initScrollListener(): void {
-        window.addEventListener('scroll', this.checkScroll.bind(this));
+        window.addEventListener('scroll', this.scrollHandler);
     }
 
     private checkScroll(): void {
@@ -1384,6 +1394,6 @@ export class EstudianteCuentasComponent implements OnInit {
     }
 
     ngOnDestroy(): void {
-        window.removeEventListener('scroll', this.checkScroll.bind(this));
+        window.removeEventListener('scroll', this.scrollHandler);
     }
 }
