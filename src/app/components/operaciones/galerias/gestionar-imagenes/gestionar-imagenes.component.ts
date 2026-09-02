@@ -9,6 +9,7 @@ import { HeaderComponent } from '../../../../common/header/header.component';
 import { GaleriaImagenesService } from '../../../../services/galeria-imagenes.service';
 import { GaleriasService } from '../../../../services/galerias.service';
 import { InstagramService } from '../../../../services/instagram.service';
+import { ImagenCompresionService } from '../../../../services/imagen-compresion.service';
 
 
 interface ImagenPreview {
@@ -20,6 +21,12 @@ interface ImagenPreview {
   error: boolean;
   id?: string;
   guid?: string;
+  // Pesa más de lo permitido: no se puede subir hasta reducirla.
+  excedeLimite?: boolean;
+  reduciendo?: boolean;
+  // Ya se redujo; se guarda el peso original solo para mostrarlo.
+  reducida?: boolean;
+  tamanoOriginal?: number;
 }
 
 interface ImagenSubida {
@@ -77,6 +84,7 @@ export class GestionarImagenesComponent implements OnInit {
   maxImagenMb = 10;
   maxVideoMb = 32;
   rotando = false;
+  reduciendoTodas = false;
   private readonly tiposVideo = ['video/mp4', 'video/quicktime'];
 
   private get maxImagenClienteBytes(): number {
@@ -93,6 +101,7 @@ export class GestionarImagenesComponent implements OnInit {
     private galeriasService: GaleriasService,
     private galeriaImagenesService: GaleriaImagenesService,
     private instagramService: InstagramService,
+    private imagenCompresionService: ImagenCompresionService,
     private http: HttpClient
   ) { }
 
@@ -651,8 +660,16 @@ export class GestionarImagenesComponent implements OnInit {
         Swal.fire('Error', `${file.name} no es una imagen ni un video permitido (MP4/MOV)`, 'error');
         return false;
       }
-      if (esImagen && file.size > this.maxImagenClienteBytes) {
-        Swal.fire('Error', `${file.name} supera el tamaño máximo de imagen (${this.maxImagenMb}MB)`, 'error');
+      // Una imagen grande ya no se rechaza: entra al preview marcada y el
+      // usuario decide si la reduce. Solo se rechaza si no se puede reducir
+      // (por ejemplo un GIF, que perdería la animación al pasar por el canvas).
+      if (esImagen && file.size > this.maxImagenClienteBytes &&
+          !this.imagenCompresionService.esReducible(file)) {
+        Swal.fire(
+          'Imagen muy grande',
+          `${file.name} supera el máximo (${this.maxImagenMb}MB) y su formato no se puede reducir automáticamente.`,
+          'error'
+        );
         return false;
       }
       if (esVideo && file.size > this.maxVideoClienteBytes) {
@@ -672,7 +689,10 @@ export class GestionarImagenesComponent implements OnInit {
           esVideo,
           uploading: false,
           uploaded: false,
-          error: false
+          error: false,
+          excedeLimite: !esVideo && file.size > this.maxImagenClienteBytes,
+          reduciendo: false,
+          reducida: false
         });
       };
       reader.readAsDataURL(file);
@@ -681,6 +701,91 @@ export class GestionarImagenesComponent implements OnInit {
 
   eliminarPreview(index: number) {
     this.imagenesPreview.splice(index, 1);
+  }
+
+  // ==========================================
+  // REDUCIR IMÁGENES GRANDES
+  // ==========================================
+
+  /** Cuántas del preview están por encima del límite. */
+  get cantidadExcedidas(): number {
+    return this.imagenesPreview.filter(img => img.excedeLimite).length;
+  }
+
+  /**
+   * Reduce una imagen del preview hasta que quepa bajo el límite.
+   * Reemplaza el File y la vista previa por la versión reducida.
+   */
+  async reducirImagen(item: ImagenPreview): Promise<void> {
+    if (!item.excedeLimite || item.reduciendo) {
+      return;
+    }
+
+    item.reduciendo = true;
+    const tamanoAntes = item.file.size;
+
+    try {
+      const resultado = await this.imagenCompresionService.reducir(
+        item.file,
+        this.maxImagenClienteBytes
+      );
+
+      if (!resultado.reducido) {
+        Swal.fire('Aviso', `No se pudo reducir ${item.file.name}.`, 'warning');
+        return;
+      }
+
+      item.file = resultado.archivo;
+      item.excedeLimite = !resultado.cabe;
+      item.reducida = true;
+      item.tamanoOriginal = tamanoAntes;
+      item.preview = await this.leerComoDataUrl(resultado.archivo);
+
+      if (!resultado.cabe) {
+        Swal.fire(
+          'Sigue muy grande',
+          `${item.file.name} se redujo pero todavía supera los ${this.maxImagenMb}MB.`,
+          'warning'
+        );
+      }
+    } finally {
+      item.reduciendo = false;
+    }
+  }
+
+  /** Reduce de una vez todas las que estén por encima del límite. */
+  async reducirTodas(): Promise<void> {
+    const pendientes = this.imagenesPreview.filter(img => img.excedeLimite);
+    if (pendientes.length === 0) {
+      return;
+    }
+
+    this.reduciendoTodas = true;
+    for (const item of pendientes) {
+      await this.reducirImagen(item);
+    }
+    this.reduciendoTodas = false;
+  }
+
+  /** Vuelve a leer el archivo para refrescar la miniatura del preview. */
+  private leerComoDataUrl(file: File): Promise<string> {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e: any) => resolve(e.target.result);
+      reader.onerror = () => resolve('');
+      reader.readAsDataURL(file);
+    });
+  }
+
+  /** Tamaño legible: KB por debajo de 1MB, MB de ahí en adelante. */
+  formatearTamano(bytes: number): string {
+    if (!bytes && bytes !== 0) {
+      return '';
+    }
+    if (bytes < 1048576) {
+      return `${(bytes / 1024).toFixed(0)} KB`;
+    }
+    return `${(bytes / 1048576).toFixed(1)} MB`;
   }
 
   // ==========================================
@@ -693,13 +798,25 @@ export class GestionarImagenesComponent implements OnInit {
       return;
     }
 
+    // Las que siguen pasadas de peso no se mandan: el backend las rechazaría.
+    const porSubir = this.imagenesPreview.filter(item => !item.uploaded && !item.excedeLimite);
+    const omitidos = this.imagenesPreview.filter(item => item.excedeLimite).length;
+
+    if (porSubir.length === 0) {
+      Swal.fire(
+        'Nada para subir',
+        `Todos los archivos superan el máximo de ${this.maxImagenMb}MB. Usa el botón Reducir.`,
+        'warning'
+      );
+      return;
+    }
+
     this.isUploading = true;
 
     let exitosos = 0;
     let fallidos = 0;
 
-    for (const item of this.imagenesPreview) {
-      if (item.uploaded) continue;
+    for (const item of porSubir) {
       item.uploading = true;
       try {
         await this.subirArchivo(item);
@@ -721,14 +838,22 @@ export class GestionarImagenesComponent implements OnInit {
       this.cargarImagenes();
     }
 
+    const notaOmitidos = omitidos > 0
+      ? ` Quedaron ${omitidos} sin subir por tamaño; usa el botón Reducir.`
+      : '';
+
     if (fallidos === 0) {
-      Swal.fire('Éxito', 'Archivos subidos correctamente', 'success');
+      if (omitidos > 0) {
+        Swal.fire('Subida parcial', `Se subieron ${exitosos}.${notaOmitidos}`, 'warning');
+      } else {
+        Swal.fire('Éxito', 'Archivos subidos correctamente', 'success');
+      }
     } else if (exitosos === 0) {
-      Swal.fire('No se pudo subir', this.mensajeFalloUpload(), 'error');
+      Swal.fire('No se pudo subir', this.mensajeFalloUpload() + notaOmitidos, 'error');
     } else {
       Swal.fire(
         'Subida parcial',
-        `Se subieron ${exitosos}, fallaron ${fallidos}. ${this.mensajeFalloUpload()}`,
+        `Se subieron ${exitosos}, fallaron ${fallidos}. ${this.mensajeFalloUpload()}${notaOmitidos}`,
         'warning'
       );
     }

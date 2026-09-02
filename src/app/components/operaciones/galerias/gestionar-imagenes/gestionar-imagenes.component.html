@@ -39,21 +39,37 @@
           <i class="fas fa-photo-video drop-icon"></i>
           <p class="drop-text">Arrastra imágenes o videos aquí o haz clic para seleccionar</p>
           <p class="drop-hint">Imágenes: JPG, PNG, GIF, WEBP (máx. {{ maxImagenMb }}MB) · Videos: MP4, MOV (máx. {{ maxVideoMb }}MB)</p>
+          <p class="drop-hint">Si una imagen pesa de más, te ofrecemos reducirla antes de subirla.</p>
         </div>
       </div>
 
       <!-- Preview de archivos a subir -->
       <div *ngIf="imagenesPreview.length > 0" class="preview-section mt-4">
-        <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
           <h6 class="mb-0">Archivos a subir ({{ imagenesPreview.length }})</h6>
-          <button
-            class="btn btn-warning"
-            (click)="subirImagenes()"
-            [disabled]="isUploading"
-          >
-            <i class="fas fa-upload me-2"></i>
-            {{ isUploading ? 'Subiendo...' : 'Subir Todos' }}
-          </button>
+
+          <div class="preview-acciones">
+            <!-- Reducir en lote: solo aparece si hay imágenes pasadas de peso -->
+            <button
+              *ngIf="cantidadExcedidas > 0"
+              class="btn btn-outline-warning me-2"
+              (click)="reducirTodas()"
+              [disabled]="reduciendoTodas || isUploading"
+            >
+              <i class="fas fa-compress-arrows-alt me-2"></i>
+              Reducir todas ({{ cantidadExcedidas }})
+              <span *ngIf="reduciendoTodas" class="spinner-border spinner-border-sm ms-1"></span>
+            </button>
+
+            <button
+              class="btn btn-warning"
+              (click)="subirImagenes()"
+              [disabled]="isUploading || reduciendoTodas"
+            >
+              <i class="fas fa-upload me-2"></i>
+              {{ isUploading ? 'Subiendo...' : 'Subir Todos' }}
+            </button>
+          </div>
         </div>
 
         <div class="preview-grid">
@@ -63,6 +79,7 @@
             [class.uploading]="imagen.uploading"
             [class.uploaded]="imagen.uploaded"
             [class.error]="imagen.error"
+            [class.excede]="imagen.excedeLimite"
           >
             <!-- Imagen: vista previa real. Video: placeholder con play -->
             <img *ngIf="!imagen.esVideo" [src]="imagen.preview" [alt]="imagen.file.name" />
@@ -74,10 +91,33 @@
               <span style="font-size:11px; margin-top:6px;">Video</span>
             </div>
 
+            <!-- Aviso de imagen pasada de peso, con la acción de reducir -->
+            <div class="preview-alerta" *ngIf="imagen.excedeLimite && !imagen.uploaded">
+              <span class="preview-alerta-texto">
+                {{ formatearTamano(imagen.file.size) }} · máx {{ maxImagenMb }} MB
+              </span>
+              <button
+                class="btn-reducir"
+                (click)="reducirImagen(imagen)"
+                [disabled]="imagen.reduciendo || isUploading"
+              >
+                <ng-container *ngIf="!imagen.reduciendo">
+                  <i class="fas fa-compress-arrows-alt me-1"></i>Reducir
+                </ng-container>
+                <span *ngIf="imagen.reduciendo" class="spinner-border spinner-border-sm"></span>
+              </button>
+            </div>
+
+            <!-- Confirmación de que quedó reducida y ya cabe -->
+            <div class="preview-reducida" *ngIf="imagen.reducida && !imagen.excedeLimite">
+              <i class="fas fa-check me-1"></i>
+              Reducida a {{ formatearTamano(imagen.file.size) }}
+            </div>
+
             <div class="preview-overlay">
               <div class="preview-info">
                 <span class="preview-name">{{ imagen.file.name }}</span>
-                <span class="preview-size">{{ (imagen.file.size / 1024).toFixed(2) }} KB</span>
+                <span class="preview-size">{{ formatearTamano(imagen.file.size) }}</span>
               </div>
 
               <button

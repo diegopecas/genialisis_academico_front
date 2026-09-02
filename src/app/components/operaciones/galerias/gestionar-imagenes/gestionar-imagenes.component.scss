@@ -56,6 +56,13 @@
 // ========================================
 // Preview Grid
 // ========================================
+.preview-acciones {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
 .preview-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
@@ -86,6 +93,75 @@
   &.error {
     border: 3px solid #dc3545;
   }
+
+  // Pasada de peso: se marca para que se note cuál hay que reducir
+  &.excede {
+    border: 3px solid #FFC107;
+
+    img {
+      opacity: 0.55;
+    }
+  }
+}
+
+// Aviso inline de imagen muy grande, con la acción de reducir
+.preview-alerta {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 6;
+  background: rgba(255, 193, 7, 0.95);
+  color: #212529;
+  padding: 6px 40px 6px 8px;   // espacio a la derecha para el botón de quitar
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+
+  .preview-alerta-texto {
+    font-size: 0.7rem;
+    font-weight: 700;
+    line-height: 1.1;
+  }
+}
+
+.btn-reducir {
+  border: none;
+  border-radius: 6px;
+  background: #212529;
+  color: #FFC107;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 3px 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  transition: all 0.2s ease;
+
+  &:hover:not(:disabled) {
+    background: #000;
+  }
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: default;
+  }
+}
+
+// Marca de que ya quedó reducida y cabe
+.preview-reducida {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 6;
+  background: rgba(40, 167, 69, 0.92);
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 600;
+  line-height: 1;
+  padding: 4px 8px;
+  border-radius: 10px;
 }
 
 .preview-overlay {
@@ -120,6 +196,7 @@
   position: absolute;
   top: 8px;
   right: 8px;
+  z-index: 7;
   width: 28px;
   height: 28px;
   border-radius: 50%;
@@ -428,6 +505,32 @@
       margin: 0 !important;
       margin-bottom: 0.5rem !important;
     }
+  }
+
+  // Los botones de la barra del preview (reducir todas / subir) a ancho completo
+  .preview-acciones {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+
+    button {
+      width: 100%;
+      margin: 0 !important;
+    }
+  }
+
+  // En tarjetas chicas el aviso tiene que seguir siendo legible
+  .preview-alerta {
+    padding: 5px 34px 5px 6px;
+
+    .preview-alerta-texto {
+      font-size: 0.65rem;
+    }
+  }
+
+  .btn-reducir {
+    font-size: 0.65rem;
+    padding: 3px 6px;
   }
 
   .selection-checkbox {
