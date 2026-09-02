@@ -43,7 +43,10 @@ export class AutorizarInformesComponent implements OnInit, OnDestroy {
 
   public filtroTexto: string = '';
   public filtroGrupo: string = '';
-  public soloConSaldo: boolean = false;
+  // Vacio es todos. 'pendientes' son los que aun no tienen autorizacion.
+  public filtroAutorizacion: string = '';
+  // Vacio es todos. 'al_dia' son los que no tienen saldo vencido.
+  public filtroCartera: string = '';
 
   public cargando: boolean = false;
   public guardando: boolean = false;
@@ -141,13 +144,18 @@ export class AutorizarInformesComponent implements OnInit, OnDestroy {
       .sort((a, b) => a.nombre.localeCompare(b.nombre));
   }
 
-  // Los tres filtros se suman. El texto busca por nombre y por identificacion.
+  // Los filtros se suman. El texto busca por nombre y por identificacion.
   get estudiantesFiltrados(): EstudianteAutorizacion[] {
     const texto = this.filtroTexto.trim().toLowerCase();
 
     return this.estudiantes.filter(e => {
       if (this.filtroGrupo && e.id_grupo !== this.filtroGrupo) return false;
-      if (this.soloConSaldo && e.saldo_vencido <= 0) return false;
+
+      if (this.filtroAutorizacion === 'pendientes' && e.autorizado === 1) return false;
+      if (this.filtroAutorizacion === 'autorizados' && e.autorizado !== 1) return false;
+
+      if (this.filtroCartera === 'vencido' && e.saldo_vencido <= 0) return false;
+      if (this.filtroCartera === 'al_dia' && e.saldo_vencido > 0) return false;
 
       if (texto) {
         const nombre = (e.nombre_estudiante || '').toLowerCase();
@@ -165,6 +173,14 @@ export class AutorizarInformesComponent implements OnInit, OnDestroy {
 
   get totalConSaldo(): number {
     return this.estudiantes.filter(e => e.saldo_vencido > 0).length;
+  }
+
+  get totalPendientes(): number {
+    return this.estudiantes.filter(e => e.autorizado !== 1).length;
+  }
+
+  get hayFiltrosPuestos(): boolean {
+    return !!(this.filtroTexto || this.filtroGrupo || this.filtroAutorizacion || this.filtroCartera);
   }
 
   get hayCambiosPendientes(): boolean {
@@ -192,7 +208,8 @@ export class AutorizarInformesComponent implements OnInit, OnDestroy {
   limpiarFiltros(): void {
     this.filtroTexto = '';
     this.filtroGrupo = '';
-    this.soloConSaldo = false;
+    this.filtroAutorizacion = '';
+    this.filtroCartera = '';
   }
 
   verConceptosVencidos(estudiante: EstudianteAutorizacion): void {

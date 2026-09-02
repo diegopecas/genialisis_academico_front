@@ -55,13 +55,20 @@
       <option *ngFor="let grupo of grupos" [value]="grupo.id">{{ grupo.nombre }}</option>
     </select>
 
-    <label class="check-saldo">
-      <input type="checkbox" [(ngModel)]="soloConSaldo">
-      Solo con saldo vencido
-    </label>
+    <select [(ngModel)]="filtroAutorizacion" class="select-grupo">
+      <option value="">Autorización: todos</option>
+      <option value="pendientes">Pendientes por autorizar</option>
+      <option value="autorizados">Autorizados</option>
+    </select>
+
+    <select [(ngModel)]="filtroCartera" class="select-grupo">
+      <option value="">Cartera: todos</option>
+      <option value="al_dia">Al día</option>
+      <option value="vencido">Con saldo vencido</option>
+    </select>
 
     <button type="button" class="btn-limpiar-filtros" (click)="limpiarFiltros()"
-      *ngIf="filtroTexto || filtroGrupo || soloConSaldo">
+      *ngIf="hayFiltrosPuestos">
       Limpiar
     </button>
   </div>
@@ -104,7 +111,7 @@
       <div class="tarjeta-datos">
         <span class="nombre">{{ estudiante.nombre_estudiante }}</span>
         <span class="grupo">
-          <i class="fas fa-users"></i> {{ estudiante.nombre_grupo || 'Sin grupo asignado' }}
+          <i class="fas fa-users"></i> {{ estudiante.nombre_grupo }}
         </span>
 
         <button type="button" class="chip chip-saldo" *ngIf="estudiante.saldo_vencido > 0"
