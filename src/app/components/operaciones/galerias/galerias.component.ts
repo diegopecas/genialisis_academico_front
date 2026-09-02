@@ -17,7 +17,16 @@ import Swal from 'sweetalert2';
 export class GaleriasComponent implements OnInit {
 
   titulo = "Gestión de Galerías";
-  public columnasFiltro = ['Nombre', 'Descripción', 'Fecha', 'Tipo', 'Estado'];
+  // Grupos va como tipoFiltro 'lista': la celda trae varios grupos en un solo
+  // texto y el filtro debe ofrecerlos por separado.
+  public columnasFiltro: (string | { columna: string, tipoFiltro?: 'fecha' | 'normal' | 'rango' | 'lista' })[] = [
+    'Nombre',
+    'Descripción',
+    'Fecha',
+    'Tipo',
+    { columna: 'Grupos', tipoFiltro: 'lista' },
+    'Estado'
+  ];
   public titulos = [] as any[];
   public datos = [] as any[];
 
@@ -45,7 +54,8 @@ export class GaleriasComponent implements OnInit {
           tipo_texto: g.es_publica === 1 ? 'Pública' : 'Privada',
           estado_texto: g.activo === 1 ? 'Activo' : 'Inactivo',
           color: g.activo === 0 ? "#e2e9f3" : "",
-          fecha_formateada: this.formatearFecha(g.fecha)
+          fecha_formateada: this.formatearFecha(g.fecha),
+          grupos_texto: this.armarTextoGrupos(g)
         }));
       },
       error: (error) => {
@@ -55,6 +65,18 @@ export class GaleriasComponent implements OnInit {
     });
   }
 
+  /**
+   * Texto de la columna Grupos.
+   * Una galería pública la ven todos, así que no depende de la asignación de
+   * grupos; se muestra 'Todos' para no dar a entender que está sin asignar.
+   */
+  armarTextoGrupos(galeria: any): string {
+    if (galeria.es_publica === 1) {
+      return 'Todos';
+    }
+    return galeria.grupos_nombres ? galeria.grupos_nombres : 'Sin grupos';
+  }
+
   crearTitulos() {
     this.titulos = [
       { clave: 'id', alias: 'ID', alinear: 'centrado' },
@@ -62,6 +84,7 @@ export class GaleriasComponent implements OnInit {
       { clave: 'descripcion', alias: 'Descripción', alinear: 'izquierda' },
       { clave: 'fecha_formateada', alias: 'Fecha', alinear: 'centrado' },
       { clave: 'tipo_texto', alias: 'Tipo', alinear: 'centrado' },
+      { clave: 'grupos_texto', alias: 'Grupos', alinear: 'izquierda' },
       { clave: 'estado_texto', alias: 'Estado', alinear: 'centrado' },
       { clave: 'orden', alias: 'Orden', alinear: 'centrado' },
     ];

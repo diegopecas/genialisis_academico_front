@@ -27,7 +27,7 @@ export class TablasComponent implements OnChanges, OnInit {
   @Input() accionEditar: any = false;
   @Input() accionEliminar: any = false;
   @Input() mostrarBuscar: any = false;
-  @Input() columnasFiltro: (string | { columna: string, tipoFiltro?: 'fecha' | 'normal' | 'rango' })[] = [];
+  @Input() columnasFiltro: (string | { columna: string, tipoFiltro?: 'fecha' | 'normal' | 'rango' | 'lista' })[] = [];
   @Input() seleccionMultiple: boolean = false;
   @Input() campoId: string = 'id';
   // Por defecto se oculta la columna del id (UUID) de la vista; el id sigue disponible en los datos para acciones.
@@ -43,7 +43,15 @@ export class TablasComponent implements OnChanges, OnInit {
   @Output() datosFiltradosCambiados = new EventEmitter<any[]>();
 
   public currentTheme!: ThemeConfig;
-  public columnasFiltroNormalizadas: Map<string, 'fecha' | 'normal' | 'rango'> = new Map();
+  public columnasFiltroNormalizadas: Map<string, 'fecha' | 'normal' | 'rango' | 'lista'> = new Map();
+
+  // Claves cuyas celdas traen varios valores en un solo texto (tipoFiltro 'lista').
+  // Se guardan aparte porque filtrarDatos tiene que comparar por contenido y no
+  // por igualdad exacta.
+  public clavesFiltroLista: Set<string> = new Set();
+
+  // Separador con el que vienen esos valores en la celda.
+  private readonly separadorLista = ',';
 
   public formatosDisponibles = {
     number: { alias: 'number', descripcion: 'Formato numerico (ej: 1,234.56)' },
@@ -146,8 +154,23 @@ export class TablasComponent implements OnChanges, OnInit {
     });
   }
 
-  obtenerNombreColumna(item: string | { columna: string, tipoFiltro?: 'fecha' | 'normal' | 'rango' }): string {
+  obtenerNombreColumna(item: string | { columna: string, tipoFiltro?: 'fecha' | 'normal' | 'rango' | 'lista' }): string {
     return typeof item === 'string' ? item : item.columna;
+  }
+
+  /**
+   * Parte el contenido de una celda tipo 'lista' en sus valores sueltos.
+   * Se descartan los vacios para que un texto terminado en separador no
+   * genere una opcion en blanco.
+   */
+  separarValoresLista(valor: any): string[] {
+    if (valor === null || valor === undefined) {
+      return [];
+    }
+    return String(valor)
+      .split(this.separadorLista)
+      .map(parte => parte.trim())
+      .filter(parte => parte !== '');
   }
 
   columnaEstaEnFiltros(alias: string): boolean {
@@ -363,6 +386,7 @@ export class TablasComponent implements OnChanges, OnInit {
     this.opcionesFiltro = {};
     this.filtrosFecha = {};
     this.filtrosRango = {};
+    this.clavesFiltroLista.clear();
 
     this.columnasFiltro.forEach(item => {
       const columnaAlias = this.obtenerNombreColumna(item);
@@ -377,12 +401,23 @@ export class TablasComponent implements OnChanges, OnInit {
         } else if (tipoFiltroConfig === 'rango') {
           this.generarFiltroRango(clave, tituloItem.tipo);
         } else {
+          // 'lista': la celda trae varios valores en un solo texto
+          // ('Grupo A, Grupo B'). Cada uno entra como opcion independiente para
+          // que al marcar 'Grupo A' salgan tambien las filas que ademas tienen
+          // otros grupos.
+          const esLista = tipoFiltroConfig === 'lista';
+          if (esLista) {
+            this.clavesFiltroLista.add(clave);
+          }
+
           const valoresSet = new Set();
           let tieneValoresNulos = false;
           
           this.tabla.datos.forEach((item: any) => {
             if (item[clave] === undefined || item[clave] === null || item[clave] === '') {
               tieneValoresNulos = true;
+            } else if (esLista) {
+              this.separarValoresLista(item[clave]).forEach(valor => valoresSet.add(valor));
             } else {
               valoresSet.add(item[clave]);
             }
@@ -845,6 +880,12 @@ export class TablasComponent implements OnChanges, OnInit {
           const valorItem = item[columna];
           if (valorItem === null || valorItem === undefined || valorItem === '') {
             return this.filtrosActivos[columna].includes(null);
+          }
+          // Columna tipo 'lista': basta con que uno de los valores de la celda
+          // este seleccionado para que la fila pase.
+          if (this.clavesFiltroLista.has(columna)) {
+            return this.separarValoresLista(valorItem)
+              .some(valor => this.filtrosActivos[columna].includes(valor));
           }
           return this.filtrosActivos[columna].includes(valorItem);
         });
