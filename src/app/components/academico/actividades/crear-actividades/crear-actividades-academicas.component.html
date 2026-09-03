@@ -3,7 +3,63 @@
     <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [accion]="accion" [id]="id" [raiz]="'/actividades-academicas'"
         [regresar]="'/academico/actividades/gestion'" [iconoTitulo]="'/assets/images/actividades.png'"></app-header>
     
+    <!-- Barra de pestañas DESKTOP -->
+    <div class="tabs-container tabs-desktop" *ngIf="!nuevo">
+        <div class="tabs-nav">
+            <button class="tab-item" [class.active]="pestanaActiva === 'basico'"
+                (click)="seleccionarPestana('basico')">
+                <i class="fas fa-info-circle"></i>
+                Información Básica
+            </button>
+            <button class="tab-item" [class.active]="pestanaActiva === 'indicadores'"
+                (click)="seleccionarPestana('indicadores')">
+                <i class="fas fa-list-check"></i>
+                Indicadores de Logro
+            </button>
+            <button class="tab-item" [class.active]="pestanaActiva === 'sprints'"
+                (click)="seleccionarPestana('sprints')">
+                <i class="fas fa-person-running"></i>
+                Sprints
+            </button>
+        </div>
+    </div>
+
+    <!-- Barra de pestañas MOVIL (hamburguesa) -->
+    <div class="tabs-container tabs-movil" *ngIf="!nuevo">
+        <div class="tabs-movil-header">
+            <button class="tabs-movil-trigger" (click)="menuMovilAbierto = !menuMovilAbierto">
+                <i class="fas" [ngClass]="menuMovilAbierto ? 'fa-times' : 'fa-bars'"></i>
+                <span class="tabs-movil-label">
+                    <ng-container [ngSwitch]="pestanaActiva">
+                        <ng-container *ngSwitchCase="'basico'"><i class="fas fa-info-circle"></i> Información Básica</ng-container>
+                        <ng-container *ngSwitchCase="'indicadores'"><i class="fas fa-list-check"></i> Indicadores de Logro</ng-container>
+                        <ng-container *ngSwitchCase="'sprints'"><i class="fas fa-person-running"></i> Sprints</ng-container>
+                    </ng-container>
+                </span>
+                <i class="fas fa-chevron-down tabs-movil-chevron" [class.rotado]="menuMovilAbierto"></i>
+            </button>
+        </div>
+        <div class="tabs-movil-dropdown" *ngIf="menuMovilAbierto">
+            <button class="tabs-movil-item" [class.active]="pestanaActiva === 'basico'"
+                (click)="seleccionarPestana('basico')">
+                <i class="fas fa-info-circle"></i> Información Básica
+            </button>
+            <button class="tabs-movil-item" [class.active]="pestanaActiva === 'indicadores'"
+                (click)="seleccionarPestana('indicadores')">
+                <i class="fas fa-list-check"></i> Indicadores de Logro
+            </button>
+            <button class="tabs-movil-item" [class.active]="pestanaActiva === 'sprints'"
+                (click)="seleccionarPestana('sprints')">
+                <i class="fas fa-person-running"></i> Sprints
+            </button>
+        </div>
+    </div>
+
     <div class="container-fluid mt-4" [ngClass]="{ 'disabled-container': !editable }">
+
+        <!-- ================= PESTAÑA: INFORMACIÓN BÁSICA ================= -->
+        <div class="tab-content" [hidden]="!nuevo && pestanaActiva !== 'basico'">
+
         <!-- Sección de Información Básica -->
         <div class="card mb-4">
             <div class="card-header bg-corporate-primary">
@@ -93,13 +149,25 @@
                         <div *ngIf="!model.materiales && submitted" class="invalid-feedback">Agregue al menos un material</div>
 
                         <!-- Productos del inventario (si hay indicadores para saber el grupo) -->
-                        <div class="productos-inventario mt-2" *ngIf="productosDisponiblesActividad.length > 0 && editable">
-                            <small class="text-muted d-block mb-1">
-                                📦
-                                Del inventario:
-                            </small>
+                        <div class="productos-inventario mt-3" *ngIf="productosDisponiblesActividad.length > 0 && editable">
+                            <div class="inventario-encabezado">
+                                <span class="inventario-titulo">📦 Del inventario</span>
+                                <span class="inventario-conteo">{{ productosDisponiblesActividad.length }} disponibles</span>
+                            </div>
+
+                            <div class="inventario-buscador">
+                                <span class="buscador-ico">🔍</span>
+                                <input type="text"
+                                       [(ngModel)]="filtroProductoInventario"
+                                       placeholder="Buscar material del inventario..."
+                                       class="inventario-input">
+                                <button type="button" class="btn-limpiar-filtro"
+                                        *ngIf="filtroProductoInventario"
+                                        (click)="limpiarFiltroProductos()">✕</button>
+                            </div>
+
                             <div class="productos-badges">
-                                <span *ngFor="let prod of productosDisponiblesActividad"
+                                <span *ngFor="let prod of productosInventarioFiltrados"
                                       class="producto-badge"
                                       [class.ya-agregado]="isMaterialProductoAgregado(prod.id)"
                                       (click)="toggleMaterialProducto(prod)">
@@ -107,6 +175,22 @@
                                     <span *ngIf="isMaterialProductoAgregado(prod.id)">✅</span>
                                 </span>
                             </div>
+
+                            <div class="inventario-sin-resultados"
+                                 *ngIf="filtroProductoInventario && productosInventarioFiltrados.length === 0">
+                                No hay materiales que coincidan con "{{ filtroProductoInventario }}".
+                            </div>
+
+                            <button type="button" class="btn-ver-todos"
+                                    *ngIf="productosInventarioOcultos > 0"
+                                    (click)="toggleVerTodosLosProductos()">
+                                Ver los {{ productosInventarioOcultos }} restantes
+                            </button>
+                            <button type="button" class="btn-ver-todos"
+                                    *ngIf="mostrarTodosLosProductos && !filtroProductoInventario"
+                                    (click)="toggleVerTodosLosProductos()">
+                                Mostrar menos
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -141,6 +225,12 @@
             </div>
         </div>
 
+        </div>
+        <!-- ================= FIN PESTAÑA INFORMACIÓN BÁSICA ================= -->
+
+        <!-- ================= PESTAÑA: INDICADORES DE LOGRO ================= -->
+        <div class="tab-content" *ngIf="!nuevo" [hidden]="pestanaActiva !== 'indicadores'">
+
         <!-- Sección de Indicadores de Logro Asociados -->
         <div class="card mb-4" *ngIf="!nuevo && datosIndicadoresLogro.length > 0">
             <div class="card-header bg-corporate-secondary d-flex justify-content-between align-items-center">
@@ -167,6 +257,12 @@
                 </button>
             </div>
         </div>
+
+        </div>
+        <!-- ================= FIN PESTAÑA INDICADORES ================= -->
+
+        <!-- ================= PESTAÑA: SPRINTS ================= -->
+        <div class="tab-content" *ngIf="!nuevo" [hidden]="pestanaActiva !== 'sprints'">
 
         <!-- Sección de Sprints Asociados -->
         <div class="card mb-4" *ngIf="!nuevo && datosTareasActividad.length > 0">
@@ -203,7 +299,10 @@
             </div>
         </div>
 
-        <!-- Botones de acción -->
+        </div>
+        <!-- ================= FIN PESTAÑA SPRINTS ================= -->
+
+        <!-- Botones de acción: quedan fuera de las pestañas, siempre visibles -->
         <div class="row mt-4 mb-3">
             <div class="col-12 d-flex justify-content-center gap-3">
                 <button *ngIf="editable" 
@@ -215,6 +314,17 @@
                 <button class="btn btn-corporate-secondary btn-lg px-5" (click)="volver()">
                     <i class="fas fa-arrow-left me-2"></i>Volver
                 </button>
+            </div>
+
+            <!-- Por qué está deshabilitado el botón de guardar -->
+            <div class="col-12" *ngIf="editable && camposFaltantes.length > 0">
+                <div class="aviso-faltantes">
+                    <span class="aviso-ico">⚠️</span>
+                    <span>
+                        Para guardar falta completar:
+                        <b>{{ camposFaltantes.join(', ') }}</b>
+                    </span>
+                </div>
             </div>
         </div>
     </div>

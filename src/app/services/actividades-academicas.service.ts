@@ -190,6 +190,26 @@ export class ActividadesAcademicasService {
         catchError(this.handleError)
       );
   }
+  /**
+   * Duplica una actividad con sus materiales e indicadores. La copia la arma
+   * el backend en una transaccion; aqui solo se manda el id del original.
+   */
+  duplicar(elemento: any) {
+    var body = JSON.stringify(elemento);
+    return this.http.post<any>(this.servicio + '/duplicar', body, httpOptions).pipe(
+      tap((respuesta: any) => {
+        //Se valida que si existe un mensaje de error
+        if (respuesta.error) {
+          console.log(respuesta);
+          throw respuesta.error;
+        }
+        console.log(respuesta);
+        return respuesta;
+      }),
+      catchError(this.handleError)
+    );
+  }
+
   private handleError(error: HttpErrorResponse) {
     return throwError(() => error);
   }

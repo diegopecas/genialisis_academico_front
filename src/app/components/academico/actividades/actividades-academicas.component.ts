@@ -20,6 +20,10 @@ export class ActividadesAcademicasComponent implements OnInit {
   public datos: any[] = [];
   public columnasFiltro = ['Tipo de Actividad', 'Título', 'Duración']; // Columnas para filtrar
 
+  public acciones = [
+    { id: 'duplicar', label: 'Duplicar Actividad', icono: '/assets/images/duplicar_actividad.png' }
+  ];
+
   constructor(
     private router: Router,
     private actividadesAcademicasService: ActividadesAcademicasService
@@ -150,5 +154,67 @@ export class ActividadesAcademicasComponent implements OnInit {
     if (event.accion === 'consultar') {
       this.router.navigate(['/academico/actividades/gestion/consultar/' + event.id]);
     }
+    if (event.accion === 'duplicar') {
+      this.duplicar(event.id, event.registro.titulo || 'Actividad sin título');
+    }
+  }
+
+  /**
+   * La copia la arma el backend en una transaccion (actividad + materiales +
+   * indicadores). Al terminar se abre directamente en edicion, que es donde el
+   * usuario va a cambiarle grupo, area e indicadores.
+   */
+  duplicar(idActividad: any, tituloActividad: string): void {
+    Swal.fire({
+      title: '¿Duplicar esta actividad?',
+      text: `Se creará una copia de "${tituloActividad}" con sus materiales e indicadores de logro. Los sprints asociados no se copian.`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, duplicar',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#F5A623',
+      reverseButtons: true
+    }).then((result) => {
+      if (!result.isConfirmed) {
+        return;
+      }
+
+      const body = { id: idActividad };
+      this.actividadesAcademicasService.duplicar(body).subscribe({
+        next: (response: any) => {
+          console.log("Duplicar response", response);
+          const idNuevo = response.id;
+
+          if (!idNuevo) {
+            Swal.fire({
+              title: 'Error al duplicar la actividad',
+              text: response.error || 'No se pudo duplicar la actividad. Intente más tarde.',
+              icon: 'error',
+              confirmButtonText: 'Aceptar'
+            });
+            return;
+          }
+
+          Swal.fire({
+            title: 'Actividad duplicada',
+            text: `Se creó "${response.titulo}". Ahora puedes ajustarle lo que necesites.`,
+            icon: 'success',
+            confirmButtonText: 'Editar la copia',
+            confirmButtonColor: '#F5A623'
+          }).then(() => {
+            this.router.navigate(['/academico/actividades/gestion/editar/' + idNuevo]);
+          });
+        },
+        error: (err: any) => {
+          console.error("Error en servicio duplicar actividad", err);
+          Swal.fire({
+            title: 'Error',
+            text: 'Ocurrió un error al intentar duplicar la actividad.',
+            icon: 'error',
+            confirmButtonText: 'Aceptar'
+          });
+        }
+      });
+    });
   }
 }

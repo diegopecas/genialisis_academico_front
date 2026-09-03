@@ -82,7 +82,17 @@ export class CrearActividadesAcademicasComponent implements OnInit, OnDestroy, A
   // Materiales como chips
   public materialesLista: any[] = [];
   public nuevoMaterialTexto: string = '';
+  // Pestañas: mismo patrón de crear-grupo (tabs en desktop, hamburguesa en móvil).
+  public pestanaActiva: string = 'basico';
+  public menuMovilAbierto: boolean = false;
+
   public productosDisponiblesActividad: any[] = [];
+
+  // Buscador del inventario: la lista completa puede pasar de 80 productos y
+  // pintarlos todos vuelve la pantalla inmanejable.
+  public filtroProductoInventario = '';
+  public mostrarTodosLosProductos = false;
+  private readonly limiteProductosVisibles = 12;
   public productoDetalleModal: any = null;
   
   public model = {
@@ -663,6 +673,74 @@ export class CrearActividadesAcademicasComponent implements OnInit, OnDestroy, A
     this.submitted = false;
     this.materialesLista = [];
     this.nuevoMaterialTexto = '';
+  }
+
+  seleccionarPestana(pestana: string): void {
+    this.pestanaActiva = pestana;
+    this.menuMovilAbierto = false;
+  }
+
+  /**
+   * Productos del inventario filtrados por el texto del buscador. Sin filtro se
+   * muestran solo los primeros, hasta que el usuario pida ver todos.
+   */
+  get productosInventarioFiltrados(): any[] {
+    const filtro = (this.filtroProductoInventario || '').trim().toLowerCase();
+
+    const coincidencias = filtro
+      ? this.productosDisponiblesActividad.filter((prod: any) =>
+          (prod.nombre || '').toLowerCase().includes(filtro))
+      : this.productosDisponiblesActividad;
+
+    if (filtro || this.mostrarTodosLosProductos) {
+      return coincidencias;
+    }
+    return coincidencias.slice(0, this.limiteProductosVisibles);
+  }
+
+  /** Cuántos productos quedan escondidos con el límite actual. */
+  get productosInventarioOcultos(): number {
+    const filtro = (this.filtroProductoInventario || '').trim();
+    if (filtro || this.mostrarTodosLosProductos) {
+      return 0;
+    }
+    const total = this.productosDisponiblesActividad.length;
+    return total > this.limiteProductosVisibles ? total - this.limiteProductosVisibles : 0;
+  }
+
+  toggleVerTodosLosProductos(): void {
+    this.mostrarTodosLosProductos = !this.mostrarTodosLosProductos;
+  }
+
+  limpiarFiltroProductos(): void {
+    this.filtroProductoInventario = '';
+  }
+
+  /**
+   * Campos obligatorios que faltan. Se muestran junto al botón de guardar:
+   * antes el botón quedaba deshabilitado sin decir por qué, y el caso típico
+   * es una actividad vieja guardada sin materiales.
+   */
+  get camposFaltantes(): string[] {
+    const faltantes: string[] = [];
+
+    if (!this.model.titulo || this.model.titulo.trim().length === 0) {
+      faltantes.push('Título de la Actividad');
+    }
+    if (!this.model.id_tipo_actividad_academica) {
+      faltantes.push('Tipo de Actividad');
+    }
+    if (!this.model.minutos_duracion || this.model.minutos_duracion <= 0) {
+      faltantes.push('Duración');
+    }
+    if (!this.model.materiales || this.model.materiales.trim().length === 0) {
+      faltantes.push('Materiales');
+    }
+    if (!this.model.descripcion || this.stripHtml(this.model.descripcion).trim().length === 0) {
+      faltantes.push('Descripción Detallada');
+    }
+
+    return faltantes;
   }
 
   formularioValido(): boolean {

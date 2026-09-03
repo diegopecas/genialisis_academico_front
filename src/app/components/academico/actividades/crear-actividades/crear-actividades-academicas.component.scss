@@ -33,22 +33,35 @@ $warning-color: #ffc107;
     border: none;
     font-weight: 600;
     
-    &.bg-corporate-primary {
-      background-color: $corporate-yellow;
+    /* Encabezados claros con borde dorado inferior, en vez del naranja
+       saturado y del negro. Es el mismo criterio del resto del sistema. */
+    &.bg-corporate-primary,
+    &.bg-corporate-secondary {
+      background-color: $white;
       color: $corporate-black;
-      
+      border-bottom: 3px solid $corporate-yellow;
+      padding: 0.9rem 1.1rem;
+
       h5 {
         color: $corporate-black;
         font-weight: 700;
+        display: flex;
+        align-items: center;
       }
-    }
-    
-    &.bg-corporate-secondary {
-      background-color: $corporate-black;
-      color: $white;
-      
-      h5 {
-        color: $white;
+
+      /* El icono del titulo va en un circulito dorado */
+      h5 > i:first-child {
+        color: $corporate-black;
+        background-color: rgba($corporate-yellow, 0.18);
+        border: 1px solid rgba($corporate-yellow, 0.5);
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.85rem;
+        flex-shrink: 0;
       }
     }
     
@@ -761,4 +774,355 @@ small.text-muted {
 .badge-check-ico {
   font-size: 14px;
   color: $success-color;
+}
+// ============================================================
+// INVENTARIO CON BUSCADOR
+// ============================================================
+.productos-inventario {
+  border: 1px solid #ECECEC;
+  border-radius: 10px;
+  padding: 12px;
+  background: #FCFCFC;
+}
+
+.inventario-encabezado {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+
+  .inventario-titulo {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: $corporate-gray;
+  }
+
+  .inventario-conteo {
+    font-size: 0.72rem;
+    color: #999;
+    background: $white;
+    border: 1px solid #ECECEC;
+    border-radius: 999px;
+    padding: 2px 10px;
+    white-space: nowrap;
+  }
+}
+
+.inventario-buscador {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: $white;
+  border: 1px solid #E0E0E0;
+  border-radius: 8px;
+  padding: 6px 10px;
+  margin-bottom: 10px;
+  transition: border-color 0.2s ease;
+
+  &:focus-within {
+    border-color: $corporate-yellow;
+  }
+
+  .buscador-ico {
+    font-size: 0.8rem;
+    opacity: 0.6;
+    flex-shrink: 0;
+  }
+
+  .inventario-input {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    outline: none;
+    font-size: 0.85rem;
+    background: transparent;
+  }
+
+  .btn-limpiar-filtro {
+    border: none;
+    background: none;
+    color: #999;
+    cursor: pointer;
+    font-size: 0.85rem;
+    padding: 0 4px;
+    line-height: 1;
+
+    &:hover { color: $corporate-black; }
+  }
+}
+
+.inventario-sin-resultados {
+  font-size: 0.8rem;
+  color: #999;
+  padding: 6px 2px;
+}
+
+.btn-ver-todos {
+  margin-top: 10px;
+  border: 1px dashed $corporate-yellow;
+  background: $white;
+  color: $corporate-gray;
+  border-radius: 999px;
+  padding: 5px 14px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba($corporate-yellow, 0.12);
+    color: $corporate-black;
+  }
+}
+
+// ============================================================
+// AVISO DE CAMPOS FALTANTES (por qué no deja guardar)
+// ============================================================
+.aviso-faltantes {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  max-width: 700px;
+  margin: 14px auto 0;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #FFF9E6;
+  border: 1px solid rgba($corporate-yellow, 0.5);
+  color: #7A5C0B;
+  font-size: 0.85rem;
+  line-height: 1.4;
+
+  .aviso-ico { flex-shrink: 0; }
+}
+
+// ============================================================
+// RESPONSIVE
+// ============================================================
+@media (max-width: 768px) {
+  .productos-inventario { padding: 10px; }
+
+  .inventario-encabezado {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .aviso-faltantes {
+    margin-left: 12px;
+    margin-right: 12px;
+    font-size: 0.8rem;
+  }
+
+  .btn-ver-todos { width: 100%; }
+}
+
+// ============================================================
+// PESTAÑAS (mismo patrón de crear-grupo)
+// ============================================================
+$tab-gold: #d4af37;
+$tab-black: #222;
+$tab-light-gold: rgba(212, 175, 55, 0.1);
+
+.tabs-container {
+  max-width: 1400px;
+  margin: 1.5rem auto 0 auto;
+  padding: 0 20px;
+}
+
+// Por defecto: desktop visible, movil oculto
+.tabs-desktop { display: block; }
+.tabs-movil { display: none; }
+
+.tabs-nav {
+  border-bottom: 1px solid $tab-gold;
+  flex-wrap: nowrap;
+  display: flex;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  overflow-x: auto;
+}
+
+.tab-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  color: $tab-black;
+  font-weight: 500;
+  margin-right: 3px;
+  border: 1px solid transparent;
+  border-radius: 6px 6px 0 0;
+  white-space: nowrap;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  background: none;
+
+  i { color: $tab-gold; font-size: 1.1rem; }
+
+  &:hover:not(.active) {
+    border-color: rgba($tab-gold, 0.3);
+    background-color: $tab-light-gold;
+  }
+
+  &.active {
+    color: $tab-black;
+    border-color: $tab-gold $tab-gold #fff;
+    background-color: #fff;
+    font-weight: 600;
+
+    &:hover { border-color: $tab-gold $tab-gold #fff; }
+  }
+}
+
+.tab-content { animation: fadeInTab 0.3s ease; }
+
+@keyframes fadeInTab {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+// ---------- Pestañas en movil (hamburguesa) ----------
+.tabs-movil-header { border-bottom: 2px solid $tab-gold; }
+
+.tabs-movil-trigger {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 16px;
+  background: #fff;
+  border: none;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: $tab-black;
+
+  > i:first-child { color: $tab-gold; font-size: 1.2rem; width: 24px; text-align: center; }
+
+  .tabs-movil-label {
+    flex: 1;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    i { color: $tab-gold; font-size: 0.95rem; }
+  }
+
+  .tabs-movil-chevron {
+    color: #999;
+    font-size: 0.75rem;
+    transition: transform 0.3s ease;
+
+    &.rotado { transform: rotate(180deg); }
+  }
+}
+
+.tabs-movil-dropdown {
+  background: #fff;
+  border: 1px solid #e9ecef;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  animation: slideDownTab 0.2s ease;
+}
+
+@keyframes slideDownTab {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.tabs-movil-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 20px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #495057;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid #f1f3f5;
+
+  &:last-child { border-bottom: none; }
+
+  i { color: $tab-gold; font-size: 1rem; width: 20px; text-align: center; }
+
+  &:hover { background-color: $tab-light-gold; }
+
+  &.active {
+    background-color: $tab-light-gold;
+    color: $tab-black;
+    font-weight: 600;
+    border-left: 3px solid $tab-gold;
+    padding-left: 17px;
+  }
+}
+
+@media (max-width: 768px) {
+  .tabs-container { padding: 0 10px; margin-top: 1rem; }
+  .tabs-desktop { display: none; }
+  .tabs-movil { display: block; }
+}
+
+// ============================================================
+// ENMARCADO DEL CONTENIDO DENTRO DE LA PESTAÑA
+// El container-fluid ocupaba todo el ancho mientras la barra de
+// pestañas iba a 1400px: el contenido quedaba desalineado y suelto.
+// ============================================================
+.modulo > .container-fluid {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding-left: 20px;
+  padding-right: 20px;
+  margin-top: 0 !important;
+}
+
+.tab-content {
+  background: #fff;
+  border: 1px solid rgba($tab-gold, 0.35);
+  border-top: none;
+  border-radius: 0 0 10px 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  padding: 1.5rem;
+  margin-top: 0;
+
+  // Las cards de adentro ya no necesitan su propio marco: el marco
+  // ahora es la pestaña. Se evita el efecto de caja dentro de caja.
+  .card {
+    box-shadow: none;
+    border: 1px solid #ECECEC;
+
+    &:hover {
+      box-shadow: none;
+      transform: none;
+    }
+
+    &:last-child {
+      margin-bottom: 0 !important;
+    }
+  }
+}
+
+// Los botones se alinean con el marco de la pestaña
+.modulo > .container-fluid > .row {
+  max-width: 100%;
+}
+
+@media (max-width: 768px) {
+  .modulo > .container-fluid {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .tab-content {
+    padding: 0.85rem;
+    border-radius: 0 0 8px 8px;
+  }
 }
