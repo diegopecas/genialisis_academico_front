@@ -170,6 +170,7 @@
           [nombrePersona]="colaborador.colaborador_nombre"
           [soloLectura]="!editable"
           [emailsFirmantes]="emailsFirmantes"
+          [permiteFirmaDigital]="true"
           [filtroCodigosTipoDocumento]="['contrato_trabajo']"
           (documentoSubido)="onDocumentoSubido($event)">
         </app-documentos-persona>

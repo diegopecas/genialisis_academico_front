@@ -29,10 +29,18 @@ export class DocumentosPersonaComponent implements OnInit, OnDestroy {
   @Input() idPersona!: string;
   @Input() tipoPersona!: string;
   @Input() nombrePersona?: string;
+  // Encabezado "Documentos de X". Va apagado por defecto: el componente casi
+  // siempre se embebe en un tab que ya se llama Documentos, dentro de la ficha
+  // de la persona, asi que el encabezado repite lo que ya esta en pantalla.
+  @Input() mostrarEncabezado = false;
   @Input() idContrato?: string;
   @Input() soloContratoFirmado = false;
   @Input() soloLectura = false;
   @Input() emailsFirmantes: string[] = [];
+  // Solo las pantallas donde la firma digital es una accion real (contratos)
+  // lo ponen en true. En las demas no se avisa por falta de firmantes, porque
+  // ahi nadie va a firmar nada.
+  @Input() permiteFirmaDigital = false;
   @Input() validarAcudientes = false;
   @Input() filtroCodigosTipoDocumento: string[] = [];
   @Input() modoSoloSubir = false;
@@ -49,6 +57,16 @@ export class DocumentosPersonaComponent implements OnInit, OnDestroy {
 
   public documentos: DocumentoPersona[] = [];
   public tiposDocumentos: TipoDocumento[] = [];
+
+  // Lista que realmente se pinta en la grilla: tiposDocumentos despues de
+  // aplicar los filtros de la barra. Se recalcula solo cuando cambian los
+  // filtros o los datos, no en cada ciclo de deteccion de cambios.
+  public tiposDocumentosFiltrados: TipoDocumento[] = [];
+
+  // Filtros de la barra superior.
+  public filtroTexto = '';
+  public filtroObligatorio: 'todos' | 'obligatorios' | 'opcionales' = 'todos';
+  public filtroCargado: 'todos' | 'con' | 'sin' = 'todos';
   public cargando = false;
   public mostrarModal = false;
   public mostrarModalDetalles = false;
@@ -142,6 +160,8 @@ export class DocumentosPersonaComponent implements OnInit, OnDestroy {
               (td) => this.filtroCodigosTipoDocumento.includes(td.codigo),
             );
           }
+
+          this.aplicarFiltros();
         },
         error: (error: any) => {
           console.error('❌ ERROR al cargar tipos:', error);
@@ -164,6 +184,9 @@ export class DocumentosPersonaComponent implements OnInit, OnDestroy {
         next: (response: any) => {
           this.documentos = response.body;
           this.cargando = false;
+          // El filtro "con / sin documentos" depende de lo que se acaba de
+          // cargar, asi que hay que recalcular.
+          this.aplicarFiltros();
         },
         error: (error: any) => {
           console.error('Error al cargar documentos:', error);
@@ -432,6 +455,75 @@ export class DocumentosPersonaComponent implements OnInit, OnDestroy {
     if (bytes < 1024) return bytes + ' B';
     if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
     return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+  }
+
+  // ============================================
+  // FILTROS DE LA GRILLA
+  // ============================================
+
+  /**
+   * Recalcula la lista visible aplicando los tres filtros: texto, obligatorio
+   * y si el tipo ya tiene algun documento cargado.
+   */
+  aplicarFiltros(): void {
+    const texto = this.filtroTexto.trim().toLowerCase();
+
+    this.tiposDocumentosFiltrados = this.tiposDocumentos.filter((tipoDoc) => {
+      if (texto) {
+        const coincide =
+          (tipoDoc.nombre || '').toLowerCase().includes(texto) ||
+          (tipoDoc.codigo || '').toLowerCase().includes(texto) ||
+          (tipoDoc.descripcion || '').toLowerCase().includes(texto);
+        if (!coincide) {
+          return false;
+        }
+      }
+
+      if (this.filtroObligatorio === 'obligatorios' && !tipoDoc.obligatorio) {
+        return false;
+      }
+      if (this.filtroObligatorio === 'opcionales' && tipoDoc.obligatorio) {
+        return false;
+      }
+
+      if (this.filtroCargado !== 'todos') {
+        const tiene = this.tieneDocumento(tipoDoc.id);
+        if (this.filtroCargado === 'con' && !tiene) {
+          return false;
+        }
+        if (this.filtroCargado === 'sin' && tiene) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }
+
+  cambiarFiltroObligatorio(valor: 'todos' | 'obligatorios' | 'opcionales'): void {
+    this.filtroObligatorio = valor;
+    this.aplicarFiltros();
+  }
+
+  cambiarFiltroCargado(valor: 'todos' | 'con' | 'sin'): void {
+    this.filtroCargado = valor;
+    this.aplicarFiltros();
+  }
+
+  limpiarFiltros(): void {
+    this.filtroTexto = '';
+    this.filtroObligatorio = 'todos';
+    this.filtroCargado = 'todos';
+    this.aplicarFiltros();
+  }
+
+  /** Si hay algun filtro puesto, para mostrar el boton de limpiar. */
+  get hayFiltrosActivos(): boolean {
+    return (
+      this.filtroTexto.trim() !== '' ||
+      this.filtroObligatorio !== 'todos' ||
+      this.filtroCargado !== 'todos'
+    );
   }
 
   tieneDocumento(idTipoDocumento: string): boolean {

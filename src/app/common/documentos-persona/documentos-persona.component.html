@@ -31,8 +31,8 @@
   <!-- MODO NORMAL (completo)           -->
   <!-- ================================ -->
   <ng-container *ngIf="!modoSoloSubir">
-  <!-- Header -->
-  <div class="card-simple mb-3">
+  <!-- Header (solo si la pantalla lo pide con [mostrarEncabezado]="true") -->
+  <div class="card-simple mb-3" *ngIf="mostrarEncabezado">
     <div class="card-header-simple">
       <i class="fas fa-folder-open me-2"></i>
       <span>Documentos {{ nombrePersona ? "de " + nombrePersona : "" }}</span>
@@ -64,6 +64,7 @@
   <!-- Alerta: Sin emails para firma digital -->
   <div
     *ngIf="
+      permiteFirmaDigital &&
       !soloLectura &&
       hayDocumentosQueRequierenFirma() &&
       (!emailsFirmantes || emailsFirmantes.length === 0)
@@ -82,9 +83,60 @@
     </div>
   </div>
 
+  <!-- Barra de filtros de la grilla. Solo aparece cuando hay mas de un tipo de
+       documento; con uno solo estorba mas de lo que ayuda. -->
+  <div
+    class="filtros-documentos"
+    *ngIf="!modoSoloSubir && !cargando && tiposDocumentos.length > 1"
+  >
+    <div class="filtro-busqueda">
+      <i class="fas fa-search"></i>
+      <input
+        type="text"
+        [(ngModel)]="filtroTexto"
+        (ngModelChange)="aplicarFiltros()"
+        placeholder="Buscar documento..."
+      />
+      <button
+        type="button"
+        class="btn-limpiar-texto"
+        *ngIf="filtroTexto"
+        (click)="filtroTexto = ''; aplicarFiltros()"
+        title="Limpiar búsqueda"
+      >
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <div class="filtro-chips">
+      <button type="button" class="chip" [class.active]="filtroObligatorio === 'todos'"
+        (click)="cambiarFiltroObligatorio('todos')">Todos</button>
+      <button type="button" class="chip" [class.active]="filtroObligatorio === 'obligatorios'"
+        (click)="cambiarFiltroObligatorio('obligatorios')">Obligatorios</button>
+      <button type="button" class="chip" [class.active]="filtroObligatorio === 'opcionales'"
+        (click)="cambiarFiltroObligatorio('opcionales')">Opcionales</button>
+    </div>
+
+    <div class="filtro-chips">
+      <button type="button" class="chip" [class.active]="filtroCargado === 'todos'"
+        (click)="cambiarFiltroCargado('todos')">Todos</button>
+      <button type="button" class="chip" [class.active]="filtroCargado === 'con'"
+        (click)="cambiarFiltroCargado('con')">Con documentos</button>
+      <button type="button" class="chip" [class.active]="filtroCargado === 'sin'"
+        (click)="cambiarFiltroCargado('sin')">Sin documentos</button>
+    </div>
+
+    <div class="filtro-resumen">
+      <span>{{ tiposDocumentosFiltrados.length }} de {{ tiposDocumentos.length }}</span>
+      <button type="button" class="btn-limpiar-filtros" *ngIf="hayFiltrosActivos" (click)="limpiarFiltros()">
+        <i class="fas fa-eraser"></i> Limpiar
+      </button>
+    </div>
+  </div>
+
   <!-- Lista de Tipos de Documentos -->
   <div *ngIf="!cargando" class="documentos-grid">
-    <div *ngFor="let tipoDoc of tiposDocumentos" class="documento-card-wrapper">
+    <div *ngFor="let tipoDoc of tiposDocumentosFiltrados" class="documento-card-wrapper">
       <div
         class="documento-card"
         [ngClass]="{ obligatorio: tipoDoc.obligatorio }"
@@ -255,6 +307,18 @@
         </div>
       </div>
     </div>
+  </div>
+
+  <!-- Ningun tipo pasa los filtros. Distinto de no tener tipos configurados. -->
+  <div
+    *ngIf="!modoSoloSubir && !cargando && tiposDocumentos.length > 0 && tiposDocumentosFiltrados.length === 0"
+    class="alert alert-warning"
+  >
+    <i class="fas fa-filter me-2"></i>
+    Ningún documento coincide con los filtros.
+    <button type="button" class="btn btn-sm btn-link p-0 ms-1" (click)="limpiarFiltros()">
+      Limpiar filtros
+    </button>
   </div>
 
   <!-- Sin tipos de documentos -->

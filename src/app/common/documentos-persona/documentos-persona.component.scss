@@ -2,6 +2,154 @@
   padding: 1rem;
 }
 
+
+// ============================================
+// BARRA DE FILTROS DE LA GRILLA
+// ============================================
+.filtros-documentos {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 10px;
+}
+
+.filtro-busqueda {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1 1 220px;
+  min-width: 180px;
+
+  > i {
+    position: absolute;
+    left: 12px;
+    color: #adb5bd;
+    font-size: 0.85rem;
+    pointer-events: none;
+  }
+
+  input {
+    width: 100%;
+    padding: 8px 32px 8px 32px;
+    border: 1px solid #ced4da;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    background: #fff;
+
+    &:focus {
+      outline: none;
+      border-color: #86b7fe;
+      box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+    }
+  }
+}
+
+.btn-limpiar-texto {
+  position: absolute;
+  right: 8px;
+  border: none;
+  background: none;
+  color: #adb5bd;
+  cursor: pointer;
+  padding: 2px 4px;
+  line-height: 1;
+
+  &:hover {
+    color: #6c757d;
+  }
+}
+
+// Grupos de chips. Van separados para que se lean como dos preguntas
+// distintas: obligatoriedad y si ya tiene archivo cargado.
+.filtro-chips {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px;
+  background: #fff;
+  border: 1px solid #e9ecef;
+  border-radius: 999px;
+}
+
+.chip {
+  border: none;
+  background: none;
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 0.82rem;
+  color: #6c757d;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+
+  &:hover:not(.active) {
+    background: #f1f3f5;
+    color: #495057;
+  }
+
+  &.active {
+    background: #0d6efd;
+    color: #fff;
+    font-weight: 600;
+  }
+}
+
+.filtro-resumen {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  font-size: 0.82rem;
+  color: #6c757d;
+  white-space: nowrap;
+}
+
+.btn-limpiar-filtros {
+  border: none;
+  background: none;
+  color: #0d6efd;
+  font-size: 0.82rem;
+  cursor: pointer;
+  padding: 2px 4px;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+// En movil los grupos se apilan y ocupan todo el ancho, si no los chips
+// quedan apretados y no se alcanzan a tocar bien.
+@media (max-width: 768px) {
+  .filtros-documentos {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filtro-busqueda {
+    flex: 1 1 auto;
+  }
+
+  .filtro-chips {
+    justify-content: space-between;
+  }
+
+  .chip {
+    flex: 1;
+    text-align: center;
+    padding: 7px 8px;
+  }
+
+  .filtro-resumen {
+    margin-left: 0;
+    justify-content: space-between;
+  }
+}
+
 // ============================================
 // GRID DE DOCUMENTOS
 // ============================================

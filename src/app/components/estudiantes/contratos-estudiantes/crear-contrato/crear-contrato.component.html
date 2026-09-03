@@ -450,7 +450,8 @@
       <div class="card-body-simple">
         <app-documentos-persona [idPersona]="estudiante.id_persona" [tipoPersona]="'estudiante'" [idContrato]="model.id"
           [soloContratoFirmado]="true" [nombrePersona]="nombre_estudiante" [soloLectura]="!editable"
-          [emailsFirmantes]="emailsFirmantes" (documentoSubido)="onDocumentoSubido($event)">
+          [emailsFirmantes]="emailsFirmantes" [permiteFirmaDigital]="true"
+          (documentoSubido)="onDocumentoSubido($event)">
         </app-documentos-persona>
       </div>
     </div>
