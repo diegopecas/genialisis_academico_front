@@ -3,6 +3,93 @@
 }
 
 
+
+// ============================================
+// AVANCE DE OBLIGATORIOS
+// ============================================
+.avance-obligatorios {
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.75rem;
+  background: rgba(220, 53, 69, 0.06);
+  border: 1px solid rgba(220, 53, 69, 0.15);
+  border-radius: 10px;
+
+  &.completo {
+    background: rgba(40, 167, 69, 0.06);
+    border-color: rgba(40, 167, 69, 0.18);
+
+    .avance-texto i {
+      color: #28a745;
+    }
+
+    .avance-relleno {
+      background: #28a745;
+    }
+  }
+}
+
+.avance-texto {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 8px;
+
+  i {
+    color: #dc3545;
+  }
+}
+
+.avance-barra {
+  height: 6px;
+  background: #e9ecef;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.avance-relleno {
+  height: 100%;
+  background: #dc3545;
+  border-radius: 999px;
+  transition: width 0.35s ease;
+}
+
+
+// Aviso de documentos vencidos
+.aviso-vencidos {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 0.6rem 1rem;
+  margin-bottom: 0.75rem;
+  border: 1px solid rgba(220, 53, 69, 0.25);
+  border-radius: 10px;
+  background: rgba(220, 53, 69, 0.08);
+  color: #b02a37;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.2s ease;
+
+  &:hover {
+    background: rgba(220, 53, 69, 0.14);
+  }
+
+  > span:not(.aviso-accion) {
+    flex: 1;
+  }
+
+  .aviso-accion {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-decoration: underline;
+  }
+}
+
 // ============================================
 // BARRA DE FILTROS DE LA GRILLA
 // ============================================
@@ -97,6 +184,16 @@
     color: #fff;
     font-weight: 600;
   }
+
+  // Los chips de vencimiento se tiñen al quedar activos: el filtro puesto
+  // tiene que notarse tanto como el problema que muestra.
+  &.chip-peligro.active {
+    background: #dc3545;
+  }
+
+  &.chip-alerta.active {
+    background: #fd7e14;
+  }
 }
 
 .filtro-resumen {
@@ -155,8 +252,11 @@
 // ============================================
 .documentos-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  // Todas del mismo alto: con el detalle colapsado la diferencia entre una
+  // tarjeta vacia y una con archivos es minima, y parejas se ven ordenadas.
+  align-items: stretch;
+  gap: 0.85rem;
   
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
@@ -172,21 +272,31 @@
 // CARD DE DOCUMENTO
 // ============================================
 .documento-card {
-  border: 1px solid #dee2e6;
-  border-radius: 8px;
+  border: 1px solid #e9ecef;
+  border-radius: 10px;
   overflow: hidden;
-  transition: box-shadow 0.2s;
+  transition: box-shadow 0.2s, border-color 0.2s;
   height: 100%;
   display: flex;
   flex-direction: column;
   background: white;
 
   &:hover {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
   }
 
-  &.obligatorio {
-    border-left: 4px solid #dc3545;
+  // El color marca lo accionable, no la categoria: rojo solo si es
+  // obligatorio y todavia no tiene archivo.
+  &.estado-pendiente {
+    border-left: 3px solid #dc3545;
+  }
+
+  &.estado-listo {
+    border-left: 3px solid #28a745;
+  }
+
+  &.estado-opcional {
+    border-left: 3px solid #e9ecef;
   }
 }
 
@@ -194,9 +304,9 @@
 // HEADER DEL CARD
 // ============================================
 .documento-header {
-  background: #f8f9fa;
-  padding: 1rem;
-  border-bottom: 1px solid #dee2e6;
+  background: #fcfcfd;
+  padding: 0.75rem 0.85rem;
+  border-bottom: 1px solid #f1f3f5;
   
   .header-content {
     display: flex;
@@ -210,29 +320,40 @@
     min-width: 0;
 
     h6 {
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       font-weight: 600;
-      margin: 0 0 0.5rem 0;
+      margin: 0 0 0.35rem 0;
       color: #212529;
+      line-height: 1.3;
+    }
+
+    .icono-listo {
+      color: #28a745;
+      font-size: 0.8rem;
+      margin-right: 2px;
     }
   }
 
+  // Discreto: en una pantalla con 23 tarjetas, 23 botones azules solidos
+  // competian con el contenido. El color aparece al pasar el mouse.
   .btn-upload {
-    background: #007bff;
-    color: white;
-    border: none;
+    background: transparent;
+    color: #adb5bd;
+    border: 1px solid #e9ecef;
     border-radius: 6px;
-    padding: 0.5rem 0.75rem;
+    padding: 0.3rem 0.5rem;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: all 0.2s;
     flex-shrink: 0;
 
     &:hover {
-      background: #0056b3;
+      background: #007bff;
+      border-color: #007bff;
+      color: #fff;
     }
 
     i {
-      font-size: 0.9rem;
+      font-size: 0.85rem;
     }
   }
 }
@@ -255,6 +376,24 @@
   &.badge-secondary {
     background: #6c757d;
     color: white;
+  }
+
+  // Obligatorio sin archivo: lo unico que se resalta de verdad.
+  &.badge-pendiente {
+    background: rgba(220, 53, 69, 0.1);
+    color: #b02a37;
+    font-weight: 600;
+  }
+
+  // Obligatorio ya cumplido: informa, no alarma.
+  &.badge-listo {
+    background: rgba(40, 167, 69, 0.1);
+    color: #1e7e34;
+  }
+
+  &.badge-opcional {
+    background: #f1f3f5;
+    color: #868e96;
   }
 
   &.badge.bg-danger {
@@ -282,21 +421,74 @@
 // BODY DEL CARD
 // ============================================
 .documento-body {
-  padding: 1rem;
-  flex-grow: 1;
+  padding: 0.75rem 0.85rem;
   background: white;
+  flex-grow: 1;
 }
 
+// Compacta: la tarjeta vacia no tiene por que ocupar lo mismo que una con
+// archivos.
 .sin-documentos {
-  color: #6c757d;
-  font-size: 0.875rem;
+  color: #adb5bd;
+  font-size: 0.8rem;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
+  padding: 0.15rem 0;
 
   i {
-    color: #6c757d;
+    color: #ced4da;
+    font-size: 0.75rem;
   }
+}
+
+
+// ============================================
+// RESUMEN COLAPSADO DE ARCHIVOS
+// ============================================
+.resumen-documentos {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  background: #f8f9fa;
+  cursor: pointer;
+  font-size: 0.82rem;
+  color: #495057;
+  text-align: left;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: #f1f3f5;
+    border-color: #dee2e6;
+  }
+
+  > i:first-child {
+    color: #adb5bd;
+    font-size: 0.8rem;
+  }
+
+  .resumen-texto {
+    flex: 1;
+  }
+
+  .resumen-chevron {
+    color: #adb5bd;
+    font-size: 0.7rem;
+    transition: transform 0.2s ease;
+
+    &.abierto {
+      transform: rotate(180deg);
+    }
+  }
+}
+
+// Separa el detalle del resumen cuando esta desplegado
+.resumen-documentos + .documento-item-wrapper {
+  margin-top: 0.6rem;
 }
 
 // ============================================
@@ -427,12 +619,12 @@
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  width: 36px !important;
-  height: 36px !important;
-  min-width: 36px !important;
-  min-height: 36px !important;
-  max-width: 36px !important;
-  max-height: 36px !important;
+  width: 30px !important;
+  height: 30px !important;
+  min-width: 30px !important;
+  min-height: 30px !important;
+  max-width: 30px !important;
+  max-height: 30px !important;
   border: 1px solid !important;
   border-radius: 6px !important;
   background: white !important;

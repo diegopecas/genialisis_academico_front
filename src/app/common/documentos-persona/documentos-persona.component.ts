@@ -64,9 +64,14 @@ export class DocumentosPersonaComponent implements OnInit, OnDestroy {
   public tiposDocumentosFiltrados: TipoDocumento[] = [];
 
   // Filtros de la barra superior.
+  // Tipos con el detalle de archivos desplegado. Por defecto la tarjeta solo
+  // muestra el resumen (cuantos y de que fecha).
+  public tiposExpandidos = new Set<string>();
+
   public filtroTexto = '';
   public filtroObligatorio: 'todos' | 'obligatorios' | 'opcionales' = 'todos';
   public filtroCargado: 'todos' | 'con' | 'sin' = 'todos';
+  public filtroVencimiento: 'todos' | 'vencidos' | 'por_vencer' = 'todos';
   public cargando = false;
   public mostrarModal = false;
   public mostrarModalDetalles = false;
@@ -355,7 +360,66 @@ export class DocumentosPersonaComponent implements OnInit, OnDestroy {
 
   descargarDocumento(documento: DocumentoPersona) {
     if (!documento.id) return;
-    this.documentosService.descargarDocumentoArchivo(documento.id);
+    this.documentosService.descargarDocumentoArchivo(
+      documento.id,
+      this.armarNombreDescarga(documento),
+    );
+  }
+
+  /**
+   * Nombre con el que se baja el archivo:
+   *   Persona - Tipo de documento - 2026-02-17 - 1
+   * Mucho mas util que el nombre original (IMG_20260217_WA0034), sobre todo
+   * cuando se juntan documentos de varias personas en una carpeta.
+   *
+   * Nota: solo aplica si el backend no manda Content-Disposition, porque ese
+   * encabezado manda sobre este nombre.
+   */
+  private armarNombreDescarga(documento: DocumentoPersona): string {
+    const tipoDoc = this.tiposDocumentos.find(
+      (t) => t.id === documento.id_tipo_documento,
+    );
+
+    const partes = [
+      this.limpiarParteNombre(this.nombrePersona || ''),
+      this.limpiarParteNombre(tipoDoc?.nombre || 'Documento'),
+      (documento.fecha_subida || '').split('T')[0],
+      String(this.consecutivoDocumento(documento)),
+    ].filter((parte) => parte !== '');
+
+    const base = partes.join(' - ');
+    const extension = (documento.nombre_documento || '').split('.').pop();
+
+    // Si el original no traia extension, se deja sin ella: el servicio la
+    // deduce del tipo MIME de la respuesta.
+    if (!extension || extension === documento.nombre_documento) {
+      return base;
+    }
+    return `${base}.${extension}`;
+  }
+
+  /**
+   * Numero del documento dentro de su tipo, contando del mas antiguo al mas
+   * reciente. El backend los devuelve por fecha_subida DESC, asi que se cuenta
+   * desde el final: el ultimo del arreglo es el 1.
+   *
+   * No es un consecutivo guardado: si se borra uno, los siguientes se corren.
+   */
+  private consecutivoDocumento(documento: DocumentoPersona): number {
+    const delTipo = this.obtenerDocumentosPorTipo(documento.id_tipo_documento);
+    const posicion = delTipo.findIndex((d) => d.id === documento.id);
+    if (posicion === -1) {
+      return 1;
+    }
+    return delTipo.length - posicion;
+  }
+
+  /** Quita lo que estorba en un nombre de archivo y deja una sola linea. */
+  private limpiarParteNombre(texto: string): string {
+    return texto
+      .replace(/[\\/:*?"<>|]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
   }
 
   eliminarDocumento(documento: DocumentoPersona) {
@@ -486,6 +550,19 @@ export class DocumentosPersonaComponent implements OnInit, OnDestroy {
         return false;
       }
 
+      if (this.filtroVencimiento !== 'todos') {
+        const estado =
+          this.filtroVencimiento === 'vencidos' ? 'VENCIDO' : 'PROXIMO_VENCER';
+        // Un tipo pasa si alguno de sus documentos esta en ese estado. Los que
+        // no tienen archivos quedan fuera, que es lo esperado.
+        const tieneEstado = this.obtenerDocumentosPorTipo(tipoDoc.id).some(
+          (doc) => doc.estado_vencimiento === estado,
+        );
+        if (!tieneEstado) {
+          return false;
+        }
+      }
+
       if (this.filtroCargado !== 'todos') {
         const tiene = this.tieneDocumento(tipoDoc.id);
         if (this.filtroCargado === 'con' && !tiene) {
@@ -500,6 +577,66 @@ export class DocumentosPersonaComponent implements OnInit, OnDestroy {
     });
   }
 
+  /** Tipos obligatorios configurados para esta persona. */
+  get totalObligatorios(): number {
+    return this.tiposDocumentos.filter((td) => td.obligatorio).length;
+  }
+
+  /** Obligatorios que ya tienen al menos un archivo cargado. */
+  get obligatoriosCumplidos(): number {
+    return this.tiposDocumentos.filter(
+      (td) => td.obligatorio && this.tieneDocumento(td.id),
+    ).length;
+  }
+
+  /** Porcentaje para la barra de avance del encabezado. */
+  get porcentajeObligatorios(): number {
+    if (!this.totalObligatorios) {
+      return 0;
+    }
+    return Math.round((this.obligatoriosCumplidos * 100) / this.totalObligatorios);
+  }
+
+  /**
+   * Estado de una tarjeta, para pintarla segun lo que hay que hacer con ella:
+   * 'pendiente' obligatorio sin archivo, 'listo' obligatorio ya cargado,
+   * 'opcional' el resto.
+   */
+  estadoTipo(tipoDoc: TipoDocumento): 'pendiente' | 'listo' | 'opcional' {
+    if (!tipoDoc.obligatorio) {
+      return 'opcional';
+    }
+    return this.tieneDocumento(tipoDoc.id) ? 'listo' : 'pendiente';
+  }
+
+  /** Abre o cierra el detalle de archivos de un tipo. */
+  alternarExpansion(idTipoDocumento: string): void {
+    if (this.tiposExpandidos.has(idTipoDocumento)) {
+      this.tiposExpandidos.delete(idTipoDocumento);
+    } else {
+      this.tiposExpandidos.add(idTipoDocumento);
+    }
+  }
+
+  estaExpandido(idTipoDocumento: string): boolean {
+    return this.tiposExpandidos.has(idTipoDocumento);
+  }
+
+  /** Cuantos archivos tiene cargados un tipo. */
+  contarDocumentos(idTipoDocumento: string): number {
+    return this.obtenerDocumentosPorTipo(idTipoDocumento).length;
+  }
+
+  /** Fecha del documento mas reciente del tipo, para el resumen colapsado. */
+  fechaUltimoDocumento(idTipoDocumento: string): string {
+    const documentos = this.obtenerDocumentosPorTipo(idTipoDocumento);
+    if (!documentos.length) {
+      return '';
+    }
+    // El backend los devuelve por fecha_subida DESC: el primero es el ultimo.
+    return this.formatearFecha(documentos[0].fecha_subida);
+  }
+
   cambiarFiltroObligatorio(valor: 'todos' | 'obligatorios' | 'opcionales'): void {
     this.filtroObligatorio = valor;
     this.aplicarFiltros();
@@ -510,10 +647,22 @@ export class DocumentosPersonaComponent implements OnInit, OnDestroy {
     this.aplicarFiltros();
   }
 
+  cambiarFiltroVencimiento(valor: 'todos' | 'vencidos' | 'por_vencer'): void {
+    this.filtroVencimiento = valor;
+    this.aplicarFiltros();
+  }
+
+  /** Cuantos documentos estan vencidos, para el aviso del encabezado. */
+  get totalVencidos(): number {
+    return this.documentos.filter((d) => d.estado_vencimiento === 'VENCIDO')
+      .length;
+  }
+
   limpiarFiltros(): void {
     this.filtroTexto = '';
     this.filtroObligatorio = 'todos';
     this.filtroCargado = 'todos';
+    this.filtroVencimiento = 'todos';
     this.aplicarFiltros();
   }
 
@@ -522,7 +671,8 @@ export class DocumentosPersonaComponent implements OnInit, OnDestroy {
     return (
       this.filtroTexto.trim() !== '' ||
       this.filtroObligatorio !== 'todos' ||
-      this.filtroCargado !== 'todos'
+      this.filtroCargado !== 'todos' ||
+      this.filtroVencimiento !== 'todos'
     );
   }
 

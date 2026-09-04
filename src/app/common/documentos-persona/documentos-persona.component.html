@@ -83,6 +83,41 @@
     </div>
   </div>
 
+  <!-- Avance de obligatorios: responde de un vistazo que falta por subir. -->
+  <div
+    class="avance-obligatorios"
+    *ngIf="!modoSoloSubir && !cargando && totalObligatorios > 0"
+    [class.completo]="obligatoriosCumplidos === totalObligatorios"
+  >
+    <div class="avance-texto">
+      <i class="fas" [ngClass]="obligatoriosCumplidos === totalObligatorios ? 'fa-circle-check' : 'fa-triangle-exclamation'"></i>
+      <span *ngIf="obligatoriosCumplidos < totalObligatorios">
+        Faltan {{ totalObligatorios - obligatoriosCumplidos }} de {{ totalObligatorios }} documentos obligatorios
+      </span>
+      <span *ngIf="obligatoriosCumplidos === totalObligatorios">
+        Los {{ totalObligatorios }} documentos obligatorios están completos
+      </span>
+    </div>
+    <div class="avance-barra">
+      <div class="avance-relleno" [style.width.%]="porcentajeObligatorios"></div>
+    </div>
+  </div>
+
+  <!-- Aviso de vencidos: al pulsarlo deja la grilla solo con esos. -->
+  <button
+    type="button"
+    class="aviso-vencidos"
+    *ngIf="!modoSoloSubir && !cargando && totalVencidos > 0"
+    (click)="cambiarFiltroVencimiento('vencidos')"
+  >
+    <i class="fas fa-circle-exclamation"></i>
+    <span>
+      {{ totalVencidos }}
+      {{ totalVencidos === 1 ? 'documento vencido' : 'documentos vencidos' }}
+    </span>
+    <span class="aviso-accion">Ver</span>
+  </button>
+
   <!-- Barra de filtros de la grilla. Solo aparece cuando hay mas de un tipo de
        documento; con uno solo estorba mas de lo que ayuda. -->
   <div
@@ -126,6 +161,15 @@
         (click)="cambiarFiltroCargado('sin')">Sin documentos</button>
     </div>
 
+    <div class="filtro-chips">
+      <button type="button" class="chip" [class.active]="filtroVencimiento === 'todos'"
+        (click)="cambiarFiltroVencimiento('todos')">Todos</button>
+      <button type="button" class="chip chip-peligro" [class.active]="filtroVencimiento === 'vencidos'"
+        (click)="cambiarFiltroVencimiento('vencidos')">Vencidos</button>
+      <button type="button" class="chip chip-alerta" [class.active]="filtroVencimiento === 'por_vencer'"
+        (click)="cambiarFiltroVencimiento('por_vencer')">Por vencer</button>
+    </div>
+
     <div class="filtro-resumen">
       <span>{{ tiposDocumentosFiltrados.length }} de {{ tiposDocumentos.length }}</span>
       <button type="button" class="btn-limpiar-filtros" *ngIf="hayFiltrosActivos" (click)="limpiarFiltros()">
@@ -139,17 +183,29 @@
     <div *ngFor="let tipoDoc of tiposDocumentosFiltrados" class="documento-card-wrapper">
       <div
         class="documento-card"
-        [ngClass]="{ obligatorio: tipoDoc.obligatorio }"
+        [ngClass]="'estado-' + estadoTipo(tipoDoc)"
       >
         <!-- Header del Card -->
         <div class="documento-header">
           <div class="header-content">
             <div class="header-info">
-              <h6>{{ tipoDoc.nombre }}</h6>
-              <span *ngIf="tipoDoc.obligatorio" class="badge badge-danger"
+              <h6>
+                <i
+                  *ngIf="estadoTipo(tipoDoc) === 'listo'"
+                  class="fas fa-circle-check icono-listo"
+                  title="Obligatorio ya cargado"
+                ></i>
+                {{ tipoDoc.nombre }}
+              </h6>
+              <!-- Solo se resalta lo que hay que hacer: el obligatorio sin
+                   archivo. El cumplido y el opcional van en tono neutro. -->
+              <span *ngIf="estadoTipo(tipoDoc) === 'pendiente'" class="badge badge-pendiente"
                 >Obligatorio</span
               >
-              <span *ngIf="!tipoDoc.obligatorio" class="badge badge-secondary"
+              <span *ngIf="estadoTipo(tipoDoc) === 'listo'" class="badge badge-listo"
+                >Obligatorio</span
+              >
+              <span *ngIf="estadoTipo(tipoDoc) === 'opcional'" class="badge badge-opcional"
                 >Opcional</span
               >
             </div>
@@ -171,9 +227,27 @@
             <span>Sin documentos</span>
           </div>
 
+          <!-- Resumen colapsado: cuantos archivos y de cuando. El nombre del
+               archivo original no aporta, asi que queda dentro del detalle. -->
+          <button
+            *ngIf="tieneDocumento(tipoDoc.id)"
+            type="button"
+            class="resumen-documentos"
+            (click)="alternarExpansion(tipoDoc.id)"
+          >
+            <i class="fas fa-paperclip"></i>
+            <span class="resumen-texto">
+              {{ contarDocumentos(tipoDoc.id) }}
+              {{ contarDocumentos(tipoDoc.id) === 1 ? 'documento' : 'documentos' }}
+              · {{ fechaUltimoDocumento(tipoDoc.id) }}
+            </span>
+            <i class="fas fa-chevron-down resumen-chevron" [class.abierto]="estaExpandido(tipoDoc.id)"></i>
+          </button>
+
           <div
             *ngFor="let doc of obtenerDocumentosPorTipo(tipoDoc.id)"
             class="documento-item-wrapper"
+            [hidden]="!estaExpandido(tipoDoc.id)"
           >
             <div class="documento-item-content">
               <div class="documento-info">
