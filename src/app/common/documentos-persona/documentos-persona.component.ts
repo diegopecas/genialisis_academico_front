@@ -69,6 +69,7 @@ export class DocumentosPersonaComponent implements OnInit, OnDestroy {
     id: string;
     nombre: string;
     icono: string;
+    color: string;
     orden: number;
     tipos: TipoDocumento[];
     pendientes: number;
@@ -83,6 +84,19 @@ export class DocumentosPersonaComponent implements OnInit, OnDestroy {
 
   // Carpeta abierta cuando la vista es 'carpetas'. Null = rejilla de carpetas.
   public categoriaAbierta: string | null = null;
+
+  // En la vista lista todas arrancan cerradas; esto evita volver a cerrarlas
+  // cada vez que el usuario filtra.
+  private colapsoInicializado = false;
+
+  // Colores pastel para distinguir las categorias. No vienen de la base: se
+  // asignan por posicion, asi cada categoria conserva el suyo entre recargas
+  // mientras no cambie su orden.
+  private readonly paletaCategorias = [
+    '#4dabf7', '#f06595', '#20c997', '#fab005', '#845ef7',
+    '#ff922b', '#22b8cf', '#94d82d', '#e64980', '#5c7cfa',
+    '#12b886', '#fd7e14',
+  ];
 
   // Filtros de la barra superior.
   // Tipos con el detalle de archivos desplegado. Por defecto la tarjeta solo
@@ -617,6 +631,7 @@ export class DocumentosPersonaComponent implements OnInit, OnDestroy {
           id: id,
           nombre: tipoDoc.categoria_nombre ? tipoDoc.categoria_nombre : 'Otros',
           icono: tipoDoc.categoria_icono ? tipoDoc.categoria_icono : 'fa-folder',
+          color: '',
           // Sin categoria va de ultimo, sin importar como esten las demas.
           orden: id === 'otros' ? 9999 : (tipoDoc.categoria_orden || 0),
           tipos: [],
@@ -634,6 +649,20 @@ export class DocumentosPersonaComponent implements OnInit, OnDestroy {
     this.gruposCategorias = Array.from(mapa.values()).sort(
       (a, b) => a.orden - b.orden || a.nombre.localeCompare(b.nombre),
     );
+
+    this.gruposCategorias.forEach((grupo, indice) => {
+      grupo.color =
+        grupo.id === 'otros'
+          ? '#adb5bd'
+          : this.paletaCategorias[indice % this.paletaCategorias.length];
+    });
+
+    // La vista lista arranca con todo cerrado: con varias categorias abiertas
+    // se pierde la ventaja de agrupar.
+    if (!this.colapsoInicializado && this.gruposCategorias.length > 0) {
+      this.gruposCategorias.forEach((grupo) => this.categoriasColapsadas.add(grupo.id));
+      this.colapsoInicializado = true;
+    }
 
     // Si al filtrar la carpeta abierta se queda sin documentos, se vuelve a la
     // rejilla en vez de dejar la pantalla vacia.

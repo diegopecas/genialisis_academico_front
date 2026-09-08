@@ -223,7 +223,7 @@
   <div *ngIf="!cargando && vista === 'carpetas' && categoriaAbierta && grupoAbierto">
     <button type="button" class="carpeta-volver" (click)="volverACarpetas()">
       <i class="fas fa-arrow-left"></i>
-      <i class="fas" [ngClass]="grupoAbierto.icono"></i>
+      <i class="fas" [ngClass]="grupoAbierto.icono" [style.color]="grupoAbierto.color"></i>
       <span>{{ grupoAbierto.nombre }}</span>
       <span class="carpeta-volver-conteo">{{ grupoAbierto.tipos.length }}</span>
     </button>
@@ -244,9 +244,12 @@
         type="button"
         class="categoria-cabecera"
         [class.con-pendientes]="grupo.pendientes > 0"
+        [style.border-left-color]="grupo.pendientes > 0 ? '#dc3545' : grupo.color"
         (click)="alternarCategoria(grupo.id)"
       >
-        <i class="fas categoria-icono" [ngClass]="grupo.icono"></i>
+        <span class="categoria-icono-caja" [style.background-color]="grupo.color + '22'">
+          <i class="fas categoria-icono" [ngClass]="grupo.icono" [style.color]="grupo.color"></i>
+        </span>
         <span class="categoria-nombre">{{ grupo.nombre }}</span>
         <span class="categoria-conteo">{{ grupo.tipos.length }}</span>
         <span class="categoria-pendientes" *ngIf="grupo.pendientes > 0">

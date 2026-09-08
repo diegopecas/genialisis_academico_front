@@ -288,68 +288,117 @@
 .carpetas-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
-  gap: 1rem;
+  // Espacio arriba para la pestaña de la carpeta, que sobresale del recuadro
+  gap: 1.6rem 1rem;
+  padding-top: 14px;
 }
 
+// Forma de carpeta de archivador: la pestaña se dibuja con ::before y el
+// cuerpo es la tarjeta. Sin imagenes, todo con CSS.
 .carpeta {
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 1.5rem 1rem;
-  border: 1px solid #e9ecef;
-  border-radius: 14px;
-  background: #fff;
+  gap: 6px;
+  padding: 1.6rem 1rem 1.3rem;
+  border: none;
+  border-radius: 4px 12px 12px 12px;
+  background: linear-gradient(160deg, #fbd970 0%, #f3c250 55%, #eab63f 100%);
+  box-shadow: 0 3px 10px rgba(120, 90, 10, 0.18);
   cursor: pointer;
   text-align: center;
   transition: all 0.2s ease;
 
-  &:hover {
-    border-color: #ced4da;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
-    transform: translateY(-3px);
+  // Pestaña superior izquierda
+  &::before {
+    content: '';
+    position: absolute;
+    top: -13px;
+    left: 0;
+    width: 52%;
+    height: 15px;
+    background: linear-gradient(160deg, #fbd970 0%, #f5c95c 100%);
+    border-radius: 6px 10px 0 0;
   }
 
-  // La carpeta con documentos obligatorios pendientes se distingue del resto
+  // Filo del papel asomando, para que no se vea como un simple cuadro
+  &::after {
+    content: '';
+    position: absolute;
+    top: 10px;
+    left: 12%;
+    right: 12%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.75);
+    border-radius: 3px 3px 0 0;
+  }
+
+  &:hover {
+    box-shadow: 0 10px 22px rgba(120, 90, 10, 0.28);
+    transform: translateY(-4px);
+  }
+
+  // La carpeta con obligatorios pendientes se vuelve roja: se ve de lejos
   &.con-pendientes {
-    border-color: rgba(220, 53, 69, 0.35);
-    background: rgba(220, 53, 69, 0.03);
+    background: linear-gradient(160deg, #f8b4b4 0%, #ef8f8f 55%, #e57373 100%);
+    box-shadow: 0 3px 10px rgba(140, 40, 40, 0.2);
+
+    &::before {
+      background: linear-gradient(160deg, #f8b4b4 0%, #f09b9b 100%);
+    }
+
+    &:hover {
+      box-shadow: 0 10px 22px rgba(140, 40, 40, 0.3);
+    }
+
+    .carpeta-icono,
+    .carpeta-nombre {
+      color: #7a2222;
+    }
+
+    .carpeta-conteo {
+      color: rgba(122, 34, 34, 0.75);
+    }
   }
 }
 
 .carpeta-icono {
-  font-size: 2.2rem;
-  color: #f0b429;
+  font-size: 1.9rem;
+  color: #7a5a12;
+  margin-top: 4px;
 }
 
 .carpeta-nombre {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #343a40;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #5c4813;
   line-height: 1.25;
 }
 
 .carpeta-conteo {
-  font-size: 0.75rem;
-  color: #adb5bd;
+  font-size: 0.73rem;
+  color: rgba(92, 72, 19, 0.75);
 }
 
-// Globito con los pendientes, arriba a la derecha de la carpeta
+// Globito con los pendientes, sobre la esquina de la carpeta
 .carpeta-badge {
   position: absolute;
-  top: 10px;
-  right: 10px;
-  min-width: 22px;
-  height: 22px;
-  padding: 0 6px;
+  top: -8px;
+  right: -6px;
+  z-index: 2;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 7px;
   border-radius: 999px;
   background: #dc3545;
+  border: 2px solid #fff;
   color: #fff;
   font-size: 0.72rem;
   font-weight: 700;
-  line-height: 22px;
+  line-height: 20px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 
 // Cabecera de la carpeta abierta
@@ -400,11 +449,15 @@
   }
 
   .carpeta {
-    padding: 1.1rem 0.75rem;
+    padding: 1.3rem 0.6rem 1rem;
   }
 
   .carpeta-icono {
-    font-size: 1.9rem;
+    font-size: 1.6rem;
+  }
+
+  .carpeta-nombre {
+    font-size: 0.82rem;
   }
 
   .selector-vista {
@@ -425,12 +478,13 @@
   align-items: center;
   gap: 10px;
   width: 100%;
-  padding: 0.6rem 0.85rem;
+  padding: 0.55rem 0.85rem;
   margin-bottom: 0.75rem;
   border: 1px solid #e9ecef;
-  border-left: 3px solid #ced4da;
+  // El color del borde lo pone el componente segun la categoria
+  border-left: 4px solid #ced4da;
   border-radius: 8px;
-  background: #f8f9fa;
+  background: #fff;
   cursor: pointer;
   text-align: left;
   transition: all 0.2s ease;
@@ -445,11 +499,19 @@
   }
 }
 
+// El icono va dentro de un cuadro con el color de la categoria al 13%
+.categoria-icono-caja {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
 .categoria-icono {
-  color: #868e96;
-  font-size: 1rem;
-  width: 20px;
-  text-align: center;
+  font-size: 0.95rem;
 }
 
 .categoria-nombre {
