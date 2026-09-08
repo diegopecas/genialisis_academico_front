@@ -248,6 +248,171 @@
 }
 
 
+
+// ============================================
+// VISTA DE CARPETAS
+// ============================================
+.selector-vista {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px;
+  margin-bottom: 1rem;
+  background: #fff;
+  border: 1px solid #e9ecef;
+  border-radius: 999px;
+}
+
+.vista-opcion {
+  border: none;
+  background: none;
+  border-radius: 999px;
+  padding: 5px 14px;
+  font-size: 0.82rem;
+  color: #6c757d;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover:not(.active) {
+    background: #f1f3f5;
+    color: #495057;
+  }
+
+  &.active {
+    background: #0d6efd;
+    color: #fff;
+    font-weight: 600;
+  }
+}
+
+.carpetas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 1rem;
+}
+
+.carpeta {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 1.5rem 1rem;
+  border: 1px solid #e9ecef;
+  border-radius: 14px;
+  background: #fff;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: #ced4da;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+    transform: translateY(-3px);
+  }
+
+  // La carpeta con documentos obligatorios pendientes se distingue del resto
+  &.con-pendientes {
+    border-color: rgba(220, 53, 69, 0.35);
+    background: rgba(220, 53, 69, 0.03);
+  }
+}
+
+.carpeta-icono {
+  font-size: 2.2rem;
+  color: #f0b429;
+}
+
+.carpeta-nombre {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #343a40;
+  line-height: 1.25;
+}
+
+.carpeta-conteo {
+  font-size: 0.75rem;
+  color: #adb5bd;
+}
+
+// Globito con los pendientes, arriba a la derecha de la carpeta
+.carpeta-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #dc3545;
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 22px;
+}
+
+// Cabecera de la carpeta abierta
+.carpeta-volver {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 0.6rem 0.85rem;
+  margin-bottom: 1rem;
+  border: 1px solid #e9ecef;
+  border-radius: 10px;
+  background: #f8f9fa;
+  cursor: pointer;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #343a40;
+  text-align: left;
+  transition: background 0.2s ease;
+
+  &:hover {
+    background: #f1f3f5;
+  }
+
+  > i:first-child {
+    color: #6c757d;
+  }
+
+  > i:nth-child(2) {
+    color: #f0b429;
+  }
+}
+
+.carpeta-volver-conteo {
+  margin-left: auto;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #868e96;
+  background: #e9ecef;
+  border-radius: 999px;
+  padding: 2px 10px;
+}
+
+@media (max-width: 768px) {
+  .carpetas-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .carpeta {
+    padding: 1.1rem 0.75rem;
+  }
+
+  .carpeta-icono {
+    font-size: 1.9rem;
+  }
+
+  .selector-vista {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
 // ============================================
 // CARPETAS POR CATEGORIA
 // ============================================

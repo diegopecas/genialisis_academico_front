@@ -77,6 +77,13 @@ export class DocumentosPersonaComponent implements OnInit, OnDestroy {
   // Categorias con la carpeta cerrada. Por defecto todas abiertas.
   public categoriasColapsadas = new Set<string>();
 
+  // 'carpetas': se ven las categorias como carpetas y se entra a una.
+  // 'lista': todas las secciones desplegadas, una debajo de otra.
+  public vista: 'carpetas' | 'lista' = 'carpetas';
+
+  // Carpeta abierta cuando la vista es 'carpetas'. Null = rejilla de carpetas.
+  public categoriaAbierta: string | null = null;
+
   // Filtros de la barra superior.
   // Tipos con el detalle de archivos desplegado. Por defecto la tarjeta solo
   // muestra el resumen (cuantos y de que fecha).
@@ -627,6 +634,25 @@ export class DocumentosPersonaComponent implements OnInit, OnDestroy {
     this.gruposCategorias = Array.from(mapa.values()).sort(
       (a, b) => a.orden - b.orden || a.nombre.localeCompare(b.nombre),
     );
+
+    // Si al filtrar la carpeta abierta se queda sin documentos, se vuelve a la
+    // rejilla en vez de dejar la pantalla vacia.
+    if (
+      this.categoriaAbierta &&
+      !this.gruposCategorias.some((g) => g.id === this.categoriaAbierta)
+    ) {
+      this.categoriaAbierta = null;
+    }
+
+    // Con una sola categoria a la vista, entrar directo ahorra un clic.
+    if (
+      this.vista === 'carpetas' &&
+      !this.categoriaAbierta &&
+      this.gruposCategorias.length === 1 &&
+      this.hayFiltrosActivos
+    ) {
+      this.categoriaAbierta = this.gruposCategorias[0].id;
+    }
   }
 
   /** Abre o cierra una carpeta de categoria. */
@@ -640,6 +666,27 @@ export class DocumentosPersonaComponent implements OnInit, OnDestroy {
 
   categoriaColapsada(idCategoria: string): boolean {
     return this.categoriasColapsadas.has(idCategoria);
+  }
+
+  cambiarVista(vista: 'carpetas' | 'lista'): void {
+    this.vista = vista;
+    this.categoriaAbierta = null;
+  }
+
+  abrirCarpeta(idCategoria: string): void {
+    this.categoriaAbierta = idCategoria;
+  }
+
+  volverACarpetas(): void {
+    this.categoriaAbierta = null;
+  }
+
+  /** El grupo que se esta viendo dentro de una carpeta. */
+  get grupoAbierto(): any {
+    if (!this.categoriaAbierta) {
+      return null;
+    }
+    return this.gruposCategorias.find((g) => g.id === this.categoriaAbierta) || null;
   }
 
   /** Tipos obligatorios configurados para esta persona. */

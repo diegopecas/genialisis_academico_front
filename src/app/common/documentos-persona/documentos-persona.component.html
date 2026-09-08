@@ -178,10 +178,67 @@
     </div>
   </div>
 
-  <!-- Lista de Tipos de Documentos -->
+  <!-- Selector de vista: carpetas (por defecto) o todo en lista -->
+  <div class="selector-vista" *ngIf="!modoSoloSubir && !cargando && gruposCategorias.length > 1">
+    <button
+      type="button"
+      class="vista-opcion"
+      [class.active]="vista === 'carpetas'"
+      (click)="cambiarVista('carpetas')"
+    >
+      <i class="fas fa-folder me-1"></i> Carpetas
+    </button>
+    <button
+      type="button"
+      class="vista-opcion"
+      [class.active]="vista === 'lista'"
+      (click)="cambiarVista('lista')"
+    >
+      <i class="fas fa-list me-1"></i> Lista
+    </button>
+  </div>
+
+  <!-- VISTA CARPETAS: rejilla de categorias, como un archivador -->
+  <div
+    class="carpetas-grid"
+    *ngIf="!cargando && vista === 'carpetas' && !categoriaAbierta"
+  >
+    <button
+      type="button"
+      class="carpeta"
+      *ngFor="let grupo of gruposCategorias"
+      [class.con-pendientes]="grupo.pendientes > 0"
+      (click)="abrirCarpeta(grupo.id)"
+    >
+      <span class="carpeta-badge" *ngIf="grupo.pendientes > 0">{{ grupo.pendientes }}</span>
+      <i class="fas carpeta-icono" [ngClass]="grupo.icono"></i>
+      <span class="carpeta-nombre">{{ grupo.nombre }}</span>
+      <span class="carpeta-conteo">
+        {{ grupo.tipos.length }} documento{{ grupo.tipos.length === 1 ? '' : 's' }}
+      </span>
+    </button>
+  </div>
+
+  <!-- VISTA CARPETAS: dentro de una carpeta -->
+  <div *ngIf="!cargando && vista === 'carpetas' && categoriaAbierta && grupoAbierto">
+    <button type="button" class="carpeta-volver" (click)="volverACarpetas()">
+      <i class="fas fa-arrow-left"></i>
+      <i class="fas" [ngClass]="grupoAbierto.icono"></i>
+      <span>{{ grupoAbierto.nombre }}</span>
+      <span class="carpeta-volver-conteo">{{ grupoAbierto.tipos.length }}</span>
+    </button>
+
+    <div class="documentos-grid">
+      <div *ngFor="let tipoDoc of grupoAbierto.tipos" class="documento-card-wrapper">
+        <ng-container *ngTemplateOutlet="tarjetaDocumento; context: { $implicit: tipoDoc }"></ng-container>
+      </div>
+    </div>
+  </div>
+
+  <!-- VISTA LISTA: todas las secciones desplegadas, una debajo de otra -->
   <!-- Carpetas por categoria. Cada una agrupa sus tipos de documento; la
        categoria "Otros" recoge los tipos sin categoria asignada. -->
-  <div class="categorias-documentos" *ngIf="!cargando">
+  <div class="categorias-documentos" *ngIf="!cargando && vista === 'lista'">
     <div class="categoria-bloque" *ngFor="let grupo of gruposCategorias">
       <button
         type="button"
@@ -200,205 +257,7 @@
 
       <div class="documentos-grid" [hidden]="categoriaColapsada(grupo.id)">
     <div *ngFor="let tipoDoc of grupo.tipos" class="documento-card-wrapper">
-      <div
-        class="documento-card"
-        [ngClass]="'estado-' + estadoTipo(tipoDoc)"
-      >
-        <!-- Header del Card -->
-        <div class="documento-header">
-          <div class="header-content">
-            <div class="header-info">
-              <h6>
-                <i
-                  *ngIf="estadoTipo(tipoDoc) === 'listo'"
-                  class="fas fa-circle-check icono-listo"
-                  title="Obligatorio ya cargado"
-                ></i>
-                {{ tipoDoc.nombre }}
-              </h6>
-              <!-- Solo se resalta lo que hay que hacer: el obligatorio sin
-                   archivo. El cumplido y el opcional van en tono neutro. -->
-              <span *ngIf="estadoTipo(tipoDoc) === 'pendiente'" class="badge badge-pendiente"
-                >Obligatorio</span
-              >
-              <span *ngIf="estadoTipo(tipoDoc) === 'listo'" class="badge badge-listo"
-                >Obligatorio</span
-              >
-              <span *ngIf="estadoTipo(tipoDoc) === 'opcional'" class="badge badge-opcional"
-                >Opcional</span
-              >
-            </div>
-            <button
-              *ngIf="!soloLectura && puedeModificar(tipoDoc)"
-              class="btn-upload"
-              (click)="abrirModal(tipoDoc)"
-              title="Subir documento"
-            >
-              <i class="fas fa-upload"></i>
-            </button>
-          </div>
-        </div>
-
-        <!-- Documentos subidos -->
-        <div class="documento-body">
-          <div *ngIf="!tieneDocumento(tipoDoc.id)" class="sin-documentos">
-            <i class="fas fa-info-circle"></i>
-            <span>Sin documentos</span>
-          </div>
-
-          <!-- Resumen colapsado: cuantos archivos y de cuando. El nombre del
-               archivo original no aporta, asi que queda dentro del detalle. -->
-          <button
-            *ngIf="tieneDocumento(tipoDoc.id)"
-            type="button"
-            class="resumen-documentos"
-            (click)="alternarExpansion(tipoDoc.id)"
-          >
-            <i class="fas fa-paperclip"></i>
-            <span class="resumen-texto">
-              {{ contarDocumentos(tipoDoc.id) }}
-              {{ contarDocumentos(tipoDoc.id) === 1 ? 'documento' : 'documentos' }}
-              · {{ fechaUltimoDocumento(tipoDoc.id) }}
-            </span>
-            <i class="fas fa-chevron-down resumen-chevron" [class.abierto]="estaExpandido(tipoDoc.id)"></i>
-          </button>
-
-          <div
-            *ngFor="let doc of obtenerDocumentosPorTipo(tipoDoc.id)"
-            class="documento-item-wrapper"
-            [hidden]="!estaExpandido(tipoDoc.id)"
-          >
-            <div class="documento-item-content">
-              <div class="documento-info">
-                <i
-                  [class]="getIconoDocumento(doc.nombre_archivo)"
-                  class="documento-icon"
-                ></i>
-                <div class="documento-detalles">
-                  <div class="documento-nombre-row">
-                    <div class="documento-nombre" [title]="doc.nombre_archivo">
-                      {{ truncarNombre(doc.nombre_archivo) }}
-                    </div>
-                    <!-- Icono de firma digital -->
-                    <i
-                      *ngIf="doc.firma_digital_estado === 'enviado'"
-                      class="fas fa-clock icono-firma-pendiente"
-                      title="Enviado a firma digital"
-                    ></i>
-                    <i
-                      *ngIf="doc.firma_digital_estado === 'firmado'"
-                      class="fas fa-certificate icono-firma-completada"
-                      title="Firmado digitalmente"
-                    ></i>
-                    <button
-                      class="btn-info-doc"
-                      (click)="abrirModalDetalles(doc)"
-                      title="Ver detalles"
-                    >
-                      <i class="fas fa-info-circle"></i>
-                    </button>
-                  </div>
-                  <div class="documento-metadata">
-                    {{ formatearTamanio(doc.tamanio_bytes!) }} •
-                    {{ formatearFecha(doc.fecha_subida) }}
-                  </div>
-                  <div
-                    *ngIf="doc.fecha_vencimiento"
-                    class="documento-vencimiento"
-                  >
-                    <span
-                      [class]="
-                        getClaseEstadoVencimiento(doc.estado_vencimiento!)
-                      "
-                    >
-                      {{
-                        getTextoEstadoVencimiento(
-                          doc.estado_vencimiento!,
-                          doc.dias_para_vencer
-                        )
-                      }}
-                    </span>
-                  </div>
-                  <div *ngIf="doc.firma_digital_estado" class="documento-firma">
-                    <span
-                      [class]="getClaseEstadoFirma(doc.firma_digital_estado)"
-                    >
-                      <i class="fas fa-signature me-1"></i>
-                      {{ getTextoEstadoFirma(doc.firma_digital_estado) }}
-                    </span>
-                    <span
-                      *ngIf="requiereSincronizacion(doc)"
-                      class="texto-sincronizar"
-                    >
-                      <i class="fas fa-exclamation-circle"></i> Sincronice para
-                      descargar
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <!-- Botones de acción en fila horizontal debajo -->
-            <div class="documento-acciones-horizontal">
-              <button
-                *ngIf="puedeEnviarAFirmar(doc)"
-                class="btn-accion btn-firma"
-                (click)="abrirModalFirma(doc)"
-                title="Enviar a firmar digitalmente"
-              >
-                <i class="fas fa-signature"></i>
-              </button>
-              <button
-                *ngIf="puedeConsultarEstado(doc)"
-                class="btn-accion btn-consultar"
-                (click)="consultarEstadoFirma(doc)"
-                [disabled]="consultandoEstado"
-                [title]="
-                  requiereSincronizacion(doc)
-                    ? 'Sincronizar documento firmado'
-                    : 'Consultar estado de firma'
-                "
-              >
-                <i
-                  [class]="
-                    requiereSincronizacion(doc)
-                      ? 'fas fa-sync-alt'
-                      : 'fas fa-search'
-                  "
-                ></i>
-              </button>
-              <button
-                *ngIf="puedeReenviarCorreo(doc)"
-                class="btn-accion btn-reenviar"
-                (click)="reenviarCorreoFirma(doc)"
-                [disabled]="reenviandoCorreo"
-                title="Reenviar correo de firma"
-              >
-                <i class="fas fa-envelope"></i>
-              </button>
-              <button
-                class="btn-accion btn-descargar"
-                (click)="descargarDocumento(doc)"
-                [disabled]="requiereSincronizacion(doc)"
-                [title]="
-                  requiereSincronizacion(doc)
-                    ? 'Sincronice primero'
-                    : 'Descargar'
-                "
-              >
-                <i class="fas fa-download"></i>
-              </button>
-              <button
-                *ngIf="!soloLectura && puedeModificar(tipoDoc)"
-                class="btn-accion btn-eliminar"
-                (click)="eliminarDocumento(doc)"
-                title="Eliminar"
-              >
-                <i class="fas fa-trash"></i>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <ng-container *ngTemplateOutlet="tarjetaDocumento; context: { $implicit: tipoDoc }"></ng-container>
     </div>
       </div>
     </div>
@@ -792,3 +651,207 @@
     </div>
   </div>
 </div>
+
+<!-- Tarjeta de un tipo de documento. Se define una sola vez y la usan las dos
+     vistas: la rejilla de carpetas y la lista completa. -->
+<ng-template #tarjetaDocumento let-tipoDoc>
+      <div
+        class="documento-card"
+        [ngClass]="'estado-' + estadoTipo(tipoDoc)"
+      >
+        <!-- Header del Card -->
+        <div class="documento-header">
+          <div class="header-content">
+            <div class="header-info">
+              <h6>
+                <i
+                  *ngIf="estadoTipo(tipoDoc) === 'listo'"
+                  class="fas fa-circle-check icono-listo"
+                  title="Obligatorio ya cargado"
+                ></i>
+                {{ tipoDoc.nombre }}
+              </h6>
+              <!-- Solo se resalta lo que hay que hacer: el obligatorio sin
+                   archivo. El cumplido y el opcional van en tono neutro. -->
+              <span *ngIf="estadoTipo(tipoDoc) === 'pendiente'" class="badge badge-pendiente"
+                >Obligatorio</span
+              >
+              <span *ngIf="estadoTipo(tipoDoc) === 'listo'" class="badge badge-listo"
+                >Obligatorio</span
+              >
+              <span *ngIf="estadoTipo(tipoDoc) === 'opcional'" class="badge badge-opcional"
+                >Opcional</span
+              >
+            </div>
+            <button
+              *ngIf="!soloLectura && puedeModificar(tipoDoc)"
+              class="btn-upload"
+              (click)="abrirModal(tipoDoc)"
+              title="Subir documento"
+            >
+              <i class="fas fa-upload"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Documentos subidos -->
+        <div class="documento-body">
+          <div *ngIf="!tieneDocumento(tipoDoc.id)" class="sin-documentos">
+            <i class="fas fa-info-circle"></i>
+            <span>Sin documentos</span>
+          </div>
+
+          <!-- Resumen colapsado: cuantos archivos y de cuando. El nombre del
+               archivo original no aporta, asi que queda dentro del detalle. -->
+          <button
+            *ngIf="tieneDocumento(tipoDoc.id)"
+            type="button"
+            class="resumen-documentos"
+            (click)="alternarExpansion(tipoDoc.id)"
+          >
+            <i class="fas fa-paperclip"></i>
+            <span class="resumen-texto">
+              {{ contarDocumentos(tipoDoc.id) }}
+              {{ contarDocumentos(tipoDoc.id) === 1 ? 'documento' : 'documentos' }}
+              · {{ fechaUltimoDocumento(tipoDoc.id) }}
+            </span>
+            <i class="fas fa-chevron-down resumen-chevron" [class.abierto]="estaExpandido(tipoDoc.id)"></i>
+          </button>
+
+          <div
+            *ngFor="let doc of obtenerDocumentosPorTipo(tipoDoc.id)"
+            class="documento-item-wrapper"
+            [hidden]="!estaExpandido(tipoDoc.id)"
+          >
+            <div class="documento-item-content">
+              <div class="documento-info">
+                <i
+                  [class]="getIconoDocumento(doc.nombre_archivo)"
+                  class="documento-icon"
+                ></i>
+                <div class="documento-detalles">
+                  <div class="documento-nombre-row">
+                    <div class="documento-nombre" [title]="doc.nombre_archivo">
+                      {{ truncarNombre(doc.nombre_archivo) }}
+                    </div>
+                    <!-- Icono de firma digital -->
+                    <i
+                      *ngIf="doc.firma_digital_estado === 'enviado'"
+                      class="fas fa-clock icono-firma-pendiente"
+                      title="Enviado a firma digital"
+                    ></i>
+                    <i
+                      *ngIf="doc.firma_digital_estado === 'firmado'"
+                      class="fas fa-certificate icono-firma-completada"
+                      title="Firmado digitalmente"
+                    ></i>
+                    <button
+                      class="btn-info-doc"
+                      (click)="abrirModalDetalles(doc)"
+                      title="Ver detalles"
+                    >
+                      <i class="fas fa-info-circle"></i>
+                    </button>
+                  </div>
+                  <div class="documento-metadata">
+                    {{ formatearTamanio(doc.tamanio_bytes!) }} •
+                    {{ formatearFecha(doc.fecha_subida) }}
+                  </div>
+                  <div
+                    *ngIf="doc.fecha_vencimiento"
+                    class="documento-vencimiento"
+                  >
+                    <span
+                      [class]="
+                        getClaseEstadoVencimiento(doc.estado_vencimiento!)
+                      "
+                    >
+                      {{
+                        getTextoEstadoVencimiento(
+                          doc.estado_vencimiento!,
+                          doc.dias_para_vencer
+                        )
+                      }}
+                    </span>
+                  </div>
+                  <div *ngIf="doc.firma_digital_estado" class="documento-firma">
+                    <span
+                      [class]="getClaseEstadoFirma(doc.firma_digital_estado)"
+                    >
+                      <i class="fas fa-signature me-1"></i>
+                      {{ getTextoEstadoFirma(doc.firma_digital_estado) }}
+                    </span>
+                    <span
+                      *ngIf="requiereSincronizacion(doc)"
+                      class="texto-sincronizar"
+                    >
+                      <i class="fas fa-exclamation-circle"></i> Sincronice para
+                      descargar
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Botones de acción en fila horizontal debajo -->
+            <div class="documento-acciones-horizontal">
+              <button
+                *ngIf="puedeEnviarAFirmar(doc)"
+                class="btn-accion btn-firma"
+                (click)="abrirModalFirma(doc)"
+                title="Enviar a firmar digitalmente"
+              >
+                <i class="fas fa-signature"></i>
+              </button>
+              <button
+                *ngIf="puedeConsultarEstado(doc)"
+                class="btn-accion btn-consultar"
+                (click)="consultarEstadoFirma(doc)"
+                [disabled]="consultandoEstado"
+                [title]="
+                  requiereSincronizacion(doc)
+                    ? 'Sincronizar documento firmado'
+                    : 'Consultar estado de firma'
+                "
+              >
+                <i
+                  [class]="
+                    requiereSincronizacion(doc)
+                      ? 'fas fa-sync-alt'
+                      : 'fas fa-search'
+                  "
+                ></i>
+              </button>
+              <button
+                *ngIf="puedeReenviarCorreo(doc)"
+                class="btn-accion btn-reenviar"
+                (click)="reenviarCorreoFirma(doc)"
+                [disabled]="reenviandoCorreo"
+                title="Reenviar correo de firma"
+              >
+                <i class="fas fa-envelope"></i>
+              </button>
+              <button
+                class="btn-accion btn-descargar"
+                (click)="descargarDocumento(doc)"
+                [disabled]="requiereSincronizacion(doc)"
+                [title]="
+                  requiereSincronizacion(doc)
+                    ? 'Sincronice primero'
+                    : 'Descargar'
+                "
+              >
+                <i class="fas fa-download"></i>
+              </button>
+              <button
+                *ngIf="!soloLectura && puedeModificar(tipoDoc)"
+                class="btn-accion btn-eliminar"
+                (click)="eliminarDocumento(doc)"
+                title="Eliminar"
+              >
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+</ng-template>
