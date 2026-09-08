@@ -204,7 +204,7 @@
             <img *ngIf="seccion.imagen" class="seccion-icono-img" [src]="seccion.imagen" [alt]="seccion.label" loading="lazy" decoding="async" />
             <span class="seccion-icono" *ngIf="!seccion.imagen">{{ seccion.icono }}</span>
             <span class="seccion-titulo" [innerHTML]="resaltar(seccion.label)"></span>
-            <span class="seccion-chevron" *ngIf="esGrupo(seccion)" [class.abierto]="estaExpandido(seccion)">▸</span>
+            <span class="seccion-chevron" *ngIf="esGrupo(seccion)" [class.abierto]="estaExpandido(seccion)" (click)="clicEnChevron($event, seccion)">▸</span>
           </div>
 
           <!-- Hijos de la sección -->
@@ -232,7 +232,7 @@
           <img *ngIf="nodo.imagen" class="nodo-icono-img" [src]="nodo.imagen" [alt]="nodo.label" loading="lazy" decoding="async" />
           <span class="nodo-icono" *ngIf="!nodo.imagen">{{ nodo.icono }}</span>
           <span class="nodo-label" [innerHTML]="resaltar(nodo.label)"></span>
-          <span class="nodo-chevron" *ngIf="esGrupo(nodo)" [class.abierto]="estaExpandido(nodo)">▸</span>
+          <span class="nodo-chevron" *ngIf="esGrupo(nodo)" [class.abierto]="estaExpandido(nodo)" (click)="clicEnChevron($event, nodo)">▸</span>
         </div>
 
         <div class="arbol-subnivel" *ngIf="esGrupo(nodo) && estaExpandido(nodo)">

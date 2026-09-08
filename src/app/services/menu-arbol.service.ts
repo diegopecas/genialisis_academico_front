@@ -52,7 +52,12 @@ export class MenuArbolService {
       (modulo.opciones?.length ?? 0) > 0 ||
       (modulo.submodulos?.length ?? 0) > 0;
 
-    if (modulo.ruta && tieneContenido) {
+    const esRaiz = modulo.raiz !== false;
+
+    // En las raíces la pantalla del módulo queda como primer hijo, porque la
+    // cabecera de la tarjeta es la que abre y cierra la sección. En los módulos
+    // anidados la ruta va en el nodo mismo y se entra haciendo clic en su nombre.
+    if (modulo.ruta && tieneContenido && esRaiz) {
       hijos.push({
         id: `${modulo.id}-inicio`,
         label: modulo.rutaLabel || modulo.label,
@@ -60,6 +65,15 @@ export class MenuArbolService {
         ruta: modulo.ruta,
         permiso: modulo.rutaPermiso || modulo.permiso
       });
+    }
+
+    // Los submódulos van antes que las tarjetas, que es el orden en el que
+    // aparecen en la pantalla del módulo.
+    for (const idSubmodulo of modulo.submodulos ?? []) {
+      const submodulo = this.menuModulosService.getModulo(idSubmodulo);
+      if (submodulo) {
+        hijos.push(this.nodoModulo(submodulo));
+      }
     }
 
     for (const grupo of modulo.grupos) {
@@ -71,13 +85,6 @@ export class MenuArbolService {
 
     for (const opcion of modulo.opciones ?? []) {
       hijos.push(this.nodoOpcion(opcion, modulo.id));
-    }
-
-    for (const idSubmodulo of modulo.submodulos ?? []) {
-      const submodulo = this.menuModulosService.getModulo(idSubmodulo);
-      if (submodulo) {
-        hijos.push(this.nodoModulo(submodulo));
-      }
     }
 
     if (hijos.length === 0) {
@@ -96,8 +103,10 @@ export class MenuArbolService {
       id: modulo.id,
       label: modulo.label,
       icono: modulo.iconoArbol,
-      imagen: modulo.imagen,
-      permiso: modulo.permiso,
+      // La imagen es solo para las tarjetas raíz; los módulos anidados van con su emoji
+      imagen: esRaiz ? modulo.imagen : undefined,
+      ruta: esRaiz ? undefined : modulo.ruta,
+      permiso: esRaiz ? modulo.permiso : (modulo.rutaPermiso || modulo.permiso),
       keywords: modulo.keywords,
       hijos
     };
@@ -126,34 +135,15 @@ export class MenuArbolService {
 
   /**
    * Una opción se vuelve hoja navegable. Si abre otra pantalla con más opciones,
-   * se vuelve grupo y su primer hijo es la pantalla misma, para no perder ese acceso.
+   * conserva su ruta y suma esas pantallas como hijos: el clic en el nombre entra
+   * a la opción y la flechita despliega lo que hay debajo.
    */
   private nodoOpcion(opcion: OpcionMenuModulo, prefijo: string): MenuNodo {
     const id = `${prefijo}-${opcion.id}`;
     const icono = opcion.iconoArbol || '▫️';
     const keywords = this.keywordsOpcion(opcion);
 
-    if (opcion.hijos && opcion.hijos.length > 0) {
-      const hijos: MenuNodo[] = [];
-
-      if (opcion.ruta) {
-        hijos.push({
-          id: `${id}-inicio`,
-          label: opcion.label,
-          icono,
-          ruta: opcion.ruta,
-          permiso: opcion.permiso
-        });
-      }
-
-      for (const hijo of opcion.hijos) {
-        hijos.push(this.nodoOpcion(hijo, id));
-      }
-
-      return { id, label: opcion.label, icono, keywords, hijos };
-    }
-
-    return {
+    const nodo: MenuNodo = {
       id,
       label: opcion.label,
       icono,
@@ -161,6 +151,12 @@ export class MenuArbolService {
       permiso: opcion.permiso,
       keywords
     };
+
+    if (opcion.hijos && opcion.hijos.length > 0) {
+      nodo.hijos = opcion.hijos.map((hijo) => this.nodoOpcion(hijo, id));
+    }
+
+    return nodo;
   }
 
   /**

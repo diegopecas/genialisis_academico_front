@@ -205,3 +205,177 @@ $hover-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
     transform: scale(0.98);
   }
 }
+
+// ============================================
+// TARJETAS CON SUBMENÚ (CRM, Operaciones y Auditoría)
+// Bloque tomado de datos-maestros.component.scss para que se vean igual
+// que las tarjetas con submenú del resto de módulos.
+// ============================================
+
+// Colores de las tarjetas con submenú
+$color-crm: #16a085;
+$color-operaciones: #27ae60;
+$color-auditoria: #dc3545;
+
+.card-maestro {
+  background: white;
+  border-radius: 20px;
+  box-shadow: $card-shadow;
+  transition: all 0.4s ease;
+  cursor: pointer;
+  overflow: hidden;
+  position: relative;
+
+  &.menu-principal {
+    min-height: 400px;
+    height: auto;
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 5px;
+    background: linear-gradient(90deg, var(--color-principal) 0%, var(--color-secundario) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    border-radius: 20px 20px 0 0;
+  }
+
+  &:hover,
+  &.active {
+    transform: translateY(-10px);
+    box-shadow: $hover-shadow;
+
+    &::before {
+      opacity: 1;
+    }
+
+    .icono-container {
+      transform: scale(1.05);
+    }
+
+    .link-accion {
+      color: var(--color-principal);
+
+      i {
+        transform: rotate(180deg);
+      }
+    }
+
+    .submenu-container {
+      max-height: 1000px;
+      opacity: 1;
+      padding: 1.5rem;
+      margin-top: 1rem;
+      margin-bottom: 1.5rem;
+    }
+  }
+}
+
+.card-maestro-content {
+  padding: 2.5rem 2rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+}
+
+// Colores de icono que faltaban y variables de las tarjetas con submenú
+.icono-container {
+  &.crm {
+    background: linear-gradient(135deg, #d1f2eb 0%, #a3e4d7 100%);
+    --color-principal: #{$color-crm};
+    --color-secundario: #{lighten($color-crm, 10%)};
+  }
+
+  &.operaciones {
+    background: linear-gradient(135deg, #d1f2eb 0%, #a8e6cf 100%);
+    --color-principal: #{$color-operaciones};
+    --color-secundario: #{lighten($color-operaciones, 10%)};
+  }
+
+  &.auditoria {
+    --color-principal: #{$color-auditoria};
+    --color-secundario: #{lighten($color-auditoria, 10%)};
+  }
+}
+
+// Contenedor del submenú
+.submenu-container {
+  width: 100%;
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: all 0.4s ease;
+  padding: 0 1.5rem;
+  margin-top: 0;
+}
+
+// Items del submenú
+.submenu-item {
+  background: white;
+  border-radius: 12px;
+  padding: 1rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid #f0f0f0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+
+  img {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+  }
+
+  span {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: $text-dark;
+    line-height: 1.2;
+  }
+
+  &:hover {
+    transform: translateY(-3px);
+    border-color: var(--color-principal);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  }
+}
+
+// Responsive de las tarjetas con submenú
+@media (max-width: 768px) {
+  .card-maestro-content {
+    padding: 2rem 1.5rem;
+  }
+
+  .submenu-item {
+    padding: 0.75rem;
+
+    img {
+      width: 32px;
+      height: 32px;
+    }
+
+    span {
+      font-size: 0.75rem;
+    }
+  }
+}
+
+.card-maestro {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+@media (hover: none) {
+  .card-maestro:active {
+    transform: scale(0.98);
+  }
+}

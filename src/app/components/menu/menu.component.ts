@@ -324,11 +324,21 @@ export class MenuComponent implements OnInit {
   }
 
   seleccionarNodo(nodo: MenuNodo): void {
-    if (this.esGrupo(nodo)) {
-      this.toggleNodo(nodo);
-    } else if (nodo.ruta) {
+    // Un nodo con ruta navega aunque tenga hijos; el despliegue queda en la flechita.
+    if (nodo.ruta) {
       this.selectOption(nodo.ruta);
+    } else if (this.esGrupo(nodo)) {
+      this.toggleNodo(nodo);
     }
+  }
+
+  /**
+   * Despliega o cierra el nodo sin disparar la navegación de la fila.
+   * Se usa desde la flechita de los nodos que además tienen ruta.
+   */
+  clicEnChevron(event: Event, nodo: MenuNodo): void {
+    event.stopPropagation();
+    this.toggleNodo(nodo);
   }
 
   trackByNodo(_index: number, nodo: MenuNodo): string {

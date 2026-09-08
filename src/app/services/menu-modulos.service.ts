@@ -29,6 +29,10 @@ export interface OpcionMenuModulo {
   keywords?: string[];
   hijos?: OpcionMenuModulo[];
   labelHtml?: SafeHtml | string;
+  // Solo para las opciones que se pintan como tarjeta simple (pantalla de Administración)
+  descripcion?: string;
+  claseIcono?: string;
+  textoAccion?: string;
 }
 
 /**
@@ -80,6 +84,29 @@ export interface ModuloMenu {
   grupos: GrupoMenuModulo[];
   opciones?: OpcionMenuModulo[];
   submodulos?: string[];
+  // Datos con los que el módulo se pinta como tarjeta dentro de la pantalla de su padre
+  descripcion?: string;
+  claseIcono?: string;
+  textoAccion?: string;
+  idTarjeta?: string;
+}
+
+/**
+ * Tarjeta simple de una pantalla que no tiene submenús (hoy, la de Administración).
+ * `id` es el código que recibe el `seleccionarOpcion` del componente y `keywords`
+ * incluye lo que hay dentro de esa pantalla, para que el buscador la encuentre
+ * escribiendo por ejemplo "mora" o "usuarios".
+ */
+export interface TarjetaModulo {
+  id: string;
+  titulo: string;
+  descripcion: string;
+  imagen?: string;
+  claseIcono: string;
+  textoAccion: string;
+  permiso?: string;
+  keywords: string[];
+  tituloHtml?: SafeHtml | string;
 }
 
 @Injectable({
@@ -542,16 +569,65 @@ export class MenuModulosService {
         rutaLabel: 'Módulo administración',
         rutaPermiso: 'administracion.ver',
         keywords: ['admin', 'configuracion', 'ajustes', 'parametros'],
-        grupos: [],
-        opciones: [
-          { id: 'auditoria-registros', label: 'Auditoría de Registros', iconoArbol: '🔍', ruta: '/administracion/auditoria-registros', permiso: 'admin.auditoria', keywords: ['logs', 'registros', 'historial', 'cumplimiento'] }
-        ],
-        submodulos: ['datos-maestros', 'financiero', 'administracion-operaciones', 'crm']
+        submodulos: ['datos-maestros', 'financiero'],
+        grupos: [
+          {
+            id: 'crm',
+            titulo: 'CRM - Gestión de Visitas',
+            descripcion: 'Administra visitas de prospectos y seguimiento',
+            claseIcono: 'crm',
+            iconoArbol: '🤝',
+            alt: 'CRM',
+            imagen: '/assets/images/crm.png',
+            permisos: ['administracion.crm'],
+            keywords: ['ventas', 'clientes', 'prospectos', 'leads'],
+            opciones: [
+              { id: 'visitas', label: 'Gestionar Visitas', alt: 'Visitas', imagen: 'assets/images/visitas.png', iconoArbol: '🚶', ruta: '/administracion/crm/visitas', permiso: 'admin.crm_visitas', keywords: ['visitas', 'prospectos'] },
+              { id: 'contactos-portal', label: 'Contactos del Portal', alt: 'Contactos Portal', imagen: 'assets/images/contactos_portal.png', iconoArbol: '📞', ruta: '/administracion/crm/contactos-portal', permiso: 'admin.crm_contactos_portal', keywords: ['contactos', 'leads', 'portal'] },
+              { id: 'dashboard', label: 'Dashboard', alt: 'Dashboard', imagen: 'assets/images/dashboard_crm.png', iconoArbol: '📊', ruta: '/administracion/crm/dashboard', permiso: 'admin.crm_dashboard', keywords: ['tablero', 'ventas', 'indicadores'] }
+            ]
+          },
+          {
+            id: 'operaciones',
+            titulo: 'Operaciones',
+            descripcion: 'Gestiona entes de control y sus consultas',
+            claseIcono: 'operaciones',
+            iconoArbol: '⚙️',
+            alt: 'Operaciones',
+            imagen: '/assets/images/administracion-operaciones.png',
+            permisos: ['administracion.operaciones'],
+            keywords: ['entes', 'control', 'operaciones'],
+            opciones: [
+              { id: 'entes-control', label: 'Entes de Control', alt: 'Entes de Control', imagen: '/assets/images/entes-control.png', iconoArbol: '🏛️', ruta: '/administracion/operaciones/entes-control', permiso: 'admin.entes_control', keywords: ['entes', 'control', 'vigilancia', 'secretaria', 'icbf'] },
+              { id: 'consulta-entes-control', label: 'Consulta Entes de Control', alt: 'Consulta Entes de Control', imagen: '/assets/images/consulta-entes-control.png', iconoArbol: '🔎', ruta: '/administracion/operaciones/consulta-entes-control', permiso: 'admin.consulta_entes_control', keywords: ['consulta', 'entes', 'control', 'visita', 'documentos'] },
+              { id: 'utiles-diarios', label: 'Útiles y Accesorios Diarios', alt: 'Útiles y Accesorios Diarios', imagen: '/assets/images/utiles-diarios.png', iconoArbol: '🎒', ruta: '/administracion/operaciones/utiles-diarios', permiso: 'admin.utiles_diarios', keywords: ['utiles', 'accesorios', 'inventario diario', 'maleta', 'lonchera', 'parametrizar'] },
+              { id: 'tipos-solicitud', label: 'Tipos de Solicitud', alt: 'Tipos de Solicitud', imagen: '/assets/images/solicitudes-acudientes.png', iconoArbol: '📝', ruta: '/administracion/operaciones/tipos-solicitud', permiso: 'admin.solicitudes_acudientes', keywords: ['solicitudes', 'compromisos', 'medicamento', 'salida anticipada', 'parametrizar solicitudes'] }
+            ]
+          },
+          {
+            id: 'auditoria',
+            titulo: 'Auditoría de Registros',
+            descripcion: 'Analiza el cumplimiento de registros por grupo',
+            claseIcono: 'auditoria',
+            iconoArbol: '🔍',
+            alt: 'Auditoría',
+            imagen: '/assets/images/auditoria.png',
+            permisos: ['admin.auditoria'],
+            keywords: ['logs', 'registros', 'historial', 'cumplimiento'],
+            opciones: [
+              { id: 'auditoria-registros', label: 'Auditoría de Registros', alt: 'Auditoría', imagen: '/assets/images/auditoria.png', iconoArbol: '🔍', ruta: '/administracion/auditoria-registros', permiso: 'admin.auditoria', columna: 'col-12', keywords: ['logs', 'registros', 'historial', 'cumplimiento'] }
+            ]
+          }
+        ]
       },
       {
         id: 'datos-maestros',
         label: 'Registro de Datos Maestros',
         iconoArbol: '🗃️',
+        imagen: '/assets/images/datos-maestros.png',
+        descripcion: 'Gestiona proveedores y productos del sistema',
+        claseIcono: 'datos-maestros',
+        textoAccion: 'Administrar',
         raiz: false,
         permiso: 'administracion.datos_maestros',
         ruta: '/administracion/datos-maestros',
@@ -701,6 +777,10 @@ export class MenuModulosService {
         id: 'financiero',
         label: 'Módulo Financiero',
         iconoArbol: '💵',
+        imagen: '/assets/images/finanzas.png',
+        descripcion: 'Gestiona ingresos, egresos y reportes financieros',
+        claseIcono: 'financiero',
+        textoAccion: 'Administrar',
         raiz: false,
         permiso: 'administracion.financiero',
         ruta: '/administracion/financiero',
@@ -757,41 +837,6 @@ export class MenuModulosService {
             ]
           }
         ]
-      },
-      {
-        id: 'administracion-operaciones',
-        label: 'Operaciones',
-        iconoArbol: '⚙️',
-        raiz: false,
-        permiso: 'administracion.operaciones',
-        ruta: '/administracion/operaciones',
-        rutaLabel: 'Operaciones',
-        rutaPermiso: 'administracion.operaciones',
-        keywords: ['entes', 'control', 'operaciones'],
-        grupos: [],
-        opciones: [
-          { id: 'entes-control', label: 'Entes de Control', iconoArbol: '🏛️', ruta: '/administracion/operaciones/entes-control', permiso: 'admin.entes_control', keywords: ['entes', 'control', 'vigilancia', 'secretaria', 'icbf'] },
-          { id: 'consulta-entes-control', label: 'Consulta Entes de Control', iconoArbol: '🔎', ruta: '/administracion/operaciones/consulta-entes-control', permiso: 'admin.consulta_entes_control', keywords: ['consulta', 'entes', 'control', 'visita', 'documentos'] },
-          { id: 'utiles-diarios', label: 'Útiles y Accesorios Diarios', iconoArbol: '🎒', ruta: '/administracion/operaciones/utiles-diarios', permiso: 'admin.utiles_diarios', keywords: ['utiles', 'accesorios', 'inventario diario', 'maleta', 'lonchera', 'parametrizar'] },
-          { id: 'tipos-solicitud', label: 'Tipos de Solicitud', iconoArbol: '📝', ruta: '/administracion/operaciones/tipos-solicitud', permiso: 'admin.solicitudes_acudientes', keywords: ['solicitudes', 'compromisos', 'medicamento', 'salida anticipada', 'parametrizar solicitudes'] }
-        ]
-      },
-      {
-        id: 'crm',
-        label: 'CRM - Gestión de Visitas',
-        iconoArbol: '🤝',
-        raiz: false,
-        permiso: 'administracion.crm',
-        ruta: '/administracion/crm',
-        rutaLabel: 'CRM - Gestión de Visitas',
-        rutaPermiso: 'administracion.crm',
-        keywords: ['ventas', 'clientes', 'prospectos', 'leads'],
-        grupos: [],
-        opciones: [
-          { id: 'visitas', label: 'Gestionar Visitas', iconoArbol: '🚶', ruta: '/administracion/crm/visitas', permiso: 'admin.crm_visitas', keywords: ['visitas', 'prospectos'] },
-          { id: 'contactos-portal', label: 'Contactos del Portal', iconoArbol: '📞', ruta: '/administracion/crm/contactos-portal', permiso: 'admin.crm_contactos_portal', keywords: ['contactos', 'leads', 'portal'] },
-          { id: 'dashboard', label: 'Dashboard', iconoArbol: '📊', ruta: '/administracion/crm/dashboard', permiso: 'admin.crm_dashboard', keywords: ['tablero', 'ventas', 'indicadores'] }
-        ]
       }
     ];
   }
@@ -819,6 +864,78 @@ export class MenuModulosService {
   getFinanciero(): GrupoMenuModulo[] { return this.getGrupos('financiero'); }
   getGestionEstudiantes(): GrupoMenuModulo[] { return this.getGrupos('estudiantes'); }
   getGestionColaboradores(): GrupoMenuModulo[] { return this.getGrupos('colaboradores'); }
+
+  /**
+   * Devuelve las tarjetas simples de una pantalla que no tiene submenús: primero los
+   * módulos que cuelgan de ella y después sus opciones sueltas. Las keywords de cada
+   * tarjeta incluyen lo que hay dentro de esa pantalla.
+   */
+  getTarjetas(idModulo: string): TarjetaModulo[] {
+    const modulo = this.getModulo(idModulo);
+    if (!modulo) {
+      return [];
+    }
+
+    const tarjetas: TarjetaModulo[] = [];
+
+    for (const idSubmodulo of modulo.submodulos ?? []) {
+      const submodulo = this.getModulo(idSubmodulo);
+      if (!submodulo) {
+        continue;
+      }
+      tarjetas.push({
+        id: submodulo.idTarjeta || submodulo.id,
+        titulo: submodulo.rutaLabel || submodulo.label,
+        descripcion: submodulo.descripcion ?? '',
+        imagen: submodulo.imagen,
+        claseIcono: submodulo.claseIcono ?? submodulo.id,
+        textoAccion: submodulo.textoAccion ?? 'Administrar',
+        permiso: submodulo.permiso,
+        keywords: [...(submodulo.keywords ?? []), ...this.terminosInternos(submodulo)]
+      });
+    }
+
+    for (const opcion of modulo.opciones ?? []) {
+      tarjetas.push({
+        id: opcion.id,
+        titulo: opcion.label,
+        descripcion: opcion.descripcion ?? '',
+        imagen: opcion.imagen,
+        claseIcono: opcion.claseIcono ?? opcion.id,
+        textoAccion: opcion.textoAccion ?? 'Administrar',
+        permiso: opcion.permiso,
+        keywords: [...(opcion.keywords ?? [])]
+      });
+    }
+
+    return tarjetas;
+  }
+
+  /**
+   * Recorre las tarjetas y opciones de un módulo y devuelve sus textos, para que
+   * buscando "mora" o "usuarios" en Administración aparezca el módulo que las contiene.
+   */
+  private terminosInternos(modulo: ModuloMenu): string[] {
+    const terminos: string[] = [];
+
+    const recorrerOpcion = (opcion: OpcionMenuModulo): void => {
+      terminos.push(opcion.label);
+      terminos.push(...(opcion.keywords ?? []));
+      for (const hijo of opcion.hijos ?? []) {
+        recorrerOpcion(hijo);
+      }
+    };
+
+    for (const grupo of modulo.grupos) {
+      terminos.push(grupo.titulo);
+      terminos.push(...(grupo.keywords ?? []));
+      grupo.opciones.forEach(recorrerOpcion);
+    }
+
+    (modulo.opciones ?? []).forEach(recorrerOpcion);
+
+    return terminos;
+  }
 
   // ============================================
   // FILTRADO
@@ -866,6 +983,29 @@ export class MenuModulosService {
     }
 
     return resultado;
+  }
+
+  /**
+   * Deja solo las tarjetas cuyo permiso tiene el usuario. Las que no declaran permiso
+   * se muestran siempre.
+   */
+  filtrarTarjetasPorPermiso(tarjetas: TarjetaModulo[]): TarjetaModulo[] {
+    return tarjetas.filter((tarjeta) => !tarjeta.permiso || this.permisosService.tienePermiso(tarjeta.permiso));
+  }
+
+  /**
+   * Filtra las tarjetas simples por el término escrito, mirando también lo que hay
+   * dentro de cada pantalla. Resalta el término en el título.
+   */
+  filtrarTarjetasPorTexto(tarjetas: TarjetaModulo[], termino: string): TarjetaModulo[] {
+    const t = this.normalizar(termino);
+
+    return tarjetas
+      .filter((tarjeta) =>
+        this.normalizar(tarjeta.titulo).includes(t) ||
+        this.normalizar(tarjeta.descripcion).includes(t) ||
+        tarjeta.keywords.some((k) => this.normalizar(k).includes(t)))
+      .map((tarjeta) => ({ ...tarjeta, tituloHtml: this.resaltar(tarjeta.titulo, termino) }));
   }
 
   /**
