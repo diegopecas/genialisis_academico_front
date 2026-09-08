@@ -1,56 +1,30 @@
 import { HttpClient, HttpErrorResponse, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from '../../environments/environment';
-import { Observable, throwError } from 'rxjs';
+import { throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { httpOptions } from './http';
 
-// Interfaz original - NO MODIFICAR (usada por DocumentosPersonaComponent y otros)
-export interface TipoDocumento {
-  id: string;
-  codigo: string;
-  nombre: string;
-  descripcion?: string;
-  tipo_persona: string;
-  requiere_vencimiento: number;
-  requiere_firma?: number;
-  dias_alerta_vencimiento?: number;
-  permite_multiples: number;
-  obligatorio: number;
-  activo: number;
-  // Categoria a la que pertenece. Puede venir vacia: esos tipos se agrupan
-  // como "Otros" en la pantalla de documentos.
-  id_categoria?: string | null;
-  categoria_nombre?: string | null;
-  categoria_icono?: string | null;
-  categoria_orden?: number | null;
-}
-
-// Interfaz para el CRUD de tipos de documentos
-export interface TipoDocumentoCrud {
+export interface CategoriaDocumento {
   id?: string;
   codigo: string;
   nombre: string;
-  descripcion?: string;
-  requiere_vencimiento: number;
-  requiere_firma: number;
-  dias_alerta_vencimiento?: number;
-  permite_multiples: number;
-  modificable_acudientes: number;
+  // Clase de FontAwesome sin el prefijo "fas", ej: fa-id-card
+  icono?: string;
+  orden: number;
   activo: number;
-  id_categoria?: string | null;
 }
 
 @Injectable({
   providedIn: 'root'
 })
-export class TiposDocumentosService {
+export class CategoriasDocumentosService {
 
-  private servicio = environment.api + 'tipos-documentos';
+  private servicio = environment.api + 'categorias-documentos';
 
   constructor(private http: HttpClient) { }
 
-  obtenerTodos() {
+  obtenerTodas() {
     return this.http
       .get<HttpResponse<Object>>(this.servicio, { observe: 'response' })
       .pipe(
@@ -65,9 +39,10 @@ export class TiposDocumentosService {
       );
   }
 
-  obtenerPorTipoPersona(codigoTipoPersona: string) {
+  /** Solo las activas: es lo que se ofrece en los selectores. */
+  obtenerActivas() {
     return this.http
-      .get<HttpResponse<Object>>(this.servicio + `/tipo-persona/${codigoTipoPersona}`, { observe: 'response' })
+      .get<HttpResponse<Object>>(this.servicio + '/activas', { observe: 'response' })
       .pipe(
         tap((response: HttpResponse<Object>) => {
           let respuesta: any = response.body;
@@ -95,13 +70,7 @@ export class TiposDocumentosService {
       );
   }
 
-  // --- Métodos nuevos para CRUD ---
-
-  obtenerPorId(id: string) {
-    return this.obtenerById(id);
-  }
-
-  crear(data: TipoDocumentoCrud) {
+  crear(data: CategoriaDocumento) {
     return this.http
       .post<HttpResponse<Object>>(this.servicio, data, httpOptions)
       .pipe(
@@ -115,7 +84,7 @@ export class TiposDocumentosService {
       );
   }
 
-  actualizar(data: TipoDocumentoCrud) {
+  actualizar(data: CategoriaDocumento) {
     return this.http
       .put<HttpResponse<Object>>(this.servicio, data, httpOptions)
       .pipe(

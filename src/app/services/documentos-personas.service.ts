@@ -296,6 +296,48 @@ export class DocumentosPersonasService {
     );
   }
 
+  /**
+   * Reporte 1: documentos registrados. Una fila por documento existente.
+   * Devuelve todo el tenant; el filtrado lo hace la tabla del front.
+   */
+  obtenerReporteDocumentos() {
+    return this.http
+      .get<HttpResponse<Object>>(this.servicio + '/reporte-documentos', {
+        observe: 'response',
+      })
+      .pipe(
+        tap((response: HttpResponse<Object>) => {
+          let respuesta: any = response.body;
+          if (respuesta.error) {
+            throw respuesta.error;
+          }
+          return response;
+        }),
+        catchError(this.handleError)
+      );
+  }
+
+  /**
+   * Reporte 2: cumplimiento documental. Una fila por persona y tipo exigido,
+   * incluyendo los que no tiene cargados.
+   */
+  obtenerReporteCumplimiento() {
+    return this.http
+      .get<HttpResponse<Object>>(this.servicio + '/reporte-cumplimiento', {
+        observe: 'response',
+      })
+      .pipe(
+        tap((response: HttpResponse<Object>) => {
+          let respuesta: any = response.body;
+          if (respuesta.error) {
+            throw respuesta.error;
+          }
+          return response;
+        }),
+        catchError(this.handleError)
+      );
+  }
+
   private handleError(error: HttpErrorResponse) {
     return throwError(() => error);
   }

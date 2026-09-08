@@ -242,7 +242,7 @@
                 class="badge bg-warning rounded-pill ms-2"
               >
                 {{ filtrosActivos[titulo.clave].length }} /
-                {{ opcionesFiltro[titulo.clave].length }}
+                {{ (opcionesFiltroFiltradas[titulo.clave] || opcionesFiltro[titulo.clave]).length }}
               </span>
             </button>
             <div

@@ -185,6 +185,15 @@ export class MenuArbolService {
               { id: 'reportes-alimentacion', label: 'Reporte Alimentación', icono: '🍎', ruta: '/reportes/alimentacion', permiso: 'reportes.alimentacion', keywords: ['comida', 'onces', 'refrigerios'] },
               { id: 'reportes-ejecucion-tareas', label: 'Ejecución de Tareas', icono: '📊', ruta: '/reportes/ejecucion-tareas', permiso: 'reportes.ejecucion_tareas' }
             ]
+          },
+          {
+            id: 'reportes-administrativos',
+            label: 'Administrativos',
+            icono: '🗄️',
+            hijos: [
+              { id: 'reportes-documentos-registrados', label: 'Documentos Registrados', icono: '📎', ruta: '/reportes/documentos-registrados', permiso: 'reportes.documentos_registrados', keywords: ['documentos', 'archivos', 'papeles', 'quien tiene', 'documentos subidos', 'vencidos', 'vencimientos', 'carpeta', 'hoja de vida', 'antecedentes'] },
+              { id: 'reportes-cumplimiento-documental', label: 'Cumplimiento Documental', icono: '✅', ruta: '/reportes/cumplimiento-documental', permiso: 'reportes.cumplimiento_documental', keywords: ['documentos faltantes', 'que falta', 'pendientes', 'documentos pendientes', 'sin subir', 'completitud', 'cumplimiento', 'requisitos', 'checklist documentos'] }
+            ]
           }
         ]
       },
@@ -449,7 +458,8 @@ export class MenuArbolService {
               { id: 'administracion-config-geofence', label: 'Polígono de la Institución', icono: '📍', ruta: '/administracion/datos-maestros/configuracion-geofence', permiso: 'admin.configuracion_geofence', keywords: ['ubicacion', 'ubicación', 'zonas', 'gps', 'geofence', 'geocerca', 'mapa', 'poligono', 'polígono', 'dibujar zona', 'dibujar el jardin', 'perimetro', 'perímetro', 'linderos', 'area del jardin', 'área del jardín', 'zona de asistencia', 'marcacion', 'marcación', 'coordenadas', 'satelital', 'planta del jardin'] },
               { id: 'administracion-jornada-laboral', label: 'Jornada Laboral', icono: '⏰', ruta: '/administracion/datos-maestros/jornada-laboral', permiso: 'admin.jornada_laboral', keywords: ['jornada', 'horario', 'horario del jardin', 'hora de entrada', 'hora de salida', 'atencion', 'apertura', 'cierre'] },
               { id: 'administracion-cargos', label: 'Cargos', icono: '💼', ruta: '/administracion/datos-maestros/cargos', permiso: 'admin.cargos', keywords: ['puestos', 'roles'] },
-              { id: 'administracion-tipos-documentos', label: 'Tipos Documentos', icono: '📄', ruta: '/administracion/datos-maestros/tipos-documentos', permiso: 'admin.tipos_documentos', keywords: ['documentos'] },
+              { id: 'administracion-tipos-documentos', label: 'Tipos Documentos', icono: '📄', ruta: '/administracion/datos-maestros/tipos-documentos', permiso: 'admin.tipos_documentos', keywords: ['documentos', 'tipos de documento', 'papeles', 'requisitos'] },
+              { id: 'administracion-categorias-documentos', label: 'Categorías de Documentos', icono: '🗂️', ruta: '/administracion/datos-maestros/categorias-documentos', permiso: 'admin.categorias_documentos', keywords: ['categorias', 'categorías', 'carpetas', 'documentos', 'agrupar documentos', 'clasificacion', 'clasificación', 'organizar documentos'] },
               { id: 'administracion-institucion', label: 'Institución', icono: '🏫', ruta: '/administracion/datos-maestros/institucion', permiso: 'admin.institucion', keywords: ['institucion', 'documentos institucionales', 'plan de emergencia'] }
             ]
           },

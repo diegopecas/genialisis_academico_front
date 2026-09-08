@@ -78,6 +78,9 @@ export class DatosMaestrosComponent {
       case 'cargos':
         this.router.navigate(['/administracion/datos-maestros/cargos']);
         break;
+      case 'categorias-documentos':
+        this.router.navigate(['/administracion/datos-maestros/categorias-documentos']);
+        break;
       case 'tipos-documentos':
         this.router.navigate(['/administracion/datos-maestros/tipos-documentos']);
         break;

@@ -16,7 +16,7 @@ import { Router } from '@angular/router';
 export class TiposDocumentosComponent implements OnInit {
 
   titulo = "Gestión de Tipos de Documentos";
-  public columnasFiltro = ['Nombre', 'Código'];
+  public columnasFiltro = ['Nombre', 'Código', 'Categoría'];
   public titulos = [] as any[];
   public datos = [] as any[];
   public acciones = [] as any[];
@@ -37,6 +37,7 @@ export class TiposDocumentosComponent implements OnInit {
       console.log("consumo servicio tipos documentos", body);
       this.datos = body.map((item: any) => ({
         ...item,
+        categoria_label: item.categoria_nombre ? item.categoria_nombre : 'Otros',
         requiere_vencimiento_label: item.requiere_vencimiento ? 'Sí' : 'No',
         permite_multiples_label: item.permite_multiples ? 'Sí' : 'No',
         requiere_firma_label: item.requiere_firma ? 'Sí' : 'No',
@@ -60,6 +61,11 @@ export class TiposDocumentosComponent implements OnInit {
       {
         clave: 'nombre',
         alias: 'Nombre',
+        alinear: 'izquierda',
+      },
+      {
+        clave: 'categoria_label',
+        alias: 'Categoría',
         alinear: 'izquierda',
       },
       {

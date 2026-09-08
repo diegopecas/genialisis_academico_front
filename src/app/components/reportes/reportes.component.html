@@ -339,7 +339,7 @@
       </div>
 
       <!-- Administración -->
-      <div class="col-lg-3 col-md-6 mb-4" *ngIf="tieneAlguno(['dashboard.gerencial.listado'])">
+      <div class="col-lg-3 col-md-6 mb-4" *ngIf="tieneAlguno(['dashboard.gerencial.listado', 'reportes.documentos_registrados', 'reportes.cumplimiento_documental'])">
         <div
           class="card-maestro menu-principal"
           [class.active]="menuActivo === 'administracion'"
@@ -363,7 +363,7 @@
 
           <div class="submenu-container">
             <div class="row g-2">
-              <div class="col-12" *ngIf="permisosService.tienePermiso('dashboard.gerencial.listado')">
+              <div class="col-6" *ngIf="permisosService.tienePermiso('dashboard.gerencial.listado')">
                 <div
                   class="submenu-item"
                   (click)="seleccionarOpcion('dashboard-gerencial', $event)"
@@ -373,6 +373,30 @@
                     alt="Dashboard Gerencial"
                   />
                   <span>Dashboard Gerencial</span>
+                </div>
+              </div>
+              <div class="col-6" *ngIf="permisosService.tienePermiso('reportes.documentos_registrados')">
+                <div
+                  class="submenu-item"
+                  (click)="seleccionarOpcion('documentos-registrados', $event)"
+                >
+                  <img
+                    src="assets/images/reporte-documentos.png"
+                    alt="Documentos Registrados"
+                  />
+                  <span>Documentos Registrados</span>
+                </div>
+              </div>
+              <div class="col-6" *ngIf="permisosService.tienePermiso('reportes.cumplimiento_documental')">
+                <div
+                  class="submenu-item"
+                  (click)="seleccionarOpcion('cumplimiento-documental', $event)"
+                >
+                  <img
+                    src="assets/images/reporte-cumplimiento-documental.png"
+                    alt="Cumplimiento Documental"
+                  />
+                  <span>Cumplimiento Documental</span>
                 </div>
               </div>
             </div>

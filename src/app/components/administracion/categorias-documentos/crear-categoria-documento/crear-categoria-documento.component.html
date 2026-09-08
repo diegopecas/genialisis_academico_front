@@ -1,0 +1,132 @@
+<div class="modulo">
+    <app-header
+        [tituloModulo]="titulo"
+        [mostrarCrear]="false"
+        [accion]="accion"
+        [raiz]="'/administracion/datos-maestros/categorias-documentos'"
+        [regresar]="regresar"
+        [iconoTitulo]="'/assets/images/categorias-documentos.png'">
+    </app-header>
+
+    <div class="container mt-4">
+        <!-- Sección: Información básica -->
+        <div class="card card-formulario mb-4">
+            <div class="card-header-custom">
+                <i class="fas fa-info-circle"></i>
+                <span>Información Básica</span>
+            </div>
+            <div class="card-body-custom">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label for="codigo" class="form-label">Código <span class="text-danger">*</span></label>
+                        <input
+                            class="form-control"
+                            type="text"
+                            id="codigo"
+                            [(ngModel)]="model.codigo"
+                            placeholder="Ej: identificacion, salud..."
+                            required
+                            maxlength="50"
+                            [ngClass]="{'is-invalid': !model.codigo && submitted}"
+                            [disabled]="!editable">
+                        <small class="form-text text-muted">Identificador único de la categoría (sin espacios)</small>
+                    </div>
+                    <div class="col-md-5">
+                        <label for="nombre" class="form-label">Nombre <span class="text-danger">*</span></label>
+                        <input
+                            class="form-control"
+                            type="text"
+                            id="nombre"
+                            [(ngModel)]="model.nombre"
+                            placeholder="Ej: Identificación, Salud..."
+                            required
+                            maxlength="150"
+                            [ngClass]="{'is-invalid': !model.nombre && submitted}"
+                            [disabled]="!editable">
+                        <small class="form-text text-muted">Es el nombre de la carpeta que ve el usuario</small>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="orden" class="form-label">Orden</label>
+                        <input
+                            class="form-control"
+                            type="number"
+                            id="orden"
+                            [(ngModel)]="model.orden"
+                            min="0"
+                            placeholder="0"
+                            [disabled]="!editable">
+                        <small class="form-text text-muted">Posición de la carpeta en la pantalla de documentos</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección: Ícono -->
+        <div class="card card-formulario mb-4">
+            <div class="card-header-custom">
+                <i class="fas fa-icons"></i>
+                <span>Ícono</span>
+            </div>
+            <div class="card-body-custom">
+                <p class="text-muted mb-3">
+                    Se muestra junto al nombre de la carpeta. Si no eliges ninguno se usa uno genérico.
+                </p>
+                <div class="paleta-iconos">
+                    <button
+                        type="button"
+                        class="icono-opcion"
+                        *ngFor="let icono of iconosDisponibles"
+                        [class.seleccionado]="model.icono === icono"
+                        [disabled]="!editable"
+                        (click)="seleccionarIcono(icono)"
+                        [title]="icono">
+                        <i class="fas" [ngClass]="icono"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección: Estado -->
+        <div class="card card-formulario mb-4">
+            <div class="card-header-custom">
+                <i class="fas fa-cogs"></i>
+                <span>Configuración</span>
+            </div>
+            <div class="card-body-custom">
+                <div class="toggle-card" [class.active]="model.activo">
+                    <div class="toggle-info">
+                        <div class="toggle-icon">
+                            <i class="fas fa-toggle-on"></i>
+                        </div>
+                        <div class="toggle-text">
+                            <span class="toggle-label">Activa</span>
+                            <small class="toggle-description">Solo las categorías activas se ofrecen al crear tipos de documento</small>
+                        </div>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input
+                            class="form-check-input custom-switch"
+                            type="checkbox"
+                            id="activo"
+                            [(ngModel)]="model.activo"
+                            [disabled]="!editable">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botones de acción -->
+        <div class="row mb-5">
+            <div class="col-sm-6" *ngIf="editable">
+                <button class="btn btn-lg btn-warning w-100" (click)="guardar()">
+                    <i class="fas fa-save me-2"></i> Grabar
+                </button>
+            </div>
+            <div class="col-sm-6">
+                <button class="btn btn-lg btn-secondary w-100" (click)="volver()">
+                    <i class="fas fa-arrow-left me-2"></i> Volver
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

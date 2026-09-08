@@ -1,0 +1,58 @@
+.modulo {
+  min-height: 100vh;
+}
+
+.barra-superior {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+// Resumen del pie: responde de un vistazo que falta, ya filtrado
+.resumen-pie {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 0.75rem;
+}
+
+.resumen-item {
+  font-size: 0.82rem;
+  color: #495057;
+  background: #f1f3f5;
+  border-radius: 999px;
+  padding: 5px 12px;
+
+  &.peligro {
+    background: rgba(220, 53, 69, 0.1);
+    color: #b02a37;
+  }
+
+  &.alerta {
+    background: rgba(253, 126, 20, 0.12);
+    color: #b35309;
+  }
+}
+
+.export-container {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 1rem 1.5rem 2rem;
+}
+
+@media (max-width: 768px) {
+  .resumen-pie {
+    width: 100%;
+  }
+
+  .export-container {
+    padding: 1rem;
+
+    .btn {
+      width: 100%;
+    }
+  }
+}

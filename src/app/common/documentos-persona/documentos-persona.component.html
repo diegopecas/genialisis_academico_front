@@ -179,8 +179,27 @@
   </div>
 
   <!-- Lista de Tipos de Documentos -->
-  <div *ngIf="!cargando" class="documentos-grid">
-    <div *ngFor="let tipoDoc of tiposDocumentosFiltrados" class="documento-card-wrapper">
+  <!-- Carpetas por categoria. Cada una agrupa sus tipos de documento; la
+       categoria "Otros" recoge los tipos sin categoria asignada. -->
+  <div class="categorias-documentos" *ngIf="!cargando">
+    <div class="categoria-bloque" *ngFor="let grupo of gruposCategorias">
+      <button
+        type="button"
+        class="categoria-cabecera"
+        [class.con-pendientes]="grupo.pendientes > 0"
+        (click)="alternarCategoria(grupo.id)"
+      >
+        <i class="fas categoria-icono" [ngClass]="grupo.icono"></i>
+        <span class="categoria-nombre">{{ grupo.nombre }}</span>
+        <span class="categoria-conteo">{{ grupo.tipos.length }}</span>
+        <span class="categoria-pendientes" *ngIf="grupo.pendientes > 0">
+          {{ grupo.pendientes }} pendiente{{ grupo.pendientes === 1 ? '' : 's' }}
+        </span>
+        <i class="fas fa-chevron-down categoria-chevron" [class.cerrado]="categoriaColapsada(grupo.id)"></i>
+      </button>
+
+      <div class="documentos-grid" [hidden]="categoriaColapsada(grupo.id)">
+    <div *ngFor="let tipoDoc of grupo.tipos" class="documento-card-wrapper">
       <div
         class="documento-card"
         [ngClass]="'estado-' + estadoTipo(tipoDoc)"
@@ -379,6 +398,8 @@
             </div>
           </div>
         </div>
+      </div>
+    </div>
       </div>
     </div>
   </div>

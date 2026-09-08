@@ -45,6 +45,11 @@ export class TablasComponent implements OnChanges, OnInit {
   public currentTheme!: ThemeConfig;
   public columnasFiltroNormalizadas: Map<string, 'fecha' | 'normal' | 'rango' | 'lista'> = new Map();
 
+  // Valores que siguen existiendo en cada columna despues de aplicar los demas
+  // filtros. Es lo que hace que al filtrar por una columna las otras solo
+  // ofrezcan lo que queda, como en Excel.
+  public valoresDisponibles: { [clave: string]: Set<any> } = {};
+
   // Claves cuyas celdas traen varios valores en un solo texto (tipoFiltro 'lista').
   // Se guardan aparte porque filtrarDatos tiene que comparar por contenido y no
   // por igualdad exacta.
@@ -268,22 +273,103 @@ export class TablasComponent implements OnChanges, OnInit {
   initFiltrosBusqueda() {
     Object.keys(this.opcionesFiltro).forEach(clave => {
       this.busquedaFiltro[clave] = '';
-      this.opcionesFiltroFiltradas[clave] = [...this.opcionesFiltro[clave]];
+      this.opcionesFiltroFiltradas[clave] = this.opcionesVisibles(clave);
     });
   }
 
-  filtrarOpciones(clave: string) {
-    const busqueda = normalizarTexto(this.busquedaFiltro[clave]);
-    if (!busqueda) {
-      this.opcionesFiltroFiltradas[clave] = [...this.opcionesFiltro[clave]];
+  /**
+   * Recalcula, para cada columna filtrable, que valores siguen presentes si se
+   * aplican todos los filtros MENOS el suyo propio.
+   *
+   * Se excluye el filtro propio a proposito: si se incluyera, al marcar un
+   * valor desapareceria el resto de opciones y no se podria agregar un segundo.
+   */
+  private calcularValoresDisponibles(): void {
+    this.valoresDisponibles = {};
+
+    const claves = Object.keys(this.opcionesFiltro);
+    if (claves.length === 0 || !this.tabla.datos) {
       return;
     }
-    this.opcionesFiltroFiltradas[clave] = this.opcionesFiltro[clave].filter(opcion => {
+
+    claves.forEach(claveActual => {
+      const disponibles = new Set<any>();
+
+      this.tabla.datos.forEach((item: any) => {
+        // La fila cuenta si pasa todos los demas filtros
+        const pasa = claves.every(otraClave => {
+          if (otraClave === claveActual) {
+            return true;
+          }
+          const seleccionados = this.filtrosActivos[otraClave];
+          if (!seleccionados || seleccionados.length === 0) {
+            return true;
+          }
+          const valor = item[otraClave];
+          if (valor === null || valor === undefined || valor === '') {
+            return seleccionados.includes(null);
+          }
+          if (this.clavesFiltroLista.has(otraClave)) {
+            return this.separarValoresLista(valor).some(v => seleccionados.includes(v));
+          }
+          return seleccionados.includes(valor);
+        });
+
+        if (!pasa) {
+          return;
+        }
+
+        const valorActual = item[claveActual];
+        if (valorActual === null || valorActual === undefined || valorActual === '') {
+          disponibles.add(null);
+        } else if (this.clavesFiltroLista.has(claveActual)) {
+          this.separarValoresLista(valorActual).forEach(v => disponibles.add(v));
+        } else {
+          disponibles.add(valorActual);
+        }
+      });
+
+      this.valoresDisponibles[claveActual] = disponibles;
+    });
+  }
+
+  /**
+   * Si una opcion debe mostrarse en el desplegable. Las que estan marcadas se
+   * muestran siempre, aunque ya no queden filas con ese valor, para poder
+   * desmarcarlas.
+   */
+  private opcionDisponible(clave: string, opcion: { valor: any, seleccionado: boolean }): boolean {
+    if (opcion.seleccionado) {
+      return true;
+    }
+    const disponibles = this.valoresDisponibles[clave];
+    if (!disponibles) {
+      return true;
+    }
+    return disponibles.has(opcion.valor);
+  }
+
+  /** Opciones visibles de una columna: las disponibles y, si hay, las que coinciden con la busqueda. */
+  private opcionesVisibles(clave: string): { valor: any, seleccionado: boolean }[] {
+    const disponibles = this.opcionesFiltro[clave].filter(opcion =>
+      this.opcionDisponible(clave, opcion),
+    );
+
+    const busqueda = normalizarTexto(this.busquedaFiltro[clave] || '');
+    if (!busqueda) {
+      return disponibles;
+    }
+
+    return disponibles.filter(opcion => {
       const valor = opcion.valor !== null && opcion.valor !== undefined
         ? normalizarTexto(opcion.valor)
         : '(sin valor)';
       return valor.includes(busqueda);
     });
+  }
+
+  filtrarOpciones(clave: string) {
+    this.opcionesFiltroFiltradas[clave] = this.opcionesVisibles(clave);
   }
 
   getOpcionOriginalIndex(clave: string, opcionFiltrada: any): number {
@@ -298,7 +384,8 @@ export class TablasComponent implements OnChanges, OnInit {
     this.filtroAbierto[clave] = !this.filtroAbierto[clave];
     if (this.filtroAbierto[clave] && this.opcionesFiltro[clave]) {
       this.busquedaFiltro[clave] = '';
-      this.opcionesFiltroFiltradas[clave] = [...this.opcionesFiltro[clave]];
+      // Al abrir se recalcula: los otros filtros pudieron cambiar mientras tanto.
+      this.opcionesFiltroFiltradas[clave] = this.opcionesVisibles(clave);
     }
   }
 
@@ -894,6 +981,9 @@ export class TablasComponent implements OnChanges, OnInit {
 
     // Filtros de rango
     datosFiltrados = this.aplicarFiltrosRango(datosFiltrados);
+
+    // Las opciones de cada filtro se recalculan contra lo que dejan los demas
+    this.calcularValoresDisponibles();
 
     if (this.columnaOrdenada && this.direccionOrden) {
       datosFiltrados = [...datosFiltrados].sort((a: any, b: any) => {

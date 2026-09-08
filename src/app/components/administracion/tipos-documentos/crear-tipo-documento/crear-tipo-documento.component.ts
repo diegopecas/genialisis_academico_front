@@ -9,6 +9,7 @@ import {
 } from '../../../../services/tipos-documentos.service';
 import { TiposPersonasService } from '../../../../services/tipos-personas.service';
 import { TiposPersonasDocumentosService } from '../../../../services/tipos-personas-documentos.service';
+import { CategoriasDocumentosService } from '../../../../services/categorias-documentos.service';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -36,19 +37,24 @@ export class CrearTipoDocumentoComponent implements OnInit {
     requiere_firma: false,
     modificable_acudientes: true,
     activo: true,
+    id_categoria: '',
   } as any;
 
   tiposPersona: any[] = [];
+  categorias: any[] = [];
 
   constructor(
     private tiposDocumentosService: TiposDocumentosService,
     private tiposPersonasService: TiposPersonasService,
     private tiposPersonasDocumentosService: TiposPersonasDocumentosService,
+    private categoriasDocumentosService: CategoriasDocumentosService,
     private route: ActivatedRoute,
     private router: Router,
   ) {}
 
   ngOnInit(): void {
+    this.cargarCategorias();
+
     this.route.params.subscribe((params) => {
       this.accion = params['accion'];
       const id = params['id'];
@@ -68,6 +74,17 @@ export class CrearTipoDocumentoComponent implements OnInit {
     });
   }
 
+  cargarCategorias() {
+    this.categoriasDocumentosService.obtenerActivas().subscribe({
+      next: (response: any) => {
+        this.categorias = response.body as any[];
+      },
+      error: (error: any) => {
+        console.error('Error al cargar categorías de documentos', error);
+      },
+    });
+  }
+
   cargarTipoDocumento(id: any) {
     this.tiposDocumentosService.obtenerPorId(id).subscribe({
       next: (response: any) => {
@@ -77,6 +94,7 @@ export class CrearTipoDocumentoComponent implements OnInit {
           const registro = body[0];
           this.model = {
             ...registro,
+            id_categoria: registro.id_categoria ? registro.id_categoria : '',
             requiere_vencimiento: !!registro.requiere_vencimiento,
             permite_multiples: !!registro.permite_multiples,
             requiere_firma: !!registro.requiere_firma,
@@ -182,6 +200,7 @@ export class CrearTipoDocumentoComponent implements OnInit {
       requiere_firma: this.model.requiere_firma ? 1 : 0,
       modificable_acudientes: this.model.modificable_acudientes ? 1 : 0,
       activo: this.model.activo ? 1 : 0,
+      id_categoria: this.model.id_categoria ? this.model.id_categoria : null,
     };
 
     if (this.accion === 'crear') {

@@ -1,0 +1,56 @@
+<div class="modulo">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="false"
+    [raiz]="'/reportes'"
+    [regresar]="'/reportes'"
+    [iconoTitulo]="'/assets/images/reporte-documentos.png'"
+  ></app-header>
+
+  <!-- Sin filtros propios: el filtrado y la búsqueda los hace la tabla sobre
+       los datos ya cargados. -->
+  <div class="container-fluid px-4 mt-3 barra-superior">
+    <button class="btn btn-sm btn-outline-secondary" (click)="consultar()" [disabled]="cargando">
+      <i class="fas fa-rotate me-2"></i>
+      {{ cargando ? 'Cargando...' : 'Actualizar' }}
+    </button>
+  </div>
+
+  <app-tablas
+    [titulos]="titulos"
+    [datos]="datos"
+    [raiz]="'/reportes/documentos-registrados'"
+    [acciones]="acciones"
+    [columnasFiltro]="columnasFiltro"
+    [mostrarBuscar]="true"
+    (clicAccion)="clicAccion($event)"
+    (datosFiltradosCambiados)="actualizarResumen($event)"
+  ></app-tablas>
+
+  <!-- Resumen: sigue lo que muestra la tabla, no el total cargado -->
+  <div class="container-fluid px-4 resumen-pie" *ngIf="!cargando">
+    <span class="resumen-item">
+      <strong>{{ totalVisibles }}</strong> documento{{ totalVisibles === 1 ? '' : 's' }}
+    </span>
+    <span class="resumen-item">
+      <strong>{{ totalPersonas }}</strong> persona{{ totalPersonas === 1 ? '' : 's' }}
+    </span>
+    <span class="resumen-item peligro" *ngIf="totalVencidos > 0">
+      <strong>{{ totalVencidos }}</strong> vencido{{ totalVencidos === 1 ? '' : 's' }}
+    </span>
+    <span class="resumen-item alerta" *ngIf="totalPorVencer > 0">
+      <strong>{{ totalPorVencer }}</strong> por vencer
+    </span>
+  </div>
+
+  <div class="export-container">
+    <button
+      class="btn btn-success"
+      (click)="exportarExcel()"
+      [disabled]="exportando || cargando || datos.length === 0"
+    >
+      <i class="fas fa-file-excel"></i>
+      {{ exportando ? "Exportando..." : "Exportar a Excel" }}
+    </button>
+  </div>
+</div>

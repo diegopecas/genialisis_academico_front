@@ -63,6 +63,20 @@ export class DocumentosPersonaComponent implements OnInit, OnDestroy {
   // filtros o los datos, no en cada ciclo de deteccion de cambios.
   public tiposDocumentosFiltrados: TipoDocumento[] = [];
 
+  // Los tipos filtrados repartidos en carpetas por categoria. Es lo que pinta
+  // la grilla; tiposDocumentosFiltrados se mantiene para los contadores.
+  public gruposCategorias: {
+    id: string;
+    nombre: string;
+    icono: string;
+    orden: number;
+    tipos: TipoDocumento[];
+    pendientes: number;
+  }[] = [];
+
+  // Categorias con la carpeta cerrada. Por defecto todas abiertas.
+  public categoriasColapsadas = new Set<string>();
+
   // Filtros de la barra superior.
   // Tipos con el detalle de archivos desplegado. Por defecto la tarjeta solo
   // muestra el resumen (cuantos y de que fecha).
@@ -575,6 +589,57 @@ export class DocumentosPersonaComponent implements OnInit, OnDestroy {
 
       return true;
     });
+
+    this.agruparPorCategoria();
+  }
+
+  /**
+   * Arma las carpetas a partir de los tipos filtrados.
+   *
+   * Un tipo sin categoria cae en "Otros", que va de ultima. Las demas se
+   * ordenan por el orden configurado en Categorias de Documentos.
+   */
+  private agruparPorCategoria(): void {
+    const mapa = new Map<string, any>();
+
+    this.tiposDocumentosFiltrados.forEach((tipoDoc: any) => {
+      const id = tipoDoc.id_categoria ? tipoDoc.id_categoria : 'otros';
+
+      if (!mapa.has(id)) {
+        mapa.set(id, {
+          id: id,
+          nombre: tipoDoc.categoria_nombre ? tipoDoc.categoria_nombre : 'Otros',
+          icono: tipoDoc.categoria_icono ? tipoDoc.categoria_icono : 'fa-folder',
+          // Sin categoria va de ultimo, sin importar como esten las demas.
+          orden: id === 'otros' ? 9999 : (tipoDoc.categoria_orden || 0),
+          tipos: [],
+          pendientes: 0,
+        });
+      }
+
+      const grupo = mapa.get(id);
+      grupo.tipos.push(tipoDoc);
+      if (this.estadoTipo(tipoDoc) === 'pendiente') {
+        grupo.pendientes++;
+      }
+    });
+
+    this.gruposCategorias = Array.from(mapa.values()).sort(
+      (a, b) => a.orden - b.orden || a.nombre.localeCompare(b.nombre),
+    );
+  }
+
+  /** Abre o cierra una carpeta de categoria. */
+  alternarCategoria(idCategoria: string): void {
+    if (this.categoriasColapsadas.has(idCategoria)) {
+      this.categoriasColapsadas.delete(idCategoria);
+    } else {
+      this.categoriasColapsadas.add(idCategoria);
+    }
+  }
+
+  categoriaColapsada(idCategoria: string): boolean {
+    return this.categoriasColapsadas.has(idCategoria);
   }
 
   /** Tipos obligatorios configurados para esta persona. */

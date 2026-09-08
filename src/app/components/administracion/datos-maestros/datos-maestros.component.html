@@ -218,6 +218,12 @@
                   <span>Tipos de Documentos</span>
                 </div>
               </div>
+              <div class="col-6" *ngIf="permisosService.tienePermiso('admin.categorias_documentos')">
+                <div class="submenu-item" (click)="seleccionarOpcion('categorias-documentos')">
+                  <img src="assets/images/categorias-documentos.png" alt="Categorías de Documentos" />
+                  <span>Categorías de Documentos</span>
+                </div>
+              </div>
               <div class="col-6" *ngIf="permisosService.tienePermiso('admin.configuracion_ia')">
                 <div class="submenu-item" (click)="seleccionarOpcion('configuracion-ia')">
                   <img src="assets/images/configuracion-ia.png" alt="Configuración IA" />
@@ -233,7 +239,7 @@
               <div class="col-6" *ngIf="permisosService.tienePermiso('admin.configuracion_geofence')">
                 <div class="submenu-item" (click)="seleccionarOpcion('configuracion-geofence')">
                   <img src="assets/images/geofence.png" alt="Polígono de la Institución" />
-                  <span>Polígono de la Institución</span>
+                  <span>Zona de asistencia</span>
                 </div>
               </div>
               <div class="col-6" *ngIf="permisosService.tienePermiso('admin.datos_estudiantes')">

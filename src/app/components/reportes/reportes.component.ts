@@ -24,7 +24,7 @@ export class ReportesComponent {
     this.menuActivo = this.menuActivo === menu ? null : menu;
   }
 
-  seleccionarOpcion(opcion: string, event: Event) {
+    seleccionarOpcion(opcion: string, event: Event) {
     event.stopPropagation();
     switch (opcion) {
       // Académicos
@@ -85,6 +85,12 @@ export class ReportesComponent {
       // Administración
       case 'dashboard-gerencial':
         this.router.navigate(['/reportes/dashboard-gerencial']);
+        break;
+      case 'documentos-registrados':
+        this.router.navigate(['/reportes/documentos-registrados']);
+        break;
+      case 'cumplimiento-documental':
+        this.router.navigate(['/reportes/cumplimiento-documental']);
         break;
       // Apoyo
       case 'alimentacion':
