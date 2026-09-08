@@ -57,6 +57,10 @@ export class AsistenciaEstudiantesService {
       );
   }
 
+  // El back devuelve un objeto con dos listas:
+  //   no_salidas: los que estan adentro (ingresaron hoy y no han salido)
+  //   salidas:    los que ya se fueron hoy
+  // Antes devolvia un arreglo plano con los de adentro.
   obtenerNoSalidas() {
     return this.http
       .get<HttpResponse<Object>>(this.servicioNoSalida, { observe: 'response' })

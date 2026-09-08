@@ -7,38 +7,41 @@
     [regresar]="'/menu'"
   ></app-header>
   <div class="container-fluid mt-3">
-    <div class="row">
-      <div class="col-sm-12 col-md-4 px-3 mt-1">
-        <div
-          [ngClass]="
-            model.opcion == 'ingresos'
-              ? 'text-center ficha-seleccionada'
-              : 'text-center ficha'
-          "
-          (click)="seleccionarOpcion('ingresos')"
-        >
-          Ingresos
-        </div>
+    <!-- Pestanas de la pantalla. Cada una lleva su contador para ver como va
+         el dia sin tener que entrar a la lista. Las tres marcan seleccion;
+         antes la de "Actual" nunca se resaltaba. -->
+    <div class="tabs-asistencia">
+      <div
+        class="tab-asistencia"
+        [class.activa]="model.opcion == 'ingresos'"
+        (click)="seleccionarOpcion('ingresos')"
+      >
+        <i class="fas fa-sign-in-alt"></i>
+        <span class="tab-numero">{{ listas.noIngresos.length }}</span>
+        <span class="tab-titulo">Ingresos</span>
+        <span class="tab-detalle">por ingresar</span>
       </div>
-      <div class="col-sm-12 col-md-4 px-3 mt-1">
-        <div
-          [ngClass]="
-            model.opcion == 'salidas'
-              ? 'text-center ficha-seleccionada'
-              : 'text-center ficha'
-          "
-          (click)="seleccionarOpcion('salidas')"
-        >
-          Salidas
-        </div>
+      <div
+        class="tab-asistencia"
+        [class.activa]="model.opcion == 'salidas'"
+        (click)="seleccionarOpcion('salidas')"
+      >
+        <i class="fas fa-sign-out-alt"></i>
+        <span class="tab-numero">{{ listas.noSalidas.length }}</span>
+        <span class="tab-titulo">Salidas</span>
+        <span class="tab-detalle">en el jardín</span>
       </div>
-      <div class="col-sm-12 col-md-4 px-3 mt-1">
-        <div class="text-center ficha" (click)="seleccionarOpcion('actual')">
-          Actual: {{ listas.noSalidas.length }}
-        </div>
+      <div
+        class="tab-asistencia"
+        [class.activa]="model.opcion == 'actual'"
+        (click)="seleccionarOpcion('actual')"
+      >
+        <i class="fas fa-th-large"></i>
+        <span class="tab-numero">{{ listas.grupos.length }}</span>
+        <span class="tab-titulo">Actual</span>
+        <span class="tab-detalle">por grupo</span>
       </div>
     </div>
-    <hr />
 
     <!-- PANEL DE COBROS AUTOMÁTICOS -->
     <div class="row" *ngIf="mostrarPanelCobros && estudianteSeleccionadoCobro">
@@ -402,64 +405,133 @@
           <app-buscar (buscar)="buscar($event)"></app-buscar>
           <button class="btn btn-sm btn-warning ms-2" (click)="abrirRegistroRapido()">⚡ Crear estudiante</button>
         </div>
-        <ul class="lista-seleccionable">
+        <ul class="lista-asistencia">
           <ng-container *ngFor="let estudiante of listas.noIngresos; trackBy: trackByEstudiante">
             <li
-              class="item-lista"
-              (mouseover)="estudiante.over = true"
-              (mouseout)="estudiante.over = false"
-              [style.background-image]="
-                estudiante.over
-                  ? 'linear-gradient(to left, #ffffff, ' + estudiante.color + ')'
-                  : 'linear-gradient(to left, #ffffff 95%, ' + estudiante.color + ')'
-              "
+              class="item-asistencia"
+              [style.border-left-color]="estudiante.color"
               (click)="seleccionarEstudiante(estudiante)"
             >
-              <img [src]="estudiante.icono" width="30" />
-              {{ estudiante.primer_nombre }} {{ estudiante.segundo_nombre }}
-              {{ estudiante.primer_apellido }} {{ estudiante.segundo_apellido }}
+              <img class="avatar-asistencia" [src]="estudiante.icono" />
+              <span class="datos-asistencia">
+                <span class="nombre-asistencia">
+                  {{ estudiante.primer_nombre }} {{ estudiante.segundo_nombre }}
+                  {{ estudiante.primer_apellido }} {{ estudiante.segundo_apellido }}
+                </span>
+                <span class="grupo-asistencia" *ngIf="estudiante.nombre_grupo">
+                  {{ estudiante.nombre_grupo }}
+                </span>
+              </span>
+              <i class="fas fa-chevron-right flecha-asistencia"></i>
             </li>
           </ng-container>
         </ul>
+
+        <!-- Estado vacio: antes la lista quedaba en blanco sin explicar nada. -->
+        <div class="estado-vacio" *ngIf="listas.noIngresos.length === 0">
+          <i class="fas fa-check-circle"></i>
+          <span>Ya ingresaron todos los niños.</span>
+        </div>
       </div>
       <div class="col-md-12" *ngIf="model.opcion == 'salidas'">
         <app-buscar (buscar)="buscar($event)"></app-buscar>
-        <ul class="lista-seleccionable">
+        <ul class="lista-asistencia">
           <ng-container *ngFor="let estudiante of listas.noSalidas; trackBy: trackByEstudiante">
             <li
-              class="item-lista"
-              (mouseover)="estudiante.over = true"
-              (mouseout)="estudiante.over = false"
-              [style.background-image]="
-                estudiante.over
-                  ? 'linear-gradient(to left, #ffffff, ' + estudiante.color + ')'
-                  : 'linear-gradient(to left, #ffffff 95%, ' + estudiante.color + ')'
-              "
+              class="item-asistencia"
+              [style.border-left-color]="estudiante.color"
               (click)="seleccionarEstudiante(estudiante)"
             >
-              <img [src]="estudiante.icono" width="30" />
-              {{ estudiante.primer_nombre }} {{ estudiante.segundo_nombre }}
-              {{ estudiante.primer_apellido }}
-              {{ estudiante.segundo_apellido }} ({{ estudiante.fecha_ingreso | date : "shortTime" }})
+              <img class="avatar-asistencia" [src]="estudiante.icono" />
+              <span class="datos-asistencia">
+                <span class="nombre-asistencia">
+                  {{ estudiante.primer_nombre }} {{ estudiante.segundo_nombre }}
+                  {{ estudiante.primer_apellido }} {{ estudiante.segundo_apellido }}
+                </span>
+                <span class="grupo-asistencia" *ngIf="estudiante.nombre_grupo">
+                  {{ estudiante.nombre_grupo }}
+                </span>
+              </span>
+              <span class="hora-asistencia" title="Hora de ingreso">
+                <i class="fas fa-sign-in-alt"></i>
+                {{ estudiante.fecha_ingreso | date : "shortTime" }}
+              </span>
+              <i class="fas fa-chevron-right flecha-asistencia"></i>
             </li>
           </ng-container>
         </ul>
+
+        <!-- Estado vacio de la pestana de salidas. -->
+        <div class="estado-vacio" *ngIf="listas.noSalidas.length === 0">
+          <i class="fas fa-door-open"></i>
+          <span>No hay niños en el jardín en este momento.</span>
+        </div>
+
+        <!-- Los que ya se fueron hoy. Es solo informativo: la salida ya quedo
+             registrada, por eso no responde al clic. Muestra las dos horas y
+             quien registro cada movimiento, para poder reclamar o aclarar
+             despues sin tener que ir al reporte. -->
+        <div class="bloque-ya-salieron" *ngIf="listas.salidas.length > 0">
+          <div class="titulo-ya-salieron">
+            Ya se fueron ({{ listas.salidas.length }})
+          </div>
+          <ul class="lista-ya-salieron">
+            <li
+              class="item-ya-salio"
+              *ngFor="let estudiante of listas.salidas; trackBy: trackByEstudiante"
+              [style.border-left-color]="estudiante.color"
+            >
+              <div class="fila-nombre">
+                <img *ngIf="estudiante.icono" [src]="estudiante.icono" width="26" />
+                <span class="nombre-ya-salio">
+                  {{ estudiante.primer_nombre }} {{ estudiante.segundo_nombre }}
+                  {{ estudiante.primer_apellido }} {{ estudiante.segundo_apellido }}
+                </span>
+                <span class="grupo-ya-salio" *ngIf="estudiante.nombre_grupo">
+                  {{ estudiante.nombre_grupo }}
+                </span>
+              </div>
+              <div class="movimientos-ya-salio">
+                <span class="movimiento entrada">
+                  <i class="fas fa-sign-in-alt"></i>
+                  <strong>{{ estudiante.fecha_ingreso | date : "shortTime" }}</strong>
+                  <small *ngIf="estudiante.usuario_ingreso">
+                    · {{ estudiante.usuario_ingreso }}
+                  </small>
+                </span>
+                <span class="movimiento salida">
+                  <i class="fas fa-sign-out-alt"></i>
+                  <strong>{{ estudiante.fecha_salida | date : "shortTime" }}</strong>
+                  <small *ngIf="estudiante.usuario_salida">
+                    · {{ estudiante.usuario_salida }}
+                  </small>
+                </span>
+              </div>
+            </li>
+          </ul>
+        </div>
       </div>
       <div class="col-md-12" *ngIf="model.opcion == 'actual'">
-        <div class="row mt-1 mb-5">
+        <div class="grid-grupos">
           <ng-container *ngFor="let grupo of listas.grupos; trackBy: trackByGrupo">
-            <div class="col-sm-12 col-md-4 px-3 mb-5">
-              <div
-                class="text-center ficha"
-                [style.background-image]="'linear-gradient(to bottom, #ffffff 80%, ' + grupo.color + ')'"
-                (click)="verActual(grupo)"
-              >
-                <img [src]="grupo.icono" class="w-25" />
-                {{ grupo.nombre }}
-                {{ grupo.asistentes }} de {{ grupo.totalGrupo || 0 }}
-              </div>
+            <div
+              class="tarjeta-grupo"
+              [style.border-top-color]="grupo.color"
+              (click)="verActual(grupo)"
+            >
+              <img [src]="grupo.icono" class="icono-grupo" />
+              <span class="nombre-grupo">{{ grupo.nombre }}</span>
+              <span class="conteo-grupo">
+                <strong>{{ grupo.asistentes }}</strong> de {{ grupo.totalGrupo || 0 }}
+              </span>
             </div>
           </ng-container>
+        </div>
+
+        <!-- Estado vacio por si el jardin todavia no tiene grupos cargados. -->
+        <div class="estado-vacio" *ngIf="listas.grupos.length === 0">
+          <i class="fas fa-th-large"></i>
+          <span>Todavía no hay grupos configurados.</span>
         </div>
       </div>
     </div>

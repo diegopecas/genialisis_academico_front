@@ -7,22 +7,27 @@
   ></app-header>
 
   <div class="container-fluid mt-5">
+    <div class="row justify-content-center mb-4">
+      <div class="col-lg-6 col-md-8">
+        <app-buscar (buscar)="buscar($event)"></app-buscar>
+      </div>
+    </div>
+
     <div class="row justify-content-center">
-      <!-- Académicos -->
-      <div class="col-lg-3 col-md-6 mb-4" *ngIf="tieneAlguno(['reportes.calificaciones_estudiante', 'reportes.calificaciones_sprint', 'reportes.cobertura_curricular', 'reportes.ejecucion_tareas', 'reportes.malla_curricular', 'reportes.distribucion_malla', 'reportes.horarios'])">
+      <div class="col-lg-3 col-md-6 mb-4" *ngFor="let grupo of gruposVisibles; trackBy: trackByGrupo">
         <div
           class="card-maestro menu-principal"
-          [class.active]="menuActivo === 'academicos'"
-          (click)="toggleMenu('academicos', $event)"
+          [class.active]="menuActivo === grupo.id || enBusqueda"
+          [ngStyle]="grupo.estilo || {}"
+          (click)="toggleMenu(grupo.id, $event)"
         >
           <div class="card-maestro-content">
-            <div class="icono-container academicos">
-              <img src="assets/images/academico.png" alt="Académicos" />
+            <div class="icono-container" [ngClass]="grupo.claseIcono">
+              <img *ngIf="grupo.imagen" [src]="grupo.imagen" [alt]="grupo.alt || grupo.titulo" />
+              <i *ngIf="!grupo.imagen && grupo.icono" [ngClass]="grupo.icono"></i>
             </div>
-            <h3 class="card-titulo">Académicos</h3>
-            <p class="card-descripcion">
-              Reportes de calificaciones y seguimiento académico
-            </p>
+            <h3 class="card-titulo" [innerHTML]="grupo.tituloHtml || grupo.titulo"></h3>
+            <p class="card-descripcion">{{ grupo.descripcion }}</p>
             <div class="card-footer-custom">
               <span class="link-accion"
                 >Ver opciones <i class="fas fa-chevron-down"></i
@@ -32,416 +37,21 @@
 
           <div class="submenu-container">
             <div class="row g-2">
-              <div class="col-6" *ngIf="permisosService.tienePermiso('reportes.calificaciones_sprint')">
-                <div
-                  class="submenu-item"
-                  (click)="seleccionarOpcion('calificaciones-sprint', $event)"
-                >
-                  <img
-                    src="assets/images/calificaciones-sprint.png"
-                    alt="Calificaciones Sprint"
-                  />
-                  <span>Calificaciones Sprint</span>
-                </div>
-              </div>
-              <div class="col-6" *ngIf="permisosService.tienePermiso('reportes.calificaciones_estudiante')">
-                <div
-                  class="submenu-item"
-                  (click)="
-                    seleccionarOpcion('calificaciones-estudiante', $event)
-                  "
-                >
-                  <img
-                    src="assets/images/calificaciones-estudiante.png"
-                    alt="Calificaciones Estudiante"
-                  />
-                  <span>Calificaciones Estudiante</span>
-                </div>
-              </div>
-              <div class="col-6" *ngIf="permisosService.tienePermiso('reportes.malla_curricular')">
-                <div
-                  class="submenu-item"
-                  (click)="seleccionarOpcion('malla-curricular', $event)"
-                >
-                  <img
-                    src="assets/images/malla-curricular.png"
-                    alt="Malla Curricular"
-                  />
-                  <span>Malla Curricular</span>
-                </div>
-              </div>
-              <div class="col-6" *ngIf="permisosService.tienePermiso('reportes.cobertura_curricular')">
-                <div
-                  class="submenu-item"
-                  (click)="seleccionarOpcion('cobertura-curricular', $event)"
-                >
-                  <img
-                    src="assets/images/cobertura-curricular.png"
-                    alt="Cobertura Curricular"
-                  />
-                  <span>Cobertura Curricular</span>
-                </div>
-              </div>
-              <div class="col-6" *ngIf="permisosService.tienePermiso('reportes.distribucion_malla')">
-                <div
-                  class="submenu-item"
-                  (click)="seleccionarOpcion('distribucion-malla', $event)"
-                >
-                  <img
-                    src="assets/images/distribucion-malla.png"
-                    alt="Distribución de la Malla"
-                  />
-                  <span>Distribución de la Malla</span>
-                </div>
-              </div>
-              <div class="col-6" *ngIf="permisosService.tienePermiso('reportes.horarios')">
-                <div
-                  class="submenu-item"
-                  (click)="seleccionarOpcion('horarios', $event)"
-                >
-                  <img
-                    src="assets/images/reporte-horarios.png"
-                    alt="Horarios"
-                  />
-                  <span>Horarios</span>
-                </div>
-              </div>
-              <div class="col-6" *ngIf="permisosService.tienePermiso('reportes.ejecucion_tareas')">
-                <div
-                  class="submenu-item"
-                  (click)="seleccionarOpcion('ejecucion-tareas', $event)"
-                >
-                  <img
-                    src="assets/images/reporte-ejecucion-tareas.png"
-                    alt="Ejecución de Tareas"
-                  />
-                  <span>Ejecución de Tareas</span>
+              <div [ngClass]="opcion.columna || 'col-6'" *ngFor="let opcion of grupo.opciones; trackBy: trackByOpcion">
+                <div class="submenu-item" (click)="seleccionarOpcion(opcion.id, $event)">
+                  <img *ngIf="opcion.imagen" [src]="opcion.imagen" [alt]="opcion.alt || opcion.label" />
+                  <i *ngIf="!opcion.imagen && opcion.icono" [ngClass]="opcion.icono" [ngStyle]="opcion.iconoEstilo || {}"></i>
+                  <span [innerHTML]="opcion.labelHtml || opcion.label"></span>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- Estudiantes -->
-      <div class="col-lg-3 col-md-6 mb-4" *ngIf="tieneAlguno(['reportes.asistencia', 'reportes.estudiantes_general', 'reportes.utiles_diarios'])">
-        <div
-          class="card-maestro menu-principal"
-          [class.active]="menuActivo === 'estudiantes'"
-          (click)="toggleMenu('estudiantes', $event)"
-        >
-          <div class="card-maestro-content">
-            <div class="icono-container estudiantes">
-              <img src="assets/images/estudiantes.png" alt="Estudiantes" />
-            </div>
-            <h3 class="card-titulo">Estudiantes</h3>
-            <p class="card-descripcion">
-              Información general, asistencia y útiles diarios
-            </p>
-            <div class="card-footer-custom">
-              <span class="link-accion"
-                >Ver opciones <i class="fas fa-chevron-down"></i
-              ></span>
-            </div>
-          </div>
-
-          <div class="submenu-container">
-            <div class="row g-2">
-              <div class="col-6" *ngIf="permisosService.tienePermiso('reportes.estudiantes_general')">
-                <div
-                  class="submenu-item"
-                  (click)="seleccionarOpcion('estudiantes-general', $event)"
-                >
-                  <img
-                    src="assets/images/reporte-estudiantes.png"
-                    alt="Reporte General"
-                  />
-                  <span>Reporte General</span>
-                </div>
-              </div>
-              <div class="col-6" *ngIf="permisosService.tienePermiso('reportes.asistencia')">
-                <div
-                  class="submenu-item"
-                  (click)="seleccionarOpcion('asistencia', $event)"
-                >
-                  <img
-                    src="assets/images/asistencia.png"
-                    alt="Reporte Asistencia"
-                  />
-                  <span>Reporte Asistencia</span>
-                </div>
-              </div>
-              <div class="col-6" *ngIf="permisosService.tienePermiso('reportes.utiles_diarios')">
-                <div
-                  class="submenu-item"
-                  (click)="seleccionarOpcion('utiles-diarios', $event)"
-                >
-                  <img
-                    src="assets/images/utiles-diarios.png"
-                    alt="Útiles y Accesorios Diarios"
-                  />
-                  <span>Útiles y Accesorios Diarios</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Financiero -->
-      <div class="col-lg-3 col-md-6 mb-4" *ngIf="tieneAlguno(['reportes.cartera', 'reportes.cobros_realizados', 'reportes.movimientos_financieros', 'reportes.pagos_recibidos', 'reportes.reportes_pago'])">
-        <div
-          class="card-maestro menu-principal"
-          [class.active]="menuActivo === 'financiero'"
-          (click)="toggleMenu('financiero', $event)"
-        >
-          <div class="card-maestro-content">
-            <div class="icono-container financiero">
-              <img src="assets/images/finanzas.png" alt="Financiero" />
-            </div>
-            <h3 class="card-titulo">Financiero</h3>
-            <p class="card-descripcion">
-              Control financiero, cartera y pagos recibidos
-            </p>
-            <div class="card-footer-custom">
-              <span class="link-accion"
-                >Ver opciones <i class="fas fa-chevron-down"></i
-              ></span>
-            </div>
-          </div>
-
-          <div class="submenu-container">
-            <div class="row g-2">
-              <div class="col-6" *ngIf="permisosService.tienePermiso('reportes.cartera')">
-                <div
-                  class="submenu-item"
-                  (click)="seleccionarOpcion('cartera', $event)"
-                >
-                  <img src="assets/images/cartera.png" alt="Cartera" />
-                  <span>Cartera</span>
-                </div>
-              </div>
-              <div class="col-6" *ngIf="permisosService.tienePermiso('reportes.cobros_realizados')">
-                <div
-                  class="submenu-item"
-                  (click)="seleccionarOpcion('cobros-realizados', $event)"
-                >
-                  <img
-                    src="assets/images/cobros-realizados.png"
-                    alt="Cobros Realizados"
-                  />
-                  <span>Cobros Realizados</span>
-                </div>
-              </div>
-              <div class="col-6" *ngIf="permisosService.tienePermiso('reportes.pagos_recibidos')">
-                <div
-                  class="submenu-item"
-                  (click)="seleccionarOpcion('pagos-recibidos', $event)"
-                >
-                  <img src="assets/images/pagos.png" alt="Pagos Recibidos" />
-                  <span>Pagos Recibidos</span>
-                </div>
-              </div>
-              <div class="col-6" *ngIf="permisosService.tienePermiso('reportes.reportes_pago')">
-                <div
-                  class="submenu-item"
-                  (click)="seleccionarOpcion('reportes-pago', $event)"
-                >
-                  <img
-                    src="assets/images/reportar-pago.png"
-                    alt="Reportes de Pago"
-                  />
-                  <span>Reportes de Pago</span>
-                </div>
-              </div>
-              <div class="col-6" *ngIf="permisosService.tienePermiso('reportes.movimientos_financieros')">
-                <div
-                  class="submenu-item"
-                  (click)="seleccionarOpcion('movimientos-financieros', $event)"
-                >
-                  <img
-                    src="assets/images/finanzas.png"
-                    alt="Ingresos y Egresos"
-                  />
-                  <span>Ingresos y Egresos</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Colaboradores -->
-      <div class="col-lg-3 col-md-6 mb-4" *ngIf="tieneAlguno(['reportes.asistencia_colaboradores', 'reportes.contabilizaciones', 'reportes.historial_actividades'])">
-        <div
-          class="card-maestro menu-principal"
-          [class.active]="menuActivo === 'colaboradores'"
-          (click)="toggleMenu('colaboradores', $event)"
-        >
-          <div class="card-maestro-content">
-            <div class="icono-container colaboradores">
-              <img src="assets/images/colaboradores.png" alt="Colaboradores" />
-            </div>
-            <h3 class="card-titulo">Colaboradores</h3>
-            <p class="card-descripcion">
-              Reportes de contabilización e historial de actividades
-            </p>
-            <div class="card-footer-custom">
-              <span class="link-accion"
-                >Ver opciones <i class="fas fa-chevron-down"></i
-              ></span>
-            </div>
-          </div>
-
-          <div class="submenu-container">
-            <div class="row g-2">
-              <div class="col-6" *ngIf="permisosService.tienePermiso('reportes.contabilizaciones')">
-                <div
-                  class="submenu-item"
-                  (click)="
-                    seleccionarOpcion('reporte-contabilizaciones', $event)
-                  "
-                >
-                  <img
-                    src="assets/images/reportes_actividades_colaboradores.png"
-                    alt="Reportes Contabilización"
-                  />
-                  <span>Reportes de Contabilización</span>
-                </div>
-              </div>
-              <div class="col-6" *ngIf="permisosService.tienePermiso('reportes.historial_actividades')">
-                <div
-                  class="submenu-item"
-                  (click)="seleccionarOpcion('historial-actividades', $event)"
-                >
-                  <img
-                    src="assets/images/historial_actividades.png"
-                    alt="Historial Actividades"
-                  />
-                  <span>Historial de Actividades</span>
-                </div>
-              </div>
-              <div class="col-6" *ngIf="permisosService.tienePermiso('reportes.asistencia_colaboradores')">
-                <div
-                  class="submenu-item"
-                  (click)="seleccionarOpcion('asistencia-colaboradores', $event)"
-                >
-                  <img
-                    src="assets/images/reporte-asistencia-colaboradores.png"
-                    alt="Asistencia Colaboradores"
-                  />
-                  <span>Asistencia Colaboradores</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Administración -->
-      <div class="col-lg-3 col-md-6 mb-4" *ngIf="tieneAlguno(['dashboard.gerencial.listado', 'reportes.documentos_registrados', 'reportes.cumplimiento_documental'])">
-        <div
-          class="card-maestro menu-principal"
-          [class.active]="menuActivo === 'administracion'"
-          (click)="toggleMenu('administracion', $event)"
-        >
-          <div class="card-maestro-content">
-            <div class="icono-container administracion">
-              <img
-                src="assets/images/administracion.png"
-                alt="Administración"
-              />
-            </div>
-            <h3 class="card-titulo">Administración</h3>
-            <p class="card-descripcion">Reportes administrativos generales</p>
-            <div class="card-footer-custom">
-              <span class="link-accion"
-                >Ver opciones <i class="fas fa-chevron-down"></i
-              ></span>
-            </div>
-          </div>
-
-          <div class="submenu-container">
-            <div class="row g-2">
-              <div class="col-6" *ngIf="permisosService.tienePermiso('dashboard.gerencial.listado')">
-                <div
-                  class="submenu-item"
-                  (click)="seleccionarOpcion('dashboard-gerencial', $event)"
-                >
-                  <img
-                    src="assets/images/dashboard-gerencial.png"
-                    alt="Dashboard Gerencial"
-                  />
-                  <span>Dashboard Gerencial</span>
-                </div>
-              </div>
-              <div class="col-6" *ngIf="permisosService.tienePermiso('reportes.documentos_registrados')">
-                <div
-                  class="submenu-item"
-                  (click)="seleccionarOpcion('documentos-registrados', $event)"
-                >
-                  <img
-                    src="assets/images/reporte-documentos.png"
-                    alt="Documentos Registrados"
-                  />
-                  <span>Documentos Registrados</span>
-                </div>
-              </div>
-              <div class="col-6" *ngIf="permisosService.tienePermiso('reportes.cumplimiento_documental')">
-                <div
-                  class="submenu-item"
-                  (click)="seleccionarOpcion('cumplimiento-documental', $event)"
-                >
-                  <img
-                    src="assets/images/reporte-cumplimiento-documental.png"
-                    alt="Cumplimiento Documental"
-                  />
-                  <span>Cumplimiento Documental</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Apoyo -->
-      <div class="col-lg-3 col-md-6 mb-4" *ngIf="tieneAlguno(['reportes.alimentacion'])">
-        <div
-          class="card-maestro menu-principal"
-          [class.active]="menuActivo === 'apoyo'"
-          (click)="toggleMenu('apoyo', $event)"
-        >
-          <div class="card-maestro-content">
-            <div class="icono-container apoyo">
-              <img src="assets/images/apoyo.png" alt="Apoyo" />
-            </div>
-            <h3 class="card-titulo">Apoyo</h3>
-            <p class="card-descripcion">Control de alimentación y servicios</p>
-            <div class="card-footer-custom">
-              <span class="link-accion"
-                >Ver opciones <i class="fas fa-chevron-down"></i
-              ></span>
-            </div>
-          </div>
-
-          <div class="submenu-container">
-            <div class="row g-2">
-              <div class="col-12" *ngIf="permisosService.tienePermiso('reportes.alimentacion')">
-                <div
-                  class="submenu-item"
-                  (click)="seleccionarOpcion('alimentacion', $event)"
-                >
-                  <img
-                    src="assets/images/alimentacion.png"
-                    alt="Alimentación"
-                  />
-                  <span>Alimentación</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div class="text-center" *ngIf="enBusqueda && gruposVisibles.length === 0">
+      <p class="text-muted">No hay opciones que coincidan con la búsqueda.</p>
     </div>
   </div>
 </div>

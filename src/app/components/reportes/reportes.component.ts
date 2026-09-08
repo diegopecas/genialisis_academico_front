@@ -1,23 +1,53 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { HeaderComponent } from '../../common/header/header.component';
+import { BuscarComponent } from '../../common/buscar/buscar.component';
 import { Router } from '@angular/router';
 import { PermisosService } from '../../services/permisos.service';
+import { GrupoMenuModulo, MenuModulosService, OpcionMenuModulo } from '../../services/menu-modulos.service';
 
 @Component({
   selector: 'app-reportes',
   templateUrl: './reportes.component.html',
   styleUrl: './reportes.component.scss',
   standalone: true,
-  imports: [CommonModule, HeaderComponent],
+  imports: [CommonModule, HeaderComponent, BuscarComponent],
 })
-export class ReportesComponent {
+export class ReportesComponent implements OnInit {
   titulo = 'Centro de Reportes';
   menuActivo: string | null = null;
 
+  // Grupos del menú ya filtrados por permisos (fuente para render y búsqueda)
+  grupos: GrupoMenuModulo[] = [];
+  // Grupos visibles en pantalla (todos, o el subconjunto que coincide con la búsqueda)
+  gruposVisibles: GrupoMenuModulo[] = [];
+  enBusqueda = false;
+
   constructor(
     public permisosService: PermisosService,
+    private menuModulosService: MenuModulosService,
     private router: Router) {}
+
+  ngOnInit(): void {
+    this.grupos = this.menuModulosService.filtrarPorPermiso(this.menuModulosService.getReportes());
+    this.gruposVisibles = this.grupos;
+  }
+
+  buscar(valor: string | null): void {
+    const termino = (valor || '').trim();
+    this.enBusqueda = termino.length > 0;
+    this.gruposVisibles = this.enBusqueda
+      ? this.menuModulosService.filtrarPorTexto(this.grupos, termino)
+      : this.grupos;
+  }
+
+  trackByGrupo(_indice: number, grupo: GrupoMenuModulo): string {
+    return grupo.id;
+  }
+
+  trackByOpcion(_indice: number, opcion: OpcionMenuModulo): string {
+    return opcion.id;
+  }
 
   toggleMenu(menu: string, event: Event) {
     event.stopPropagation();
@@ -28,8 +58,17 @@ export class ReportesComponent {
     event.stopPropagation();
     switch (opcion) {
       // Académicos
+      case 'academicos-estudiante':
+        this.router.navigate(['/reportes/academicos-estudiante']);
+        break;
       case 'calificaciones-sprint':
         this.router.navigate(['/reportes/calificaciones-sprint']);
+        break;
+      case 'monitoreo-sprint':
+        this.router.navigate(['/reportes/monitoreo-sprint']);
+        break;
+      case 'cursos-extra':
+        this.router.navigate(['/reportes/cursos-extra']);
         break;
       case 'calificaciones-estudiante':
         this.router.navigate(['/reportes/calificaciones/estudiante']);

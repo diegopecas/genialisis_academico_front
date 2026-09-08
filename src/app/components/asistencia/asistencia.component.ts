@@ -37,6 +37,9 @@ export class AsistenciaComponent implements OnInit {
   public listas = {
     noIngresos: [] as any[],
     noSalidas: [] as any[],
+    // Ninos que ya se fueron hoy. Va al final de la pestana de Salidas, en
+    // tono tenue y sin clic: es solo para consultar a que hora entro y salio.
+    salidas: [] as any[],
     grupos: [] as any[],
     // Utiles y accesorios del nino seleccionado en el panel. En ingreso se
     // marca lo que trajo; en salida, lo que se lleva de vuelta.
@@ -138,10 +141,14 @@ export class AsistenciaComponent implements OnInit {
 
   consultaNoSalidas() {
     this.asistenciaEstudiantesService.obtenerNoSalidas().subscribe((response: any) => {
-      const body = response.body as any[];
+      // El back manda las dos listas en la misma respuesta: los que estan
+      // adentro y los que ya se fueron hoy.
+      const body = response.body as any;
       console.log("consumo servicio docentes", body);
-      this.salidasCompletas = [...body];
-      this.listas.noSalidas = body;
+      const noSalidas = (body?.no_salidas || []) as any[];
+      this.salidasCompletas = [...noSalidas];
+      this.listas.noSalidas = noSalidas;
+      this.listas.salidas = (body?.salidas || []) as any[];
       this.actualizarContadoresGrupos();
     });
   }
@@ -606,7 +613,8 @@ export class AsistenciaComponent implements OnInit {
 
   private confirmarSalida(estudiante: any) {
     this.asistenciaEstudiantesService.obtenerNoSalidas().subscribe((response: any) => {
-      const body = response.body as any[];
+      // Solo interesa validar contra los que siguen adentro.
+      const body = (response.body?.no_salidas || []) as any[];
       const noSalida = body.some(obj => obj.id_estudiante === estudiante.id_estudiante);
       if (noSalida) {
         const utilesNoRegresa = this.obtenerUtilesNoMarcados();
@@ -933,19 +941,53 @@ export class AsistenciaComponent implements OnInit {
     console.log("Mensaje: ", event);
   }
 
+  /**
+   * Ninos del grupo que estan en el jardin en este momento.
+   *
+   * El contenido va con estilos en linea porque lo pinta SweetAlert por fuera
+   * del componente y el SCSS del componente no lo alcanza.
+   */
   verActual(grupo: any) {
-    const lista = `<ul class="lista-no-seleccionable">` + this.listas.noSalidas.filter(ns => ns.nombre_grupo == grupo.nombre).map(li => {
-      return `<li class="item-lista">${li.primer_nombre} ${li.primer_apellido}${li.observacion_ingreso == '' ? '' : '<br/><sub>' + li.observacion_ingreso + '</sub>'} </li>`;
-    }).toString().replaceAll(",", "") + `</ul>`;
-    console.log("lista", this.listas.noSalidas);
+    const estudiantes = this.listas.noSalidas.filter(ns => ns.nombre_grupo == grupo.nombre);
+
+    // Antes, con el grupo vacio, quedaba una caja blanca sin nada adentro.
+    const cuerpo = estudiantes.length === 0
+      ? `<div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:24px 8px;color:#adb5bd;">
+           <i class="fas fa-door-open" style="font-size:2.2rem;opacity:.6;"></i>
+           <span style="font-size:.95rem;">No hay ni&ntilde;os de ${grupo.nombre} en el jard&iacute;n en este momento.</span>
+         </div>`
+      : `<ul style="list-style:none;margin:0;padding:0;text-align:left;">`
+        + estudiantes.map(li => `
+            <li style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;margin-bottom:6px;background:#ffffff;border:1px solid #ececec;border-left:4px solid ${grupo.color};border-radius:8px;">
+              <span style="display:flex;flex-direction:column;min-width:0;">
+                <span style="font-size:1rem;font-weight:600;color:#343a40;">${li.primer_nombre} ${li.primer_apellido}</span>
+                ${li.observacion_ingreso ? `<span style="font-size:.78rem;color:#868e96;">${li.observacion_ingreso}</span>` : ''}
+              </span>
+              <span style="font-size:.85rem;color:#6c757d;white-space:nowrap;">${this.horaCorta(li.fecha_ingreso)}</span>
+            </li>`).join('')
+        + `</ul>`;
+
     Swal.fire({
-      title: 'Estudiantes actuales',
-      html: lista,
-      background: 'linear-gradient(to bottom, #ffffff 80%, ' + grupo.color + ')',
+      title: `${grupo.nombre}: ${estudiantes.length} de ${grupo.totalGrupo || 0}`,
+      html: cuerpo,
+      background: '#ffffff',
       showCancelButton: false,
       focusConfirm: true,
-      confirmButtonText: "cerrar"
+      confirmButtonText: "Cerrar"
     })
+  }
+
+  /**
+   * Hora en formato corto a partir de la fecha que manda el back
+   * (YYYY-MM-DD HH:MM:SS). Se corta el texto en vez de convertirlo a Date
+   * para no correr la hora con la zona horaria del navegador.
+   */
+  horaCorta(fecha: any): string {
+    if (!fecha) {
+      return '';
+    }
+    const texto = String(fecha);
+    return texto.length >= 16 ? texto.substring(11, 16) : texto;
   }
 
   // ============================================================

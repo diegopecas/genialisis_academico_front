@@ -3,17 +3,25 @@
 
     <div class="container-fluid mt-5">
 
+        <div class="row justify-content-center mb-4">
+            <div class="col-lg-6 col-md-8">
+                <app-buscar (buscar)="buscar($event)"></app-buscar>
+            </div>
+        </div>
+
         <!-- Tarjetas de opciones -->
         <div class="row justify-content-center">
-            <!-- Colaboradores -->
-            <div class="col-lg-3 col-md-6 mb-4" *ngIf="tieneAlguno(['colaboradores.actividades', 'colaboradores.listado'])">
-                <div class="card-maestro menu-principal" [class.active]="menuActivo === 'colaboradores'" (click)="toggleMenu('colaboradores', $event)">
+
+            <div class="col-lg-3 col-md-6 mb-4" *ngFor="let grupo of gruposVisibles; trackBy: trackByGrupo">
+                <div class="card-maestro menu-principal" [class.active]="menuActivo === grupo.id || enBusqueda"
+                    [ngStyle]="grupo.estilo || {}" (click)="toggleMenu(grupo.id, $event)">
                     <div class="card-maestro-content">
-                        <div class="icono-container colaboradores">
-                            <img src="assets/images/colaboradores.png" alt="Colaboradores" />
+                        <div class="icono-container" [ngClass]="grupo.claseIcono">
+                            <img *ngIf="grupo.imagen" [src]="grupo.imagen" [alt]="grupo.alt || grupo.titulo" />
+                            <i *ngIf="!grupo.imagen && grupo.icono" [ngClass]="grupo.icono"></i>
                         </div>
-                        <h3 class="card-titulo">Colaboradores</h3>
-                        <p class="card-descripcion">Administra colaboradores, casas asignadas y actividades del equipo</p>
+                        <h3 class="card-titulo" [innerHTML]="grupo.tituloHtml || grupo.titulo"></h3>
+                        <p class="card-descripcion">{{ grupo.descripcion }}</p>
                         <div class="card-footer-custom">
                             <span class="link-accion">Ver opciones <i class="fas fa-chevron-down"></i></span>
                         </div>
@@ -21,17 +29,14 @@
 
                     <div class="submenu-container">
                         <div class="row g-2">
-                            <div class="col-4" *ngIf="permisosService.tienePermiso('colaboradores.listado')">
-                                <div class="submenu-item" (click)="seleccionarOpcion('colaboradores', $event)">
-                                    <img src="assets/images/colaboradores.png" alt="Gestión" />
-                                    <span>Gestión</span>
-                                </div>
-                            </div>
-                            
-                            <div class="col-4" *ngIf="permisosService.tienePermiso('colaboradores.actividades')">
-                                <div class="submenu-item" (click)="seleccionarOpcion('actividades-colaboradores', $event)">
-                                    <img src="assets/images/actividades_colaboradores.png" alt="Actividades" />
-                                    <span>Actividades</span>
+                            <div [ngClass]="opcion.columna || 'col-6'"
+                                *ngFor="let opcion of grupo.opciones; trackBy: trackByOpcion">
+                                <div class="submenu-item" (click)="seleccionarOpcion(opcion.id, $event)">
+                                    <img *ngIf="opcion.imagen" [src]="opcion.imagen"
+                                        [alt]="opcion.alt || opcion.label" />
+                                    <i *ngIf="!opcion.imagen && opcion.icono" [ngClass]="opcion.icono"
+                                        [ngStyle]="opcion.iconoEstilo || {}"></i>
+                                    <span [innerHTML]="opcion.labelHtml || opcion.label"></span>
                                 </div>
                             </div>
                         </div>
@@ -39,59 +44,10 @@
                 </div>
             </div>
 
-            <!-- Registro Ingreso / Salida -->
-            <div class="col-lg-3 col-md-6 mb-4">
-                <div class="card-maestro menu-principal" [class.active]="menuActivo === 'asistencia'" (click)="toggleMenu('asistencia', $event)">
-                    <div class="card-maestro-content">
-                        <div class="icono-container asistencia">
-                            <i class="fas fa-fingerprint"></i>
-                        </div>
-                        <h3 class="card-titulo">Registro Ingreso / Salida</h3>
-                        <p class="card-descripcion">Registra tu entrada y salida de jornada y descanso con geolocalización</p>
-                        <div class="card-footer-custom">
-                            <span class="link-accion">Ver opciones <i class="fas fa-chevron-down"></i></span>
-                        </div>
-                    </div>
+        </div>
 
-                    <div class="submenu-container">
-                        <div class="row g-2">
-                            <div class="col-12">
-                                <div class="submenu-item" (click)="seleccionarOpcion('registro-ingreso-salida', $event)">
-                                    <i class="fas fa-clock" style="font-size: 2rem; color: #d4af37;"></i>
-                                    <span>Registrar Ahora</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Nómina -->
-            <div class="col-lg-3 col-md-6 mb-4" *ngIf="tieneAlguno(['colaboradores.nominas'])">
-                <div class="card-maestro menu-principal" [class.active]="menuActivo === 'nomina'" (click)="toggleMenu('nomina', $event)">
-                    <div class="card-maestro-content">
-                        <div class="icono-container nomina">
-                            <img src="assets/images/nomina.png" alt="Nómina" />
-                        </div>
-                        <h3 class="card-titulo">Nómina</h3>
-                        <p class="card-descripcion">Gestiona las nóminas de colaboradores, crea periodos, procesa pagos y genera reportes</p>
-                        <div class="card-footer-custom">
-                            <span class="link-accion">Ver opciones <i class="fas fa-chevron-down"></i></span>
-                        </div>
-                    </div>
-
-                    <div class="submenu-container">
-                        <div class="row g-2">
-                            <div class="col-12" *ngIf="permisosService.tienePermiso('colaboradores.nominas')">
-                                <div class="submenu-item" (click)="seleccionarOpcion('nominas', $event)">
-                                    <img src="assets/images/nomina.png" alt="Nóminas" />
-                                    <span>Gestionar Nóminas</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <div class="text-center" *ngIf="enBusqueda && gruposVisibles.length === 0">
+            <p class="text-muted">No hay opciones que coincidan con la búsqueda.</p>
         </div>
     </div>
 </div>

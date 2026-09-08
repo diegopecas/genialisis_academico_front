@@ -422,3 +422,402 @@
     }
   }
 }
+
+// ============================================================
+// BLOQUE "YA SE FUERON" (pestana de Salidas)
+// Va al final y separado, pero legible: aqui se consulta a que
+// hora entro y salio el nino y quien registro cada movimiento.
+// No responde al clic porque la salida ya quedo hecha.
+// ============================================================
+.bloque-ya-salieron {
+  margin-top: 28px;
+  padding-top: 14px;
+  border-top: 2px dashed #e0e0e0;
+
+  .titulo-ya-salieron {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 10px;
+  }
+
+  .lista-ya-salieron {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .item-ya-salio {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 6px 16px;
+    padding: 8px 12px;
+    margin-bottom: 6px;
+    background: #f8f9fa;
+    border: 1px solid #ececec;
+    border-left: 4px solid #dee2e6;
+    border-radius: 6px;
+    cursor: default;
+  }
+
+  .fila-nombre {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1 1 auto;
+    min-width: 0;
+
+    img {
+      opacity: 0.8;
+    }
+  }
+
+  .nombre-ya-salio {
+    color: #495057;
+    font-weight: 600;
+    font-size: 0.95rem;
+  }
+
+  .grupo-ya-salio {
+    font-size: 0.75rem;
+    color: #868e96;
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    padding: 1px 8px;
+  }
+
+  .movimientos-ya-salio {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+
+    .movimiento {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 5px;
+      font-size: 0.85rem;
+      color: #6c757d;
+
+      i {
+        font-size: 0.8rem;
+      }
+
+      strong {
+        color: #495057;
+      }
+
+      small {
+        color: #adb5bd;
+      }
+    }
+
+    .entrada i {
+      color: #66bb6a;
+    }
+
+    .salida i {
+      color: #ef9a9a;
+    }
+  }
+}
+
+@media (max-width: 576px) {
+  .bloque-ya-salieron {
+    .item-ya-salio {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .movimientos-ya-salio {
+      width: 100%;
+      gap: 4px 14px;
+    }
+  }
+}
+
+// ============================================================
+// PESTANAS DE LA PANTALLA
+// Tarjetas iguales para las tres opciones, con el contador
+// arriba. Reemplazan las clases globales .ficha /
+// .ficha-seleccionada solo dentro de este componente.
+// ============================================================
+.tabs-asistencia {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 18px;
+
+  .tab-asistencia {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 12px 8px;
+    background: #ffffff;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    cursor: pointer;
+    transition: transform 0.12s ease, box-shadow 0.12s ease,
+      background-color 0.12s ease;
+
+    > i {
+      font-size: 1rem;
+      color: #adb5bd;
+    }
+
+    .tab-numero {
+      font-size: 1.7rem;
+      font-weight: 700;
+      line-height: 1.1;
+      color: #343a40;
+    }
+
+    .tab-titulo {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #495057;
+    }
+
+    .tab-detalle {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: #adb5bd;
+    }
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+    }
+
+    // Coral: es el color que ya usaba la ficha seleccionada.
+    &.activa {
+      background: coral;
+      border-color: coral;
+
+      > i,
+      .tab-numero,
+      .tab-titulo {
+        color: #ffffff;
+      }
+
+      .tab-detalle {
+        color: rgba(255, 255, 255, 0.85);
+      }
+    }
+  }
+}
+
+// ============================================================
+// LISTAS DE INGRESOS Y SALIDAS
+// El color del grupo pasa a una franja lateral: antes iba como
+// degradado de fondo y le quitaba lectura al nombre.
+// ============================================================
+.lista-asistencia {
+  list-style: none;
+  margin: 0 0 8px 0;
+  padding: 0;
+
+  .item-asistencia {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    min-height: 58px;
+    padding: 10px 14px;
+    margin-bottom: 8px;
+    background: #ffffff;
+    border: 1px solid #ececec;
+    border-left: 5px solid #dee2e6;
+    border-radius: 10px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+    cursor: pointer;
+    transition: background-color 0.12s ease, box-shadow 0.12s ease;
+
+    &:hover {
+      background-color: #fff8e8;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+    }
+
+    &:active {
+      background-color: #ffefcc;
+    }
+  }
+
+  .avatar-asistencia {
+    width: 38px;
+    height: 38px;
+    object-fit: contain;
+    flex: 0 0 auto;
+  }
+
+  .datos-asistencia {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .nombre-asistencia {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #343a40;
+    line-height: 1.25;
+  }
+
+  .grupo-asistencia {
+    font-size: 0.75rem;
+    color: #868e96;
+  }
+
+  .hora-asistencia {
+    font-size: 0.85rem;
+    color: #6c757d;
+    white-space: nowrap;
+
+    i {
+      margin-right: 4px;
+      color: #66bb6a;
+    }
+  }
+
+  .flecha-asistencia {
+    font-size: 0.8rem;
+    color: #ced4da;
+    flex: 0 0 auto;
+  }
+}
+
+// ============================================================
+// TARJETAS DE GRUPO (pestana Actual)
+// ============================================================
+.grid-grupos {
+  display: grid;
+  // Tres por fila, repartiendose todo el ancho disponible.
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  width: 100%;
+  margin: 0 0 40px 0;
+
+  .tarjeta-grupo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 210px;
+    height: 100%;
+    padding: 24px 16px;
+    background: #ffffff;
+    border: 1px solid #ececec;
+    border-top: 4px solid #dee2e6;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    cursor: pointer;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 12px rgba(0, 0, 0, 0.14);
+    }
+  }
+
+  .icono-grupo {
+    width: 92px;
+    height: 92px;
+    object-fit: contain;
+  }
+
+  .nombre-grupo {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #343a40;
+    text-align: center;
+  }
+
+  .conteo-grupo {
+    font-size: 0.9rem;
+    color: #868e96;
+
+    strong {
+      font-size: 1.35rem;
+      color: #495057;
+    }
+  }
+}
+
+// ============================================================
+// ESTADO VACIO
+// ============================================================
+.estado-vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 32px 16px;
+  color: #adb5bd;
+  text-align: center;
+
+  i {
+    font-size: 2rem;
+    opacity: 0.6;
+  }
+
+  span {
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .tabs-asistencia {
+    gap: 8px;
+
+    .tab-asistencia {
+      padding: 10px 4px;
+
+      .tab-numero {
+        font-size: 1.4rem;
+      }
+
+      .tab-titulo {
+        font-size: 0.85rem;
+      }
+
+      .tab-detalle {
+        font-size: 0.65rem;
+      }
+    }
+  }
+
+  .lista-asistencia {
+    .item-asistencia {
+      gap: 10px;
+      padding: 10px;
+    }
+
+    .nombre-asistencia {
+      font-size: 0.95rem;
+    }
+  }
+
+  .grid-grupos {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+
+    .tarjeta-grupo {
+      min-height: 150px;
+      padding: 16px 8px;
+    }
+
+    .icono-grupo {
+      width: 58px;
+      height: 58px;
+    }
+  }
+}
