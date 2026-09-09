@@ -15,10 +15,11 @@ $shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
 // =====================================================
 // BOTÓN FLOTANTE (FAB)
 // =====================================================
+// La posicion la pone el componente con left/top, porque el boton se puede
+// arrastrar. Aqui solo queda el tamano y la apariencia.
 .chat-fab {
   position: fixed;
-  bottom: 24px;
-  right: 24px;
+  touch-action: none;
   width: 60px;
   height: 60px;
   border-radius: 50%;
@@ -63,10 +64,10 @@ $shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
 // =====================================================
 // PANEL DEL CHAT
 // =====================================================
+// El panel se ancla al boton: la posicion la calcula panelStyle en el
+// componente y llega por ngStyle.
 .chat-panel {
   position: fixed;
-  bottom: 96px;
-  right: 24px;
   width: 380px;
   height: 520px;
   max-height: calc(100vh - 140px);
@@ -600,8 +601,6 @@ $shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
   }
 
   .chat-fab {
-    bottom: 16px;
-    right: 16px;
     width: 54px;
     height: 54px;
 

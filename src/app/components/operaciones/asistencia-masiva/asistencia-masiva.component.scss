@@ -1,0 +1,234 @@
+.barra-acciones {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 12px 14px;
+  background: #f8f9fa;
+  border: 1px solid #ececec;
+  border-radius: 10px;
+
+  .conteo {
+    font-size: 0.95rem;
+    color: #495057;
+  }
+
+  .botones {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+}
+
+.tabla-masiva {
+  th {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: #6c757d;
+    border-bottom: 2px solid #e9ecef;
+    white-space: nowrap;
+  }
+
+  td {
+    vertical-align: middle;
+  }
+
+  .fila-marcada {
+    background: #fffaf0;
+  }
+
+  .columna-check {
+    width: 42px;
+    text-align: center;
+
+    .form-check-input {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+    }
+  }
+
+  .columna-hora {
+    width: 130px;
+  }
+
+  .columna-observacion {
+    min-width: 180px;
+  }
+
+  .columna-cobros {
+    min-width: 200px;
+  }
+
+  .estudiante {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-left: 10px;
+    border-left: 4px solid #dee2e6;
+
+    .avatar {
+      width: 34px;
+      height: 34px;
+      object-fit: contain;
+      flex: 0 0 auto;
+    }
+
+    .datos {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .nombre {
+      font-weight: 600;
+      color: #343a40;
+      line-height: 1.2;
+    }
+
+    .grupo {
+      font-size: 0.75rem;
+      color: #868e96;
+    }
+
+    .reingreso {
+      font-size: 0.72rem;
+      color: #c98a00;
+    }
+  }
+}
+
+// Los chips se prenden y apagan con clic: marcado es lo que trajo (o lo que
+// se lleva) y apagado es lo contrario.
+.chip-util {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin: 2px 4px 2px 0;
+  padding: 3px 9px;
+  font-size: 0.78rem;
+  border-radius: 12px;
+  background: #e8f5e9;
+  border: 1px solid #c8e6c9;
+  color: #2e7d32;
+  cursor: pointer;
+  user-select: none;
+
+  &.apagado {
+    background: #f1f3f5;
+    border-color: #e9ecef;
+    color: #adb5bd;
+    text-decoration: line-through;
+  }
+}
+
+.chip-cobro {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+  padding: 4px 8px;
+  font-size: 0.8rem;
+  border-radius: 8px;
+  background: #fff4e5;
+  border: 1px solid #ffe0b2;
+  color: #8a5a00;
+  cursor: pointer;
+  user-select: none;
+
+  .detalle {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .valor {
+    white-space: nowrap;
+    font-weight: 600;
+  }
+
+  &.apagado {
+    background: #f1f3f5;
+    border-color: #e9ecef;
+    color: #adb5bd;
+    text-decoration: line-through;
+  }
+}
+
+.total-cobros {
+  font-size: 0.8rem;
+  color: #6c757d;
+}
+
+.sin-utiles,
+.sin-cobros {
+  font-size: 0.8rem;
+  color: #adb5bd;
+}
+
+.estado-vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 40px 16px;
+  color: #adb5bd;
+  text-align: center;
+
+  i {
+    font-size: 2rem;
+    opacity: 0.6;
+  }
+}
+
+@media (max-width: 768px) {
+  .barra-acciones {
+    flex-direction: column;
+    align-items: stretch;
+
+    .botones {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+
+      .btn {
+        width: 100%;
+      }
+    }
+  }
+
+  // En móvil la tabla se lee de lado; cada columna se etiqueta con su título
+  // para que la fila siga entendiéndose.
+  .tabla-masiva {
+    thead {
+      display: none;
+    }
+
+    tbody tr {
+      display: block;
+      margin-bottom: 12px;
+      padding: 10px;
+      border: 1px solid #ececec;
+      border-radius: 10px;
+    }
+
+    tbody td {
+      display: block;
+      border: 0;
+      padding: 6px 0;
+    }
+
+    .columna-check {
+      text-align: left;
+    }
+
+    .columna-hora,
+    .columna-observacion,
+    .columna-cobros,
+    .columna-utiles {
+      width: auto;
+      min-width: 0;
+    }
+  }
+}

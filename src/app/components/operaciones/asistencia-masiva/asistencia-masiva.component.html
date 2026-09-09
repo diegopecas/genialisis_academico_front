@@ -1,0 +1,177 @@
+<div class="modulo">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="false"
+    [raiz]="'/operaciones/asistencia-masiva'"
+    [regresar]="'/operaciones'"
+    [iconoTitulo]="'/assets/images/asistencia-masiva.png'"
+  ></app-header>
+
+  <div class="container-fluid mt-4">
+    <!-- Ingreso y salida son dos procesos distintos: cada uno trae su propia
+         lista y no se pueden mezclar en el mismo procesado. -->
+    <div class="row g-3 align-items-end">
+      <div class="col-sm-12 col-md-3">
+        <label class="form-label">Proceso</label>
+        <div class="btn-group w-100" role="group">
+          <button type="button" class="btn btn-lg"
+            [ngClass]="tipo === 'ingreso' ? 'btn-warning' : 'btn-outline-secondary'"
+            (click)="cambiarTipo('ingreso')">Ingreso</button>
+          <button type="button" class="btn btn-lg"
+            [ngClass]="tipo === 'salida' ? 'btn-warning' : 'btn-outline-secondary'"
+            (click)="cambiarTipo('salida')">Salida</button>
+        </div>
+      </div>
+
+      <div class="col-sm-12 col-md-3">
+        <label for="fecha" class="form-label">Fecha</label>
+        <input class="form-control form-control-lg" type="date" id="fecha"
+          [(ngModel)]="fecha" (change)="consultarCandidatos()">
+      </div>
+
+      <div class="col-sm-12 col-md-3">
+        <label for="grupo" class="form-label">Grupo</label>
+        <select class="form-select form-select-lg" id="grupo"
+          [(ngModel)]="idGrupo" (change)="consultarCandidatos()">
+          <option [ngValue]="null">Todos los grupos</option>
+          <option *ngFor="let grupo of grupos" [ngValue]="grupo.id">{{ grupo.nombre }}</option>
+        </select>
+      </div>
+
+      <div class="col-sm-12 col-md-3">
+        <label for="horaGeneral" class="form-label">
+          Hora para todos ({{ tipo === 'salida' ? 'salida' : 'ingreso' }})
+        </label>
+        <div class="input-group">
+          <input class="form-control form-control-lg" type="time" id="horaGeneral" [(ngModel)]="horaGeneral">
+          <button class="btn btn-outline-warning" type="button"
+            [disabled]="!horaGeneral || totalMarcados === 0"
+            (click)="aplicarHoraGeneral()">Aplicar</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-3 mt-1">
+      <div class="col-12">
+        <label for="observacionGeneral" class="form-label">Observación para todo el lote (opcional)</label>
+        <input class="form-control" type="text" id="observacionGeneral"
+          [(ngModel)]="observacionGeneral"
+          placeholder="Si una fila tiene su propia observación, esa manda">
+      </div>
+    </div>
+  </div>
+
+  <div class="container-fluid mt-4" *ngIf="cargando">
+    <p class="text-center">Cargando...</p>
+  </div>
+
+  <div class="container-fluid mt-4" *ngIf="!cargando && candidatos.length === 0">
+    <div class="estado-vacio">
+      <i class="fas fa-check-circle"></i>
+      <span *ngIf="tipo === 'ingreso'">No hay estudiantes pendientes de ingreso en esa fecha.</span>
+      <span *ngIf="tipo === 'salida'">No hay estudiantes dentro del jardín en esa fecha.</span>
+    </div>
+  </div>
+
+  <div class="container-fluid mt-4" *ngIf="!cargando && candidatos.length > 0">
+    <div class="barra-acciones">
+      <div class="conteo">
+        <b>{{ totalMarcados }}</b> de {{ candidatos.length }} marcados
+      </div>
+      <div class="botones">
+        <button type="button" class="btn btn-outline-secondary" (click)="alternarTodos()">
+          {{ todosMarcados ? 'Desmarcar todos' : 'Marcar todos' }}
+        </button>
+        <button type="button" class="btn btn-outline-warning"
+          [disabled]="totalMarcados === 0 || evaluandoCobros" (click)="calcularCobros()">
+          {{ evaluandoCobros ? 'Calculando...' : 'Calcular cobros extra' }}
+        </button>
+        <button type="button" class="btn btn-warning"
+          [disabled]="totalMarcados === 0 || procesando" (click)="procesar()">
+          {{ procesando ? 'Procesando...' : 'Procesar' }}
+        </button>
+      </div>
+    </div>
+
+    <div class="table-responsive mt-3">
+      <table class="table align-middle tabla-masiva">
+        <thead>
+          <tr>
+            <th class="columna-check"></th>
+            <th class="columna-estudiante">Estudiante</th>
+            <th class="columna-hora">{{ tipo === 'salida' ? 'Hora salida' : 'Hora ingreso' }}</th>
+            <th class="columna-utiles">
+              {{ tipo === 'salida' ? 'Qué se lleva' : 'Qué trajo' }}
+            </th>
+            <th class="columna-observacion">Observación</th>
+            <th class="columna-cobros">Cobros extra</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let fila of candidatos" [class.fila-marcada]="fila.marcado">
+            <td class="columna-check">
+              <input class="form-check-input" type="checkbox" [(ngModel)]="fila.marcado">
+            </td>
+
+            <td class="columna-estudiante">
+              <div class="estudiante" [style.border-left-color]="fila.color">
+                <img *ngIf="fila.icono" [src]="fila.icono" class="avatar" />
+                <span class="datos">
+                  <span class="nombre">
+                    {{ fila.primer_nombre }} {{ fila.segundo_nombre }}
+                    {{ fila.primer_apellido }} {{ fila.segundo_apellido }}
+                  </span>
+                  <span class="grupo">{{ fila.nombre_grupo }}</span>
+                  <!-- En el ingreso avisa que el niño ya entró y salió ese día:
+                       este sería un segundo ingreso, que el jardín permite. -->
+                  <span class="reingreso" *ngIf="tipo === 'ingreso' && fila.movimientos_del_dia > 0">
+                    Ya tuvo {{ fila.movimientos_del_dia }} movimiento(s) ese día
+                  </span>
+                  <span class="reingreso" *ngIf="tipo === 'salida' && fila.fecha_ingreso">
+                    Entró {{ fila.fecha_ingreso | date : "shortTime" }}
+                  </span>
+                </span>
+              </div>
+            </td>
+
+            <td class="columna-hora">
+              <input class="form-control" type="time" [(ngModel)]="fila.hora"
+                (change)="limpiarCobrosFila(fila)">
+            </td>
+
+            <td class="columna-utiles">
+              <span class="sin-utiles" *ngIf="fila.utiles.length === 0">Sin útiles</span>
+              <span class="chip-util" *ngFor="let util of fila.utiles"
+                [class.apagado]="!util.marcado"
+                (click)="alternarUtil(util)"
+                [title]="util.nombre">
+                <i class="fas" [ngClass]="util.marcado ? 'fa-check' : 'fa-times'"></i>
+                {{ util.nombre }}
+              </span>
+            </td>
+
+            <td class="columna-observacion">
+              <input class="form-control" type="text" [(ngModel)]="fila.observacion"
+                placeholder="Opcional">
+            </td>
+
+            <td class="columna-cobros">
+              <span class="sin-cobros" *ngIf="!fila.cobrosEvaluados">Sin calcular</span>
+              <span class="sin-cobros" *ngIf="fila.cobrosEvaluados && fila.cobros.length === 0">Ninguno</span>
+              <div class="chip-cobro" *ngFor="let cobro of fila.cobros"
+                [class.apagado]="!cobro.aceptado"
+                (click)="cobro.aceptado = !cobro.aceptado">
+                <i class="fas" [ngClass]="cobro.aceptado ? 'fa-check-square' : 'fa-square'"></i>
+                <span class="detalle">{{ cobro.nombre_producto_servicio }}</span>
+                <span class="valor">{{ formatearMoneda(cobro.valor) }}</span>
+              </div>
+              <div class="total-cobros" *ngIf="fila.cobros.length > 0">
+                Total: <b>{{ formatearMoneda(totalCobrosFila(fila)) }}</b>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

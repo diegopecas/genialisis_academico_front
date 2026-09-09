@@ -1,0 +1,268 @@
+.ficha-estudiante {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  background: #ffffff;
+  border: 1px solid #ececec;
+  border-left: 5px solid #dee2e6;
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+
+  .avatar {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+  }
+
+  .datos {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .nombre {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: #343a40;
+  }
+
+  .grupo {
+    font-size: 0.85rem;
+    color: #868e96;
+  }
+}
+
+.aviso-bloqueado {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 12px 14px;
+  font-size: 0.9rem;
+  color: #b71c1c;
+  background: #ffebee;
+  border: 1px solid #ffcdd2;
+  border-radius: 10px;
+}
+
+.aviso-recalculo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 10px 12px;
+  font-size: 0.85rem;
+  color: #8a5a00;
+  background: #fff4e5;
+  border: 1px solid #ffe0b2;
+  border-radius: 8px;
+}
+
+.tarjeta {
+  padding: 16px;
+  background: #ffffff;
+  border: 1px solid #ececec;
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+
+  .titulo-tarjeta {
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #6c757d;
+    margin-bottom: 12px;
+  }
+
+  .ayuda {
+    display: block;
+    margin-top: 4px;
+    font-size: 0.75rem;
+    color: #adb5bd;
+  }
+
+  .sin-datos {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #adb5bd;
+  }
+}
+
+.tabla-utiles,
+.tabla-cobros {
+  th {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: #6c757d;
+    border-bottom: 2px solid #e9ecef;
+  }
+
+  .icono-util {
+    margin-right: 8px;
+    color: #868e96;
+  }
+
+  .detalle {
+    font-size: 0.85rem;
+    color: #6c757d;
+  }
+
+  .con-pago {
+    background: #fff8e1;
+  }
+}
+
+// Tres estados, el mismo criterio de la grilla de útiles: sí, no y sin revisar.
+.chip-estado {
+  min-width: 96px;
+  padding: 4px 12px;
+  font-size: 0.82rem;
+  border-radius: 14px;
+  border: 1px solid transparent;
+  cursor: pointer;
+
+  &.si {
+    background: #e8f5e9;
+    border-color: #c8e6c9;
+    color: #2e7d32;
+  }
+
+  &.no {
+    background: #ffebee;
+    border-color: #ffcdd2;
+    color: #c62828;
+  }
+
+  &.sin {
+    background: #f1f3f5;
+    border-color: #e9ecef;
+    color: #868e96;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+// Centrados a proposito: contra el borde derecho quedaban debajo del boton
+// flotante del chat de IA.
+.acciones {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  padding-bottom: 90px;
+}
+
+@media (max-width: 576px) {
+  .ficha-estudiante {
+    .avatar {
+      width: 40px;
+      height: 40px;
+    }
+
+    .nombre {
+      font-size: 1rem;
+    }
+  }
+
+  .acciones {
+    flex-direction: column-reverse;
+
+    .btn {
+      width: 100%;
+    }
+  }
+
+  .chip-estado {
+    min-width: 80px;
+  }
+}
+
+// Cobros propuestos con las horas nuevas. Se prenden y apagan con clic.
+.lista-cobros {
+  .chip-cobro {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 6px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: #fff4e5;
+    border: 1px solid #ffe0b2;
+    color: #8a5a00;
+    cursor: pointer;
+    user-select: none;
+
+    .detalle {
+      display: flex;
+      flex-direction: column;
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+
+    .producto {
+      font-weight: 600;
+    }
+
+    .regla {
+      font-size: 0.78rem;
+      opacity: 0.8;
+    }
+
+    .valor {
+      white-space: nowrap;
+      font-weight: 600;
+    }
+
+    &.apagado {
+      background: #f1f3f5;
+      border-color: #e9ecef;
+      color: #adb5bd;
+      text-decoration: line-through;
+    }
+  }
+
+  .total-cobros {
+    margin-top: 8px;
+    font-size: 0.9rem;
+    color: #495057;
+  }
+}
+
+.cargando-cobros {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #6c757d;
+}
+
+.leyenda-utiles {
+  margin-top: 8px;
+  font-size: 0.78rem;
+  color: #adb5bd;
+}
+
+// Fila de un util que todavia no existe en la base.
+.sin-registrar {
+  background: #fbfbfb;
+}
+
+.marca-nueva {
+  margin-left: 6px;
+  padding: 1px 7px;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  border-radius: 10px;
+  background: #e3f2fd;
+  border: 1px solid #bbdefb;
+  color: #1565c0;
+}
+
+.nota-util {
+  margin-top: 2px;
+  font-size: 0.78rem;
+  color: #868e96;
+}

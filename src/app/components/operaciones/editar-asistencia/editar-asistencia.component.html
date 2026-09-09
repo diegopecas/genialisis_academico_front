@@ -1,0 +1,64 @@
+<div class="modulo">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="false"
+    [raiz]="'/operaciones/editar-asistencia'"
+    [regresar]="'/operaciones'"
+    [iconoTitulo]="'/assets/images/editar-asistencia.png'"
+  ></app-header>
+
+  <div class="container-fluid mt-4">
+    <div class="row g-3 align-items-end">
+      <div class="col-sm-12 col-md-4">
+        <label for="fecha" class="form-label">Fecha</label>
+        <input class="form-control form-control-lg" type="date" id="fecha"
+          [(ngModel)]="fecha" (change)="consultar()">
+      </div>
+
+      <div class="col-sm-12 col-md-4">
+        <label for="grupo" class="form-label">Grupo</label>
+        <select class="form-select form-select-lg" id="grupo"
+          [(ngModel)]="idGrupo" (change)="consultar()">
+          <option [ngValue]="null">Todos los grupos</option>
+          <option *ngFor="let grupo of grupos" [ngValue]="grupo.id">{{ grupo.nombre }}</option>
+        </select>
+      </div>
+
+      <div class="col-sm-12 col-md-4">
+        <!-- Los registros con cobros ya pagados salen en la tabla como
+             Bloqueado y no dejan editar ni eliminar. -->
+        <div class="aviso-bloqueo">
+          <i class="fas fa-info-circle"></i>
+          Los registros con cobros ya pagados quedan bloqueados.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container-fluid mt-4" *ngIf="cargando">
+    <p class="text-center">Cargando...</p>
+  </div>
+
+  <div class="container-fluid mt-4" *ngIf="!cargando && datos.length === 0">
+    <div class="estado-vacio">
+      <i class="fas fa-calendar-day"></i>
+      <span>No hay registros de asistencia en esa fecha.</span>
+    </div>
+  </div>
+
+  <div class="container-fluid mt-2" *ngIf="!cargando && datos.length > 0">
+    <app-tablas
+      [titulos]="titulos"
+      [datos]="datos"
+      [raiz]="'/operaciones/editar-asistencia'"
+      [acciones]="[]"
+      [accionVer]="false"
+      [accionEditar]="true"
+      [accionEliminar]="puedeEliminar"
+      [mostrarBuscar]="true"
+      [columnasFiltro]="columnasFiltro"
+      (clicAccion)="clicAccion($event)"
+      (eliminar)="eliminarDesdeTabla($event)">
+    </app-tablas>
+  </div>
+</div>

@@ -1,0 +1,215 @@
+<div class="modulo">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="false"
+    [raiz]="'/operaciones/editar-asistencia'"
+    [regresar]="'/operaciones/editar-asistencia'"
+    [iconoTitulo]="'/assets/images/editar-asistencia.png'"
+  ></app-header>
+
+  <div class="container-fluid mt-4" *ngIf="cargando">
+    <p class="text-center">Cargando...</p>
+  </div>
+
+  <div class="container-fluid mt-4" *ngIf="!cargando && movimiento">
+
+    <div class="ficha-estudiante" [style.border-left-color]="movimiento.color">
+      <img *ngIf="movimiento.icono" [src]="movimiento.icono" class="avatar" />
+      <div class="datos">
+        <span class="nombre">{{ movimiento.estudiante }}</span>
+        <span class="grupo">{{ movimiento.nombre_grupo }} · {{ movimiento.fecha }}</span>
+      </div>
+    </div>
+
+    <!-- Este registro no se puede tocar porque su cobro ya recibio plata. -->
+    <div class="aviso-bloqueado" *ngIf="bloqueado">
+      <i class="fas fa-lock"></i>
+      Este registro tiene cobros con pagos aplicados. Para corregirlo hay que anular el pago primero.
+    </div>
+
+    <div class="tarjeta mt-3">
+      <!-- Los cobros se evaluan al salir del campo, no con (change): el
+           input type="time" dispara change apenas se escribe la primera
+           parte de la hora y se ponia a calcular a medias. -->
+      <div class="titulo-tarjeta">Movimiento</div>
+
+      <div class="row g-3">
+        <div class="col-sm-12 col-md-3">
+          <label for="horaIngreso" class="form-label">Hora de ingreso</label>
+          <input class="form-control form-control-lg" type="time" id="horaIngreso"
+            [(ngModel)]="movimiento.hora_ingreso" [disabled]="bloqueado"
+            (blur)="onHoraIngresoChange()">
+        </div>
+
+        <div class="col-sm-12 col-md-3">
+          <label for="horaSalida" class="form-label">Hora de salida</label>
+          <input class="form-control form-control-lg" type="time" id="horaSalida"
+            [(ngModel)]="movimiento.hora_salida" [disabled]="bloqueado"
+            (blur)="onHoraSalidaChange()">
+          <small class="ayuda">Déjala vacía si el movimiento sigue abierto.</small>
+        </div>
+
+        <div class="col-sm-12 col-md-3">
+          <label for="obsIngreso" class="form-label">Observación de ingreso</label>
+          <input class="form-control" type="text" id="obsIngreso"
+            [(ngModel)]="movimiento.observacion_ingreso" [disabled]="bloqueado">
+        </div>
+
+        <div class="col-sm-12 col-md-3">
+          <label for="obsSalida" class="form-label">Observación de salida</label>
+          <input class="form-control" type="text" id="obsSalida"
+            [(ngModel)]="movimiento.observacion_salida" [disabled]="bloqueado">
+        </div>
+      </div>
+    </div>
+
+    <!-- Cobros que se generarian con las horas nuevas. Se evaluan al cambiar
+         la hora, igual que en la pantalla de asistencia, y se pueden
+         desmarcar antes de grabar. -->
+    <div class="tarjeta mt-3" *ngIf="cambiaronHoras">
+      <div class="titulo-tarjeta">Cobros con las horas nuevas</div>
+
+      <p class="cargando-cobros" *ngIf="evaluandoIngreso || evaluandoSalida">
+        Evaluando reglas...
+      </p>
+
+      <p class="sin-datos" *ngIf="!evaluandoIngreso && !evaluandoSalida && cobrosPropuestos.length === 0">
+        Con estas horas no se genera ningún cobro.
+      </p>
+
+      <div class="lista-cobros" *ngIf="cobrosPropuestos.length > 0">
+        <div class="chip-cobro" *ngFor="let cobro of cobrosPropuestos"
+          [class.apagado]="!cobro.seleccionado"
+          (click)="cobro.seleccionado = !cobro.seleccionado">
+          <i class="fas" [ngClass]="cobro.seleccionado ? 'fa-check-square' : 'fa-square'"></i>
+          <span class="detalle">
+            <span class="producto">{{ cobro.nombre_producto_servicio }}</span>
+            <span class="regla">{{ cobro.detalle }}</span>
+          </span>
+          <span class="valor">{{ formatearMoneda(cobro.valor) }}</span>
+        </div>
+
+        <div class="total-cobros">
+          Total a generar: <b>{{ formatearMoneda(totalCobrosSeleccionados) }}</b>
+        </div>
+      </div>
+
+      <div class="aviso-recalculo" *ngIf="cobros.length > 0">
+        <i class="fas fa-exclamation-triangle"></i>
+        Al grabar se borran los {{ cobros.length }} cobro(s) que tenía este registro y quedan solo los marcados aquí.
+      </div>
+    </div>
+
+    <div class="tarjeta mt-3">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <div class="titulo-tarjeta m-0">Útiles y accesorios del día</div>
+        <div class="d-flex gap-2">
+          <button type="button" class="btn btn-sm btn-outline-secondary"
+            [disabled]="bloqueado" (click)="alternarTodosTrajo()">
+            {{ todosTrajo ? 'Limpiar trajo' : 'Trajo todo' }}
+          </button>
+          <button type="button" class="btn btn-sm btn-outline-secondary"
+            [disabled]="bloqueado" (click)="alternarTodosRegreso()">
+            {{ todosRegreso ? 'Limpiar llevó' : 'Se llevó todo' }}
+          </button>
+          <button type="button" class="btn btn-sm btn-outline-secondary"
+            [disabled]="bloqueado" (click)="agregarUtil()" title="Agregar útil">
+            <i class="fas fa-plus"></i>
+          </button>
+        </div>
+      </div>
+
+      <p class="sin-datos" *ngIf="utiles.length === 0">
+        Este jardín no tiene útiles configurados para el grupo. Puedes agregar uno suelto con el botón de arriba.
+      </p>
+
+      <div class="table-responsive" *ngIf="utiles.length > 0">
+        <table class="table align-middle tabla-utiles">
+          <thead>
+            <tr>
+              <th>Útil</th>
+              <th class="text-center">¿Lo trajo?</th>
+              <th class="text-center">¿Se lo llevó?</th>
+              <th class="text-center">Nota</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let util of utiles" [class.sin-registrar]="!util.id">
+              <td>
+                <!-- utiles_diarios.icono guarda una clase de Font Awesome, no una ruta. -->
+                <i *ngIf="util.icono" [ngClass]="util.icono" class="icono-util"></i>
+                {{ util.nombre }}
+                <span class="marca-nueva" *ngIf="!util.id">nuevo</span>
+                <div class="nota-util" *ngIf="util.observacion">{{ util.observacion }}</div>
+              </td>
+              <td class="text-center">
+                <button type="button" class="chip-estado"
+                  [ngClass]="util.estadoTrajo === 1 ? 'si' : (util.estadoTrajo === 0 ? 'no' : 'sin')"
+                  [disabled]="bloqueado" (click)="alternarTrajo(util)">
+                  {{ util.estadoTrajo === 1 ? 'Sí' : (util.estadoTrajo === 0 ? 'No' : 'Sin revisar') }}
+                </button>
+              </td>
+              <td class="text-center">
+                <button type="button" class="chip-estado"
+                  [ngClass]="util.estadoRegreso === 1 ? 'si' : (util.estadoRegreso === 0 ? 'no' : 'sin')"
+                  [disabled]="bloqueado" (click)="alternarRegreso(util)">
+                  {{ util.estadoRegreso === 1 ? 'Sí' : (util.estadoRegreso === 0 ? 'No' : 'Sin revisar') }}
+                </button>
+              </td>
+              <td class="text-center">
+                <button type="button" class="btn btn-sm btn-outline-secondary"
+                  [disabled]="bloqueado" (click)="editarNota(util)"
+                  [title]="util.observacion || 'Agregar nota'">
+                  <i class="fas fa-pencil-alt"></i>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="leyenda-utiles">
+        Los que quedan sin revisar y sin nota no se guardan.
+      </div>
+    </div>
+
+    <div class="tarjeta mt-3">
+      <div class="titulo-tarjeta">Cobros automáticos generados</div>
+
+      <p class="sin-datos" *ngIf="cobros.length === 0">
+        Este movimiento no generó cobros.
+      </p>
+
+      <div class="table-responsive" *ngIf="cobros.length > 0">
+        <table class="table align-middle tabla-cobros">
+          <thead>
+            <tr>
+              <th>Producto o servicio</th>
+              <th>Detalle</th>
+              <th class="text-end">Valor</th>
+              <th class="text-end">Pagado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let cobro of cobros" [class.con-pago]="cobro.valor_pagado > 0">
+              <td>{{ cobro.nombre_producto_servicio }}</td>
+              <td class="detalle">{{ cobro.detalle }}</td>
+              <td class="text-end">{{ formatearMoneda(cobro.valor) }}</td>
+              <td class="text-end">{{ formatearMoneda(cobro.valor_pagado) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="acciones mt-4">
+      <button type="button" class="btn btn-outline-secondary btn-lg" (click)="regresar()">
+        Regresar
+      </button>
+      <button type="button" class="btn btn-warning btn-lg"
+        [disabled]="bloqueado || guardando" (click)="grabar()">
+        {{ guardando ? 'Guardando...' : 'Grabar' }}
+      </button>
+    </div>
+  </div>
+</div>

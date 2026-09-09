@@ -1,14 +1,21 @@
 <!-- Solo visible cuando hay usuario logueado -->
 <ng-container *ngIf="visible">
   <!-- Botón flotante -->
-  <button class="chat-fab" (click)="toggleChat()" [class.active]="chatAbierto">
+  <button
+    class="chat-fab"
+    [class.active]="chatAbierto"
+    [style.left.px]="fabPosX"
+    [style.top.px]="fabPosY"
+    (mousedown)="onFabPointerDown($event)"
+    (touchstart)="onFabPointerDown($event)"
+  >
     <span class="fab-icon" *ngIf="!chatAbierto">💬</span>
     <span class="fab-icon" *ngIf="chatAbierto">✕</span>
     <span class="fab-pulse" *ngIf="!chatAbierto"></span>
   </button>
 
   <!-- Panel del chat -->
-  <div class="chat-panel" [class.open]="chatAbierto">
+  <div class="chat-panel" [class.open]="chatAbierto" [ngStyle]="panelStyle">
     <!-- Header -->
     <div class="chat-header">
       <div class="header-left" *ngIf="!verHistorial">

@@ -30,6 +30,21 @@ export class IaChatFloatingComponent implements OnInit, OnDestroy, AfterViewChec
   portal: string = 'institucional';
 
   chatAbierto = false;
+
+  // =====================================================
+  // FAB ARRASTRABLE
+  // Mismo comportamiento del boton de WhatsApp: se puede mover por la
+  // pantalla y el panel lo sigue. Se distingue arrastrar de tocar por la
+  // distancia recorrida, para que mover el boton no abra el chat.
+  // =====================================================
+  fabPosX = window.innerWidth - 84;
+  fabPosY: number = window.innerHeight - 84;
+  private dragging = false;
+  private dragStartX = 0;
+  private dragStartY = 0;
+  private fabStartX = 0;
+  private fabStartY = 0;
+  private dragMoved = false;
   verHistorial = false;
   textoMensaje = '';
   esperandoRespuesta = false;
@@ -168,6 +183,90 @@ export class IaChatFloatingComponent implements OnInit, OnDestroy, AfterViewChec
   // =====================================================
   // ACCIONES DEL CHAT
   // =====================================================
+
+  onFabPointerDown(event: MouseEvent | TouchEvent): void {
+    this.dragging = true;
+    this.dragMoved = false;
+
+    const point = this.getEventPoint(event);
+    this.dragStartX = point.x;
+    this.dragStartY = point.y;
+    this.fabStartX = this.fabPosX;
+    this.fabStartY = this.fabPosY;
+
+    event.preventDefault();
+
+    const onMove = (e: MouseEvent | TouchEvent) => {
+      const p = this.getEventPoint(e);
+      const dx = p.x - this.dragStartX;
+      const dy = p.y - this.dragStartY;
+
+      // Menos de 5px se toma como un toque, no como un arrastre.
+      if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+        this.dragMoved = true;
+      }
+
+      if (this.dragMoved) {
+        this.fabPosX = Math.max(0, Math.min(window.innerWidth - 60, this.fabStartX + dx));
+        this.fabPosY = Math.max(0, Math.min(window.innerHeight - 60, this.fabStartY + dy));
+      }
+    };
+
+    const onUp = () => {
+      this.dragging = false;
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      document.removeEventListener('touchmove', onMove);
+      document.removeEventListener('touchend', onUp);
+
+      if (!this.dragMoved) {
+        this.toggleChat();
+      }
+    };
+
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+    document.addEventListener('touchmove', onMove, { passive: false });
+    document.addEventListener('touchend', onUp);
+  }
+
+  private getEventPoint(event: MouseEvent | TouchEvent): { x: number; y: number } {
+    if (event instanceof TouchEvent) {
+      return { x: event.touches[0].clientX, y: event.touches[0].clientY };
+    }
+    return { x: event.clientX, y: event.clientY };
+  }
+
+  /**
+   * El panel se ancla al boton. Si no cabe arriba se abre hacia abajo, y
+   * siempre se mantiene dentro de la pantalla.
+   */
+  get panelStyle(): { [key: string]: string } {
+    const panelHeight = 520;
+    const panelWidth = 380;
+
+    let top = this.fabPosY - panelHeight - 12;
+    let left = this.fabPosX;
+
+    if (top < 10) {
+      top = this.fabPosY + 72;
+    }
+
+    if (top + panelHeight > window.innerHeight - 10) {
+      top = Math.max(10, window.innerHeight - panelHeight - 10);
+    }
+
+    if (left + panelWidth > window.innerWidth - 10) {
+      left = window.innerWidth - panelWidth - 10;
+    }
+
+    return {
+      top: top + 'px',
+      left: Math.max(10, left) + 'px',
+      right: 'auto',
+      bottom: 'auto'
+    };
+  }
 
   toggleChat(): void {
     this.chatAbierto = !this.chatAbierto;

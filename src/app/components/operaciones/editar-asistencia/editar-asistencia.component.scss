@@ -1,0 +1,35 @@
+.aviso-bloqueo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  font-size: 0.85rem;
+  color: #8a5a00;
+  background: #fff4e5;
+  border: 1px solid #ffe0b2;
+  border-radius: 8px;
+
+  i {
+    font-size: 1rem;
+    opacity: 0.8;
+  }
+}
+
+.estado-vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 40px 16px;
+  color: #adb5bd;
+  text-align: center;
+
+  i {
+    font-size: 2rem;
+    opacity: 0.6;
+  }
+
+  span {
+    font-size: 0.95rem;
+  }
+}
