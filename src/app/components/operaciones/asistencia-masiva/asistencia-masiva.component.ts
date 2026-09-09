@@ -115,12 +115,24 @@ export class AsistenciaMasivaComponent implements OnInit {
   }
 
   /**
-   * Cambio de fecha o de grupo: lo que había en las dos pestañas ya no
-   * corresponde, así que se descarta y se vuelve a consultar.
+   * Cambio de fecha: lo que había en las dos pestañas ya no corresponde, así
+   * que se descarta y se vuelve a consultar.
    */
-  cambiarFiltros() {
+  cambiarFecha() {
     this.cache = {};
     this.consultarCandidatos();
+  }
+
+  /**
+   * El grupo NO va al servidor: los estudiantes ya están todos cargados, así
+   * que filtrar es solo ocultar filas. Además, así no se pierden las horas ni
+   * los cobros que la usuaria llevaba trabajados.
+   */
+  get candidatosVisibles(): any[] {
+    if (this.idGrupo === null || this.idGrupo === '') {
+      return this.candidatos;
+    }
+    return this.candidatos.filter((fila: any) => fila.id_grupo === this.idGrupo);
   }
 
   consultarCandidatos() {
@@ -131,16 +143,41 @@ export class AsistenciaMasivaComponent implements OnInit {
     this.cargando = true;
     this.candidatos = [];
 
-    this.asistenciaMasivaService.obtenerCandidatos(this.fecha, this.idGrupo, this.tipo).subscribe({
-      next: (respuesta: any) => {
-        const lista = (respuesta.candidatos as any[]) || [];
+    this.traerCandidatos(this.tipo, (lista: any[] | null) => {
+      this.cargando = false;
 
-        this.candidatos = lista.map((fila: any) => ({
+      if (lista === null) {
+        this.candidatos = [];
+        Swal.fire('Atención', 'No se pudieron consultar los estudiantes de esa fecha.', 'error');
+        return;
+      }
+
+      this.candidatos = lista;
+      this.observacionAplicada = '';
+    });
+  }
+
+  /**
+   * Trae la grilla de un proceso y la deja lista en la caché.
+   *
+   * El `tipo` va por parámetro y no se toma de `this.tipo` porque después de
+   * procesar se recargan los dos procesos, no solo el que está a la vista.
+   * Llama al callback con la lista, o con null si falló.
+   */
+  private traerCandidatos(tipo: string, listo: (lista: any[] | null) => void) {
+    // Siempre se piden todos los grupos: el filtro de grupo es de pantalla.
+    this.asistenciaMasivaService.obtenerCandidatos(this.fecha, null, tipo).subscribe({
+      next: (respuesta: any) => {
+        const crudas = (respuesta.candidatos as any[]) || [];
+
+        const lista = crudas.map((fila: any) => ({
           ...fila,
-          // La grilla arranca sin nadie marcado: la usuaria decide a quiénes
-          // les corresponde el movimiento.
+          // La grilla arranca sin nadie marcado y sin horas: así nadie se
+          // procesa por inercia. La hora del horario queda solo como ayuda en
+          // el tooltip del campo.
           marcado: false,
-          hora: this.horaSugerida(fila),
+          hora: '',
+          horaSugerida: this.horaSugerida(fila, tipo),
           observacion: '',
           // Los útiles vienen todos marcados, como se pidió: en el ingreso
           // significa "lo trajo" y en la salida "se lo lleva".
@@ -150,35 +187,38 @@ export class AsistenciaMasivaComponent implements OnInit {
           })),
           cobros: [] as any[],
           cobrosEvaluados: false,
+          // Hora con la que se evaluaron los cobros de esta fila, para no
+          // repetir la consulta si se sale del campo sin haberla tocado.
+          horaEvaluada: null as any,
+          evaluando: false,
           resultado: null as any
         }));
 
-        this.cache[this.tipo] = this.candidatos;
-        this.observacionAplicada = '';
-        this.cargando = false;
+        this.cache[tipo] = lista;
+        listo(lista);
       },
       error: () => {
-        this.cargando = false;
-        this.candidatos = [];
-        Swal.fire('Atención', 'No se pudieron consultar los estudiantes de esa fecha.', 'error');
+        listo(null);
       }
     });
   }
 
   /**
-   * Hora con la que arranca cada fila: la programada del estudiante, que es
-   * justamente la que no genera cobro.
+   * Hora programada del estudiante para ese día, la que no genera cobro. No se
+   * pone en el campo: se muestra como ayuda en el tooltip.
    */
-  private horaSugerida(fila: any): string {
-    const hora = this.tipo === 'salida'
+  private horaSugerida(fila: any, tipo: string): string {
+    const hora = tipo === 'salida'
       ? fila.hora_salida_programada
       : fila.hora_entrada_programada;
 
     return hora ? String(hora).substring(0, 5) : '';
   }
 
+  // Todo lo que se cuenta y se procesa sale de lo que está a la vista: si hay
+  // un grupo filtrado, nadie de otro grupo entra al lote sin que se vea.
   get marcados(): any[] {
-    return this.candidatos.filter((fila: any) => fila.marcado);
+    return this.candidatosVisibles.filter((fila: any) => fila.marcado);
   }
 
   get totalMarcados(): number {
@@ -186,17 +226,46 @@ export class AsistenciaMasivaComponent implements OnInit {
   }
 
   get todosMarcados(): boolean {
-    return this.candidatos.length > 0 && this.marcados.length === this.candidatos.length;
+    const visibles = this.candidatosVisibles;
+    return visibles.length > 0 && this.marcados.length === visibles.length;
   }
 
   alternarTodos() {
     const marcar = !this.todosMarcados;
-    this.candidatos.forEach((fila: any) => fila.marcado = marcar);
+
+    this.candidatosVisibles.forEach((fila: any) => {
+      fila.marcado = marcar;
+      if (!marcar) {
+        this.limpiarFila(fila);
+      }
+    });
 
     // Las filas que se acaban de marcar también reciben la observación general.
     if (marcar && this.observacionGeneral.trim() !== '') {
       this.aplicarObservacionGeneral();
     }
+  }
+
+  /**
+   * Quitar el check deja la fila como estaba al abrir la pantalla: sin hora y
+   * sin cobros. Si no, quedaba una hora escrita que ya no se iba a usar y
+   * confundía.
+   */
+  onMarcadoCambiado(fila: any) {
+    if (fila.marcado) {
+      if (this.observacionGeneral.trim() !== '') {
+        this.aplicarObservacionGeneral();
+      }
+      return;
+    }
+
+    this.limpiarFila(fila);
+  }
+
+  private limpiarFila(fila: any) {
+    fila.hora = '';
+    fila.horaEvaluada = null;
+    this.limpiarCobrosFila(fila);
   }
 
   /**
@@ -207,7 +276,7 @@ export class AsistenciaMasivaComponent implements OnInit {
    * el texto general anterior o que está vacía.
    */
   aplicarObservacionGeneral() {
-    this.candidatos.forEach((fila: any) => {
+    this.candidatosVisibles.forEach((fila: any) => {
       if (!fila.marcado) {
         return;
       }
@@ -231,7 +300,10 @@ export class AsistenciaMasivaComponent implements OnInit {
     if (!this.horaGeneral) {
       return;
     }
-    this.marcados.forEach((fila: any) => fila.hora = this.horaGeneral);
+    this.marcados.forEach((fila: any) => {
+      fila.hora = this.horaGeneral;
+      fila.horaEvaluada = null;
+    });
     this.limpiarCobros();
   }
 
@@ -243,8 +315,58 @@ export class AsistenciaMasivaComponent implements OnInit {
     fila.cobrosEvaluados = false;
   }
 
+  /**
+   * Recalcula los cobros de una sola fila al salir del campo de la hora.
+   *
+   * Va con (blur) y no con (change): el input type="time" dispara change
+   * apenas se escribe la primera parte de la hora y se ponía a calcular a
+   * medias.
+   */
+  recalcularFila(fila: any) {
+    if (!fila.hora) {
+      this.limpiarCobrosFila(fila);
+      fila.horaEvaluada = null;
+      return;
+    }
+
+    // Poner una hora es la señal de que ese niño va en el lote. Marcarlo solo
+    // evita el caso de escribir la hora, darle procesar y que no pase nada
+    // porque el check estaba apagado.
+    fila.marcado = true;
+
+    if (this.observacionGeneral.trim() !== '') {
+      this.aplicarObservacionGeneral();
+    }
+
+    // Si la hora no se movió no hay nada que volver a pedir.
+    if (fila.horaEvaluada === fila.hora) {
+      return;
+    }
+
+    this.limpiarCobrosFila(fila);
+    fila.evaluando = true;
+
+    this.asistenciaMasivaService.evaluarCobros(this.fecha, this.tipo, [
+      { id_estudiante: fila.id_estudiante, hora: fila.hora }
+    ]).subscribe({
+      next: (respuesta: any) => {
+        const evaluacion = ((respuesta.evaluaciones as any[]) || [])[0];
+        const cobros = evaluacion ? (evaluacion.cobros || []) : [];
+
+        fila.cobros = cobros.map((cobro: any) => ({ ...cobro, aceptado: true }));
+        fila.cobrosEvaluados = true;
+        fila.horaEvaluada = fila.hora;
+        fila.evaluando = false;
+      },
+      error: () => {
+        fila.cobrosEvaluados = true;
+        fila.evaluando = false;
+      }
+    });
+  }
+
   private limpiarCobros() {
-    this.candidatos.forEach((fila: any) => this.limpiarCobrosFila(fila));
+    this.candidatosVisibles.forEach((fila: any) => this.limpiarCobrosFila(fila));
   }
 
   alternarUtil(util: any) {
@@ -284,6 +406,7 @@ export class AsistenciaMasivaComponent implements OnInit {
           // Llegan aceptados: la usuaria desmarca los que no quiere.
           fila.cobros = cobros.map((cobro: any) => ({ ...cobro, aceptado: true }));
           fila.cobrosEvaluados = true;
+          fila.horaEvaluada = fila.hora;
         });
 
         this.evaluandoCobros = false;
@@ -430,8 +553,12 @@ export class AsistenciaMasivaComponent implements OnInit {
 
     this.horaGeneral = '';
     this.observacionGeneral = '';
-    // Después de procesar cambió la base: la otra pestaña también quedó vieja.
+
+    // Después de procesar cambió la base y las dos pestañas quedaron viejas:
+    // los que acaban de salir ahora pueden volver a ingresar, y al revés. Por
+    // eso se recargan las dos, no solo la que está a la vista.
     this.cache = {};
     this.consultarCandidatos();
+    this.traerCandidatos(this.tipo === 'salida' ? 'ingreso' : 'salida', () => { });
   }
 }

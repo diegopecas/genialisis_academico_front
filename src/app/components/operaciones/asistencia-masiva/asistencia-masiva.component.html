@@ -26,13 +26,13 @@
       <div class="col-sm-12 col-md-3">
         <label for="fecha" class="form-label">Fecha</label>
         <input class="form-control form-control-lg" type="date" id="fecha"
-          [(ngModel)]="fecha" (change)="cambiarFiltros()">
+          [(ngModel)]="fecha" (change)="cambiarFecha()">
       </div>
 
       <div class="col-sm-12 col-md-3">
         <label for="grupo" class="form-label">Grupo</label>
         <select class="form-select form-select-lg" id="grupo"
-          [(ngModel)]="idGrupo" (change)="cambiarFiltros()">
+          [(ngModel)]="idGrupo">
           <option [ngValue]="null">Todos los grupos</option>
           <option *ngFor="let grupo of grupos" [ngValue]="grupo.id">{{ grupo.nombre }}</option>
         </select>
@@ -66,7 +66,7 @@
     <p class="text-center">Cargando...</p>
   </div>
 
-  <div class="container-fluid mt-4" *ngIf="!cargando && candidatos.length === 0">
+  <div class="container-fluid mt-4" *ngIf="!cargando && candidatosVisibles.length === 0">
     <div class="estado-vacio">
       <i class="fas fa-check-circle"></i>
       <span *ngIf="tipo === 'ingreso'">No hay estudiantes pendientes de ingreso en esa fecha.</span>
@@ -74,22 +74,23 @@
     </div>
   </div>
 
-  <div class="container-fluid mt-4" *ngIf="!cargando && candidatos.length > 0">
+  <div class="container-fluid mt-4" *ngIf="!cargando && candidatosVisibles.length > 0">
     <div class="barra-acciones">
       <div class="conteo">
-        <b>{{ totalMarcados }}</b> de {{ candidatos.length }} marcados
+        <b>{{ totalMarcados }}</b> de {{ candidatosVisibles.length }} marcados
       </div>
       <div class="botones">
         <button type="button" class="btn btn-outline-secondary" (click)="alternarTodos()">
           {{ todosMarcados ? 'Desmarcar todos' : 'Marcar todos' }}
         </button>
-        <button type="button" class="btn btn-outline-warning"
+        <button type="button" class="btn btn-cobros"
           [disabled]="totalMarcados === 0 || evaluandoCobros" (click)="calcularCobros()">
+          <i class="fas fa-dollar-sign me-2"></i>
           {{ evaluandoCobros ? 'Calculando...' : 'Calcular cobros extra' }}
         </button>
         <button type="button" class="btn btn-warning"
           [disabled]="totalMarcados === 0 || procesando" (click)="procesar()">
-          {{ procesando ? 'Procesando...' : 'Procesar' }}
+          {{ procesando ? 'Registrando...' : (tipo === 'salida' ? 'Registrar Salidas' : 'Registrar Ingresos') }}
         </button>
       </div>
     </div>
@@ -109,9 +110,10 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let fila of candidatos" [class.fila-marcada]="fila.marcado">
+          <tr *ngFor="let fila of candidatosVisibles" [class.fila-marcada]="fila.marcado">
             <td class="columna-check">
-              <input class="form-check-input" type="checkbox" [(ngModel)]="fila.marcado">
+              <input class="form-check-input" type="checkbox" [(ngModel)]="fila.marcado"
+                (ngModelChange)="onMarcadoCambiado(fila)">
             </td>
 
             <td class="columna-estudiante">
@@ -136,8 +138,10 @@
             </td>
 
             <td class="columna-hora">
+              <!-- Al salir del campo se marca la fila y se recalculan sus cobros. -->
               <input class="form-control" type="time" [(ngModel)]="fila.hora"
-                (change)="limpiarCobrosFila(fila)">
+                (blur)="recalcularFila(fila)"
+                [title]="fila.horaSugerida ? 'Horario del estudiante: ' + fila.horaSugerida : 'Sin horario configurado'">
             </td>
 
             <td class="columna-utiles">
@@ -146,8 +150,10 @@
                 [class.apagado]="!util.marcado"
                 (click)="alternarUtil(util)"
                 [title]="util.nombre">
-                <i class="fas" [ngClass]="util.marcado ? 'fa-check' : 'fa-times'"></i>
+                <!-- utiles_diarios.icono guarda una clase de Font Awesome. -->
+                <i *ngIf="util.icono" [ngClass]="util.icono" class="icono-util"></i>
                 {{ util.nombre }}
+                <i class="fas marca-estado" [ngClass]="util.marcado ? 'fa-check' : 'fa-times'"></i>
               </span>
             </td>
 
@@ -157,8 +163,9 @@
             </td>
 
             <td class="columna-cobros">
-              <span class="sin-cobros" *ngIf="!fila.cobrosEvaluados">Sin calcular</span>
-              <span class="sin-cobros" *ngIf="fila.cobrosEvaluados && fila.cobros.length === 0">Ninguno</span>
+              <span class="sin-cobros" *ngIf="fila.evaluando">Calculando...</span>
+              <span class="sin-cobros" *ngIf="!fila.evaluando && !fila.cobrosEvaluados">Sin calcular</span>
+              <span class="sin-cobros" *ngIf="!fila.evaluando && fila.cobrosEvaluados && fila.cobros.length === 0">Ninguno</span>
               <div class="chip-cobro" *ngFor="let cobro of fila.cobros"
                 [class.apagado]="!cobro.aceptado"
                 (click)="cobro.aceptado = !cobro.aceptado">
