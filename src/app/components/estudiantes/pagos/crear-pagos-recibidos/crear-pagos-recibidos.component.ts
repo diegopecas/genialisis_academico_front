@@ -130,6 +130,9 @@ export class CrearPagosRecibidosComponent implements OnInit {
   // Valor total leído del comprobante. Se conserva aparte de valor_recibido
   // porque un mismo comprobante puede repartirse entre varios estudiantes.
   public valorComprobanteIA: number | null = null;
+  // Última referencia ya consultada al backend, para no repetir la verificación
+  // temprana en cada blur si la referencia no cambió.
+  private referenciaVerificada: string | null = null;
   public idDocumentoPersona: string | null = null;
   // Código (estable) del tipo de documento para comprobantes de pago.
   // El back lo resuelve a su UUID por código dentro del tenant.
@@ -680,9 +683,53 @@ export class CrearPagosRecibidosComponent implements OnInit {
     this.valorRestante = this.model.valor_recibido - totalAplicado;
     this.model.saldo = this.valorRestante;
 
-    if (this.valorRestante < 0) {
-      Swal.fire('Atención', `El total aplicado (${totalAplicado}) excede el valor recibido (${this.model.valor_recibido})`, 'warning');
-    }
+    /* Sin alerta aquí: este método se recalcula en cada tecla del valor recibido
+       y de los valores a pagar. Cuando el restante queda negativo se avisa en
+       línea bajo el Saldo restante, y al grabar la validación lo bloquea. */
+  }
+
+  /* ------------------------------------------------------------------
+     Totales de la tabla de cuentas por aplicar. Son metodos y no campos
+     para que se recalculen solos mientras se digita en la columna A pagar.
+     ------------------------------------------------------------------ */
+
+  /** Suma una columna numerica de las cuentas listadas. */
+  private sumarCuentas(campo: string): number {
+    return this.cuentasPorCobrar.reduce((sum, cuenta) => sum + Number(cuenta[campo] || 0), 0);
+  }
+
+  totalValor(): number {
+    return this.sumarCuentas('valor');
+  }
+
+  totalPagado(): number {
+    return this.sumarCuentas('valor_pagado');
+  }
+
+  totalSaldo(): number {
+    return this.sumarCuentas('saldo');
+  }
+
+  /** Mora pendiente de las cuentas listadas, no la que se va a aplicar. */
+  totalMora(): number {
+    return this.cuentasPorCobrar.reduce(
+      (sum, cuenta) => sum + (Number(cuenta.saldo_mora) > 0 ? Number(cuenta.saldo_mora) : 0), 0
+    );
+  }
+
+  /** Capital que se esta aplicando: es lo que se ve en la columna A pagar. */
+  totalAPagar(): number {
+    return this.model.cuentas_aplicadas.reduce((sum, ca) => sum + Number(ca.valor_aplicado || 0), 0);
+  }
+
+  /** Parte del pago imputada a intereses, que no se digita pero si consume el valor recibido. */
+  totalMoraAplicada(): number {
+    return this.model.cuentas_aplicadas.reduce((sum, ca) => sum + Number(ca.valor_aplicado_mora || 0), 0);
+  }
+
+  /** Lo que realmente descuenta del valor recibido: capital + mora. */
+  totalAplicado(): number {
+    return this.totalAPagar() + this.totalMoraAplicada();
   }
 
   formatearMoneda(valor: number): string {
@@ -896,6 +943,7 @@ export class CrearPagosRecibidosComponent implements OnInit {
     this.idDocumentoPersona = null;
     this.bancoDetectadoIA = null;
     this.valorComprobanteIA = null;
+    this.referenciaVerificada = null;
     const input = document.getElementById('archivoComprobante') as HTMLInputElement;
     if (input) input.value = '';
   }
@@ -943,6 +991,8 @@ export class CrearPagosRecibidosComponent implements OnInit {
           this.bancoDetectadoIA = datos.banco ? String(datos.banco) : null;
 
           this.validarBancoContraTipoPago();
+          // La referencia recién leída se verifica de una vez, sin esperar a grabar.
+          this.verificarReferenciaTemprana();
         } else {
           Swal.fire('Advertencia', 'No se pudieron extraer los datos del comprobante. Puede ingresar los datos manualmente.', 'warning');
         }
@@ -1026,6 +1076,80 @@ export class CrearPagosRecibidosComponent implements OnInit {
   // ============================================
   // MÉTODOS DE VERIFICACIÓN DE DUPLICADOS
   // ============================================
+
+  // Verifica la referencia apenas se conoce (tras leer el comprobante con IA o al
+  // salir del campo), sin esperar a grabar. La referencia repetida NO es un error:
+  // un mismo comprobante puede repartirse entre varios estudiantes (hermanos), así
+  // que aquí solo se advierte. El bloqueo por exceso se mantiene en grabar().
+  verificarReferenciaTemprana(): void {
+    const referencia = (this.model.referencia_bancaria || '').trim();
+
+    // En consulta no hay nada que registrar, así que no se verifica.
+    if (!referencia || this.accion === 'consultar') {
+      this.referenciaVerificada = null;
+      return;
+    }
+
+    // Evita repetir la consulta si la referencia no cambió desde la última.
+    if (this.referenciaVerificada === referencia) return;
+    this.referenciaVerificada = referencia;
+
+    // Solo se envía la referencia: el chequeo de "posible duplicado" del backend
+    // no aplica en este momento y así la consulta es más liviana.
+    const datos: any = { referencia_bancaria: referencia };
+    if (this.accion === 'editar' && this.model.id) {
+      datos.id_pago_excluir = this.model.id;
+    }
+
+    this.pagosService.verificarDuplicado(datos).subscribe({
+      next: (respuesta: any) => {
+        const pagosPrevios = (respuesta && respuesta.referencia_existente) ? respuesta.referencia_existente : [];
+        if (pagosPrevios.length === 0) return;
+
+        const totalRegistrado = Number(respuesta.total_referencia || 0);
+        const valorEstePago = Number(this.model.valor_recibido || 0);
+        const valorComprobante = Number(this.valorComprobanteIA || 0);
+        const totalAcumulado = totalRegistrado + valorEstePago;
+
+        // Con el comprobante leído por IA se puede comparar contra su valor.
+        if (valorComprobante > 0 && totalAcumulado > valorComprobante) {
+          Swal.fire({
+            title: 'El comprobante no alcanza',
+            html: `<div style="text-align:left;">`
+              + `Comprobante <strong>${referencia}</strong> por <strong>$${this.formatearMoneda(valorComprobante)}</strong>.<br><br>`
+              + `Ya registrado: <strong>$${this.formatearMoneda(totalRegistrado)}</strong><br>`
+              + `Este pago: <strong>$${this.formatearMoneda(valorEstePago)}</strong><br>`
+              + `Total: <strong>$${this.formatearMoneda(totalAcumulado)}</strong><br><br>`
+              + `Excede en <strong>$${this.formatearMoneda(totalAcumulado - valorComprobante)}</strong>. Verifique los valores.`
+              + `</div>`,
+            icon: 'warning',
+            confirmButtonText: 'Entendido',
+            width: '520px'
+          });
+          return;
+        }
+
+        // Sin exceso, solo se informa que la referencia ya se usó antes.
+        Swal.fire({
+          title: 'Referencia ya utilizada',
+          html: `<div style="text-align:left;">`
+            + `La referencia <strong>${referencia}</strong> ya tiene pagos registrados por `
+            + `<strong>$${this.formatearMoneda(totalRegistrado)}</strong>:`
+            + this.construirHtmlCoincidencias(pagosPrevios)
+            + `<div style="margin-top:8px;">Si el comprobante cubre a varios estudiantes puede continuar.</div>`
+            + `</div>`,
+          icon: 'info',
+          confirmButtonText: 'Entendido',
+          width: '520px'
+        });
+      },
+      error: (error: any) => {
+        // La verificación es informativa: si falla, no se interrumpe el registro.
+        console.error('Error al verificar la referencia:', error);
+        this.referenciaVerificada = null;
+      }
+    });
+  }
 
   // Arma el payload para el endpoint de verificación. En editar se envía el id
   // del pago actual para que no se compare consigo mismo.

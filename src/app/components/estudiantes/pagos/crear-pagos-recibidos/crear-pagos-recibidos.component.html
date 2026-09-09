@@ -171,6 +171,7 @@
             <div class="col-sm-12 col-md-4" *ngIf="tipoPagoRequiereReferencia()">
                 <label class="form-label">Referencia <span class="text-danger">*</span></label>
                 <input type="text" class="form-control form-control-lg" [(ngModel)]="model.referencia_bancaria"
+                    (blur)="verificarReferenciaTemprana()"
                     [ngClass]="{'is-invalid': !model.referencia_bancaria && tipoPagoRequiereReferencia() && submitted}">
             </div>
 
@@ -188,6 +189,9 @@
                 </div>
                 <small class="text-muted" *ngIf="valorRestante > 0 && cuentasSeleccionadas.length > 0">
                     Este saldo quedará a favor del estudiante para futuros pagos
+                </small>
+                <small class="text-danger" *ngIf="valorRestante < 0">
+                    El total aplicado excede el valor recibido en {{ formatearMoneda(-valorRestante) }}
                 </small>
             </div>
         </div>
@@ -362,6 +366,25 @@
                                 </td>
                             </tr>
                         </tbody>
+                        <tfoot class="table-light" *ngIf="cuentasPorCobrar.length > 0">
+                            <tr class="fw-bold">
+                                <td colspan="3" class="text-end">Totales</td>
+                                <td class="text-end">{{ formatearMoneda(totalValor()) }}</td>
+                                <td class="text-end" *ngIf="accion === 'crear'">{{ formatearMoneda(totalPagado()) }}</td>
+                                <td class="text-end" *ngIf="accion === 'crear'">{{ formatearMoneda(totalSaldo()) }}</td>
+                                <td class="text-end">{{ formatearMoneda(totalMora()) }}</td>
+                                <td class="text-end">
+                                    {{ formatearMoneda(totalAPagar()) }}
+                                    <div class="fw-normal small text-danger" *ngIf="totalMoraAplicada() > 0">
+                                        + {{ formatearMoneda(totalMoraAplicada()) }} de mora
+                                    </div>
+                                    <div class="fw-normal small text-muted" *ngIf="totalMoraAplicada() > 0">
+                                        Aplicado: {{ formatearMoneda(totalAplicado()) }}
+                                    </div>
+                                </td>
+                                <td *ngIf="accion === 'editar'"></td>
+                            </tr>
+                        </tfoot>
                     </table>
                 </div>
             </div>
