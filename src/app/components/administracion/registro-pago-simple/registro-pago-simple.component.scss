@@ -1,0 +1,303 @@
+$primary-color: #007bff;
+$success-color: #28a745;
+$danger-color: #dc3545;
+$info-color: #17a2b8;
+$text-dark: #2c3e50;
+$text-muted: #7f8c8d;
+$border-color: #dee2e6;
+$bg-light: #f8f9fa;
+$wa-green: #25D366;
+
+.modulo {
+  min-height: 100vh;
+  background-color: #fff;
+  padding: 1rem 0.5rem;
+}
+
+/* La pantalla se usa sobre todo desde el celular: una sola columna angosta,
+   centrada, para que en escritorio no quede un formulario gigante. */
+.pago-wrapper {
+  max-width: 720px;
+  margin: 0 auto;
+  padding-bottom: 5rem;
+}
+
+.tarjeta {
+  background: #fff;
+  border: 1px solid $border-color;
+  border-radius: 10px;
+  padding: 1rem;
+  margin-bottom: 0.85rem;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.05);
+}
+
+.tarjeta-titulo {
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  color: $text-dark;
+  margin-bottom: 0.75rem;
+
+  .paso {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: $primary-color;
+    color: #fff;
+    font-size: 0.78rem;
+    margin-right: 0.5rem;
+  }
+}
+
+// ============================================
+// Comprobante
+// ============================================
+.botones-comprobante {
+  display: flex;
+  gap: 0.5rem;
+
+  .btn-comprobante {
+    flex: 1;
+    padding: 0.85rem 0.5rem;
+    font-size: 0.95rem;
+    border-style: dashed;
+
+    i { display: block; font-size: 1.3rem; margin-bottom: 0.25rem; }
+  }
+}
+
+.ia-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.85rem 0;
+}
+
+.archivo-adjunto {
+  display: flex;
+  align-items: center;
+  background: $bg-light;
+  border: 1px solid $border-color;
+  border-radius: 8px;
+  padding: 0.6rem 0.75rem;
+  font-size: 0.85rem;
+}
+
+.btn-eliminar-archivo {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: $danger-color;
+  font-size: 1rem;
+  opacity: 0.7;
+  &:hover { opacity: 1; }
+}
+
+.banco-detectado {
+  margin-top: 0.5rem;
+  font-size: 0.82rem;
+  color: $primary-color;
+}
+
+// ============================================
+// Búsqueda de estudiante
+// ============================================
+.posicion-relativa { position: relative; }
+
+.sugerencias {
+  list-style: none;
+  margin: 0.25rem 0 0;
+  padding: 0;
+  border: 1px solid $border-color;
+  border-radius: 8px;
+  background: #fff;
+  max-height: 280px;
+  overflow-y: auto;
+  box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+
+  li {
+    padding: 0.6rem 0.75rem;
+    border-bottom: 1px solid $bg-light;
+    cursor: pointer;
+    &:last-child { border-bottom: none; }
+    &:hover { background: rgba($primary-color, 0.06); }
+  }
+}
+
+.sug-nombre { font-weight: 500; color: $text-dark; }
+.sug-detalle { font-size: 0.78rem; margin-top: 2px; }
+
+.estudiante-elegido {
+  background: $bg-light;
+  border-radius: 8px;
+  padding: 0.75rem;
+}
+
+.nombre-estudiante { font-weight: 600; color: $text-dark; }
+
+.badge-grupo {
+  background-color: #e8f4f8;
+  color: #2980b9;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 0.72rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.saldo-actual { font-size: 0.95rem; }
+
+// ============================================
+// Campos
+// ============================================
+.form-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 0.2rem;
+}
+
+.campo-prellenado {
+  border-color: $success-color !important;
+  background-color: rgba($success-color, 0.05) !important;
+  animation: brilloIA 1.5s ease-in-out;
+}
+
+@keyframes brilloIA {
+  0% { box-shadow: 0 0 0 0 rgba($success-color, 0.4); }
+  50% { box-shadow: 0 0 8px 2px rgba($success-color, 0.3); }
+  100% { box-shadow: none; }
+}
+
+// ============================================
+// Distribución
+// ============================================
+.distribucion-resumen {
+  background: $bg-light;
+  border-radius: 8px;
+  padding: 0.6rem 0.75rem;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.cuenta-item {
+  border: 1px solid $border-color;
+  border-radius: 8px;
+  padding: 0.6rem;
+  margin-bottom: 0.5rem;
+
+  &.cuenta-activa {
+    border-color: $success-color;
+    background: rgba($success-color, 0.05);
+  }
+}
+
+// ============================================
+// Barra de registro (fija abajo en el celular)
+// ============================================
+.barra-registrar {
+  position: sticky;
+  bottom: 0;
+  background: #fff;
+  padding: 0.6rem 0;
+  border-top: 1px solid $border-color;
+  z-index: 20;
+}
+
+// ============================================
+// Resumen final
+// ============================================
+.tarjeta-exito { border-top: 4px solid $success-color; }
+
+.icono-exito { font-size: 2.6rem; }
+
+.resumen-linea {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.45rem 0;
+  border-bottom: 1px dashed $border-color;
+  font-size: 0.95rem;
+
+  &:last-of-type { border-bottom: none; }
+}
+
+.resumen-destacado {
+  background: $bg-light;
+  border-radius: 8px;
+  padding: 0.6rem 0.5rem;
+  margin-top: 0.4rem;
+  font-size: 1.05rem;
+  border-bottom: none;
+}
+
+// ============================================
+// WhatsApp / modales
+// ============================================
+.btn-wa {
+  background-color: $wa-green;
+  border-color: $wa-green;
+  color: white;
+  &:hover { background-color: darken($wa-green, 10%); border-color: darken($wa-green, 10%); color: white; }
+  &:disabled { background-color: lighten($wa-green, 20%); border-color: lighten($wa-green, 20%); }
+}
+
+.btn-wa-outline {
+  background-color: transparent;
+  border-color: $wa-green;
+  color: $wa-green;
+  &:hover { background-color: $wa-green; border-color: $wa-green; color: white; }
+  &:disabled { border-color: lighten($wa-green, 20%); color: lighten($wa-green, 20%); }
+}
+
+.modal {
+  .modal-header {
+    background-color: $bg-light;
+    border-bottom: 2px solid $border-color;
+    .modal-title { font-weight: 600; color: #333; }
+  }
+  .modal-body {
+    padding: 1rem;
+    h6 {
+      color: #495057; font-weight: 600;
+      border-bottom: 1px solid $border-color;
+      padding-bottom: 0.5rem; margin-bottom: 1rem;
+    }
+  }
+  .modal-footer {
+    background-color: $bg-light;
+    border-top: 2px solid $border-color;
+  }
+}
+
+.acudiente-card {
+  padding: 0.85rem;
+  border: 1px solid $border-color;
+  border-radius: 0.5rem;
+  background-color: $bg-light;
+
+  &.border-dashed {
+    border-style: dashed;
+    border-color: #adb5bd;
+    background-color: #fff;
+  }
+}
+
+// ============================================
+// Responsive
+// ============================================
+@media (max-width: 576px) {
+  .modulo { padding: 0.5rem 0.25rem; }
+  .tarjeta { padding: 0.85rem 0.75rem; }
+  .form-control-lg, .form-select-lg { font-size: 1rem; }
+}
+
+.filtros-cuentas {
+  background: $bg-light;
+  border: 1px solid $border-color;
+  border-radius: 8px;
+  padding: 0.6rem;
+}

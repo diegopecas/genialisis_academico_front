@@ -7,57 +7,61 @@
     [iconoTitulo]="'/assets/images/asistencia-masiva.png'"
   ></app-header>
 
-  <div class="container-fluid mt-4">
+  <div class="container-fluid mt-3">
     <!-- Ingreso y salida son dos procesos distintos: cada uno trae su propia
          lista y no se pueden mezclar en el mismo procesado. -->
-    <div class="row g-3 align-items-end">
-      <div class="col-sm-12 col-md-3">
-        <label class="form-label">Proceso</label>
-        <div class="btn-group w-100" role="group">
-          <button type="button" class="btn btn-lg"
-            [ngClass]="tipo === 'ingreso' ? 'btn-warning' : 'btn-outline-secondary'"
-            (click)="cambiarTipo('ingreso')">Ingreso</button>
-          <button type="button" class="btn btn-lg"
-            [ngClass]="tipo === 'salida' ? 'btn-warning' : 'btn-outline-secondary'"
-            (click)="cambiarTipo('salida')">Salida</button>
+    <ul class="nav nav-tabs tabs-proceso">
+      <li class="nav-item">
+        <button type="button" class="nav-link" [class.active]="tipo === 'ingreso'"
+          (click)="cambiarTipo('ingreso')">
+          <i class="fas fa-sign-in-alt me-2"></i>Ingreso
+        </button>
+      </li>
+      <li class="nav-item">
+        <button type="button" class="nav-link" [class.active]="tipo === 'salida'"
+          (click)="cambiarTipo('salida')">
+          <i class="fas fa-sign-out-alt me-2"></i>Salida
+        </button>
+      </li>
+    </ul>
+
+    <div class="panel-filtros">
+      <div class="row g-3 align-items-end">
+        <div class="col-6 col-md-2">
+          <label for="fecha" class="form-label">Fecha</label>
+          <input class="form-control" type="date" id="fecha"
+            [(ngModel)]="fecha" (change)="cambiarFecha()">
         </div>
-      </div>
 
-      <div class="col-sm-12 col-md-3">
-        <label for="fecha" class="form-label">Fecha</label>
-        <input class="form-control form-control-lg" type="date" id="fecha"
-          [(ngModel)]="fecha" (change)="cambiarFecha()">
-      </div>
-
-      <div class="col-sm-12 col-md-3">
-        <label for="grupo" class="form-label">Grupo</label>
-        <select class="form-select form-select-lg" id="grupo"
-          [(ngModel)]="idGrupo">
-          <option [ngValue]="null">Todos los grupos</option>
-          <option *ngFor="let grupo of grupos" [ngValue]="grupo.id">{{ grupo.nombre }}</option>
-        </select>
-      </div>
-
-      <div class="col-sm-12 col-md-3">
-        <label for="horaGeneral" class="form-label">
-          Hora para todos ({{ tipo === 'salida' ? 'salida' : 'ingreso' }})
-        </label>
-        <div class="input-group">
-          <input class="form-control form-control-lg" type="time" id="horaGeneral" [(ngModel)]="horaGeneral">
-          <button class="btn btn-outline-warning" type="button"
-            [disabled]="!horaGeneral || totalMarcados === 0"
-            (click)="aplicarHoraGeneral()">Aplicar</button>
+        <div class="col-6 col-md-2">
+          <label for="grupo" class="form-label">Grupo</label>
+          <select class="form-select" id="grupo" [(ngModel)]="idGrupo">
+            <option [ngValue]="null">Todos los grupos</option>
+            <option *ngFor="let grupo of grupos" [ngValue]="grupo.id">{{ grupo.nombre }}</option>
+          </select>
         </div>
-      </div>
-    </div>
 
-    <div class="row g-3 mt-1">
-      <div class="col-12">
-        <label for="observacionGeneral" class="form-label">Observación para todo el lote (opcional)</label>
-        <input class="form-control" type="text" id="observacionGeneral"
-          [(ngModel)]="observacionGeneral"
-          (ngModelChange)="aplicarObservacionGeneral()"
-          placeholder="Se copia a los marcados mientras escribes">
+        <div class="col-6 col-md-2">
+          <label for="horaGeneral" class="form-label">
+            Hora de {{ tipo === 'salida' ? 'salida' : 'ingreso' }} para todos
+          </label>
+          <!-- Sin botón: la hora se aplica a los marcados al salir del campo. -->
+          <input class="form-control" type="time" id="horaGeneral"
+            [(ngModel)]="horaGeneral" (blur)="aplicarHoraGeneral()">
+        </div>
+
+        <div class="col-6 col-md-3">
+          <label for="observacionGeneral" class="form-label">Observación para todo el lote</label>
+          <input class="form-control" type="text" id="observacionGeneral"
+            [(ngModel)]="observacionGeneral"
+            (ngModelChange)="aplicarObservacionGeneral()"
+            placeholder="Opcional">
+        </div>
+
+        <div class="col-12 col-md-3">
+          <label class="form-label">Buscar estudiante</label>
+          <app-buscar (buscar)="buscar($event)"></app-buscar>
+        </div>
       </div>
     </div>
   </div>
@@ -120,10 +124,7 @@
               <div class="estudiante" [style.border-left-color]="fila.color">
                 <img *ngIf="fila.icono" [src]="fila.icono" class="avatar" />
                 <span class="datos">
-                  <span class="nombre">
-                    {{ fila.primer_nombre }} {{ fila.segundo_nombre }}
-                    {{ fila.primer_apellido }} {{ fila.segundo_apellido }}
-                  </span>
+                      <span class="nombre">{{ nombreCompleto(fila) }}</span>
                   <span class="grupo">{{ fila.nombre_grupo }}</span>
                   <!-- En el ingreso avisa que el niño ya entró y salió ese día:
                        este sería un segundo ingreso, que el jardín permite. -->

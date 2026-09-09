@@ -59,6 +59,9 @@ export class FinancieroComponent implements OnInit {
       case 'registro-pagos-rapido':
         this.router.navigate(['/administracion/financiero/registro-pagos-rapido']);
         break;
+      case 'registro-pago-simple':
+        this.router.navigate(['/administracion/financiero/registro-pago-simple']);
+        break;
       case 'registro-cobros-rapido':
         this.router.navigate(['/administracion/financiero/registro-cobros-rapido']);
         break;

@@ -34,7 +34,11 @@ export class EditarAsistenciaComponent implements OnInit {
 
   public titulos = [] as any[];
   public datos = [] as any[];
-  public columnasFiltro = ['estudiante', 'nombre_grupo', 'hora_ingreso', 'hora_salida'] as any[];
+  // Ojo: el componente de tablas compara esto contra el ALIAS de la columna,
+  // no contra la clave. Con las claves los desplegables no aparecian.
+  // Estudiante no va como desplegable: para eso está el buscador, que ya
+  // recorre todas las columnas visibles.
+  public columnasFiltro = ['Grupo', 'Estado'] as any[];
 
   public cargando: boolean = false;
 

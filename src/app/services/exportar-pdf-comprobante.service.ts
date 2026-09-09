@@ -18,7 +18,27 @@ export class ExportarPdfComprobanteService {
 
   constructor(private institucionConfigService: InstitucionConfigService) { }
 
+  /**
+   * Genera el comprobante y lo descarga. Se conserva tal cual: arma el
+   * documento y lo guarda con doc.save().
+   */
   generarPDF(datos: DatosComprobantePDF): void {
+    const doc = this.construirDocumento(datos);
+    doc.save(`Comprobante_Pago_${datos.pago.id}.pdf`);
+  }
+
+  /**
+   * Devuelve el mismo comprobante como Blob, sin descargarlo, para poder
+   * compartirlo con el menu nativo del dispositivo (WhatsApp, correo, etc.).
+   */
+  generarBlob(datos: DatosComprobantePDF): Blob {
+    const doc = this.construirDocumento(datos);
+    return doc.output('blob');
+  }
+
+  /* Arma el documento completo. Antes este cuerpo vivia dentro de generarPDF;
+     se extrajo para poder devolverlo tambien como Blob. */
+  private construirDocumento(datos: DatosComprobantePDF): jsPDF {
     const doc = new jsPDF('p', 'mm', 'a4');
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
@@ -69,8 +89,7 @@ export class ExportarPdfComprobanteService {
       // 7. PIE DE PÁGINA
       this.dibujarPiePagina(doc, datos, pageWidth, pageHeight, grayColor);
 
-      // Guardar el PDF
-      doc.save(`Comprobante_Pago_${datos.pago.id}.pdf`);
+      return doc;
 
     } catch (error) {
       console.error('Error al generar PDF:', error);

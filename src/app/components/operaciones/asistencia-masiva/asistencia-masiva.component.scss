@@ -271,3 +271,79 @@
     opacity: 1;
   }
 }
+
+// ============================================================
+// PESTANAS DEL PROCESO
+// Ingreso y salida son dos procesos, no dos filtros: por eso van como
+// pestanas y no como botones sueltos dentro de la fila de filtros.
+// ============================================================
+.tabs-proceso {
+  border-bottom: 2px solid #e9ecef;
+
+  .nav-link {
+    border: 0;
+    border-bottom: 3px solid transparent;
+    border-radius: 0;
+    padding: 10px 22px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #868e96;
+    background: transparent;
+
+    &:hover:not(.active) {
+      color: #495057;
+      border-bottom-color: #e9ecef;
+    }
+
+    &.active {
+      color: #c07600;
+      border-bottom-color: coral;
+      background: transparent;
+    }
+
+    i {
+      opacity: 0.8;
+    }
+  }
+}
+
+// ============================================================
+// PANEL DE FILTROS
+// Todo alineado abajo y del mismo alto, que era lo que se veia
+// desordenado cuando cada control tenia su propio tamano.
+// ============================================================
+.panel-filtros {
+  padding: 16px;
+  background: #fbfbfc;
+  border: 1px solid #ececec;
+  border-top: 0;
+  border-radius: 0 0 10px 10px;
+
+  .form-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    color: #868e96;
+    margin-bottom: 4px;
+  }
+
+  .form-control,
+  .form-select {
+    height: 40px;
+  }
+
+  // El buscador comun trae su propio margen y alto; aqui se iguala al resto.
+  app-buscar {
+    display: block;
+
+    ::ng-deep .mb-3,
+    ::ng-deep .mb-4 {
+      margin-bottom: 0 !important;
+    }
+
+    ::ng-deep input {
+      height: 40px;
+    }
+  }
+}

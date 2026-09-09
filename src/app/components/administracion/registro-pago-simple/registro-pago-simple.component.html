@@ -1,0 +1,463 @@
+<div class="modulo">
+  <app-header [tituloModulo]="titulo" [mostrarCrear]="false"
+    [raiz]="'/administracion/financiero'" [regresar]="regresar"></app-header>
+
+  <div class="container-fluid mt-3 px-2 px-md-4">
+    <div *ngIf="cargando" class="text-center py-5">
+      <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div>
+      <p class="mt-2 text-muted">Cargando estudiantes y cuentas pendientes...</p>
+    </div>
+
+    <!-- ============================== -->
+    <!-- FORMULARIO DEL PAGO            -->
+    <!-- ============================== -->
+    <div class="pago-wrapper" *ngIf="!cargando && !resumen">
+
+      <!-- 1. Tipo de pago (define si se pide comprobante y referencia) -->
+      <div class="tarjeta">
+        <div class="tarjeta-titulo"><span class="paso">1</span> Tipo de pago</div>
+        <select class="form-select form-select-lg" [(ngModel)]="id_tipo_pago" (change)="onTipoPagoChange()">
+          <option [ngValue]="null">Seleccionar</option>
+          <option *ngFor="let tp of tiposPago" [ngValue]="tp.id">{{ tp.nombre }}</option>
+        </select>
+      </div>
+
+      <!-- 2. Comprobante y valores del pago -->
+      <div class="tarjeta" *ngIf="id_tipo_pago">
+        <div class="tarjeta-titulo">
+          <span class="paso">2</span> {{ requiereDocumento() ? 'Comprobante' : 'Valor del pago' }}
+        </div>
+
+        <div *ngIf="requiereDocumento()">
+          <div class="form-check form-switch mb-2">
+            <input class="form-check-input" type="checkbox" id="usarIA"
+              [(ngModel)]="usarIA" (change)="onUsarIAChange()" />
+            <label class="form-check-label" for="usarIA">
+              Leer los datos con IA
+              <small class="text-muted d-block">Apágalo si está lenta y digita los datos.</small>
+            </label>
+          </div>
+
+          <div *ngIf="!archivo && !analizandoIA" class="botones-comprobante">
+            <label class="btn btn-outline-primary btn-comprobante" for="fotoComprobante">
+              <i class="fas fa-camera"></i> Tomar foto
+            </label>
+            <label class="btn btn-outline-primary btn-comprobante" for="archivoComprobante">
+              <i class="fas fa-paperclip"></i> Subir archivo
+            </label>
+          </div>
+
+          <input id="fotoComprobante" type="file" accept="image/*" capture="environment" class="d-none"
+            (change)="onArchivoSeleccionado($event)" />
+          <input id="archivoComprobante" type="file" accept=".pdf,.jpg,.jpeg,.png" class="d-none"
+            (change)="onArchivoSeleccionado($event)" />
+
+          <div *ngIf="analizandoIA" class="ia-loading">
+            <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+            <span class="ms-2 text-muted">Leyendo el comprobante...</span>
+            <button type="button" class="btn btn-sm btn-outline-secondary ms-2" (click)="cancelarAnalisisIA()">
+              Seguir sin esperar
+            </button>
+          </div>
+
+          <div *ngIf="archivo && !analizandoIA">
+            <div class="archivo-adjunto">
+              <i class="fas fa-check-circle text-success me-2"></i>
+              <span class="text-truncate">{{ archivo.name }}</span>
+              <button type="button" class="btn-eliminar-archivo ms-2" (click)="eliminarArchivo()" title="Quitar">
+                <i class="fas fa-times-circle"></i>
+              </button>
+            </div>
+            <button *ngIf="!datosIA" type="button" class="btn btn-sm btn-outline-primary mt-2"
+              (click)="analizarConIA()">
+              <i class="fas fa-wand-magic-sparkles me-1"></i> Leer con IA
+            </button>
+          </div>
+
+          <div *ngIf="datosIA?.banco" class="banco-detectado">
+            <i class="fas fa-university me-1"></i> {{ datosIA?.banco }}
+          </div>
+
+          <div *ngIf="archivo && !analizandoIA && !datosIA" class="alert alert-warning mt-2 mb-0 py-2">
+            <i class="fas fa-exclamation-triangle me-1"></i>
+            No se leyeron los datos del comprobante. Digítalos abajo; el documento igual queda guardado.
+          </div>
+        </div>
+
+        <div class="row g-2" [class.mt-1]="requiereDocumento()">
+          <div class="col-12 col-md-6">
+            <label class="form-label">Valor recibido</label>
+            <div class="input-group input-group-lg">
+              <span class="input-group-text">$</span>
+              <input type="text" inputmode="numeric" class="form-control text-end"
+                [value]="valor_recibido_formateado" (input)="onInputValor($event)" placeholder="0"
+                [class.campo-prellenado]="datosIA?.valor" />
+            </div>
+          </div>
+
+          <div class="col-12 col-md-6">
+            <label class="form-label">Fecha</label>
+            <input type="date" class="form-control" [(ngModel)]="fecha" [class.campo-prellenado]="datosIA?.fecha" />
+          </div>
+
+          <div class="col-12" *ngIf="requiereDocumento()">
+            <label class="form-label">Referencia</label>
+            <input type="text" class="form-control" [(ngModel)]="referencia_bancaria"
+              (blur)="verificarReferencia()" placeholder="Referencia del comprobante"
+              [class.campo-prellenado]="datosIA?.referencia" />
+          </div>
+        </div>
+
+        <div *ngIf="requiereDocumento() && !archivo" class="alert alert-warning mt-3 mb-0 py-2">
+          <i class="fas fa-exclamation-triangle me-1"></i>
+          Este tipo de pago exige comprobante adjunto y referencia.
+        </div>
+      </div>
+
+      <!-- 3. Estudiante -->
+      <div class="tarjeta" *ngIf="id_tipo_pago">
+        <div class="tarjeta-titulo"><span class="paso">3</span> Estudiante</div>
+
+        <div *ngIf="!estudiante" class="posicion-relativa">
+          <div class="input-group">
+            <span class="input-group-text"><i class="fas fa-search"></i></span>
+            <input type="text" class="form-control form-control-lg" placeholder="Nombre, documento o grupo"
+              [(ngModel)]="busqueda" (input)="buscarEstudiante()" autocomplete="off" />
+          </div>
+          <ul class="sugerencias" *ngIf="sugerencias.length > 0">
+            <li *ngFor="let est of sugerencias; trackBy: trackByEstudiante" (click)="seleccionarEstudiante(est)">
+              <div class="sug-nombre">{{ est.nombre_estudiante }}</div>
+              <div class="sug-detalle">
+                <span class="badge-grupo">{{ est.grupo_estudiante }}</span>
+                <span class="ms-2" [class.text-danger]="saldoDe(est.id_estudiante) > 0"
+                  [class.text-success]="saldoDe(est.id_estudiante) === 0">
+                  ${{ formatearMoneda(saldoDe(est.id_estudiante)) }}
+                </span>
+              </div>
+            </li>
+          </ul>
+          <small *ngIf="busqueda.length >= 2 && sugerencias.length === 0" class="text-muted d-block mt-2">
+            No se encontraron estudiantes con ese criterio.
+          </small>
+        </div>
+
+        <div *ngIf="estudiante">
+          <div class="estudiante-elegido">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <div class="nombre-estudiante">{{ estudiante.nombre_estudiante }}</div>
+                <span class="badge-grupo">{{ estudiante.grupo_estudiante }}</span>
+              </div>
+              <button class="btn btn-sm btn-outline-secondary" (click)="cambiarEstudiante()">
+                <i class="fas fa-exchange-alt"></i> Cambiar
+              </button>
+            </div>
+            <div class="saldo-actual mt-2">
+              Debe: <strong [class.text-danger]="saldoTotal > 0" [class.text-success]="saldoTotal === 0">
+                ${{ formatearMoneda(saldoTotal) }}</strong>
+              <small class="text-muted ms-1">({{ cuentasPendientes.length }} cuenta(s))</small>
+            </div>
+          </div>
+
+          <div class="row g-2 mt-1">
+            <div class="col-12 col-md-6">
+              <label class="form-label">Acudiente que paga</label>
+              <select class="form-select" [(ngModel)]="id_acudiente">
+                <option [ngValue]="null">Sin acudiente</option>
+                <option *ngFor="let a of acudientes" [ngValue]="a.id_acudiente">
+                  {{ a.nombre_acudiente }} ({{ a.tipo_acudiente }})
+                </option>
+              </select>
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label">Observaciones</label>
+              <input type="text" class="form-control" [(ngModel)]="observaciones" placeholder="Opcional" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. Distribución -->
+      <div class="tarjeta" *ngIf="estudiante && valor_recibido > 0 && cuentasPendientes.length > 0">
+        <div class="tarjeta-titulo"><span class="paso">4</span> Distribución</div>
+
+        <div class="btn-group w-100 mb-2">
+          <button class="btn btn-outline-secondary" (click)="distribuirAutoFIFO()"
+            [class.active]="modoDistribucion === 'auto'">
+            <i class="fas fa-magic me-1"></i> Automática
+          </button>
+          <button class="btn btn-outline-secondary" (click)="abrirModalDistribucion()"
+            [class.active]="modoDistribucion === 'manual'">
+            <i class="fas fa-hand-pointer me-1"></i> Escoger cuentas
+          </button>
+        </div>
+
+        <div class="distribucion-resumen">
+          <div>Se aplica a <strong>{{ distribuirPagoEnCuentas().length }}</strong> cuenta(s)</div>
+          <div *ngIf="saldoAFavor > 0" class="text-info">
+            Saldo a favor: <strong>${{ formatearMoneda(saldoAFavor) }}</strong>
+          </div>
+          <div>Queda debiendo: <strong>${{ formatearMoneda(saldoDespuesDelPago) }}</strong></div>
+        </div>
+      </div>
+
+      <!-- Registrar -->
+      <div class="barra-registrar" *ngIf="estudiante">
+        <button class="btn btn-success btn-lg w-100" (click)="registrarPago()"
+          [disabled]="registrando || !listoParaRegistrar">
+          <span *ngIf="!registrando"><i class="fas fa-save me-2"></i>Registrar pago</span>
+          <span *ngIf="registrando"><span class="spinner-border spinner-border-sm me-2" role="status"></span>Registrando...</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ============================== -->
+    <!-- RESUMEN DESPUÉS DE REGISTRAR   -->
+    <!-- ============================== -->
+    <div class="pago-wrapper" *ngIf="!cargando && resumen">
+      <div class="tarjeta tarjeta-exito">
+        <div class="text-center mb-3">
+          <i class="fas fa-check-circle text-success icono-exito"></i>
+          <h5 class="mt-2 mb-0">Pago registrado</h5>
+          <div class="text-muted">{{ estudiante?.nombre_estudiante }}</div>
+        </div>
+
+        <div class="resumen-linea">
+          <span>Valor registrado</span>
+          <strong class="text-success">${{ formatearMoneda(resumen.valor_registrado) }}</strong>
+        </div>
+        <div class="resumen-linea">
+          <span>Cuentas aplicadas</span>
+          <strong>{{ resumen.cuentas_aplicadas }}</strong>
+        </div>
+        <div class="resumen-linea" *ngIf="resumen.saldo_a_favor > 0">
+          <span>Saldo a favor</span>
+          <strong class="text-info">${{ formatearMoneda(resumen.saldo_a_favor) }}</strong>
+        </div>
+        <div class="resumen-linea">
+          <span>Debía antes</span>
+          <strong>${{ formatearMoneda(resumen.saldo_anterior) }}</strong>
+        </div>
+        <div class="resumen-linea resumen-destacado">
+          <span>Queda debiendo</span>
+          <strong [class.text-danger]="resumen.saldo_nuevo > 0" [class.text-success]="resumen.saldo_nuevo <= 0">
+            ${{ formatearMoneda(resumen.saldo_nuevo) }}
+          </strong>
+        </div>
+
+        <div class="acciones-resumen mt-3">
+          <div class="row g-2 mb-2">
+            <div class="col-6">
+              <button class="btn btn-wa w-100" (click)="compartirConfirmacion()">
+                <i class="fas fa-share-alt me-1"></i> Compartir aviso
+              </button>
+            </div>
+            <div class="col-6">
+              <button class="btn btn-danger w-100" (click)="compartirRecibo()" [disabled]="descargandoPDF">
+                <i class="fas fa-file-pdf me-1"></i>
+                <span *ngIf="!descargandoPDF">{{ puedeCompartir ? 'Compartir recibo' : 'Descargar recibo' }}</span>
+                <span *ngIf="descargandoPDF">Generando...</span>
+              </button>
+            </div>
+          </div>
+
+          <button class="btn btn-link btn-sm w-100 mb-1" (click)="abrirModalEnvio()">
+            Enviar a un acudiente por WhatsApp o correo
+          </button>
+
+          <button class="btn btn-outline-primary w-100" (click)="nuevoPago()">
+            <i class="fas fa-plus me-1"></i> Registrar otro pago
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================== -->
+<!-- MODAL: ESCOGER CUENTAS         -->
+<!-- ============================== -->
+<div class="modal fade" id="modalDistribucionSimple" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-hand-pointer me-2 text-primary"></i>
+          Escoger cuentas
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row mb-3">
+          <div class="col-4">
+            <small class="text-muted d-block">Pago</small>
+            <strong class="text-success">${{ formatearMoneda(valor_recibido) }}</strong>
+          </div>
+          <div class="col-4 text-center">
+            <small class="text-muted d-block">Aplicado</small>
+            <strong>${{ formatearMoneda(modalTotalAplicado) }}</strong>
+          </div>
+          <div class="col-4 text-end">
+            <small class="text-muted d-block">Restante</small>
+            <strong [class.text-warning]="modalValorRestante > 0" [class.text-success]="modalValorRestante === 0"
+              [class.text-danger]="modalValorRestante < 0">${{ formatearMoneda(modalValorRestante) }}</strong>
+          </div>
+        </div>
+
+        <div class="filtros-cuentas mb-2">
+          <div class="input-group input-group-sm mb-2">
+            <span class="input-group-text"><i class="fas fa-search"></i></span>
+            <input type="text" class="form-control" placeholder="Buscar concepto..."
+              [(ngModel)]="filtroTextoCuenta" />
+            <button class="btn btn-outline-secondary" type="button" (click)="limpiarFiltrosCuentas()"
+              title="Limpiar filtros">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+          <div class="row g-2">
+            <div class="col-6">
+              <select class="form-select form-select-sm" [(ngModel)]="filtroProductoCuenta">
+                <option value="">Todos los productos</option>
+                <option *ngFor="let p of productosDeCuentas" [value]="p">{{ p }}</option>
+              </select>
+            </div>
+            <div class="col-6">
+              <select class="form-select form-select-sm" [(ngModel)]="filtroClasificacionCuenta">
+                <option value="">Todas las clasificaciones</option>
+                <option *ngFor="let c of clasificacionesDeCuentas" [value]="c">{{ c }}</option>
+              </select>
+            </div>
+          </div>
+          <small *ngIf="hayCuentasOcultas" class="text-muted d-block mt-1">
+            Hay cuentas ocultas por el filtro; lo que ya aplicaste en ellas sigue contando.
+          </small>
+        </div>
+
+        <div *ngIf="modalCuentasFiltradas.length === 0" class="text-center text-muted py-3">
+          Ninguna cuenta coincide con el filtro.
+        </div>
+
+        <div class="cuenta-item" *ngFor="let item of modalCuentasFiltradas" [class.cuenta-activa]="item.seleccionada">
+          <div class="d-flex align-items-start">
+            <input type="checkbox" class="form-check-input me-2 mt-1" [checked]="item.seleccionada"
+              (change)="toggleCuentaModal(item)" />
+            <div class="flex-grow-1">
+              <div class="fw-semibold">{{ item.cuenta.nombre_producto_servicio || item.cuenta.detalle }}</div>
+              <small class="text-muted">
+                {{ item.cuenta.fecha | date:'dd/MM/yyyy' }} · saldo
+                <span class="text-danger fw-bold">${{ formatearMoneda(item.cuenta.saldo) }}</span>
+              </small>
+              <div class="input-group input-group-sm mt-1" *ngIf="item.seleccionada">
+                <span class="input-group-text">$</span>
+                <input type="text" inputmode="numeric" class="form-control text-end"
+                  [value]="item.valor_aplicado_formateado" (input)="onInputValorModal(item, $event)" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="modalValorRestante > 0" class="alert alert-info mt-2 py-2">
+          <i class="fas fa-info-circle me-1"></i> Saldo a favor: <strong>${{ formatearMoneda(modalValorRestante) }}</strong>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-primary" (click)="aplicarDistribucionManual()"
+          [disabled]="modalTotalAplicado <= 0">
+          <i class="fas fa-check me-1"></i> Aplicar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================== -->
+<!-- MODAL: ENVÍO WA / EMAIL        -->
+<!-- ============================== -->
+<div class="modal fade" id="modalEnvioSimple" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fab fa-whatsapp me-2 text-success"></i>
+          Enviar confirmación
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row mb-3">
+          <div class="col-6">
+            <small class="text-muted d-block">Valor</small>
+            <strong class="text-success">${{ formatearMoneda(resumen?.valor_registrado || 0) }}</strong>
+          </div>
+          <div class="col-6 text-end">
+            <small class="text-muted d-block">Fecha</small>
+            <strong>{{ fecha }}</strong>
+          </div>
+        </div>
+
+        <hr />
+
+        <h6 class="mb-3">Acudientes responsables de pago</h6>
+        <div *ngIf="acudientes.length === 0" class="alert alert-warning">
+          <i class="fas fa-exclamation-triangle"></i> No hay acudientes responsables de pago registrados.
+        </div>
+
+        <div *ngFor="let acudiente of acudientes; let i = index" class="acudiente-card mb-3">
+          <div class="fw-bold">{{ acudiente.nombre_acudiente }}</div>
+          <small class="text-muted">{{ acudiente.tipo_acudiente }}</small>
+          <div *ngIf="acudiente.correo_electronico" class="mt-1">
+            <i class="fas fa-envelope me-1 text-muted"></i>
+            <small>{{ acudiente.correo_electronico }}</small>
+          </div>
+          <div class="mt-2">
+            <label class="form-label mb-1"><i class="fas fa-phone me-1"></i> Teléfono</label>
+            <input type="text" class="form-control form-control-sm" [(ngModel)]="telefonosEditables[i]" />
+          </div>
+          <div class="btn-group mt-2 w-100">
+            <button class="btn btn-wa btn-sm" (click)="enviarWhatsAppAcudiente(acudiente, i)"
+              [disabled]="!telefonosEditables[i]">
+              <i class="fab fa-whatsapp me-1"></i> WA
+            </button>
+            <button class="btn btn-primary btn-sm" (click)="enviarCorreoAcudiente(acudiente)"
+              [disabled]="!acudiente.correo_electronico">
+              <i class="fas fa-envelope me-1"></i> Email
+            </button>
+          </div>
+        </div>
+
+        <!-- Contacto adicional -->
+        <div class="acudiente-card border-dashed">
+          <div class="mb-2">
+            <label class="form-label mb-1"><i class="fas fa-user me-1"></i> Nombre</label>
+            <input type="text" class="form-control form-control-sm" [(ngModel)]="nombreAdicional" placeholder="Nombre" />
+          </div>
+          <div class="mb-2">
+            <label class="form-label mb-1"><i class="fas fa-phone me-1"></i> Teléfono</label>
+            <input type="text" class="form-control form-control-sm" [(ngModel)]="telefonoAdicional" placeholder="3001234567" />
+          </div>
+          <div class="mb-2">
+            <label class="form-label mb-1"><i class="fas fa-envelope me-1"></i> Correo</label>
+            <input type="email" class="form-control form-control-sm" [(ngModel)]="correoAdicional" placeholder="correo@ejemplo.com" />
+          </div>
+          <div class="btn-group w-100">
+            <button class="btn btn-wa-outline btn-sm" (click)="enviarWhatsAppAdicional()" [disabled]="!telefonoAdicional">
+              <i class="fab fa-whatsapp me-1"></i> WA
+            </button>
+            <button class="btn btn-outline-primary btn-sm" (click)="enviarCorreoAdicional()" [disabled]="!correoAdicional">
+              <i class="fas fa-envelope me-1"></i> Email
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger me-auto" (click)="descargarComprobante()" [disabled]="descargandoPDF">
+          <i class="fas fa-file-pdf me-1"></i>
+          <span *ngIf="!descargandoPDF">Descargar recibo</span>
+          <span *ngIf="descargandoPDF">Generando PDF...</span>
+        </button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>

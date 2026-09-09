@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HeaderComponent } from '../../../common/header/header.component';
+import { BuscarComponent } from '../../../common/buscar/buscar.component';
 import { AsistenciaMasivaService } from '../../../services/asistencia-masiva.service';
 import { GruposService } from '../../../services/grupos.service';
 import { UtilService } from '../../../common/constantes/util.service';
@@ -25,7 +26,7 @@ import Swal from 'sweetalert2';
   templateUrl: './asistencia-masiva.component.html',
   styleUrl: './asistencia-masiva.component.scss',
   standalone: true,
-  imports: [CommonModule, FormsModule, HeaderComponent]
+  imports: [CommonModule, FormsModule, HeaderComponent, BuscarComponent]
 })
 export class AsistenciaMasivaComponent implements OnInit {
 
@@ -33,6 +34,10 @@ export class AsistenciaMasivaComponent implements OnInit {
 
   public grupos = [] as any[];
   public idGrupo: any = null;
+
+  // Búsqueda por nombre. Igual que el grupo, filtra en pantalla: no vuelve a
+  // pedirle nada al servidor ni pierde lo que ya se trabajó.
+  public busqueda: string = '';
   public fecha: string = '';
 
   // 'ingreso' o 'salida'. Son dos procesos distintos, no dos vistas de lo mismo.
@@ -129,10 +134,45 @@ export class AsistenciaMasivaComponent implements OnInit {
    * los cobros que la usuaria llevaba trabajados.
    */
   get candidatosVisibles(): any[] {
-    if (this.idGrupo === null || this.idGrupo === '') {
-      return this.candidatos;
+    let visibles = this.candidatos;
+
+    if (this.idGrupo !== null && this.idGrupo !== '') {
+      visibles = visibles.filter((fila: any) => fila.id_grupo === this.idGrupo);
     }
-    return this.candidatos.filter((fila: any) => fila.id_grupo === this.idGrupo);
+
+    const termino = this.normalizar(this.busqueda);
+
+    if (termino !== '') {
+      visibles = visibles.filter((fila: any) => this.normalizar(this.nombreCompleto(fila)).includes(termino));
+    }
+
+    return visibles;
+  }
+
+  buscar(texto: any) {
+    this.busqueda = texto ? String(texto) : '';
+  }
+
+  nombreCompleto(fila: any): string {
+    return [
+      fila.primer_nombre,
+      fila.segundo_nombre,
+      fila.primer_apellido,
+      fila.segundo_apellido
+    ].filter((parte: any) => !!parte).join(' ');
+  }
+
+  /**
+   * Sin tildes y en minúsculas, para que buscar "nicolas" encuentre a
+   * "Nicolás".
+   */
+  private normalizar(texto: string): string {
+    return (texto || '')
+      .toString()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .trim();
   }
 
   consultarCandidatos() {
@@ -298,6 +338,13 @@ export class AsistenciaMasivaComponent implements OnInit {
    */
   aplicarHoraGeneral() {
     if (!this.horaGeneral) {
+      return;
+    }
+
+    // Sin nadie marcado no hay a quién aplicarle la hora. Se avisa, porque el
+    // campo se queda escrito y parecería que sí hizo algo.
+    if (this.totalMarcados === 0) {
+      Swal.fire('Atención', 'Marca primero a los estudiantes para aplicarles la hora.', 'warning');
       return;
     }
     this.marcados.forEach((fila: any) => {
