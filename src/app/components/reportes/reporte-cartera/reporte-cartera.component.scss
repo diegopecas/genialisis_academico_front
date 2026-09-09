@@ -905,3 +905,28 @@ canvas {
   font-weight: 400;
   cursor: help;
 }
+
+// ============================================================
+// FILA DE PERSONA INACTIVA
+// La clase ya se usaba en el HTML pero no tenia estilo, asi que los
+// inactivos se veian igual que los activos. Gris muy tenue y letra en
+// cursiva: se distingue sin robarle atencion a los datos.
+// El !important es para ganarle al striped y al hover de Bootstrap, que
+// pintan el fondo de la fila con su propia especificidad.
+// ============================================================
+tr.fila-inactivo {
+  font-style: italic;
+
+  > td {
+    background-color: #f4f4f5 !important;
+    color: #6c757d;
+  }
+
+  &:hover > td {
+    background-color: #ececee !important;
+  }
+
+  .columna-fija {
+    background-color: #f4f4f5 !important;
+  }
+}

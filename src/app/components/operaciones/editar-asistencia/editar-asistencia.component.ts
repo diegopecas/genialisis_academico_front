@@ -211,8 +211,8 @@ export class EditarAsistenciaComponent implements OnInit {
     Swal.fire({
       title: '¿Eliminar el registro?',
       html: `Se va a eliminar el movimiento de <b>${registro.estudiante}</b>.<br><br>`
-        + 'También se borran los cobros automáticos que generó, los útiles de ese día y las observaciones '
-        + 'que quedaron en el observador.<br><br>Al acudiente se le avisa. Esto no se puede deshacer.',
+        + 'Se anulan las cuentas por cobrar que generó, y se borran los útiles de ese día y las '
+        + 'observaciones que quedaron en el observador.<br><br>Al acudiente se le avisa. Esto no se puede deshacer.',
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Sí, eliminar',
@@ -229,7 +229,7 @@ export class EditarAsistenciaComponent implements OnInit {
           Swal.fire({
             title: 'Eliminado',
             html: `Se eliminó el registro.<br>`
-              + `Cobros borrados: <b>${respuesta.cobros_eliminados}</b><br>`
+              + `Cuentas anuladas: <b>${respuesta.cobros_anulados}</b><br>`
               + `Útiles borrados: <b>${respuesta.utiles_eliminados}</b><br>`
               + `Observaciones borradas: <b>${respuesta.observaciones_eliminadas}</b>`,
             icon: 'success'

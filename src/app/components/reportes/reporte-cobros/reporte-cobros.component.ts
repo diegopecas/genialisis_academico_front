@@ -21,6 +21,9 @@ interface CobroDesagregado {
   valor_pagado: number;
   saldo: number;
   detalle: string;
+  anulado: number;
+  estado: string;
+  color?: string;
 }
 
 @Component({
@@ -52,13 +55,18 @@ export class ReporteCobrosComponent implements OnInit, OnDestroy {
   public haySeleccion: boolean = false;
 
   // Totales
+  // Los totales de plata se calculan solo con las cuentas vigentes. Las
+  // anuladas se cuentan aparte: sirven para saber cuanto se dio de baja, pero
+  // sumarlas al cobrado inflaria la cartera.
   public totalesGenerales = {
     totalCobrado: 0,
     totalPagado: 0,
     saldoTotal: 0,
     cantidadRegistros: 0,
     porcentajeRecaudo: 0,
-    cantidadConSaldo: 0
+    cantidadConSaldo: 0,
+    cantidadAnulados: 0,
+    totalAnulado: 0
   };
 
   // Configuración de app-tablas
@@ -73,7 +81,8 @@ export class ReporteCobrosComponent implements OnInit, OnDestroy {
     { clave: 'nombre_clasificacion', alias: 'Clasificación' },
     { clave: 'valor', alias: 'Valor Cobrado', tipo: 'money' },
     { clave: 'valor_pagado', alias: 'Valor Pagado', tipo: 'money' },
-    { clave: 'saldo', alias: 'Saldo', tipo: 'money' }
+    { clave: 'saldo', alias: 'Saldo', tipo: 'money' },
+    { clave: 'estado', alias: 'Estado' }
   ];
 
   public columnasFiltro: (string | { columna: string, tipoFiltro?: 'fecha' | 'normal' | 'rango' })[] = [
@@ -83,7 +92,8 @@ export class ReporteCobrosComponent implements OnInit, OnDestroy {
     'Grupo / Cargo',
     'Clasificación',
     'Producto',
-    'Saldo'
+    'Saldo',
+    'Estado'
   ];
 
   public prefiltrosExcluir: { [alias: string]: any[] } = {};
@@ -153,6 +163,8 @@ export class ReporteCobrosComponent implements OnInit, OnDestroy {
         anio = parseInt(fecha.split('-')[0], 10);
       }
 
+      const anulado = parseInt(item.anulado, 10) === 1 ? 1 : 0;
+
       return {
         id: item.id,
         fecha: fecha,
@@ -166,27 +178,40 @@ export class ReporteCobrosComponent implements OnInit, OnDestroy {
         valor: parseFloat(item.valor) || 0,
         valor_pagado: parseFloat(item.valor_pagado) || 0,
         saldo: parseFloat(item.saldo) || 0,
-        detalle: item.detalle || ''
+        detalle: item.detalle || '',
+        anulado: anulado,
+        estado: anulado === 1 ? 'Anulado' : 'Vigente',
+        // El componente de tablas pinta la fila con dato.color. Rojo muy suave
+        // para las anuladas; las vigentes van sin color.
+        color: anulado === 1 ? '#fdeded' : undefined
       };
     });
     this.calcularTotales(this.cobros);
   }
 
   calcularTotales(datos: any[]): void {
-    this.totalesGenerales.cantidadRegistros = datos.length;
-    this.totalesGenerales.totalCobrado = datos.reduce((sum, c) => sum + (parseFloat(c.valor) || 0), 0);
-    this.totalesGenerales.totalPagado = datos.reduce((sum, c) => sum + (parseFloat(c.valor_pagado) || 0), 0);
-    this.totalesGenerales.saldoTotal = datos.reduce((sum, c) => sum + (parseFloat(c.saldo) || 0), 0);
-    this.totalesGenerales.cantidadConSaldo = datos.filter(c => parseFloat(c.saldo) > 0).length;
+    // Las anuladas no entran a ningun total de plata: solo a su propia tarjeta.
+    const vigentes = datos.filter(c => c.anulado !== 1);
+    const anulados = datos.filter(c => c.anulado === 1);
+
+    this.totalesGenerales.cantidadRegistros = vigentes.length;
+    this.totalesGenerales.totalCobrado = vigentes.reduce((sum, c) => sum + (parseFloat(c.valor) || 0), 0);
+    this.totalesGenerales.totalPagado = vigentes.reduce((sum, c) => sum + (parseFloat(c.valor_pagado) || 0), 0);
+    this.totalesGenerales.saldoTotal = vigentes.reduce((sum, c) => sum + (parseFloat(c.saldo) || 0), 0);
+    this.totalesGenerales.cantidadConSaldo = vigentes.filter(c => parseFloat(c.saldo) > 0).length;
     this.totalesGenerales.porcentajeRecaudo = this.totalesGenerales.totalCobrado > 0
       ? Math.round((this.totalesGenerales.totalPagado / this.totalesGenerales.totalCobrado) * 100)
       : 0;
+
+    this.totalesGenerales.cantidadAnulados = anulados.length;
+    this.totalesGenerales.totalAnulado = anulados.reduce((sum, c) => sum + (parseFloat(c.valor) || 0), 0);
   }
 
   private resetTotales(): void {
     this.totalesGenerales = {
       totalCobrado: 0, totalPagado: 0, saldoTotal: 0,
-      cantidadRegistros: 0, porcentajeRecaudo: 0, cantidadConSaldo: 0
+      cantidadRegistros: 0, porcentajeRecaudo: 0, cantidadConSaldo: 0,
+      cantidadAnulados: 0, totalAnulado: 0
     };
   }
 

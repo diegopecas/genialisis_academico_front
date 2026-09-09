@@ -66,6 +66,9 @@
                 <small class="text-muted" *ngIf="valorRestante > 0 && cuentasSeleccionadas.length > 0">
                     Este saldo quedará a favor del colaborador para futuros pagos
                 </small>
+                <small class="text-danger" *ngIf="valorRestante < 0">
+                    El total aplicado excede el valor recibido en {{ formatearMoneda(-valorRestante) }}
+                </small>
             </div>
         </div>
 

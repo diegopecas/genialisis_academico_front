@@ -11,9 +11,9 @@ import { httpOptions } from './http';
 /**
  * Registro masivo de asistencia.
  *
- * Los cobros automáticos no pasan por aquí: se evalúan y se ejecutan con
- * MotorCobrosAutomaticosService, el mismo que usa la pantalla de asistencia,
- * para que el cálculo sea idéntico en las dos.
+ * Los cobros van en el mismo par de peticiones: se evalúan todos de una con
+ * evaluarCobros() y se generan dentro de procesar(). Por dentro el backend usa
+ * el mismo motor de la pantalla de asistencia, así que el cálculo es idéntico.
  */
 @Injectable({
   providedIn: 'root'
@@ -45,8 +45,27 @@ export class AsistenciaMasivaService {
   }
 
   /**
-   * Procesa el lote. Devuelve, por fila, el id del movimiento creado o cerrado
-   * para poder ejecutar después los cobros que hayan quedado marcados.
+   * Cobros extra de todo el lote en una sola petición.
+   * filas: [ { id_estudiante, hora } ]
+   */
+  evaluarCobros(fecha: string, tipo: string, filas: any[]) {
+    const body = JSON.stringify({
+      fecha: fecha,
+      tipo: tipo,
+      filas: filas
+    });
+    return this.http.post<any>(this.servicio + '/evaluar-cobros', body, httpOptions).pipe(
+      tap((respuesta: any) => {
+        if (respuesta.error) throw respuesta.error;
+        return respuesta;
+      }),
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Procesa el lote y genera, en la misma petición, los cobros que cada fila
+   * traiga marcados.
    */
   procesar(fecha: string, tipo: string, idUsuario: any, observacionGeneral: string, filas: any[]) {
     const body = JSON.stringify({

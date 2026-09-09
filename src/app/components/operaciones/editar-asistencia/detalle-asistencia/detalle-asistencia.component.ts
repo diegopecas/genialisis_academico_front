@@ -16,7 +16,7 @@ import Swal from 'sweetalert2';
  * uno. Nada se genera sin que la usuaria lo haya visto.
  *
  * Secuencia al grabar, cuando cambiaron las horas:
- *   1. PUT: guarda horas, observaciones y útiles, y borra los cobros viejos.
+ *   1. PUT: guarda horas, observaciones y útiles, y anula los cobros viejos.
  *   2. Motor de cobros: ejecuta solo los que quedaron marcados, sin notificar.
  *   3. Notificar: recién ahí se le avisa al acudiente, para que el mensaje
  *      salga con los cobros definitivos.
@@ -310,7 +310,7 @@ export class DetalleAsistenciaComponent implements OnInit {
 
     let aviso = '';
     if (this.cambiaronHoras && this.cobros.length > 0) {
-      aviso += `<br><br>Se borran los ${this.cobros.length} cobro(s) que tenía este registro.`;
+      aviso += `<br><br>Se anulan las ${this.cobros.length} cuenta(s) por cobrar que tenía este registro.`;
     }
     if (marcados.length > 0) {
       aviso += `<br>Se generan ${marcados.length} cobro(s) nuevos por ${this.formatearMoneda(this.totalCobrosSeleccionados)}.`;

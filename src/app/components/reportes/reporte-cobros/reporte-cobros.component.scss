@@ -166,3 +166,14 @@ $tablet: 768px;
 app-tablas {
   animation: fadeIn 0.3s ease-in-out;
 }
+// Tarjeta de cuentas anuladas. Va en rojo suave para que se lea distinto de
+// los totales de plata viva.
+.estadistica-item.anulados-bg {
+  background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+  color: #b71c1c;
+
+  .estadistica-label,
+  .estadistica-extra {
+    color: #c62828;
+  }
+}

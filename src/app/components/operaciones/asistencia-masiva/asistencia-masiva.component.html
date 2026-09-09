@@ -26,13 +26,13 @@
       <div class="col-sm-12 col-md-3">
         <label for="fecha" class="form-label">Fecha</label>
         <input class="form-control form-control-lg" type="date" id="fecha"
-          [(ngModel)]="fecha" (change)="consultarCandidatos()">
+          [(ngModel)]="fecha" (change)="cambiarFiltros()">
       </div>
 
       <div class="col-sm-12 col-md-3">
         <label for="grupo" class="form-label">Grupo</label>
         <select class="form-select form-select-lg" id="grupo"
-          [(ngModel)]="idGrupo" (change)="consultarCandidatos()">
+          [(ngModel)]="idGrupo" (change)="cambiarFiltros()">
           <option [ngValue]="null">Todos los grupos</option>
           <option *ngFor="let grupo of grupos" [ngValue]="grupo.id">{{ grupo.nombre }}</option>
         </select>
@@ -56,7 +56,8 @@
         <label for="observacionGeneral" class="form-label">Observación para todo el lote (opcional)</label>
         <input class="form-control" type="text" id="observacionGeneral"
           [(ngModel)]="observacionGeneral"
-          placeholder="Si una fila tiene su propia observación, esa manda">
+          (ngModelChange)="aplicarObservacionGeneral()"
+          placeholder="Se copia a los marcados mientras escribes">
       </div>
     </div>
   </div>

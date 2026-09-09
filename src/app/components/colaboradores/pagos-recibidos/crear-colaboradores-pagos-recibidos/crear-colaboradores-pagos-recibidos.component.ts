@@ -488,9 +488,9 @@ export class CrearColaboradoresPagosRecibidosComponent implements OnInit {
     this.valorRestante = this.model.valor_recibido - totalAplicado;
     this.model.saldo = this.valorRestante;
 
-    if (this.valorRestante < 0) {
-      Swal.fire('Atención', `El total aplicado (${totalAplicado}) excede el valor recibido (${this.model.valor_recibido})`, 'warning');
-    }
+    /* Sin alerta aqui: este metodo se recalcula en cada tecla del valor recibido
+       y de los valores a pagar. Cuando el restante queda negativo se avisa en
+       linea bajo el Saldo restante, y al grabar la validacion lo bloquea. */
   }
 
   formatearMoneda(valor: number): string {

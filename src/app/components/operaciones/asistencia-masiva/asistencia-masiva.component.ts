@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HeaderComponent } from '../../../common/header/header.component';
 import { AsistenciaMasivaService } from '../../../services/asistencia-masiva.service';
-import { MotorCobrosAutomaticosService } from '../../../services/motor-cobros-automaticos.service';
 import { GruposService } from '../../../services/grupos.service';
 import { UtilService } from '../../../common/constantes/util.service';
 import Swal from 'sweetalert2';
@@ -41,22 +40,27 @@ export class AsistenciaMasivaComponent implements OnInit {
 
   public candidatos = [] as any[];
 
+  // Cada proceso guarda su propia grilla. Cambiar de pestaña no vuelve a
+  // pedirle nada al servidor ni pierde las horas, observaciones y cobros que
+  // ya se hayan trabajado. Solo se descartan al cambiar la fecha o el grupo,
+  // y después de procesar, porque ahí sí cambió lo que hay en la base.
+  private cache: { [tipo: string]: any[] } = {};
+
   // Hora que se aplica a todos los marcados. Cada fila puede tener la suya y
   // esa manda sobre la general.
   public horaGeneral: string = '';
   public observacionGeneral: string = '';
 
+  // Último texto general que se copió a las filas. Sirve para distinguir la
+  // fila que tiene la observación general de la que la usuaria escribió aparte.
+  private observacionAplicada: string = '';
+
   public cargando: boolean = false;
   public procesando: boolean = false;
   public evaluandoCobros: boolean = false;
 
-  // Cuántas peticiones al motor de cobros se lanzan a la vez. Se limita para
-  // no abrirle veinte conexiones al servidor de un solo golpe.
-  private readonly tamanoLote = 5;
-
   constructor(
     private asistenciaMasivaService: AsistenciaMasivaService,
-    private motorCobrosService: MotorCobrosAutomaticosService,
     private gruposService: GruposService,
     private utilService: UtilService
   ) { }
@@ -94,8 +98,28 @@ export class AsistenciaMasivaComponent implements OnInit {
     if (this.tipo === tipo) {
       return;
     }
+
+    // Se guarda lo que la usuaria llevaba en la pestaña que deja.
+    this.cache[this.tipo] = this.candidatos;
+
     this.tipo = tipo;
     this.horaGeneral = '';
+    this.observacionAplicada = '';
+
+    if (this.cache[tipo]) {
+      this.candidatos = this.cache[tipo];
+      return;
+    }
+
+    this.consultarCandidatos();
+  }
+
+  /**
+   * Cambio de fecha o de grupo: lo que había en las dos pestañas ya no
+   * corresponde, así que se descarta y se vuelve a consultar.
+   */
+  cambiarFiltros() {
+    this.cache = {};
     this.consultarCandidatos();
   }
 
@@ -129,6 +153,8 @@ export class AsistenciaMasivaComponent implements OnInit {
           resultado: null as any
         }));
 
+        this.cache[this.tipo] = this.candidatos;
+        this.observacionAplicada = '';
         this.cargando = false;
       },
       error: () => {
@@ -166,6 +192,34 @@ export class AsistenciaMasivaComponent implements OnInit {
   alternarTodos() {
     const marcar = !this.todosMarcados;
     this.candidatos.forEach((fila: any) => fila.marcado = marcar);
+
+    // Las filas que se acaban de marcar también reciben la observación general.
+    if (marcar && this.observacionGeneral.trim() !== '') {
+      this.aplicarObservacionGeneral();
+    }
+  }
+
+  /**
+   * La observación general se va copiando a los marcados mientras se escribe.
+   *
+   * Se lleva el último valor aplicado para no pisar lo que la usuaria haya
+   * escrito a mano en una fila: solo se sobreescribe la fila que todavía tiene
+   * el texto general anterior o que está vacía.
+   */
+  aplicarObservacionGeneral() {
+    this.candidatos.forEach((fila: any) => {
+      if (!fila.marcado) {
+        return;
+      }
+
+      const propia = (fila.observacion || '').trim();
+
+      if (propia === '' || propia === this.observacionAplicada) {
+        fila.observacion = this.observacionGeneral;
+      }
+    });
+
+    this.observacionAplicada = this.observacionGeneral;
   }
 
   /**
@@ -198,9 +252,9 @@ export class AsistenciaMasivaComponent implements OnInit {
   }
 
   /**
-   * Calcula los cobros extra de los marcados usando el mismo motor de la
-   * pantalla de asistencia. Se hace por estudiante, en tandas, porque el
-   * endpoint del motor trabaja de a uno.
+   * Calcula los cobros extra de los marcados. Va todo en una sola petición: el
+   * backend recorre los estudiantes por dentro con el mismo motor de la
+   * pantalla de asistencia.
    */
   calcularCobros() {
     const filas = this.marcados.filter((fila: any) => fila.hora);
@@ -211,57 +265,52 @@ export class AsistenciaMasivaComponent implements OnInit {
     }
 
     this.evaluandoCobros = true;
-    this.evaluarTanda(filas, 0);
-  }
 
-  /**
-   * Evalúa de a `tamanoLote` filas y sigue con la siguiente tanda cuando
-   * terminan todas las de la actual.
-   */
-  private evaluarTanda(filas: any[], desde: number) {
-    if (desde >= filas.length) {
-      this.evaluandoCobros = false;
-      const conCobros = filas.filter((fila: any) => fila.cobros.length > 0).length;
-      Swal.fire(
-        'Listo',
-        conCobros === 0
-          ? 'Ninguno de los marcados genera cobro extra.'
-          : `${conCobros} de ${filas.length} generan cobro extra. Revísalos antes de procesar.`,
-        'success'
-      );
-      return;
-    }
+    const payload = filas.map((fila: any) => ({
+      id_estudiante: fila.id_estudiante,
+      hora: fila.hora
+    }));
 
-    const tanda = filas.slice(desde, desde + this.tamanoLote);
-    let pendientes = tanda.length;
+    this.asistenciaMasivaService.evaluarCobros(this.fecha, this.tipo, payload).subscribe({
+      next: (respuesta: any) => {
+        const evaluaciones = (respuesta.evaluaciones as any[]) || [];
+        const porEstudiante = new Map<string, any>();
+        evaluaciones.forEach((e: any) => porEstudiante.set(String(e.id_estudiante), e));
 
-    const seguir = () => {
-      pendientes--;
-      if (pendientes === 0) {
-        this.evaluarTanda(filas, desde + this.tamanoLote);
-      }
-    };
+        filas.forEach((fila: any) => {
+          const evaluacion = porEstudiante.get(String(fila.id_estudiante));
+          const cobros = evaluacion ? (evaluacion.cobros || []) : [];
 
-    tanda.forEach((fila: any) => {
-      this.motorCobrosService.evaluar({
-        id_estudiante: fila.id_estudiante,
-        tipo_evento: this.tipo,
-        hora: fila.hora,
-        fecha: this.fecha
-      }).subscribe({
-        next: (respuesta: any) => {
-          const cobros = (respuesta.cobros as any[]) || [];
           // Llegan aceptados: la usuaria desmarca los que no quiere.
           fila.cobros = cobros.map((cobro: any) => ({ ...cobro, aceptado: true }));
           fila.cobrosEvaluados = true;
-          seguir();
-        },
-        error: () => {
-          fila.cobros = [];
-          fila.cobrosEvaluados = true;
-          seguir();
+        });
+
+        this.evaluandoCobros = false;
+
+        const conCobros = filas.filter((fila: any) => fila.cobros.length > 0).length;
+        const conError = evaluaciones.filter((e: any) => e.error).length;
+
+        let detalle = conCobros === 0
+          ? 'Ninguno de los marcados genera cobro extra.'
+          : `${conCobros} de ${filas.length} generan cobro extra. Revísalos antes de procesar.`;
+
+        // Si el motor falló para alguien, esa fila queda sin cobros: hay que
+        // decirlo, porque en pantalla se ve igual que "no genera cobro".
+        if (conError > 0) {
+          detalle += `<br><br>No se pudo evaluar a ${conError} estudiante(s); esas filas quedaron sin cobro.`;
         }
-      });
+
+        Swal.fire({
+          title: conError > 0 ? 'Calculado con novedades' : 'Listo',
+          html: detalle,
+          icon: conError > 0 ? 'warning' : 'success'
+        });
+      },
+      error: () => {
+        this.evaluandoCobros = false;
+        Swal.fire('Atención', 'No se pudieron calcular los cobros extra.', 'error');
+      }
     });
   }
 
@@ -334,7 +383,10 @@ export class AsistenciaMasivaComponent implements OnInit {
         // En el ingreso lo marcado es lo que trajo; en la salida, lo que se lleva.
         trajo: this.tipo === 'salida' ? util.trajo : (util.marcado ? 1 : 0),
         regreso: this.tipo === 'salida' ? (util.marcado ? 1 : 0) : null
-      }))
+      })),
+      // Solo los que la usuaria dejó marcados. El backend los genera en la
+      // misma petición, después de crear el movimiento.
+      cobros: (fila.cobros || []).filter((cobro: any) => cobro.aceptado)
     }));
 
     this.asistenciaMasivaService.procesar(
@@ -345,8 +397,7 @@ export class AsistenciaMasivaComponent implements OnInit {
       payload
     ).subscribe({
       next: (respuesta: any) => {
-        const resultados = (respuesta.resultados as any[]) || [];
-        this.ejecutarCobros(filas, resultados, idUsuario, respuesta);
+        this.terminar(respuesta, respuesta.cobros_generados || 0);
       },
       error: () => {
         this.procesando = false;
@@ -355,58 +406,7 @@ export class AsistenciaMasivaComponent implements OnInit {
     });
   }
 
-  /**
-   * Ejecuta los cobros aceptados de las filas que sí quedaron procesadas.
-   * Si una falla, el movimiento ya quedó: se avisa al final sin devolver nada.
-   */
-  private ejecutarCobros(filas: any[], resultados: any[], idUsuario: any, respuestaLote: any) {
-    const porEstudiante = new Map<string, any>();
-    resultados.forEach((resultado: any) => porEstudiante.set(String(resultado.id_estudiante), resultado));
-
-    const pendientes = filas
-      .map((fila: any) => ({ fila: fila, resultado: porEstudiante.get(String(fila.id_estudiante)) }))
-      .filter((item: any) => item.resultado && item.resultado.procesado)
-      .filter((item: any) => (item.fila.cobros || []).some((cobro: any) => cobro.aceptado));
-
-    if (pendientes.length === 0) {
-      this.terminar(respuestaLote, 0);
-      return;
-    }
-
-    let porResolver = pendientes.length;
-    let cobrosOk = 0;
-
-    pendientes.forEach((item: any) => {
-      const cobros = item.fila.cobros
-        .filter((cobro: any) => cobro.aceptado)
-        .map((cobro: any) => ({ ...cobro, id_asistencia: item.resultado.id_asistencia }));
-
-      this.motorCobrosService.ejecutar({
-        cobros: cobros,
-        id_estudiante: item.fila.id_estudiante,
-        id_usuario: idUsuario,
-        fecha: this.fecha,
-        tipo_asistencia: this.tipo,
-        notificar: false
-      }).subscribe({
-        next: () => {
-          cobrosOk++;
-          porResolver--;
-          if (porResolver === 0) {
-            this.terminar(respuestaLote, cobrosOk);
-          }
-        },
-        error: () => {
-          porResolver--;
-          if (porResolver === 0) {
-            this.terminar(respuestaLote, cobrosOk);
-          }
-        }
-      });
-    });
-  }
-
-  private terminar(respuestaLote: any, cobrosOk: number) {
+  private terminar(respuestaLote: any, cobrosGenerados: number) {
     this.procesando = false;
 
     const procesados = respuestaLote.procesados || 0;
@@ -414,8 +414,8 @@ export class AsistenciaMasivaComponent implements OnInit {
     const fallidos = (respuestaLote.resultados as any[] || []).filter((r: any) => !r.procesado);
 
     let detalle = `Se registraron ${procesados} de ${total}.`;
-    if (cobrosOk > 0) {
-      detalle += `<br>Se generaron cobros a ${cobrosOk} estudiante(s).`;
+    if (cobrosGenerados > 0) {
+      detalle += `<br>Se generaron ${cobrosGenerados} cobro(s).`;
     }
     if (fallidos.length > 0) {
       detalle += '<br><br><b>No se pudieron procesar:</b><br>'
@@ -430,6 +430,8 @@ export class AsistenciaMasivaComponent implements OnInit {
 
     this.horaGeneral = '';
     this.observacionGeneral = '';
+    // Después de procesar cambió la base: la otra pestaña también quedó vieja.
+    this.cache = {};
     this.consultarCandidatos();
   }
 }

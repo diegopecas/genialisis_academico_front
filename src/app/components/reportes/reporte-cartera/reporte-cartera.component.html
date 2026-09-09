@@ -2464,7 +2464,8 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr *ngFor="let estudiante of estudiantesPagosFiltrados">
+                  <tr *ngFor="let estudiante of estudiantesPagosFiltrados"
+                    [ngClass]="{'fila-inactivo': estudiante.activo === 0}">
                     <td class="columna-fija">{{ estudiante.nombre_estudiante }}</td>
                     <td class="columna-grupo">{{ estudiante.grupo_estudiante }}</td>
                     <td class="text-end columna-mes" *ngFor="let mes of mesesConMovimiento">
