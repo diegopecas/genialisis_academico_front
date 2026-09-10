@@ -1,1 +1,227 @@
 .modulo { width: 100%; }
+
+/* ------------------------------------------------------------------ */
+/* Maestro-detalle                                                     */
+/* ------------------------------------------------------------------ */
+
+.agenda-layout {
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+/* La lista queda quieta mientras se recorre la agenda. */
+.panel-lista {
+  position: sticky;
+  top: 1rem;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 2rem);
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+  overflow: hidden;
+}
+
+.lista-filtros {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-bottom: 1px solid #f1f2f6;
+}
+
+.lista-conteo {
+  padding: 0.4rem 0.75rem;
+  font-size: 0.75rem;
+  color: #95a5a6;
+}
+
+.lista-scroll {
+  overflow-y: auto;
+  padding: 0 0.5rem 0.75rem;
+}
+
+.lista-grupo + .lista-grupo {
+  margin-top: 0.5rem;
+}
+
+.grupo-titulo {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0.6rem 0.25rem 0.3rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #636e72;
+
+  small {
+    margin-left: auto;
+    font-weight: 400;
+    color: #b2bec3;
+  }
+}
+
+.grupo-color {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.estudiante-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 0.5rem;
+  padding: 0.55rem 0.65rem;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  text-align: left;
+  color: #2d3436;
+  font-size: 0.9rem;
+  cursor: pointer;
+
+  &:hover { background: #f5f6fa; }
+
+  &:focus-visible {
+    outline: 2px solid #6c5ce7;
+    outline-offset: 1px;
+  }
+
+  &.activo {
+    background: #efedfd;
+    color: #6c5ce7;
+    font-weight: 600;
+  }
+}
+
+.estudiante-nombre {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.estudiante-flecha {
+  color: #b2bec3;
+  font-size: 1.1rem;
+}
+
+/* ------------------------------------------------------------------ */
+/* Estados                                                             */
+/* ------------------------------------------------------------------ */
+
+.lista-estado,
+.agenda-vacia {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 2rem 1rem;
+  text-align: center;
+  color: #95a5a6;
+
+  p { margin: 0; font-size: 0.9rem; }
+}
+
+.agenda-vacia {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+  padding: 4rem 1rem;
+}
+
+.estado-icono {
+  font-size: 2.5rem;
+}
+
+.spinner {
+  width: 30px;
+  height: 30px;
+  border: 3px solid #dfe6e9;
+  border-top-color: #6c5ce7;
+  border-radius: 50%;
+  animation: girar 0.8s linear infinite;
+}
+
+@keyframes girar {
+  to { transform: rotate(360deg); }
+}
+
+/* ------------------------------------------------------------------ */
+/* Navegación en móvil                                                 */
+/* ------------------------------------------------------------------ */
+
+.nav-movil {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.btn-volver {
+  border: none;
+  background: #f1f2f6;
+  border-radius: 8px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #6c5ce7;
+}
+
+.nav-pasos {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  color: #636e72;
+}
+
+.btn-paso {
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 50%;
+  background: #6c5ce7;
+  color: #fff;
+  font-size: 1.3rem;
+  line-height: 1;
+
+  &:disabled {
+    background: #dfe6e9;
+    color: #b2bec3;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Móvil: una cosa a la vez                                            */
+/* ------------------------------------------------------------------ */
+
+@media (max-width: 768px) {
+  .agenda-layout {
+    display: block;
+  }
+
+  .panel-lista {
+    position: static;
+    max-height: none;
+  }
+
+  .estudiante-item {
+    padding: 0.75rem 0.65rem;
+    font-size: 0.95rem;
+  }
+
+  .oculto-movil {
+    display: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner { animation-duration: 2s; }
+}

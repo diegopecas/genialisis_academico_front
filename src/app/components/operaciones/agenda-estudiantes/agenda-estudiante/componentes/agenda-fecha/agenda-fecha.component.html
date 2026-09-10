@@ -1,0 +1,39 @@
+<!-- Navegación por fecha -->
+<div class="agenda-fecha">
+  <button
+    type="button"
+    class="fecha-btn"
+    (click)="diaAnterior()"
+    title="Día anterior"
+  >‹</button>
+
+  <div class="fecha-centro">
+    <span class="fecha-texto">{{ texto() }}</span>
+    <div class="fecha-acciones">
+      <input
+        type="date"
+        class="fecha-input"
+        [value]="fecha"
+        [max]="fechaMaxima"
+        (change)="escogerFecha($any($event.target).value)"
+      />
+      <button type="button" class="btn-hoy" *ngIf="!esHoy()" (click)="irAHoy()">Hoy</button>
+      <button
+        type="button"
+        class="btn-refrescar"
+        [disabled]="cargando"
+        (click)="refrescar.emit()"
+        title="Actualizar el día"
+        aria-label="Actualizar el día"
+      >&#x21bb;</button>
+    </div>
+  </div>
+
+  <button
+    type="button"
+    class="fecha-btn"
+    [disabled]="!puedeAvanzar()"
+    (click)="diaSiguiente()"
+    title="Día siguiente"
+  >›</button>
+</div>

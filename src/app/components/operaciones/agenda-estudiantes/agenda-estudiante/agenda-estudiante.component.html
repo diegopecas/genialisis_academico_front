@@ -1,32 +1,21 @@
-<div class="modulo mi-agenda">
-  <app-header
-    [tituloModulo]="titulo"
-    [mostrarCrear]="false"
-    [raiz]="'/operaciones/agenda-estudiantes'"
-    [regresar]="'/operaciones/agenda-estudiantes'"
-  ></app-header>
-
-  <div class="container-fluid mt-3 px-3">
+<div class="mi-agenda">
 
     <!-- ================================ -->
-    <!-- VISTA: AGENDA DEL DÍA            -->
+    <!-- AGENDA DEL DÍA                   -->
     <!-- ================================ -->
-    <div class="fade-in">
+    <!-- La fecha y el estudiante los maneja la pantalla que contiene este
+         panel; aquí solo quedan el niño, la vista y el buscador. -->
+    <div class="fade-in" *ngIf="idEstudiante">
 
-      <!-- Para cambiar de estudiante se vuelve al listado con Regresar. -->
       <app-agenda-cabecera
         [estudiante]="estudianteSeleccionado"
-        [mostrarCambiar]="false"
         [modo]="modo"
         [modos]="modos"
-        [fecha]="fecha"
-        [fechaMinima]="fechaMinima"
         [mostrarBuscador]="!cargando && eventos.length > 0"
         [busqueda]="busqueda"
         [totalEventos]="eventos.length"
         [totalVisibles]="eventosVisibles.length"
         (modoCambio)="cambiarModo($event)"
-        (fechaCambio)="cambiarFecha($event)"
         (busquedaCambio)="cambiarBusqueda($event)"
       ></app-agenda-cabecera>
 
@@ -63,7 +52,6 @@
         (fotoClick)="abrirFotoDeEvento($event)"
       ></app-mi-agenda-vista-renderer>
     </div>
-  </div>
 
   <!-- ================================ -->
   <!-- DETALLE DE UN EVENTO             -->

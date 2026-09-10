@@ -1,4 +1,4 @@
-/* Cabecera de la agenda: niño, selector de vista, fecha y buscador.
+/* Cabecera de la agenda: niño, selector de vista y buscador.
    Móvil primero: todo apila y los controles quedan al alcance del pulgar. */
 
 .agenda-cabecera {
@@ -15,18 +15,6 @@
   align-items: center;
   gap: 0.75rem;
   min-width: 0;
-}
-
-.btn-cambiar {
-  background: #f1f2f6;
-  border: none;
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  font-size: 1.4rem;
-  line-height: 1;
-  color: #57606f;
-  cursor: pointer;
 }
 
 .nino-avatar {
@@ -92,83 +80,6 @@
 
 .vista-icono {
   font-size: 1rem;
-}
-
-/* ------------------------------------------------------------------ */
-/* Navegación por fecha                                                */
-/* ------------------------------------------------------------------ */
-
-.agenda-fecha {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
-  padding: 0.65rem 0.85rem;
-  margin-bottom: 1.25rem;
-}
-
-.fecha-btn {
-  flex-shrink: 0;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  border: none;
-  background: #6c5ce7;
-  color: #fff;
-  font-size: 1.5rem;
-  line-height: 1;
-  cursor: pointer;
-}
-
-.fecha-btn:disabled {
-  background: #dfe6e9;
-  color: #b2bec3;
-  cursor: not-allowed;
-}
-
-.fecha-centro {
-  flex: 1;
-  min-width: 0;
-  text-align: center;
-}
-
-.fecha-texto {
-  display: block;
-  font-weight: 600;
-  color: #2d3436;
-  font-size: 0.95rem;
-  text-transform: capitalize;
-}
-
-.fecha-acciones {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  margin-top: 0.3rem;
-}
-
-.fecha-input {
-  border: 1px solid #dfe6e9;
-  border-radius: 8px;
-  padding: 0.2rem 0.45rem;
-  font-size: 0.8rem;
-  color: #57606f;
-  background: #fff;
-}
-
-.btn-hoy {
-  background: #f1f2f6;
-  border: none;
-  border-radius: 8px;
-  padding: 0.25rem 0.7rem;
-  font-size: 0.78rem;
-  color: #6c5ce7;
-  font-weight: 600;
-  cursor: pointer;
 }
 
 /* ------------------------------------------------------------------ */
@@ -247,10 +158,6 @@
 
   .vista-nombre {
     display: none;
-  }
-
-  .fecha-texto {
-    font-size: 0.86rem;
   }
 
   .nino-info h3 {

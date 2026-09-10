@@ -1,21 +1,115 @@
-<div class="modulo">
+<div class="modulo agenda-estudiantes">
   <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [raiz]="'/operaciones'"
     [regresar]="'/operaciones'"></app-header>
 
-  <div class="container-fluid mt-4">
+  <div class="container-fluid mt-3 px-3">
 
-    <div class="card shadow-sm border-0 mb-4">
-      <div class="card-body">
-        <h5 class="mb-1"><i class="fas fa-book-open me-2 text-primary"></i>Selecciona un estudiante para ver su agenda</h5>
-        <p class="text-muted mb-0 small">Es la misma agenda del día que ve el acudiente en el portal de padres</p>
-      </div>
+    <!-- La fecha manda sobre la lista y sobre la agenda. -->
+    <app-agenda-fecha
+      [fecha]="fecha"
+      [cargando]="cargando"
+      (fechaCambio)="cambiarFecha($event)"
+      (refrescar)="refrescar()"
+    ></app-agenda-fecha>
+
+    <div class="agenda-layout">
+
+      <!-- ================================ -->
+      <!-- LISTA DE ESTUDIANTES DEL DÍA     -->
+      <!-- ================================ -->
+      <aside class="panel-lista" [class.oculto-movil]="isMobile && vistaMovil === 'agenda'">
+        <div class="lista-filtros">
+          <input
+            type="text"
+            class="form-control form-control-sm"
+            placeholder="Buscar estudiante..."
+            [value]="busqueda"
+            (input)="cambiarBusqueda($any($event.target).value)"
+          />
+          <select
+            class="form-select form-select-sm"
+            [value]="grupoFiltro"
+            (change)="cambiarGrupo($any($event.target).value)"
+            *ngIf="grupos.length > 1"
+          >
+            <option value="">Todos los grupos</option>
+            <option *ngFor="let g of grupos" [value]="g">{{ g }}</option>
+          </select>
+        </div>
+
+        <div class="lista-conteo" *ngIf="!cargando && estudiantes.length > 0">
+          {{ estudiantesFiltrados.length }} de {{ estudiantes.length }} con asistencia
+        </div>
+
+        <div class="lista-scroll">
+          <div class="lista-estado" *ngIf="cargando">
+            <div class="spinner"></div>
+            <span>Buscando quién asistió...</span>
+          </div>
+
+          <div class="lista-estado" *ngIf="!cargando && estudiantes.length === 0">
+            <span class="estado-icono">🌤️</span>
+            <p>Nadie registró asistencia este día</p>
+          </div>
+
+          <div class="lista-estado" *ngIf="!cargando && estudiantes.length > 0 && estudiantesFiltrados.length === 0">
+            <span class="estado-icono">🔍</span>
+            <p>Ningún estudiante coincide</p>
+          </div>
+
+          <ng-container *ngIf="!cargando">
+            <section class="lista-grupo" *ngFor="let grupo of gruposVisibles">
+              <h6 class="grupo-titulo">
+                <span class="grupo-color" [style.background]="grupo.color || '#b2bec3'"></span>
+                {{ grupo.nombre }}
+                <small>{{ grupo.estudiantes.length }}</small>
+              </h6>
+
+              <button
+                type="button"
+                class="estudiante-item"
+                *ngFor="let e of grupo.estudiantes; trackBy: trackById"
+                [class.activo]="e.id_estudiante === seleccionado"
+                (click)="seleccionar(e)"
+              >
+                <span class="estudiante-nombre">{{ e.nombre_completo }}</span>
+                <span class="estudiante-flecha">&rsaquo;</span>
+              </button>
+            </section>
+          </ng-container>
+        </div>
+      </aside>
+
+      <!-- ================================ -->
+      <!-- AGENDA DEL ESTUDIANTE            -->
+      <!-- ================================ -->
+      <section class="panel-agenda" [class.oculto-movil]="isMobile && vistaMovil === 'lista'">
+
+        <!-- Móvil: volver a la lista y pasar al anterior o siguiente. -->
+        <div class="nav-movil" *ngIf="isMobile && seleccionado">
+          <button type="button" class="btn-volver" (click)="volverALista()">&lsaquo; Estudiantes</button>
+          <div class="nav-pasos" *ngIf="posicion() > 0">
+            <button type="button" class="btn-paso" [disabled]="!puedeIrAnterior()" (click)="irAnterior()"
+              title="Estudiante anterior" aria-label="Estudiante anterior">&lsaquo;</button>
+            <span>{{ posicion() }} de {{ estudiantesFiltrados.length }}</span>
+            <button type="button" class="btn-paso" [disabled]="!puedeIrSiguiente()" (click)="irSiguiente()"
+              title="Estudiante siguiente" aria-label="Estudiante siguiente">&rsaquo;</button>
+          </div>
+        </div>
+
+        <div class="agenda-vacia" *ngIf="!seleccionado && !isMobile">
+          <span class="estado-icono">📒</span>
+          <p>Escoge un estudiante de la lista para ver su agenda del día</p>
+        </div>
+
+        <!-- Siempre montada para no perder los días ya consultados. -->
+        <app-agenda-estudiante
+          [idEstudiante]="seleccionado"
+          [fecha]="fechaAgenda"
+          [version]="version"
+        ></app-agenda-estudiante>
+      </section>
+
     </div>
-
-    <app-tablas [titulos]="titulosTabla" [datos]="estudiantes" [acciones]="accionesTabla"
-      [raiz]="'/operaciones/agenda-estudiantes'" [accionVer]="false" [accionEditar]="false"
-      [accionEliminar]="false" [mostrarBuscar]="true" [columnasFiltro]="columnasFiltro"
-      (clicAccion)="onAccionTabla($event)">
-    </app-tablas>
-
   </div>
 </div>

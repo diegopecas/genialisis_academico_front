@@ -1,10 +1,8 @@
-import { Component, OnInit, HostListener } from '@angular/core';
+import { Component, OnInit, OnChanges, SimpleChanges, HostListener, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
 import Swal from 'sweetalert2';
 
-import { HeaderComponent } from '../../../../common/header/header.component';
 import { MiAgendaService } from '../../../../services/mi-agenda.service';
 import { GaleriaImagenesService } from '../../../../services/galeria-imagenes.service';
 
@@ -12,7 +10,7 @@ import { MiAgendaVistaRendererComponent } from './mi-agenda-vista-renderer.compo
 import { AgendaCabeceraComponent } from './componentes/agenda-cabecera/agenda-cabecera.component';
 import { AgendaDetalleEventoComponent } from './componentes/agenda-detalle-evento/agenda-detalle-evento.component';
 import { AgendaVisorFotoComponent } from './componentes/agenda-visor-foto/agenda-visor-foto.component';
-import { hoyLocal, fechaLegible } from './mi-agenda.fechas';
+import { fechaLegible } from './mi-agenda.fechas';
 import {
   AgendaDia,
   EventoAgenda,
@@ -30,9 +28,9 @@ import {
  * Agenda de un estudiante en el portal institucional: la misma que ve el
  * papá, en solo consulta.
  *
- * El estudiante llega por la ruta desde el listado de Agenda de
- * Estudiantes. Los datos del niño (nombre y grupo) salen de la misma
- * respuesta de la agenda, así que no hace falta otra consulta.
+ * Es el panel de detalle de Agenda de Estudiantes: el estudiante y la fecha
+ * los decide la pantalla que lo contiene. Los datos del niño (nombre y
+ * grupo) salen de la misma respuesta de la agenda.
  *
  * Este componente solo maneja el estado (qué día, qué filtro, qué está
  * abierto) y pide los datos. Toda la presentación vive en los componentes
@@ -44,7 +42,6 @@ import {
   imports: [
     CommonModule,
     FormsModule,
-    HeaderComponent,
     MiAgendaVistaRendererComponent,
     AgendaCabeceraComponent,
     AgendaDetalleEventoComponent,
@@ -53,15 +50,29 @@ import {
   templateUrl: './agenda-estudiante.component.html',
   styleUrl: './agenda-estudiante.component.scss'
 })
-export class AgendaEstudianteComponent implements OnInit {
+export class AgendaEstudianteComponent implements OnInit, OnChanges {
 
-  titulo = 'Agenda del Estudiante';
+  @Input() idEstudiante: string | null = null;
+  /** Fecha consultada, en Y-m-d. */
+  @Input() fecha: string = '';
+  /**
+   * Cada vez que la pantalla la incrementa se vuelve a consultar el día,
+   * sin usar lo guardado. Es el botón de refrescar.
+   */
+  @Input() version: number = 0;
 
-  idEstudiante: string = '';
   /** Nombre y grupo del niño, tal como los manda el backend en la agenda. */
   estudianteSeleccionado: any = null;
 
   agenda: AgendaDia | null = null;
+
+  /**
+   * Días ya consultados mientras se está en la pantalla, por estudiante y
+   * fecha, incluido hoy: volver a uno ya visto no va al backend. Para traer
+   * lo nuevo está el botón de refrescar. Al salir de la pantalla se pierde
+   * con el componente.
+   */
+  private diasConsultados = new Map<string, AgendaDia>();
   /** Todos los eventos del día, tal como llegaron del backend. */
   eventos: EventoAgenda[] = [];
   /** Los que se están pintando: eventos filtrados por el buscador. */
@@ -71,11 +82,6 @@ export class AgendaEstudianteComponent implements OnInit {
   fuentesVisibles: FuenteAgenda[] = [];
 
   busqueda: string = '';
-
-  /** Fecha consultada, en Y-m-d. */
-  fecha: string = '';
-  /** Tope inferior: la fecha de ingreso del estudiante. */
-  fechaMinima: string = '';
 
   modo: ModoVista = 'camino';
   modos: ModoVistaConfig[] = MODOS_VISTA;
@@ -97,17 +103,34 @@ export class AgendaEstudianteComponent implements OnInit {
 
   constructor(
     private miAgendaService: MiAgendaService,
-    private galeriaImagenesService: GaleriaImagenesService,
-    private route: ActivatedRoute
+    private galeriaImagenesService: GaleriaImagenesService
   ) { }
 
   ngOnInit(): void {
     this.revisarDispositivo();
-    this.fecha = hoyLocal();
     this.modo = this.leerModoGuardado();
     this.prepararImagenes();
-    this.idEstudiante = this.route.snapshot.paramMap.get('id') || '';
-    this.cargarAgenda();
+  }
+
+  /**
+   * Cambio de estudiante o de fecha: se muestra lo guardado si lo hay.
+   * Cambio de versión: se consulta de nuevo. Al cambiar de estudiante la
+   * búsqueda se limpia, porque era sobre el día de otro niño.
+   */
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['idEstudiante']) {
+      this.busqueda = '';
+    }
+
+    if (!this.idEstudiante || !this.fecha) {
+      this.limpiarAgenda();
+      return;
+    }
+
+    const refrescar = !!changes['version'] && !changes['version'].firstChange;
+    if (refrescar || changes['idEstudiante'] || changes['fecha']) {
+      this.cargarAgenda(refrescar);
+    }
   }
 
   @HostListener('window:resize')
@@ -134,40 +157,44 @@ export class AgendaEstudianteComponent implements OnInit {
   // Agenda
   // ---------------------------------------------------------------------
 
-  cargarAgenda(): void {
-    if (!this.idEstudiante) return;
+  /**
+   * @param forzar Ignora lo guardado y consulta el backend (botón refrescar).
+   */
+  cargarAgenda(forzar: boolean = false): void {
+    if (!this.idEstudiante || !this.fecha) return;
 
-    this.cargando = true;
+    const idEstudiante = this.idEstudiante;
     this.eventoAbierto = null;
     this.eventoFotos = null;
     this.fotoAbierta = null;
 
-    this.miAgendaService.obtenerDia(this.idEstudiante, this.fecha).subscribe({
+    const clave = idEstudiante + '|' + this.fecha;
+    const guardado = forzar ? undefined : this.diasConsultados.get(clave);
+    if (guardado) {
+      this.aplicarAgenda(guardado);
+      this.cargando = false;
+      return;
+    }
+
+    this.cargando = true;
+
+    this.miAgendaService.obtenerDia(idEstudiante, this.fecha).subscribe({
       next: (response: any) => {
         const datos = response.body as AgendaDia;
 
-        this.agenda = datos;
-        this.estudianteSeleccionado = datos.estudiante || null;
-        this.titulo = datos.estudiante?.nombre_completo || 'Agenda del Estudiante';
-        this.eventos = datos.eventos || [];
-        this.fuentes = datos.fuentes || [];
-        this.fechaMinima = datos.fecha_minima || '';
-        this.aplicarBusqueda();
+        // Si mientras llegaba la respuesta se cambió de niño o de día, esta
+        // ya no es la que se está mirando: se guarda pero no se pinta.
+        this.guardarDia(clave, datos);
+        if (clave !== this.idEstudiante + '|' + this.fecha) return;
 
-        // Una fuente caída no debe dejar sin agenda, pero tampoco puede
-        // pasar en silencio: se avisa y el resto del día se muestra.
-        if (datos.fuentes_con_error && datos.fuentes_con_error.length > 0) {
-          console.warn('Mi Agenda - fuentes con error:', datos.fuentes_con_error);
-        }
-
+        this.aplicarAgenda(datos);
         this.cargando = false;
       },
       error: (error) => {
         console.error('Error al cargar la agenda:', error);
-        this.eventos = [];
-        this.fuentes = [];
-        this.eventosVisibles = [];
-        this.fuentesVisibles = [];
+        if (clave !== this.idEstudiante + '|' + this.fecha) return;
+
+        this.limpiarAgenda();
         this.cargando = false;
 
         const mensaje = error?.status === 404
@@ -185,11 +212,45 @@ export class AgendaEstudianteComponent implements OnInit {
     });
   }
 
-  /** La cabecera ya validó los topes; aquí solo se recarga el día. */
-  cambiarFecha(fecha: string): void {
-    if (!fecha || fecha === this.fecha) return;
-    this.fecha = fecha;
-    this.cargarAgenda();
+  /**
+   * Pinta un día, venga del backend o de lo guardado.
+   *
+   * Una fuente caída no debe dejar sin agenda, pero tampoco puede pasar en
+   * silencio: se avisa y el resto del día se muestra.
+   */
+  private aplicarAgenda(datos: AgendaDia): void {
+    this.agenda = datos;
+    this.estudianteSeleccionado = datos.estudiante || null;
+    this.eventos = datos.eventos || [];
+    this.fuentes = datos.fuentes || [];
+    this.aplicarBusqueda();
+
+    if (datos.fuentes_con_error && datos.fuentes_con_error.length > 0) {
+      console.warn('Mi Agenda - fuentes con error:', datos.fuentes_con_error);
+    }
+  }
+
+  /**
+   * Se guarda para no volver a pedirlo, salvo que alguna fuente haya
+   * fallado: en ese caso la próxima visita debe consultar de nuevo.
+   */
+  private guardarDia(clave: string, datos: AgendaDia): void {
+    const huboError = !!datos.fuentes_con_error && datos.fuentes_con_error.length > 0;
+    if (huboError) return;
+    this.diasConsultados.set(clave, datos);
+  }
+
+  /** Sin estudiante o sin día que mostrar. */
+  private limpiarAgenda(): void {
+    this.agenda = null;
+    this.estudianteSeleccionado = null;
+    this.eventos = [];
+    this.fuentes = [];
+    this.eventosVisibles = [];
+    this.fuentesVisibles = [];
+    this.eventoAbierto = null;
+    this.eventoFotos = null;
+    this.fotoAbierta = null;
   }
 
   /** Texto del día, para el título de la portada del libro. */
