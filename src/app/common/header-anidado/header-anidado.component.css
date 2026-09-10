@@ -298,3 +298,68 @@
 .icon-wrapper {
   display: contents;
 }
+/* ============================================
+   ICONO DEL MÓDULO EN EL CENTRO
+   El iconoTitulo ya llegaba desde todas las pantallas
+   pero nunca se pintaba. Va en un circulito dorado,
+   al lado del titulo, sin competir con el logo de
+   Genialisis que sigue a la izquierda.
+   ============================================ */
+.seccion-centro {
+  gap: 12px;
+}
+
+.icono-modulo {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(255, 193, 7, 0.16);
+  border: 1px solid rgba(255, 193, 7, 0.55);
+  overflow: hidden;
+}
+
+.icono-modulo img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  display: block;
+}
+
+@media (max-width: 1024px) {
+  .icono-modulo {
+    width: 34px;
+    height: 34px;
+  }
+
+  .icono-modulo img {
+    width: 21px;
+    height: 21px;
+  }
+}
+
+@media (max-width: 768px) {
+  .seccion-centro {
+    gap: 10px;
+  }
+
+  .icono-modulo {
+    width: 30px;
+    height: 30px;
+  }
+
+  .icono-modulo img {
+    width: 19px;
+    height: 19px;
+  }
+}
+
+/* En pantallas muy angostas manda el titulo: el icono se va primero */
+@media (max-width: 380px) {
+  .icono-modulo {
+    display: none;
+  }
+}

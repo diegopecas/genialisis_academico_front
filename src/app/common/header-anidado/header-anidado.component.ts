@@ -30,6 +30,10 @@ export class HeaderComponentAnidado implements OnChanges, OnInit {
   iconoCrear = false;
   icono = '';
 
+  // Se prende si la imagen del icono no carga: asi el header nunca muestra
+  // el cuadrito roto en pantallas sin iconoTitulo o con una ruta mala.
+  iconoFallido = false;
+
   public createIcon = '+';
   public backIcon = '←';
 
@@ -121,6 +125,7 @@ export class HeaderComponentAnidado implements OnChanges, OnInit {
 
     if (changes["iconoTitulo"]) {
       this.icono = changes["iconoTitulo"]["currentValue"];
+      this.iconoFallido = false;
     }
 
     if (changes["mostrarCrear"]) {

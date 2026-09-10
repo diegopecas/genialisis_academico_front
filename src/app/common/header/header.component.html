@@ -8,8 +8,13 @@
     <a [routerLink]="['/menu']" class="nombre-jardin">{{ nombreJardin }}</a>
   </div>
 
-  <!-- SECCIÓN CENTRO: Título del módulo -->
+  <!-- SECCIÓN CENTRO: Icono del módulo + Título -->
   <div class="seccion-centro">
+    <!-- El icono se oculta solo si la imagen no carga, para no dejar el
+         cuadro roto en las pantallas que no envian iconoTitulo -->
+    <span class="icono-modulo" *ngIf="icono && !iconoFallido">
+      <img [src]="icono" alt="" (error)="iconoFallido = true" />
+    </span>
     <h2 class="letra-robot texto-titulo">{{ capitalizarTitulo(titulo) }}</h2>
   </div>
 

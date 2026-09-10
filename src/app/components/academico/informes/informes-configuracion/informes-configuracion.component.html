@@ -1,0 +1,151 @@
+<div class="modulo">
+    <app-header
+        [tituloModulo]="titulo"
+        [mostrarCrear]="false"
+        [accion]="'ConsultarTodos'"
+        [raiz]="'/academico/informes/configuracion'"
+        [regresar]="regresar"
+        [iconoTitulo]="'/assets/images/informes-configuracion.png'">
+    </app-header>
+
+    <div class="container-informe" *ngIf="!cargando">
+
+        <!-- ================= CALIFICACIÓN ================= -->
+        <div class="card-seccion">
+            <div class="card-seccion-header">
+                <h5><i class="fas fa-star"></i> Calificación</h5>
+            </div>
+            <div class="card-seccion-body">
+                <div class="row">
+                    <div class="col-md-8 mb-3">
+                        <label for="parametro" class="form-label">
+                            Parámetro de evaluación <span class="text-danger">*</span>
+                        </label>
+                        <select
+                            class="form-select"
+                            id="parametro"
+                            [(ngModel)]="model.id_parametro_evaluacion"
+                            [ngClass]="{'is-invalid': !model.id_parametro_evaluacion && submitted}"
+                            [disabled]="!editable">
+                            <option [ngValue]="null">Seleccione...</option>
+                            <option *ngFor="let p of parametros" [ngValue]="p.id">{{ p.nombre }}</option>
+                        </select>
+                        <small class="form-text text-muted">
+                            Es el único parámetro que aparece en el sprint de evaluación y el que alimenta el boletín
+                        </small>
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label d-block">Ausencias</label>
+                        <div class="form-check form-switch mt-2">
+                            <input class="form-check-input" type="checkbox" id="ausencias"
+                                   [(ngModel)]="model.muestra_ausencias" [disabled]="!editable">
+                            <label class="form-check-label" for="ausencias">Mostrar en el informe</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= PRESENTACIÓN ================= -->
+        <div class="card-seccion">
+            <div class="card-seccion-header">
+                <h5><i class="fas fa-file-lines"></i> Presentación</h5>
+            </div>
+            <div class="card-seccion-body">
+                <div class="row">
+                    <div class="col-12 mb-3">
+                        <label for="tituloInforme" class="form-label">Título del informe</label>
+                        <input
+                            class="form-control"
+                            type="text"
+                            id="tituloInforme"
+                            [(ngModel)]="model.titulo_informe"
+                            placeholder="Ej: Informe de Procesos de Aprendizaje"
+                            [disabled]="!editable">
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-12 mb-3">
+                        <label for="encabezado" class="form-label">Encabezado institucional</label>
+                        <textarea
+                            class="form-control"
+                            id="encabezado"
+                            rows="3"
+                            [(ngModel)]="model.encabezado"
+                            placeholder="NIT, resolución, lema..."
+                            [disabled]="!editable"></textarea>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-12 mb-3">
+                        <label for="piePagina" class="form-label">Pie de página</label>
+                        <textarea
+                            class="form-control"
+                            id="piePagina"
+                            rows="2"
+                            [(ngModel)]="model.pie_pagina"
+                            placeholder="Dirección, teléfono, correo..."
+                            [disabled]="!editable"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= FIRMAS ================= -->
+        <div class="card-seccion">
+            <div class="card-seccion-header">
+                <h5><i class="fas fa-signature"></i> Firmas</h5>
+            </div>
+            <div class="card-seccion-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="firmaUno" class="form-label">Primera firma</label>
+                        <input
+                            class="form-control"
+                            type="text"
+                            id="firmaUno"
+                            [(ngModel)]="model.firma_uno"
+                            placeholder="Ej: Docente titular"
+                            [disabled]="!editable">
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="firmaDos" class="form-label">Segunda firma</label>
+                        <input
+                            class="form-control"
+                            type="text"
+                            id="firmaDos"
+                            [(ngModel)]="model.firma_dos"
+                            placeholder="Ej: Directora"
+                            [disabled]="!editable">
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-12">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="firmaAcudiente"
+                                   [(ngModel)]="model.firma_acudiente" [disabled]="!editable">
+                            <label class="form-check-label" for="firmaAcudiente">
+                                Incluir espacio de firma de recibido del acudiente
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="botones-accion">
+            <button *ngIf="editable" class="btn btn-corporate-primary btn-lg px-5" (click)="guardar()">
+                <i class="fas fa-save me-2"></i>Guardar Configuración
+            </button>
+            <button class="btn btn-corporate-secondary btn-lg px-5" (click)="volver()">
+                <i class="fas fa-arrow-left me-2"></i>Volver
+            </button>
+        </div>
+
+    </div>
+</div>

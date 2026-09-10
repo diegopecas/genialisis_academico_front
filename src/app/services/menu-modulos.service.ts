@@ -217,6 +217,22 @@ export class MenuModulosService {
               { id: 'pde-rangos-edad', label: 'Rangos de Edad PDE', alt: 'Rangos de Edad', imagen: '/assets/images/pde-rangos-edad.png', iconoArbol: '📏', ruta: '/academico/pde-rangos-edad', permiso: 'academico.pde_rangos_edad', keywords: ['perfil desarrollo', 'rangos', 'edades', 'pde'] },
               { id: 'pde-items', label: 'Ítems Perfil Desarrollo', alt: 'Items PDE', imagen: '/assets/images/pde-items.png', iconoArbol: '🧩', ruta: '/academico/pde-items', permiso: 'academico.pde_items', keywords: ['perfil desarrollo', 'items', 'pruebas', 'pde', 'esferas'] }
             ]
+          },
+          {
+            id: 'informes',
+            titulo: 'Informes',
+            descripcion: 'Configura cómo sale el boletín del jardín',
+            claseIcono: 'informes',
+            iconoArbol: '📄',
+            alt: 'Informes',
+            imagen: '/assets/images/informes-modulo.png',
+            permisos: ['academico.informes_configuracion', 'academico.informes_secciones', 'academico.informes_items'],
+            keywords: ['boletin', 'boletín', 'informe', 'calificaciones', 'notas', 'secciones'],
+            opciones: [
+              { id: 'informes-configuracion', label: 'Configuración del Informe', alt: 'Configuración del Informe', imagen: '/assets/images/informes-configuracion.png', iconoArbol: '⚙️', ruta: '/academico/informes/configuracion', permiso: 'academico.informes_configuracion', keywords: ['parametro de evaluacion', 'firmas', 'encabezado', 'ausencias', 'escala'] },
+              { id: 'informes-secciones', label: 'Secciones del Informe', alt: 'Secciones del Informe', imagen: '/assets/images/informes-secciones.png', iconoArbol: '🗂️', ruta: '/academico/informes/secciones', permiso: 'academico.informes_secciones', keywords: ['dimensiones', 'esferas', 'inteligencias', 'agrupacion del boletin'] },
+              { id: 'informes-items', label: 'Ítems del Informe', alt: 'Ítems del Informe', imagen: '/assets/images/informes-items.png', iconoArbol: '📋', ruta: '/academico/informes/items', permiso: 'academico.informes_items', keywords: ['participacion familiar', 'filas propias', 'familia'] }
+            ]
           }
         ]
       },

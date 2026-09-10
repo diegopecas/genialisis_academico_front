@@ -1,0 +1,193 @@
+<div class="modulo">
+    <app-header
+        [tituloModulo]="titulo"
+        [mostrarCrear]="false"
+        [accion]="accion"
+        [raiz]="'/academico/informes/secciones'"
+        [regresar]="regresar"
+        [iconoTitulo]="'/assets/images/informes-secciones.png'">
+    </app-header>
+
+    <div class="container-informe">
+
+        <!-- ================= IDENTIFICACIÓN ================= -->
+        <div class="card-seccion">
+            <div class="card-seccion-header">
+                <h5><i class="fas fa-heading"></i> Identificación</h5>
+            </div>
+            <div class="card-seccion-body">
+                <div class="row">
+                    <div class="col-md-8 mb-3">
+                        <label for="nombre" class="form-label">
+                            Nombre de la sección <span class="text-danger">*</span>
+                        </label>
+                        <input
+                            class="form-control"
+                            type="text"
+                            id="nombre"
+                            [(ngModel)]="model.nombre"
+                            placeholder="Ej: Dimensión Cognitiva, Inglés, Participación Familiar..."
+                            [ngClass]="{'is-invalid': !model.nombre && submitted}"
+                            [disabled]="!editable">
+                        <small class="form-text text-muted">Así aparece el título en el boletín</small>
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                        <label for="orden" class="form-label">Orden</label>
+                        <input
+                            class="form-control"
+                            type="number"
+                            id="orden"
+                            [(ngModel)]="model.orden"
+                            [disabled]="!editable">
+                        <small class="form-text text-muted">Posición en el informe</small>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-8 mb-3">
+                        <label for="padre" class="form-label">Sección padre</label>
+                        <select
+                            class="form-select"
+                            id="padre"
+                            [(ngModel)]="model.id_seccion_padre"
+                            [disabled]="!editable">
+                            <option [ngValue]="null">Ninguna (sección de primer nivel)</option>
+                            <option *ngFor="let p of posiblesPadres" [ngValue]="p.id">{{ p.nombre }}</option>
+                        </select>
+                        <small class="form-text text-muted">
+                            Solo si esta sección va dentro de otra, como una asignatura dentro de una dimensión
+                        </small>
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label d-block">Estado</label>
+                        <div class="form-check form-switch mt-2">
+                            <input class="form-check-input" type="checkbox" id="activo"
+                                   [(ngModel)]="model.activo" [disabled]="!editable">
+                            <label class="form-check-label" for="activo">Sección activa</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= ORIGEN DE LAS FILAS ================= -->
+        <div class="card-seccion">
+            <div class="card-seccion-header">
+                <h5><i class="fas fa-diagram-project"></i> Origen de las filas</h5>
+            </div>
+            <div class="card-seccion-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="tipoOrigen" class="form-label">
+                            ¿De dónde salen las filas? <span class="text-danger">*</span>
+                        </label>
+                        <select
+                            class="form-select"
+                            id="tipoOrigen"
+                            [(ngModel)]="model.tipo_origen"
+                            (ngModelChange)="cambiarTipoOrigen()"
+                            [disabled]="!editable">
+                            <option value="esfera">De una esfera de desarrollo</option>
+                            <option value="area">De un área académica</option>
+                            <option value="items">De ítems propios del informe</option>
+                            <option value="observacion">De un tipo de observación</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6 mb-3" *ngIf="requiereOrigen">
+                        <label for="idOrigen" class="form-label">
+                            Origen <span class="text-danger">*</span>
+                        </label>
+                        <select
+                            class="form-select"
+                            id="idOrigen"
+                            [(ngModel)]="model.id_origen"
+                            [ngClass]="{'is-invalid': !model.id_origen && submitted}"
+                            [disabled]="!editable">
+                            <option [ngValue]="null">Seleccione...</option>
+                            <option *ngFor="let o of opcionesOrigen" [ngValue]="o.id">{{ o.nombre }}</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="aviso-origen" *ngIf="model.tipo_origen === 'items'">
+                    <i class="fas fa-info-circle"></i>
+                    <span>
+                        Las filas de esta sección se administran en <b>Ítems del Informe</b>, no salen de la malla curricular.
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= COMPORTAMIENTO ================= -->
+        <div class="card-seccion">
+            <div class="card-seccion-header">
+                <h5><i class="fas fa-sliders"></i> Comportamiento</h5>
+            </div>
+            <div class="card-seccion-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="tipoContenido" class="form-label">Contenido</label>
+                        <select
+                            class="form-select"
+                            id="tipoContenido"
+                            [(ngModel)]="model.tipo_contenido"
+                            [disabled]="!editable">
+                            <option value="escala">Escala (una marca por fila)</option>
+                            <option value="texto">Texto descriptivo</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="evaluaA" class="form-label">¿A quién evalúa?</label>
+                        <select
+                            class="form-select"
+                            id="evaluaA"
+                            [(ngModel)]="model.evalua_a"
+                            [disabled]="!editable">
+                            <option value="estudiante">Al estudiante</option>
+                            <option value="familia">A la familia</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-2">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="seCalifica"
+                                   [(ngModel)]="model.se_califica" [disabled]="!editable">
+                            <label class="form-check-label" for="seCalifica">Se califica</label>
+                        </div>
+                        <small class="form-text text-muted d-block">
+                            Desactívalo si la sección solo lista sus filas sin marcarlas
+                        </small>
+                    </div>
+
+                    <div class="col-md-6 mb-2">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="requiereInscripcion"
+                                   [(ngModel)]="model.requiere_inscripcion" [disabled]="!editable">
+                            <label class="form-check-label" for="requiereInscripcion">Solo para inscritos</label>
+                        </div>
+                        <small class="form-text text-muted d-block">
+                            La sección aparece únicamente en el informe de los estudiantes inscritos
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= BOTONES ================= -->
+        <div class="botones-accion">
+            <button *ngIf="editable" class="btn btn-corporate-primary btn-lg px-5" (click)="guardar()">
+                <i class="fas fa-save me-2"></i>Guardar Sección
+            </button>
+            <button class="btn btn-corporate-secondary btn-lg px-5" (click)="volver()">
+                <i class="fas fa-arrow-left me-2"></i>Volver
+            </button>
+        </div>
+
+    </div>
+</div>

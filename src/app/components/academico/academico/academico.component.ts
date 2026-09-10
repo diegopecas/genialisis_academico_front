@@ -94,6 +94,15 @@ export class AcademicoComponent implements OnInit {
       case 'pde-items':
         this.router.navigate(['/academico/pde-items']);
         break;
+      case 'informes-configuracion':
+        this.router.navigate(['/academico/informes/configuracion']);
+        break;
+      case 'informes-secciones':
+        this.router.navigate(['/academico/informes/secciones']);
+        break;
+      case 'informes-items':
+        this.router.navigate(['/academico/informes/items']);
+        break;
     }
   }
 

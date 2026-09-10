@@ -1,0 +1,90 @@
+<div class="modulo">
+    <app-header
+        [tituloModulo]="titulo"
+        [mostrarCrear]="false"
+        [accion]="accion"
+        [raiz]="'/academico/informes/items'"
+        [regresar]="regresar"
+        [iconoTitulo]="'/assets/images/informes-items.png'">
+    </app-header>
+
+    <div class="container-informe">
+
+        <div class="card-seccion">
+            <div class="card-seccion-header">
+                <h5><i class="fas fa-list-ul"></i> Ítem del Informe</h5>
+            </div>
+            <div class="card-seccion-body">
+
+                <div class="row">
+                    <div class="col-md-8 mb-3">
+                        <label for="seccion" class="form-label">
+                            Sección <span class="text-danger">*</span>
+                        </label>
+                        <select
+                            class="form-select"
+                            id="seccion"
+                            [(ngModel)]="model.id_seccion"
+                            [ngClass]="{'is-invalid': !model.id_seccion && submitted}"
+                            [disabled]="!editable">
+                            <option [ngValue]="null">Seleccione...</option>
+                            <option *ngFor="let s of secciones" [ngValue]="s.id">{{ s.nombre }}</option>
+                        </select>
+                        <small class="form-text text-muted">
+                            Solo aparecen las secciones que se alimentan de ítems propios
+                        </small>
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                        <label for="orden" class="form-label">Orden</label>
+                        <input
+                            class="form-control"
+                            type="number"
+                            id="orden"
+                            [(ngModel)]="model.orden"
+                            [disabled]="!editable">
+                        <small class="form-text text-muted">Posición dentro de la sección</small>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-12 mb-3">
+                        <label for="texto" class="form-label">
+                            Texto del ítem <span class="text-danger">*</span>
+                        </label>
+                        <textarea
+                            class="form-control"
+                            id="texto"
+                            rows="3"
+                            [(ngModel)]="model.texto"
+                            placeholder="Ej: Asistencia y puntualidad a reuniones."
+                            [ngClass]="{'is-invalid': !model.texto && submitted}"
+                            [disabled]="!editable"></textarea>
+                        <small class="form-text text-muted">Así aparece la fila en el boletín</small>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-12">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="activo"
+                                   [(ngModel)]="model.activo" [disabled]="!editable">
+                            <label class="form-check-label" for="activo">Ítem activo</label>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="botones-accion">
+            <button *ngIf="editable" class="btn btn-corporate-primary btn-lg px-5" (click)="guardar()">
+                <i class="fas fa-save me-2"></i>Guardar Ítem
+            </button>
+            <button class="btn btn-corporate-secondary btn-lg px-5" (click)="volver()">
+                <i class="fas fa-arrow-left me-2"></i>Volver
+            </button>
+        </div>
+
+    </div>
+</div>
