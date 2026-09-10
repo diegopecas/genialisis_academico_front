@@ -1,0 +1,77 @@
+/* Mi Agenda — contenedor y estados.
+   Lo demás se fue con su componente: la cabecera, el selector de
+   estudiante, el detalle y el visor tienen su propio scss. Aquí solo queda
+   lo que pinta este archivo. */
+
+.mi-agenda {
+  padding-bottom: 2rem;
+}
+
+.fade-in {
+  animation: fadeIn 0.25s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ------------------------------------------------------------------ */
+/* Estados                                                             */
+/* ------------------------------------------------------------------ */
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 2.5rem 1rem;
+  color: #636e72;
+}
+
+.spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid #dfe6e9;
+  border-top-color: #6c5ce7;
+  border-radius: 50%;
+  animation: girar 0.8s linear infinite;
+}
+
+@keyframes girar {
+  to { transform: rotate(360deg); }
+}
+
+.sin-datos {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #95a5a6;
+}
+
+.sin-datos-icono {
+  font-size: 3rem;
+  display: block;
+  margin-bottom: 0.6rem;
+}
+
+.sin-datos p {
+  margin: 0 0 0.3rem;
+  font-size: 1rem;
+}
+
+.sin-datos small {
+  font-size: 0.82rem;
+}
+
+/* Se queda aquí porque lo usa el botón de limpiar búsqueda del estado
+   vacío; en la cabecera el "Hoy" tiene su propia copia. */
+.btn-hoy {
+  background: #f1f2f6;
+  border: none;
+  border-radius: 8px;
+  padding: 0.25rem 0.7rem;
+  font-size: 0.78rem;
+  color: #6c5ce7;
+  font-weight: 600;
+  cursor: pointer;
+}

@@ -1,0 +1,87 @@
+<div class="modulo mi-agenda">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="false"
+    [raiz]="'/operaciones/agenda-estudiantes'"
+    [regresar]="'/operaciones/agenda-estudiantes'"
+  ></app-header>
+
+  <div class="container-fluid mt-3 px-3">
+
+    <!-- ================================ -->
+    <!-- VISTA: AGENDA DEL DÍA            -->
+    <!-- ================================ -->
+    <div class="fade-in">
+
+      <!-- Para cambiar de estudiante se vuelve al listado con Regresar. -->
+      <app-agenda-cabecera
+        [estudiante]="estudianteSeleccionado"
+        [mostrarCambiar]="false"
+        [modo]="modo"
+        [modos]="modos"
+        [fecha]="fecha"
+        [fechaMinima]="fechaMinima"
+        [mostrarBuscador]="!cargando && eventos.length > 0"
+        [busqueda]="busqueda"
+        [totalEventos]="eventos.length"
+        [totalVisibles]="eventosVisibles.length"
+        (modoCambio)="cambiarModo($event)"
+        (fechaCambio)="cambiarFecha($event)"
+        (busquedaCambio)="cambiarBusqueda($event)"
+      ></app-agenda-cabecera>
+
+      <!-- Cargando -->
+      <div class="loading-container" *ngIf="cargando">
+        <div class="spinner"></div>
+        <span>Armando la agenda del día...</span>
+      </div>
+
+      <!-- La búsqueda no encontró nada -->
+      <div class="sin-datos" *ngIf="!cargando && eventos.length > 0 && eventosVisibles.length === 0">
+        <span class="sin-datos-icono">🔍</span>
+        <p>Nada coincide con "{{ busqueda }}"</p>
+        <button type="button" class="btn-hoy" (click)="limpiarBusqueda()">Limpiar búsqueda</button>
+      </div>
+
+      <!-- Día sin nada registrado -->
+      <div class="sin-datos" *ngIf="!cargando && eventos.length === 0">
+        <span class="sin-datos-icono">🌤️</span>
+        <p>No hay nada registrado este día</p>
+        <small>Puede que no haya sido día de jardín, o que aún no hayan registrado nada</small>
+      </div>
+
+      <!-- La vista escogida -->
+      <app-mi-agenda-vista-renderer
+        *ngIf="!cargando && eventosVisibles.length > 0"
+        [modo]="modo"
+        [eventos]="eventosVisibles"
+        [fuentes]="fuentesVisibles"
+        [titulo]="estudianteSeleccionado?.nombre_completo"
+        [subtitulo]="fechaLegible()"
+        [isMobile]="isMobile"
+        (eventoClick)="abrirEvento($event)"
+        (fotoClick)="abrirFotoDeEvento($event)"
+      ></app-mi-agenda-vista-renderer>
+    </div>
+  </div>
+
+  <!-- ================================ -->
+  <!-- DETALLE DE UN EVENTO             -->
+  <!-- ================================ -->
+  <app-agenda-detalle-evento
+    [evento]="eventoAbierto"
+    (cerrar)="cerrarEvento()"
+    (abrirFoto)="abrirFoto($event)"
+  ></app-agenda-detalle-evento>
+
+  <!-- ================================ -->
+  <!-- VISOR DE FOTO A PANTALLA COMPLETA -->
+  <!-- ================================ -->
+  <app-agenda-visor-foto
+    *ngIf="fotoAbierta !== null"
+    [fotos]="fotosDelVisor()"
+    [indiceInicial]="fotoAbierta"
+    [titulo]="eventoFotos?.titulo || ''"
+    (cerrar)="cerrarFoto()"
+  ></app-agenda-visor-foto>
+</div>

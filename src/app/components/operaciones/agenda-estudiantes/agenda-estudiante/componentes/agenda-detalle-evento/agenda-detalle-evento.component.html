@@ -1,0 +1,34 @@
+<div class="detalle-fondo" *ngIf="evento" (click)="cerrar.emit()">
+  <div class="detalle-caja" (click)="$event.stopPropagation()">
+    <div class="detalle-cabecera" [style.background]="evento.color">
+      <span class="detalle-fuente">{{ evento.nombre_fuente }}</span>
+      <button type="button" class="detalle-cerrar" (click)="cerrar.emit()">&times;</button>
+    </div>
+
+    <div class="detalle-cuerpo">
+      <span class="detalle-hora" *ngIf="evento.hora">{{ evento.hora }}</span>
+
+      <h3 class="detalle-titulo">{{ evento.titulo }}</h3>
+
+      <p class="detalle-texto" *ngIf="evento.detalle">{{ evento.detalle }}</p>
+
+      <!-- Observaciones de la docente, calificaciones, ítems y acciones.
+           Va sin resumir: aquí es donde se lee todo lo que la tarjeta
+           dejó plegado. -->
+      <app-agenda-tarjeta-extras [evento]="evento"></app-agenda-tarjeta-extras>
+
+      <!-- Fotos: mosaico fijo, siempre igual -->
+      <div class="detalle-fotos" *ngIf="fotos().length > 0">
+        <div
+          class="foto"
+          *ngFor="let foto of fotos(); let i = index; trackBy: trackByGuid"
+          (click)="abrirFoto.emit(i)"
+        >
+          <img [src]="urlThumb(foto)" [alt]="foto.alt || evento.titulo" loading="lazy" />
+        </div>
+      </div>
+
+      <small class="detalle-pie" *ngIf="evento.pie">{{ evento.pie }}</small>
+    </div>
+  </div>
+</div>

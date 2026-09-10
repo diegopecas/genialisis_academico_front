@@ -1,0 +1,138 @@
+/* Detalle de un evento. Sube desde abajo, como una hoja: en móvil queda
+   pegado al pulgar y en escritorio se centra sin quedar gigante. */
+
+.detalle-fondo {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 1050;
+  padding: 1rem;
+}
+
+.detalle-caja {
+  background: #fff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 480px;
+  max-height: 85vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: subir 0.2s ease;
+}
+
+@keyframes subir {
+  from { transform: translateY(24px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+
+.detalle-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  color: #fff;
+}
+
+.detalle-fuente {
+  font-weight: 600;
+  font-size: 0.88rem;
+}
+
+.detalle-cerrar {
+  background: rgba(255, 255, 255, 0.25);
+  border: none;
+  color: #fff;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.detalle-cuerpo {
+  padding: 1.1rem 1.25rem;
+  overflow-y: auto;
+}
+
+.detalle-hora {
+  display: inline-block;
+  background: #f1f2f6;
+  color: #57606f;
+  font-weight: 700;
+  font-size: 0.82rem;
+  padding: 0.15rem 0.6rem;
+  border-radius: 8px;
+  margin-bottom: 0.6rem;
+}
+
+.detalle-titulo {
+  margin: 0 0 0.6rem;
+  font-size: 1.2rem;
+  color: #2d3436;
+}
+
+.detalle-texto {
+  margin: 0;
+  color: #636e72;
+  line-height: 1.5;
+  font-size: 0.93rem;
+  white-space: pre-line;
+}
+
+.detalle-pie {
+  display: block;
+  margin-top: 1rem;
+  color: #95a5a6;
+  font-style: italic;
+  font-size: 0.8rem;
+}
+
+/* ------------------------------------------------------------------ */
+/* Fotos: mosaico fijo                                                 */
+/* ------------------------------------------------------------------ */
+
+.detalle-fotos {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.4rem;
+  margin-top: 0.9rem;
+}
+
+.foto {
+  aspect-ratio: 1;
+  border-radius: 10px;
+  overflow: hidden;
+  cursor: pointer;
+  background: #f1f2f6;
+}
+
+.foto img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.25s ease;
+}
+
+.foto:hover img {
+  transform: scale(1.08);
+}
+
+/* ------------------------------------------------------------------ */
+/* Móvil                                                               */
+/* ------------------------------------------------------------------ */
+
+@media (max-width: 768px) {
+  .detalle-caja {
+    max-height: 90vh;
+  }
+
+  .detalle-fotos {
+    gap: 0.3rem;
+  }
+}

@@ -1,0 +1,267 @@
+/* Cabecera de la agenda: niño, selector de vista, fecha y buscador.
+   Móvil primero: todo apila y los controles quedan al alcance del pulgar. */
+
+.agenda-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.cabecera-nino {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.btn-cambiar {
+  background: #f1f2f6;
+  border: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  font-size: 1.4rem;
+  line-height: 1;
+  color: #57606f;
+  cursor: pointer;
+}
+
+.nino-avatar {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+  color: #fff;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nino-info {
+  min-width: 0;
+}
+
+.nino-info h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  color: #2d3436;
+}
+
+.nino-info span {
+  font-size: 0.8rem;
+  color: #636e72;
+}
+
+/* ------------------------------------------------------------------ */
+/* Selector de vista                                                   */
+/* ------------------------------------------------------------------ */
+
+.selector-vista {
+  display: flex;
+  gap: 0.3rem;
+  background: #f1f2f6;
+  padding: 0.25rem;
+  border-radius: 10px;
+}
+
+.vista-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  padding: 0.45rem 0.75rem;
+  cursor: pointer;
+  color: #57606f;
+  font-size: 0.83rem;
+  transition: background 0.15s ease;
+}
+
+.vista-btn.activo {
+  background: #fff;
+  color: #2d3436;
+  font-weight: 600;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+.vista-icono {
+  font-size: 1rem;
+}
+
+/* ------------------------------------------------------------------ */
+/* Navegación por fecha                                                */
+/* ------------------------------------------------------------------ */
+
+.agenda-fecha {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+  padding: 0.65rem 0.85rem;
+  margin-bottom: 1.25rem;
+}
+
+.fecha-btn {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: #6c5ce7;
+  color: #fff;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.fecha-btn:disabled {
+  background: #dfe6e9;
+  color: #b2bec3;
+  cursor: not-allowed;
+}
+
+.fecha-centro {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+}
+
+.fecha-texto {
+  display: block;
+  font-weight: 600;
+  color: #2d3436;
+  font-size: 0.95rem;
+  text-transform: capitalize;
+}
+
+.fecha-acciones {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 0.3rem;
+}
+
+.fecha-input {
+  border: 1px solid #dfe6e9;
+  border-radius: 8px;
+  padding: 0.2rem 0.45rem;
+  font-size: 0.8rem;
+  color: #57606f;
+  background: #fff;
+}
+
+.btn-hoy {
+  background: #f1f2f6;
+  border: none;
+  border-radius: 8px;
+  padding: 0.25rem 0.7rem;
+  font-size: 0.78rem;
+  color: #6c5ce7;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* ------------------------------------------------------------------ */
+/* Buscador del día                                                    */
+/* ------------------------------------------------------------------ */
+
+.agenda-buscador {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+  padding: 0.55rem 0.85rem;
+  margin-bottom: 1rem;
+}
+
+.buscador-lupa {
+  font-size: 0.95rem;
+  flex-shrink: 0;
+}
+
+.buscador-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  font-size: 0.92rem;
+  color: #2d3436;
+  background: transparent;
+}
+
+.buscador-input::placeholder {
+  color: #b2bec3;
+}
+
+.buscador-limpiar {
+  flex-shrink: 0;
+  background: #f1f2f6;
+  border: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  font-size: 1.1rem;
+  line-height: 1;
+  color: #57606f;
+  cursor: pointer;
+}
+
+.buscador-conteo {
+  flex-shrink: 0;
+  font-size: 0.76rem;
+  color: #95a5a6;
+  white-space: nowrap;
+}
+
+/* ------------------------------------------------------------------ */
+/* Móvil                                                               */
+/* ------------------------------------------------------------------ */
+
+@media (max-width: 768px) {
+  .agenda-cabecera {
+    gap: 0.65rem;
+  }
+
+  .selector-vista {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .vista-btn {
+    flex: 1;
+    justify-content: center;
+    padding: 0.5rem 0.35rem;
+  }
+
+  .vista-nombre {
+    display: none;
+  }
+
+  .fecha-texto {
+    font-size: 0.86rem;
+  }
+
+  .nino-info h3 {
+    font-size: 0.95rem;
+  }
+
+  .buscador-input {
+    font-size: 0.88rem;
+  }
+
+  .buscador-conteo {
+    font-size: 0.7rem;
+  }
+}

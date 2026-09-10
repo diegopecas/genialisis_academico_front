@@ -1,0 +1,61 @@
+<div class="visor" *ngIf="foto">
+  <!-- El fondo es la zona de cierre: tocar por fuera de la foto y de los
+       botones cierra el visor. Los controles van en una capa aparte que no
+       intercepta clics salvo en sus propios elementos. -->
+  <div class="visor-fondo" (click)="cerrar.emit()"></div>
+
+  <div class="visor-capa">
+    <button type="button" class="visor-cerrar" (click)="cerrar.emit()" title="Cerrar">&#10005;</button>
+
+    <button
+      type="button"
+      class="visor-nav visor-anterior"
+      *ngIf="total > 1"
+      (click)="anterior($event)"
+      title="Anterior"
+    >&lsaquo;</button>
+
+    <div class="visor-imagen-caja">
+      <div class="visor-cargando" *ngIf="!mediumListo">
+        <div class="spinner"></div>
+        <span>Cargando imagen...</span>
+      </div>
+
+      <img
+        class="visor-imagen"
+        [class.cargando]="!mediumListo"
+        [src]="urlActual()"
+        [alt]="textoAlterno()"
+        [ngStyle]="estiloRotacion"
+      />
+    </div>
+
+    <button
+      type="button"
+      class="visor-nav visor-siguiente"
+      *ngIf="total > 1"
+      (click)="siguiente($event)"
+      title="Siguiente"
+    >&rsaquo;</button>
+
+    <div class="visor-acciones">
+      <button type="button" class="visor-accion" (click)="girar($event)" title="Girar imagen">
+        <span class="accion-icono">&#8635;</span>
+        <span class="accion-texto">Girar</span>
+      </button>
+
+      <button
+        type="button"
+        class="visor-accion"
+        *ngIf="puedeDescargar()"
+        (click)="descargar($event)"
+        title="Descargar"
+      >
+        <span class="accion-icono">&#8595;</span>
+        <span class="accion-texto">Descargar</span>
+      </button>
+    </div>
+
+    <span class="visor-contador" *ngIf="total > 1">{{ indice + 1 }} / {{ total }}</span>
+  </div>
+</div>

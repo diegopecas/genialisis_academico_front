@@ -1,0 +1,21 @@
+<div class="modulo">
+  <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [raiz]="'/operaciones'"
+    [regresar]="'/operaciones'"></app-header>
+
+  <div class="container-fluid mt-4">
+
+    <div class="card shadow-sm border-0 mb-4">
+      <div class="card-body">
+        <h5 class="mb-1"><i class="fas fa-book-open me-2 text-primary"></i>Selecciona un estudiante para ver su agenda</h5>
+        <p class="text-muted mb-0 small">Es la misma agenda del día que ve el acudiente en el portal de padres</p>
+      </div>
+    </div>
+
+    <app-tablas [titulos]="titulosTabla" [datos]="estudiantes" [acciones]="accionesTabla"
+      [raiz]="'/operaciones/agenda-estudiantes'" [accionVer]="false" [accionEditar]="false"
+      [accionEliminar]="false" [mostrarBuscar]="true" [columnasFiltro]="columnasFiltro"
+      (clicAccion)="onAccionTabla($event)">
+    </app-tablas>
+
+  </div>
+</div>

@@ -1,0 +1,182 @@
+/* Pie de la tarjeta de un evento: ítems, calificaciones y acciones.
+   Todo tiene que caber dentro de tarjetas angostas (el camino usa media
+   columna y el libro una hoja de 300px), así que nada puede desbordar. */
+
+.extras {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* ------------------------------------------------------------------ */
+/* Observaciones de la docente                                         */
+/* ------------------------------------------------------------------ */
+
+.extras-notas {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin-top: 0.55rem;
+}
+
+.nota {
+  border-left: 3px solid #d5cffb;
+  padding-left: 0.6rem;
+  min-width: 0;
+}
+
+.nota-titulo {
+  display: block;
+  font-size: 0.7rem;
+  color: #95a5a6;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 0.1rem;
+}
+
+.nota-texto {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #57606f;
+  line-height: 1.4;
+  white-space: pre-line;
+  overflow-wrap: break-word;
+}
+
+/* ------------------------------------------------------------------ */
+/* Ítems                                                               */
+/* ------------------------------------------------------------------ */
+
+.extras-items {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.extras-items li {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: #f8f9fa;
+  border-radius: 7px;
+  padding: 0.3rem 0.5rem;
+  font-size: 0.8rem;
+  color: #2d3436;
+  min-width: 0;
+}
+
+.extras-items li i {
+  color: #6c5ce7;
+  width: 16px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.item-nombre {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.item-obs {
+  margin-left: auto;
+  color: #6c5ce7;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ------------------------------------------------------------------ */
+/* Acciones                                                            */
+/* ------------------------------------------------------------------ */
+
+.extras-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.55rem;
+}
+
+.btn-accion {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: #f4f1ff;
+  border: 1px solid #e4defc;
+  border-radius: 12px;
+  padding: 0.3rem 0.7rem;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: #6c5ce7;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  max-width: 100%;
+}
+
+.btn-accion:hover:not(:disabled) {
+  background: #ebe5ff;
+}
+
+.btn-accion:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-ver-mas {
+  background: transparent;
+  border-color: transparent;
+  padding-left: 0.3rem;
+  padding-right: 0.3rem;
+}
+
+.btn-ver-mas:hover:not(:disabled) {
+  background: #f4f1ff;
+}
+
+.accion-icono {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+}
+
+.accion-flecha {
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+.spinner-mini {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(108, 92, 231, 0.25);
+  border-top-color: #6c5ce7;
+  border-radius: 50%;
+  animation: girarMini 0.7s linear infinite;
+}
+
+@keyframes girarMini {
+  to { transform: rotate(360deg); }
+}
+
+/* ------------------------------------------------------------------ */
+/* Compacto: camino y libro                                            */
+/* ------------------------------------------------------------------ */
+
+.extras.compacto .nota-texto { font-size: 0.8rem; }
+
+.extras.compacto .extras-items li {
+  font-size: 0.74rem;
+  padding: 0.24rem 0.42rem;
+}
+
+.extras.compacto .btn-accion {
+  font-size: 0.71rem;
+  padding: 0.26rem 0.55rem;
+}
+
+@media (max-width: 768px) {
+  .extras-items li { font-size: 0.75rem; }
+  .btn-accion { font-size: 0.72rem; }
+}

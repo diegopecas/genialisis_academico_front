@@ -1,0 +1,74 @@
+<div class="extras" *ngIf="evento" [class.compacto]="compacto">
+
+  <!-- Lo que escribió la docente: observación de la clase y del niño.
+       Con la actividad plegada esto se lee en el detalle. -->
+  <div class="extras-notas" *ngIf="!plegado && notas().length > 0">
+    <div class="nota" *ngFor="let nota of notas()">
+      <span class="nota-titulo">{{ nota.titulo }}</span>
+      <p class="nota-texto">{{ nota.texto }}</p>
+    </div>
+  </div>
+
+  <!-- Ítems: útiles que trajo, medidas que le tomaron -->
+  <ul class="extras-items" *ngIf="!plegado && items().length > 0">
+    <li *ngFor="let item of items(); trackBy: trackByNombre">
+      <i class="{{ item.icono }}" *ngIf="item.icono"></i>
+      <span class="item-nombre">{{ item.nombre }}</span>
+      <small class="item-obs" *ngIf="item.observacion">{{ item.observacion }}</small>
+    </li>
+  </ul>
+
+  <app-agenda-calificaciones
+    [calificaciones]="calificaciones()"
+    [compacto]="compacto"
+  ></app-agenda-calificaciones>
+
+  <!-- Acciones. El clic no debe propagarse a la tarjeta. -->
+  <div class="extras-acciones" *ngIf="hayAcciones()">
+    <button
+      type="button"
+      class="btn-accion"
+      *ngIf="!plegado && puedeVerRecibo()"
+      [disabled]="generandoRecibo"
+      (click)="descargarRecibo($event)"
+    >
+      <!-- Iconos en SVG y no en emoji: los de recibo y clip estan fuera del
+           plano basico y no todos los sistemas los tienen, asi que salian
+           como cuadritos. El SVG hereda el color con currentColor. -->
+      <svg class="accion-icono" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M6 3h12v18l-2.5-1.6L13 21l-1-1.6L11 21l-2.5-1.6L6 21V3z"
+              stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" />
+        <path d="M9.5 8h5M9.5 12h5" stroke="currentColor"
+              stroke-width="1.7" stroke-linecap="round" />
+      </svg>
+      <span *ngIf="!generandoRecibo">Recibo de caja</span>
+      <span *ngIf="generandoRecibo" class="spinner-mini"></span>
+    </button>
+
+    <button
+      type="button"
+      class="btn-accion"
+      *ngIf="!plegado && idDocumentoComprobante()"
+      (click)="descargarComprobante($event)"
+    >
+      <svg class="accion-icono" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M20 11.5l-8 8a5 5 0 01-7-7l8.5-8.5a3.3 3.3 0 014.7 4.7L9.7 17.2a1.6 1.6 0 01-2.3-2.3l7.8-7.8"
+              stroke="currentColor" stroke-width="1.7"
+              stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+      <span>Comprobante</span>
+    </button>
+
+    <!-- Actividad plegada: el "Ver más" abre el detalle con la descripción
+         y las observaciones. -->
+    <button
+      type="button"
+      class="btn-accion btn-ver-mas"
+      *ngIf="plegado"
+      (click)="pedirAmpliar($event)"
+    >
+      Ver más
+      <span class="accion-flecha">&rsaquo;</span>
+    </button>
+  </div>
+</div>
