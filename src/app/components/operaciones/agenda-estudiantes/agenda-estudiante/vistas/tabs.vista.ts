@@ -1,6 +1,6 @@
 import { Component, ElementRef, EventEmitter, HostListener, Input, Output, OnChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { EventoAgenda, FuenteAgenda, esActividadExtensa, estaRestringido, tieneDetalle } from '../mi-agenda.types';
+import { EventoAgenda, FuenteAgenda, esActividadExtensa, estaRestringido, tieneDetalle, descripcionHtml } from '../mi-agenda.types';
 import { AgendaTarjetaExtrasComponent } from '../componentes/agenda-tarjeta-extras/agenda-tarjeta-extras.component';
 
 /**
@@ -93,7 +93,10 @@ import { AgendaTarjetaExtrasComponent } from '../componentes/agenda-tarjeta-extr
 
             <!-- De una actividad extensa la descripción no se pinta aquí:
                  se lee en el detalle, tras el "Ver más". -->
-            <p class="fila-detalle" *ngIf="evento.detalle && !resumir(evento)">{{ evento.detalle }}</p>
+            <ng-container *ngIf="evento.detalle && !resumir(evento)">
+              <div class="fila-detalle detalle-html" *ngIf="detalleHtml(evento) as html; else detalleTexto" [innerHTML]="html"></div>
+              <ng-template #detalleTexto><p class="fila-detalle">{{ evento.detalle }}</p></ng-template>
+            </ng-container>
 
             <!-- Ítems, calificaciones y acciones. Aquí hay ancho de sobra,
                  así que van sin compactar. -->
@@ -326,7 +329,17 @@ import { AgendaTarjetaExtrasComponent } from '../componentes/agenda-tarjeta-extr
       font-size: 0.86rem;
       color: #636e72;
       line-height: 1.35;
+      /* Respeta los renglones de las descripciones en texto plano. */
+      white-space: pre-line;
     }
+    /* Descripción de actividad con el HTML del editor. Sus etiquetas no
+       llevan los atributos del componente: solo se alcanzan con ::ng-deep. */
+    .detalle-html { white-space: normal; }
+    .detalle-html ::ng-deep p { margin: 0 0 0.3rem; }
+    .detalle-html ::ng-deep p:last-child { margin-bottom: 0; }
+    .detalle-html ::ng-deep ul,
+    .detalle-html ::ng-deep ol { margin: 0 0 0.3rem; padding-left: 1.1rem; }
+    .detalle-html ::ng-deep img { max-width: 100%; height: auto; }
 
     .fila-pie {
       display: flex; align-items: center; gap: 0.5rem;
@@ -470,5 +483,10 @@ export class MiAgendaTabsComponent implements OnChanges {
 
   trackByClave(index: number, fuente: FuenteAgenda): string {
     return fuente.clave;
+  }
+
+  /** HTML de la descripción de una actividad, o null si es texto plano. */
+  detalleHtml(evento: EventoAgenda): string | null {
+    return descripcionHtml(evento);
   }
 }

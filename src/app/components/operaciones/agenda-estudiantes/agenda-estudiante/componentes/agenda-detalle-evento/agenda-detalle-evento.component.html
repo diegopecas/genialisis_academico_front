@@ -10,7 +10,12 @@
 
       <h3 class="detalle-titulo">{{ evento.titulo }}</h3>
 
-      <p class="detalle-texto" *ngIf="evento.detalle">{{ evento.detalle }}</p>
+      <!-- Las actividades con descripción en HTML se pintan con su formato;
+           lo demás, como texto. -->
+      <ng-container *ngIf="evento.detalle">
+        <div class="detalle-texto detalle-html" *ngIf="detalleHtml() as html; else detalleTexto" [innerHTML]="html"></div>
+        <ng-template #detalleTexto><p class="detalle-texto">{{ evento.detalle }}</p></ng-template>
+      </ng-container>
 
       <!-- Observaciones de la docente, calificaciones, ítems y acciones.
            Va sin resumir: aquí es donde se lee todo lo que la tarjeta

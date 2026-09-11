@@ -84,6 +84,26 @@
   white-space: pre-line;
 }
 
+/* Descripción con el HTML del editor. Sus etiquetas no llevan los
+   atributos del componente: solo se alcanzan con ::ng-deep. */
+.detalle-html {
+  white-space: normal;
+
+  ::ng-deep p { margin: 0 0 0.4rem; }
+  ::ng-deep p:last-child { margin-bottom: 0; }
+
+  ::ng-deep ul,
+  ::ng-deep ol {
+    margin: 0 0 0.4rem;
+    padding-left: 1.2rem;
+  }
+
+  ::ng-deep img {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
 .detalle-pie {
   display: block;
   margin-top: 1rem;

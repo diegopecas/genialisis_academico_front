@@ -26,19 +26,76 @@ $desktop: 1024px;
     }
 }
 
-/* Estilos para las pestañas desktop */
-.nav-tabs {
-    border-bottom: 1px solid $gold;
-    flex-wrap: nowrap;
-    
+/* Pestañas desktop. Ya no caben todas en una fila en cualquier pantalla:
+   la fila se desplaza de lado y las flechas avisan que hay más. */
+.pestanas-desplazables {
+    position: relative;
+
     @media (max-width: $tablet) {
-        display: none; // Ocultar tabs tradicionales en móvil
+        display: none; // En móvil van la grilla y el botón flotante
+    }
+}
+
+.pestanas-flecha {
+    position: absolute;
+    top: 0;
+    bottom: 1px;
+    z-index: 2;
+    width: 2.4rem;
+    border: none;
+    padding: 0;
+    color: $black;
+    font-size: 1.1rem;
+    cursor: pointer;
+
+    // Degradado para que la pestaña cortada se note debajo de la flecha.
+    &.izquierda {
+        left: 0;
+        background: linear-gradient(to right, #fff 55%, rgba(#fff, 0));
+        text-align: left;
+        padding-left: 0.3rem;
+    }
+
+    &.derecha {
+        right: 0;
+        background: linear-gradient(to left, #fff 55%, rgba(#fff, 0));
+        text-align: right;
+        padding-right: 0.3rem;
+    }
+
+    &:hover i { color: $gold; }
+
+    &:focus-visible {
+        outline: 2px solid $gold;
+        outline-offset: -2px;
+    }
+}
+
+.nav-tabs {
+    // La línea dorada va como sombra interna y no como borde: con el
+    // desplazamiento, el borde quedaba cortado y la pestaña activa ya no
+    // alcanzaba a taparla.
+    border-bottom: none;
+    box-shadow: inset 0 -1px 0 $gold;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-behavior: smooth;
+    scrollbar-width: none; // Firefox
+
+    &::-webkit-scrollbar {
+        display: none; // Chrome, Edge, Safari
+    }
+
+    .nav-item {
+        flex-shrink: 0;
     }
 
     .nav-link {
         color: $black;
         font-weight: 500;
         margin-right: 3px;
+        margin-bottom: 0;
         border-radius: 6px 6px 0 0;
         white-space: nowrap;
 

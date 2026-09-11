@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener, ViewChild, ElementRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import Swal from 'sweetalert2';
@@ -138,6 +138,7 @@ export class VistaEstudianteComponent implements OnInit, OnDestroy {
   @HostListener('window:resize', ['$event'])
   onResize(event: any) {
     this.checkDevice();
+    this.actualizarFlechasPestanas();
   }
 
   checkDevice() {
@@ -219,6 +220,10 @@ export class VistaEstudianteComponent implements OnInit, OnDestroy {
 
     this.tabsCargados.add(pestana);
     this.pestanaActiva = pestana;
+    if (!this.isMobile) {
+      // Espera a que la clase active llegue al DOM antes de ubicarla.
+      setTimeout(() => this.mostrarPestanaActiva());
+    }
     if (this.isMobile) {
       setTimeout(() => {
         const contenido = document.querySelector('.tab-content');
@@ -227,6 +232,57 @@ export class VistaEstudianteComponent implements OnInit, OnDestroy {
         }
       }, 100);
     }
+  }
+
+  // ---------------------------------------------------------------------
+  // Pestañas desplazables (escritorio)
+  // ---------------------------------------------------------------------
+
+  /**
+   * Con tantas pestañas la fila no cabe en todas las pantallas. En lugar de
+   * cortarla, se desplaza de lado: con la rueda o el trackpad, o con las
+   * flechas, que solo aparecen cuando hay algo escondido de ese lado.
+   *
+   * La lista está dentro de un *ngIf (se pinta al terminar de cargar), por
+   * eso el ViewChild va con setter: cuando aparece se calculan las flechas.
+   */
+  private listaPestanasEl: HTMLElement | null = null;
+  public hayPestanasIzquierda = false;
+  public hayPestanasDerecha = false;
+
+  @ViewChild('listaPestanas')
+  set listaPestanas(ref: ElementRef<HTMLElement> | undefined) {
+    this.listaPestanasEl = ref ? ref.nativeElement : null;
+    if (this.listaPestanasEl) {
+      setTimeout(() => {
+        this.mostrarPestanaActiva();
+        this.actualizarFlechasPestanas();
+      });
+    }
+  }
+
+  actualizarFlechasPestanas(): void {
+    const lista = this.listaPestanasEl;
+    if (!lista) {
+      this.hayPestanasIzquierda = false;
+      this.hayPestanasDerecha = false;
+      return;
+    }
+    // Un píxel de tolerancia por los redondeos del zoom del navegador.
+    this.hayPestanasIzquierda = lista.scrollLeft > 1;
+    this.hayPestanasDerecha = lista.scrollLeft + lista.clientWidth < lista.scrollWidth - 1;
+  }
+
+  desplazarPestanas(direccion: 1 | -1): void {
+    const lista = this.listaPestanasEl;
+    if (!lista) return;
+    lista.scrollBy({ left: direccion * lista.clientWidth * 0.6, behavior: 'smooth' });
+  }
+
+  /** Deja a la vista la pestaña activa si quedó escondida a un lado. */
+  private mostrarPestanaActiva(): void {
+    const activa = this.listaPestanasEl?.querySelector('.nav-link.active') as HTMLElement | null;
+    activa?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
   }
 
   toggleDropdown(): void { this.dropdownAbierto = !this.dropdownAbierto; }

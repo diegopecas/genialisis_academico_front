@@ -28,14 +28,24 @@
 
   <!-- Sistema de pestañas -->
   <div class="container-fluid mt-4" *ngIf="!cargando && !sinPestanasVisibles">
-    <!-- Navegación desktop -->
-    <ul class="nav nav-tabs" id="vistaEstudianteTab" role="tablist">
-      <li class="nav-item" role="presentation" *ngFor="let pestana of pestanasVisibles; trackBy: trackByPestana">
-        <button class="nav-link" [class.active]="pestanaActiva === pestana.id" type="button" (click)="cambiarPestana(pestana.id)">
-          <i class="{{ pestana.icono }} me-2"></i>{{ pestana.nombre }}
-        </button>
-      </li>
-    </ul>
+    <!-- Navegación desktop: la fila se desplaza de lado cuando no cabe -->
+    <div class="pestanas-desplazables">
+      <button type="button" class="pestanas-flecha izquierda" *ngIf="hayPestanasIzquierda"
+        (click)="desplazarPestanas(-1)" title="Ver pestañas anteriores" aria-label="Ver pestañas anteriores">
+        <i class="fas fa-chevron-left"></i>
+      </button>
+      <ul class="nav nav-tabs" id="vistaEstudianteTab" role="tablist" #listaPestanas (scroll)="actualizarFlechasPestanas()">
+        <li class="nav-item" role="presentation" *ngFor="let pestana of pestanasVisibles; trackBy: trackByPestana">
+          <button class="nav-link" [class.active]="pestanaActiva === pestana.id" type="button" (click)="cambiarPestana(pestana.id)">
+            <i class="{{ pestana.icono }} me-2"></i>{{ pestana.nombre }}
+          </button>
+        </li>
+      </ul>
+      <button type="button" class="pestanas-flecha derecha" *ngIf="hayPestanasDerecha"
+        (click)="desplazarPestanas(1)" title="Ver más pestañas" aria-label="Ver más pestañas">
+        <i class="fas fa-chevron-right"></i>
+      </button>
+    </div>
 
     <!-- Navegación móvil tipo grid -->
     <div class="mobile-nav-grid">

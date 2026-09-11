@@ -139,6 +139,18 @@ export function esActividadExtensa(evento: EventoAgenda | null): boolean {
   return !!(evento.detalle && evento.detalle.trim()) || notasDe(evento).length > 0;
 }
 
+/**
+ * Descripción de una actividad con el HTML del editor (párrafos, negrillas,
+ * listas). El backend solo la manda cuando de verdad trae etiquetas; en
+ * evento.detalle va siempre la versión en texto plano, que es la que usan
+ * el buscador y las demás reglas. Angular sanea el HTML al pintarlo.
+ */
+export function descripcionHtml(evento: EventoAgenda | null): string | null {
+  if (evento?.clave !== 'actividades') return null;
+  const html = evento?.meta?.descripcion_html;
+  return typeof html === 'string' && html.trim() !== '' ? html : null;
+}
+
 /** El evento tiene algo más que mostrar al abrir el detalle. */
 export function tieneDetalle(evento: EventoAgenda | null): boolean {
   return tieneFotos(evento) || esActividadExtensa(evento);

@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 
 import { GaleriaImagenesService } from '../../../../../../services/galeria-imagenes.service';
 import { AgendaTarjetaExtrasComponent } from '../agenda-tarjeta-extras/agenda-tarjeta-extras.component';
-import { EventoAgenda, FotoAgenda, fotosDe } from '../../mi-agenda.types';
+import { EventoAgenda, FotoAgenda, descripcionHtml, fotosDe } from '../../mi-agenda.types';
 
 /**
  * Detalle de un evento: solo lo que no cabe en la tarjeta.
@@ -45,5 +45,10 @@ export class AgendaDetalleEventoComponent {
 
   trackByGuid(index: number, foto: FotoAgenda): string {
     return foto.guid;
+  }
+
+  /** HTML de la descripción si es una actividad que lo trae. */
+  detalleHtml(): string | null {
+    return descripcionHtml(this.evento);
   }
 }

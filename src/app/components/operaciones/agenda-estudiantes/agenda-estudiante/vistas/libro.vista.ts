@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 
 import { GaleriaImagenesService } from '../../../../../services/galeria-imagenes.service';
 import { AgendaTarjetaExtrasComponent } from '../componentes/agenda-tarjeta-extras/agenda-tarjeta-extras.component';
-import { EventoAgenda, FotoAgenda, estaRestringido, fotosDe } from '../mi-agenda.types';
+import { EventoAgenda, FotoAgenda, estaRestringido, fotosDe, descripcionHtml } from '../mi-agenda.types';
 
 /** Una hoja del libro: la del índice o la de un evento. */
 interface HojaLibro {
@@ -157,7 +157,10 @@ interface EntradaIndice {
                 </div>
 
                 <div class="hoja-scroll">
-                  <p class="hoja-detalle" *ngIf="evento.detalle">{{ evento.detalle }}</p>
+                  <ng-container *ngIf="evento.detalle">
+                    <div class="hoja-detalle detalle-html" *ngIf="detalleHtml(evento) as html; else detalleTexto" [innerHTML]="html"></div>
+                    <ng-template #detalleTexto><p class="hoja-detalle">{{ evento.detalle }}</p></ng-template>
+                  </ng-container>
 
                   <!-- Fotos de la galería, dentro de la misma hoja -->
                   <div class="hoja-fotos" *ngIf="fotos(evento).length > 0">
@@ -550,7 +553,17 @@ interface EntradaIndice {
       color: #57606f;
       line-height: 1.45;
       margin: 0;
+      /* Respeta los renglones de las descripciones en texto plano. */
+      white-space: pre-line;
     }
+    /* Descripción de actividad con el HTML del editor. Sus etiquetas no
+       llevan los atributos del componente: solo se alcanzan con ::ng-deep. */
+    .detalle-html { white-space: normal; }
+    .detalle-html ::ng-deep p { margin: 0 0 0.3rem; }
+    .detalle-html ::ng-deep p:last-child { margin-bottom: 0; }
+    .detalle-html ::ng-deep ul,
+    .detalle-html ::ng-deep ol { margin: 0 0 0.3rem; padding-left: 1.1rem; }
+    .detalle-html ::ng-deep img { max-width: 100%; height: auto; }
 
     /* Fotos dentro de la hoja: tres por fila, cuadradas. */
     .hoja-fotos {
@@ -901,5 +914,10 @@ export class MiAgendaLibroComponent implements OnChanges {
   /** Pago o cobro recortado por falta de permiso: se pinta tenue. */
   restringido(evento: EventoAgenda): boolean {
     return estaRestringido(evento);
+  }
+
+  /** HTML de la descripción de una actividad, o null si es texto plano. */
+  detalleHtml(evento: EventoAgenda): string | null {
+    return descripcionHtml(evento);
   }
 }
