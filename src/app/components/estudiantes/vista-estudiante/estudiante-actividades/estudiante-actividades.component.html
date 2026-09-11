@@ -1,0 +1,161 @@
+<div class="panel panel-primary mb-4">
+  <div class="panel-heading d-flex justify-content-between align-items-center">
+    <h5 class="mb-0">
+      <i class="fas fa-shapes me-2"></i> Actividades
+    </h5>
+  </div>
+
+  <div class="panel-body">
+
+    <!-- Filtros -->
+    <div class="filtros-actividades">
+      <div class="filtro-item">
+        <label for="actividadesDesde" class="form-label">Desde</label>
+        <input id="actividadesDesde" type="date" class="form-control"
+          [(ngModel)]="desde" [max]="hasta || hoy" (change)="cambiarRango()" />
+      </div>
+      <div class="filtro-item">
+        <label for="actividadesHasta" class="form-label">Hasta</label>
+        <input id="actividadesHasta" type="date" class="form-control"
+          [(ngModel)]="hasta" [min]="desde" [max]="hoy" (change)="cambiarRango()" />
+      </div>
+      <div class="filtro-item filtro-boton">
+        <button type="button" class="btn btn-outline-secondary" (click)="verHoy()">Hoy</button>
+        <button type="button" class="btn btn-outline-secondary" (click)="verMesActual()">Este mes</button>
+      </div>
+    </div>
+
+    <!-- Buscador: filtra lo que ya trajo el rango, sin volver a consultar. -->
+    <div class="buscador-actividades" *ngIf="!cargando && total > 0">
+      <i class="fas fa-search buscador-icono"></i>
+      <input
+        type="text"
+        class="form-control"
+        placeholder="Buscar en las actividades..."
+        aria-label="Buscar en las actividades"
+        [value]="busqueda"
+        (input)="cambiarBusqueda($any($event.target).value)"
+      />
+      <button
+        type="button"
+        class="buscador-limpiar"
+        *ngIf="busqueda"
+        (click)="limpiarBusqueda()"
+        title="Limpiar búsqueda"
+        aria-label="Limpiar búsqueda"
+      >&times;</button>
+    </div>
+
+    <!-- Cargando -->
+    <div *ngIf="cargando" class="text-center py-4">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+      <p class="mt-2">Cargando actividades...</p>
+    </div>
+
+    <ng-container *ngIf="!cargando">
+
+      <div class="estado-vacio" *ngIf="error">
+        <i class="fas fa-exclamation-circle"></i>
+        <p>{{ error }}</p>
+      </div>
+
+      <div class="estado-vacio" *ngIf="!error && total === 0">
+        <i class="fas fa-shapes"></i>
+        <p>No hay actividades registradas en estas fechas</p>
+      </div>
+
+      <div class="estado-vacio" *ngIf="!error && total > 0 && totalVisibles === 0">
+        <i class="fas fa-search"></i>
+        <p>Ninguna actividad coincide con la búsqueda</p>
+      </div>
+
+      <p class="conteo" *ngIf="!error && totalVisibles > 0">
+        <ng-container *ngIf="busqueda; else sinBusqueda">
+          {{ totalVisibles }} de {{ total }} actividades
+        </ng-container>
+        <ng-template #sinBusqueda>
+          {{ total }} {{ total === 1 ? 'actividad' : 'actividades' }}
+        </ng-template>
+      </p>
+
+      <section class="dia" *ngFor="let dia of dias; trackBy: trackByFecha">
+        <!-- Con varios días, cada uno se abre y se cierra tocando su fecha. -->
+        <button
+          type="button"
+          class="dia-titulo"
+          [class.plegable]="dias.length > 1"
+          [attr.aria-expanded]="estaAbierto(dia)"
+          (click)="alternarDia(dia)"
+        >
+          <span class="dia-texto">{{ dia.texto }}</span>
+          <span class="dia-conteo">{{ dia.actividades.length }}</span>
+          <i class="fas dia-flecha" *ngIf="dias.length > 1"
+            [class.fa-chevron-down]="!estaAbierto(dia)"
+            [class.fa-chevron-up]="estaAbierto(dia)"></i>
+        </button>
+
+        <ng-container *ngIf="estaAbierto(dia)">
+        <article
+          class="actividad"
+          *ngFor="let actividad of dia.actividades; trackBy: trackById"
+          [style.border-left-color]="actividad.color_area || '#d4af37'"
+        >
+          <div class="actividad-cabecera">
+            <span class="actividad-icono" *ngIf="actividad.icono_tipo_actividad">{{ actividad.icono_tipo_actividad }}</span>
+            <div class="actividad-titulos">
+              <!-- En móvil el área va encima del título; al lado le quitaba
+                   el ancho y el título quedaba partido letra por letra. -->
+              <span
+                class="actividad-area area-movil"
+                *ngIf="actividad.area"
+                [style.background]="actividad.color_area || '#f1f2f6'"
+              >{{ actividad.area }}</span>
+              <h6 class="actividad-titulo">{{ actividad.titulo }}</h6>
+              <div class="actividad-datos">
+                <span class="dato-hora" *ngIf="hora(actividad)"><i class="far fa-clock"></i> {{ hora(actividad) }}</span>
+                <span *ngIf="actividad.docente"><i class="fas fa-chalkboard-teacher"></i> {{ actividad.docente }}</span>
+                <span *ngIf="actividad.minutos_duracion"><i class="fas fa-hourglass-half"></i> {{ actividad.minutos_duracion }} min</span>
+                <span *ngIf="actividad.grupo"><i class="fas fa-users"></i> {{ actividad.grupo }}</span>
+              </div>
+            </div>
+            <span
+              class="actividad-area area-escritorio"
+              *ngIf="actividad.area"
+              [style.background]="actividad.color_area || '#f1f2f6'"
+            >{{ actividad.area }}</span>
+          </div>
+
+          <!-- La descripción viene del editor de actividades y trae HTML
+               (<p>, <br>, &nbsp;). Angular lo sanea al pintarlo. -->
+          <div class="actividad-descripcion" *ngIf="actividad.descripcion" [innerHTML]="actividad.descripcion"></div>
+
+          <div class="actividad-nota" *ngIf="actividad.observacion_estudiante">
+            <span class="nota-titulo">Sobre el estudiante</span>
+            <p>{{ actividad.observacion_estudiante }}</p>
+          </div>
+
+          <div class="actividad-nota nota-grupo" *ngIf="actividad.observacion_grupo">
+            <span class="nota-titulo">Sobre la clase</span>
+            <p>{{ actividad.observacion_grupo }}</p>
+          </div>
+
+          <div class="calificaciones" *ngIf="actividad.calificaciones.length > 0">
+            <span
+              class="calificacion"
+              *ngFor="let c of actividad.calificaciones; trackBy: trackByParametro"
+              [title]="c.parametro + ': ' + valorCalificacion(c)"
+            >
+              <i class="fas {{ c.icono }} calif-icono" *ngIf="c.icono"></i>
+              <span class="calif-parametro">{{ c.parametro }}</span>
+              <span class="calif-valor">{{ valorCalificacion(c) }}</span>
+            </span>
+          </div>
+        </article>
+        </ng-container>
+      </section>
+
+    </ng-container>
+  </div>
+</div>

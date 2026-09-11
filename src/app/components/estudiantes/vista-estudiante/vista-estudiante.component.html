@@ -87,6 +87,11 @@
         <app-estudiante-asistencia [idEstudiante]="idEstudiante"></app-estudiante-asistencia>
       </div>
 
+      <!-- Actividades -->
+      <div class="p-4" *ngIf="puedeVer('actividades') && tabsCargados.has('actividades')" [hidden]="pestanaActiva !== 'actividades'">
+        <app-estudiante-actividades [idEstudiante]="idEstudiante"></app-estudiante-actividades>
+      </div>
+
       <!-- Evaluaciones -->
       <div class="p-4" *ngIf="puedeVer('evaluaciones') && tabsCargados.has('evaluaciones')" [hidden]="pestanaActiva !== 'evaluaciones'">
         <app-estudiante-evaluaciones [idEstudiante]="idEstudiante"></app-estudiante-evaluaciones>

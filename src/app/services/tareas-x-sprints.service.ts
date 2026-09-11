@@ -393,6 +393,30 @@ export class TareasXSprintsService {
       );
   }
 
+  /**
+   * Actividades ejecutadas del estudiante entre dos fechas (Y-m-d), para la
+   * pestaña Actividades de la vista 360. Sin fechas, el backend trae el mes
+   * en curso.
+   */
+  obtenerActividadesEstudiante(idEstudiante: any, desde?: string, hasta?: string) {
+    let params = new HttpParams();
+    if (desde) params = params.set('desde', desde);
+    if (hasta) params = params.set('hasta', hasta);
+
+    return this.http
+      .get<HttpResponse<Object>>(`${this.servicio}/estudiante/${idEstudiante}`, { params, observe: 'response' })
+      .pipe(
+        tap((response: HttpResponse<Object>) => {
+          let respuesta: any = response.body;
+          if (respuesta && respuesta.error) {
+            throw respuesta.error;
+          }
+          return response;
+        }),
+        catchError(this.handleError)
+      );
+  }
+
   private handleError(error: HttpErrorResponse) {
     return throwError(() => error);
   }

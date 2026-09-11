@@ -15,6 +15,7 @@ import { EstudianteCuentasComponent } from './estudiante-cuentas/estudiante-cuen
 import { EstudianteMoraExencionesComponent } from './estudiante-mora-exenciones/estudiante-mora-exenciones.component';
 import { EstudianteObservacionesComponent } from './estudiante-observaciones/estudiante-observaciones.component';
 import { EstudianteAsistenciaComponent } from './estudiante-asistencia/estudiante-asistencia.component';
+import { EstudianteActividadesComponent } from './estudiante-actividades/estudiante-actividades.component';
 import { EstudianteEvaluacionesComponent } from './estudiante-evaluaciones/estudiante-evaluaciones.component';
 import { EstudianteEad3Component } from './estudiante-ead3/estudiante-ead3.component';
 import { EstudiantePerfilDesarrolloComponent } from './estudiante-perfil-desarrollo/estudiante-perfil-desarrollo.component';
@@ -42,6 +43,7 @@ interface PestanaInfo {
     EstudianteMoraExencionesComponent,
     EstudianteObservacionesComponent,
     EstudianteAsistenciaComponent,
+    EstudianteActividadesComponent,
     EstudianteEvaluacionesComponent,
     EstudianteEad3Component,
     EstudiantePerfilDesarrolloComponent,
@@ -75,6 +77,7 @@ export class VistaEstudianteComponent implements OnInit, OnDestroy {
     { id: 'exenciones-mora', nombre: 'Exenciones de Mora', nombreCorto: 'Exenciones de Mora', icono: 'fas fa-shield-alt', permiso: 'estudiantes.vista_360.exenciones_mora' },
     { id: 'observaciones', nombre: 'Observaciones', nombreCorto: 'Observaciones', icono: 'fas fa-comment-alt', permiso: 'estudiantes.vista_360.observaciones' },
     { id: 'asistencia', nombre: 'Asistencia', nombreCorto: 'Asistencia', icono: 'fas fa-calendar-check', permiso: 'estudiantes.vista_360.asistencia' },
+    { id: 'actividades', nombre: 'Actividades', nombreCorto: 'Actividades', icono: 'fas fa-shapes', permiso: 'estudiantes.vista_360.actividades' },
     { id: 'evaluaciones', nombre: 'Evaluaciones', nombreCorto: 'Evaluaciones', icono: 'fas fa-graduation-cap', permiso: 'estudiantes.vista_360.evaluaciones' },
     { id: 'ead3', nombre: 'EAD-3', nombreCorto: 'EAD-3', icono: 'fas fa-brain', permiso: 'estudiantes.vista_360.ead3' },
     { id: 'perfil-desarrollo', nombre: 'Perfil de Desarrollo', nombreCorto: 'Perfil de Desarrollo', icono: 'fas fa-chart-line', permiso: 'estudiantes.vista_360.perfil_desarrollo' },

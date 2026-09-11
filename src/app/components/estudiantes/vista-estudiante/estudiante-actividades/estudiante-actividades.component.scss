@@ -1,0 +1,389 @@
+$gold: #d4af37;
+$black: #222;
+
+/* Mismo panel de las demás pestañas de la vista 360. */
+.panel {
+  border-radius: 0.5rem;
+  border: 1px solid rgba($black, 0.125);
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  overflow: hidden;
+  background-color: #fff;
+
+  .panel-heading {
+    background-color: #fff;
+    color: $black;
+    padding: 1rem;
+    border-bottom: 3px solid $gold;
+
+    h5 {
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+
+      i {
+        color: $black;
+        background-color: rgba($gold, 0.18);
+        border: 1px solid rgba($gold, 0.5);
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.95rem;
+        flex-shrink: 0;
+      }
+    }
+  }
+
+  .panel-body {
+    padding: 1.25rem;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Filtros                                                             */
+/* ------------------------------------------------------------------ */
+
+.filtros-actividades {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+
+  .filtro-item {
+    display: flex;
+    flex-direction: column;
+
+    .form-label {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: $black;
+      margin-bottom: 0.4rem;
+    }
+  }
+
+  .filtro-boton {
+    flex-direction: row;
+    align-items: flex-end;
+    gap: 0.5rem;
+
+    .btn { flex: 1; }
+  }
+}
+
+.buscador-actividades {
+  position: relative;
+  margin-bottom: 1rem;
+
+  .form-control {
+    padding-left: 2.2rem;
+    padding-right: 2.2rem;
+  }
+
+  .buscador-icono {
+    position: absolute;
+    left: 0.8rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #95a5a6;
+    pointer-events: none;
+  }
+
+  .buscador-limpiar {
+    position: absolute;
+    right: 0.4rem;
+    top: 50%;
+    transform: translateY(-50%);
+    border: none;
+    background: transparent;
+    font-size: 1.3rem;
+    line-height: 1;
+    color: #95a5a6;
+    padding: 0.2rem 0.5rem;
+    cursor: pointer;
+
+    &:hover { color: $black; }
+  }
+}
+
+.conteo {
+  font-size: 0.8rem;
+  color: #95a5a6;
+  margin-bottom: 0.75rem;
+}
+
+/* ------------------------------------------------------------------ */
+/* Días y actividades                                                  */
+/* ------------------------------------------------------------------ */
+
+.dia + .dia {
+  margin-top: 0.75rem;
+}
+
+.dia-titulo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  border: none;
+  border-bottom: 1px solid #f1f2f6;
+  background: transparent;
+  text-align: left;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #636e72;
+  padding: 0.35rem 0.1rem;
+  margin-bottom: 0.6rem;
+  cursor: default;
+
+  &.plegable {
+    cursor: pointer;
+
+    &:hover { color: $black; }
+  }
+
+  &:focus-visible {
+    outline: 2px solid $gold;
+    outline-offset: 2px;
+  }
+}
+
+.dia-texto {
+  /* inline-block: ::first-letter no funciona en un span en línea. */
+  display: inline-block;
+  flex: 1;
+  min-width: 0;
+
+  /* Solo la primera letra: capitalize ponía "19 De Agosto De 2026". */
+  &::first-letter {
+    text-transform: uppercase;
+  }
+}
+
+.dia-conteo {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #7f8c8d;
+  background: #f1f2f6;
+  border-radius: 10px;
+  padding: 0.05rem 0.5rem;
+}
+
+.dia-flecha {
+  font-size: 0.75rem;
+  color: #95a5a6;
+}
+
+.actividad {
+  background: #fff;
+  border: 1px solid #eef0f3;
+  border-left: 5px solid $gold;
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+
+  & + .actividad {
+    margin-top: 0.75rem;
+  }
+}
+
+.actividad-cabecera {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+}
+
+.actividad-icono {
+  font-size: 1.3rem;
+  line-height: 1.2;
+  flex-shrink: 0;
+}
+
+.actividad-titulos {
+  flex: 1;
+  min-width: 0;
+}
+
+.actividad-titulo {
+  margin: 0;
+  font-weight: 600;
+  color: #2d3436;
+  overflow-wrap: anywhere;
+}
+
+.actividad-datos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.9rem;
+  margin-top: 0.25rem;
+  font-size: 0.78rem;
+  color: #7f8c8d;
+
+  i {
+    margin-right: 0.2rem;
+  }
+}
+
+.actividad-area {
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #2d3436;
+  border-radius: 12px;
+  padding: 0.15rem 0.6rem;
+  max-width: 40%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.area-movil {
+  display: none;
+}
+
+.actividad-descripcion {
+  margin: 0.6rem 0 0;
+  font-size: 0.88rem;
+  color: #57606f;
+  overflow-wrap: anywhere;
+
+  /* El HTML de la descripción no lleva los atributos del componente, por
+     eso sus etiquetas solo se alcanzan con ::ng-deep. */
+  ::ng-deep p {
+    margin: 0 0 0.35rem;
+  }
+
+  ::ng-deep p:last-child,
+  ::ng-deep ul:last-child,
+  ::ng-deep ol:last-child {
+    margin-bottom: 0;
+  }
+
+  ::ng-deep ul,
+  ::ng-deep ol {
+    margin: 0 0 0.35rem;
+    padding-left: 1.2rem;
+  }
+
+  ::ng-deep img {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+.actividad-nota {
+  margin-top: 0.6rem;
+  background: rgba($gold, 0.08);
+  border-radius: 8px;
+  padding: 0.5rem 0.7rem;
+
+  &.nota-grupo {
+    background: #f5f6fa;
+  }
+
+  .nota-titulo {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #636e72;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+  }
+
+  p {
+    margin: 0.15rem 0 0;
+    font-size: 0.86rem;
+    color: #2d3436;
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+  }
+}
+
+/* Calificaciones en fichas, igual que en la agenda. */
+.calificaciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-top: 0.6rem;
+  min-width: 0;
+}
+
+.calificacion {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  background: #f4f1ff;
+  border: 1px solid #e4defc;
+  border-radius: 12px;
+  padding: 0.14rem 0.5rem;
+  font-size: 0.74rem;
+  color: #57606f;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.calif-icono {
+  font-size: 0.8rem;
+  flex-shrink: 0;
+  color: #6c5ce7;
+}
+
+.calif-parametro {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.calif-valor {
+  font-weight: 600;
+  color: #6c5ce7;
+  flex-shrink: 0;
+}
+
+.estado-vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 2rem 1rem;
+  color: #95a5a6;
+  text-align: center;
+
+  i { font-size: 2rem; }
+  p { margin: 0; }
+}
+
+/* ------------------------------------------------------------------ */
+/* Móvil                                                               */
+/* ------------------------------------------------------------------ */
+
+@media (max-width: 768px) {
+  .panel .panel-body {
+    padding: 0.9rem;
+  }
+
+  .filtros-actividades {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem;
+
+    .filtro-boton {
+      grid-column: 1 / -1;
+    }
+  }
+
+  .actividad {
+    padding: 0.75rem 0.8rem;
+  }
+
+  .area-escritorio {
+    display: none;
+  }
+
+  .area-movil {
+    display: inline-block;
+    max-width: 100%;
+    margin-bottom: 0.3rem;
+  }
+}
