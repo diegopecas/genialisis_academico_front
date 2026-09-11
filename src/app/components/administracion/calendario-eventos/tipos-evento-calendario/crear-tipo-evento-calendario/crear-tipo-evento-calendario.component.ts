@@ -134,9 +134,20 @@ export class CrearTipoEventoCalendarioComponent implements OnInit {
     }
   }
 
+  /** El color es obligatorio y debe ser hexadecimal #RRGGBB (se puede escribir a mano en el campo de texto). */
+  get errorColor(): string {
+    if (!this.model.color || !this.model.color.trim()) {
+      return 'Selecciona un color';
+    }
+    if (!/^#[0-9a-fA-F]{6}$/.test(this.model.color.trim())) {
+      return 'El color debe tener el formato #RRGGBB (ej. #4CAF50)';
+    }
+    return '';
+  }
+
   guardar() {
     this.submitted = true;
-    if (!this.model.nombre.trim() || !this.model.icono) return;
+    if (!this.model.nombre.trim() || !this.model.icono || this.errorColor) return;
 
     const servicio = this.accion === 'crear'
       ? this.tiposEventoCalendarioService.crear(this.model)

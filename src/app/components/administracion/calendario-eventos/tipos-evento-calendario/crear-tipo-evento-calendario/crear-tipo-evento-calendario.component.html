@@ -11,16 +11,25 @@
                     [ngClass]="{'is-invalid': !model.nombre.trim() && submitted}" placeholder="Ej: Salida pedagógica">
                 <div class="invalid-feedback">El nombre es obligatorio</div>
 
-                <label class="form-label mt-4">Color</label>
-                <div class="color-selector">
-                    <input type="color" class="form-control form-control-color" [(ngModel)]="model.color"
-                        title="Escoge el color del tipo de evento">
-                    <div class="color-muestra" [style.border-left-color]="model.color || colorDefault"
-                        [style.background-color]="(model.color || colorDefault) + '1F'">
-                        {{ model.nombre || 'Así se verá el evento' }}
-                    </div>
+                <label class="form-label mt-4">Color <span class="text-danger">*</span></label>
+                <div class="d-flex align-items-center gap-3">
+                    <input 
+                        type="color" 
+                        class="form-control form-control-color" 
+                        [(ngModel)]="model.color"
+                        [disabled]="!editable"
+                        style="width: 80px; height: 50px;">
+                    <input 
+                        type="text" 
+                        class="form-control" 
+                        [(ngModel)]="model.color"
+                        [disabled]="!editable"
+                        maxlength="7"
+                        [ngClass]="{'is-invalid': errorColor && submitted}"
+                        placeholder="#000000">
                 </div>
-                <small class="text-muted d-block mt-1">Con este color se ve el evento en el calendario del jardín y en el de los padres.</small>
+                <div class="invalid-feedback d-block" *ngIf="errorColor && submitted">{{ errorColor }}</div>
+                <small class="form-text text-muted d-block">Con este color se ve el evento en el calendario del jardín y en el de los padres.</small>
             </div>
 
             <div class="col-sm-12 col-md-4 mb-3">

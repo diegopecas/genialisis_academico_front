@@ -62,20 +62,52 @@
           </div>
         </div>
 
-        <!-- Filtros de lo que se muestra -->
-        <div class="chips-filtro mt-3">
-          <button type="button" class="chip-filtro" [class.activo]="filtros.eventos" (click)="cambiarFiltro('eventos')">
-            <i class="fa" [class.fa-check]="filtros.eventos" [class.fa-times]="!filtros.eventos"></i> 📅 Eventos
-          </button>
-          <button type="button" class="chip-filtro" [class.activo]="filtros.estudiantes" (click)="cambiarFiltro('estudiantes')">
-            <i class="fa" [class.fa-check]="filtros.estudiantes" [class.fa-times]="!filtros.estudiantes"></i> 🎂 Estudiantes
-          </button>
-          <button type="button" class="chip-filtro" [class.activo]="filtros.colaboradores" (click)="cambiarFiltro('colaboradores')">
-            <i class="fa" [class.fa-check]="filtros.colaboradores" [class.fa-times]="!filtros.colaboradores"></i> 🎉 Colaboradores
-          </button>
-          <button type="button" class="chip-filtro" [class.activo]="filtros.acudientes" (click)="cambiarFiltro('acudientes')">
-            <i class="fa" [class.fa-check]="filtros.acudientes" [class.fa-times]="!filtros.acudientes"></i> 💛 Familiares
-          </button>
+        <!-- Filtros: eventos por tipo y cumpleaños -->
+        <div class="filtros-calendario mt-3">
+          <div class="grupo-filtro">
+            <div class="grupo-filtro-titulo">
+              <span>📅 Eventos</span>
+              <span class="grupo-filtro-acciones">
+                <button type="button" class="btn-link-filtro" (click)="todosLosTipos(true)">Todos</button> ·
+                <button type="button" class="btn-link-filtro" (click)="todosLosTipos(false)">Ninguno</button>
+              </span>
+            </div>
+            <div class="chips-filtro">
+              <button 
+                *ngFor="let tipo of tipos" 
+                type="button" 
+                class="chip-filtro" 
+                [class.activo]="tipoVisible(tipo.id)"
+                [ngStyle]="estiloChipTipo(tipo)"
+                (click)="cambiarFiltroTipo(tipo.id)">
+                <span class="chip-punto" [style.background-color]="colorTipo(tipo)"></span>
+                <img *ngIf="rutaIcono(tipo.icono)" [src]="rutaIcono(tipo.icono)" class="chip-icono" alt="" />
+                {{ tipo.nombre }}
+              </button>
+              <span *ngIf="tipos.length === 0" class="text-muted small">Sin tipos de evento</span>
+            </div>
+          </div>
+
+          <div class="grupo-filtro">
+            <div class="grupo-filtro-titulo">
+              <span>🎂 Cumpleaños</span>
+              <span class="grupo-filtro-acciones">
+                <button type="button" class="btn-link-filtro" (click)="todosLosCumpleanos(true)">Todos</button> ·
+                <button type="button" class="btn-link-filtro" (click)="todosLosCumpleanos(false)">Ninguno</button>
+              </span>
+            </div>
+            <div class="chips-filtro">
+              <button type="button" class="chip-filtro chip-cumple" [class.activo]="filtrosCumpleanos.estudiantes" (click)="cambiarFiltroCumpleanos('estudiantes')">
+                🎂 Estudiantes
+              </button>
+              <button type="button" class="chip-filtro chip-cumple" [class.activo]="filtrosCumpleanos.colaboradores" (click)="cambiarFiltroCumpleanos('colaboradores')">
+                🎉 Colaboradores
+              </button>
+              <button type="button" class="chip-filtro chip-cumple" [class.activo]="filtrosCumpleanos.acudientes" (click)="cambiarFiltroCumpleanos('acudientes')">
+                💛 Familiares
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -249,7 +281,7 @@
                 class="cumple-item"
                 (click)="verDetalleCumpleanos(cumple); $event.stopPropagation()">
                 <span class="evento-icono">{{ mensajeCumpleanos(cumple).icono }}</span>
-                <span class="evento-texto">{{ mensajeCumpleanos(cumple).titulo }} · {{ etiquetaTipoPersona(cumple) }}</span>
+                <span class="evento-texto">{{ tituloCortoCumpleanos(cumple) }} · {{ etiquetaTipoPersona(cumple) }}</span>
               </div>
             </div>
           </div>
@@ -300,7 +332,7 @@
                 [ngClass]="dia.claseDia"
                 [class.dia-hoy]="dia.esHoy"
                 [title]="totalItemsDia(dia) > 0 ? totalItemsDia(dia) + ' en este día' : ''"
-                (click)="irADia(dia.fecha)">
+                (click)="clicDiaAnio(dia)">
                 <span class="mini-numero">{{ dia.dia }}</span>
                 <span class="mini-puntos" *ngIf="puntosDia(dia).length > 0">
                   <span *ngFor="let color of puntosDia(dia)" class="mini-punto" [style.background-color]="color"></span>
@@ -314,8 +346,20 @@
 
     <!-- ==================== VISTA DE LISTA ==================== -->
     <div *ngIf="!cargando && vistaActual === 'lista'" class="calendario-lista">
+      <!-- Buscador de texto -->
+      <div class="buscador-lista mb-3">
+        <i class="fa fa-search"></i>
+        <input type="text" class="form-control" placeholder="Buscar por evento, tipo o nombre..."
+          [(ngModel)]="textoBusqueda" (ngModelChange)="buscarEnLista()">
+        <button *ngIf="textoBusqueda" type="button" class="btn-limpiar" (click)="textoBusqueda = ''; buscarEnLista()" title="Limpiar">
+          <i class="fa fa-times"></i>
+        </button>
+      </div>
+
       <div *ngIf="lista.length === 0" class="alert alert-info mb-0">
-        <i class="fa fa-info-circle me-2"></i>No hay fechas para mostrar en {{ anioActual }} con los filtros actuales.
+        <i class="fa fa-info-circle me-2"></i>
+        <span *ngIf="!textoBusqueda">No hay fechas para mostrar en {{ anioActual }} con los filtros actuales.</span>
+        <span *ngIf="textoBusqueda">No se encontró "{{ textoBusqueda }}" en {{ anioActual }}.</span>
       </div>
 
       <div *ngFor="let grupo of lista" class="lista-mes">
@@ -342,7 +386,7 @@
                (click)="verDetalleCumpleanos(cumple)">
             <span class="lista-icono">{{ mensajeCumpleanos(cumple).icono }}</span>
             <div class="lista-textos">
-              <span class="lista-titulo">{{ mensajeCumpleanos(cumple).titulo }}</span>
+              <span class="lista-titulo">{{ tituloCortoCumpleanos(cumple) }}</span>
               <small class="lista-subtitulo">{{ etiquetaTipoPersona(cumple) }}</small>
             </div>
           </div>

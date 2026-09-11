@@ -53,10 +53,12 @@ export class TiposEventoCalendarioComponent implements OnInit {
     }).subscribe(({ tipos, catalogo }: any) => {
       const imagenes = (catalogo?.imagenes ?? []) as any[];
       const body = (tipos.body ?? []) as any[];
-      this.datos = body.map((tipo: any) => ({
+      // El componente de tablas pinta toda la fila cuando el registro trae 'color',
+      // por eso el color del tipo viaja solo como la muestra de la columna Color.
+      this.datos = body.map(({ color, ...tipo }: any) => ({
         ...tipo,
         icono_html: this.iconoHtml(tipo.icono, imagenes),
-        color_html: this.colorHtml(tipo.color)
+        color_html: this.colorHtml(color)
       }));
     });
   }
