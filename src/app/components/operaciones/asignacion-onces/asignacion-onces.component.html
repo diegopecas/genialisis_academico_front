@@ -41,7 +41,7 @@
         <div class="paso-header resumen-header-clickable" (click)="resumenAbierto = !resumenAbierto">
           <i class="fas fa-clipboard-list resumen-icono"></i>
           <span class="paso-titulo">Resumen del horario</span>
-          <span class="paso-sub">{{ resumenHorario.length }} estudiante{{ resumenHorario.length !== 1 ? 's' : '' }} con onces</span>
+          <span class="paso-sub">{{ totalResumenVigentes }} estudiante{{ totalResumenVigentes !== 1 ? 's' : '' }} con onces</span>
           <i class="fas ms-2" [ngClass]="resumenAbierto ? 'fa-chevron-up' : 'fa-chevron-down'" style="color: var(--gold-dark, #e0a000); font-size: 0.85rem;"></i>
         </div>
         <div class="resumen-grupos mt-2" *ngIf="resumenAbierto">
@@ -51,7 +51,13 @@
               <div class="resumen-row" *ngFor="let est of getResumenPorGrupo(grupo)">
                 <div class="resumen-nombre">{{ est.nombre_estudiante }}</div>
                 <div class="resumen-productos">
-                  <span class="resumen-producto-chip" *ngFor="let prod of est.productos">{{ prod }}</span>
+                  <span class="resumen-producto-chip" *ngFor="let prod of est.productos" [class.chip-anulado]="prod.anulado === 1">
+                    {{ prod.nombre }}
+                    <span class="chip-anulado-texto" *ngIf="prod.anulado === 1">anulado</span>
+                    <button class="btn-anular-chip" *ngIf="prod.anulado !== 1" (click)="anularAsignacion(est, prod, $event)" title="Anular esta asignación">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </span>
                 </div>
               </div>
             </div>

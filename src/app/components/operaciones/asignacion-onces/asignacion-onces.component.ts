@@ -7,6 +7,7 @@ import { AsignacionOncesService } from '../../../services/asignacion-onces.servi
 import { HorariosAlimentacionService } from '../../../services/horarios-alimentacion.service';
 import { ProductosServiciosService } from '../../../services/productos-servicios.service';
 import { CocinaDisponibilidadService } from '../../../services/cocina-disponibilidad.service';
+import { CuentasPorCobrarService } from '../../../services/cuentas-por-cobrar.service';
 import { UtilService } from '../../../common/constantes/util.service';
 
 interface Estudiante {
@@ -24,9 +25,15 @@ interface Estudiante {
 }
 
 interface Asignacion {
+  // id de la cuenta por cobrar: permite anular la asignación
+  id: string;
   id_persona: string;
   id_producto_servicio: string;
   id_horario_alimentacion: string;
+  valor: number;
+  // 1 cuando la asignación fue anulada: el estudiante vuelve a quedar disponible
+  anulado: number;
+  valor_pagado: number;
 }
 
 interface ProductoItem {
@@ -42,7 +49,16 @@ interface ResumenEstudiante {
   id_persona: string;
   nombre_estudiante: string;
   nombre_grupo: string;
-  productos: string[];
+  productos: ResumenProducto[];
+}
+
+/** Producto asignado a un estudiante en el horario, con los datos para poder anularlo. */
+interface ResumenProducto {
+  id_cuenta: string;
+  nombre: string;
+  valor: number;
+  valor_pagado: number;
+  anulado: number;
 }
 
 @Component({
@@ -118,6 +134,7 @@ export class AsignacionOncesComponent implements OnInit {
     const todos = [...this.todosPresentes, ...this.todosSalieron, ...this.todosAusentes];
     const mapa = new Map<string, ResumenEstudiante>();
 
+    // Se listan también las anuladas, marcadas como tal, para ver qué pasó ese día
     for (const a of this.asignaciones) {
       const persona = String(a.id_persona);
       const est = todos.find(e => String(e.id_persona) === persona);
@@ -131,11 +148,22 @@ export class AsignacionOncesComponent implements OnInit {
           productos: []
         });
       }
-      mapa.get(persona)!.productos.push(nombreProducto);
+      mapa.get(persona)!.productos.push({
+        id_cuenta: String(a.id),
+        nombre: nombreProducto,
+        valor: Number(a.valor),
+        valor_pagado: Number(a.valor_pagado),
+        anulado: Number(a.anulado)
+      });
     }
 
     return Array.from(mapa.values())
       .sort((a, b) => a.nombre_grupo.localeCompare(b.nombre_grupo) || a.nombre_estudiante.localeCompare(b.nombre_estudiante));
+  }
+
+  /** Cuántos estudiantes tienen al menos un producto vigente (lo que realmente se va a cobrar). */
+  public get totalResumenVigentes(): number {
+    return this.resumenHorario.filter(e => e.productos.some(p => p.anulado !== 1)).length;
   }
 
   public get gruposResumen(): string[] {
@@ -151,6 +179,7 @@ export class AsignacionOncesComponent implements OnInit {
     private horariosService: HorariosAlimentacionService,
     private productosServiciosService: ProductosServiciosService,
     private cocinaDisponibilidadService: CocinaDisponibilidadService,
+    private cuentasPorCobrarService: CuentasPorCobrarService,
     private utilService: UtilService
   ) {}
 
@@ -272,10 +301,12 @@ export class AsignacionOncesComponent implements OnInit {
   // ─── Estudiantes ──────────────────────────────────────────────────────────
 
   aplicarFiltroProducto(): void {
+    const delProducto = this.asignaciones
+      .filter(a => String(a.id_producto_servicio) === String(this.productoSeleccionado));
+
+    // Las anuladas no cuentan: el estudiante vuelve a quedar disponible
     const yaAsignados = new Set(
-      this.asignaciones
-        .filter(a => String(a.id_producto_servicio) === String(this.productoSeleccionado))
-        .map(a => String(a.id_persona))
+      delProducto.filter(a => a.anulado !== 1).map(a => String(a.id_persona))
     );
 
     const mapear = (lista: Estudiante[]) =>
@@ -372,6 +403,7 @@ export class AsignacionOncesComponent implements OnInit {
   obtenerOtrosProductosAsignados(idPersona: string): string[] {
     return this.asignaciones
       .filter(a =>
+        a.anulado !== 1 &&
         String(a.id_persona) === String(idPersona) &&
         String(a.id_producto_servicio) !== String(this.productoSeleccionado)
       )
@@ -384,6 +416,59 @@ export class AsignacionOncesComponent implements OnInit {
     return todos.find(p => String(p.id) === idProducto)?.nombre
       || this.todosPs.find((p: any) => String(p.id) === idProducto)?.nombre
       || '';
+  }
+
+  // ─── Eliminar una asignación ──────────────────────────────────────────────
+
+  /**
+   * Anula una asignación desde el resumen del horario.
+   * No se borra: la cuenta por cobrar queda marcada como anulada y sigue saliendo
+   * en los reportes. El estudiante vuelve a quedar disponible para asignarle de nuevo.
+   */
+  async anularAsignacion(est: ResumenEstudiante, producto: ResumenProducto, event: Event): Promise<void> {
+    event.stopPropagation();
+
+    if (Number(producto.valor_pagado) > 0) {
+      Swal.fire('Acción no permitida', 'Esta asignación ya tiene pagos aplicados y no se puede anular.', 'warning');
+      return;
+    }
+
+    const confirmar = await Swal.fire({
+      title: '¿Anular esta asignación?',
+      html: `Se anulará <b>${producto.nombre}</b> de <b>${est.nombre_estudiante}</b>` +
+            `<br>por valor de <b>$ ${Number(producto.valor).toLocaleString('es-CO')}</b>.` +
+            `<br><br>El cobro queda anulado y el estudiante vuelve a estar disponible.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, anular',
+      cancelButtonText: 'Cancelar',
+      reverseButtons: true
+    });
+
+    if (!confirmar.isConfirmed) return;
+
+    this.cuentasPorCobrarService.anular({
+      id: producto.id_cuenta,
+      id_usuario_anulacion: this.utilService.obtenerIdUsuarioActual()
+    }).subscribe({
+      next: () => {
+        Swal.fire({ title: 'Asignación anulada', icon: 'success', timer: 1500, showConfirmButton: false });
+        this.recargarAsignaciones();
+      },
+      error: (error: any) => {
+        Swal.fire('Error', error?.error?.error || 'No se pudo anular la asignación.', 'error');
+      }
+    });
+  }
+
+  /** Vuelve a traer las asignaciones del día para refrescar quién quedó disponible. */
+  private recargarAsignaciones(): void {
+    this.asignacionOncesService.obtenerAsignacionesDelDia(this.fechaSeleccionada, this.horarioSeleccionado).subscribe({
+      next: (r: any) => {
+        this.asignaciones = r || [];
+        this.aplicarFiltroProducto();
+      }
+    });
   }
 
   // ─── Grabar ───────────────────────────────────────────────────────────────

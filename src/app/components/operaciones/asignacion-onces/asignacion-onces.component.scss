@@ -142,6 +142,8 @@ $gris-light: rgba(127, 140, 141, 0.12);
 }
 
 .resumen-producto-chip {
+  display: inline-flex;
+  align-items: center;
   font-size: 0.72rem;
   font-weight: 600;
   background: $gold-light;
@@ -551,6 +553,45 @@ $gris-light: rgba(127, 140, 141, 0.12);
   white-space: nowrap;
   flex-shrink: 0;
 }
+
+
+// Chip de un producto que fue anulado: tachado y en gris
+.resumen-producto-chip.chip-anulado {
+  background: $gris-light;
+  color: $text-secondary;
+  text-decoration: line-through;
+  opacity: 0.85;
+}
+
+.chip-anulado-texto {
+  margin-left: 0.35rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  text-decoration: none;
+  color: $rojo;
+}
+
+// Botón para anular una asignación desde el chip del resumen
+.btn-anular-chip {
+  border: none;
+  background: transparent;
+  color: $rojo;
+  padding: 0;
+  margin-left: 0.4rem;
+  font-size: 0.75rem;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.75;
+  transition: opacity 0.15s, transform 0.15s;
+
+  &:hover {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+}
+
 
 .est-ausente-badge {
   font-size: 0.7rem;
