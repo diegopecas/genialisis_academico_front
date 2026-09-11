@@ -1,0 +1,10 @@
+<div class="modulo">
+    <app-header [tituloModulo]="titulo" [mostrarCrear]="puedeCrear" [accion]="'ConsultarTodos'"
+        [raiz]="'/administracion/datos-maestros/calendario-eventos/tipos'" [regresar]="'/administracion/datos-maestros/calendario-eventos'"
+        [iconoTitulo]="'/assets/images/calendario-eventos.png'"></app-header>
+
+    <app-tablas [titulos]="titulos" [datos]="datos" [raiz]="'/administracion/datos-maestros/calendario-eventos/tipos'" 
+        [acciones]="acciones" [accionEditar]="puedeEditar" [accionEliminar]="puedeEliminar" 
+        [mostrarBuscar]="true" [columnasFiltro]="columnasFiltro"
+        (clicAccion)="clicAccion($event)"></app-tablas>
+</div>

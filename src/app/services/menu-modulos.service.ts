@@ -698,8 +698,8 @@ export class MenuModulosService {
             iconoArbol: '⚙️',
             alt: 'Operaciones',
             imagen: 'assets/images/operaciones.png',
-            permisos: ['admin.gestion_medidas', 'admin.menus'],
-            keywords: ['cocina', 'medidas', 'minuta'],
+            permisos: ['admin.gestion_medidas', 'admin.menus', 'admin.calendario_eventos'],
+            keywords: ['cocina', 'medidas', 'minuta', 'calendario', 'eventos'],
             opciones: [
               {
                 id: 'menus',
@@ -728,6 +728,20 @@ export class MenuModulosService {
                   { id: 'medidas-categorias', label: 'Categorías', iconoArbol: '📂', ruta: '/administracion/datos-maestros/gestion-medidas/categorias', permiso: 'admin.categorias_medidas', keywords: ['medidas', 'agrupar'] },
                   { id: 'medidas-unidades', label: 'Unidades de Medida', iconoArbol: '📐', ruta: '/administracion/datos-maestros/gestion-medidas/unidades', permiso: 'admin.unidades_medidas', keywords: ['kg', 'cm', 'unidades'] },
                   { id: 'medidas-catalogo', label: 'Medidas', iconoArbol: '📏', ruta: '/administracion/datos-maestros/gestion-medidas/medidas', permiso: 'admin.catalogo_medidas', keywords: ['catalogo', 'medidas corporales'] }
+                ]
+              },
+              {
+                id: 'calendario-eventos',
+                label: 'Calendario de Eventos',
+                alt: 'Calendario de Eventos',
+                imagen: 'assets/images/calendario-eventos.png',
+                iconoArbol: '📅',
+                ruta: '/administracion/datos-maestros/calendario-eventos',
+                permiso: 'admin.calendario_eventos',
+                keywords: ['eventos', 'fechas', 'salidas', 'celebraciones', 'agenda del jardin'],
+                hijos: [
+                  { id: 'calendario-eventos-tipos', label: 'Tipos de Evento', iconoArbol: '🏷️', ruta: '/administracion/datos-maestros/calendario-eventos/tipos', permiso: 'admin.tipos_evento_calendario', keywords: ['iconos', 'clasificacion eventos'] },
+                  { id: 'calendario-eventos-lista', label: 'Eventos', iconoArbol: '🗓️', ruta: '/administracion/datos-maestros/calendario-eventos/eventos', permiso: 'admin.eventos_calendario', keywords: ['fechas', 'salidas', 'celebraciones', 'calendario'] }
                 ]
               }
             ]

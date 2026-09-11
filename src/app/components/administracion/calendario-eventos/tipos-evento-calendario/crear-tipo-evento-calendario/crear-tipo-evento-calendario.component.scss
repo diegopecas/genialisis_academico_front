@@ -1,0 +1,230 @@
+.modulo { min-height: 100vh; background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%); }
+.disabled-container { opacity: 0.7; pointer-events: none; }
+.form-label { font-weight: 600; color: #495057; }
+
+.icono-preview-large {
+  width: 180px;
+  height: 180px;
+  border: 2px solid #dee2e6;
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8f9fa;
+  overflow: hidden;
+  margin: 0 auto;
+
+  &.is-invalid-border {
+    border-color: #dc3545;
+  }
+
+  .img-preview {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
+
+  .sin-icono {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: #6c757d;
+
+    i {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+
+    span {
+      font-size: 0.9rem;
+      text-align: center;
+      word-break: break-all;
+      padding: 0 0.5rem;
+    }
+  }
+}
+
+// =============================================
+// Modal overlay
+// =============================================
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+}
+
+.modal-content-custom {
+  background: white;
+  border-radius: 15px;
+  width: 100%;
+  max-width: 900px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header-custom {
+  padding: 1.5rem;
+  border-bottom: 1px solid #dee2e6;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  h3 {
+    margin: 0;
+    color: #2c3e50;
+  }
+
+  .btn-close-custom {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #6c757d;
+    cursor: pointer;
+    transition: color 0.3s ease;
+
+    &:hover {
+      color: #dc3545;
+    }
+  }
+}
+
+.modal-body-custom {
+  padding: 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+// Buscador
+.search-box {
+  position: relative;
+  margin-bottom: 1.5rem;
+
+  input {
+    padding-left: 2.5rem;
+    height: 50px;
+    border-radius: 10px;
+    border: 2px solid #dee2e6;
+
+    &:focus {
+      border-color: #80bdff;
+      box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+  }
+
+  i {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c757d;
+  }
+}
+
+// Grid de imágenes
+.imagenes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.imagen-item {
+  position: relative;
+  border: 2px solid #dee2e6;
+  border-radius: 10px;
+  padding: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  &:hover {
+    border-color: #007bff;
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  }
+
+  &.seleccionada {
+    border-color: #28a745;
+    background: #f0fff4;
+  }
+
+  img {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+    margin-bottom: 0.5rem;
+  }
+
+  .imagen-nombre {
+    font-size: 0.7rem;
+    text-align: center;
+    color: #6c757d;
+    word-break: break-all;
+    line-height: 1.2;
+    max-height: 2.4em;
+    overflow: hidden;
+  }
+
+  .check-icon {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    color: #28a745;
+    font-size: 1.2rem;
+  }
+}
+
+.sin-resultados {
+  text-align: center;
+  padding: 3rem;
+  color: #6c757d;
+
+  i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.3;
+  }
+
+  p {
+    font-size: 1.1rem;
+    margin: 0;
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .modal-content-custom {
+    max-width: 100%;
+    max-height: 95vh;
+  }
+
+  .imagenes-grid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .imagen-item {
+    img {
+      width: 60px;
+      height: 60px;
+    }
+  }
+
+  .icono-preview-large {
+    width: 140px;
+    height: 140px;
+  }
+}

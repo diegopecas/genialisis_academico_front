@@ -1,0 +1,74 @@
+<div class="modulo">
+    <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [accion]="accion"
+        [raiz]="'/administracion/datos-maestros/calendario-eventos/eventos'" [regresar]="regresar"
+        [iconoTitulo]="'/assets/images/calendario-eventos.png'"></app-header>
+
+    <div class="container mt-5" [ngClass]="{ 'disabled-container': !editable }">
+        <div class="alert alert-warning" *ngIf="editable && tipos.length === 0">
+            <i class="fas fa-info-circle me-2"></i>No hay tipos de evento creados. Primero crea uno en Tipos de Evento.
+        </div>
+
+        <div class="row">
+            <div class="col-sm-12 col-md-6 mb-3">
+                <label class="form-label">Fecha <span class="text-danger">*</span></label>
+                <input type="date" class="form-control form-control-lg" [(ngModel)]="model.fecha"
+                    [ngClass]="{'is-invalid': !model.fecha && submitted}">
+                <div class="invalid-feedback">La fecha es obligatoria</div>
+            </div>
+            <div class="col-sm-12 col-md-6 mb-3">
+                <label class="form-label">Tipo de evento <span class="text-danger">*</span></label>
+                <select class="form-select form-select-lg" [(ngModel)]="model.id_tipo_evento_calendario"
+                    [ngClass]="{'is-invalid': !model.id_tipo_evento_calendario && submitted}">
+                    <option value="">Seleccione...</option>
+                    <option *ngFor="let tipo of tipos" [value]="tipo.id">{{ tipo.nombre }}</option>
+                </select>
+                <div class="invalid-feedback">El tipo de evento es obligatorio</div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-6 col-md-3 mb-3">
+                <label class="form-label">Hora de inicio</label>
+                <input type="time" class="form-control form-control-lg" [(ngModel)]="model.hora_inicio"
+                    [ngClass]="{'is-invalid': errorHoras && submitted}">
+            </div>
+            <div class="col-sm-6 col-md-3 mb-3">
+                <label class="form-label">Hora de fin</label>
+                <input type="time" class="form-control form-control-lg" [(ngModel)]="model.hora_fin"
+                    [ngClass]="{'is-invalid': errorHoras && submitted}">
+            </div>
+            <div class="col-md-6 mb-3 d-flex align-items-end">
+                <small *ngIf="!(errorHoras && submitted)" class="text-muted pb-2">
+                    Sin hora, el evento queda para todo el día.
+                </small>
+                <small *ngIf="errorHoras && submitted" class="text-danger pb-2">{{ errorHoras }}</small>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12 mb-3">
+                <label class="form-label">Descripción <span class="text-danger">*</span></label>
+                <textarea class="form-control form-control-lg" rows="4" maxlength="1000" [(ngModel)]="model.descripcion"
+                    [ngClass]="{'is-invalid': !model.descripcion.trim() && submitted}"
+                    placeholder="Ej: Visita al Jardín Botánico, traer ropa cómoda y lonchera"></textarea>
+                <div class="d-flex justify-content-between">
+                    <div class="invalid-feedback d-block" *ngIf="!model.descripcion.trim() && submitted">La descripción es obligatoria</div>
+                    <small class="text-muted ms-auto">{{ model.descripcion.length }}/1000</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mt-5">
+        <div class="row g-2">
+            <div class="col-sm-6" *ngIf="editable">
+                <button class="btn btn-lg btn-warning w-100" (click)="guardar()">
+                    <i class="fas fa-save me-2"></i>Grabar
+                </button>
+            </div>
+            <div class="col-sm-6">
+                <button class="btn btn-lg btn-secondary w-100" (click)="volver()">
+                    <i class="fas fa-arrow-left me-2"></i>Volver
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

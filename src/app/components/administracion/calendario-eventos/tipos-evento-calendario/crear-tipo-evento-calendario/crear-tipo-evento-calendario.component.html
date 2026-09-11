@@ -1,0 +1,94 @@
+<div class="modulo">
+    <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [accion]="accion"
+        [raiz]="'/administracion/datos-maestros/calendario-eventos/tipos'" [regresar]="regresar"
+        [iconoTitulo]="'/assets/images/calendario-eventos.png'"></app-header>
+
+    <div class="container mt-5" [ngClass]="{ 'disabled-container': !editable }">
+        <div class="row">
+            <div class="col-sm-12 col-md-8 mb-3">
+                <label class="form-label">Nombre <span class="text-danger">*</span></label>
+                <input type="text" class="form-control form-control-lg" [(ngModel)]="model.nombre" maxlength="1000"
+                    [ngClass]="{'is-invalid': !model.nombre.trim() && submitted}" placeholder="Ej: Salida pedagógica">
+                <div class="invalid-feedback">El nombre es obligatorio</div>
+            </div>
+
+            <div class="col-sm-12 col-md-4 mb-3">
+                <div class="icono-section">
+                    <label class="form-label text-center d-block">Icono <span class="text-danger">*</span></label>
+                    <div class="icono-preview-large" [ngClass]="{'is-invalid-border': !model.icono && submitted}">
+                        <img *ngIf="rutaIconoSeleccionado" [src]="rutaIconoSeleccionado" alt="Icono seleccionado" class="img-preview">
+                        <div *ngIf="model.icono && !rutaIconoSeleccionado" class="sin-icono">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <span>{{ model.icono }}</span>
+                        </div>
+                        <div *ngIf="!model.icono" class="sin-icono">
+                            <i class="fas fa-image"></i>
+                            <span>Sin icono</span>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2 mt-3" *ngIf="editable">
+                        <button type="button" class="btn btn-primary flex-grow-1 btn-sm" (click)="abrirModalImagenes()">
+                            <i class="fas fa-folder-open"></i> Seleccionar
+                        </button>
+                        <button *ngIf="model.icono" type="button" class="btn btn-danger btn-sm" (click)="model.icono = ''">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <small class="text-danger d-block text-center mt-2" *ngIf="!model.icono && submitted">Selecciona un icono</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mt-5">
+        <div class="row g-2">
+            <div class="col-sm-6" *ngIf="editable">
+                <button class="btn btn-lg btn-warning w-100" (click)="guardar()">
+                    <i class="fas fa-save me-2"></i>Grabar
+                </button>
+            </div>
+            <div class="col-sm-6">
+                <button class="btn btn-lg btn-secondary w-100" (click)="volver()">
+                    <i class="fas fa-arrow-left me-2"></i>Volver
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de selección de iconos -->
+<div class="modal-overlay" *ngIf="mostrarModalImagenes" (click)="cerrarModalImagenes()">
+    <div class="modal-content-custom" (click)="$event.stopPropagation()">
+        <div class="modal-header-custom">
+            <h3>Seleccionar Icono</h3>
+            <button type="button" class="btn-close-custom" (click)="cerrarModalImagenes()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="modal-body-custom">
+            <div class="search-box">
+                <input type="text" class="form-control" placeholder="Buscar icono..."
+                    [(ngModel)]="busquedaImagen" (input)="filtrarImagenes()">
+                <i class="fas fa-search"></i>
+            </div>
+
+            <div class="imagenes-grid">
+                <div *ngFor="let imagen of imagenesFiltradas" class="imagen-item"
+                    (click)="seleccionarImagen(imagen)"
+                    [class.seleccionada]="model.icono === nombreArchivo(imagen.ruta)">
+                    <img [src]="imagen.ruta" [alt]="imagen.nombre">
+                    <div class="imagen-nombre">{{ imagen.nombre }}</div>
+                    <div class="check-icon" *ngIf="model.icono === nombreArchivo(imagen.ruta)">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div *ngIf="imagenesFiltradas.length === 0" class="sin-resultados">
+                <i class="fas fa-search"></i>
+                <p>No se encontraron iconos</p>
+            </div>
+        </div>
+    </div>
+</div>

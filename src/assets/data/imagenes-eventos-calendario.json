@@ -1,0 +1,100 @@
+{
+  "imagenes": [
+    {
+      "nombre": "Cumpleaños",
+      "ruta": "assets/images/evento-cumpleanos.png"
+    },
+    {
+      "nombre": "Reunión de padres",
+      "ruta": "assets/images/evento-reunion-padres.png"
+    },
+    {
+      "nombre": "Salida pedagógica",
+      "ruta": "assets/images/evento-salida-pedagogica.png"
+    },
+    {
+      "nombre": "Fecha patria",
+      "ruta": "assets/images/evento-fecha-patria.png"
+    },
+    {
+      "nombre": "Jornada pedagógica docentes",
+      "ruta": "assets/images/evento-jornada-docentes.png"
+    },
+    {
+      "nombre": "Día festivo",
+      "ruta": "assets/images/evento-dia-festivo.png"
+    },
+    {
+      "nombre": "Vacaciones",
+      "ruta": "assets/images/evento-vacaciones.png"
+    },
+    {
+      "nombre": "Entrega de informes",
+      "ruta": "assets/images/evento-entrega-informes.png"
+    },
+    {
+      "nombre": "Matrículas",
+      "ruta": "assets/images/evento-matriculas.png"
+    },
+    {
+      "nombre": "Graduación",
+      "ruta": "assets/images/evento-graduacion.png"
+    },
+    {
+      "nombre": "Día de la familia",
+      "ruta": "assets/images/evento-dia-familia.png"
+    },
+    {
+      "nombre": "Día del niño",
+      "ruta": "assets/images/evento-dia-nino.png"
+    },
+    {
+      "nombre": "Día de la madre",
+      "ruta": "assets/images/evento-dia-madre.png"
+    },
+    {
+      "nombre": "Día del padre",
+      "ruta": "assets/images/evento-dia-padre.png"
+    },
+    {
+      "nombre": "Disfraces",
+      "ruta": "assets/images/evento-disfraces.png"
+    },
+    {
+      "nombre": "Navidad",
+      "ruta": "assets/images/evento-navidad.png"
+    },
+    {
+      "nombre": "Jornada deportiva",
+      "ruta": "assets/images/evento-deportes.png"
+    },
+    {
+      "nombre": "Muestra artística",
+      "ruta": "assets/images/evento-arte.png"
+    },
+    {
+      "nombre": "Presentación musical",
+      "ruta": "assets/images/evento-musica.png"
+    },
+    {
+      "nombre": "Feria de la ciencia",
+      "ruta": "assets/images/evento-ciencia.png"
+    },
+    {
+      "nombre": "Jornada de salud",
+      "ruta": "assets/images/evento-salud.png"
+    },
+    {
+      "nombre": "Simulacro de evacuación",
+      "ruta": "assets/images/evento-simulacro.png"
+    },
+    {
+      "nombre": "Clausura",
+      "ruta": "assets/images/evento-clausura.png"
+    },
+    {
+      "nombre": "Evento general",
+      "ruta": "assets/images/evento-general.png"
+    }
+  ]
+}

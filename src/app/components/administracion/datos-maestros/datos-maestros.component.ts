@@ -93,6 +93,9 @@ export class DatosMaestrosComponent implements OnInit {
       case 'gestion-medidas':
         this.router.navigate(['/administracion/datos-maestros/gestion-medidas']);
         break;
+      case 'calendario-eventos':
+        this.router.navigate(['/administracion/datos-maestros/calendario-eventos']);
+        break;
       case 'configuracion-global':
         this.router.navigate(['/administracion/datos-maestros/configuracion-global']);
         break;

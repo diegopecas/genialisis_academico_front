@@ -1,0 +1,260 @@
+<div class="modulo">
+  <app-header 
+    [tituloModulo]="titulo" 
+    [mostrarCrear]="true" 
+    [accion]="'ConsultarTodos'"
+    [raiz]="raiz" 
+    [regresar]="'/administracion/datos-maestros/calendario-eventos'" 
+    [iconoTitulo]="'/assets/images/calendario-eventos.png'">
+  </app-header>
+
+  <div class="container-fluid px-4 py-4">
+
+    <!-- Aviso si el jardín todavía no tiene tipos de evento -->
+    <div *ngIf="tipos.length === 0 && !cargando" class="alert alert-warning mb-4">
+      <i class="fa fa-info-circle me-2"></i>
+      No hay tipos de evento creados. Primero crea uno en Tipos de Evento para poder registrar eventos.
+    </div>
+
+    <!-- Barra de controles superior -->
+    <div class="card mb-4">
+      <div class="card-body">
+        <div class="row align-items-center">
+
+          <!-- Navegación de fecha -->
+          <div class="col-md-6">
+            <div class="d-flex align-items-center gap-2">
+              <button class="btn btn-outline-primary" (click)="mesAnterior()">
+                <i class="fa fa-chevron-left"></i>
+              </button>
+              <button class="btn btn-primary" (click)="irHoy()">Hoy</button>
+              <button class="btn btn-outline-primary" (click)="mesSiguiente()">
+                <i class="fa fa-chevron-right"></i>
+              </button>
+
+              <!-- Selector rápido de mes/año (solo vista mes) -->
+              <div *ngIf="vistaActual === 'mes'" class="d-flex gap-2 ms-2 selector-periodo">
+                <select class="form-select form-select-sm" [(ngModel)]="mesActual" (ngModelChange)="cambiarPeriodoSelector()">
+                  <option *ngFor="let nombre of nombresMeses; let i = index" [ngValue]="i">{{ nombre }}</option>
+                </select>
+                <select class="form-select form-select-sm" [(ngModel)]="anioActual" (ngModelChange)="cambiarPeriodoSelector()">
+                  <option *ngFor="let anio of aniosDisponibles" [ngValue]="anio">{{ anio }}</option>
+                </select>
+              </div>
+
+              <!-- Título para vista semana y día -->
+              <h5 *ngIf="vistaActual !== 'mes'" class="mb-0 ms-3">
+                <span *ngIf="vistaActual === 'semana'">{{ obtenerRangoSemana() }}</span>
+                <span *ngIf="vistaActual === 'dia'">{{ obtenerFechaDia() }}</span>
+              </h5>
+            </div>
+          </div>
+
+          <!-- Botones de vista -->
+          <div class="col-md-6 text-md-end text-center">
+            <div class="btn-group" role="group">
+              <button class="btn" [class.btn-primary]="vistaActual === 'dia'" [class.btn-outline-primary]="vistaActual !== 'dia'" (click)="cambiarVista('dia')">Día</button>
+              <button class="btn" [class.btn-primary]="vistaActual === 'semana'" [class.btn-outline-primary]="vistaActual !== 'semana'" (click)="cambiarVista('semana')">Semana</button>
+              <button class="btn" [class.btn-primary]="vistaActual === 'mes'" [class.btn-outline-primary]="vistaActual !== 'mes'" (click)="cambiarVista('mes')">Mes</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loader -->
+    <div *ngIf="cargando" class="text-center py-5">
+      <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+      <p class="mt-3">Cargando calendario...</p>
+    </div>
+
+    <!-- ==================== VISTA DE MES ==================== -->
+    <div *ngIf="!cargando && vistaActual === 'mes'" class="calendario-mes">
+      <div class="calendario-header">
+        <div class="dia-semana-header" *ngFor="let dia of nombresDias">
+          {{ esMobile ? dia.substring(0, 3) : dia }}
+        </div>
+      </div>
+
+      <div class="calendario-grid">
+        <div 
+          *ngFor="let dia of diasCalendario" 
+          class="dia-celda"
+          [class.dia-hoy]="dia.esHoy"
+          [class.dia-otro-mes]="!dia.esMesActual"
+          [title]="'Clic para agregar un evento el ' + dia.dia"
+          (click)="clicDiaMes(dia)">
+
+          <div class="dia-numero">{{ dia.dia }}</div>
+
+          <div class="eventos-dia">
+            <div 
+              *ngFor="let evento of eventosVisiblesMes(dia)" 
+              class="evento-item"
+              [title]="tituloCompacto(evento)"
+              (click)="verDetalleEvento(evento); $event.stopPropagation()">
+              <img *ngIf="rutaIcono(evento.tipo_evento_icono)" [src]="rutaIcono(evento.tipo_evento_icono)" class="evento-icono-img" alt="" />
+              <span *ngIf="!rutaIcono(evento.tipo_evento_icono)" class="evento-icono">📅</span>
+              <span class="evento-texto">
+                <span *ngIf="evento.hora_inicio" class="evento-hora">{{ formatearHora(evento.hora_inicio) }}</span>
+                {{ evento.tipo_evento_nombre }}
+              </span>
+            </div>
+
+            <div 
+              *ngIf="eventosOcultosMes(dia) > 0" 
+              class="mas-items"
+              (click)="verTodoDia(dia); $event.stopPropagation()">
+              +{{ eventosOcultosMes(dia) }} más
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== VISTA DE SEMANA ==================== -->
+    <div *ngIf="!cargando && vistaActual === 'semana'" class="calendario-semana">
+      <div class="semana-container">
+
+        <!-- Columna de horas -->
+        <div class="columna-horas">
+          <div class="hora-header"></div>
+          <div class="franja-todo-dia-label">Todo el día</div>
+          <div *ngFor="let hora of horasDelDia" class="hora-celda">{{ hora }}:00</div>
+        </div>
+
+        <!-- Columnas de días -->
+        <div class="dias-container">
+          <div class="dias-header">
+            <div *ngFor="let dia of diasSemana" class="dia-header" [class.dia-hoy]="dia.esHoy">
+              <div class="dia-nombre">{{ nombresDias[dia.fecha.getDay()] }}</div>
+              <div class="dia-numero-grande">{{ dia.dia }}</div>
+            </div>
+          </div>
+
+          <!-- Banda de eventos de todo el día -->
+          <div class="franja-todo-dia">
+            <div *ngFor="let dia of diasSemana" class="franja-todo-dia-celda" (click)="crearEvento(dia.fecha, null)">
+              <div 
+                *ngFor="let evento of dia.eventosSinHora" 
+                class="evento-todo-dia"
+                [title]="evento.descripcion"
+                (click)="verDetalleEvento(evento); $event.stopPropagation()">
+                <img *ngIf="rutaIcono(evento.tipo_evento_icono)" [src]="rutaIcono(evento.tipo_evento_icono)" class="evento-icono-img" alt="" />
+                <span *ngIf="!rutaIcono(evento.tipo_evento_icono)" class="evento-icono">📅</span>
+                <span class="evento-texto">{{ evento.tipo_evento_nombre }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Grid de horas por día -->
+          <div class="dias-grid">
+            <div *ngFor="let dia of diasSemana" class="dia-columna">
+              <div *ngFor="let hora of horasDelDia" class="hora-slot" (click)="clicHora(dia, hora)"></div>
+
+              <div class="eventos-overlay">
+                <div 
+                  *ngFor="let bloque of dia.bloques" 
+                  class="evento-bloque"
+                  [class.bloque-corto]="esBloqueCorto(bloque)"
+                  [style.top.px]="bloque.top"
+                  [style.height.px]="bloque.alto"
+                  [style.left]="izquierdaBloque(bloque)"
+                  [style.width]="anchoBloque(bloque)"
+                  [title]="tituloCompacto(bloque.evento) + ' - ' + bloque.evento.descripcion"
+                  (click)="verDetalleEvento(bloque.evento)">
+                  <div class="evento-contenido">
+                    <div class="titulo-compacto">
+                      <img *ngIf="rutaIcono(bloque.evento.tipo_evento_icono)" [src]="rutaIcono(bloque.evento.tipo_evento_icono)" class="evento-icono-img" alt="" />
+                      <span *ngIf="!rutaIcono(bloque.evento.tipo_evento_icono)" class="evento-icono">📅</span>
+                      <span class="evento-nombre">{{ tituloCompacto(bloque.evento) }}</span>
+                    </div>
+                    <small *ngIf="!esBloqueCorto(bloque)" class="evento-descripcion">{{ bloque.evento.descripcion }}</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== VISTA DE DÍA ==================== -->
+    <div *ngIf="!cargando && vistaActual === 'dia'" class="calendario-dia">
+      <div class="dia-container">
+
+        <div class="columna-horas">
+          <div class="franja-todo-dia-label">Todo el día</div>
+          <div *ngFor="let hora of horasDelDia" class="hora-celda">{{ hora }}:00</div>
+        </div>
+
+        <div class="dia-columna-grande" *ngIf="diasSemana[0] as dia">
+          <!-- Banda de eventos de todo el día -->
+          <div class="franja-todo-dia franja-todo-dia-individual">
+            <div class="franja-todo-dia-celda" (click)="crearEvento(dia.fecha, null)">
+              <div 
+                *ngFor="let evento of dia.eventosSinHora" 
+                class="evento-todo-dia"
+                (click)="verDetalleEvento(evento); $event.stopPropagation()">
+                <img *ngIf="rutaIcono(evento.tipo_evento_icono)" [src]="rutaIcono(evento.tipo_evento_icono)" class="evento-icono-img" alt="" />
+                <span *ngIf="!rutaIcono(evento.tipo_evento_icono)" class="evento-icono">📅</span>
+                <span class="evento-texto">{{ evento.tipo_evento_nombre }} - {{ evento.descripcion }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="dia-horas">
+            <div *ngFor="let hora of horasDelDia" class="hora-slot-grande" (click)="clicHora(dia, hora)"></div>
+
+            <div class="eventos-overlay">
+              <div 
+                *ngFor="let bloque of dia.bloques" 
+                class="evento-bloque evento-bloque-grande"
+                [class.bloque-corto]="esBloqueCorto(bloque)"
+                [style.top.px]="bloque.top"
+                [style.height.px]="bloque.alto"
+                [style.left]="izquierdaBloque(bloque)"
+                [style.width]="anchoBloque(bloque)"
+                (click)="verDetalleEvento(bloque.evento)">
+                <div class="evento-contenido">
+                  <div class="titulo-compacto">
+                    <img *ngIf="rutaIcono(bloque.evento.tipo_evento_icono)" [src]="rutaIcono(bloque.evento.tipo_evento_icono)" class="evento-icono-img" alt="" />
+                    <span *ngIf="!rutaIcono(bloque.evento.tipo_evento_icono)" class="evento-icono">📅</span>
+                    <span class="evento-nombre">{{ tituloCompacto(bloque.evento) }}</span>
+                  </div>
+                  <small *ngIf="!esBloqueCorto(bloque)" class="evento-descripcion">{{ bloque.evento.descripcion }}</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Leyenda -->
+    <div *ngIf="!cargando" class="card mt-4">
+      <div class="card-body">
+        <h6 class="mb-3"><i class="fa fa-info-circle me-2"></i>Leyenda</h6>
+        <div class="row">
+          <div class="col-md-8">
+            <strong>Tipos de evento:</strong>
+            <div class="d-flex flex-wrap gap-2 mt-2">
+              <span *ngFor="let tipo of tipos" class="badge-tipo">
+                <img *ngIf="rutaIcono(tipo.icono)" [src]="rutaIcono(tipo.icono)" alt="" />
+                {{ tipo.nombre }}
+              </span>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <ul class="mt-2 mb-0">
+              <li>Clic en un día o en una hora para agregar un evento</li>
+              <li>Clic en un evento para ver el detalle, editarlo o eliminarlo</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
