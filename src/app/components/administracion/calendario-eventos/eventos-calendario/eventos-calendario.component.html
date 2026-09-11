@@ -436,4 +436,124 @@
       </div>
     </div>
   </div>
+
+  <!-- ==================== MODAL DE DETALLE ==================== -->
+  <div *ngIf="modal" class="modal-cal-overlay" (click)="cerrarModal()">
+    <div class="modal-cal" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
+
+      <!-- ===== Evento ===== -->
+      <ng-container *ngIf="modal.tipo === 'evento' && modal.evento as evento">
+        <div class="modal-cal-header" [style.background]="fondoEncabezadoEvento(evento)">
+          <button type="button" class="modal-cal-cerrar" (click)="cerrarModal()" title="Cerrar"><i class="fa fa-times"></i></button>
+          <div class="modal-cal-icono">
+            <img *ngIf="rutaIcono(evento.tipo_evento_icono)" [src]="rutaIcono(evento.tipo_evento_icono)" alt="" />
+            <span *ngIf="!rutaIcono(evento.tipo_evento_icono)">📅</span>
+          </div>
+          <h3 class="modal-cal-titulo">{{ evento.descripcion }}</h3>
+          <span class="modal-cal-chip" [style.border-color]="colorEvento(evento)">
+            <span class="chip-punto" [style.background-color]="colorEvento(evento)"></span>
+            {{ evento.tipo_evento_nombre || 'Evento' }}
+          </span>
+        </div>
+
+        <div class="modal-cal-body" *ngIf="!modal.confirmarEliminar">
+          <div class="modal-cal-dato">
+            <i class="fa fa-calendar-alt"></i>
+            <span>{{ capitalizar(formatearFechaLarga(evento.fecha)) }}</span>
+          </div>
+          <div class="modal-cal-dato">
+            <i class="fa fa-clock"></i>
+            <span>{{ textoHora(evento) }}</span>
+          </div>
+        </div>
+
+        <!-- Confirmación de eliminación dentro del mismo modal -->
+        <div class="modal-cal-body modal-cal-confirmar" *ngIf="modal.confirmarEliminar">
+          <i class="fa fa-exclamation-triangle"></i>
+          <p>¿Seguro que quieres eliminar este evento?<br><small>También deja de verse en el portal de padres.</small></p>
+        </div>
+
+        <div class="modal-cal-footer" *ngIf="!modal.confirmarEliminar">
+          <button *ngIf="modal.origen" type="button" class="btn-modal btn-modal-gris" (click)="volverModal()"><i class="fa fa-arrow-left"></i> Volver</button>
+          <button type="button" class="btn-modal btn-modal-editar" (click)="editarDesdeModal()"><i class="fa fa-edit"></i> Editar</button>
+          <button type="button" class="btn-modal btn-modal-eliminar" (click)="pedirConfirmacionEliminar()"><i class="fa fa-trash"></i> Eliminar</button>
+          <button *ngIf="!modal.origen" type="button" class="btn-modal btn-modal-gris" (click)="cerrarModal()">Cerrar</button>
+        </div>
+        <div class="modal-cal-footer" *ngIf="modal.confirmarEliminar">
+          <button type="button" class="btn-modal btn-modal-gris" (click)="cancelarEliminar()">Cancelar</button>
+          <button type="button" class="btn-modal btn-modal-eliminar-solido" (click)="confirmarEliminar()"><i class="fa fa-trash"></i> Sí, eliminar</button>
+        </div>
+      </ng-container>
+
+      <!-- ===== Cumpleaños ===== -->
+      <ng-container *ngIf="modal.tipo === 'cumpleanos' && modal.cumpleanos as cumple">
+        <div class="modal-cal-header" [style.background]="fondoEncabezadoCumple(cumple)">
+          <button type="button" class="modal-cal-cerrar" (click)="cerrarModal()" title="Cerrar"><i class="fa fa-times"></i></button>
+          <div class="modal-cal-emoji">{{ mensajeCumpleanos(cumple).icono }}</div>
+          <h3 class="modal-cal-titulo">{{ mensajeCumpleanos(cumple).titulo }}</h3>
+        </div>
+
+        <div class="modal-cal-body text-center">
+          <p class="modal-cal-mensaje">{{ mensajeCumpleanos(cumple).detalle }}</p>
+          <div class="modal-cal-chips">
+            <span class="modal-cal-chip"><i class="fa fa-calendar-alt"></i> {{ capitalizar(formatearFechaLarga(cumple.fecha)) }}</span>
+            <span class="modal-cal-chip chip-naranja">{{ etiquetaTipoPersona(cumple) }}</span>
+          </div>
+        </div>
+
+        <div class="modal-cal-footer">
+          <button *ngIf="modal.origen" type="button" class="btn-modal btn-modal-gris" (click)="volverModal()"><i class="fa fa-arrow-left"></i> Volver</button>
+          <button type="button" class="btn-modal btn-modal-naranja" (click)="cerrarModal()">Cerrar</button>
+        </div>
+      </ng-container>
+
+      <!-- ===== Día ===== -->
+      <ng-container *ngIf="modal.tipo === 'dia' && modal.dia as dia">
+        <div class="modal-cal-header modal-cal-header-dia" [ngClass]="dia.claseDia">
+          <button type="button" class="modal-cal-cerrar" (click)="cerrarModal()" title="Cerrar"><i class="fa fa-times"></i></button>
+          <div class="modal-cal-dia-numero">{{ dia.dia }}</div>
+          <h3 class="modal-cal-titulo" [class.titulo-link]="modal.conVerDia" (click)="modal.conVerDia && verDiaDesdeModal()"
+              [title]="modal.conVerDia ? 'Ver el día' : ''">
+            {{ capitalizar(formatearFechaLarga(dia.texto)) }}
+          </h3>
+          <span *ngIf="etiquetaClaseDia(dia.claseDia)" class="modal-cal-chip">{{ etiquetaClaseDia(dia.claseDia) }}</span>
+        </div>
+
+        <div class="modal-cal-body">
+          <div *ngIf="totalItemsDia(dia) === 0" class="modal-cal-vacio">
+            <span>🗓️</span>
+            <p>No hay eventos ni cumpleaños este día.</p>
+          </div>
+
+          <div class="modal-cal-lista">
+            <div *ngFor="let evento of eventosDelDia(dia)" class="modal-cal-item" [style.border-left-color]="colorEvento(evento)"
+                 (click)="abrirDesdeDia({ evento: evento })">
+              <img *ngIf="rutaIcono(evento.tipo_evento_icono)" [src]="rutaIcono(evento.tipo_evento_icono)" class="modal-cal-item-icono" alt="" />
+              <span *ngIf="!rutaIcono(evento.tipo_evento_icono)" class="modal-cal-item-emoji">📅</span>
+              <div class="modal-cal-item-textos">
+                <span class="modal-cal-item-titulo">{{ evento.descripcion }}</span>
+                <small>{{ evento.tipo_evento_nombre }} · {{ textoHora(evento) }}</small>
+              </div>
+              <i class="fa fa-chevron-right"></i>
+            </div>
+
+            <div *ngFor="let cumple of dia.cumpleanos" class="modal-cal-item item-cumple" (click)="abrirDesdeDia({ cumpleanos: cumple })">
+              <span class="modal-cal-item-emoji">{{ mensajeCumpleanos(cumple).icono }}</span>
+              <div class="modal-cal-item-textos">
+                <span class="modal-cal-item-titulo">{{ tituloCortoCumpleanos(cumple) }}</span>
+                <small>{{ etiquetaTipoPersona(cumple) }}</small>
+              </div>
+              <i class="fa fa-chevron-right"></i>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-cal-footer">
+          <button type="button" class="btn-modal btn-modal-editar" (click)="agregarDesdeModal()"><i class="fa fa-plus"></i> Agregar evento</button>
+          <button *ngIf="modal.conVerDia" type="button" class="btn-modal btn-modal-azul" (click)="verDiaDesdeModal()"><i class="fa fa-calendar-day"></i> Ver el día</button>
+          <button type="button" class="btn-modal btn-modal-gris" (click)="cerrarModal()">Cerrar</button>
+        </div>
+      </ng-container>
+    </div>
+  </div>
 </div>

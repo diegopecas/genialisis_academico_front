@@ -41,7 +41,7 @@ export class TiposEventoCalendarioComponent implements OnInit {
   crearTitulos() {
     this.titulos = [
       { clave: 'icono_html', alias: 'Icono', alinear: 'centrado', tipo: 'html' },
-      { clave: 'color_html', alias: 'Color', alinear: 'centrado', tipo: 'html' },
+      { clave: 'color_muestra', alias: 'Color', alinear: 'centrado', tipo: 'icono' },
       { clave: 'nombre', alias: 'Nombre', alinear: 'izquierda' }
     ];
   }
@@ -54,11 +54,16 @@ export class TiposEventoCalendarioComponent implements OnInit {
       const imagenes = (catalogo?.imagenes ?? []) as any[];
       const body = (tipos.body ?? []) as any[];
       // El componente de tablas pinta toda la fila cuando el registro trae 'color',
-      // por eso el color del tipo viaja solo como la muestra de la columna Color.
+      // por eso el color del tipo viaja solo en los campos de la muestra de la columna Color.
+      // La columna tipo 'icono' de la tabla lee <clave>_class, <clave>_color, <clave>_texto y <clave>_title.
       this.datos = body.map(({ color, ...tipo }: any) => ({
         ...tipo,
         icono_html: this.iconoHtml(tipo.icono, imagenes),
-        color_html: this.colorHtml(color)
+        color_muestra: color || this.colorDefault,
+        color_muestra_class: 'fas fa-square fa-2x align-middle',
+        color_muestra_color: color || this.colorDefault,
+        color_muestra_texto: color || 'Por defecto',
+        color_muestra_title: color || 'Sin color asignado'
       }));
     });
   }
@@ -75,13 +80,6 @@ export class TiposEventoCalendarioComponent implements OnInit {
     return imagen
       ? `<img src="${imagen.ruta}" alt="${imagen.nombre}" width="40" height="40" style="object-fit: contain;">`
       : `<small class="text-muted">${icono}</small>`;
-  }
-
-  /** Muestra del color del tipo; sin color se ve el dorado por defecto del calendario. */
-  private colorHtml(color: string | null): string {
-    const valor = color || this.colorDefault;
-    const etiqueta = color ? color : 'Por defecto';
-    return `<span style="display: inline-flex; align-items: center; gap: 6px;"><span style="width: 22px; height: 22px; border-radius: 6px; background: ${valor}; border: 1px solid #ddd;"></span><small class="text-muted">${etiqueta}</small></span>`;
   }
 
   clicAccion($event: any) {

@@ -97,6 +97,16 @@ interface DatosAnio {
 
 type TipoVista = 'dia' | 'semana' | 'mes' | 'anio' | 'lista';
 
+interface ModalDetalle {
+  tipo: 'evento' | 'cumpleanos' | 'dia';
+  evento?: EventoCalendario;
+  cumpleanos?: CumpleanosCalendario;
+  dia?: DiaCalendario;
+  conVerDia?: boolean;
+  confirmarEliminar?: boolean;
+  origen?: ModalDetalle | null;
+}
+
 @Component({
   selector: 'app-eventos-calendario',
   standalone: true,
@@ -158,6 +168,9 @@ export class EventosCalendarioComponent implements OnInit {
   public horasDelDia: number[] = [];
 
   public cargando = false;
+
+  // Modal de detalle (evento, cumpleaños o día). 'origen' permite volver a la lista del día.
+  public modal: ModalDetalle | null = null;
 
   public nombresDias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
   public nombresMeses = [
@@ -365,11 +378,11 @@ export class EventosCalendarioComponent implements OnInit {
     return this.filtrosCumpleanos.acudientes;
   }
 
-  /** Estilo del chip de un tipo: tinte suave de su color cuando está activo. */
+  /** Estilo del chip de un tipo: borde de su color cuando está activo (sin fondo). */
   estiloChipTipo(tipo: any): { [k: string]: string } {
     const color = this.colorTipo(tipo);
     return this.tipoVisible(tipo.id)
-      ? { 'border-color': color, 'background-color': color + '1F', 'color': '#424242' }
+      ? { 'border-color': color, 'color': '#424242' }
       : {};
   }
 
@@ -776,86 +789,102 @@ export class EventosCalendarioComponent implements OnInit {
     });
   }
 
-  verDetalleEvento(evento: EventoCalendario) {
-    const ruta = this.rutaIcono(evento.tipo_evento_icono);
-    const color = this.colorEvento(evento);
-    const icono = ruta
-      ? `<img src="${ruta}" alt="" style="width: 64px; height: 64px; object-fit: contain;">`
-      : '<div style="font-size: 3rem;">📅</div>';
+  // ==================== MODAL DE DETALLE ====================
+  // Un solo modal propio para eventos, cumpleaños y días (reemplaza los SweetAlert,
+  // que en móvil apilaban los botones y no dejaban darle un diseño cuidado).
 
-    Swal.fire({
-      title: this.escaparHtml(evento.descripcion),
-      html: `
-        <div style="text-align: center; margin-bottom: 1rem;">${icono}</div>
-        <div style="text-align: left;">
-          <p><strong>Tipo:</strong> <span style="border-left: 4px solid ${color}; padding-left: 6px;">${this.escaparHtml(evento.tipo_evento_nombre || 'Evento')}</span></p>
-          <p><strong>Fecha:</strong> ${this.formatearFechaLarga(evento.fecha)}</p>
-          <p><strong>Hora:</strong> ${this.textoHora(evento)}</p>
-        </div>
-      `,
-      showConfirmButton: true,
-      showDenyButton: true,
-      showCancelButton: true,
-      confirmButtonText: '<i class="fas fa-edit"></i> Editar',
-      denyButtonText: '<i class="fas fa-trash"></i> Eliminar',
-      cancelButtonText: 'Cerrar',
-      confirmButtonColor: '#FFA000',
-      width: '500px'
-    }).then(result => {
-      if (result.isConfirmed) {
-        this.editarEvento(evento);
-      } else if (result.isDenied) {
-        this.eliminarEvento(evento);
-      }
-    });
+  verDetalleEvento(evento: EventoCalendario) {
+    this.modal = { tipo: 'evento', evento, confirmarEliminar: false };
   }
 
   /** Los cumpleaños se calculan al vuelo desde la fecha de nacimiento: solo se consultan. */
   verDetalleCumpleanos(cumple: CumpleanosCalendario) {
-    const mensaje = this.mensajeCumpleanos(cumple);
-    const colores: { [k: string]: string } = {
-      estudiante: 'linear-gradient(135deg, #FFE0B2 0%, #FFB74D 100%)',
-      colaborador: 'linear-gradient(135deg, #B2EBF2 0%, #4DD0E1 100%)',
-      acudiente: 'linear-gradient(135deg, #FFF59D 0%, #FFD54F 100%)'
-    };
-
-    Swal.fire({
-      html: `
-        <div style="background: ${colores[cumple.tipo_persona]}; border-radius: 18px; padding: 22px 18px 18px; margin: -4px -4px 16px;">
-          <div style="font-size: 3.2rem; line-height: 1;">${mensaje.icono}</div>
-          <div style="font-size: 1.25rem; font-weight: 800; color: #3E2723; margin-top: 10px; line-height: 1.3;">
-            ${this.escaparHtml(mensaje.titulo)}
-          </div>
-        </div>
-        <p style="font-size: 1.05rem; color: #424242; margin: 0 8px 16px; line-height: 1.5;">${this.escaparHtml(mensaje.detalle)}</p>
-        <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;">
-          <span style="background: #F5F5F5; border-radius: 20px; padding: 6px 12px; font-size: 0.85rem; color: #616161;">
-            📅 ${this.capitalizar(this.formatearFechaLarga(cumple.fecha))}
-          </span>
-          <span style="background: #FFF3E0; border-radius: 20px; padding: 6px 12px; font-size: 0.85rem; color: #E65100; font-weight: 600;">
-            ${this.escaparHtml(this.etiquetaTipoPersona(cumple))}
-          </span>
-        </div>
-      `,
-      confirmButtonText: 'Cerrar',
-      confirmButtonColor: '#FF9800',
-      width: '460px',
-      padding: '1.25rem'
-    });
+    this.modal = { tipo: 'cumpleanos', cumpleanos: cumple };
   }
 
+  /**
+   * Lista de eventos y cumpleaños de un día; cada uno abre su detalle y hay un botón para agregar un evento.
+   * Desde la vista Año también se ofrece pasar a la vista Día (con el encabezado o el botón "Ver el día").
+   */
+  verTodoDia(dia: DiaCalendario, conVerDia: boolean = false) {
+    this.modal = { tipo: 'dia', dia, conVerDia };
+  }
+
+  /** Clic en un día de la vista Año: muestra lo que hay ese día sin cambiar de vista. */
+  clicDiaAnio(dia: DiaCalendario) {
+    this.verTodoDia(dia, true);
+  }
+
+  /** Desde la lista de un día se abre el detalle; el botón "Volver" regresa a la lista del día. */
+  abrirDesdeDia(item: { evento?: EventoCalendario; cumpleanos?: CumpleanosCalendario }) {
+    const origen = this.modal;
+    if (item.evento) {
+      this.modal = { tipo: 'evento', evento: item.evento, confirmarEliminar: false, origen };
+    } else if (item.cumpleanos) {
+      this.modal = { tipo: 'cumpleanos', cumpleanos: item.cumpleanos, origen };
+    }
+  }
+
+  volverModal() {
+    this.modal = this.modal?.origen ?? null;
+  }
+
+  cerrarModal() {
+    this.modal = null;
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    this.cerrarModal();
+  }
+
+  editarDesdeModal() {
+    const evento = this.modal?.evento;
+    this.cerrarModal();
+    if (evento) {
+      this.editarEvento(evento);
+    }
+  }
+
+  agregarDesdeModal() {
+    const dia = this.modal?.dia;
+    this.cerrarModal();
+    if (dia) {
+      this.crearEvento(dia.fecha, null);
+    }
+  }
+
+  verDiaDesdeModal() {
+    const dia = this.modal?.dia;
+    this.cerrarModal();
+    if (dia) {
+      this.irADia(dia.fecha);
+    }
+  }
+
+  /** El botón Eliminar primero pide confirmación dentro del mismo modal. */
+  pedirConfirmacionEliminar() {
+    if (this.modal) {
+      this.modal = { ...this.modal, confirmarEliminar: true };
+    }
+  }
+
+  cancelarEliminar() {
+    if (this.modal) {
+      this.modal = { ...this.modal, confirmarEliminar: false };
+    }
+  }
+
+  confirmarEliminar() {
+    const evento = this.modal?.evento;
+    this.cerrarModal();
+    if (evento) {
+      this.eliminarEvento(evento);
+    }
+  }
+
+  /** Elimina el evento (la confirmación ya se hizo en el modal). */
   async eliminarEvento(evento: EventoCalendario) {
-    const result = await Swal.fire({
-      title: '¿Está seguro?',
-      text: `¿Desea eliminar el evento "${evento.descripcion || ''}" del ${this.formatearFechaCorta(evento.fecha)}?`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Sí, eliminar',
-      cancelButtonText: 'Cancelar'
-    });
-
-    if (!result.isConfirmed) return;
-
     this.calendariosEventosService.eliminar({ id: evento.id }).subscribe({
       next: () => {
         Swal.fire({ title: 'Eliminado', text: 'El evento ha sido eliminado.', icon: 'success', timer: 1500, showConfirmButton: false });
@@ -867,93 +896,25 @@ export class EventosCalendarioComponent implements OnInit {
     });
   }
 
-  /**
-   * Lista de eventos y cumpleaños de un día; cada uno abre su detalle y hay un botón para agregar un evento.
-   * Desde la vista Año también se ofrece pasar a la vista Día (con el encabezado o el botón "Ver el día").
-   */
-  verTodoDia(dia: DiaCalendario, conVerDia: boolean = false) {
-    const eventos = this.eventosDelDia(dia);
-    let contenido = '<div style="text-align: left; max-height: 60vh; overflow-y: auto;">';
-
-    eventos.forEach((ev, idx) => {
-      const ruta = this.rutaIcono(ev.tipo_evento_icono);
-      const icono = ruta ? `<img src="${ruta}" alt="" style="width: 28px; height: 28px; object-fit: contain;">` : '📅';
-      contenido += this.filaTodoDia('evento', idx, icono, `${this.escaparHtml(ev.descripcion)}`,
-        `${this.escaparHtml(ev.tipo_evento_nombre || 'Evento')} - ${this.textoHora(ev)}`, this.colorEvento(ev));
-    });
-
-    dia.cumpleanos.forEach((c, idx) => {
-      const mensaje = this.mensajeCumpleanos(c);
-      contenido += this.filaTodoDia('cumpleanos', idx, `<span style="font-size: 1.4rem;">${mensaje.icono}</span>`,
-        this.escaparHtml(this.tituloCortoCumpleanos(c)), this.escaparHtml(this.etiquetaTipoPersona(c)), '#FF9800');
-    });
-    if (eventos.length === 0 && dia.cumpleanos.length === 0) {
-      contenido += '<p style="text-align: center; color: #757575; margin: 1rem 0;">No hay eventos ni cumpleaños este día.</p>';
-    }
-    contenido += '</div>';
-
-    const fechaTexto = this.capitalizar(this.formatearFechaLarga(dia.texto));
-    Swal.fire({
-      title: conVerDia
-        ? `<span class="titulo-ver-dia" style="cursor: pointer; text-decoration: underline dotted;" title="Ver el día">${fechaTexto}</span>`
-        : fechaTexto,
-      html: contenido,
-      showConfirmButton: true,
-      confirmButtonText: '<i class="fas fa-plus"></i> Agregar evento',
-      confirmButtonColor: '#FFA000',
-      showDenyButton: conVerDia,
-      denyButtonText: '<i class="fas fa-calendar-day"></i> Ver el día',
-      denyButtonColor: '#546E7A',
-      showCloseButton: true,
-      width: '600px',
-      didOpen: () => {
-        const titulo = document.querySelector('.titulo-ver-dia');
-        if (titulo) {
-          titulo.addEventListener('click', () => {
-            Swal.close();
-            this.irADia(dia.fecha);
-          });
-        }
-        document.querySelectorAll('.item-todo-dia').forEach(item => {
-          item.addEventListener('click', () => {
-            const tipo = (item as HTMLElement).dataset['tipo'];
-            const idx = Number((item as HTMLElement).dataset['idx']);
-            Swal.close();
-            setTimeout(() => {
-              if (tipo === 'evento') {
-                this.verDetalleEvento(eventos[idx]);
-              } else {
-                this.verDetalleCumpleanos(dia.cumpleanos[idx]);
-              }
-            }, 200);
-          });
-        });
-      }
-    }).then(result => {
-      if (result.isConfirmed) {
-        this.crearEvento(dia.fecha, null);
-      } else if (result.isDenied) {
-        this.irADia(dia.fecha);
-      }
-    });
+  /** Encabezado del modal de un evento: degradado suave con el color de su tipo. */
+  fondoEncabezadoEvento(evento: EventoCalendario): string {
+    const color = this.colorEvento(evento);
+    return `linear-gradient(135deg, ${color}26 0%, ${color}66 100%)`;
   }
 
-  /** Clic en un día de la vista Año: muestra lo que hay ese día sin cambiar de vista. */
-  clicDiaAnio(dia: DiaCalendario) {
-    this.verTodoDia(dia, true);
+  /** Encabezado del modal de cumpleaños según quién cumple. */
+  fondoEncabezadoCumple(c: CumpleanosCalendario): string {
+    if (c.tipo_persona === 'estudiante') return 'linear-gradient(135deg, #FFE0B2 0%, #FFB74D 100%)';
+    if (c.tipo_persona === 'colaborador') return 'linear-gradient(135deg, #B2EBF2 0%, #4DD0E1 100%)';
+    return 'linear-gradient(135deg, #FFF59D 0%, #FFD54F 100%)';
   }
 
-  private filaTodoDia(tipo: string, idx: number, icono: string, titulo: string, subtitulo: string, color: string): string {
-    return `
-      <div class="item-todo-dia" data-tipo="${tipo}" data-idx="${idx}"
-           style="display: flex; gap: 10px; align-items: center; background: #f5f5f5; border-left: 4px solid ${color}; padding: 8px 12px; border-radius: 6px; margin-bottom: 6px; cursor: pointer; color: #424242;">
-        ${icono}
-        <div style="min-width: 0;">
-          <div style="font-weight: 600;">${titulo}</div>
-          <small style="color: #757575;">${subtitulo}</small>
-        </div>
-      </div>
-    `;
+  /** Etiqueta del tipo de día para el encabezado del modal del día. */
+  etiquetaClaseDia(clase: ClaseDia): string {
+    if (clase === 'festivo') return 'Festivo';
+    if (clase === 'domingo') return 'Domingo';
+    if (clase === 'no-habil') return 'No hábil';
+    return '';
   }
 
   // ==================== CUMPLEAÑOS ====================
@@ -1060,14 +1021,6 @@ export class EventosCalendarioComponent implements OnInit {
   capitalizar(texto: string): string {
     if (!texto) return '';
     return texto.charAt(0).toUpperCase() + texto.slice(1);
-  }
-
-  private escaparHtml(texto: string): string {
-    return (texto || '')
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
   }
 
   // ==================== UTILIDADES ====================
