@@ -343,6 +343,16 @@ $gris-light: rgba(127, 140, 141, 0.12);
 
     &:hover { background: rgba(231,76,60,0.15); }
   }
+
+  // Ya salieron: tono neutro, no es una alerta
+  &.salieron {
+    background: $gris-light;
+    color: $text-secondary;
+    border: 1px solid rgba(127,140,141,0.25);
+    border-radius: 12px;
+
+    &:hover { background: rgba(127,140,141,0.2); }
+  }
 }
 
 .acordeon-body {
@@ -474,6 +484,7 @@ $gris-light: rgba(127, 140, 141, 0.12);
   }
 
   &.ausente { opacity: 0.8; }
+  &.salio { opacity: 0.9; }
 }
 
 .est-check {
@@ -525,6 +536,18 @@ $gris-light: rgba(127, 140, 141, 0.12);
   border: 1px solid rgba(255, 189, 49, 0.35);
   border-radius: 50px;
   padding: 0.15rem 0.5rem;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.est-salio-badge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: $text-secondary;
+  background: $gris-light;
+  border: 1px solid rgba(127,140,141,0.25);
+  border-radius: 50px;
+  padding: 0.15rem 0.55rem;
   white-space: nowrap;
   flex-shrink: 0;
 }

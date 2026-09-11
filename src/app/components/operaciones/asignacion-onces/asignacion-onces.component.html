@@ -188,7 +188,7 @@
         </div>
 
         <!-- Sin resultados -->
-        <div class="estado-center" *ngIf="presentesFiltrados.length === 0 && ausentesFiltrados.length === 0">
+        <div class="estado-center" *ngIf="presentesFiltrados.length === 0 && salieronFiltrados.length === 0">
           <i class="fas fa-user-check estado-icono-verde"></i>
           <p class="estado-texto" *ngIf="filtroAsignacion === 'todos'">Todos los estudiantes ya tienen onces asignadas para este producto.</p>
           <p class="estado-texto" *ngIf="filtroAsignacion === 'asignados'">Ningún estudiante tiene asignado este producto aún.</p>
@@ -234,24 +234,24 @@
           </div>
         </ng-container>
 
-        <!-- ACORDEÓN AUSENTES -->
-        <div class="acordeon mt-3" *ngIf="ausentesFiltrados.length > 0">
-          <div class="acordeon-header ausentes" (click)="acordeonAusentesAbierto = !acordeonAusentesAbierto">
-            <i class="fas fa-user-times me-2"></i>Ausentes hoy ({{ ausentesFiltrados.length }})
-            <i class="fas ms-auto" [ngClass]="acordeonAusentesAbierto ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+        <!-- ACORDEÓN YA SALIERON: estuvieron ese día y ya se fueron (por si se olvidó asignarles) -->
+        <div class="acordeon mt-3" *ngIf="salieronFiltrados.length > 0">
+          <div class="acordeon-header salieron" (click)="acordeonSalieronAbierto = !acordeonSalieronAbierto">
+            <i class="fas fa-sign-out-alt me-2"></i>Ya salieron ({{ salieronFiltrados.length }})
+            <i class="fas ms-auto" [ngClass]="acordeonSalieronAbierto ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
           </div>
-          <div class="acordeon-body" *ngIf="acordeonAusentesAbierto">
+          <div class="acordeon-body" *ngIf="acordeonSalieronAbierto">
             <div class="grupos-acordeon mt-1">
-              <ng-container *ngFor="let grupo of getGrupos(ausentesFiltrados); trackBy: trackByGrupo">
-                <div class="grupo-acordeon-header" (click)="toggleGrupo('a_' + grupo)">
+              <ng-container *ngFor="let grupo of getGrupos(salieronFiltrados); trackBy: trackByGrupo">
+                <div class="grupo-acordeon-header" (click)="toggleGrupo('s_' + grupo)">
                   <i class="fas fa-users me-2"></i>{{ grupo }}
-                  <span class="grupo-count ms-2">{{ getEstudiantesPorGrupo(ausentesFiltrados, grupo).length }}</span>
-                  <i class="fas ms-auto" [ngClass]="isGrupoAbierto('a_' + grupo) ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+                  <span class="grupo-count ms-2">{{ getEstudiantesPorGrupo(salieronFiltrados, grupo).length }}</span>
+                  <i class="fas ms-auto" [ngClass]="isGrupoAbierto('s_' + grupo) ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
                 </div>
-                <div class="grupo-acordeon-body" *ngIf="isGrupoAbierto('a_' + grupo)">
+                <div class="grupo-acordeon-body" *ngIf="isGrupoAbierto('s_' + grupo)">
                   <div
-                    *ngFor="let est of getEstudiantesPorGrupo(ausentesFiltrados, grupo); trackBy: trackByPersona"
-                    class="estudiante-row ausente"
+                    *ngFor="let est of getEstudiantesPorGrupo(salieronFiltrados, grupo); trackBy: trackByPersona"
+                    class="estudiante-row salio"
                     [class.seleccionado]="est.seleccionado"
                     [class.ya-asignado]="est.ya_asignado"
                     (click)="toggleEstudiante(est)"
@@ -266,7 +266,9 @@
                       </div>
                     </div>
                     <div class="est-asignado-badge" *ngIf="est.ya_asignado">asignado</div>
-                    <div class="est-ausente-badge" *ngIf="!est.ya_asignado">ausente</div>
+                    <div class="est-salio-badge" *ngIf="!est.ya_asignado">
+                      <i class="fas fa-sign-out-alt me-1"></i>Salió {{ formatearHora12(est.hora_salida) }}
+                    </div>
                   </div>
                 </div>
               </ng-container>

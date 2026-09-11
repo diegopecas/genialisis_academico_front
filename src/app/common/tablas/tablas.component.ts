@@ -200,8 +200,9 @@ export class TablasComponent implements OnChanges, OnInit {
       return '';
     }
 
+    // es-CO y no es-ES: es-ES no le pone punto de miles a los números de 4 cifras (8000 en vez de 8.000)
     const formatNumber = (num: number, minFraction: number = 0, maxFraction: number = 2): string => {
-      return new Intl.NumberFormat('es-ES', {
+      return new Intl.NumberFormat('es-CO', {
         minimumFractionDigits: minFraction,
         maximumFractionDigits: maxFraction
       }).format(num);

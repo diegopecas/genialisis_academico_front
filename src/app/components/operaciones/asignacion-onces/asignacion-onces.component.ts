@@ -16,6 +16,8 @@ interface Estudiante {
   id_grupo: string;
   nombre_grupo: string;
   hora_ingreso: string | null;
+  // Solo en los que ya salieron: hora de su última salida del día
+  hora_salida: string | null;
   presente: number;
   seleccionado: boolean;
   ya_asignado: boolean;
@@ -60,6 +62,9 @@ export class AsignacionOncesComponent implements OnInit {
   public horarios: any[] = [];
 
   public todosPresentes: Estudiante[] = [];
+  // Estuvieron ese día y ya salieron: se pueden asignar por si se olvidó hacerlo
+  public todosSalieron: Estudiante[] = [];
+  // No vinieron: no se muestran para asignar, solo sirven para el resumen del horario
   public todosAusentes: Estudiante[] = [];
 
   public asignaciones: Asignacion[] = [];
@@ -68,8 +73,8 @@ export class AsignacionOncesComponent implements OnInit {
   public acordeonProductosAbierto: boolean = false;
 
   public presentesFiltrados: Estudiante[] = [];
-  public ausentesFiltrados: Estudiante[] = [];
-  public acordeonAusentesAbierto: boolean = false;
+  public salieronFiltrados: Estudiante[] = [];
+  public acordeonSalieronAbierto: boolean = false;
 
   public textoBusqueda: string = '';
   public filtroAsignacion: 'todos' | 'asignados' | 'sin_asignar' = 'todos';
@@ -91,7 +96,7 @@ export class AsignacionOncesComponent implements OnInit {
   }
 
   public get totalSeleccionados(): number {
-    return [...this.presentesFiltrados, ...this.ausentesFiltrados]
+    return [...this.presentesFiltrados, ...this.salieronFiltrados]
       .filter(e => e.seleccionado && !e.ya_asignado).length;
   }
 
@@ -110,7 +115,7 @@ export class AsignacionOncesComponent implements OnInit {
 
   public get resumenHorario(): ResumenEstudiante[] {
     if (!this.asignaciones.length) return [];
-    const todos = [...this.todosPresentes, ...this.todosAusentes];
+    const todos = [...this.todosPresentes, ...this.todosSalieron, ...this.todosAusentes];
     const mapa = new Map<string, ResumenEstudiante>();
 
     for (const a of this.asignaciones) {
@@ -180,6 +185,7 @@ export class AsignacionOncesComponent implements OnInit {
       next: (response: any) => {
         const data = response;
         this.todosPresentes = (data?.presentes || []).map((e: any) => ({ ...e, seleccionado: false, ya_asignado: false }));
+        this.todosSalieron  = (data?.salieron  || []).map((e: any) => ({ ...e, seleccionado: false, ya_asignado: false }));
         this.todosAusentes  = (data?.ausentes  || []).map((e: any) => ({ ...e, seleccionado: false, ya_asignado: false }));
         this.cargandoInicial = false;
       },
@@ -245,7 +251,7 @@ export class AsignacionOncesComponent implements OnInit {
     this.productoSeleccionado = id;
     this.textoBusqueda = '';
     this.filtroAsignacion = 'todos';
-    this.acordeonAusentesAbierto = false;
+    this.acordeonSalieronAbierto = false;
     this.gruposAbiertos = new Set();
     this.aplicarFiltroProducto();
   }
@@ -280,14 +286,14 @@ export class AsignacionOncesComponent implements OnInit {
       }));
 
     let presentes = mapear(this.todosPresentes);
-    let ausentes  = mapear(this.todosAusentes);
+    let salieron  = mapear(this.todosSalieron);
 
     if (this.filtroAsignacion === 'asignados') {
       presentes = presentes.filter(e => e.ya_asignado);
-      ausentes  = ausentes.filter(e => e.ya_asignado);
+      salieron  = salieron.filter(e => e.ya_asignado);
     } else if (this.filtroAsignacion === 'sin_asignar') {
       presentes = presentes.filter(e => !e.ya_asignado);
-      ausentes  = ausentes.filter(e => !e.ya_asignado);
+      salieron  = salieron.filter(e => !e.ya_asignado);
     }
 
     if (this.textoBusqueda.trim()) {
@@ -297,11 +303,11 @@ export class AsignacionOncesComponent implements OnInit {
         this.normalizarTexto(e.nombre_grupo).includes(termino)
       );
       presentes = filtrar(presentes);
-      ausentes  = filtrar(ausentes);
+      salieron  = filtrar(salieron);
     }
 
     this.presentesFiltrados = presentes;
-    this.ausentesFiltrados  = ausentes;
+    this.salieronFiltrados  = salieron;
   }
 
   cambioBusqueda(): void { this.aplicarFiltroProducto(); }
@@ -383,7 +389,7 @@ export class AsignacionOncesComponent implements OnInit {
   // ─── Grabar ───────────────────────────────────────────────────────────────
 
   async grabar(): Promise<void> {
-    const seleccionados = [...this.presentesFiltrados, ...this.ausentesFiltrados]
+    const seleccionados = [...this.presentesFiltrados, ...this.salieronFiltrados]
       .filter(e => e.seleccionado && !e.ya_asignado);
 
     if (!seleccionados.length) {
@@ -438,14 +444,24 @@ export class AsignacionOncesComponent implements OnInit {
     this.productosDisponibles = [];
     this.productosNoDisponibles = [];
     this.presentesFiltrados = [];
-    this.ausentesFiltrados = [];
+    this.salieronFiltrados = [];
     this.asignaciones = [];
     this.acordeonProductosAbierto = false;
-    this.acordeonAusentesAbierto = false;
+    this.acordeonSalieronAbierto = false;
     this.textoBusqueda = '';
     this.textoBusquedaProducto = '';
     this.filtroAsignacion = 'todos';
     this.gruposAbiertos = new Set();
+  }
+
+  /** "15:05:00" → "3:05 p. m." para la etiqueta de salida. */
+  formatearHora12(hora: string | null): string {
+    if (!hora) return '';
+    const [h, m] = hora.split(':').map(Number);
+    if (isNaN(h) || isNaN(m)) return '';
+    const sufijo = h < 12 ? 'a. m.' : 'p. m.';
+    const hora12 = h % 12 === 0 ? 12 : h % 12;
+    return `${hora12}:${String(m).padStart(2, '0')} ${sufijo}`;
   }
 
   private normalizarTexto(texto: string): string {
