@@ -2,6 +2,34 @@
 .disabled-container { opacity: 0.7; pointer-events: none; }
 .form-label { font-weight: 600; color: #495057; }
 
+// Selector de color del tipo con una muestra de cómo se verá el evento
+.color-selector {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  .form-control-color {
+    width: 64px;
+    height: 48px;
+    padding: 4px;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .color-muestra {
+    flex: 1;
+    min-width: 0;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border-left: 6px solid;
+    font-weight: 600;
+    color: #424242;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
 .icono-preview-large {
   width: 180px;
   height: 180px;

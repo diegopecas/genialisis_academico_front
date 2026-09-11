@@ -24,6 +24,9 @@ export class CrearEventoCalendarioComponent implements OnInit {
   public regresar = '/administracion/datos-maestros/calendario-eventos/eventos';
   public tipos: any[] = [];
 
+  // La descripción es el título corto del evento (el back valida el mismo límite)
+  public readonly maxDescripcion = 150;
+
   // Vista y fecha del calendario desde donde se llegó, para regresar al mismo punto
   private vistaRetorno = '';
   private fechaRetorno = '';
@@ -101,6 +104,17 @@ export class CrearEventoCalendarioComponent implements OnInit {
     });
   }
 
+  /** Obligatoria y corta; un evento viejo con texto más largo se debe acortar al editarlo. */
+  get errorDescripcion(): string {
+    if (!this.model.descripcion.trim()) {
+      return 'La descripción es obligatoria';
+    }
+    if (this.model.descripcion.trim().length > this.maxDescripcion) {
+      return `La descripción no puede tener más de ${this.maxDescripcion} caracteres`;
+    }
+    return '';
+  }
+
   /** La hora de fin solo tiene sentido con hora de inicio y debe ser posterior a ella. */
   get errorHoras(): string {
     if (this.model.hora_fin && !this.model.hora_inicio) {
@@ -114,7 +128,7 @@ export class CrearEventoCalendarioComponent implements OnInit {
 
   guardar() {
     this.submitted = true;
-    if (!this.model.fecha || !this.model.id_tipo_evento_calendario || !this.model.descripcion.trim() || this.errorHoras) return;
+    if (!this.model.fecha || !this.model.id_tipo_evento_calendario || this.errorDescripcion || this.errorHoras) return;
 
     // Las horas vacías viajan como null para que el evento quede de todo el día
     const datos = {

@@ -56,6 +56,20 @@ export class CalendariosService {
       );
   }
 
+  /** Días, eventos y cumpleaños de todo el año en una sola llamada. */
+  obtenerCalendarioAnio(anio: number) {
+    return this.http
+      .get<HttpResponse<Object>>(`${this.servicio}/anio/${anio}`, { observe: 'response' })
+      .pipe(
+        tap((response: HttpResponse<Object>) => {
+          let respuesta: any = response.body;
+          if (respuesta.error) throw respuesta.error;
+          return response;
+        }),
+        catchError(this.handleError)
+      );
+  }
+
   obtenerDiasHabiles(fecha_inicial: string, fecha_final: string) {
     return this.http
       .get<HttpResponse<Object>>(`${this.servicio}/habiles/${fecha_inicial}/${fecha_final}`, { observe: 'response' })

@@ -32,9 +32,9 @@
                 <i class="fa fa-chevron-right"></i>
               </button>
 
-              <!-- Selector rápido de mes/año (solo vista mes) -->
-              <div *ngIf="vistaActual === 'mes'" class="d-flex gap-2 ms-2 selector-periodo">
-                <select class="form-select form-select-sm" [(ngModel)]="mesActual" (ngModelChange)="cambiarPeriodoSelector()">
+              <!-- Selector rápido de mes/año (vista mes) o solo año (vistas año y lista) -->
+              <div *ngIf="vistaActual === 'mes' || vistaActual === 'anio' || vistaActual === 'lista'" class="d-flex gap-2 ms-2 selector-periodo">
+                <select *ngIf="vistaActual === 'mes'" class="form-select form-select-sm" [(ngModel)]="mesActual" (ngModelChange)="cambiarPeriodoSelector()">
                   <option *ngFor="let nombre of nombresMeses; let i = index" [ngValue]="i">{{ nombre }}</option>
                 </select>
                 <select class="form-select form-select-sm" [(ngModel)]="anioActual" (ngModelChange)="cambiarPeriodoSelector()">
@@ -43,9 +43,9 @@
               </div>
 
               <!-- Título para vista semana y día -->
-              <h5 *ngIf="vistaActual !== 'mes'" class="mb-0 ms-3">
+              <h5 *ngIf="vistaActual === 'semana' || vistaActual === 'dia'" class="mb-0 ms-3">
                 <span *ngIf="vistaActual === 'semana'">{{ obtenerRangoSemana() }}</span>
-                <span *ngIf="vistaActual === 'dia'">{{ obtenerFechaDia() }}</span>
+                <span *ngIf="vistaActual === 'dia'">{{ capitalizar(obtenerFechaDia()) }}</span>
               </h5>
             </div>
           </div>
@@ -56,8 +56,26 @@
               <button class="btn" [class.btn-primary]="vistaActual === 'dia'" [class.btn-outline-primary]="vistaActual !== 'dia'" (click)="cambiarVista('dia')">Día</button>
               <button class="btn" [class.btn-primary]="vistaActual === 'semana'" [class.btn-outline-primary]="vistaActual !== 'semana'" (click)="cambiarVista('semana')">Semana</button>
               <button class="btn" [class.btn-primary]="vistaActual === 'mes'" [class.btn-outline-primary]="vistaActual !== 'mes'" (click)="cambiarVista('mes')">Mes</button>
+              <button class="btn" [class.btn-primary]="vistaActual === 'anio'" [class.btn-outline-primary]="vistaActual !== 'anio'" (click)="cambiarVista('anio')">Año</button>
+              <button class="btn" [class.btn-primary]="vistaActual === 'lista'" [class.btn-outline-primary]="vistaActual !== 'lista'" (click)="cambiarVista('lista')">Lista</button>
             </div>
           </div>
+        </div>
+
+        <!-- Filtros de lo que se muestra -->
+        <div class="chips-filtro mt-3">
+          <button type="button" class="chip-filtro" [class.activo]="filtros.eventos" (click)="cambiarFiltro('eventos')">
+            <i class="fa" [class.fa-check]="filtros.eventos" [class.fa-times]="!filtros.eventos"></i> 📅 Eventos
+          </button>
+          <button type="button" class="chip-filtro" [class.activo]="filtros.estudiantes" (click)="cambiarFiltro('estudiantes')">
+            <i class="fa" [class.fa-check]="filtros.estudiantes" [class.fa-times]="!filtros.estudiantes"></i> 🎂 Estudiantes
+          </button>
+          <button type="button" class="chip-filtro" [class.activo]="filtros.colaboradores" (click)="cambiarFiltro('colaboradores')">
+            <i class="fa" [class.fa-check]="filtros.colaboradores" [class.fa-times]="!filtros.colaboradores"></i> 🎉 Colaboradores
+          </button>
+          <button type="button" class="chip-filtro" [class.activo]="filtros.acudientes" (click)="cambiarFiltro('acudientes')">
+            <i class="fa" [class.fa-check]="filtros.acudientes" [class.fa-times]="!filtros.acudientes"></i> 💛 Familiares
+          </button>
         </div>
       </div>
     </div>
@@ -82,9 +100,9 @@
         <div 
           *ngFor="let dia of diasCalendario" 
           class="dia-celda"
+          [ngClass]="dia.claseDia"
           [class.dia-hoy]="dia.esHoy"
           [class.dia-otro-mes]="!dia.esMesActual"
-          [title]="'Clic para agregar un evento el ' + dia.dia"
           (click)="clicDiaMes(dia)">
 
           <div class="dia-numero">{{ dia.dia }}</div>
@@ -93,21 +111,32 @@
             <div 
               *ngFor="let evento of eventosVisiblesMes(dia)" 
               class="evento-item"
+              [style.border-left-color]="colorEvento(evento)"
+              [style.background-color]="fondoEvento(evento)"
               [title]="tituloCompacto(evento)"
               (click)="verDetalleEvento(evento); $event.stopPropagation()">
               <img *ngIf="rutaIcono(evento.tipo_evento_icono)" [src]="rutaIcono(evento.tipo_evento_icono)" class="evento-icono-img" alt="" />
               <span *ngIf="!rutaIcono(evento.tipo_evento_icono)" class="evento-icono">📅</span>
               <span class="evento-texto">
                 <span *ngIf="evento.hora_inicio" class="evento-hora">{{ formatearHora(evento.hora_inicio) }}</span>
-                {{ evento.tipo_evento_nombre }}
+                {{ evento.descripcion }}
               </span>
             </div>
 
             <div 
-              *ngIf="eventosOcultosMes(dia) > 0" 
+              *ngFor="let cumple of cumpleanosVisiblesMes(dia)" 
+              class="cumple-item"
+              [title]="mensajeCumpleanos(cumple).detalle"
+              (click)="verDetalleCumpleanos(cumple); $event.stopPropagation()">
+              <span class="evento-icono">{{ mensajeCumpleanos(cumple).icono }}</span>
+              <span class="evento-texto">{{ cumple.nombre_corto || cumple.nombre }}</span>
+            </div>
+
+            <div 
+              *ngIf="itemsOcultosMes(dia) > 0" 
               class="mas-items"
               (click)="verTodoDia(dia); $event.stopPropagation()">
-              +{{ eventosOcultosMes(dia) }} más
+              +{{ itemsOcultosMes(dia) }} más
             </div>
           </div>
         </div>
@@ -128,30 +157,40 @@
         <!-- Columnas de días -->
         <div class="dias-container">
           <div class="dias-header">
-            <div *ngFor="let dia of diasSemana" class="dia-header" [class.dia-hoy]="dia.esHoy">
+            <div *ngFor="let dia of diasSemana" class="dia-header" [ngClass]="dia.claseDia" [class.dia-hoy]="dia.esHoy">
               <div class="dia-nombre">{{ nombresDias[dia.fecha.getDay()] }}</div>
               <div class="dia-numero-grande">{{ dia.dia }}</div>
             </div>
           </div>
 
-          <!-- Banda de eventos de todo el día -->
+          <!-- Banda de eventos de todo el día y cumpleaños -->
           <div class="franja-todo-dia">
-            <div *ngFor="let dia of diasSemana" class="franja-todo-dia-celda" (click)="crearEvento(dia.fecha, null)">
+            <div *ngFor="let dia of diasSemana" class="franja-todo-dia-celda" [ngClass]="dia.claseDia" (click)="crearEvento(dia.fecha, null)">
               <div 
                 *ngFor="let evento of dia.eventosSinHora" 
                 class="evento-todo-dia"
+                [style.border-left-color]="colorEvento(evento)"
+                [style.background-color]="fondoEvento(evento)"
                 [title]="evento.descripcion"
                 (click)="verDetalleEvento(evento); $event.stopPropagation()">
                 <img *ngIf="rutaIcono(evento.tipo_evento_icono)" [src]="rutaIcono(evento.tipo_evento_icono)" class="evento-icono-img" alt="" />
                 <span *ngIf="!rutaIcono(evento.tipo_evento_icono)" class="evento-icono">📅</span>
-                <span class="evento-texto">{{ evento.tipo_evento_nombre }}</span>
+                <span class="evento-texto">{{ evento.descripcion }}</span>
+              </div>
+              <div 
+                *ngFor="let cumple of dia.cumpleanos" 
+                class="cumple-item"
+                [title]="mensajeCumpleanos(cumple).detalle"
+                (click)="verDetalleCumpleanos(cumple); $event.stopPropagation()">
+                <span class="evento-icono">{{ mensajeCumpleanos(cumple).icono }}</span>
+                <span class="evento-texto">{{ cumple.nombre_corto || cumple.nombre }}</span>
               </div>
             </div>
           </div>
 
           <!-- Grid de horas por día -->
           <div class="dias-grid">
-            <div *ngFor="let dia of diasSemana" class="dia-columna">
+            <div *ngFor="let dia of diasSemana" class="dia-columna" [ngClass]="dia.claseDia">
               <div *ngFor="let hora of horasDelDia" class="hora-slot" (click)="clicHora(dia, hora)"></div>
 
               <div class="eventos-overlay">
@@ -163,7 +202,8 @@
                   [style.height.px]="bloque.alto"
                   [style.left]="izquierdaBloque(bloque)"
                   [style.width]="anchoBloque(bloque)"
-                  [title]="tituloCompacto(bloque.evento) + ' - ' + bloque.evento.descripcion"
+                  [style.border-left-color]="colorEvento(bloque.evento)"
+                  [title]="tituloCompacto(bloque.evento) + ' - ' + bloque.evento.tipo_evento_nombre"
                   (click)="verDetalleEvento(bloque.evento)">
                   <div class="evento-contenido">
                     <div class="titulo-compacto">
@@ -171,7 +211,7 @@
                       <span *ngIf="!rutaIcono(bloque.evento.tipo_evento_icono)" class="evento-icono">📅</span>
                       <span class="evento-nombre">{{ tituloCompacto(bloque.evento) }}</span>
                     </div>
-                    <small *ngIf="!esBloqueCorto(bloque)" class="evento-descripcion">{{ bloque.evento.descripcion }}</small>
+                    <small *ngIf="!esBloqueCorto(bloque)" class="evento-descripcion">{{ bloque.evento.tipo_evento_nombre }}</small>
                   </div>
                 </div>
               </div>
@@ -190,17 +230,26 @@
           <div *ngFor="let hora of horasDelDia" class="hora-celda">{{ hora }}:00</div>
         </div>
 
-        <div class="dia-columna-grande" *ngIf="diasSemana[0] as dia">
-          <!-- Banda de eventos de todo el día -->
+        <div class="dia-columna-grande" *ngIf="diasSemana[0] as dia" [ngClass]="dia.claseDia">
+          <!-- Banda de eventos de todo el día y cumpleaños -->
           <div class="franja-todo-dia franja-todo-dia-individual">
             <div class="franja-todo-dia-celda" (click)="crearEvento(dia.fecha, null)">
               <div 
                 *ngFor="let evento of dia.eventosSinHora" 
                 class="evento-todo-dia"
+                [style.border-left-color]="colorEvento(evento)"
+                [style.background-color]="fondoEvento(evento)"
                 (click)="verDetalleEvento(evento); $event.stopPropagation()">
                 <img *ngIf="rutaIcono(evento.tipo_evento_icono)" [src]="rutaIcono(evento.tipo_evento_icono)" class="evento-icono-img" alt="" />
                 <span *ngIf="!rutaIcono(evento.tipo_evento_icono)" class="evento-icono">📅</span>
-                <span class="evento-texto">{{ evento.tipo_evento_nombre }} - {{ evento.descripcion }}</span>
+                <span class="evento-texto">{{ evento.descripcion }} · {{ evento.tipo_evento_nombre }}</span>
+              </div>
+              <div 
+                *ngFor="let cumple of dia.cumpleanos" 
+                class="cumple-item"
+                (click)="verDetalleCumpleanos(cumple); $event.stopPropagation()">
+                <span class="evento-icono">{{ mensajeCumpleanos(cumple).icono }}</span>
+                <span class="evento-texto">{{ mensajeCumpleanos(cumple).titulo }} · {{ etiquetaTipoPersona(cumple) }}</span>
               </div>
             </div>
           </div>
@@ -217,6 +266,7 @@
                 [style.height.px]="bloque.alto"
                 [style.left]="izquierdaBloque(bloque)"
                 [style.width]="anchoBloque(bloque)"
+                [style.border-left-color]="colorEvento(bloque.evento)"
                 (click)="verDetalleEvento(bloque.evento)">
                 <div class="evento-contenido">
                   <div class="titulo-compacto">
@@ -224,9 +274,84 @@
                     <span *ngIf="!rutaIcono(bloque.evento.tipo_evento_icono)" class="evento-icono">📅</span>
                     <span class="evento-nombre">{{ tituloCompacto(bloque.evento) }}</span>
                   </div>
-                  <small *ngIf="!esBloqueCorto(bloque)" class="evento-descripcion">{{ bloque.evento.descripcion }}</small>
+                  <small *ngIf="!esBloqueCorto(bloque)" class="evento-descripcion">{{ bloque.evento.tipo_evento_nombre }}</small>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== VISTA DE AÑO ==================== -->
+    <div *ngIf="!cargando && vistaActual === 'anio'" class="calendario-anio">
+      <div class="meses-grid">
+        <div *ngFor="let mes of mesesAnio" class="mes-mini">
+          <div class="mes-mini-titulo">{{ mes.nombre }}</div>
+          <div class="mes-mini-semana">
+            <span *ngFor="let d of nombresDias">{{ d.charAt(0) }}</span>
+          </div>
+          <div class="mes-mini-dias">
+            <ng-container *ngFor="let dia of mes.dias">
+              <div *ngIf="!dia" class="mini-dia vacio"></div>
+              <div 
+                *ngIf="dia" 
+                class="mini-dia"
+                [ngClass]="dia.claseDia"
+                [class.dia-hoy]="dia.esHoy"
+                [title]="totalItemsDia(dia) > 0 ? totalItemsDia(dia) + ' en este día' : ''"
+                (click)="irADia(dia.fecha)">
+                <span class="mini-numero">{{ dia.dia }}</span>
+                <span class="mini-puntos" *ngIf="puntosDia(dia).length > 0">
+                  <span *ngFor="let color of puntosDia(dia)" class="mini-punto" [style.background-color]="color"></span>
+                </span>
+              </div>
+            </ng-container>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== VISTA DE LISTA ==================== -->
+    <div *ngIf="!cargando && vistaActual === 'lista'" class="calendario-lista">
+      <div *ngIf="lista.length === 0" class="alert alert-info mb-0">
+        <i class="fa fa-info-circle me-2"></i>No hay fechas para mostrar en {{ anioActual }} con los filtros actuales.
+      </div>
+
+      <div *ngFor="let grupo of lista" class="lista-mes">
+        <h5 class="lista-mes-titulo">{{ grupo.nombre }} {{ anioActual }}</h5>
+
+        <div *ngFor="let item of grupo.items" class="lista-item" [ngClass]="'lista-' + item.tipo">
+          <div class="lista-fecha" [ngClass]="claseDiaLista(item.fecha)" (click)="irADia(item.fecha)" title="Ver el día">
+            {{ formatearFechaLista(item.fecha) }}
+          </div>
+
+          <!-- Evento -->
+          <div *ngIf="item.tipo === 'evento' && item.evento as evento" class="lista-contenido"
+               [style.border-left-color]="colorEvento(evento)" (click)="verDetalleEvento(evento)">
+            <img *ngIf="rutaIcono(evento.tipo_evento_icono)" [src]="rutaIcono(evento.tipo_evento_icono)" class="lista-icono-img" alt="" />
+            <span *ngIf="!rutaIcono(evento.tipo_evento_icono)" class="lista-icono">📅</span>
+            <div class="lista-textos">
+              <span class="lista-titulo">{{ evento.descripcion }}</span>
+              <small class="lista-subtitulo">{{ evento.tipo_evento_nombre }} · {{ textoHora(evento) }}</small>
+            </div>
+          </div>
+
+          <!-- Cumpleaños -->
+          <div *ngIf="item.tipo === 'cumpleanos' && item.cumpleanos as cumple" class="lista-contenido lista-contenido-cumple"
+               (click)="verDetalleCumpleanos(cumple)">
+            <span class="lista-icono">{{ mensajeCumpleanos(cumple).icono }}</span>
+            <div class="lista-textos">
+              <span class="lista-titulo">{{ mensajeCumpleanos(cumple).titulo }}</span>
+              <small class="lista-subtitulo">{{ etiquetaTipoPersona(cumple) }}</small>
+            </div>
+          </div>
+
+          <!-- Festivo -->
+          <div *ngIf="item.tipo === 'festivo'" class="lista-contenido lista-contenido-festivo">
+            <span class="lista-icono">🗓️</span>
+            <div class="lista-textos">
+              <span class="lista-titulo">{{ item.texto }}</span>
             </div>
           </div>
         </div>
@@ -238,19 +363,29 @@
       <div class="card-body">
         <h6 class="mb-3"><i class="fa fa-info-circle me-2"></i>Leyenda</h6>
         <div class="row">
-          <div class="col-md-8">
+          <div class="col-md-6 mb-3">
             <strong>Tipos de evento:</strong>
             <div class="d-flex flex-wrap gap-2 mt-2">
-              <span *ngFor="let tipo of tipos" class="badge-tipo">
+              <span *ngFor="let tipo of tipos" class="badge-tipo" [style.border-left-color]="colorTipo(tipo)">
                 <img *ngIf="rutaIcono(tipo.icono)" [src]="rutaIcono(tipo.icono)" alt="" />
                 {{ tipo.nombre }}
               </span>
             </div>
           </div>
-          <div class="col-md-4">
+          <div class="col-md-3 mb-3">
+            <strong>Días:</strong>
+            <div class="d-flex flex-column gap-1 mt-2">
+              <span class="leyenda-dia"><span class="leyenda-cuadro festivo"></span> Festivo</span>
+              <span class="leyenda-dia"><span class="leyenda-cuadro domingo"></span> Domingo</span>
+              <span class="leyenda-dia"><span class="leyenda-cuadro no-habil"></span> No hábil</span>
+              <span class="leyenda-dia"><span class="leyenda-cuadro hoy"></span> Hoy</span>
+            </div>
+          </div>
+          <div class="col-md-3 mb-3">
             <ul class="mt-2 mb-0">
               <li>Clic en un día o en una hora para agregar un evento</li>
-              <li>Clic en un evento para ver el detalle, editarlo o eliminarlo</li>
+              <li>Clic en un evento para verlo, editarlo o eliminarlo</li>
+              <li>Los cumpleaños salen de la fecha de nacimiento y solo se consultan</li>
             </ul>
           </div>
         </div>

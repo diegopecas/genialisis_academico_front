@@ -25,6 +25,9 @@ export class TiposEventoCalendarioComponent implements OnInit {
   public puedeEditar = true;
   public puedeEliminar = true;
 
+  // Color con el que se pinta en el calendario un tipo que no tiene color asignado
+  private readonly colorDefault = '#D4A437';
+
   constructor(
     private tiposEventoCalendarioService: TiposEventoCalendarioService,
     private router: Router
@@ -38,6 +41,7 @@ export class TiposEventoCalendarioComponent implements OnInit {
   crearTitulos() {
     this.titulos = [
       { clave: 'icono_html', alias: 'Icono', alinear: 'centrado', tipo: 'html' },
+      { clave: 'color_html', alias: 'Color', alinear: 'centrado', tipo: 'html' },
       { clave: 'nombre', alias: 'Nombre', alinear: 'izquierda' }
     ];
   }
@@ -51,7 +55,8 @@ export class TiposEventoCalendarioComponent implements OnInit {
       const body = (tipos.body ?? []) as any[];
       this.datos = body.map((tipo: any) => ({
         ...tipo,
-        icono_html: this.iconoHtml(tipo.icono, imagenes)
+        icono_html: this.iconoHtml(tipo.icono, imagenes),
+        color_html: this.colorHtml(tipo.color)
       }));
     });
   }
@@ -68,6 +73,13 @@ export class TiposEventoCalendarioComponent implements OnInit {
     return imagen
       ? `<img src="${imagen.ruta}" alt="${imagen.nombre}" width="40" height="40" style="object-fit: contain;">`
       : `<small class="text-muted">${icono}</small>`;
+  }
+
+  /** Muestra del color del tipo; sin color se ve el dorado por defecto del calendario. */
+  private colorHtml(color: string | null): string {
+    const valor = color || this.colorDefault;
+    const etiqueta = color ? color : 'Por defecto';
+    return `<span style="display: inline-flex; align-items: center; gap: 6px;"><span style="width: 22px; height: 22px; border-radius: 6px; background: ${valor}; border: 1px solid #ddd;"></span><small class="text-muted">${etiqueta}</small></span>`;
   }
 
   clicAccion($event: any) {

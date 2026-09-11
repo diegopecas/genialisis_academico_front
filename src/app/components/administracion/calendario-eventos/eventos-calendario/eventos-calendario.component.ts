@@ -2,11 +2,12 @@ import { Component, HostListener, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { forkJoin, Observable, of } from 'rxjs';
+import { forkJoin, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import Swal from 'sweetalert2';
 import { HeaderComponent } from '../../../../common/header/header.component';
 import { CalendariosEventosService } from '../../../../services/calendarios-eventos.service';
+import { CalendariosService } from '../../../../services/calendarios.service';
 import { TiposEventoCalendarioService } from '../../../../services/tipos-evento-calendario.service';
 import { DiasSemanaService } from '../../../../services/dias-semana.service';
 
@@ -19,7 +20,31 @@ interface EventoCalendario {
   descripcion: string;
   tipo_evento_nombre: string;
   tipo_evento_icono: string;
+  tipo_evento_color: string | null;
 }
+
+interface CumpleanosCalendario {
+  id_persona: string;
+  nombre: string;
+  nombre_corto: string;
+  tipo_persona: 'estudiante' | 'colaborador' | 'acudiente';
+  fecha: string;
+  id_genero: number | null;
+  cargo: string | null;
+  parentesco: string | null;
+  estudiantes: string | null;
+}
+
+/** Día del catálogo global `calendarios` (laboral, festivo, domingo, hábil). */
+interface DiaCatalogo {
+  fecha: string;
+  id_tipo_dia: number;
+  id_dia_semana: number;
+  dia_habil: number;
+  tipo_dia_nombre: string;
+}
+
+type ClaseDia = 'festivo' | 'domingo' | 'no-habil' | '';
 
 /** Evento con hora ya ubicado en la grilla (vistas día y semana). */
 interface EventoBloque {
@@ -32,15 +57,45 @@ interface EventoBloque {
 
 interface DiaCalendario {
   fecha: Date;
+  texto: string;
   dia: number;
   esHoy: boolean;
   esMesActual: boolean;
+  claseDia: ClaseDia;
   eventosSinHora: EventoCalendario[];
   eventosConHora: EventoCalendario[];
+  cumpleanos: CumpleanosCalendario[];
   bloques: EventoBloque[];
 }
 
-type TipoVista = 'dia' | 'semana' | 'mes';
+interface MesAnual {
+  mes: number;
+  nombre: string;
+  dias: (DiaCalendario | null)[];
+}
+
+/** Fila de la vista lista: un evento, un cumpleaños o un festivo en una fecha. */
+interface ItemLista {
+  tipo: 'evento' | 'cumpleanos' | 'festivo';
+  fecha: string;
+  evento?: EventoCalendario;
+  cumpleanos?: CumpleanosCalendario;
+  texto?: string;
+}
+
+interface GrupoLista {
+  mes: number;
+  nombre: string;
+  items: ItemLista[];
+}
+
+interface DatosAnio {
+  dias: Map<string, DiaCatalogo>;
+  eventos: EventoCalendario[];
+  cumpleanos: CumpleanosCalendario[];
+}
+
+type TipoVista = 'dia' | 'semana' | 'mes' | 'anio' | 'lista';
 
 @Component({
   selector: 'app-eventos-calendario',
@@ -60,8 +115,11 @@ export class EventosCalendarioComponent implements OnInit {
   // Alto en píxeles de una hora en las vistas día y semana
   private readonly pixelesPorHora = 60;
 
-  // Máximo de eventos visibles por celda en la vista mes
-  private readonly maxEventosMes = 3;
+  // Máximo de elementos visibles por celda en la vista mes
+  private readonly maxItemsMes = 3;
+
+  // Color de los eventos cuyo tipo no tiene color asignado
+  public readonly colorEventoDefault = '#D4A437';
 
   // Estado del calendario
   public vistaActual: TipoVista = 'mes';
@@ -70,16 +128,25 @@ export class EventosCalendarioComponent implements OnInit {
   public anioActual: number = new Date().getFullYear();
   public esMobile = false;
 
+  // Filtros de lo que se muestra (aplican a todas las vistas)
+  public filtros = {
+    eventos: true,
+    estudiantes: true,
+    colaboradores: true,
+    acudientes: true
+  };
+
   // Datos
-  public eventos: EventoCalendario[] = [];
   public tipos: any[] = [];
   public diasCalendario: DiaCalendario[] = [];
   public diasSemana: DiaCalendario[] = [];
+  public mesesAnio: MesAnual[] = [];
+  public lista: GrupoLista[] = [];
   private imagenesIconos: any[] = [];
   private catalogoDiasSemana: any[] = [];
 
-  // Meses ya consultados ('YYYY-MM'), para no repetir llamadas al navegar
-  private mesesCargados = new Map<string, EventoCalendario[]>();
+  // Años ya consultados, para no repetir llamadas al navegar
+  private aniosCargados = new Map<number, DatosAnio>();
 
   // Rango horario del grid (se recalcula con cada cambio de datos)
   public horaInicio: number = 6;
@@ -100,6 +167,7 @@ export class EventosCalendarioComponent implements OnInit {
   constructor(
     private router: Router,
     private route: ActivatedRoute,
+    private calendariosService: CalendariosService,
     private calendariosEventosService: CalendariosEventosService,
     private tiposEventoCalendarioService: TiposEventoCalendarioService,
     private diasSemanaService: DiasSemanaService
@@ -120,7 +188,7 @@ export class EventosCalendarioComponent implements OnInit {
       this.tipos = ((tipos.body ?? []) as any[]).sort((a: any, b: any) => (a.nombre || '').localeCompare(b.nombre || ''));
       this.imagenesIconos = iconos?.imagenes ?? [];
       this.catalogoDiasSemana = dias.body ?? [];
-      this.cargarEventos();
+      this.cargarDatos();
     });
   }
 
@@ -147,7 +215,7 @@ export class EventosCalendarioComponent implements OnInit {
       this.mesActual = this.fechaActual.getMonth();
       this.anioActual = this.fechaActual.getFullYear();
     }
-    if (vista && ['dia', 'semana', 'mes'].includes(vista)) {
+    if (vista && ['dia', 'semana', 'mes', 'anio', 'lista'].includes(vista)) {
       this.vistaActual = vista;
     }
   }
@@ -163,52 +231,62 @@ export class EventosCalendarioComponent implements OnInit {
   // ==================== CARGA DE DATOS ====================
 
   /**
-   * Carga los meses que cubre la vista actual (la vista mes y la semana
-   * pueden mostrar días de los meses vecinos) y arma el calendario.
+   * Carga los años que cubre la vista actual (la vista mes y la semana
+   * pueden mostrar días del año vecino) y arma el calendario.
    */
-  cargarEventos(forzar: boolean = false) {
+  cargarDatos(forzar: boolean = false) {
     if (forzar) {
-      this.mesesCargados.clear();
+      this.aniosCargados.clear();
     }
 
-    const pendientes = this.mesesVisibles().filter(clave => !this.mesesCargados.has(clave));
+    const pendientes = this.aniosVisibles().filter(anio => !this.aniosCargados.has(anio));
 
     if (pendientes.length === 0) {
-      this.actualizarEventosVisibles();
+      this.generarCalendario();
       return;
     }
 
     this.cargando = true;
-    const consultas: Observable<{ clave: string; eventos: EventoCalendario[] }>[] = pendientes.map(clave => {
-      const [anio, mes] = clave.split('-').map(Number);
-      return this.calendariosEventosService.obtenerPorMes(anio, mes).pipe(
-        map((response: any) => ({ clave, eventos: (response.body ?? []) as EventoCalendario[] }))
-      );
-    });
+    const consultas = pendientes.map(anio =>
+      this.calendariosService.obtenerCalendarioAnio(anio).pipe(
+        map((response: any) => ({ anio, datos: response.body ?? {} }))
+      )
+    );
 
     forkJoin(consultas).subscribe({
       next: resultados => {
-        resultados.forEach(r => this.mesesCargados.set(r.clave, r.eventos));
+        resultados.forEach(r => this.aniosCargados.set(r.anio, this.normalizarAnio(r.datos)));
         this.cargando = false;
-        this.actualizarEventosVisibles();
+        this.generarCalendario();
       },
       error: error => {
-        console.error('Error al cargar eventos:', error);
+        console.error('Error al cargar el calendario:', error);
         this.cargando = false;
-        Swal.fire('Error', 'No se pudieron cargar los eventos del calendario', 'error');
+        Swal.fire('Error', 'No se pudo cargar el calendario', 'error');
       }
     });
   }
 
-  private actualizarEventosVisibles() {
-    this.eventos = [];
-    this.mesesCargados.forEach(lista => this.eventos.push(...lista));
-    this.calcularRangoHorario();
-    this.generarCalendario();
+  private normalizarAnio(datos: any): DatosAnio {
+    const dias = new Map<string, DiaCatalogo>();
+    ((datos.dias ?? []) as any[]).forEach(d => {
+      dias.set((d.fecha || '').substring(0, 10), {
+        fecha: d.fecha,
+        id_tipo_dia: Number(d.id_tipo_dia),
+        id_dia_semana: Number(d.id_dia_semana),
+        dia_habil: Number(d.dia_habil),
+        tipo_dia_nombre: d.tipo_dia_nombre || ''
+      });
+    });
+    return {
+      dias,
+      eventos: (datos.eventos ?? []) as EventoCalendario[],
+      cumpleanos: (datos.cumpleanos ?? []) as CumpleanosCalendario[]
+    };
   }
 
-  /** Meses ('YYYY-MM', mes 1-12) que se ven en la vista actual. */
-  private mesesVisibles(): string[] {
+  /** Años que se ven en la vista actual. */
+  private aniosVisibles(): number[] {
     let desde: Date;
     let hasta: Date;
 
@@ -221,18 +299,37 @@ export class EventosCalendarioComponent implements OnInit {
       desde = this.obtenerInicioSemana(this.fechaActual);
       hasta = new Date(desde);
       hasta.setDate(hasta.getDate() + 6);
-    } else {
+    } else if (this.vistaActual === 'dia') {
       desde = new Date(this.fechaActual);
       hasta = new Date(this.fechaActual);
+    } else {
+      return [this.anioActual];
     }
 
-    const claves: string[] = [];
-    const cursor = new Date(desde.getFullYear(), desde.getMonth(), 1);
-    while (cursor <= hasta) {
-      claves.push(`${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, '0')}`);
-      cursor.setMonth(cursor.getMonth() + 1);
+    const anios: number[] = [];
+    for (let a = desde.getFullYear(); a <= hasta.getFullYear(); a++) {
+      anios.push(a);
     }
-    return claves;
+    return anios;
+  }
+
+  private todosLosEventos(): EventoCalendario[] {
+    const eventos: EventoCalendario[] = [];
+    this.aniosCargados.forEach(d => eventos.push(...d.eventos));
+    return eventos;
+  }
+
+  // ==================== FILTROS ====================
+
+  cambiarFiltro(clave: 'eventos' | 'estudiantes' | 'colaboradores' | 'acudientes') {
+    this.filtros[clave] = !this.filtros[clave];
+    this.generarCalendario();
+  }
+
+  private cumpleVisible(c: CumpleanosCalendario): boolean {
+    if (c.tipo_persona === 'estudiante') return this.filtros.estudiantes;
+    if (c.tipo_persona === 'colaborador') return this.filtros.colaboradores;
+    return this.filtros.acudientes;
   }
 
   // ==================== RANGO HORARIO DEL GRID ====================
@@ -245,13 +342,15 @@ export class EventosCalendarioComponent implements OnInit {
     let minMinutos = this.obtenerMinutosBaseDiasSemana('inicio');
     let maxMinutos = this.obtenerMinutosBaseDiasSemana('fin');
 
-    this.eventos.forEach(ev => {
-      const inicio = this.horaStringAMinutos(ev.hora_inicio);
-      if (inicio < 0) return;
-      const fin = inicio + this.minutosEvento(ev);
-      if (inicio < minMinutos) minMinutos = inicio;
-      if (fin > maxMinutos) maxMinutos = fin;
-    });
+    if (this.filtros.eventos) {
+      this.todosLosEventos().forEach(ev => {
+        const inicio = this.horaStringAMinutos(ev.hora_inicio);
+        if (inicio < 0) return;
+        const fin = inicio + this.minutosEvento(ev);
+        if (inicio < minMinutos) minMinutos = inicio;
+        if (fin > maxMinutos) maxMinutos = fin;
+      });
+    }
 
     let horaMinMin = Math.floor(minMinutos / 30) * 30;
     let horaMaxMin = Math.ceil(maxMinutos / 30) * 30;
@@ -301,12 +400,24 @@ export class EventosCalendarioComponent implements OnInit {
   // ==================== GENERACIÓN DEL CALENDARIO ====================
 
   generarCalendario() {
-    if (this.vistaActual === 'mes') {
-      this.generarVistaMes();
-    } else if (this.vistaActual === 'semana') {
-      this.generarVistaSemana();
-    } else {
-      this.generarVistaDia();
+    this.calcularRangoHorario();
+
+    switch (this.vistaActual) {
+      case 'mes':
+        this.generarVistaMes();
+        break;
+      case 'semana':
+        this.generarVistaSemana();
+        break;
+      case 'dia':
+        this.generarVistaDia();
+        break;
+      case 'anio':
+        this.generarVistaAnio();
+        break;
+      case 'lista':
+        this.generarVistaLista();
+        break;
     }
   }
 
@@ -317,19 +428,16 @@ export class EventosCalendarioComponent implements OnInit {
 
     const diaSemanaInicio = primerDia.getDay();
     for (let i = diaSemanaInicio - 1; i >= 0; i--) {
-      const fecha = new Date(this.anioActual, this.mesActual, -i);
-      this.diasCalendario.push(this.crearDiaCalendario(fecha, false));
+      this.diasCalendario.push(this.crearDiaCalendario(new Date(this.anioActual, this.mesActual, -i), false));
     }
 
     for (let dia = 1; dia <= ultimoDia.getDate(); dia++) {
-      const fecha = new Date(this.anioActual, this.mesActual, dia);
-      this.diasCalendario.push(this.crearDiaCalendario(fecha, true));
+      this.diasCalendario.push(this.crearDiaCalendario(new Date(this.anioActual, this.mesActual, dia), true));
     }
 
     const diasRestantes = 42 - this.diasCalendario.length;
     for (let i = 1; i <= diasRestantes; i++) {
-      const fecha = new Date(this.anioActual, this.mesActual + 1, i);
-      this.diasCalendario.push(this.crearDiaCalendario(fecha, false));
+      this.diasCalendario.push(this.crearDiaCalendario(new Date(this.anioActual, this.mesActual + 1, i), false));
     }
   }
 
@@ -347,21 +455,103 @@ export class EventosCalendarioComponent implements OnInit {
     this.diasSemana = [this.crearDiaCalendario(this.fechaActual, true)];
   }
 
+  /** Los 12 meses del año en miniatura; cada mes arranca en domingo como la vista mes. */
+  generarVistaAnio() {
+    this.mesesAnio = [];
+    for (let mes = 0; mes < 12; mes++) {
+      const dias: (DiaCalendario | null)[] = [];
+      const primerDia = new Date(this.anioActual, mes, 1);
+      const totalDias = new Date(this.anioActual, mes + 1, 0).getDate();
+
+      for (let i = 0; i < primerDia.getDay(); i++) {
+        dias.push(null);
+      }
+      for (let d = 1; d <= totalDias; d++) {
+        dias.push(this.crearDiaCalendario(new Date(this.anioActual, mes, d), true));
+      }
+      this.mesesAnio.push({ mes, nombre: this.nombresMeses[mes], dias });
+    }
+  }
+
+  /** Todas las fechas del año con algo (eventos, cumpleaños o festivos), agrupadas por mes. */
+  generarVistaLista() {
+    const datos = this.aniosCargados.get(this.anioActual);
+    const items: ItemLista[] = [];
+
+    if (datos) {
+      if (this.filtros.eventos) {
+        datos.eventos.forEach(evento => items.push({ tipo: 'evento', fecha: (evento.fecha || '').substring(0, 10), evento }));
+      }
+      datos.cumpleanos
+        .filter(c => this.cumpleVisible(c))
+        .forEach(c => items.push({ tipo: 'cumpleanos', fecha: c.fecha, cumpleanos: c }));
+      datos.dias.forEach((d, fecha) => {
+        if (d.id_tipo_dia === 2) {
+          items.push({ tipo: 'festivo', fecha, texto: d.tipo_dia_nombre || 'Festivo' });
+        }
+      });
+    }
+
+    // Por fecha; dentro del día: festivo, eventos (por hora) y cumpleaños
+    const orden = { festivo: 0, evento: 1, cumpleanos: 2 };
+    items.sort((a, b) =>
+      a.fecha.localeCompare(b.fecha) ||
+      orden[a.tipo] - orden[b.tipo] ||
+      (a.evento?.hora_inicio || '').localeCompare(b.evento?.hora_inicio || '')
+    );
+
+    this.lista = [];
+    items.forEach(item => {
+      const mes = Number(item.fecha.substring(5, 7)) - 1;
+      let grupo = this.lista.find(g => g.mes === mes);
+      if (!grupo) {
+        grupo = { mes, nombre: this.nombresMeses[mes], items: [] };
+        this.lista.push(grupo);
+      }
+      grupo.items.push(item);
+    });
+  }
+
   crearDiaCalendario(fecha: Date, esMesActual: boolean): DiaCalendario {
     const hoy = new Date();
     const texto = this.dateATexto(fecha);
-    const delDia = this.eventos.filter(ev => (ev.fecha || '').substring(0, 10) === texto);
+    const datos = this.aniosCargados.get(fecha.getFullYear());
+
+    const delDia = this.filtros.eventos && datos
+      ? datos.eventos.filter(ev => (ev.fecha || '').substring(0, 10) === texto)
+      : [];
     const conHora = delDia.filter(ev => this.horaStringAMinutos(ev.hora_inicio) >= 0);
+    const cumpleanos = datos
+      ? datos.cumpleanos.filter(c => c.fecha === texto && this.cumpleVisible(c))
+      : [];
 
     return {
       fecha: new Date(fecha),
+      texto,
       dia: fecha.getDate(),
       esHoy: fecha.toDateString() === hoy.toDateString(),
       esMesActual,
+      claseDia: this.claseDia(datos?.dias.get(texto), fecha),
       eventosSinHora: delDia.filter(ev => this.horaStringAMinutos(ev.hora_inicio) < 0),
       eventosConHora: conHora,
+      cumpleanos,
       bloques: this.calcularBloques(conHora)
     };
+  }
+
+  /**
+   * Color del día según el catálogo global `calendarios`:
+   * festivo primero, luego domingo y luego cualquier otro día no hábil (ej. sábados).
+   * Si el año no está en el catálogo, al menos se marcan los domingos.
+   */
+  private claseDia(dia: DiaCatalogo | undefined, fecha: Date): ClaseDia {
+    if (!dia) {
+      return fecha.getDay() === 0 ? 'domingo' : '';
+    }
+    if (dia.id_tipo_dia === 2) return 'festivo';
+    if (dia.id_dia_semana === 7) return 'domingo';
+    if (!dia.dia_habil) return 'no-habil';
+    return '';
   }
 
   /**
@@ -416,12 +606,21 @@ export class EventosCalendarioComponent implements OnInit {
     return [...dia.eventosSinHora, ...dia.eventosConHora];
   }
 
-  eventosVisiblesMes(dia: DiaCalendario): EventoCalendario[] {
-    return this.eventosDelDia(dia).slice(0, this.maxEventosMes);
+  totalItemsDia(dia: DiaCalendario): number {
+    return dia.eventosSinHora.length + dia.eventosConHora.length + dia.cumpleanos.length;
   }
 
-  eventosOcultosMes(dia: DiaCalendario): number {
-    return Math.max(0, this.eventosDelDia(dia).length - this.maxEventosMes);
+  eventosVisiblesMes(dia: DiaCalendario): EventoCalendario[] {
+    return this.eventosDelDia(dia).slice(0, this.maxItemsMes);
+  }
+
+  cumpleanosVisiblesMes(dia: DiaCalendario): CumpleanosCalendario[] {
+    const espacio = Math.max(0, this.maxItemsMes - this.eventosDelDia(dia).length);
+    return dia.cumpleanos.slice(0, espacio);
+  }
+
+  itemsOcultosMes(dia: DiaCalendario): number {
+    return Math.max(0, this.totalItemsDia(dia) - this.maxItemsMes);
   }
 
   // ==================== NAVEGACIÓN ====================
@@ -430,13 +629,16 @@ export class EventosCalendarioComponent implements OnInit {
     const vistaAnterior = this.vistaActual;
     this.vistaActual = vista;
 
-    // Al salir de la vista mes, si la fecha actual no está en el mes que se ve, se usa el día 1
-    if (vistaAnterior === 'mes' && vista !== 'mes' &&
-        (this.fechaActual.getMonth() !== this.mesActual || this.fechaActual.getFullYear() !== this.anioActual)) {
-      const hoy = new Date();
-      this.fechaActual = (this.mesActual === hoy.getMonth() && this.anioActual === hoy.getFullYear())
-        ? hoy
-        : new Date(this.anioActual, this.mesActual, 1);
+    // Al pasar de mes/año/lista a día o semana, si la fecha actual no está en el periodo que se ve, se usa el día 1
+    const vieneDePeriodo = vistaAnterior === 'mes' || vistaAnterior === 'anio' || vistaAnterior === 'lista';
+    if (vieneDePeriodo && (vista === 'dia' || vista === 'semana')) {
+      const fueraDelMes = this.fechaActual.getMonth() !== this.mesActual || this.fechaActual.getFullYear() !== this.anioActual;
+      if (fueraDelMes) {
+        const hoy = new Date();
+        this.fechaActual = (this.mesActual === hoy.getMonth() && this.anioActual === hoy.getFullYear())
+          ? hoy
+          : new Date(this.anioActual, this.mesActual, 1);
+      }
     }
 
     if (vista === 'mes') {
@@ -444,7 +646,7 @@ export class EventosCalendarioComponent implements OnInit {
       this.anioActual = this.fechaActual.getFullYear();
     }
 
-    this.cargarEventos();
+    this.cargarDatos();
   }
 
   mesAnterior() {
@@ -456,7 +658,10 @@ export class EventosCalendarioComponent implements OnInit {
   }
 
   private desplazar(sentido: number) {
-    if (this.vistaActual === 'mes') {
+    if (this.vistaActual === 'anio' || this.vistaActual === 'lista') {
+      this.anioActual += sentido;
+      this.fechaActual = new Date(this.anioActual, this.mesActual, 1);
+    } else if (this.vistaActual === 'mes') {
       const nueva = new Date(this.anioActual, this.mesActual + sentido, 1);
       this.mesActual = nueva.getMonth();
       this.anioActual = nueva.getFullYear();
@@ -467,29 +672,38 @@ export class EventosCalendarioComponent implements OnInit {
       this.mesActual = this.fechaActual.getMonth();
       this.anioActual = this.fechaActual.getFullYear();
     }
-    this.cargarEventos();
+    this.cargarDatos();
   }
 
   irHoy() {
     this.fechaActual = new Date();
     this.mesActual = this.fechaActual.getMonth();
     this.anioActual = this.fechaActual.getFullYear();
-    this.cargarEventos();
+    this.cargarDatos();
   }
 
   cambiarPeriodoSelector() {
     this.fechaActual = new Date(this.anioActual, this.mesActual, 1);
-    this.cargarEventos();
+    this.cargarDatos();
+  }
+
+  /** Desde las vistas Año y Lista, un clic en una fecha abre la vista Día de esa fecha. */
+  irADia(fecha: Date | string) {
+    this.fechaActual = typeof fecha === 'string' ? this.textoADate(fecha) : new Date(fecha);
+    this.mesActual = this.fechaActual.getMonth();
+    this.anioActual = this.fechaActual.getFullYear();
+    this.vistaActual = 'dia';
+    this.cargarDatos();
   }
 
   // ==================== ACCIONES ====================
 
   /**
    * Clic en la celda de un día (vista mes). En escritorio abre el formulario con esa fecha;
-   * en móvil, si el día tiene eventos, primero muestra la lista porque en la celda solo se ven iconos.
+   * en móvil, si el día tiene algo, primero muestra la lista porque en la celda solo se ven iconos.
    */
   clicDiaMes(dia: DiaCalendario) {
-    if (this.esMobile && this.eventosDelDia(dia).length > 0) {
+    if (this.esMobile && this.totalItemsDia(dia) > 0) {
       this.verTodoDia(dia);
       return;
     }
@@ -517,18 +731,19 @@ export class EventosCalendarioComponent implements OnInit {
 
   verDetalleEvento(evento: EventoCalendario) {
     const ruta = this.rutaIcono(evento.tipo_evento_icono);
+    const color = this.colorEvento(evento);
     const icono = ruta
       ? `<img src="${ruta}" alt="" style="width: 64px; height: 64px; object-fit: contain;">`
       : '<div style="font-size: 3rem;">📅</div>';
 
     Swal.fire({
-      title: evento.tipo_evento_nombre || 'Evento',
+      title: this.escaparHtml(evento.descripcion),
       html: `
         <div style="text-align: center; margin-bottom: 1rem;">${icono}</div>
         <div style="text-align: left;">
+          <p><strong>Tipo:</strong> <span style="border-left: 4px solid ${color}; padding-left: 6px;">${this.escaparHtml(evento.tipo_evento_nombre || 'Evento')}</span></p>
           <p><strong>Fecha:</strong> ${this.formatearFechaLarga(evento.fecha)}</p>
           <p><strong>Hora:</strong> ${this.textoHora(evento)}</p>
-          <p><strong>Descripción:</strong> ${this.escaparHtml(evento.descripcion)}</p>
         </div>
       `,
       showConfirmButton: true,
@@ -548,10 +763,25 @@ export class EventosCalendarioComponent implements OnInit {
     });
   }
 
+  /** Los cumpleaños se calculan al vuelo desde la fecha de nacimiento: solo se consultan. */
+  verDetalleCumpleanos(cumple: CumpleanosCalendario) {
+    const mensaje = this.mensajeCumpleanos(cumple);
+    Swal.fire({
+      title: `${mensaje.icono} ${this.escaparHtml(mensaje.titulo)}`,
+      html: `
+        <p style="font-size: 1.05rem;">${this.escaparHtml(mensaje.detalle)}</p>
+        <p style="color: #757575; margin-bottom: 0;">${this.capitalizar(this.formatearFechaLarga(cumple.fecha))}</p>
+      `,
+      confirmButtonText: 'Cerrar',
+      confirmButtonColor: '#FFA000',
+      width: '500px'
+    });
+  }
+
   async eliminarEvento(evento: EventoCalendario) {
     const result = await Swal.fire({
       title: '¿Está seguro?',
-      text: `¿Desea eliminar el evento "${evento.tipo_evento_nombre || ''}" del ${this.formatearFechaCorta(evento.fecha)}?`,
+      text: `¿Desea eliminar el evento "${evento.descripcion || ''}" del ${this.formatearFechaCorta(evento.fecha)}?`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Sí, eliminar',
@@ -563,7 +793,7 @@ export class EventosCalendarioComponent implements OnInit {
     this.calendariosEventosService.eliminar({ id: evento.id }).subscribe({
       next: () => {
         Swal.fire({ title: 'Eliminado', text: 'El evento ha sido eliminado.', icon: 'success', timer: 1500, showConfirmButton: false });
-        this.cargarEventos(true);
+        this.cargarDatos(true);
       },
       error: (error: any) => {
         Swal.fire('Error', error?.error?.error || 'No se pudo eliminar el evento.', 'error');
@@ -571,7 +801,7 @@ export class EventosCalendarioComponent implements OnInit {
     });
   }
 
-  /** Lista de eventos de un día; cada uno abre su detalle y hay un botón para agregar otro. */
+  /** Lista de eventos y cumpleaños de un día; cada uno abre su detalle y hay un botón para agregar un evento. */
   verTodoDia(dia: DiaCalendario) {
     const eventos = this.eventosDelDia(dia);
     let contenido = '<div style="text-align: left; max-height: 60vh; overflow-y: auto;">';
@@ -579,21 +809,19 @@ export class EventosCalendarioComponent implements OnInit {
     eventos.forEach((ev, idx) => {
       const ruta = this.rutaIcono(ev.tipo_evento_icono);
       const icono = ruta ? `<img src="${ruta}" alt="" style="width: 28px; height: 28px; object-fit: contain;">` : '📅';
-      contenido += `
-        <div class="item-todo-dia" data-idx="${idx}"
-             style="display: flex; gap: 10px; align-items: center; background: #f5f5f5; border-left: 4px solid #D4A437; padding: 8px 12px; border-radius: 6px; margin-bottom: 6px; cursor: pointer; color: #424242;">
-          ${icono}
-          <div style="min-width: 0;">
-            <div style="font-weight: 600;">${this.escaparHtml(ev.tipo_evento_nombre || 'Evento')} - ${this.textoHora(ev)}</div>
-            <small style="color: #757575;">${this.escaparHtml(ev.descripcion)}</small>
-          </div>
-        </div>
-      `;
+      contenido += this.filaTodoDia('evento', idx, icono, `${this.escaparHtml(ev.descripcion)}`,
+        `${this.escaparHtml(ev.tipo_evento_nombre || 'Evento')} - ${this.textoHora(ev)}`, this.colorEvento(ev));
+    });
+
+    dia.cumpleanos.forEach((c, idx) => {
+      const mensaje = this.mensajeCumpleanos(c);
+      contenido += this.filaTodoDia('cumpleanos', idx, `<span style="font-size: 1.4rem;">${mensaje.icono}</span>`,
+        this.escaparHtml(mensaje.titulo), this.escaparHtml(this.etiquetaTipoPersona(c)), '#FF9800');
     });
     contenido += '</div>';
 
     Swal.fire({
-      title: this.capitalizar(this.formatearFechaLarga(this.dateATexto(dia.fecha))),
+      title: this.capitalizar(this.formatearFechaLarga(dia.texto)),
       html: contenido,
       showConfirmButton: true,
       confirmButtonText: '<i class="fas fa-plus"></i> Agregar evento',
@@ -603,9 +831,16 @@ export class EventosCalendarioComponent implements OnInit {
       didOpen: () => {
         document.querySelectorAll('.item-todo-dia').forEach(item => {
           item.addEventListener('click', () => {
+            const tipo = (item as HTMLElement).dataset['tipo'];
             const idx = Number((item as HTMLElement).dataset['idx']);
             Swal.close();
-            setTimeout(() => this.verDetalleEvento(eventos[idx]), 200);
+            setTimeout(() => {
+              if (tipo === 'evento') {
+                this.verDetalleEvento(eventos[idx]);
+              } else {
+                this.verDetalleCumpleanos(dia.cumpleanos[idx]);
+              }
+            }, 200);
           });
         });
       }
@@ -614,6 +849,60 @@ export class EventosCalendarioComponent implements OnInit {
         this.crearEvento(dia.fecha, null);
       }
     });
+  }
+
+  private filaTodoDia(tipo: string, idx: number, icono: string, titulo: string, subtitulo: string, color: string): string {
+    return `
+      <div class="item-todo-dia" data-tipo="${tipo}" data-idx="${idx}"
+           style="display: flex; gap: 10px; align-items: center; background: #f5f5f5; border-left: 4px solid ${color}; padding: 8px 12px; border-radius: 6px; margin-bottom: 6px; cursor: pointer; color: #424242;">
+        ${icono}
+        <div style="min-width: 0;">
+          <div style="font-weight: 600;">${titulo}</div>
+          <small style="color: #757575;">${subtitulo}</small>
+        </div>
+      </div>
+    `;
+  }
+
+  // ==================== CUMPLEAÑOS ====================
+
+  /**
+   * Mensaje cálido según quién cumple y su género (1 femenino, 2 masculino; sin género: "nuestr@").
+   * El parentesco del acudiente ya llega resuelto del back ("mamá", "abuelo", "familiar").
+   */
+  mensajeCumpleanos(c: CumpleanosCalendario): { icono: string; titulo: string; detalle: string } {
+    const nombre = c.nombre_corto || c.nombre;
+    const nuestro = c.id_genero === 1 ? 'nuestra' : c.id_genero === 2 ? 'nuestro' : 'nuestr@';
+
+    if (c.tipo_persona === 'estudiante') {
+      return {
+        icono: '🎂',
+        titulo: `¡Feliz cumple, ${nombre}!`,
+        detalle: `Hoy ${nuestro} ${nombre} está de cumpleaños. ¡Que su día esté lleno de juegos, abrazos y sonrisas!`
+      };
+    }
+
+    if (c.tipo_persona === 'colaborador') {
+      const colaborador = c.id_genero === 1 ? 'colaboradora' : c.id_genero === 2 ? 'colaborador' : 'colaborador@';
+      return {
+        icono: '🎉',
+        titulo: `¡Feliz cumpleaños, ${nombre}!`,
+        detalle: `Hoy celebramos a ${nuestro} ${colaborador} ${nombre}. ¡Gracias por llenar de cariño cada día en el jardín!`
+      };
+    }
+
+    const felicitar = c.id_genero === 1 ? 'felicitarla' : c.id_genero === 2 ? 'felicitarlo' : 'felicitarle';
+    return {
+      icono: '💛',
+      titulo: `Cumpleaños de ${nombre}`,
+      detalle: `Hoy cumple años ${nombre}, ${c.parentesco || 'familiar'} de ${c.estudiantes || 'uno de nuestros niños'}. ¡Un buen día para ${felicitar}!`
+    };
+  }
+
+  etiquetaTipoPersona(c: CumpleanosCalendario): string {
+    if (c.tipo_persona === 'estudiante') return 'Estudiante';
+    if (c.tipo_persona === 'colaborador') return c.cargo || 'Colaborador';
+    return `${this.capitalizar(c.parentesco || 'familiar')} de ${c.estudiantes || ''}`;
   }
 
   // ==================== PRESENTACIÓN ====================
@@ -625,6 +914,28 @@ export class EventosCalendarioComponent implements OnInit {
     return imagen ? imagen.ruta : '';
   }
 
+  colorEvento(evento: EventoCalendario): string {
+    return evento.tipo_evento_color || this.colorEventoDefault;
+  }
+
+  /** Fondo suave del color del tipo (el color llega en #RRGGBB y se le agrega transparencia). */
+  fondoEvento(evento: EventoCalendario): string {
+    return this.colorEvento(evento) + '1F';
+  }
+
+  colorTipo(tipo: any): string {
+    return tipo?.color || this.colorEventoDefault;
+  }
+
+  /** Colores de los puntos de un día en la vista Año: uno por evento (máx. 3) y uno si hay cumpleaños. */
+  puntosDia(dia: DiaCalendario): string[] {
+    const puntos = this.eventosDelDia(dia).slice(0, 3).map(ev => this.colorEvento(ev));
+    if (dia.cumpleanos.length > 0) {
+      puntos.push('#FF9800');
+    }
+    return puntos;
+  }
+
   textoHora(evento: EventoCalendario): string {
     if (this.horaStringAMinutos(evento.hora_inicio) < 0) return 'Todo el día';
     const inicio = this.formatearHora(evento.hora_inicio!);
@@ -632,7 +943,8 @@ export class EventosCalendarioComponent implements OnInit {
   }
 
   tituloCompacto(evento: EventoCalendario): string {
-    return `${evento.tipo_evento_nombre || 'Evento'} - ${this.textoHora(evento)}`;
+    const hora = this.horaStringAMinutos(evento.hora_inicio) >= 0 ? `${this.textoHora(evento)} · ` : '';
+    return `${hora}${evento.descripcion}`;
   }
 
   esBloqueCorto(bloque: EventoBloque): boolean {
@@ -673,7 +985,7 @@ export class EventosCalendarioComponent implements OnInit {
   }
 
   /** "YYYY-MM-DD" a Date local, sin el desfase de zona horaria de new Date('YYYY-MM-DD'). */
-  private textoADate(texto: string): Date {
+  textoADate(texto: string): Date {
     const [anio, mes, dia] = texto.substring(0, 10).split('-').map(Number);
     return new Date(anio, mes - 1, dia);
   }
@@ -686,6 +998,17 @@ export class EventosCalendarioComponent implements OnInit {
   formatearFechaLarga(fecha: string): string {
     if (!fecha) return '';
     return this.textoADate(fecha).toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  }
+
+  /** Para la vista lista: "Lun 14". */
+  formatearFechaLista(fecha: string): string {
+    const d = this.textoADate(fecha);
+    return `${this.nombresDias[d.getDay()].substring(0, 3)} ${d.getDate()}`;
+  }
+
+  claseDiaLista(fecha: string): ClaseDia {
+    const d = this.textoADate(fecha);
+    return this.claseDia(this.aniosCargados.get(d.getFullYear())?.dias.get(fecha), d);
   }
 
   formatearHora(hora: string): string {

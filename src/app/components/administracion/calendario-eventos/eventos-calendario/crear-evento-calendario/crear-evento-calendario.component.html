@@ -46,12 +46,12 @@
         <div class="row">
             <div class="col-12 mb-3">
                 <label class="form-label">Descripción <span class="text-danger">*</span></label>
-                <textarea class="form-control form-control-lg" rows="4" maxlength="1000" [(ngModel)]="model.descripcion"
-                    [ngClass]="{'is-invalid': !model.descripcion.trim() && submitted}"
-                    placeholder="Ej: Visita al Jardín Botánico, traer ropa cómoda y lonchera"></textarea>
+                <input type="text" class="form-control form-control-lg" [maxlength]="maxDescripcion" [(ngModel)]="model.descripcion"
+                    [ngClass]="{'is-invalid': errorDescripcion && submitted}"
+                    placeholder="Ej: Salida al Jardín Botánico">
                 <div class="d-flex justify-content-between">
-                    <div class="invalid-feedback d-block" *ngIf="!model.descripcion.trim() && submitted">La descripción es obligatoria</div>
-                    <small class="text-muted ms-auto">{{ model.descripcion.length }}/1000</small>
+                    <div class="invalid-feedback d-block" *ngIf="errorDescripcion && submitted">{{ errorDescripcion }}</div>
+                    <small class="text-muted ms-auto" [class.text-danger]="model.descripcion.length > maxDescripcion">{{ model.descripcion.length }}/{{ maxDescripcion }}</small>
                 </div>
             </div>
         </div>

@@ -25,8 +25,12 @@ export class CrearTipoEventoCalendarioComponent implements OnInit {
   public model = {
     id: "",
     nombre: "",
-    icono: ""
+    icono: "",
+    color: ""
   };
+
+  // Color que se propone al crear un tipo (el dorado del calendario)
+  public readonly colorDefault = '#D4A437';
 
   // Modal de iconos
   mostrarModalImagenes: boolean = false;
@@ -51,6 +55,7 @@ export class CrearTipoEventoCalendarioComponent implements OnInit {
         case 'crear':
           this.editable = true;
           this.titulo = "Crear Tipo de Evento";
+          this.model.color = this.colorDefault;
           break;
         case 'editar':
           this.editable = true;
@@ -73,7 +78,9 @@ export class CrearTipoEventoCalendarioComponent implements OnInit {
         this.model = {
           id: body[0].id,
           nombre: body[0].nombre,
-          icono: body[0].icono || ""
+          icono: body[0].icono || "",
+          // Un tipo sin color se muestra con el dorado por defecto, que es como ya se ve en el calendario
+          color: body[0].color || this.colorDefault
         };
       }
     });
