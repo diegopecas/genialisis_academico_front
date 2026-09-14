@@ -134,6 +134,8 @@
                        title="Entrada tardía"></i>
                   </span>
                   <span *ngIf="!dia.horaIngreso">--:--</span>
+                  <div *ngIf="dia.personaEntrega" class="persona-movimiento">Lo trajo: {{ dia.personaEntrega }}</div>
+                  <div *ngIf="dia.colaboradorRecibe" class="persona-movimiento">Lo recibió: {{ dia.colaboradorRecibe }}</div>
                 </td>
                 <td>
                   <span *ngIf="dia.horaSalida">
@@ -142,6 +144,8 @@
                        title="Salida tardía"></i>
                   </span>
                   <span *ngIf="!dia.horaSalida">--:--</span>
+                  <div *ngIf="dia.colaboradorEntrega" class="persona-movimiento">Lo entregó: {{ dia.colaboradorEntrega }}</div>
+                  <div *ngIf="dia.personaRecoge" class="persona-movimiento">Lo recogió: {{ dia.personaRecoge }}</div>
                 </td>
                 <td>
                   <div *ngIf="dia.observacionIngreso" class="small texto-observacion">
@@ -185,6 +189,8 @@
                     <i *ngIf="dia.entroTarde" class="fas fa-exclamation-triangle text-warning ms-1" 
                        title="Entrada tardía"></i>
                   </div>
+                  <div *ngIf="dia.personaEntrega" class="persona-movimiento">Lo trajo: {{ dia.personaEntrega }}</div>
+                  <div *ngIf="dia.colaboradorRecibe" class="persona-movimiento">Lo recibió: {{ dia.colaboradorRecibe }}</div>
                 </div>
                 
                 <div class="horario-item">
@@ -196,6 +202,8 @@
                     <i *ngIf="dia.salioTarde" class="fas fa-exclamation-triangle text-danger ms-1" 
                        title="Salida tardía"></i>
                   </div>
+                  <div *ngIf="dia.colaboradorEntrega" class="persona-movimiento">Lo entregó: {{ dia.colaboradorEntrega }}</div>
+                  <div *ngIf="dia.personaRecoge" class="persona-movimiento">Lo recogió: {{ dia.personaRecoge }}</div>
                 </div>
               </div>
 

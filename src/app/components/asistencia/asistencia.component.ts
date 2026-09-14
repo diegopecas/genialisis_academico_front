@@ -18,6 +18,7 @@ import { UtilService } from '../../common/constantes/util.service';
 import { SearchPipeGeneral } from '../../common/pipes/search';
 import { RegistroUtilesDiariosService } from '../../services/utiles-diarios-registro.service';
 import { SolicitudesService } from '../../services/solicitudes.service';
+import { ColaboradoresService } from '../../services/colaboradores.service';
 
 @Component({
   selector: 'app-asistencia',
@@ -48,7 +49,20 @@ export class AsistenciaComponent implements OnInit {
     // docente ve lo que hay que cumplir hoy; marcar se hace en la agenda del
     // dia, desde Operaciones.
     compromisos: [] as any[],
+    // Colaboradores activos, para escoger quien recibe o entrega al nino.
+    colaboradores: [] as any[],
+    // Acudientes y autorizados que pueden traer (ingreso) o recoger (salida)
+    // al nino seleccionado.
+    personas: [] as any[],
   };
+
+  // Colaborador que recibe (ingreso) o entrega (salida) al nino. Arranca en
+  // el colaborador del usuario que registra, pero se puede cambiar: es un
+  // dato distinto de quien hace el registro.
+  public idColaboradorMovimiento: any = null;
+  // Persona que trae o recoge al nino. Arranca en la ultima eleccion.
+  public idPersonaMovimiento: any = null;
+  public cargandoPersonas = false;
 
   public model = {
     estudiante: {} as any,
@@ -113,13 +127,82 @@ export class AsistenciaComponent implements OnInit {
     private utilService: UtilService,
     private searchPipeGeneral: SearchPipeGeneral,
     private registroUtilesDiariosService: RegistroUtilesDiariosService,
-    private solicitudesService: SolicitudesService
+    private solicitudesService: SolicitudesService,
+    private colaboradoresService: ColaboradoresService
   ) { }
 
   ngOnInit(): void {
     this.consultaGrupos();
     this.consultaNoIngresos();
     this.consultaNoSalidas();
+    this.consultaColaboradores();
+  }
+
+  consultaColaboradores() {
+    this.colaboradoresService.obtenerPorFiltros({ estado: 'activo' }).subscribe({
+      next: (response: any) => {
+        this.listas.colaboradores = (response.body as any[]) || [];
+        // Si el panel se abrio antes de que llegara la lista, se completa aqui.
+        if (this.mostrarPanelCobros && !this.idColaboradorMovimiento) {
+          this.idColaboradorMovimiento = this.colaboradorDelUsuario();
+        }
+      },
+      error: () => {
+        this.listas.colaboradores = [];
+      }
+    });
+  }
+
+  /**
+   * Colaborador del usuario que esta registrando. Se busca primero por el
+   * id_colaborador de la sesion y, si no viene, por la persona. Si el usuario
+   * no es colaborador (por ejemplo un administrador), queda sin especificar.
+   */
+  private colaboradorDelUsuario(): any {
+    const idColaborador = this.utilService.obtenerIdColaboradorActual();
+    if (idColaborador && this.listas.colaboradores.some((c: any) => c.id == idColaborador)) {
+      return idColaborador;
+    }
+
+    const idPersona = this.utilService.obtenerIdPersonaActual();
+    const colaborador = idPersona
+      ? this.listas.colaboradores.find((c: any) => c.id_persona == idPersona)
+      : null;
+
+    return colaborador ? colaborador.id : null;
+  }
+
+  /**
+   * Quien puede traer o recoger al nino hoy, con la ultima eleccion ya
+   * marcada. Los autorizados temporales nunca quedan como sugerencia.
+   */
+  consultaPersonas(estudiante: any) {
+    this.listas.personas = [];
+    this.idPersonaMovimiento = null;
+
+    const idEstudiante = estudiante.id_estudiante || estudiante.id;
+    if (!idEstudiante) return;
+
+    this.cargandoPersonas = true;
+
+    this.asistenciaEstudiantesService.obtenerPersonasEntregaRecoge(idEstudiante, this.tipoEventoActual, this.obtenerFechaActual()).subscribe({
+      next: (respuesta: any) => {
+        this.listas.personas = (respuesta.personas as any[]) || [];
+        this.idPersonaMovimiento = respuesta.id_persona_sugerida || null;
+        this.cargandoPersonas = false;
+      },
+      error: (error) => {
+        console.error('Error al consultar quien trae o recoge al nino:', error);
+        this.listas.personas = [];
+        this.cargandoPersonas = false;
+      }
+    });
+  }
+
+  // Tocar a la persona seleccionada la deja sin especificar: el dato es
+  // opcional.
+  seleccionarPersona(persona: any) {
+    this.idPersonaMovimiento = this.idPersonaMovimiento === persona.id_persona ? null : persona.id_persona;
   }
 
   consultaGrupos() {
@@ -471,6 +554,8 @@ export class AsistenciaComponent implements OnInit {
     this.observacionActual = '';
     this.cobrosDetectados = [];
     this.mostrarPanelCobros = true;
+    this.idColaboradorMovimiento = this.colaboradorDelUsuario();
+    this.consultaPersonas(estudiante);
     this.consultaUtiles(estudiante);
     this.consultaCompromisos(estudiante);
     this.evaluarReglasIngreso(estudiante);
@@ -483,6 +568,8 @@ export class AsistenciaComponent implements OnInit {
     this.observacionActual = '';
     this.cobrosDetectados = [];
     this.mostrarPanelCobros = true;
+    this.idColaboradorMovimiento = this.colaboradorDelUsuario();
+    this.consultaPersonas(estudiante);
     this.consultaUtiles(estudiante);
     this.consultaCompromisos(estudiante);
     this.evaluarReglasSalida(estudiante);
@@ -586,7 +673,7 @@ export class AsistenciaComponent implements OnInit {
 
         // La hora que viaja es la misma con la que se evaluaron los cobros:
         // antes se perdia y el backend guardaba la hora del servidor.
-        this.asistenciaEstudiantesService.registroIngreso(estudiante.id, this.observacionActual, this.obtenerUtilesParaGuardar(), notificarDesdeAsistencia, this.horaIngresoEditable).subscribe((response: any) => {
+        this.asistenciaEstudiantesService.registroIngreso(estudiante.id, this.observacionActual, this.obtenerUtilesParaGuardar(), notificarDesdeAsistencia, this.horaIngresoEditable, this.idColaboradorMovimiento, this.idPersonaMovimiento).subscribe((response: any) => {
           if (response) {
             const idAsistencia = response.body?.id || response.id;
             this.avisarObservacionEstudiante(
@@ -622,7 +709,7 @@ export class AsistenciaComponent implements OnInit {
         const notificarDesdeAsistencia = !this.hayCobrosSeleccionados();
 
         // Mismo criterio que en el ingreso: se guarda la hora del panel.
-        this.asistenciaEstudiantesService.registroSalida(estudiante.id, this.observacionActual, utilesNoRegresa, notificarDesdeAsistencia, this.horaSalidaEditable).subscribe((response: any) => {
+        this.asistenciaEstudiantesService.registroSalida(estudiante.id, this.observacionActual, utilesNoRegresa, notificarDesdeAsistencia, this.horaSalidaEditable, this.idColaboradorMovimiento, this.idPersonaMovimiento).subscribe((response: any) => {
           if (response) {
             const idAsistencia = estudiante.id;
             const filas = response.body || response;
@@ -730,6 +817,9 @@ export class AsistenciaComponent implements OnInit {
     this.cobrosDetectados = [];
     this.tipoEventoActual = '';
     this.observacionActual = '';
+    this.idColaboradorMovimiento = null;
+    this.idPersonaMovimiento = null;
+    this.listas.personas = [];
   }
 
   mostrarDetalleEstudiante(estudiante: any) {

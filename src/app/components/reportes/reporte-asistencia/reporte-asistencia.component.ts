@@ -78,6 +78,10 @@ export class ReporteAsistenciaComponent implements OnInit {
       { clave: 'estado_actual', alias: 'Estado', alinear: 'centrado' },
       { clave: 'usuario_ingreso', alias: 'Registró Ingreso', alinear: 'izquierda' },
       { clave: 'usuario_salida', alias: 'Registró Salida', alinear: 'izquierda' },
+      { clave: 'persona_entrega', alias: 'Lo Trajo', alinear: 'izquierda' },
+      { clave: 'colaborador_recibe', alias: 'Lo Recibió', alinear: 'izquierda' },
+      { clave: 'colaborador_entrega', alias: 'Lo Entregó', alinear: 'izquierda' },
+      { clave: 'persona_recoge', alias: 'Lo Recogió', alinear: 'izquierda' },
       { clave: 'valor_cobros', alias: 'Valor Cobros', alinear: 'centrado' },
       { clave: 'observacion_ingreso', alias: 'Obs. Ingreso', alinear: 'izquierda' },
       { clave: 'observacion_salida', alias: 'Obs. Salida', alinear: 'izquierda' }
@@ -148,6 +152,10 @@ export class ReporteAsistenciaComponent implements OnInit {
             observacion_salida: item.observacion_salida || '',
             usuario_ingreso: item.usuario_ingreso || '',
             usuario_salida: item.usuario_salida || '',
+            persona_entrega: item.persona_entrega || '',
+            colaborador_recibe: item.colaborador_recibe || '',
+            colaborador_entrega: item.colaborador_entrega || '',
+            persona_recoge: item.persona_recoge || '',
             valor_cobros: item.valor_cobros || 0,
             color: this.obtenerColorPorSalidaTarde(item.salida_tarde, item.estado_actual)
           }));
@@ -319,6 +327,10 @@ export class ReporteAsistenciaComponent implements OnInit {
         'Estado Actual': item.estado_actual,
         'Registró Ingreso': item.usuario_ingreso,
         'Registró Salida': item.usuario_salida,
+        'Lo Trajo': item.persona_entrega,
+        'Lo Recibió': item.colaborador_recibe,
+        'Lo Entregó': item.colaborador_entrega,
+        'Lo Recogió': item.persona_recoge,
         'Valor Cobros': item.valor_cobros,
         'Observación Ingreso': item.observacion_ingreso,
         'Observación Salida': item.observacion_salida
@@ -364,6 +376,10 @@ export class ReporteAsistenciaComponent implements OnInit {
         { wch: 15 }, // Estado Actual
         { wch: 30 }, // Registró Ingreso
         { wch: 30 }, // Registró Salida
+        { wch: 25 }, // Lo Trajo
+        { wch: 25 }, // Lo Recibió
+        { wch: 25 }, // Lo Entregó
+        { wch: 25 }, // Lo Recogió
         { wch: 15 }, // Valor Cobros
         { wch: 30 }, // Obs. Ingreso
         { wch: 30 }  // Obs. Salida

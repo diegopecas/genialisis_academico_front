@@ -85,6 +85,44 @@
                   />
                   <small class="text-muted">Modifique si la hora no es correcta. Los cobros se recalculan automáticamente.</small>
                 </div>
+                <!-- Quien recibe o entrega al nino. Es distinto de quien hace el
+                     registro: arranca en el usuario, pero se puede cambiar. -->
+                <div class="mb-3">
+                  <label class="form-label fw-bold" for="colaboradorMovimiento">
+                    {{ tipoEventoActual === 'ingreso' ? 'Colaborador que lo recibe' : 'Colaborador que lo entrega' }}
+                  </label>
+                  <select id="colaboradorMovimiento" class="form-select" [(ngModel)]="idColaboradorMovimiento">
+                    <option [ngValue]="null">Sin especificar</option>
+                    <option *ngFor="let colaborador of listas.colaboradores" [ngValue]="colaborador.id">
+                      {{ colaborador.nombre_completo }}
+                    </option>
+                  </select>
+                </div>
+                <!-- Quien trae o recoge al nino. Viene marcada la ultima
+                     eleccion; tocarla de nuevo la deja sin especificar. -->
+                <div class="mb-3">
+                  <label class="form-label fw-bold">
+                    {{ tipoEventoActual === 'ingreso' ? '¿Quién lo trae?' : '¿Quién lo recoge?' }}
+                  </label>
+                  <div *ngIf="cargandoPersonas" class="text-muted small">Cargando...</div>
+                  <div class="badges-tipo-acudiente" *ngIf="!cargandoPersonas && listas.personas.length > 0">
+                    <div
+                      *ngFor="let persona of listas.personas"
+                      class="badge-acudiente"
+                      [class.badge-acudiente-seleccionado]="idPersonaMovimiento === persona.id_persona"
+                      (click)="seleccionarPersona(persona)"
+                    >
+                      <span class="badge-acudiente-icono">{{ persona.icono || '👤' }}</span>
+                      <span class="persona-movimiento">
+                        <span class="badge-acudiente-nombre">{{ persona.nombre }}</span>
+                        <small class="persona-parentesco">{{ persona.parentesco }}</small>
+                      </span>
+                    </div>
+                  </div>
+                  <div *ngIf="!cargandoPersonas && listas.personas.length === 0" class="text-muted small">
+                    {{ tipoEventoActual === 'ingreso' ? 'No tiene acudientes ni autorizados registrados.' : 'No tiene acudientes ni autorizados para recoger hoy.' }}
+                  </div>
+                </div>
                 <div class="mb-3">
                   <label class="form-label fw-bold">Observaciones</label>
                   <textarea
@@ -504,6 +542,9 @@
                   <strong>{{ estudiante.fecha_salida | date : "shortTime" }}</strong>
                   <small *ngIf="estudiante.usuario_salida">
                     · {{ estudiante.usuario_salida }}
+                  </small>
+                  <small *ngIf="estudiante.persona_recoge">
+                    · recogió {{ estudiante.persona_recoge }}
                   </small>
                 </span>
               </div>

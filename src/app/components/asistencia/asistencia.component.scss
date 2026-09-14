@@ -246,6 +246,18 @@
     font-size: 0.72rem;
   }
 }
+// Quien trae o recoge al nino: nombre y parentesco dentro del chip.
+.persona-movimiento {
+  display: inline-flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.persona-parentesco {
+  font-size: 0.68rem;
+  color: #757575;
+}
+
 // Utiles y accesorios diarios dentro del panel de ingreso y salida
 .bloque-utiles {
   .chips-utiles {

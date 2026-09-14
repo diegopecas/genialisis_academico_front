@@ -312,7 +312,11 @@ export class AuditoriaRegistrosComponent implements OnInit {
       { clave: 'hora_salida', alias: 'Salida', tipo: undefined },
       { clave: 'tiempo_estancia', alias: 'Estancia', tipo: undefined },
       { clave: 'estado', alias: 'Estado', tipo: 'badge', claseCSS: 'badge-warning' },
-      { clave: 'registrado_entrada', alias: 'Registró entrada', tipo: undefined }
+      { clave: 'registrado_entrada', alias: 'Registró entrada', tipo: undefined },
+      { clave: 'persona_entrega', alias: 'Lo trajo', tipo: undefined },
+      { clave: 'colaborador_recibe', alias: 'Lo recibió', tipo: undefined },
+      { clave: 'colaborador_entrega', alias: 'Lo entregó', tipo: undefined },
+      { clave: 'persona_recoge', alias: 'Lo recogió', tipo: undefined }
     ];
     
     // Cargar datos

@@ -62,6 +62,20 @@
           <label class="form-label">Buscar estudiante</label>
           <app-buscar (buscar)="buscar($event)"></app-buscar>
         </div>
+
+        <!-- Colaborador para todo el lote. Cada fila lo puede cambiar. -->
+        <div class="col-12 col-md-4">
+          <label for="colaboradorGeneral" class="form-label">
+            Colaborador que {{ tipo === 'salida' ? 'entrega' : 'recibe' }} (para todos)
+          </label>
+          <select class="form-select" id="colaboradorGeneral"
+            [(ngModel)]="colaboradorGeneral" (ngModelChange)="aplicarColaboradorGeneral()">
+            <option [ngValue]="null">Sin especificar</option>
+            <option *ngFor="let colaborador of colaboradores" [ngValue]="colaborador.id">
+              {{ colaborador.nombre_completo }}
+            </option>
+          </select>
+        </div>
       </div>
     </div>
   </div>
@@ -106,6 +120,7 @@
             <th class="columna-check"></th>
             <th class="columna-estudiante">Estudiante</th>
             <th class="columna-hora">{{ tipo === 'salida' ? 'Hora salida' : 'Hora ingreso' }}</th>
+            <th class="columna-personas">{{ tipo === 'salida' ? 'Entrega / Recoge' : 'Recibe / Trae' }}</th>
             <th class="columna-utiles">
               {{ tipo === 'salida' ? 'Qué se lleva' : 'Qué trajo' }}
             </th>
@@ -143,6 +158,25 @@
               <input class="form-control" type="time" [(ngModel)]="fila.hora"
                 (blur)="recalcularFila(fila)"
                 [title]="fila.horaSugerida ? 'Horario del estudiante: ' + fila.horaSugerida : 'Sin horario configurado'">
+            </td>
+
+            <td class="columna-personas">
+              <!-- Colaborador que recibe o entrega, y quien trae o recoge.
+                   La persona viene con la última elección del niño. -->
+              <select class="form-select form-select-sm" [(ngModel)]="fila.id_colaborador"
+                [title]="tipo === 'salida' ? 'Colaborador que lo entrega' : 'Colaborador que lo recibe'">
+                <option [ngValue]="null">Colaborador sin especificar</option>
+                <option *ngFor="let colaborador of colaboradores" [ngValue]="colaborador.id">
+                  {{ colaborador.nombre_completo }}
+                </option>
+              </select>
+              <select class="form-select form-select-sm mt-1" [(ngModel)]="fila.id_persona"
+                [title]="tipo === 'salida' ? 'Quién lo recoge' : 'Quién lo trae'">
+                <option [ngValue]="null">{{ tipo === 'salida' ? 'Quién recoge: sin especificar' : 'Quién trae: sin especificar' }}</option>
+                <option *ngFor="let persona of fila.personas" [ngValue]="persona.id_persona">
+                  {{ persona.nombre }} ({{ persona.parentesco }})
+                </option>
+              </select>
             </td>
 
             <td class="columna-utiles">

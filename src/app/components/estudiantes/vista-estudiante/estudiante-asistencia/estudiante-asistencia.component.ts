@@ -27,6 +27,11 @@ interface DiaAsistencia {
   horaSalida: string | null;
   observacionIngreso: string | null;
   observacionSalida: string | null;
+  // Quien lo trajo y lo recibio, y quien lo entrego y lo recogio.
+  personaEntrega: string | null;
+  colaboradorRecibe: string | null;
+  colaboradorEntrega: string | null;
+  personaRecoge: string | null;
   esDiaLaborable: boolean;
   diaSemanaNumero: number;
 }
@@ -206,6 +211,10 @@ export class EstudianteAsistenciaComponent implements OnInit, OnDestroy, AfterVi
         horaSalida: null,
         observacionIngreso: null,
         observacionSalida: null,
+        personaEntrega: null,
+        colaboradorRecibe: null,
+        colaboradorEntrega: null,
+        personaRecoge: null,
         esDiaLaborable: esDiaLaborable,
         diaSemanaNumero: diaSemanaNumero
       };
@@ -274,6 +283,10 @@ export class EstudianteAsistenciaComponent implements OnInit, OnDestroy, AfterVi
               dia.horaSalida = horaSalida;
               dia.observacionIngreso = registro.observacion_ingreso;
               dia.observacionSalida = registro.observacion_salida;
+              dia.personaEntrega = registro.persona_entrega || null;
+              dia.colaboradorRecibe = registro.colaborador_recibe || null;
+              dia.colaboradorEntrega = registro.colaborador_entrega || null;
+              dia.personaRecoge = registro.persona_recoge || null;
 
               // Log para debug (opcional, se puede remover)
               console.log(`Día ${dia.fechaFormato}: entrada_tarde=${registro.entrada_tarde}, salida_tarde=${registro.salida_tarde}`);

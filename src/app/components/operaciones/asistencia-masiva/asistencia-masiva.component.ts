@@ -5,6 +5,7 @@ import { HeaderComponent } from '../../../common/header/header.component';
 import { BuscarComponent } from '../../../common/buscar/buscar.component';
 import { AsistenciaMasivaService } from '../../../services/asistencia-masiva.service';
 import { GruposService } from '../../../services/grupos.service';
+import { ColaboradoresService } from '../../../services/colaboradores.service';
 import { UtilService } from '../../../common/constantes/util.service';
 import Swal from 'sweetalert2';
 
@@ -56,6 +57,15 @@ export class AsistenciaMasivaComponent implements OnInit {
   public horaGeneral: string = '';
   public observacionGeneral: string = '';
 
+  // Colaborador que recibe (ingreso) o entrega (salida) a todo el lote.
+  // Arranca en el del usuario y cada fila lo puede cambiar.
+  public colaboradores = [] as any[];
+  public colaboradorGeneral: any = null;
+
+  // Último colaborador general que se copió a las filas. Igual que con la
+  // observación: sirve para no pisar la fila que la usuaria cambió a mano.
+  private colaboradorAplicado: any = null;
+
   // Último texto general que se copió a las filas. Sirve para distinguir la
   // fila que tiene la observación general de la que la usuaria escribió aparte.
   private observacionAplicada: string = '';
@@ -67,13 +77,65 @@ export class AsistenciaMasivaComponent implements OnInit {
   constructor(
     private asistenciaMasivaService: AsistenciaMasivaService,
     private gruposService: GruposService,
-    private utilService: UtilService
+    private utilService: UtilService,
+    private colaboradoresService: ColaboradoresService
   ) { }
 
   ngOnInit(): void {
     this.fecha = this.obtenerFechaActual();
     this.consultaGrupos();
+    this.consultaColaboradores();
     this.consultarCandidatos();
+  }
+
+  consultaColaboradores() {
+    this.colaboradoresService.obtenerPorFiltros({ estado: 'activo' }).subscribe({
+      next: (response: any) => {
+        this.colaboradores = (response.body as any[]) || [];
+        this.colaboradorGeneral = this.colaboradorDelUsuario();
+        // Si la grilla llegó primero, sus filas quedaron sin colaborador.
+        this.aplicarColaboradorGeneral();
+      },
+      error: () => {
+        this.colaboradores = [];
+      }
+    });
+  }
+
+  /**
+   * Colaborador del usuario que registra: por el id_colaborador de la sesión
+   * o, si no viene, por la persona. Si no es colaborador queda sin especificar.
+   */
+  private colaboradorDelUsuario(): any {
+    const idColaborador = this.utilService.obtenerIdColaboradorActual();
+    if (idColaborador && this.colaboradores.some((c: any) => c.id == idColaborador)) {
+      return idColaborador;
+    }
+
+    const idPersona = this.utilService.obtenerIdPersonaActual();
+    const colaborador = idPersona
+      ? this.colaboradores.find((c: any) => c.id_persona == idPersona)
+      : null;
+
+    return colaborador ? colaborador.id : null;
+  }
+
+  /**
+   * Copia el colaborador general a las filas de las dos pestañas. Solo pisa
+   * las que siguen con el general anterior o sin colaborador.
+   */
+  aplicarColaboradorGeneral() {
+    const listas = [this.candidatos, ...Object.values(this.cache)];
+
+    listas.forEach((lista: any[]) => {
+      (lista || []).forEach((fila: any) => {
+        if (fila.id_colaborador === null || fila.id_colaborador === undefined || fila.id_colaborador === this.colaboradorAplicado) {
+          fila.id_colaborador = this.colaboradorGeneral;
+        }
+      });
+    });
+
+    this.colaboradorAplicado = this.colaboradorGeneral;
   }
 
   /**
@@ -225,6 +287,11 @@ export class AsistenciaMasivaComponent implements OnInit {
             ...util,
             marcado: true
           })),
+          // Colaborador que recibe o entrega y persona que trae o recoge. La
+          // persona arranca en la última elección del niño.
+          id_colaborador: this.colaboradorGeneral,
+          personas: (fila.personas || []) as any[],
+          id_persona: fila.id_persona_sugerida || null,
           cobros: [] as any[],
           cobrosEvaluados: false,
           // Hora con la que se evaluaron los cobros de esta fila, para no
@@ -546,6 +613,8 @@ export class AsistenciaMasivaComponent implements OnInit {
       id_asistencia: fila.id_asistencia || null,
       hora: fila.hora,
       observacion: fila.observacion,
+      id_colaborador: fila.id_colaborador || null,
+      id_persona: fila.id_persona || null,
       utiles: (fila.utiles || []).map((util: any) => ({
         id: util.id,
         id_util_diario: util.id_util_diario,

@@ -85,9 +85,11 @@ export class AsistenciaEstudiantesService {
   // hora es opcional (HH:MM o HH:MM:SS): es la que la usuaria puede corregir
   // en el panel y la misma con la que se evaluan los cobros. Si no se manda,
   // el backend guarda la hora del servidor, como hacia antes.
-  registroIngreso(id: any, observacion: any, utilesDiarios: any[] = [], notificar: boolean = true, hora: string | null = null) {
+  // idColaborador e idPersona son opcionales: el colaborador que recibe al
+  // nino y la persona que lo trae. Quien ya llamaba sin ellos sigue igual.
+  registroIngreso(id: any, observacion: any, utilesDiarios: any[] = [], notificar: boolean = true, hora: string | null = null, idColaborador: string | null = null, idPersona: string | null = null) {
     const id_usuario = this.utilService.obtenerIdUsuarioActual();
-    const body = JSON.stringify({ id_estudiante: id, observacion: observacion, id_usuario: id_usuario, utiles_diarios: utilesDiarios, notificar: notificar, hora: hora });
+    const body = JSON.stringify({ id_estudiante: id, observacion: observacion, id_usuario: id_usuario, utiles_diarios: utilesDiarios, notificar: notificar, hora: hora, id_colaborador_recibe: idColaborador, id_persona_entrega: idPersona });
 
     return this.http.post<any>(this.servicio, body, httpOptions).pipe(
       tap((respuesta: any) => {
@@ -110,9 +112,11 @@ export class AsistenciaEstudiantesService {
   // nino NO se lleva. Quien ya llamaba con dos parametros sigue igual.
   // notificar: mismo criterio que en registroIngreso.
   // hora: mismo criterio que en registroIngreso.
-  registroSalida(id: any, observacion: any, utilesNoRegresa: any[] = [], notificar: boolean = true, hora: string | null = null) {
+  // idColaborador e idPersona: el colaborador que entrega al nino y la
+  // persona que lo recoge. Opcionales, igual que en registroIngreso.
+  registroSalida(id: any, observacion: any, utilesNoRegresa: any[] = [], notificar: boolean = true, hora: string | null = null, idColaborador: string | null = null, idPersona: string | null = null) {
     const id_usuario = this.utilService.obtenerIdUsuarioActual();
-    const body = JSON.stringify({ id: id, observacion: observacion, id_usuario: id_usuario, utiles_no_regresa: utilesNoRegresa, notificar: notificar, hora: hora });
+    const body = JSON.stringify({ id: id, observacion: observacion, id_usuario: id_usuario, utiles_no_regresa: utilesNoRegresa, notificar: notificar, hora: hora, id_colaborador_entrega: idColaborador, id_persona_recoge: idPersona });
     console.log("registroSalida", body)
     return this.http.put<any>(this.servicio, body, httpOptions).pipe(
       tap((respuesta: any) => {
@@ -228,6 +232,26 @@ export class AsistenciaEstudiantesService {
           if (respuesta.error) {
             throw respuesta.error;
           }
+          return respuesta;
+        }),
+        catchError(this.handleError)
+      );
+  }
+
+  /**
+   * Personas que pueden traer (ingreso) o recoger (salida) al nino en la
+   * fecha, con la ultima eleccion en id_persona_sugerida.
+   */
+  obtenerPersonasEntregaRecoge(idEstudiante: string, tipo: string, fecha: string) {
+    const params = new HttpParams()
+      .set('tipo', tipo)
+      .set('fecha', fecha);
+
+    return this.http
+      .get<any>(`${this.servicio}/personas-entrega/${idEstudiante}`, { params })
+      .pipe(
+        tap((respuesta: any) => {
+          if (respuesta.error) throw respuesta.error;
           return respuesta;
         }),
         catchError(this.handleError)

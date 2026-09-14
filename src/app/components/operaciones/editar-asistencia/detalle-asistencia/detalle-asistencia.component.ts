@@ -6,6 +6,7 @@ import { HeaderComponent } from '../../../../common/header/header.component';
 import { AsistenciaEdicionService } from '../../../../services/asistencia-edicion.service';
 import { MotorCobrosAutomaticosService } from '../../../../services/motor-cobros-automaticos.service';
 import { UtilService } from '../../../../common/constantes/util.service';
+import { ColaboradoresService } from '../../../../services/colaboradores.service';
 import Swal from 'sweetalert2';
 
 /**
@@ -40,6 +41,15 @@ export class DetalleAsistenciaComponent implements OnInit {
   public cobros = [] as any[];
   public bloqueado: boolean = false;
 
+  // Colaboradores activos y personas que pueden traer o recoger al niño en
+  // la fecha del movimiento.
+  public colaboradores = [] as any[];
+  // Lista que ve el selector: los activos más los que ya tenía guardados el
+  // registro y hoy están inactivos.
+  public colaboradoresSelector = [] as any[];
+  public personasIngreso = [] as any[];
+  public personasSalida = [] as any[];
+
   // Cobros evaluados con las horas nuevas, uno por evento.
   public cobrosIngreso = [] as any[];
   public cobrosSalida = [] as any[];
@@ -58,12 +68,50 @@ export class DetalleAsistenciaComponent implements OnInit {
     private motorCobrosService: MotorCobrosAutomaticosService,
     private utilService: UtilService,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private colaboradoresService: ColaboradoresService
   ) { }
 
   ngOnInit(): void {
     this.id = this.route.snapshot.paramMap.get('id');
+    this.consultaColaboradores();
     this.consultar();
+  }
+
+  consultaColaboradores() {
+    this.colaboradoresService.obtenerPorFiltros({ estado: 'activo' }).subscribe({
+      next: (response: any) => {
+        this.colaboradores = (response.body as any[]) || [];
+        this.armarColaboradoresSelector();
+      },
+      error: () => {
+        this.colaboradores = [];
+        this.armarColaboradoresSelector();
+      }
+    });
+  }
+
+  /**
+   * Si el registro tiene un colaborador que ya no está activo, igual se
+   * muestra en el selector para que no se pierda al grabar. Se arma cuando
+   * llegan los colaboradores y cuando llega el movimiento, sin importar el
+   * orden.
+   */
+  private armarColaboradoresSelector() {
+    if (!this.movimiento) {
+      this.colaboradoresSelector = this.colaboradores;
+      return;
+    }
+
+    const guardados = [this.movimiento.id_colaborador_recibe, this.movimiento.id_colaborador_entrega]
+      .filter((id: any) => !!id && !this.colaboradores.some((c: any) => c.id === id));
+
+    const extra = Array.from(new Set(guardados)).map((id: any) => ({
+      id: id,
+      nombre_completo: 'Colaborador inactivo'
+    }));
+
+    this.colaboradoresSelector = [...this.colaboradores, ...extra];
   }
 
   consultar() {
@@ -78,6 +126,9 @@ export class DetalleAsistenciaComponent implements OnInit {
         const cuerpo = response.body;
 
         this.movimiento = cuerpo.movimiento;
+        this.personasIngreso = (cuerpo.personas_ingreso as any[]) || [];
+        this.personasSalida = (cuerpo.personas_salida as any[]) || [];
+        this.armarColaboradoresSelector();
         this.cobros = (cuerpo.cobros as any[]) || [];
         this.bloqueado = cuerpo.bloqueado === 1 || cuerpo.bloqueado === true;
 
@@ -343,6 +394,11 @@ export class DetalleAsistenciaComponent implements OnInit {
       hora_salida: this.movimiento.hora_salida || null,
       observacion_ingreso: this.movimiento.observacion_ingreso,
       observacion_salida: this.movimiento.observacion_salida,
+      id_colaborador_recibe: this.movimiento.id_colaborador_recibe || null,
+      id_persona_entrega: this.movimiento.id_persona_entrega || null,
+      // Sin hora de salida no hay quien entregue ni quien recoja.
+      id_colaborador_entrega: this.movimiento.hora_salida ? (this.movimiento.id_colaborador_entrega || null) : null,
+      id_persona_recoge: this.movimiento.hora_salida ? (this.movimiento.id_persona_recoge || null) : null,
       utiles: this.utiles.map((util: any) => ({
         id: util.id,
         id_util_diario: util.id_util_diario || null,

@@ -61,6 +61,54 @@
             [(ngModel)]="movimiento.observacion_salida" [disabled]="bloqueado">
         </div>
       </div>
+
+      <!-- Quien recibio y trajo al nino, y quien lo entrego y lo recogio.
+           Los de la salida se apagan si el movimiento no tiene hora de salida. -->
+      <div class="row g-3 mt-1">
+        <div class="col-sm-12 col-md-3">
+          <label for="colaboradorRecibe" class="form-label">Colaborador que lo recibió</label>
+          <select class="form-select" id="colaboradorRecibe"
+            [(ngModel)]="movimiento.id_colaborador_recibe" [disabled]="bloqueado">
+            <option [ngValue]="null">Sin especificar</option>
+            <option *ngFor="let colaborador of colaboradoresSelector" [ngValue]="colaborador.id">
+              {{ colaborador.nombre_completo }}
+            </option>
+          </select>
+        </div>
+
+        <div class="col-sm-12 col-md-3">
+          <label for="personaEntrega" class="form-label">Quién lo trajo</label>
+          <select class="form-select" id="personaEntrega"
+            [(ngModel)]="movimiento.id_persona_entrega" [disabled]="bloqueado">
+            <option [ngValue]="null">Sin especificar</option>
+            <option *ngFor="let persona of personasIngreso" [ngValue]="persona.id_persona">
+              {{ persona.nombre }} ({{ persona.parentesco }})
+            </option>
+          </select>
+        </div>
+
+        <div class="col-sm-12 col-md-3">
+          <label for="colaboradorEntrega" class="form-label">Colaborador que lo entregó</label>
+          <select class="form-select" id="colaboradorEntrega"
+            [(ngModel)]="movimiento.id_colaborador_entrega" [disabled]="bloqueado || !movimiento.hora_salida">
+            <option [ngValue]="null">Sin especificar</option>
+            <option *ngFor="let colaborador of colaboradoresSelector" [ngValue]="colaborador.id">
+              {{ colaborador.nombre_completo }}
+            </option>
+          </select>
+        </div>
+
+        <div class="col-sm-12 col-md-3">
+          <label for="personaRecoge" class="form-label">Quién lo recogió</label>
+          <select class="form-select" id="personaRecoge"
+            [(ngModel)]="movimiento.id_persona_recoge" [disabled]="bloqueado || !movimiento.hora_salida">
+            <option [ngValue]="null">Sin especificar</option>
+            <option *ngFor="let persona of personasSalida" [ngValue]="persona.id_persona">
+              {{ persona.nombre }} ({{ persona.parentesco }})
+            </option>
+          </select>
+        </div>
+      </div>
     </div>
 
     <!-- Cobros que se generarian con las horas nuevas. Se evaluan al cambiar
