@@ -116,7 +116,43 @@
                       <span class="persona-movimiento">
                         <span class="badge-acudiente-nombre">{{ persona.nombre }}</span>
                         <small class="persona-parentesco">{{ persona.parentesco }}</small>
+                        <small class="persona-documento" *ngIf="persona.documento">CC: {{ persona.documento }}</small>
                       </span>
+                    </div>
+                  </div>
+                  <!-- Ficha de la persona escogida, para verificar quién es.
+                       Reemplaza al modal de personas autorizadas. -->
+                  <div class="ficha-persona" *ngIf="personaMovimientoSeleccionada as persona">
+                    <img
+                      class="ficha-persona-foto"
+                      [src]="urlFotoPersona(persona)"
+                      [alt]="persona.nombre"
+                      title="Toca para ver la foto en grande"
+                      (click)="ampliarFotoPersona(persona)"
+                      onerror="this.src='/assets/images/foto.png'"
+                    />
+                    <div class="ficha-persona-datos">
+                      <div class="ficha-persona-nombre">{{ persona.nombre_completo || persona.nombre }}</div>
+                      <!-- Con la cédula cargada, el número es el enlace para
+                           bajarla; si no la tiene, queda como texto. -->
+                      <div class="ficha-persona-linea" *ngIf="persona.documento">
+                        <i class="fas fa-id-card"></i>
+                        <ng-container *ngIf="persona.id_documento_cedula; else soloDocumento">
+                          <a class="ficha-persona-cedula" (click)="descargarCedulaPersona(persona)" title="Descargar la cédula">
+                            CC: {{ persona.documento }}
+                          </a>
+                          <i class="fas fa-download ficha-persona-descargar"
+                             title="Descargar la cédula"
+                             (click)="descargarCedulaPersona(persona)"></i>
+                        </ng-container>
+                        <ng-template #soloDocumento>CC: {{ persona.documento }}</ng-template>
+                      </div>
+                      <div class="ficha-persona-linea">
+                        <i class="fas fa-users"></i> {{ persona.parentesco }}
+                      </div>
+                      <div class="ficha-persona-autorizacion" *ngIf="textoAutorizacionPersona(persona)">
+                        ✓ {{ textoAutorizacionPersona(persona) }}
+                      </div>
                     </div>
                   </div>
                   <div *ngIf="!cargandoPersonas && listas.personas.length === 0" class="text-muted small">
@@ -193,11 +229,6 @@
                   <div class="alert alert-warning py-2 mt-2 mb-0" *ngIf="tipoEventoActual === 'salida' && hayUtilesPendientes">
                     ⚠️ Queda registrado que se va sin lo que marcaste en rojo.
                   </div>
-                </div>
-                <div class="mb-3">
-                  <button class="btn btn-sm btn-outline-info" (click)="mostrarDetalleEstudiante(estudianteSeleccionadoCobro)">
-                    👥 Ver personas autorizadas
-                  </button>
                 </div>
               </div>
 
@@ -489,6 +520,13 @@
                 <span class="grupo-asistencia" *ngIf="estudiante.nombre_grupo">
                   {{ estudiante.nombre_grupo }}
                 </span>
+                <!-- Quien lo trajo y quien lo recibio en el ingreso. Solo sale
+                     lo que se haya registrado: los dos datos son opcionales. -->
+                <span class="entrega-asistencia" *ngIf="estudiante.persona_entrega || estudiante.colaborador_recibe">
+                  <span *ngIf="estudiante.persona_entrega">Lo trajo {{ estudiante.persona_entrega }}</span>
+                  <span *ngIf="estudiante.persona_entrega && estudiante.colaborador_recibe"> · </span>
+                  <span *ngIf="estudiante.colaborador_recibe">Recibió {{ estudiante.colaborador_recibe }}</span>
+                </span>
               </span>
               <span class="hora-asistencia" title="Hora de ingreso">
                 <i class="fas fa-sign-in-alt"></i>
@@ -533,18 +571,21 @@
                 <span class="movimiento entrada">
                   <i class="fas fa-sign-in-alt"></i>
                   <strong>{{ estudiante.fecha_ingreso | date : "shortTime" }}</strong>
-                  <small *ngIf="estudiante.usuario_ingreso">
-                    · {{ estudiante.usuario_ingreso }}
+                  <small *ngIf="estudiante.colaborador_recibe || estudiante.usuario_ingreso">
+                    · {{ estudiante.colaborador_recibe || estudiante.usuario_ingreso }}
+                  </small>
+                  <small *ngIf="estudiante.persona_entrega">
+                    · lo trajo {{ estudiante.persona_entrega }}
                   </small>
                 </span>
                 <span class="movimiento salida">
                   <i class="fas fa-sign-out-alt"></i>
                   <strong>{{ estudiante.fecha_salida | date : "shortTime" }}</strong>
-                  <small *ngIf="estudiante.usuario_salida">
-                    · {{ estudiante.usuario_salida }}
+                  <small *ngIf="estudiante.colaborador_entrega || estudiante.usuario_salida">
+                    · {{ estudiante.colaborador_entrega || estudiante.usuario_salida }}
                   </small>
                   <small *ngIf="estudiante.persona_recoge">
-                    · recogió {{ estudiante.persona_recoge }}
+                    · lo recogió {{ estudiante.persona_recoge }}
                   </small>
                 </span>
               </div>

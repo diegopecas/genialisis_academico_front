@@ -2,9 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { EstudiantesService } from '../../services/estudiantes.service';
 import { AsistenciaEstudiantesService } from '../../services/asistencia-estudiantes.service';
 import { ConstantesService } from '../../common/constantes/constantes.service';
-import { AcudientesService } from '../../services/acudientes.service';
 import { PersonasService } from '../../services/personas.service';
-import { AutorizadosRecogerService } from '../../services/autorizados-recoger.service';
+import { DocumentosPersonasService } from '../../services/documentos-personas.service';
 import { MotorCobrosAutomaticosService } from '../../services/motor-cobros-automaticos.service';
 import { TiposIdentificacionService } from '../../services/tipos-identificacion.service';
 import { TiposAcudienteService } from '../../services/tipos-acudiente.service';
@@ -60,7 +59,8 @@ export class AsistenciaComponent implements OnInit {
   // el colaborador del usuario que registra, pero se puede cambiar: es un
   // dato distinto de quien hace el registro.
   public idColaboradorMovimiento: any = null;
-  // Persona que trae o recoge al nino. Arranca en la ultima eleccion.
+  // Persona que trae o recoge al nino. Arranca en la ultima eleccion, o en el
+  // autorizado temporal del dia si lo hay.
   public idPersonaMovimiento: any = null;
   public cargandoPersonas = false;
 
@@ -118,9 +118,8 @@ export class AsistenciaComponent implements OnInit {
     private asistenciaEstudiantesService: AsistenciaEstudiantesService,
     private estudiantesService: EstudiantesService,
     private gruposService: GruposService,
-    private acudientesService: AcudientesService,
     private personasService: PersonasService,
-    private autorizadosRecogerService: AutorizadosRecogerService,
+    private documentosPersonasService: DocumentosPersonasService,
     private motorCobrosService: MotorCobrosAutomaticosService,
     private tiposIdentificacionService: TiposIdentificacionService,
     private tiposAcudienteService: TiposAcudienteService,
@@ -203,6 +202,81 @@ export class AsistenciaComponent implements OnInit {
   // opcional.
   seleccionarPersona(persona: any) {
     this.idPersonaMovimiento = this.idPersonaMovimiento === persona.id_persona ? null : persona.id_persona;
+  }
+
+  /**
+   * Persona marcada, para pintarle la ficha con foto y documento debajo de
+   * los chips. Null mientras no haya ninguna escogida.
+   */
+  get personaMovimientoSeleccionada(): any {
+    if (!this.idPersonaMovimiento) {
+      return null;
+    }
+
+    return this.listas.personas.find((p: any) => p.id_persona === this.idPersonaMovimiento) || null;
+  }
+
+  /**
+   * Foto de la persona. Si no tiene, la imagen por defecto.
+   * Lleva el timestamp para que no se quede la del caché al cambiarla.
+   */
+  urlFotoPersona(persona: any): string {
+    return persona && persona.foto
+      ? this.personasService.obtenerUrlFoto(persona.foto) + '?t=' + new Date().getTime()
+      : '/assets/images/foto.png';
+  }
+
+  /**
+   * Abre la foto en grande, como hacía el modal de personas autorizadas.
+   */
+  ampliarFotoPersona(persona: any) {
+    Swal.fire({
+      title: persona.nombre_completo || persona.nombre,
+      imageUrl: this.urlFotoPersona(persona),
+      imageAlt: persona.nombre,
+      showConfirmButton: true,
+      confirmButtonText: 'Cerrar',
+      width: 'auto',
+      customClass: {
+        image: 'swal-foto-ampliada'
+      },
+      didOpen: () => {
+        const imgEl = document.querySelector('.swal-foto-ampliada') as HTMLElement;
+        if (imgEl) {
+          imgEl.style.maxWidth = '400px';
+          imgEl.style.maxHeight = '400px';
+          imgEl.style.borderRadius = '12px';
+          imgEl.style.objectFit = 'cover';
+          imgEl.style.boxShadow = '0 8px 24px rgba(0,0,0,0.15)';
+        }
+      }
+    });
+  }
+
+  /**
+   * Baja la cédula de la persona. El id lo trae la misma consulta de personas
+   * y la descarga va por el flujo de siempre del módulo de documentos.
+   */
+  descargarCedulaPersona(persona: any) {
+    if (!persona || !persona.id_documento_cedula) {
+      return;
+    }
+
+    const nombre = (persona.nombre_completo || persona.nombre || 'Persona') + ' - Cedula';
+    this.documentosPersonasService.descargarDocumentoArchivo(persona.id_documento_cedula, nombre);
+  }
+
+  /**
+   * Texto de la autorización: solo lo traen los autorizados a recoger.
+   */
+  textoAutorizacionPersona(persona: any): string {
+    if (!persona || persona.origen !== 'autorizado') {
+      return '';
+    }
+
+    return persona.autorizado_por
+      ? persona.parentesco + ' · Autorizado por ' + persona.autorizado_por
+      : persona.parentesco;
   }
 
   consultaGrupos() {
@@ -820,211 +894,6 @@ export class AsistenciaComponent implements OnInit {
     this.idColaboradorMovimiento = null;
     this.idPersonaMovimiento = null;
     this.listas.personas = [];
-  }
-
-  mostrarDetalleEstudiante(estudiante: any) {
-    const estudianteId = estudiante.id_estudiante || estudiante.id;
-
-    this.acudientesService.obtenerPorEstudiante(estudianteId).subscribe({
-      next: (responseAcudientes: any) => {
-        const acudientes = responseAcudientes.body as any[];
-
-        this.autorizadosRecogerService.obtenerActivosHoyPorEstudiante(estudianteId).subscribe({
-          next: (responseAutorizados: any) => {
-            const autorizados = responseAutorizados.body as any[];
-            this.renderModalDetalle(estudiante, acudientes, autorizados);
-          },
-          error: () => {
-            this.renderModalDetalle(estudiante, acudientes, []);
-          }
-        });
-      },
-      error: (error) => {
-        console.error('Error al obtener acudientes:', error);
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'No se pudieron cargar los acudientes autorizados',
-          confirmButtonText: 'Entendido'
-        });
-      }
-    });
-  }
-
-  private renderModalDetalle(estudiante: any, acudientes: any[], autorizados: any[]) {
-    let htmlContent = '';
-
-    if (acudientes.length > 0) {
-      htmlContent += `<div style="font-size:13px;font-weight:700;color:#8B6914;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid #FFC107;">Acudientes</div>`;
-
-      acudientes.forEach(acudiente => {
-        const fotoUrl = acudiente.foto
-          ? this.personasService.obtenerUrlFoto(acudiente.foto) + '?t=' + new Date().getTime()
-          : '/assets/images/foto.png';
-
-        const autorizado = acudiente.autorizado_recoger === '1' || acudiente.autorizado_recoger === 1;
-
-        htmlContent += this.buildPersonaCard(
-          fotoUrl,
-          acudiente.nombre_persona,
-          acudiente.documento_acudiente,
-          acudiente.nombre_tipo_acudiente,
-          autorizado,
-          autorizado ? 'Autorizado para recoger' : 'No autorizado para recoger'
-        );
-      });
-    }
-
-    if (autorizados.length > 0) {
-      htmlContent += `<div style="font-size:13px;font-weight:700;color:#1565c0;text-transform:uppercase;letter-spacing:0.5px;margin:16px 0 10px 0;padding-bottom:6px;border-bottom:2px solid #42a5f5;">Autorizados para recoger</div>`;
-
-      autorizados.forEach(aut => {
-        const fotoUrl = aut.foto
-          ? this.personasService.obtenerUrlFoto(aut.foto) + '?t=' + new Date().getTime()
-          : '/assets/images/foto.png';
-
-        htmlContent += this.buildPersonaCard(
-          fotoUrl,
-          aut.nombre_persona,
-          aut.documento_persona,
-          aut.nombre_tipo_autorizacion,
-          true,
-          `${aut.nombre_tipo_autorizacion} - Autorizado por: ${aut.nombre_persona_autoriza}`
-        );
-      });
-    }
-
-    if (acudientes.length === 0 && autorizados.length === 0) {
-      htmlContent = `
-        <div style="text-align:center; padding:24px; color:#9e9e9e;">
-          <i class="fas fa-user-slash" style="font-size:2.5rem; margin-bottom:12px; display:block;"></i>
-          No hay personas autorizadas para este estudiante
-        </div>`;
-    }
-
-    Swal.fire({
-      title: 'Personas autorizadas',
-      html: `<div style="max-height:420px;overflow-y:auto;padding:4px;">${htmlContent}</div>`,
-      width: '520px',
-      background: 'linear-gradient(to bottom, #ffffff 80%, ' + estudiante.color + ')',
-      showCancelButton: true,
-      focusConfirm: true,
-      confirmButtonText: "regresar",
-      cancelButtonText: "cancelar",
-      didOpen: () => {
-        const fotos = document.querySelectorAll('.foto-acudiente-thumb');
-        fotos.forEach((img: any) => {
-          img.addEventListener('click', () => {
-            const url = img.getAttribute('data-foto-url');
-            const nombre = img.getAttribute('data-nombre');
-            Swal.fire({
-              title: nombre,
-              imageUrl: url,
-              imageAlt: nombre,
-              showConfirmButton: true,
-              confirmButtonText: 'Cerrar',
-              width: 'auto',
-              customClass: {
-                image: 'swal-foto-ampliada'
-              },
-              didOpen: () => {
-                const imgEl = document.querySelector('.swal-foto-ampliada') as HTMLElement;
-                if (imgEl) {
-                  imgEl.style.maxWidth = '400px';
-                  imgEl.style.maxHeight = '400px';
-                  imgEl.style.borderRadius = '12px';
-                  imgEl.style.objectFit = 'cover';
-                  imgEl.style.boxShadow = '0 8px 24px rgba(0,0,0,0.15)';
-                }
-              }
-            });
-          });
-        });
-      },
-    }).then((result) => {
-      if (result.isConfirmed) {
-        this.seleccionarEstudiante(estudiante);
-      }
-    });
-  }
-
-  private buildPersonaCard(fotoUrl: string, nombre: string, documento: string, tipo: string, autorizado: boolean, badgeText: string): string {
-    return `
-      <div style="
-        display:flex;
-        align-items:center;
-        gap:16px;
-        padding:14px 16px;
-        margin-bottom:10px;
-        background:#fff;
-        border-radius:10px;
-        box-shadow:0 2px 8px rgba(0,0,0,0.08);
-        border-left:4px solid ${autorizado ? '#4caf50' : '#ef5350'};
-        transition:transform 0.2s;
-      ">
-        <img 
-          src="${fotoUrl}" 
-          alt="${nombre}"
-          class="foto-acudiente-thumb"
-          data-foto-url="${fotoUrl}"
-          data-nombre="${nombre}"
-          style="
-            width:64px;
-            height:64px;
-            border-radius:50%;
-            object-fit:cover;
-            border:3px solid ${autorizado ? '#4caf50' : '#ef5350'};
-            flex-shrink:0;
-            cursor:pointer;
-            transition:transform 0.2s, box-shadow 0.2s;
-          "
-          onmouseover="this.style.transform='scale(1.1)';this.style.boxShadow='0 4px 12px rgba(0,0,0,0.25)'"
-          onmouseout="this.style.transform='scale(1)';this.style.boxShadow='none'"
-          onerror="this.src='/assets/images/foto.png'"
-        />
-        <div style="flex:1; min-width:0;">
-          <div style="
-            font-weight:600;
-            font-size:1rem;
-            color:#212121;
-            margin-bottom:4px;
-            white-space:nowrap;
-            overflow:hidden;
-            text-overflow:ellipsis;
-          ">
-            ${nombre}
-          </div>
-          <div style="
-            font-size:0.85rem;
-            color:#616161;
-            margin-bottom:3px;
-          ">
-            <i class="fas fa-id-card" style="color:#7986cb; margin-right:6px;"></i>
-            CC: ${documento || 'Sin documento'}
-          </div>
-          <div style="
-            font-size:0.85rem;
-            color:#616161;
-            margin-bottom:3px;
-          ">
-            <i class="fas fa-users" style="color:#7986cb; margin-right:6px;"></i>
-            ${tipo}
-          </div>
-          <div style="
-            display:inline-block;
-            font-size:0.75rem;
-            font-weight:600;
-            padding:3px 10px;
-            border-radius:12px;
-            margin-top:2px;
-            background:${autorizado ? '#e8f5e9' : '#ffebee'};
-            color:${autorizado ? '#2e7d32' : '#c62828'};
-          ">
-            ${autorizado ? '&#10003;' : '&#10007;'} ${badgeText}
-          </div>
-        </div>
-      </div>
-    `;
   }
 
   recibirMensaje(event: any) {

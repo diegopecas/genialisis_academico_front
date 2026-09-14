@@ -246,6 +246,15 @@
     font-size: 0.72rem;
   }
 }
+// Quien trajo y quien recibio al nino, en la lista de los que estan adentro.
+.entrega-asistencia {
+  display: block;
+  font-size: 0.72rem;
+  color: #757575;
+  line-height: 1.2;
+  margin-top: 2px;
+}
+
 // Quien trae o recoge al nino: nombre y parentesco dentro del chip.
 .persona-movimiento {
   display: inline-flex;
@@ -256,6 +265,85 @@
 .persona-parentesco {
   font-size: 0.68rem;
   color: #757575;
+}
+
+.persona-documento {
+  font-size: 0.68rem;
+  color: #9e9e9e;
+}
+
+// Ficha de la persona escogida: reemplaza al modal de personas autorizadas.
+.ficha-persona {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 10px;
+  padding: 12px 14px;
+  background: #fff;
+  border-radius: 10px;
+  border-left: 4px solid #4caf50;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+  .ficha-persona-foto {
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #4caf50;
+    flex-shrink: 0;
+    cursor: pointer;
+    transition: transform 0.2s;
+
+    &:hover {
+      transform: scale(1.06);
+    }
+  }
+
+  .ficha-persona-datos {
+    min-width: 0;
+  }
+
+  .ficha-persona-nombre {
+    font-weight: 600;
+    color: #212121;
+  }
+
+  .ficha-persona-linea {
+    font-size: 0.82rem;
+    color: #616161;
+
+    i {
+      color: #7986cb;
+      margin-right: 6px;
+    }
+  }
+
+  .ficha-persona-cedula {
+    color: #1565c0;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+
+  .ficha-persona-descargar {
+    color: #1565c0;
+    margin-left: 8px;
+    cursor: pointer;
+
+    &:hover {
+      color: #0d47a1;
+    }
+  }
+
+  .ficha-persona-autorizacion {
+    display: inline-block;
+    margin-top: 4px;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    background: #e8f5e9;
+    color: #2e7d32;
+  }
 }
 
 // Utiles y accesorios diarios dentro del panel de ingreso y salida

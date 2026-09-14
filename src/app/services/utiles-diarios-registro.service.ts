@@ -103,13 +103,18 @@ export class RegistroUtilesDiariosService {
   // presione Grabar, en la base no se toca nada.
   // silencioso en true lo manda sin spinner: es el autoguardado. El boton de
   // Grabar lo llama con el comportamiento normal, con su spinner y su aviso.
+  // silencioso es el autoguardado. Solo el guardado a petición le avisa al
+  // acudiente lo que el niño trajo y lo que no: si el autoguardado también
+  // notificara, al papá le llegaría un mensaje cada vez que la docente toca
+  // una celda.
   guardarLote(modo: string, cambios: any[], idUsuario: any, nuevos: any[] = [], eliminados: any[] = [], silencioso: boolean = false) {
     const body = JSON.stringify({
       modo: modo,
       cambios: cambios,
       nuevos: nuevos,
       eliminados: eliminados,
-      id_usuario: idUsuario
+      id_usuario: idUsuario,
+      notificar: !silencioso
     });
     const opciones = silencioso ? silentPostOptions : httpOptions;
     return this.http.post<any>(this.servicio + '/guardar-lote', body, opciones).pipe(
