@@ -925,7 +925,7 @@ export class ExportarPdfContratoService {
     // 6. Cédula
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(7);
-    doc.text(`CC. ${cedula}`, x + width / 2, y + 19, { align: 'center' });
+    doc.text(cedula, x + width / 2, y + 19, { align: 'center' });
 
     // 7. Rol (debajo del recuadro)
     doc.setTextColor('#666');
@@ -975,6 +975,33 @@ export class ExportarPdfContratoService {
     }
   }
 
+
+  /**
+   * Documento del firmante con la sigla de su tipo de identificación: CC, CE,
+   * RC, NUIP, NIT. La sigla sale del catálogo `tipos_identificacion`, no va
+   * quemada: antes todo el mundo salía como CC, incluidos los extranjeros.
+   * Sin sigla se muestra solo el número.
+   */
+  private documentoFirmante(persona: any): string {
+    if (!persona || !persona.numero_identificacion) {
+      return '';
+    }
+
+    return persona.sigla_identificacion
+      ? `${persona.sigla_identificacion}. ${persona.numero_identificacion}`
+      : String(persona.numero_identificacion);
+  }
+
+  /**
+   * Documento del representante legal. Sale de la configuración del jardín,
+   * que guarda el número suelto sin tipo de identificación, así que se asume
+   * cédula de ciudadanía.
+   */
+  private documentoRepresentante(configuracion: any): string {
+    const numero = configuracion?.representante_legal_cedula || '';
+    return numero ? `CC. ${numero}` : '';
+  }
+
   /**
    * Dibuja firma tradicional (sin recuadro de firma digital)
    */
@@ -1018,7 +1045,7 @@ export class ExportarPdfContratoService {
     // Cédula
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(7);
-    doc.text(`CC. ${cedula}`, x + width / 2, y + 21, { align: 'center' });
+    doc.text(cedula, x + width / 2, y + 21, { align: 'center' });
 
     // Rol
     doc.setTextColor('#666');
@@ -1070,7 +1097,7 @@ export class ExportarPdfContratoService {
           firmaWidth,
           recipientIndex,
           acudiente.nombre_completo || '',
-          acudiente.numero_identificacion || '',
+          this.documentoFirmante(acudiente),
           acudiente.tipo_acudiente || 'ACUDIENTE',
           currentPage,
           pageWidth,
@@ -1085,7 +1112,7 @@ export class ExportarPdfContratoService {
           yPos,
           firmaWidth,
           acudiente.nombre_completo || '',
-          acudiente.numero_identificacion || '',
+          this.documentoFirmante(acudiente),
           acudiente.tipo_acudiente || 'ACUDIENTE'
         );
       }
@@ -1110,7 +1137,7 @@ export class ExportarPdfContratoService {
             firmaWidth,
             recipientIndex,
             acudiente.nombre_completo || '',
-            acudiente.numero_identificacion || '',
+            this.documentoFirmante(acudiente),
             acudiente.tipo_acudiente || 'ACUDIENTE',
             currentPage,
             pageWidth,
@@ -1124,7 +1151,7 @@ export class ExportarPdfContratoService {
             yPos,
             firmaWidth,
             acudiente.nombre_completo || '',
-            acudiente.numero_identificacion || '',
+            this.documentoFirmante(acudiente),
             acudiente.tipo_acudiente || 'ACUDIENTE'
           );
         }
@@ -1144,7 +1171,7 @@ export class ExportarPdfContratoService {
         firmaWidth,
         99, // Índice especial para representante
         datos.configuracion.representante_legal_nombre || '',
-        datos.configuracion.representante_legal_cedula || '',
+        this.documentoRepresentante(datos.configuracion),
         'REPRESENTANTE LEGAL',
         currentPage,
         pageWidth,
@@ -1159,7 +1186,7 @@ export class ExportarPdfContratoService {
         yPos,
         firmaWidth,
         datos.configuracion.representante_legal_nombre || '',
-        datos.configuracion.representante_legal_cedula || '',
+        this.documentoRepresentante(datos.configuracion),
         'REPRESENTANTE LEGAL',
         firmaBase64
       );
@@ -1242,7 +1269,7 @@ export class ExportarPdfContratoService {
           firmaWidth,
           recipientIndex,
           acudiente.nombre_completo || '',
-          acudiente.numero_identificacion || '',
+          this.documentoFirmante(acudiente),
           acudiente.tipo_acudiente || 'ACUDIENTE',
           currentPage,
           pageWidth,
@@ -1256,7 +1283,7 @@ export class ExportarPdfContratoService {
           yPos,
           firmaWidth,
           acudiente.nombre_completo || '',
-          acudiente.numero_identificacion || '',
+          this.documentoFirmante(acudiente),
           acudiente.tipo_acudiente || 'ACUDIENTE'
         );
       }
@@ -1280,7 +1307,7 @@ export class ExportarPdfContratoService {
             firmaWidth,
             recipientIndex,
             acudiente.nombre_completo || '',
-            acudiente.numero_identificacion || '',
+            this.documentoFirmante(acudiente),
             acudiente.tipo_acudiente || 'ACUDIENTE',
             currentPage,
             pageWidth,
@@ -1294,7 +1321,7 @@ export class ExportarPdfContratoService {
             yPos,
             firmaWidth,
             acudiente.nombre_completo || '',
-            acudiente.numero_identificacion || '',
+            this.documentoFirmante(acudiente),
             acudiente.tipo_acudiente || 'ACUDIENTE'
           );
         }
@@ -1481,7 +1508,7 @@ export class ExportarPdfContratoService {
           firmaWidth,
           1,
           datos.acudientes[0].nombre_completo || '',
-          datos.acudientes[0].numero_identificacion || '',
+          this.documentoFirmante(datos.acudientes[0]),
           datos.acudientes[0].tipo_acudiente || 'ACUDIENTE',
           currentPage,
           pageWidth,
@@ -1505,7 +1532,7 @@ export class ExportarPdfContratoService {
             firmaWidth,
             recipientIndex,
             acudiente.nombre_completo || '',
-            acudiente.numero_identificacion || '',
+            this.documentoFirmante(acudiente),
             acudiente.tipo_acudiente || 'ACUDIENTE',
             currentPage,
             pageWidth,
@@ -1535,7 +1562,7 @@ export class ExportarPdfContratoService {
             firmaWidth,
             recipientIndex,
             acudiente.nombre_completo || '',
-            acudiente.numero_identificacion || '',
+            this.documentoFirmante(acudiente),
             acudiente.tipo_acudiente || 'ACUDIENTE',
             currentPage,
             pageWidth,
@@ -1676,7 +1703,7 @@ export class ExportarPdfContratoService {
           firmaWidth,
           1,
           datos.acudientes[0].nombre_completo || '',
-          datos.acudientes[0].numero_identificacion || '',
+          this.documentoFirmante(datos.acudientes[0]),
           datos.acudientes[0].tipo_acudiente || 'ACUDIENTE',
           currentPage,
           pageWidth,
@@ -1700,7 +1727,7 @@ export class ExportarPdfContratoService {
             firmaWidth,
             recipientIndex,
             acudiente.nombre_completo || '',
-            acudiente.numero_identificacion || '',
+            this.documentoFirmante(acudiente),
             acudiente.tipo_acudiente || 'ACUDIENTE',
             currentPage,
             pageWidth,
@@ -1729,7 +1756,7 @@ export class ExportarPdfContratoService {
             firmaWidth,
             recipientIndex,
             acudiente.nombre_completo || '',
-            acudiente.numero_identificacion || '',
+            this.documentoFirmante(acudiente),
             acudiente.tipo_acudiente || 'ACUDIENTE',
             currentPage,
             pageWidth,
@@ -1765,7 +1792,7 @@ export class ExportarPdfContratoService {
 
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(7);
-    doc.text(`CC. ${acudiente.numero_identificacion}`, x + width / 2, y + 24, {
+    doc.text(this.documentoFirmante(acudiente), x + width / 2, y + 24, {
       align: 'center',
     });
 

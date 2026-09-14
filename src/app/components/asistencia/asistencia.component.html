@@ -116,7 +116,7 @@
                       <span class="persona-movimiento">
                         <span class="badge-acudiente-nombre">{{ persona.nombre }}</span>
                         <small class="persona-parentesco">{{ persona.parentesco }}</small>
-                        <small class="persona-documento" *ngIf="persona.documento">CC: {{ persona.documento }}</small>
+                        <small class="persona-documento" *ngIf="persona.documento">{{ documentoPersona(persona) }}</small>
                       </span>
                     </div>
                   </div>
@@ -133,21 +133,26 @@
                     />
                     <div class="ficha-persona-datos">
                       <div class="ficha-persona-nombre">{{ persona.nombre_completo || persona.nombre }}</div>
-                      <!-- Con la cédula cargada, el número es el enlace para
-                           bajarla; si no la tiene, queda como texto. -->
+                      <!-- Con el documento de identidad cargado, el número es el
+                           enlace para bajarlo; si no lo tiene, queda como texto. -->
                       <div class="ficha-persona-linea" *ngIf="persona.documento">
                         <i class="fas fa-id-card"></i>
-                        <ng-container *ngIf="persona.id_documento_cedula; else soloDocumento">
-                          <a class="ficha-persona-cedula" (click)="descargarCedulaPersona(persona)" title="Descargar la cédula">
-                            CC: {{ persona.documento }}
+                        <ng-container *ngIf="persona.id_documento_identidad; else soloDocumento">
+                          <a class="ficha-persona-cedula"
+                             (click)="descargarIdentidadPersona(persona)"
+                             [title]="'Descargar: ' + (persona.nombre_documento_identidad || 'documento de identidad')">
+                            {{ documentoPersona(persona) }}
                           </a>
                           <i class="fas fa-download ficha-persona-descargar"
-                             title="Descargar la cédula"
-                             (click)="descargarCedulaPersona(persona)"></i>
+                             [title]="'Descargar: ' + (persona.nombre_documento_identidad || 'documento de identidad')"
+                             (click)="descargarIdentidadPersona(persona)"></i>
                         </ng-container>
-                        <ng-template #soloDocumento>CC: {{ persona.documento }}</ng-template>
+                        <ng-template #soloDocumento>{{ documentoPersona(persona) }}</ng-template>
                       </div>
-                      <div class="ficha-persona-linea">
+                      <!-- En los autorizados el parentesco ya va en la línea
+                           verde de abajo, así que aquí solo sale el de los
+                           acudientes (Madre, Padre, Abuelo...). -->
+                      <div class="ficha-persona-linea" *ngIf="!textoAutorizacionPersona(persona)">
                         <i class="fas fa-users"></i> {{ persona.parentesco }}
                       </div>
                       <div class="ficha-persona-autorizacion" *ngIf="textoAutorizacionPersona(persona)">

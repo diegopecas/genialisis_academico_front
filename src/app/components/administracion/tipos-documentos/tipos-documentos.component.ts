@@ -41,6 +41,7 @@ export class TiposDocumentosComponent implements OnInit {
         requiere_vencimiento_label: item.requiere_vencimiento ? 'Sí' : 'No',
         permite_multiples_label: item.permite_multiples ? 'Sí' : 'No',
         requiere_firma_label: item.requiere_firma ? 'Sí' : 'No',
+        es_identidad_label: item.es_identidad ? 'Sí' : 'No',
         activo_label: item.activo ? 'Activo' : 'Inactivo',
       }));
     });
@@ -81,6 +82,11 @@ export class TiposDocumentosComponent implements OnInit {
       {
         clave: 'requiere_firma_label',
         alias: 'Req. Firma',
+        alinear: 'centrado',
+      },
+      {
+        clave: 'es_identidad_label',
+        alias: 'Doc. Identidad',
         alinear: 'centrado',
       },
       {

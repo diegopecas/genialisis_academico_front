@@ -661,7 +661,7 @@ export class ExportarPdfContratoColaboradorService {
       firmaWidth,
       1,
       datos.colaborador.colaborador_nombre || '',
-      datos.colaborador.colaborador_documento || '',
+      this.documentoColaborador(datos.colaborador),
       'TRABAJADOR',
       currentPage,
       pageWidth,
@@ -771,7 +771,7 @@ export class ExportarPdfContratoColaboradorService {
 
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(7);
-    doc.text(`CC. ${cedula}`, x + width / 2, y + 19, { align: 'center' });
+    doc.text(cedula, x + width / 2, y + 19, { align: 'center' });
 
     doc.setTextColor('#666');
     doc.setFontSize(6);
@@ -806,6 +806,32 @@ export class ExportarPdfContratoColaboradorService {
     });
   }
 
+  /**
+   * Documento del colaborador con la sigla de su tipo de identificación: CC,
+   * CE, RC, NUIP, NIT. La sigla sale del catálogo `tipos_identificacion`, no
+   * va quemada: antes todo el mundo salía como CC, incluidos los extranjeros.
+   * Sin sigla se muestra solo el número.
+   */
+  private documentoColaborador(colaborador: any): string {
+    if (!colaborador || !colaborador.colaborador_documento) {
+      return '';
+    }
+
+    return colaborador.sigla_identificacion
+      ? `${colaborador.sigla_identificacion}. ${colaborador.colaborador_documento}`
+      : String(colaborador.colaborador_documento);
+  }
+
+  /**
+   * Documento del representante legal. Sale de la configuración del jardín,
+   * que guarda el número suelto sin tipo de identificación, así que se asume
+   * cédula de ciudadanía.
+   */
+  private documentoRepresentante(configuracion: any): string {
+    const numero = configuracion?.representante_legal_cedula || '';
+    return numero ? `CC. ${numero}` : '';
+  }
+
   private async dibujarFirmaTradicional(
     doc: jsPDF,
     x: number,
@@ -836,7 +862,7 @@ export class ExportarPdfContratoColaboradorService {
 
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(7);
-    doc.text(`CC. ${cedula}`, x + width / 2, y + 21, { align: 'center' });
+    doc.text(cedula, x + width / 2, y + 21, { align: 'center' });
 
     doc.setTextColor('#666');
     doc.setFontSize(7);

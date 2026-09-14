@@ -37,6 +37,8 @@ export interface TipoDocumentoCrud {
   dias_alerta_vencimiento?: number;
   permite_multiples: number;
   modificable_acudientes: number;
+  // 1 = el tipo sirve como documento de identidad de la persona.
+  es_identidad: number;
   activo: number;
   id_categoria?: string | null;
 }

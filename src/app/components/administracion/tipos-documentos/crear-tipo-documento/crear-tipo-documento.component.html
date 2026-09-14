@@ -172,6 +172,29 @@
                         </div>
                     </div>
 
+                    <!-- Toggle: Documento de Identidad -->
+                    <div class="col-md-6">
+                        <div class="toggle-card" [class.active]="model.es_identidad">
+                            <div class="toggle-info">
+                                <div class="toggle-icon">
+                                    <i class="fas fa-id-card"></i>
+                                </div>
+                                <div class="toggle-text">
+                                    <span class="toggle-label">Documento de Identidad</span>
+                                    <small class="toggle-description">Sirve para identificar a la persona. Se puede descargar al registrar la asistencia</small>
+                                </div>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input 
+                                    class="form-check-input custom-switch" 
+                                    type="checkbox" 
+                                    id="es_identidad"
+                                    [(ngModel)]="model.es_identidad"
+                                    [disabled]="!editable">
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Toggle: Modificable por Acudientes -->
                     <div class="col-md-6">
                         <div class="toggle-card" [class.active]="model.modificable_acudientes">

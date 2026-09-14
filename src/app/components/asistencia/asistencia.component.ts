@@ -254,16 +254,33 @@ export class AsistenciaComponent implements OnInit {
   }
 
   /**
-   * Baja la cédula de la persona. El id lo trae la misma consulta de personas
-   * y la descarga va por el flujo de siempre del módulo de documentos.
+   * Número de identificación con la sigla de su tipo: CC, CE, RC, NUIP, NIT.
+   * La sigla sale del catálogo, no va quemada: si la persona no tiene tipo,
+   * se muestra solo el número.
    */
-  descargarCedulaPersona(persona: any) {
-    if (!persona || !persona.id_documento_cedula) {
+  documentoPersona(persona: any): string {
+    if (!persona || !persona.documento) {
+      return '';
+    }
+
+    return persona.sigla_identificacion
+      ? persona.sigla_identificacion + ': ' + persona.documento
+      : persona.documento;
+  }
+
+  /**
+   * Baja el documento de identidad de la persona. Cuál sirve de identidad lo
+   * decide la bandera del catálogo de tipos de documento, así que aquí no se
+   * asume que sea una cédula.
+   */
+  descargarIdentidadPersona(persona: any) {
+    if (!persona || !persona.id_documento_identidad) {
       return;
     }
 
-    const nombre = (persona.nombre_completo || persona.nombre || 'Persona') + ' - Cedula';
-    this.documentosPersonasService.descargarDocumentoArchivo(persona.id_documento_cedula, nombre);
+    const tipo = persona.nombre_documento_identidad || 'Documento de identidad';
+    const nombre = (persona.nombre_completo || persona.nombre || 'Persona') + ' - ' + tipo;
+    this.documentosPersonasService.descargarDocumentoArchivo(persona.id_documento_identidad, nombre);
   }
 
   /**
