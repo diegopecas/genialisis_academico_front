@@ -7,6 +7,7 @@ import { CertificadosExpedidosService } from '../../../services/certificados-exp
 import { ExportarPdfCertificadoService } from '../../../services/exportar-pdf-certificado.service';
 import { AcudientesService } from '../../../services/acudientes.service';
 import { EstudiantesService } from '../../../services/estudiantes.service';
+import { ProductosServiciosService } from '../../../services/productos-servicios.service';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -26,12 +27,15 @@ export class CertificadosEstudianteComponent implements OnInit {
   public acudientes = [] as any[];
   public anios = [] as number[];
   public historial = [] as any[];
+  public grupos = [] as any[];
 
   public claveSeleccionada = '';
   public idAcudiente: string | null = null;
   public anioCertificado: number | null = null;
   public fechaDesde = '';
   public fechaHasta = '';
+  public seleccionProductos = new Set<string>();
+  public agruparPorMes = false;
 
   public generando = false;
   public submitted = false;
@@ -45,7 +49,8 @@ export class CertificadosEstudianteComponent implements OnInit {
     private certificadosService: CertificadosExpedidosService,
     private exportarPdfService: ExportarPdfCertificadoService,
     private acudientesService: AcudientesService,
-    private estudiantesService: EstudiantesService
+    private estudiantesService: EstudiantesService,
+    private productosService: ProductosServiciosService
   ) { }
 
   ngOnInit(): void {
@@ -56,6 +61,7 @@ export class CertificadosEstudianteComponent implements OnInit {
       this.cargarAcudientes();
       this.cargarAnios();
       this.cargarHistorial();
+      this.cargarProductos();
     });
 
     this.prellenarAnioActual();
@@ -114,6 +120,80 @@ export class CertificadosEstudianteComponent implements OnInit {
     });
   }
 
+  /**
+   * Los productos se agrupan por clasificación para poder marcar una completa
+   * o solo algunos de sus conceptos.
+   */
+  cargarProductos(): void {
+    this.productosService.obtenerTodos().subscribe({
+      next: (response: any) => {
+        const productos = (response.body as any[]) || [];
+        const porClasificacion: any = {};
+
+        productos.forEach((producto: any) => {
+          const id = producto.id_clasificacion_productos_servicios || 'sin_clasificacion';
+          if (!porClasificacion[id]) {
+            porClasificacion[id] = {
+              id,
+              nombre: producto.nombre_clasificacion || 'Sin clasificación',
+              abierto: false,
+              productos: []
+            };
+          }
+          porClasificacion[id].productos.push(producto);
+        });
+
+        this.grupos = Object.keys(porClasificacion)
+          .map(id => porClasificacion[id])
+          .sort((a: any, b: any) => a.nombre.localeCompare(b.nombre));
+      },
+      error: (error: any) => console.error('Error al cargar los productos', error)
+    });
+  }
+
+  alternarGrupo(grupo: any): void {
+    grupo.abierto = !grupo.abierto;
+  }
+
+  estaProductoSeleccionado(idProducto: string): boolean {
+    return this.seleccionProductos.has(idProducto);
+  }
+
+  alternarProducto(idProducto: string): void {
+    if (this.seleccionProductos.has(idProducto)) {
+      this.seleccionProductos.delete(idProducto);
+      return;
+    }
+    this.seleccionProductos.add(idProducto);
+  }
+
+  /** Marcar la clasificación marca todos sus productos. */
+  grupoCompleto(grupo: any): boolean {
+    return grupo.productos.length > 0
+      && grupo.productos.every((p: any) => this.seleccionProductos.has(p.id));
+  }
+
+  grupoParcial(grupo: any): boolean {
+    return !this.grupoCompleto(grupo)
+      && grupo.productos.some((p: any) => this.seleccionProductos.has(p.id));
+  }
+
+  seleccionadosDe(grupo: any): number {
+    return grupo.productos.filter((p: any) => this.seleccionProductos.has(p.id)).length;
+  }
+
+  alternarTodoElGrupo(grupo: any): void {
+    if (this.grupoCompleto(grupo)) {
+      grupo.productos.forEach((p: any) => this.seleccionProductos.delete(p.id));
+      return;
+    }
+    grupo.productos.forEach((p: any) => this.seleccionProductos.add(p.id));
+  }
+
+  limpiarSeleccion(): void {
+    this.seleccionProductos.clear();
+  }
+
   cargarHistorial(): void {
     this.certificadosService.obtenerByEstudiante(this.idEstudiante).subscribe({
       next: (response: any) => {
@@ -131,6 +211,12 @@ export class CertificadosEstudianteComponent implements OnInit {
   seleccionarTipo(clave: string): void {
     this.claveSeleccionada = clave;
     this.submitted = false;
+
+    // El switch arranca con lo que el jardín dejó configurado, pero se puede
+    // cambiar para este certificado.
+    const certificado = this.certificados.find((c: any) => c.clave_certificado === clave);
+    this.agruparPorMes = certificado ? Number(certificado.agrupar_por_mes) === 1 : false;
+    this.seleccionProductos.clear();
   }
 
   volver(): void {
@@ -210,6 +296,8 @@ export class CertificadosEstudianteComponent implements OnInit {
       anio_certificado: this.pideAnio ? this.anioCertificado : null,
       fecha_desde: this.pideRangoFechas ? this.fechaDesde : null,
       fecha_hasta: this.pideRangoFechas ? this.fechaHasta : null,
+      productos: this.pideRangoFechas ? Array.from(this.seleccionProductos) : [],
+      agrupar_por_mes: this.pideRangoFechas ? (this.agruparPorMes ? 1 : 0) : null,
       origen: 'institucional'
     }).subscribe({
       next: async (respuesta: any) => {

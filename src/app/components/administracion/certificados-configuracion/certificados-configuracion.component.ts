@@ -42,6 +42,9 @@ export class CertificadosConfiguracionComponent implements OnInit {
         certificado: configuracion.nombre,
         modo: configuracion.modo === 'automatico' ? 'Automático' : 'Manual',
         regla: this.textoRegla(configuracion),
+        formato: Number(configuracion.es_de_pagos) === 1
+          ? (Number(configuracion.agrupar_por_mes) === 1 ? 'Por mes' : 'Por recibo')
+          : '',
         estado: Number(configuracion.activo) === 1 ? 'Activo' : 'Inactivo'
       }));
     });
@@ -63,6 +66,11 @@ export class CertificadosConfiguracionComponent implements OnInit {
         clave: 'regla',
         alias: 'Regla',
         alinear: 'izquierda',
+      },
+      {
+        clave: 'formato',
+        alias: 'Formato',
+        alinear: 'centrado',
       },
       {
         clave: 'estado',

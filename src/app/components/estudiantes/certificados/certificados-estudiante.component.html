@@ -142,6 +142,68 @@
                 [(ngModel)]="fechaHasta"
                 [ngClass]="{'is-invalid': !fechaHasta && submitted}">
             </div>
+
+            <div class="col-12 mb-3" *ngIf="pideRangoFechas">
+              <label class="form-label">Qué se certifica</label>
+
+              <div class="selector-conceptos">
+                <button
+                  type="button"
+                  class="opcion-todos"
+                  [class.activo]="seleccionProductos.size === 0"
+                  (click)="limpiarSeleccion()">
+                  <i class="fas" [ngClass]="seleccionProductos.size === 0 ? 'fa-circle-check' : 'fa-circle'"></i>
+                  Todos los conceptos
+                </button>
+
+                <div class="grupo-conceptos" *ngFor="let grupo of grupos">
+                  <div class="grupo-cabecera">
+                    <input
+                      type="checkbox"
+                      class="check-grupo"
+                      [checked]="grupoCompleto(grupo)"
+                      [indeterminate]="grupoParcial(grupo)"
+                      (change)="alternarTodoElGrupo(grupo)">
+                    <button type="button" class="grupo-nombre" (click)="alternarGrupo(grupo)">
+                      {{ grupo.nombre }}
+                      <span class="grupo-conteo" *ngIf="seleccionadosDe(grupo) > 0">
+                        {{ seleccionadosDe(grupo) }}/{{ grupo.productos.length }}
+                      </span>
+                      <i class="fas fa-chevron-down grupo-chevron" [class.rotado]="grupo.abierto"></i>
+                    </button>
+                  </div>
+
+                  <div class="grupo-productos" *ngIf="grupo.abierto">
+                    <label class="item-producto" *ngFor="let producto of grupo.productos">
+                      <input
+                        type="checkbox"
+                        [checked]="estaProductoSeleccionado(producto.id)"
+                        (change)="alternarProducto(producto.id)">
+                      <span>{{ producto.nombre }}</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <small class="form-text text-muted" *ngIf="seleccionProductos.size > 0">
+                De cada pago se certifica únicamente lo aplicado a los conceptos marcados,
+                no el total del recibo.
+              </small>
+            </div>
+
+            <div class="col-12 mb-3" *ngIf="pideRangoFechas">
+              <div class="form-check form-switch">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  id="agrupar"
+                  [(ngModel)]="agruparPorMes">
+                <label class="form-check-label" for="agrupar">Agrupar por mes</label>
+              </div>
+              <small class="form-text text-muted">
+                Agrupado sale una fila por mes con el total; sin agrupar, un renglón por recibo.
+              </small>
+            </div>
           </div>
         </div>
 
