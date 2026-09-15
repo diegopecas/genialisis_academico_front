@@ -1,0 +1,117 @@
+<div class="modulo">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="false"
+    [accion]="'editar'"
+    [raiz]="'/administracion/operaciones/certificados-configuracion'"
+    [regresar]="regresar"
+    [iconoTitulo]="'/assets/images/config-certificados.png'">
+  </app-header>
+
+  <div class="container mt-4">
+
+    <div class="card-panel">
+
+      <div class="row">
+        <div class="col-12 col-md-6 mb-3">
+          <label for="modo" class="form-label">Modo</label>
+          <select id="modo" class="form-select form-select-lg" [(ngModel)]="model.modo">
+            <option value="manual">Manual</option>
+            <option value="automatico">Automático</option>
+          </select>
+          <small class="form-text text-muted" *ngIf="!esAutomatico">
+            No aparece en el portal de padres. Solo lo genera el jardín.
+          </small>
+          <small class="form-text text-muted" *ngIf="esAutomatico">
+            Aparece en la ficha del estudiante en el portal de padres y el acudiente lo
+            descarga solo si cumple la regla.
+          </small>
+        </div>
+
+        <div class="col-12 col-md-6 mb-3">
+          <label for="activo" class="form-label">Estado</label>
+          <select id="activo" class="form-select form-select-lg" [(ngModel)]="model.activo">
+            <option [ngValue]="1">Activo</option>
+            <option [ngValue]="0">Inactivo</option>
+          </select>
+          <small class="form-text text-muted">
+            Inactivo lo quita también de la ficha del estudiante en el portal institucional.
+          </small>
+        </div>
+      </div>
+
+      <div class="row" *ngIf="model.regla_fija === 1">
+        <div class="col-12 mb-3">
+          <div class="regla-fija">
+            Este certificado siempre exige <b>saldo en cero</b>. La regla no se puede cambiar:
+            certificar que alguien está a paz y salvo debiendo no tendría sentido.
+          </div>
+        </div>
+      </div>
+
+      <div class="row" *ngIf="model.regla_fija !== 1">
+        <div class="col-12 mb-3">
+          <label for="regla" class="form-label">Regla para el portal de padres</label>
+          <select id="regla" class="form-select form-select-lg" [(ngModel)]="model.regla">
+            <option value="libre">Sin restricción</option>
+            <option value="al_dia">Estar al día</option>
+            <option value="al_dia_productos">Estar al día en productos específicos</option>
+          </select>
+          <small class="form-text text-muted">
+            Se considera vencida una cuenta cuya fecha ya pasó. En modo manual la regla no se aplica.
+          </small>
+        </div>
+      </div>
+
+      <div class="row" *ngIf="pideProductos">
+        <div class="col-12 mb-3">
+          <label class="form-label">Productos que se exigen al día</label>
+          <div class="lista-productos">
+            <label class="item-producto" *ngFor="let producto of productos">
+              <input
+                type="checkbox"
+                [checked]="estaProductoSeleccionado(producto.id)"
+                (change)="alternarProducto(producto.id)">
+              <span>{{ producto.nombre }}</span>
+            </label>
+            <p class="sin-productos" *ngIf="productos.length === 0">
+              No hay productos registrados.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-12 mb-3">
+          <label for="mensaje" class="form-label">Mensaje cuando no cumple</label>
+          <textarea
+            id="mensaje"
+            class="form-control"
+            rows="3"
+            maxlength="500"
+            [(ngModel)]="model.mensaje_no_cumple"
+            placeholder="Ej: Para descargar este certificado debes estar al día con tus pagos."></textarea>
+          <small class="form-text text-muted">
+            Es lo que ve el acudiente en el portal cuando el certificado le queda bloqueado.
+          </small>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="row mt-4">
+      <div class="col-sm-6 mb-2">
+        <button type="button" class="btn btn-lg btn-warning w-100" [disabled]="guardando" (click)="guardar()">
+          <span *ngIf="!guardando">Grabar</span>
+          <span *ngIf="guardando">Guardando...</span>
+        </button>
+      </div>
+      <div class="col-sm-6 mb-2">
+        <button type="button" class="btn btn-lg btn-secondary w-100" (click)="volver()">
+          Volver
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>

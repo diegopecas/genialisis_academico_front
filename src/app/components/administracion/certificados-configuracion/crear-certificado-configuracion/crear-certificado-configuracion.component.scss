@@ -1,0 +1,75 @@
+$tablet: 768px;
+
+// Variables de colores (mismas del modulo de grupos)
+$gold: #d4af37;
+$black: #222;
+$light-gold: rgba(212, 175, 55, 0.1);
+
+.modulo {
+  width: 100%;
+  min-height: 100vh;
+  background-color: #f5f5f7;
+}
+
+.container {
+  max-width: 820px;
+  padding-bottom: 40px;
+}
+
+.card-panel {
+  background: white;
+  border-radius: 12px;
+  padding: 22px 20px 18px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+}
+
+.form-label {
+  font-weight: 600;
+  color: #444;
+  font-size: 0.9rem;
+}
+
+.regla-fija {
+  background: #fffdf6;
+  border: 1px solid rgba($gold, 0.45);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 0.88rem;
+  color: #6b5a22;
+}
+
+.lista-productos {
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 10px 12px;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.item-producto {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 2px;
+  font-size: 0.92rem;
+  color: #444;
+  cursor: pointer;
+  margin: 0;
+  border-bottom: 1px solid #f1f1f1;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  input {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+  }
+}
+
+.sin-productos {
+  color: #888;
+  font-size: 0.88rem;
+  margin: 6px 0;
+}

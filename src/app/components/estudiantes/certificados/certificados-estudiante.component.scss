@@ -1,0 +1,408 @@
+.modulo {
+  padding: 20px;
+}
+
+.container {
+  max-width: 900px;
+}
+
+// Variables de colores (mismas del modulo de grupos)
+$gold: #d4af37;
+$black: #222;
+$light-gold: rgba(212, 175, 55, 0.1);
+
+// =============================================
+// Pestañas DESKTOP
+// =============================================
+.tabs-container {
+  max-width: 900px;
+  margin: 2rem auto 0 auto;
+  padding: 0 20px;
+}
+
+.tabs-desktop {
+  display: block;
+}
+
+.tabs-movil {
+  display: none;
+}
+
+.tabs-nav {
+  border-bottom: 1px solid $gold;
+  flex-wrap: nowrap;
+  display: flex;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.tab-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  color: $black;
+  font-weight: 500;
+  margin-right: 3px;
+  border: 1px solid transparent;
+  border-radius: 6px 6px 0 0;
+  white-space: nowrap;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  background: none;
+
+  i {
+    color: $gold;
+    font-size: 1.1rem;
+  }
+
+  &:hover:not(.active) {
+    border-color: rgba($gold, 0.3);
+    background-color: $light-gold;
+  }
+
+  &.active {
+    color: $black;
+    border-color: $gold $gold #fff;
+    background-color: #fff;
+    font-weight: 600;
+
+    &:hover {
+      border-color: $gold $gold #fff;
+    }
+  }
+}
+
+.tab-contador {
+  background: $light-gold;
+  color: #8a6d1f;
+  border-radius: 10px;
+  padding: 1px 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.tab-content {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// =============================================
+// Pestañas MOVIL (hamburguesa)
+// =============================================
+.tabs-movil-header {
+  border-bottom: 2px solid $gold;
+}
+
+.tabs-movil-trigger {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 16px;
+  background: #fff;
+  border: none;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
+
+  .tabs-movil-label {
+    flex: 1;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    i {
+      color: $gold;
+    }
+  }
+
+  .tabs-movil-chevron {
+    color: #999;
+    font-size: 0.75rem;
+    transition: transform 0.3s ease;
+
+    &.rotado {
+      transform: rotate(180deg);
+    }
+  }
+}
+
+.tabs-movil-dropdown {
+  background: #fff;
+  border: 1px solid #e9ecef;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  animation: slideDown 0.2s ease;
+}
+
+.tabs-movil-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 20px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #495057;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid #f1f3f5;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  i {
+    color: $gold;
+    font-size: 1rem;
+    width: 20px;
+    text-align: center;
+  }
+
+  &:hover {
+    background-color: $light-gold;
+  }
+
+  &.active {
+    background-color: $light-gold;
+    border-left: 3px solid $gold;
+    font-weight: 600;
+  }
+}
+
+// =============================================
+// Contenido
+// =============================================
+.nombre-estudiante {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: $black;
+  text-align: center;
+  margin-bottom: 18px;
+}
+
+.card-panel {
+  background: #fff;
+  border: 1px solid #e9ecef;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.panel-subtitulo {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #8a6d1f;
+  margin-bottom: 12px;
+}
+
+// Tarjeta por tipo de certificado: se escoge tocando, sin desplegable.
+.lista-tipos {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.tipo-certificado {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  text-align: left;
+  padding: 14px 16px;
+  background: #fff;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  > i:first-child {
+    color: $gold;
+    font-size: 1.3rem;
+    width: 26px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  &:hover:not(.activo) {
+    border-color: rgba($gold, 0.5);
+    background-color: $light-gold;
+  }
+
+  &.activo {
+    border-color: $gold;
+    background-color: $light-gold;
+    box-shadow: 0 0 0 1px $gold inset;
+  }
+}
+
+.tipo-texto {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.tipo-nombre {
+  font-weight: 600;
+  color: $black;
+  font-size: 0.95rem;
+}
+
+.tipo-descripcion {
+  font-size: 0.8rem;
+  color: #888;
+  line-height: 1.35;
+}
+
+.tipo-check {
+  color: $gold;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.datos-adicionales {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid #f1f3f5;
+}
+
+.form-label {
+  font-weight: 600;
+  color: #444;
+  font-size: 0.9rem;
+}
+
+// =============================================
+// Historial
+// =============================================
+.sin-registros {
+  color: #888;
+  font-size: 0.9rem;
+  text-align: center;
+  padding: 24px 0;
+  margin: 0;
+}
+
+.fila-historial {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 4px;
+  border-bottom: 1px solid #f1f3f5;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.fila-icono {
+  color: $gold;
+  font-size: 1.2rem;
+  width: 26px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.fila-datos {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.fila-nombre {
+  font-weight: 600;
+  color: $black;
+  font-size: 0.95rem;
+}
+
+.fila-detalle {
+  font-size: 0.82rem;
+  color: #666;
+}
+
+.fila-meta {
+  font-size: 0.78rem;
+  color: #999;
+}
+
+.fila-origen {
+  color: #7a9a4f;
+}
+
+.btn-descargar {
+  border: 1px solid $gold;
+  color: #8a6d1f;
+  background: transparent;
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 8px 14px;
+  border-radius: 8px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+
+  &:hover {
+    background-color: $gold;
+    color: #fff;
+  }
+}
+
+@media (max-width: 768px) {
+  .modulo {
+    padding: 10px;
+  }
+
+  .tabs-desktop {
+    display: none;
+  }
+
+  .tabs-movil {
+    display: block;
+  }
+
+  .tabs-container {
+    padding: 0 10px;
+    margin-top: 1rem;
+  }
+
+  // En movil el boton se reduce al icono para no comerse el texto de la fila.
+  .texto-descargar {
+    display: none;
+  }
+}

@@ -1,0 +1,196 @@
+<div class="modulo">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="false"
+    [accion]="'ConsultarTodos'"
+    [raiz]="'/estudiantes/certificados'"
+    [regresar]="'/estudiantes/opciones/' + idEstudiante"
+    [iconoTitulo]="'/assets/images/certificados.png'">
+  </app-header>
+
+  <!-- Barra de pestañas DESKTOP -->
+  <div class="tabs-container tabs-desktop">
+    <div class="tabs-nav">
+      <button
+        class="tab-item"
+        [class.active]="pestanaActiva === 'generar'"
+        (click)="seleccionarPestana('generar')">
+        <i class="fas fa-file-signature"></i>
+        Generar
+      </button>
+      <button
+        class="tab-item"
+        [class.active]="pestanaActiva === 'historial'"
+        (click)="seleccionarPestana('historial')">
+        <i class="fas fa-clock-rotate-left"></i>
+        Expedidos
+        <span class="tab-contador" *ngIf="historial.length > 0">{{ historial.length }}</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Barra de pestañas MOVIL -->
+  <div class="tabs-container tabs-movil">
+    <div class="tabs-movil-header">
+      <button class="tabs-movil-trigger" (click)="menuMovilAbierto = !menuMovilAbierto">
+        <i class="fas" [ngClass]="menuMovilAbierto ? 'fa-times' : 'fa-bars'"></i>
+        <span class="tabs-movil-label">
+          <ng-container [ngSwitch]="pestanaActiva">
+            <ng-container *ngSwitchCase="'generar'"><i class="fas fa-file-signature"></i> Generar</ng-container>
+            <ng-container *ngSwitchCase="'historial'"><i class="fas fa-clock-rotate-left"></i> Expedidos</ng-container>
+          </ng-container>
+        </span>
+        <i class="fas fa-chevron-down tabs-movil-chevron" [class.rotado]="menuMovilAbierto"></i>
+      </button>
+    </div>
+    <div class="tabs-movil-dropdown" *ngIf="menuMovilAbierto">
+      <button
+        class="tabs-movil-item"
+        [class.active]="pestanaActiva === 'generar'"
+        (click)="seleccionarPestana('generar')">
+        <i class="fas fa-file-signature"></i>
+        Generar
+      </button>
+      <button
+        class="tabs-movil-item"
+        [class.active]="pestanaActiva === 'historial'"
+        (click)="seleccionarPestana('historial')">
+        <i class="fas fa-clock-rotate-left"></i>
+        Expedidos
+      </button>
+    </div>
+  </div>
+
+  <div class="container mt-4">
+
+    <p class="nombre-estudiante" *ngIf="nombreEstudiante">{{ nombreEstudiante }}</p>
+
+    <!-- GENERAR -->
+    <div class="tab-content" [hidden]="pestanaActiva !== 'generar'">
+
+      <div class="card-panel">
+
+        <p class="panel-subtitulo">Escoge el certificado que necesitas</p>
+
+        <div class="lista-tipos">
+          <button
+            type="button"
+            class="tipo-certificado"
+            *ngFor="let certificado of certificados"
+            [class.activo]="claveSeleccionada === certificado.clave_certificado"
+            (click)="seleccionarTipo(certificado.clave_certificado)">
+            <i class="fas" [ngClass]="iconoDe(certificado.clave_certificado)"></i>
+            <span class="tipo-texto">
+              <span class="tipo-nombre">{{ certificado.nombre }}</span>
+              <span class="tipo-descripcion">{{ descripcionDe(certificado.clave_certificado) }}</span>
+            </span>
+            <i class="fas fa-check tipo-check" *ngIf="claveSeleccionada === certificado.clave_certificado"></i>
+          </button>
+        </div>
+
+        <div class="datos-adicionales" *ngIf="claveSeleccionada && (pideAcudiente || pideAnio || pideRangoFechas)">
+          <p class="panel-subtitulo">Datos del certificado</p>
+
+          <div class="row">
+            <div class="col-12 mb-3" *ngIf="pideAcudiente">
+              <label for="acudiente" class="form-label">¿Quién realizó los pagos? <span class="text-danger">*</span></label>
+              <select
+                id="acudiente"
+                class="form-select form-select-lg"
+                [(ngModel)]="idAcudiente"
+                [ngClass]="{'is-invalid': !idAcudiente && submitted}">
+                <option [ngValue]="null">Selecciona el acudiente...</option>
+                <option *ngFor="let acudiente of acudientes" [ngValue]="acudiente.id">
+                  {{ acudiente.nombre_persona }}
+                </option>
+              </select>
+              <small class="form-text text-muted">
+                Solo se incluyen los pagos que tienen a esta persona registrada como quien pagó.
+              </small>
+            </div>
+
+            <div class="col-12 col-md-6 mb-3" *ngIf="pideAnio">
+              <label for="anio" class="form-label">Año lectivo <span class="text-danger">*</span></label>
+              <select
+                id="anio"
+                class="form-select form-select-lg"
+                [(ngModel)]="anioCertificado"
+                [ngClass]="{'is-invalid': !anioCertificado && submitted}">
+                <option [ngValue]="null">Selecciona...</option>
+                <option *ngFor="let anio of anios" [ngValue]="anio">{{ anio }}</option>
+              </select>
+              <small class="form-text text-muted" *ngIf="anios.length === 0">
+                Este estudiante no tiene años matriculados registrados.
+              </small>
+            </div>
+
+            <div class="col-12 col-md-6 mb-3" *ngIf="pideRangoFechas">
+              <label for="desde" class="form-label">Desde <span class="text-danger">*</span></label>
+              <input
+                id="desde"
+                type="date"
+                class="form-control form-control-lg"
+                [(ngModel)]="fechaDesde"
+                [ngClass]="{'is-invalid': !fechaDesde && submitted}">
+            </div>
+            <div class="col-12 col-md-6 mb-3" *ngIf="pideRangoFechas">
+              <label for="hasta" class="form-label">Hasta <span class="text-danger">*</span></label>
+              <input
+                id="hasta"
+                type="date"
+                class="form-control form-control-lg"
+                [(ngModel)]="fechaHasta"
+                [ngClass]="{'is-invalid': !fechaHasta && submitted}">
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="row mt-4">
+        <div class="col-sm-6 mb-2">
+          <button class="btn btn-lg btn-warning w-100" [disabled]="generando" (click)="generar()">
+            <span *ngIf="!generando"><i class="fas fa-download me-2"></i>Generar certificado</span>
+            <span *ngIf="generando">Generando...</span>
+          </button>
+        </div>
+        <div class="col-sm-6 mb-2">
+          <button class="btn btn-lg btn-secondary w-100" (click)="volver()">
+            Volver
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- EXPEDIDOS -->
+    <div class="tab-content" [hidden]="pestanaActiva !== 'historial'">
+
+      <div class="card-panel">
+        <p class="sin-registros" *ngIf="historial.length === 0">
+          Todavía no se ha expedido ningún certificado para este estudiante.
+        </p>
+
+        <div class="fila-historial" *ngFor="let certificado of historial">
+          <i class="fas fa-file-lines fila-icono"></i>
+          <div class="fila-datos">
+            <span class="fila-nombre">{{ certificado.nombre_certificado }}</span>
+            <span class="fila-detalle" *ngIf="detalleHistorial(certificado)">
+              {{ detalleHistorial(certificado) }}
+            </span>
+            <span class="fila-meta">
+              No. {{ certificado.anio }}-{{ certificado.numero }} · {{ fechaTexto(certificado.fecha_expedicion) }}
+              <span class="fila-origen" *ngIf="certificado.origen === 'padres'">· portal de padres</span>
+            </span>
+          </div>
+          <button type="button" class="btn btn-descargar" (click)="descargar(certificado)">
+            <i class="fas fa-download"></i>
+            <span class="texto-descargar">Descargar</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>

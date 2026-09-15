@@ -61,6 +61,8 @@ export class OpcionesEstudianteComponent implements OnInit {
     { id: 'contratos', label: 'Contratos', icono: '/assets/images/contratos.png', categoria: 'Servicios y cobros', permiso: 'estudiantes.contratos', ruta: '/estudiantes/contratos/' },
     { id: 'cursos_extra', label: 'Cursos Extra', icono: '/assets/images/cursos-extra.png', categoria: 'Servicios y cobros', permiso: null, ruta: '/estudiantes/cursos-extra/' },
     { id: 'onces', label: 'Onces', icono: '/assets/images/onces.png', categoria: 'Servicios y cobros', permiso: 'estudiantes.onces', ruta: '/estudiantes/onces/' },
+    { id: 'certificados', label: 'Certificados', icono: '/assets/images/certificados.png', categoria: 'Servicios y cobros', permiso: 'estudiantes.certificados', ruta: '/estudiantes/certificados/' },
+    { id: 'acudiente_pagos', label: 'Acudiente de Pagos', icono: '/assets/images/acudiente-pagos.png', categoria: 'Servicios y cobros', permiso: 'estudiantes.acudiente_pagos', ruta: '/estudiantes/acudiente-pagos/' },
     { id: 'editar', label: 'Editar', icono: '/assets/images/editar.png', categoria: 'Gestión', permiso: 'estudiantes.administrar', ruta: 'estudiantes/editar/' },
     { id: 'cambiar_grupo', label: 'Cambio Grupo', icono: '/assets/images/cambio_grupo.png', categoria: 'Gestión', permiso: 'estudiantes.cambio_grupo', ruta: null },
   ];

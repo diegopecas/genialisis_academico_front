@@ -1,0 +1,167 @@
+<div class="modulo">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="false"
+    [accion]="'ConsultarTodos'"
+    [raiz]="'/estudiantes/acudiente-pagos'"
+    [regresar]="'/estudiantes/opciones/' + idEstudiante"
+    [iconoTitulo]="'/assets/images/acudiente-pagos.png'">
+  </app-header>
+
+  <!-- Barra de pestañas DESKTOP -->
+  <div class="tabs-container tabs-desktop">
+    <div class="tabs-nav">
+      <button
+        class="tab-item"
+        [class.active]="filtro === 'sin_acudiente'"
+        (click)="seleccionarFiltro('sin_acudiente')">
+        <i class="fas fa-triangle-exclamation"></i>
+        Sin acudiente
+        <span class="tab-contador" *ngIf="totalSinAcudiente > 0">{{ totalSinAcudiente }}</span>
+      </button>
+      <button
+        class="tab-item"
+        [class.active]="filtro === 'con_acudiente'"
+        (click)="seleccionarFiltro('con_acudiente')">
+        <i class="fas fa-user-check"></i>
+        Con acudiente
+      </button>
+      <button
+        class="tab-item"
+        [class.active]="filtro === 'todos'"
+        (click)="seleccionarFiltro('todos')">
+        <i class="fas fa-list"></i>
+        Todos
+      </button>
+    </div>
+  </div>
+
+  <!-- Barra de pestañas MOVIL -->
+  <div class="tabs-container tabs-movil">
+    <div class="tabs-movil-header">
+      <button class="tabs-movil-trigger" (click)="menuMovilAbierto = !menuMovilAbierto">
+        <i class="fas" [ngClass]="menuMovilAbierto ? 'fa-times' : 'fa-bars'"></i>
+        <span class="tabs-movil-label">
+          <ng-container [ngSwitch]="filtro">
+            <ng-container *ngSwitchCase="'sin_acudiente'"><i class="fas fa-triangle-exclamation"></i> Sin acudiente</ng-container>
+            <ng-container *ngSwitchCase="'con_acudiente'"><i class="fas fa-user-check"></i> Con acudiente</ng-container>
+            <ng-container *ngSwitchCase="'todos'"><i class="fas fa-list"></i> Todos</ng-container>
+          </ng-container>
+        </span>
+        <i class="fas fa-chevron-down tabs-movil-chevron" [class.rotado]="menuMovilAbierto"></i>
+      </button>
+    </div>
+    <div class="tabs-movil-dropdown" *ngIf="menuMovilAbierto">
+      <button class="tabs-movil-item" [class.active]="filtro === 'sin_acudiente'" (click)="seleccionarFiltro('sin_acudiente')">
+        <i class="fas fa-triangle-exclamation"></i>
+        Sin acudiente
+      </button>
+      <button class="tabs-movil-item" [class.active]="filtro === 'con_acudiente'" (click)="seleccionarFiltro('con_acudiente')">
+        <i class="fas fa-user-check"></i>
+        Con acudiente
+      </button>
+      <button class="tabs-movil-item" [class.active]="filtro === 'todos'" (click)="seleccionarFiltro('todos')">
+        <i class="fas fa-list"></i>
+        Todos
+      </button>
+    </div>
+  </div>
+
+  <div class="container mt-4">
+
+    <p class="nombre-estudiante" *ngIf="nombreEstudiante">{{ nombreEstudiante }}</p>
+
+    <!-- Paso 1: a quien se le asigna. Va arriba para que se vea antes de marcar. -->
+    <div class="card-panel panel-acudiente">
+      <p class="panel-subtitulo">
+        <span class="paso">1</span> ¿Quién pagó?
+      </p>
+      <select class="form-select form-select-lg" [(ngModel)]="idAcudiente">
+        <option [ngValue]="null">Selecciona el acudiente...</option>
+        <option *ngFor="let acudiente of acudientes" [ngValue]="acudiente.id">
+          {{ acudiente.nombre_persona }}
+        </option>
+      </select>
+      <small class="form-text text-muted">
+        Los pagos que marques abajo quedarán registrados a nombre de esta persona.
+      </small>
+    </div>
+
+    <div class="card-panel">
+      <p class="panel-subtitulo">
+        <span class="paso">2</span> Marca los pagos que hizo
+      </p>
+
+      <div class="aviso" *ngIf="totalSinAcudiente > 0 && filtro !== 'con_acudiente'">
+        Hay <b>{{ totalSinAcudiente }}</b> pago(s) sin acudiente registrado. Esos pagos no
+        aparecen en el certificado de pagos por acudiente.
+      </div>
+
+      <p class="sin-registros" *ngIf="pagosFiltrados.length === 0">
+        No hay pagos para mostrar con este filtro.
+      </p>
+
+      <div class="cabecera-lista" *ngIf="pagosFiltrados.length > 0">
+        <label class="seleccionar-todos">
+          <input type="checkbox" [checked]="todosSeleccionados" (change)="alternarTodos()">
+          <span>Seleccionar todos</span>
+        </label>
+        <span class="contador" *ngIf="seleccionados.size > 0">{{ seleccionados.size }} seleccionado(s)</span>
+      </div>
+
+      <div
+        class="fila-pago"
+        *ngFor="let pago of pagosFiltrados"
+        [class.anulado]="esAnulado(pago)"
+        [class.seleccionado]="estaSeleccionado(pago)"
+        (click)="alternar(pago)">
+
+        <input
+          type="checkbox"
+          class="check-pago"
+          [checked]="estaSeleccionado(pago)"
+          [disabled]="esAnulado(pago)"
+          (click)="$event.stopPropagation()"
+          (change)="alternar(pago)">
+
+        <div class="pago-datos">
+          <div class="pago-linea-uno">
+            <span class="pago-valor">{{ valorTexto(pago.valor_recibido) }}</span>
+            <span class="pago-recibo" *ngIf="numeroRecibo(pago)">No. {{ numeroRecibo(pago) }}</span>
+          </div>
+          <div class="pago-linea-dos">
+            <span>{{ fechaTexto(pago.fecha) }}</span>
+            <span *ngIf="pago.tipo_pago">· {{ pago.tipo_pago }}</span>
+          </div>
+          <div class="pago-acudiente">
+            <span *ngIf="pago.id_acudiente" class="con-acudiente">
+              <i class="fas fa-user-check"></i> {{ pago.nombre_acudiente }}
+            </span>
+            <span *ngIf="!pago.id_acudiente" class="sin-acudiente">
+              <i class="fas fa-triangle-exclamation"></i> Sin acudiente
+            </span>
+            <span *ngIf="esAnulado(pago)" class="marca-anulado">Anulado</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row mt-4">
+      <div class="col-sm-6 mb-2">
+        <button class="btn btn-lg btn-warning w-100" [disabled]="asignando" (click)="asignar()">
+          <span *ngIf="!asignando">
+            <i class="fas fa-user-pen me-2"></i>Asignar
+            <span *ngIf="seleccionados.size > 0">({{ seleccionados.size }})</span>
+          </span>
+          <span *ngIf="asignando">Asignando...</span>
+        </button>
+      </div>
+      <div class="col-sm-6 mb-2">
+        <button class="btn btn-lg btn-secondary w-100" (click)="volver()">
+          Volver
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>

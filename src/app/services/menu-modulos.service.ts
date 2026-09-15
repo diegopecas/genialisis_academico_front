@@ -609,18 +609,19 @@ export class MenuModulosService {
           {
             id: 'operaciones',
             titulo: 'Operaciones',
-            descripcion: 'Gestiona entes de control y sus consultas',
+            descripcion: 'Gestiona entes de control, solicitudes y certificados',
             claseIcono: 'operaciones',
             iconoArbol: '⚙️',
             alt: 'Operaciones',
             imagen: '/assets/images/administracion-operaciones.png',
             permisos: ['administracion.operaciones'],
-            keywords: ['entes', 'control', 'operaciones'],
+            keywords: ['entes', 'control', 'operaciones', 'certificados', 'paz y salvo'],
             opciones: [
               { id: 'entes-control', label: 'Entes de Control', alt: 'Entes de Control', imagen: '/assets/images/entes-control.png', iconoArbol: '🏛️', ruta: '/administracion/operaciones/entes-control', permiso: 'admin.entes_control', keywords: ['entes', 'control', 'vigilancia', 'secretaria', 'icbf'] },
               { id: 'consulta-entes-control', label: 'Consulta Entes de Control', alt: 'Consulta Entes de Control', imagen: '/assets/images/consulta-entes-control.png', iconoArbol: '🔎', ruta: '/administracion/operaciones/consulta-entes-control', permiso: 'admin.consulta_entes_control', keywords: ['consulta', 'entes', 'control', 'visita', 'documentos'] },
               { id: 'utiles-diarios', label: 'Útiles y Accesorios Diarios', alt: 'Útiles y Accesorios Diarios', imagen: '/assets/images/utiles-diarios.png', iconoArbol: '🎒', ruta: '/administracion/operaciones/utiles-diarios', permiso: 'admin.utiles_diarios', keywords: ['utiles', 'accesorios', 'inventario diario', 'maleta', 'lonchera', 'parametrizar'] },
-              { id: 'tipos-solicitud', label: 'Tipos de Solicitud', alt: 'Tipos de Solicitud', imagen: '/assets/images/solicitudes-acudientes.png', iconoArbol: '📝', ruta: '/administracion/operaciones/tipos-solicitud', permiso: 'admin.solicitudes_acudientes', keywords: ['solicitudes', 'compromisos', 'medicamento', 'salida anticipada', 'parametrizar solicitudes'] }
+              { id: 'tipos-solicitud', label: 'Tipos de Solicitud', alt: 'Tipos de Solicitud', imagen: '/assets/images/solicitudes-acudientes.png', iconoArbol: '📝', ruta: '/administracion/operaciones/tipos-solicitud', permiso: 'admin.solicitudes_acudientes', keywords: ['solicitudes', 'compromisos', 'medicamento', 'salida anticipada', 'parametrizar solicitudes'] },
+              { id: 'certificados-configuracion', label: 'Configuración de Certificados', alt: 'Configuración de Certificados', imagen: '/assets/images/config-certificados.png', iconoArbol: '📜', ruta: '/administracion/operaciones/certificados-configuracion', permiso: 'admin.certificados_configuracion', keywords: ['certificados', 'paz y salvo', 'constancia', 'estudio', 'pagos', 'reglas', 'portal de padres'] }
             ]
           },
           {

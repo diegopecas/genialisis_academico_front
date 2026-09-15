@@ -282,6 +282,24 @@ export class PagosRecibidosService {
     );
   }
 
+  /**
+   * Asigna el acudiente que pago a varios pagos de un mismo estudiante.
+   * Se usa desde la pantalla Acudiente de Pagos para arreglar los pagos
+   * viejos, que quedaron sin esa marca.
+   */
+  asignarAcudiente(ids: string[], idAcudiente: string) {
+    const body = JSON.stringify({ ids, id_acudiente: idAcudiente });
+    return this.http.put<any>(this.servicio + '/asignar-acudiente', body, httpOptions).pipe(
+      tap((respuesta: any) => {
+        if (respuesta.error) {
+          throw respuesta.error;
+        }
+        return respuesta;
+      }),
+      catchError(this.handleError)
+    );
+  }
+
   private handleError(error: HttpErrorResponse) {
     return throwError(() => error);
   }
