@@ -226,11 +226,12 @@ export class MenuModulosService {
             iconoArbol: '📄',
             alt: 'Informes',
             imagen: '/assets/images/informes-modulo.png',
-            permisos: ['academico.informes_configuracion', 'academico.informes_secciones', 'academico.informes_items'],
+            permisos: ['academico.informes_configuracion', 'academico.informes_secciones', 'academico.informes_items', 'academico.informes_generacion'],
             keywords: ['boletin', 'boletín', 'informe', 'calificaciones', 'notas', 'secciones'],
             opciones: [
               { id: 'informes-configuracion', label: 'Configuración del Informe', alt: 'Configuración del Informe', imagen: '/assets/images/informes-configuracion.png', iconoArbol: '⚙️', ruta: '/academico/informes/configuracion', permiso: 'academico.informes_configuracion', keywords: ['parametro de evaluacion', 'firmas', 'encabezado', 'ausencias', 'escala'] },
               { id: 'informes-secciones', label: 'Secciones del Informe', alt: 'Secciones del Informe', imagen: '/assets/images/informes-secciones.png', iconoArbol: '🗂️', ruta: '/academico/informes/secciones', permiso: 'academico.informes_secciones', keywords: ['dimensiones', 'esferas', 'inteligencias', 'agrupacion del boletin'] },
+              { id: 'informes-generacion', label: 'Generación de Informes', alt: 'Generación de Informes', imagen: '/assets/images/informes-generacion.png', iconoArbol: '📝', ruta: '/academico/informes/generacion', permiso: 'academico.informes_generacion', keywords: ['generar boletin', 'calificar informe', 'confirmar informe', 'boletines'] },
               { id: 'informes-items', label: 'Ítems del Informe', alt: 'Ítems del Informe', imagen: '/assets/images/informes-items.png', iconoArbol: '📋', ruta: '/academico/informes/items', permiso: 'academico.informes_items', keywords: ['participacion familiar', 'filas propias', 'familia'] }
             ]
           }

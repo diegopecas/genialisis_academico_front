@@ -103,6 +103,9 @@ export class AcademicoComponent implements OnInit {
       case 'informes-items':
         this.router.navigate(['/academico/informes/items']);
         break;
+      case 'informes-generacion':
+        this.router.navigate(['/academico/informes/generacion']);
+        break;
     }
   }
 

@@ -33,6 +33,28 @@ export class ValoresParametrosCalificacionesService {
       );
   }
 
+  /**
+   * Valores de un parametro. Los usa el informe para pintar su escala:
+   * el backend los devuelve ordenados por el campo orden, que es el de
+   * presentacion y no siempre coincide con el valor numerico.
+   */
+  obtenerByParametro(idParametro: any): Observable<HttpResponse<Object>> {
+    return this.http
+      .get<HttpResponse<Object>>(`${this.servicio}/parametro/${idParametro}`, {
+        observe: 'response',
+      })
+      .pipe(
+        tap((response: HttpResponse<Object>) => {
+          let respuesta: any = response.body;
+          if (respuesta && respuesta.error) {
+            throw respuesta.error;
+          }
+          return response;
+        }),
+        catchError(this.handleError)
+      );
+  }
+
   obtenerById(id: any): Observable<HttpResponse<Object>> {
     return this.http
       .get<HttpResponse<Object>>(`${this.servicio}/${id}`, {

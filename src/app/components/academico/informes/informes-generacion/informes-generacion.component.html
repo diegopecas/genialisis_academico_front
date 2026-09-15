@@ -1,0 +1,99 @@
+<div class="modulo">
+    <app-header
+        [tituloModulo]="titulo"
+        [mostrarCrear]="false"
+        [accion]="'ConsultarTodos'"
+        [raiz]="'/academico/informes/generacion'"
+        [regresar]="regresar"
+        [iconoTitulo]="'/assets/images/informes-generacion.png'">
+    </app-header>
+
+    <div class="container-informe">
+
+        <!-- ================= FILTROS ================= -->
+        <div class="card-seccion">
+            <div class="card-seccion-header">
+                <h5><i class="fas fa-filter"></i> Grupo y corte</h5>
+            </div>
+            <div class="card-seccion-body">
+                <div class="row align-items-end">
+                    <div class="col-md-5 mb-3">
+                        <label for="grupo" class="form-label">Grupo</label>
+                        <select class="form-select" id="grupo" [(ngModel)]="idGrupo">
+                            <option [ngValue]="null">Seleccione...</option>
+                            <option *ngFor="let g of grupos" [ngValue]="g.id">{{ g.nombre }}</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-5 mb-3">
+                        <label for="corte" class="form-label">Corte académico</label>
+                        <select class="form-select" id="corte" [(ngModel)]="idCorte">
+                            <option [ngValue]="null">Seleccione...</option>
+                            <option *ngFor="let c of cortes" [ngValue]="c.id">{{ c.nombre }}</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-2 mb-3">
+                        <button class="btn btn-corporate-primary w-100" (click)="consultar()">
+                            <i class="fas fa-search me-1"></i> Consultar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= CARGANDO ================= -->
+        <div class="estado-carga" *ngIf="cargando">
+            <div class="spinner"></div>
+            <p>Procesando...</p>
+        </div>
+
+        <!-- ================= SIN RESULTADOS ================= -->
+        <div class="card-seccion" *ngIf="consultado && !cargando && estudiantes.length === 0">
+            <div class="card-seccion-body text-center text-muted">
+                No hay estudiantes activos en ese grupo.
+            </div>
+        </div>
+
+        <!-- ================= LISTA ================= -->
+        <div class="card-seccion" *ngIf="!cargando && estudiantes.length > 0">
+            <div class="card-seccion-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <h5><i class="fas fa-users"></i> Estudiantes ({{ estudiantes.length }})</h5>
+                <button class="btn btn-corporate-primary btn-sm" (click)="generarTodos()">
+                    <i class="fas fa-bolt me-1"></i> Generar los que faltan
+                </button>
+            </div>
+            <div class="card-seccion-body">
+
+                <div class="fila-estudiante" *ngFor="let est of estudiantes">
+                    <div class="est-nombre">
+                        <span class="nombre">{{ est.nombre_completo }}</span>
+                        <span class="badge-estado" [ngClass]="'estado-' + est.estado">
+                            {{ etiquetaEstado(est.estado) }}
+                        </span>
+                    </div>
+
+                    <div class="est-avance" *ngIf="est.estado !== 'sin_generar'">
+                        <div class="barra">
+                            <div class="barra-relleno" [style.width.%]="porcentaje(est)"></div>
+                        </div>
+                        <span class="avance-texto">
+                            {{ est.filas_calificadas }} / {{ est.filas_total }}
+                        </span>
+                    </div>
+
+                    <div class="est-acciones">
+                        <button class="btn-accion" *ngIf="est.estado === 'sin_generar'" (click)="generar(est)">
+                            <i class="fas fa-plus"></i> Generar
+                        </button>
+                        <button class="btn-accion primario" *ngIf="est.estado !== 'sin_generar'" (click)="calificar(est)">
+                            <i class="fas fa-pen"></i> Abrir
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</div>
