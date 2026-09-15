@@ -48,7 +48,7 @@ export class ExportarPdfCertificadoService {
     const indiceTitulo = bloques.findIndex((b: any) => b.tipo === 'titulo');
     const titulo = indiceTitulo >= 0 ? bloques.splice(indiceTitulo, 1)[0].texto : '';
 
-    let y = this.dibujarCabecera(doc, logoBase64, titulo, meta.numero);
+    let y = this.dibujarCabecera(doc, logoBase64, titulo, meta.numero, meta.fecha);
 
     for (const bloque of bloques) {
       y = this.dibujarBloque(doc, bloque, y, firmaBase64);
@@ -70,7 +70,8 @@ export class ExportarPdfCertificadoService {
 
     return {
       numero: nodo ? nodo.getAttribute('data-numero') || '' : '',
-      contacto: nodo ? nodo.getAttribute('data-contacto') || '' : ''
+      contacto: nodo ? nodo.getAttribute('data-contacto') || '' : '',
+      fecha: nodo ? nodo.getAttribute('data-fecha') || '' : ''
     };
   }
 
@@ -78,7 +79,7 @@ export class ExportarPdfCertificadoService {
    * Logo a la izquierda y título a su derecha, con el consecutivo bajo el
    * título. Devuelve la Y donde empieza el cuerpo.
    */
-  private dibujarCabecera(doc: jsPDF, logoBase64: string, titulo: string, numero: string): number {
+  private dibujarCabecera(doc: jsPDF, logoBase64: string, titulo: string, numero: string, fecha: string): number {
     const ALTO_LOGO = 26;
     const y = this.MARGEN;
 
@@ -119,6 +120,16 @@ export class ExportarPdfCertificadoService {
     }
 
     const yLinea = y + ALTO_LOGO + 7;
+
+    // La fecha va apoyada sobre la línea del encabezado, a la derecha.
+    if (fecha) {
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(10);
+      doc.setTextColor(70, 70, 70);
+      doc.text(fecha, this.ANCHO_PAGINA - this.MARGEN, yLinea - 2.5, { align: 'right' });
+      doc.setTextColor(0, 0, 0);
+    }
+
     doc.setDrawColor(180, 180, 180);
     doc.line(this.MARGEN, yLinea, this.ANCHO_PAGINA - this.MARGEN, yLinea);
 
@@ -328,7 +339,10 @@ export class ExportarPdfCertificadoService {
       let total = 0;
       this.agruparPorEstilo(palabrasLinea).forEach((grupo: any) => {
         doc.setFont('helvetica', grupo.negrita ? 'bold' : 'normal');
-        total += doc.getTextWidth(grupo.texto);
+        if (grupo.espacioAntes) {
+          total += doc.getTextWidth(' ');
+        }
+        total += this.anchoTexto(doc, grupo.texto, grupo.negrita);
       });
       return total;
     };
@@ -345,8 +359,11 @@ export class ExportarPdfCertificadoService {
 
       this.agruparPorEstilo(palabrasLinea).forEach((grupo: any) => {
         doc.setFont('helvetica', grupo.negrita ? 'bold' : 'normal');
+        if (grupo.espacioAntes) {
+          x += doc.getTextWidth(' ');
+        }
         doc.text(grupo.texto, x, posicionY);
-        x += doc.getTextWidth(grupo.texto);
+        x += this.anchoTexto(doc, grupo.texto, grupo.negrita);
       });
     };
 
@@ -383,19 +400,50 @@ export class ExportarPdfCertificadoService {
 
     palabras.forEach((palabra: any, indice: number) => {
       const anterior = grupos[grupos.length - 1];
-      const separador = (indice === 0 || this.pegaConAnterior(palabra.texto)) ? '' : ' ';
+      const llevaEspacio = indice > 0 && !this.pegaConAnterior(palabra.texto);
 
       if (anterior && anterior.negrita === palabra.negrita) {
-        anterior.texto += separador + palabra.texto;
+        anterior.texto += (llevaEspacio ? ' ' : '') + palabra.texto;
         return;
       }
 
-      // Cambia el estilo: el espacio se antepone al grupo nuevo para no
-      // perderlo entre un fragmento en negrita y el siguiente normal.
-      grupos.push({ texto: separador + palabra.texto, negrita: palabra.negrita });
+      // Un signo de puntuación se dibuja dentro del grupo anterior aunque
+      // cambie el estilo. Si se dibujara aparte quedaría un hueco visible
+      // ("LICEO LUMEN , identificado"), porque el ancho de la negrita nunca
+      // coincide exacto con lo que pinta el visor.
+      if (anterior && !llevaEspacio) {
+        anterior.texto += palabra.texto;
+        return;
+      }
+
+      // Al cambiar de estilo el espacio NO se mete dentro del texto: jsPDF
+      // descarta los espacios de los extremos al dibujar y quedaba
+      // "A PAZ Y SALVOpor". Se marca aparte y se avanza la X al pintar.
+      grupos.push({ texto: palabra.texto, negrita: palabra.negrita, espacioAntes: llevaEspacio });
     });
 
     return grupos;
+  }
+
+  /**
+   * Ancho de un texto, midiéndolo carácter por carácter.
+   *
+   * jsPDF devuelve de menos al medir una cadena completa en negrita (hasta un
+   * 5%), y ese faltante se come el espacio siguiente: el texto salía pegado
+   * ("A PAZ Y SALVOpor"). Sumando carácter a carácter el resultado queda a
+   * menos de medio punto de lo que el visor termina dibujando.
+   */
+  private anchoTexto(doc: jsPDF, texto: string, negrita: boolean): number {
+    if (!negrita) {
+      return doc.getTextWidth(texto);
+    }
+
+    let total = 0;
+    for (const caracter of texto) {
+      total += doc.getTextWidth(caracter);
+    }
+
+    return total;
   }
 
   /** Signos que van pegados a la palabra anterior, sin espacio. */
@@ -517,7 +565,7 @@ export class ExportarPdfCertificadoService {
         const contenido = fila.celdas[i] || '';
         doc.setFont('helvetica', fila.encabezado ? 'bold' : 'normal');
 
-        const anchoCelda = doc.getTextWidth(contenido);
+        const anchoCelda = this.anchoTexto(doc, contenido, fila.encabezado);
         if (anchoCelda > mayorCelda) {
           mayorCelda = anchoCelda;
         }
@@ -525,7 +573,7 @@ export class ExportarPdfCertificadoService {
         // La palabra más larga marca el mínimo: sin esto una fecha o un monto
         // se partía en dos líneas ("26/01/20" / "26").
         contenido.split(' ').forEach((palabra: string) => {
-          const anchoPalabra = doc.getTextWidth(palabra);
+          const anchoPalabra = this.anchoTexto(doc, palabra, fila.encabezado);
           if (anchoPalabra > mayorPalabra) {
             mayorPalabra = anchoPalabra;
           }

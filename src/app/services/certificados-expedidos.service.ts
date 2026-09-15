@@ -29,6 +29,7 @@ export interface ExpedirCertificado {
   fecha_desde?: string | null;
   fecha_hasta?: string | null;
   productos?: string[];
+  dirigido_a?: string | null;
   agrupar_por_mes?: number | null;
   origen: string;
 }

@@ -88,10 +88,24 @@
           </button>
         </div>
 
-        <div class="datos-adicionales" *ngIf="claveSeleccionada && (pideAcudiente || pideAnio || pideRangoFechas)">
+        <div class="datos-adicionales" *ngIf="claveSeleccionada">
           <p class="panel-subtitulo">Datos del certificado</p>
 
           <div class="row">
+            <div class="col-12 mb-3">
+              <label for="dirigido" class="form-label">Dirigido a</label>
+              <input
+                id="dirigido"
+                type="text"
+                class="form-control form-control-lg"
+                maxlength="255"
+                placeholder="A QUIEN INTERESE"
+                [(ngModel)]="dirigidoA">
+              <small class="form-text text-muted">
+                En blanco sale "A QUIEN INTERESE".
+              </small>
+            </div>
+
             <div class="col-12 mb-3" *ngIf="pideAcudiente">
               <label for="acudiente" class="form-label">¿Quién realizó los pagos? <span class="text-danger">*</span></label>
               <select
@@ -130,6 +144,7 @@
                 id="desde"
                 type="date"
                 class="form-control form-control-lg"
+                [max]="hoy"
                 [(ngModel)]="fechaDesde"
                 [ngClass]="{'is-invalid': !fechaDesde && submitted}">
             </div>
@@ -139,6 +154,7 @@
                 id="hasta"
                 type="date"
                 class="form-control form-control-lg"
+                [max]="hoy"
                 [(ngModel)]="fechaHasta"
                 [ngClass]="{'is-invalid': !fechaHasta && submitted}">
             </div>

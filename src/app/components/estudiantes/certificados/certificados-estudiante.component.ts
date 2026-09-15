@@ -34,6 +34,7 @@ export class CertificadosEstudianteComponent implements OnInit {
   public anioCertificado: number | null = null;
   public fechaDesde = '';
   public fechaHasta = '';
+  public dirigidoA = '';
   public seleccionProductos = new Set<string>();
   public agruparPorMes = false;
 
@@ -74,7 +75,16 @@ export class CertificadosEstudianteComponent implements OnInit {
   private prellenarAnioActual(): void {
     const anio = new Date().getFullYear();
     this.fechaDesde = `${anio}-01-01`;
-    this.fechaHasta = `${anio}-12-31`;
+    // No se certifican pagos futuros: el año arranca hasta hoy.
+    this.fechaHasta = this.hoy;
+  }
+
+  /** Fecha de hoy en formato yyyy-mm-dd, sin correrse por zona horaria. */
+  get hoy(): string {
+    const ahora = new Date();
+    const mes = String(ahora.getMonth() + 1).padStart(2, '0');
+    const dia = String(ahora.getDate()).padStart(2, '0');
+    return `${ahora.getFullYear()}-${mes}-${dia}`;
   }
 
   cargarEstudiante(): void {
@@ -217,6 +227,7 @@ export class CertificadosEstudianteComponent implements OnInit {
     const certificado = this.certificados.find((c: any) => c.clave_certificado === clave);
     this.agruparPorMes = certificado ? Number(certificado.agrupar_por_mes) === 1 : false;
     this.seleccionProductos.clear();
+    this.dirigidoA = '';
   }
 
   volver(): void {
@@ -286,6 +297,33 @@ export class CertificadosEstudianteComponent implements OnInit {
       Swal.fire('Rango inválido', 'La fecha inicial no puede ser mayor que la final.', 'warning');
       return;
     }
+    if (this.pideRangoFechas && this.fechaHasta > this.hoy) {
+      Swal.fire('Rango inválido', 'La fecha final no puede ser posterior a hoy.', 'warning');
+      return;
+    }
+
+    // El jardín puede expedir con deuda, pero no en silencio: un paz y salvo
+    // con saldo pendiente es un problema para el jardín, no para el sistema.
+    const certificado = this.certificados.find(
+      (c: any) => c.clave_certificado === this.claveSeleccionada
+    );
+
+    if (certificado && Number(certificado.cumple) !== 1) {
+      const confirmacion = await Swal.fire({
+        title: 'El estudiante tiene saldo pendiente',
+        html: this.textoAdvertencia(certificado),
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d4af37',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Generar de todas formas',
+        cancelButtonText: 'Cancelar'
+      });
+
+      if (!confirmacion.isConfirmed) {
+        return;
+      }
+    }
 
     this.generando = true;
 
@@ -297,6 +335,7 @@ export class CertificadosEstudianteComponent implements OnInit {
       fecha_desde: this.pideRangoFechas ? this.fechaDesde : null,
       fecha_hasta: this.pideRangoFechas ? this.fechaHasta : null,
       productos: this.pideRangoFechas ? Array.from(this.seleccionProductos) : [],
+      dirigido_a: this.dirigidoA,
       agrupar_por_mes: this.pideRangoFechas ? (this.agruparPorMes ? 1 : 0) : null,
       origen: 'institucional'
     }).subscribe({
@@ -348,6 +387,20 @@ export class CertificadosEstudianteComponent implements OnInit {
         Swal.fire('Error', 'No se pudo obtener el certificado.', 'error');
       }
     });
+  }
+
+  private textoAdvertencia(certificado: any): string {
+    const total = this.valorTexto(certificado.saldo_total);
+    const vencido = this.valorTexto(certificado.saldo_vencido);
+
+    return `Saldo total pendiente: <b>${total}</b><br>`
+      + `De ese saldo, ya está vencido: <b>${vencido}</b><br><br>`
+      + `Vas a expedir <b>${certificado.nombre}</b> de todas formas.`;
+  }
+
+  valorTexto(valor: any): string {
+    const numero = Number(valor) || 0;
+    return '$' + numero.toLocaleString('es-CO', { maximumFractionDigits: 0 });
   }
 
   private nombreArchivo(numero: string): string {
