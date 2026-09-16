@@ -5,6 +5,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { HeaderComponent } from '../../../common/header/header.component';
 import { CertificadosExpedidosService } from '../../../services/certificados-expedidos.service';
 import { ExportarPdfCertificadoService } from '../../../services/exportar-pdf-certificado.service';
+import { ExportarWordCertificadoService } from '../../../services/exportar-word-certificado.service';
 import { AcudientesService } from '../../../services/acudientes.service';
 import { EstudiantesService } from '../../../services/estudiantes.service';
 import Swal from 'sweetalert2';
@@ -38,6 +39,8 @@ export class CertificadosEstudianteComponent implements OnInit {
   public dirigidoA = '';
   public seleccionProductos = new Set<string>();
   public formato = 'recibo';
+  // Formato del archivo que se descarga, no del contenido.
+  public formatoArchivo = 'pdf';
   public mostrarConceptos = true;
   public soloMensuales = false;
 
@@ -52,6 +55,7 @@ export class CertificadosEstudianteComponent implements OnInit {
     private router: Router,
     private certificadosService: CertificadosExpedidosService,
     private exportarPdfService: ExportarPdfCertificadoService,
+    private exportarWordService: ExportarWordCertificadoService,
     private acudientesService: AcudientesService,
     private estudiantesService: EstudiantesService
   ) { }
@@ -414,7 +418,7 @@ export class CertificadosEstudianteComponent implements OnInit {
     }).subscribe({
       next: async (respuesta: any) => {
         try {
-          await this.exportarPdfService.generarPDF(
+          await this.descargarArchivo(
             respuesta.contenido_html,
             this.nombreArchivo(respuesta.numero_certificado)
           );
@@ -427,7 +431,7 @@ export class CertificadosEstudianteComponent implements OnInit {
           this.pestanaActiva = 'historial';
         } catch (error) {
           console.error('Error al generar el PDF', error);
-          Swal.fire('Error', 'El certificado se guardó pero no se pudo generar el PDF.', 'error');
+          Swal.fire('Error', 'El certificado se guardó pero no se pudo generar el archivo.', 'error');
         } finally {
           this.generando = false;
         }
@@ -446,13 +450,13 @@ export class CertificadosEstudianteComponent implements OnInit {
       next: async (response: any) => {
         const expedido = response.body;
         try {
-          await this.exportarPdfService.generarPDF(
+          await this.descargarArchivo(
             expedido.contenido_html,
             this.nombreArchivo(`${expedido.anio}-${String(expedido.numero).padStart(4, '0')}`)
           );
         } catch (error) {
-          console.error('Error al generar el PDF', error);
-          Swal.fire('Error', 'No se pudo generar el PDF.', 'error');
+          console.error('Error al generar el archivo', error);
+          Swal.fire('Error', 'No se pudo generar el archivo.', 'error');
         }
       },
       error: (error: any) => {
@@ -474,6 +478,16 @@ export class CertificadosEstudianteComponent implements OnInit {
   valorTexto(valor: any): string {
     const numero = Number(valor) || 0;
     return '$' + numero.toLocaleString('es-CO', { maximumFractionDigits: 0 });
+  }
+
+  /** El HTML resuelto es el mismo; solo cambia el archivo que se descarga. */
+  private async descargarArchivo(contenidoHtml: string, nombre: string): Promise<void> {
+    if (this.formatoArchivo === 'word') {
+      await this.exportarWordService.generarWord(contenidoHtml, nombre);
+      return;
+    }
+
+    await this.exportarPdfService.generarPDF(contenidoHtml, nombre);
   }
 
   private nombreArchivo(numero: string): string {

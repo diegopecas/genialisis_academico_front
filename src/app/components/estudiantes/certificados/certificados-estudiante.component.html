@@ -99,6 +99,29 @@
 
           <div class="row">
             <div class="col-12 mb-3">
+              <label class="form-label">Formato del archivo</label>
+              <div class="selector-archivo">
+                <button
+                  type="button"
+                  class="opcion-archivo"
+                  [class.activa]="formatoArchivo === 'pdf'"
+                  (click)="formatoArchivo = 'pdf'">
+                  <i class="fas fa-file-pdf"></i> PDF
+                </button>
+                <button
+                  type="button"
+                  class="opcion-archivo"
+                  [class.activa]="formatoArchivo === 'word'"
+                  (click)="formatoArchivo = 'word'">
+                  <i class="fas fa-file-word"></i> Word
+                </button>
+              </div>
+              <small class="form-text text-muted" *ngIf="formatoArchivo === 'word'">
+                El Word queda editable, por si hay que ajustar algo antes de entregarlo.
+              </small>
+            </div>
+
+            <div class="col-12 mb-3">
               <label for="dirigido" class="form-label">Dirigido a</label>
               <input
                 id="dirigido"
@@ -308,7 +331,7 @@
             </span>
           </div>
           <button type="button" class="btn btn-descargar" (click)="descargar(certificado)">
-            <i class="fas fa-download"></i>
+            <i class="fas" [ngClass]="formatoArchivo === 'word' ? 'fa-file-word' : 'fa-file-pdf'"></i>
             <span class="texto-descargar">Descargar</span>
           </button>
         </div>

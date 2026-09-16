@@ -604,6 +604,50 @@ $light-gold: rgba(212, 175, 55, 0.1);
   }
 }
 
+// Selector de formato del archivo
+.selector-archivo {
+  display: flex;
+  gap: 10px;
+}
+
+.opcion-archivo {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 14px;
+  background: #fff;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #666;
+  transition: all 0.2s ease;
+
+  i {
+    font-size: 1.05rem;
+    color: #b9b9b9;
+  }
+
+  &:hover:not(.activa) {
+    border-color: rgba($gold, 0.5);
+    background-color: $light-gold;
+  }
+
+  &.activa {
+    border-color: $gold;
+    background-color: $light-gold;
+    color: $black;
+    box-shadow: 0 0 0 1px $gold inset;
+
+    i {
+      color: $gold;
+    }
+  }
+}
+
 @media (max-width: 768px) {
   .modulo {
     padding: 10px;

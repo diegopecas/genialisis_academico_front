@@ -30,6 +30,7 @@
     "chartjs-plugin-datalabels": "^2.2.0",
     "collect.js": "^4.36.1",
     "date-fns": "^3.3.1",
+    "docx": "^9.7.1",
     "html2canvas": "^1.4.1",
     "jspdf": "^3.0.1",
     "jspdf-autotable": "^5.0.2",
