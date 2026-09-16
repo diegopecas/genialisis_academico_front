@@ -28,6 +28,8 @@ export class CertificadosEstudianteComponent implements OnInit {
   public anios = [] as number[];
   public historial = [] as any[];
   public grupos = [] as any[];
+  public saldoTotal = 0;
+  public saldoVencido = 0;
 
   public claveSeleccionada = '';
   public idAcudiente: string | null = null;
@@ -36,7 +38,9 @@ export class CertificadosEstudianteComponent implements OnInit {
   public fechaHasta = '';
   public dirigidoA = '';
   public seleccionProductos = new Set<string>();
-  public agruparPorMes = false;
+  public formato = 'recibo';
+  public mostrarConceptos = true;
+  public soloMensuales = false;
 
   public generando = false;
   public submitted = false;
@@ -104,6 +108,13 @@ export class CertificadosEstudianteComponent implements OnInit {
     this.certificadosService.obtenerDisponibles(this.idEstudiante, 'institucional').subscribe({
       next: (response: any) => {
         this.certificados = response.body as any[];
+
+        // El saldo es del estudiante, no de cada certificado: se toma del
+        // primero y se muestra arriba para que no sorprenda al confirmar.
+        if (this.certificados.length > 0) {
+          this.saldoTotal = Number(this.certificados[0].saldo_total) || 0;
+          this.saldoVencido = Number(this.certificados[0].saldo_vencido) || 0;
+        }
       },
       error: (error: any) => console.error('Error al cargar los certificados', error)
     });
@@ -147,6 +158,7 @@ export class CertificadosEstudianteComponent implements OnInit {
               id,
               nombre: producto.nombre_clasificacion || 'Sin clasificación',
               abierto: false,
+              busqueda: '',
               productos: []
             };
           }
@@ -159,6 +171,49 @@ export class CertificadosEstudianteComponent implements OnInit {
       },
       error: (error: any) => console.error('Error al cargar los productos', error)
     });
+  }
+
+  /**
+   * Productos visibles de un grupo: se filtran por texto y, si se pide, por
+   * periodicidad mensual. Lo seleccionado no se pierde al filtrar.
+   */
+  productosVisibles(grupo: any): any[] {
+    const texto = this.normalizar(grupo.busqueda || '');
+
+    return grupo.productos.filter((producto: any) => {
+      if (this.soloMensuales && !this.esMensual(producto)) {
+        return false;
+      }
+      if (texto === '') {
+        return true;
+      }
+      return this.normalizar(producto.nombre || '').includes(texto);
+    });
+  }
+
+  /** Sin tildes, sin mayúsculas y sin espacios sobrantes, para buscar parejo. */
+  private normalizar(texto: string): string {
+    return texto
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .trim();
+  }
+
+  esMensual(producto: any): boolean {
+    const nombre = (producto.nombre_periodicidad || producto.periodicidad || '').toLowerCase();
+    return nombre === 'mensual' || Number(producto.id_periodicidad_cobro) === 2;
+  }
+
+  /** Al buscar dentro de un grupo, ese grupo se abre solo. */
+  filtrarGrupo(grupo: any): void {
+    if ((grupo.busqueda || '').trim() !== '') {
+      grupo.abierto = true;
+    }
+  }
+
+  filtrarMensuales(): void {
+    this.grupos.forEach((grupo: any) => (grupo.abierto = this.soloMensuales));
   }
 
   alternarGrupo(grupo: any): void {
@@ -179,25 +234,32 @@ export class CertificadosEstudianteComponent implements OnInit {
 
   /** Marcar la clasificación marca todos sus productos. */
   grupoCompleto(grupo: any): boolean {
-    return grupo.productos.length > 0
-      && grupo.productos.every((p: any) => this.seleccionProductos.has(p.id));
+    const visibles = this.productosVisibles(grupo);
+    return visibles.length > 0 && visibles.every((p: any) => this.seleccionProductos.has(p.id));
   }
 
   grupoParcial(grupo: any): boolean {
     return !this.grupoCompleto(grupo)
-      && grupo.productos.some((p: any) => this.seleccionProductos.has(p.id));
+      && this.productosVisibles(grupo).some((p: any) => this.seleccionProductos.has(p.id));
   }
 
   seleccionadosDe(grupo: any): number {
-    return grupo.productos.filter((p: any) => this.seleccionProductos.has(p.id)).length;
+    return this.productosVisibles(grupo).filter((p: any) => this.seleccionProductos.has(p.id)).length;
   }
 
+  totalVisiblesDe(grupo: any): number {
+    return this.productosVisibles(grupo).length;
+  }
+
+  /** Marca o desmarca solo lo que está a la vista con el filtro puesto. */
   alternarTodoElGrupo(grupo: any): void {
+    const visibles = this.productosVisibles(grupo);
+
     if (this.grupoCompleto(grupo)) {
-      grupo.productos.forEach((p: any) => this.seleccionProductos.delete(p.id));
+      visibles.forEach((p: any) => this.seleccionProductos.delete(p.id));
       return;
     }
-    grupo.productos.forEach((p: any) => this.seleccionProductos.add(p.id));
+    visibles.forEach((p: any) => this.seleccionProductos.add(p.id));
   }
 
   limpiarSeleccion(): void {
@@ -225,9 +287,16 @@ export class CertificadosEstudianteComponent implements OnInit {
     // El switch arranca con lo que el jardín dejó configurado, pero se puede
     // cambiar para este certificado.
     const certificado = this.certificados.find((c: any) => c.clave_certificado === clave);
-    this.agruparPorMes = certificado ? Number(certificado.agrupar_por_mes) === 1 : false;
+    this.formato = certificado ? certificado.formato : 'recibo';
+    this.mostrarConceptos = certificado ? Number(certificado.mostrar_conceptos) === 1 : true;
     this.seleccionProductos.clear();
     this.dirigidoA = '';
+    this.soloMensuales = false;
+    this.grupos.forEach((grupo: any) => (grupo.busqueda = ''));
+  }
+
+  get aplicaConceptos(): boolean {
+    return this.formato === 'recibo' || this.formato === 'mes';
   }
 
   volver(): void {
@@ -336,7 +405,8 @@ export class CertificadosEstudianteComponent implements OnInit {
       fecha_hasta: this.pideRangoFechas ? this.fechaHasta : null,
       productos: this.pideRangoFechas ? Array.from(this.seleccionProductos) : [],
       dirigido_a: this.dirigidoA,
-      agrupar_por_mes: this.pideRangoFechas ? (this.agruparPorMes ? 1 : 0) : null,
+      formato: this.pideRangoFechas ? this.formato : null,
+      mostrar_conceptos: this.pideRangoFechas ? (this.mostrarConceptos ? 1 : 0) : null,
       origen: 'institucional'
     }).subscribe({
       next: async (respuesta: any) => {

@@ -83,15 +83,33 @@
 
       <div class="row" *ngIf="model.es_de_pagos === 1">
         <div class="col-12 mb-3">
-          <label class="form-label">Formato de la tabla de pagos</label>
-          <select class="form-select form-select-lg" [(ngModel)]="model.agrupar_por_mes">
-            <option [ngValue]="0">Un renglón por recibo</option>
-            <option [ngValue]="1">Una fila por mes, con el total</option>
+          <label class="form-label">Formato del detalle</label>
+          <select class="form-select form-select-lg" [(ngModel)]="model.formato">
+            <option value="recibo">Un renglón por recibo</option>
+            <option value="mes">Una fila por mes, con el total</option>
+            <option value="concepto">Una fila por concepto, con el total</option>
+            <option value="total">Solo el valor total, sin tabla</option>
           </select>
           <small class="form-text text-muted">
             Es el valor con el que arranca la pantalla al generar; ahí se puede cambiar
-            para un certificado puntual. Agrupado por mes no sale el número de recibo,
-            porque un mes puede tener varios.
+            para un certificado puntual. Por mes y por concepto no sale el número de
+            recibo, porque cada fila agrupa varios.
+          </small>
+        </div>
+
+        <div class="col-12 mb-3">
+          <div class="form-check form-switch">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="conceptos"
+              [disabled]="!aplicaConceptos"
+              [(ngModel)]="model.mostrar_conceptos"
+              [ngModelOptions]="{standalone: true}">
+            <label class="form-check-label" for="conceptos">Mostrar la columna de conceptos</label>
+          </div>
+          <small class="form-text text-muted" *ngIf="!aplicaConceptos">
+            No aplica al formato seleccionado.
           </small>
         </div>
       </div>

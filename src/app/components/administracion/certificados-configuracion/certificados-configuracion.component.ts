@@ -43,7 +43,7 @@ export class CertificadosConfiguracionComponent implements OnInit {
         modo: configuracion.modo === 'automatico' ? 'Automático' : 'Manual',
         regla: this.textoRegla(configuracion),
         formato: Number(configuracion.es_de_pagos) === 1
-          ? (Number(configuracion.agrupar_por_mes) === 1 ? 'Por mes' : 'Por recibo')
+          ? this.textoFormato(configuracion.formato)
           : '',
         estado: Number(configuracion.activo) === 1 ? 'Activo' : 'Inactivo'
       }));
@@ -91,6 +91,15 @@ export class CertificadosConfiguracionComponent implements OnInit {
   /**
    * El paz y salvo no tiene regla configurable: siempre exige saldo en cero.
    */
+  textoFormato(formato: string): string {
+    switch (formato) {
+      case 'mes': return 'Por mes';
+      case 'concepto': return 'Por concepto';
+      case 'total': return 'Solo total';
+      default: return 'Por recibo';
+    }
+  }
+
   textoRegla(configuracion: any): string {
     if (Number(configuracion.regla_fija) === 1) {
       return 'Saldo en cero (fija)';

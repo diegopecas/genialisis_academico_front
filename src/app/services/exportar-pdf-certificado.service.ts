@@ -48,7 +48,14 @@ export class ExportarPdfCertificadoService {
     const indiceTitulo = bloques.findIndex((b: any) => b.tipo === 'titulo');
     const titulo = indiceTitulo >= 0 ? bloques.splice(indiceTitulo, 1)[0].texto : '';
 
-    let y = this.dibujarCabecera(doc, logoBase64, titulo, meta.numero, meta.fecha);
+    // Todo lo que viene después de la raya de la firma es el pie del firmante:
+    // nombre, cargo e institución. Van juntos, no como párrafos sueltos.
+    const indiceFirma = bloques.findIndex((b: any) => b.tipo === 'firma_linea');
+    if (indiceFirma >= 0) {
+      bloques.slice(indiceFirma + 1).forEach((b: any) => (b.compacto = true));
+    }
+
+    let y = this.dibujarCabecera(doc, logoBase64, titulo, meta.numero);
 
     for (const bloque of bloques) {
       y = this.dibujarBloque(doc, bloque, y, firmaBase64);
@@ -70,8 +77,7 @@ export class ExportarPdfCertificadoService {
 
     return {
       numero: nodo ? nodo.getAttribute('data-numero') || '' : '',
-      contacto: nodo ? nodo.getAttribute('data-contacto') || '' : '',
-      fecha: nodo ? nodo.getAttribute('data-fecha') || '' : ''
+      contacto: nodo ? nodo.getAttribute('data-contacto') || '' : ''
     };
   }
 
@@ -79,7 +85,7 @@ export class ExportarPdfCertificadoService {
    * Logo a la izquierda y título a su derecha, con el consecutivo bajo el
    * título. Devuelve la Y donde empieza el cuerpo.
    */
-  private dibujarCabecera(doc: jsPDF, logoBase64: string, titulo: string, numero: string, fecha: string): number {
+  private dibujarCabecera(doc: jsPDF, logoBase64: string, titulo: string, numero: string): number {
     const ALTO_LOGO = 26;
     const y = this.MARGEN;
 
@@ -120,15 +126,6 @@ export class ExportarPdfCertificadoService {
     }
 
     const yLinea = y + ALTO_LOGO + 7;
-
-    // La fecha va apoyada sobre la línea del encabezado, a la derecha.
-    if (fecha) {
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(10);
-      doc.setTextColor(70, 70, 70);
-      doc.text(fecha, this.ANCHO_PAGINA - this.MARGEN, yLinea - 2.5, { align: 'right' });
-      doc.setTextColor(0, 0, 0);
-    }
 
     doc.setDrawColor(180, 180, 180);
     doc.line(this.MARGEN, yLinea, this.ANCHO_PAGINA - this.MARGEN, yLinea);
@@ -278,8 +275,8 @@ export class ExportarPdfCertificadoService {
 
   private dibujarBloque(doc: jsPDF, bloque: any, y: number, firmaBase64: string): number {
     if (bloque.tipo === 'firma_linea') {
-      y = this.saltarSiNoCabe(doc, y, 25);
-      y += 18;
+      y = this.saltarSiNoCabe(doc, y, 22);
+      y += 15;
 
       const mitad = this.ANCHO_PAGINA / 2;
 
@@ -320,6 +317,8 @@ export class ExportarPdfCertificadoService {
   private dibujarParrafo(doc: jsPDF, bloque: any, y: number): number {
     const tamano = bloque.tamano;
     const altoLinea = tamano * 0.45 + 2.2;
+    // Los párrafos del bloque de firma van más juntos entre sí.
+    const separacion = bloque.compacto ? 0.5 : 4;
 
     doc.setFontSize(tamano);
     doc.setTextColor(0, 0, 0);
@@ -387,7 +386,7 @@ export class ExportarPdfCertificadoService {
       y += altoLinea;
     }
 
-    return y + 4;
+    return y + separacion;
   }
 
   /**

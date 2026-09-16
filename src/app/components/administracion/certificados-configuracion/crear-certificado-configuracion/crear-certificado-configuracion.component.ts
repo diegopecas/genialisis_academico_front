@@ -36,7 +36,8 @@ export class CrearCertificadoConfiguracionComponent implements OnInit {
     activo: 1,
     regla_fija: 0,
     es_de_pagos: 0,
-    agrupar_por_mes: 0,
+    formato: 'recibo',
+    mostrar_conceptos: 1,
     productos: [] as string[]
   } as any;
 
@@ -81,7 +82,8 @@ export class CrearCertificadoConfiguracionComponent implements OnInit {
         this.model.activo = Number(configuracion.activo);
         this.model.regla_fija = Number(configuracion.regla_fija);
         this.model.es_de_pagos = Number(configuracion.es_de_pagos);
-        this.model.agrupar_por_mes = Number(configuracion.agrupar_por_mes);
+        this.model.formato = configuracion.formato;
+        this.model.mostrar_conceptos = Number(configuracion.mostrar_conceptos);
         this.model.productos = (configuracion.productos || []).map((p: any) => p.id_producto_servicio);
         this.titulo = configuracion.nombre;
       },
@@ -94,6 +96,11 @@ export class CrearCertificadoConfiguracionComponent implements OnInit {
 
   get esAutomatico(): boolean {
     return this.model.modo === 'automatico';
+  }
+
+  /** La columna de conceptos solo aplica donde hay tabla con esa columna. */
+  get aplicaConceptos(): boolean {
+    return this.model.formato === 'recibo' || this.model.formato === 'mes';
   }
 
   get pideProductos(): boolean {
@@ -133,7 +140,8 @@ export class CrearCertificadoConfiguracionComponent implements OnInit {
       regla: this.model.regla,
       mensaje_no_cumple: this.model.mensaje_no_cumple,
       activo: this.model.activo,
-      agrupar_por_mes: this.model.agrupar_por_mes,
+      formato: this.model.formato,
+      mostrar_conceptos: this.model.mostrar_conceptos,
       productos: this.model.productos
     }).subscribe({
       next: () => {

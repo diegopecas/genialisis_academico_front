@@ -1,6 +1,6 @@
 <div class="modulo">
   <app-header
-    [tituloModulo]="titulo"
+    [tituloModulo]="nombreEstudiante ? titulo + ' de ' + nombreEstudiante : titulo"
     [mostrarCrear]="false"
     [accion]="'ConsultarTodos'"
     [raiz]="'/estudiantes/acudiente-pagos'"
@@ -68,8 +68,6 @@
   </div>
 
   <div class="container mt-4">
-
-    <p class="nombre-estudiante" *ngIf="nombreEstudiante">{{ nombreEstudiante }}</p>
 
     <!-- Paso 1: a quien se le asigna. Va arriba para que se vea antes de marcar. -->
     <div class="card-panel panel-acudiente">

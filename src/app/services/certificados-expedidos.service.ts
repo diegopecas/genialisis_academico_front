@@ -17,7 +17,10 @@ export interface CertificadoDisponible {
   cumple: number;
   mensaje: string | null;
   saldo_pendiente: number;
-  agrupar_por_mes: number;
+  formato: string;
+  mostrar_conceptos: number;
+  saldo_total: number;
+  saldo_vencido: number;
   es_de_pagos: number;
 }
 
@@ -30,7 +33,8 @@ export interface ExpedirCertificado {
   fecha_hasta?: string | null;
   productos?: string[];
   dirigido_a?: string | null;
-  agrupar_por_mes?: number | null;
+  formato?: string | null;
+  mostrar_conceptos?: number | null;
   origen: string;
 }
 

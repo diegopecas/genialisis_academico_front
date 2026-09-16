@@ -1,6 +1,6 @@
 <div class="modulo">
   <app-header
-    [tituloModulo]="titulo"
+    [tituloModulo]="nombreEstudiante ? titulo + ' de ' + nombreEstudiante : titulo"
     [mostrarCrear]="false"
     [accion]="'ConsultarTodos'"
     [raiz]="'/estudiantes/certificados'"
@@ -63,12 +63,18 @@
 
   <div class="container mt-4">
 
-    <p class="nombre-estudiante" *ngIf="nombreEstudiante">{{ nombreEstudiante }}</p>
-
     <!-- GENERAR -->
     <div class="tab-content" [hidden]="pestanaActiva !== 'generar'">
 
       <div class="card-panel">
+
+        <div class="aviso-saldo" *ngIf="saldoTotal > 0">
+          <i class="fas fa-circle-exclamation"></i>
+          <span>
+            Este estudiante tiene <b>{{ valorTexto(saldoTotal) }}</b> pendientes,
+            de los cuales <b>{{ valorTexto(saldoVencido) }}</b> ya están vencidos.
+          </span>
+        </div>
 
         <p class="panel-subtitulo">Escoge el certificado que necesitas</p>
 
@@ -162,6 +168,13 @@
             <div class="col-12 mb-3" *ngIf="pideRangoFechas">
               <label class="form-label">Qué se certifica</label>
 
+              <div class="filtros-conceptos">
+                <label class="filtro-mensuales">
+                  <input type="checkbox" [(ngModel)]="soloMensuales" (ngModelChange)="filtrarMensuales()">
+                  <span>Solo conceptos mensuales</span>
+                </label>
+              </div>
+
               <div class="selector-conceptos">
                 <button
                   type="button"
@@ -183,14 +196,28 @@
                     <button type="button" class="grupo-nombre" (click)="alternarGrupo(grupo)">
                       {{ grupo.nombre }}
                       <span class="grupo-conteo" *ngIf="seleccionadosDe(grupo) > 0">
-                        {{ seleccionadosDe(grupo) }}/{{ grupo.productos.length }}
+                        {{ seleccionadosDe(grupo) }}/{{ totalVisiblesDe(grupo) }}
                       </span>
                       <i class="fas fa-chevron-down grupo-chevron" [class.rotado]="grupo.abierto"></i>
                     </button>
                   </div>
 
                   <div class="grupo-productos" *ngIf="grupo.abierto">
-                    <label class="item-producto" *ngFor="let producto of grupo.productos">
+                    <div class="campo-busqueda">
+                      <i class="fas fa-magnifying-glass"></i>
+                      <input
+                        type="text"
+                        class="form-control form-control-sm"
+                        placeholder="Buscar en {{ grupo.nombre }}..."
+                        [(ngModel)]="grupo.busqueda"
+                        (ngModelChange)="filtrarGrupo(grupo)">
+                    </div>
+
+                    <p class="sin-resultados" *ngIf="productosVisibles(grupo).length === 0">
+                      Ningún concepto coincide.
+                    </p>
+
+                    <label class="item-producto" *ngFor="let producto of productosVisibles(grupo)">
                       <input
                         type="checkbox"
                         [checked]="estaProductoSeleccionado(producto.id)"
@@ -207,17 +234,31 @@
               </small>
             </div>
 
-            <div class="col-12 mb-3" *ngIf="pideRangoFechas">
-              <div class="form-check form-switch">
+            <div class="col-12 col-md-6 mb-3" *ngIf="pideRangoFechas">
+              <label for="formato" class="form-label">Formato del detalle</label>
+              <select id="formato" class="form-select form-select-lg" [(ngModel)]="formato">
+                <option value="recibo">Un renglón por recibo</option>
+                <option value="mes">Una fila por mes</option>
+                <option value="concepto">Una fila por concepto</option>
+                <option value="total">Solo el valor total, sin tabla</option>
+              </select>
+            </div>
+
+            <div class="col-12 col-md-6 mb-3" *ngIf="pideRangoFechas">
+              <label class="form-label">Conceptos</label>
+              <div class="form-check form-switch switch-conceptos">
                 <input
                   class="form-check-input"
                   type="checkbox"
-                  id="agrupar"
-                  [(ngModel)]="agruparPorMes">
-                <label class="form-check-label" for="agrupar">Agrupar por mes</label>
+                  id="conceptos"
+                  [disabled]="!aplicaConceptos"
+                  [(ngModel)]="mostrarConceptos">
+                <label class="form-check-label" for="conceptos">
+                  {{ mostrarConceptos ? 'Se mostrarán los conceptos' : 'No se mostrarán los conceptos' }}
+                </label>
               </div>
-              <small class="form-text text-muted">
-                Agrupado sale una fila por mes con el total; sin agrupar, un renglón por recibo.
+              <small class="form-text text-muted" *ngIf="!aplicaConceptos">
+                No aplica a este formato.
               </small>
             </div>
           </div>

@@ -503,6 +503,85 @@ $light-gold: rgba(212, 175, 55, 0.1);
   }
 }
 
+// Filtros del selector de conceptos
+.filtros-conceptos {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.campo-busqueda {
+  position: relative;
+  margin-bottom: 8px;
+
+  i {
+    position: absolute;
+    left: 11px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #aaa;
+    font-size: 0.82rem;
+  }
+
+  input {
+    padding-left: 30px;
+    font-size: 0.85rem;
+  }
+}
+
+.filtro-mensuales {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 0.87rem;
+  color: #555;
+  cursor: pointer;
+  white-space: nowrap;
+
+  input {
+    width: 17px;
+    height: 17px;
+  }
+}
+
+.sin-resultados {
+  color: #888;
+  font-size: 0.87rem;
+  text-align: center;
+  padding: 16px 0;
+  margin: 0;
+}
+
+.switch-conceptos {
+  padding-top: 8px;
+
+  .form-check-input:checked {
+    background-color: $gold;
+    border-color: $gold;
+  }
+}
+
+// Saldo del estudiante, junto al tipo de certificado
+.aviso-saldo {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  background: #fdf3f2;
+  border: 1px solid #f0d8d5;
+  border-radius: 8px;
+  padding: 10px 13px;
+  margin-bottom: 14px;
+  font-size: 0.87rem;
+  color: #a3453a;
+
+  i {
+    font-size: 0.95rem;
+  }
+}
+
 @media (max-width: 768px) {
   .modulo {
     padding: 10px;
