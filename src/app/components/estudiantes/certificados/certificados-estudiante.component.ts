@@ -7,7 +7,6 @@ import { CertificadosExpedidosService } from '../../../services/certificados-exp
 import { ExportarPdfCertificadoService } from '../../../services/exportar-pdf-certificado.service';
 import { AcudientesService } from '../../../services/acudientes.service';
 import { EstudiantesService } from '../../../services/estudiantes.service';
-import { ProductosServiciosService } from '../../../services/productos-servicios.service';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -54,8 +53,7 @@ export class CertificadosEstudianteComponent implements OnInit {
     private certificadosService: CertificadosExpedidosService,
     private exportarPdfService: ExportarPdfCertificadoService,
     private acudientesService: AcudientesService,
-    private estudiantesService: EstudiantesService,
-    private productosService: ProductosServiciosService
+    private estudiantesService: EstudiantesService
   ) { }
 
   ngOnInit(): void {
@@ -66,7 +64,6 @@ export class CertificadosEstudianteComponent implements OnInit {
       this.cargarAcudientes();
       this.cargarAnios();
       this.cargarHistorial();
-      this.cargarProductos();
     });
 
     this.prellenarAnioActual();
@@ -94,11 +91,20 @@ export class CertificadosEstudianteComponent implements OnInit {
   cargarEstudiante(): void {
     this.estudiantesService.obtenerById(this.idEstudiante).subscribe({
       next: (response: any) => {
-        const estudiante = response.body;
-        if (estudiante) {
-          this.nombreEstudiante = estudiante.nombre_completo
-            || `${estudiante.primer_nombre || ''} ${estudiante.primer_apellido || ''}`.trim();
+        const body = response.body as any[];
+        if (!body || body.length === 0) {
+          return;
         }
+
+        const estudiante = body[0];
+        this.nombreEstudiante = [
+          estudiante.primer_nombre,
+          estudiante.segundo_nombre,
+          estudiante.primer_apellido,
+          estudiante.segundo_apellido,
+        ]
+          .filter(Boolean)
+          .join(' ');
       },
       error: (error: any) => console.error('Error al cargar el estudiante', error)
     });
@@ -107,7 +113,8 @@ export class CertificadosEstudianteComponent implements OnInit {
   cargarCertificados(): void {
     this.certificadosService.obtenerDisponibles(this.idEstudiante, 'institucional').subscribe({
       next: (response: any) => {
-        this.certificados = response.body as any[];
+        const body = response.body as any;
+        this.certificados = body.certificados || [];
 
         // El saldo es del estudiante, no de cada certificado: se toma del
         // primero y se muestra arriba para que no sorprenda al confirmar.
@@ -115,6 +122,8 @@ export class CertificadosEstudianteComponent implements OnInit {
           this.saldoTotal = Number(this.certificados[0].saldo_total) || 0;
           this.saldoVencido = Number(this.certificados[0].saldo_vencido) || 0;
         }
+
+        this.agruparProductos(body.productos || []);
       },
       error: (error: any) => console.error('Error al cargar los certificados', error)
     });
@@ -142,39 +151,33 @@ export class CertificadosEstudianteComponent implements OnInit {
   }
 
   /**
-   * Los productos se agrupan por clasificación para poder marcar una completa
-   * o solo algunos de sus conceptos.
+   * Agrupa por clasificación los conceptos que el estudiante tiene pagados.
+   * Llegan junto con los certificados, en la misma llamada.
    */
-  cargarProductos(): void {
-    this.productosService.obtenerTodos().subscribe({
-      next: (response: any) => {
-        const productos = (response.body as any[]) || [];
-        const porClasificacion: any = {};
+  agruparProductos(productos: any[]): void {
+    const porClasificacion: any = {};
 
-        productos.forEach((producto: any) => {
-          const id = producto.id_clasificacion_productos_servicios || 'sin_clasificacion';
-          if (!porClasificacion[id]) {
-            porClasificacion[id] = {
-              id,
-              nombre: producto.nombre_clasificacion || 'Sin clasificación',
-              abierto: false,
-              busqueda: '',
-              productos: []
-            };
-          }
-          porClasificacion[id].productos.push(producto);
-        });
-
-        this.grupos = Object.keys(porClasificacion)
-          .map(id => porClasificacion[id])
-          .sort((a: any, b: any) => a.nombre.localeCompare(b.nombre));
-      },
-      error: (error: any) => console.error('Error al cargar los productos', error)
+    productos.forEach((producto: any) => {
+      const id = producto.id_clasificacion_productos_servicios || 'sin_clasificacion';
+      if (!porClasificacion[id]) {
+        porClasificacion[id] = {
+          id,
+          nombre: producto.nombre_clasificacion || 'Sin clasificación',
+          abierto: false,
+          busqueda: '',
+          productos: []
+        };
+      }
+      porClasificacion[id].productos.push(producto);
     });
+
+    this.grupos = Object.keys(porClasificacion)
+      .map(id => porClasificacion[id])
+      .sort((a: any, b: any) => a.nombre.localeCompare(b.nombre));
   }
 
   /**
-   * Productos visibles de un grupo: se filtran por texto y, si se pide, por
+   * Conceptos visibles de un grupo: se filtran por texto y, si se pide, por
    * periodicidad mensual. Lo seleccionado no se pierde al filtrar.
    */
   productosVisibles(grupo: any): any[] {

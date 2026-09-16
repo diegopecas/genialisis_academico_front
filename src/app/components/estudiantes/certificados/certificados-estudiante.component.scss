@@ -564,6 +564,28 @@ $light-gold: rgba(212, 175, 55, 0.1);
   }
 }
 
+// El color lo lleva la etiqueta, no el switch: apagado en naranja para que se
+// note que algo se deja por fuera, sin la alarma del rojo.
+.etiqueta-conceptos {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-weight: 600;
+  font-size: 0.88rem;
+
+  &.activa {
+    color: #4f7a3f;
+  }
+
+  &.inactiva {
+    color: #c07a2c;
+  }
+
+  i {
+    font-size: 0.85rem;
+  }
+}
+
 // Saldo del estudiante, junto al tipo de certificado
 .aviso-saldo {
   display: flex;

@@ -427,16 +427,12 @@ export class ExportarPdfCertificadoService {
   /**
    * Ancho de un texto, midiéndolo carácter por carácter.
    *
-   * jsPDF devuelve de menos al medir una cadena completa en negrita (hasta un
-   * 5%), y ese faltante se come el espacio siguiente: el texto salía pegado
-   * ("A PAZ Y SALVOpor"). Sumando carácter a carácter el resultado queda a
-   * menos de medio punto de lo que el visor termina dibujando.
+   * jsPDF devuelve de menos al medir una cadena completa (hasta un 5%), y ese
+   * faltante se come el espacio siguiente: el texto salía pegado
+   * ("A PAZ Y SALVOpor", "entre el1 de enero"). Sumando carácter a carácter el
+   * resultado queda a menos de medio punto de lo que el visor termina dibujando.
    */
   private anchoTexto(doc: jsPDF, texto: string, negrita: boolean): number {
-    if (!negrita) {
-      return doc.getTextWidth(texto);
-    }
-
     let total = 0;
     for (const caracter of texto) {
       total += doc.getTextWidth(caracter);

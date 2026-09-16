@@ -253,7 +253,12 @@
                   id="conceptos"
                   [disabled]="!aplicaConceptos"
                   [(ngModel)]="mostrarConceptos">
-                <label class="form-check-label" for="conceptos">
+                <label
+                  class="form-check-label etiqueta-conceptos"
+                  [class.activa]="mostrarConceptos"
+                  [class.inactiva]="!mostrarConceptos"
+                  for="conceptos">
+                  <i class="fas" [ngClass]="mostrarConceptos ? 'fa-eye' : 'fa-eye-slash'"></i>
                   {{ mostrarConceptos ? 'Se mostrarán los conceptos' : 'No se mostrarán los conceptos' }}
                 </label>
               </div>

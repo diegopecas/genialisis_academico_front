@@ -60,11 +60,20 @@ export class AcudientePagosComponent implements OnInit {
   cargarEstudiante(): void {
     this.estudiantesService.obtenerById(this.idEstudiante).subscribe({
       next: (response: any) => {
-        const estudiante = response.body;
-        if (estudiante) {
-          this.nombreEstudiante = estudiante.nombre_completo
-            || `${estudiante.primer_nombre || ''} ${estudiante.primer_apellido || ''}`.trim();
+        const body = response.body as any[];
+        if (!body || body.length === 0) {
+          return;
         }
+
+        const estudiante = body[0];
+        this.nombreEstudiante = [
+          estudiante.primer_nombre,
+          estudiante.segundo_nombre,
+          estudiante.primer_apellido,
+          estudiante.segundo_apellido,
+        ]
+          .filter(Boolean)
+          .join(' ');
       },
       error: (error: any) => console.error('Error al cargar el estudiante', error)
     });
