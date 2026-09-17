@@ -32,6 +32,26 @@
       </div>
     </div>
 
+    <div class="compartir mt-4" *ngIf="enlaceGuardado">
+      <div class="compartir-texto">
+        <label class="form-label mb-1" for="urlEnlace">Enlace para los papás</label>
+        <input *ngIf="enlaceGuardado.url_enlace" id="urlEnlace" class="form-control" type="text" readonly
+          [value]="enlaceGuardado.url_enlace" (focus)="$any($event.target).select()">
+        <p class="text-danger small mb-0" *ngIf="!enlaceGuardado.url_enlace">
+          Falta configurar el parámetro url_portal_padres en Configuración Global.
+        </p>
+        <p class="ayuda mb-0 mt-1">Comparte el enlace ya grabado: si cambias algo, graba antes de compartir.</p>
+      </div>
+      <div class="compartir-botones">
+        <button type="button" class="btn btn-outline-dark" [disabled]="!enlaceGuardado.url_enlace" (click)="copiarEnlace()">
+          <img src="/assets/images/copiar-enlace.png" alt=""> Copiar
+        </button>
+        <button type="button" class="btn btn-outline-success" [disabled]="!enlaceGuardado.url_enlace" (click)="compartirWhatsapp()">
+          <img src="/assets/images/whatsapp.png" alt=""> WhatsApp
+        </button>
+      </div>
+    </div>
+
     <div class="mt-4">
       <label class="form-label">Grupos <span class="text-danger">*</span></label>
       <p class="ayuda">Marca los grupos para ver sus estudiantes.</p>

@@ -47,6 +47,8 @@ export class CrearEnlaceAutoregistroComponent implements OnInit {
   public bloques: BloqueGrupo[] = [];
   public seleccionados = new Set<string>();
   public busqueda = '';
+  // Datos del enlace guardado (url, estado, vencimiento) para compartirlo
+  public enlaceGuardado: any = null;
 
   model = {
     id: null,
@@ -111,6 +113,7 @@ export class CrearEnlaceAutoregistroComponent implements OnInit {
       next: (response: any) => {
         const body = response.body;
         if (body && body.length > 0) {
+          this.enlaceGuardado = body[0];
           this.model = {
             ...body[0],
             fecha_vencimiento: (body[0].fecha_vencimiento || '').substring(0, 16).replace(' ', 'T')
@@ -273,7 +276,7 @@ export class CrearEnlaceAutoregistroComponent implements OnInit {
 
     if (this.accion === 'crear') {
       this.enlacesService.crear(data).subscribe({
-        next: (respuesta: any) => this.guardarEstudiantes(respuesta?.id, estudiantes, 'Enlace creado correctamente'),
+        next: (respuesta: any) => this.guardarEstudiantes(respuesta?.id, estudiantes, 'Enlace creado correctamente', true),
         error: (error: any) => {
           this.guardando = false;
           Swal.fire('Error', error?.error?.error || 'No se pudo crear el enlace', 'error');
@@ -292,7 +295,8 @@ export class CrearEnlaceAutoregistroComponent implements OnInit {
   }
 
   // Los estudiantes se graban en una segunda llamada, con la lista completa.
-  private guardarEstudiantes(idEnlace: any, estudiantes: string[], mensajeExito: string) {
+  // Al crear, el formulario queda en edición para copiar o compartir el enlace.
+  private guardarEstudiantes(idEnlace: any, estudiantes: string[], mensajeExito: string, esNuevo = false) {
     if (!idEnlace) {
       this.guardando = false;
       Swal.fire('Error', 'No se recibió el id del enlace', 'error');
@@ -302,6 +306,16 @@ export class CrearEnlaceAutoregistroComponent implements OnInit {
     this.enlacesEstudiantesService.reemplazarEstudiantesEnlace(idEnlace, estudiantes).subscribe({
       next: () => {
         this.guardando = false;
+        if (esNuevo) {
+          Swal.fire({
+            icon: 'success',
+            title: mensajeExito,
+            text: 'Ya puedes copiar el enlace o compartirlo por WhatsApp.'
+          });
+          this.submitted = false;
+          this.router.navigate(['/estudiantes/enlaces-autoregistro/editar', idEnlace], { replaceUrl: true });
+          return;
+        }
         Swal.fire({
           icon: 'success',
           title: mensajeExito,
@@ -314,6 +328,14 @@ export class CrearEnlaceAutoregistroComponent implements OnInit {
         Swal.fire('Atención', error?.error?.error || 'El enlace se guardó, pero no se pudieron guardar los estudiantes.', 'warning');
       }
     });
+  }
+
+  copiarEnlace() {
+    this.enlacesService.copiarEnlace({ ...this.enlaceGuardado, total_estudiantes: this.idsParaGuardar.length });
+  }
+
+  compartirWhatsapp() {
+    this.enlacesService.compartirWhatsapp({ ...this.enlaceGuardado, total_estudiantes: this.idsParaGuardar.length });
   }
 
   volver() {
