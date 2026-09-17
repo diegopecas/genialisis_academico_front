@@ -64,6 +64,9 @@ export class GestionEstudiantesComponent implements OnInit {
       case 'registro-rapido-estudiante':
         this.router.navigate(['/estudiantes/registro-rapido']);
         break;
+      case 'enlaces-autoregistro':
+        this.router.navigate(['/estudiantes/enlaces-autoregistro']);
+        break;
     }
   }
 

@@ -1,0 +1,106 @@
+<div class="modulo">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="false"
+    [accion]="accion"
+    [raiz]="'/estudiantes/enlaces-autoregistro'"
+    [regresar]="regresar"
+    [iconoTitulo]="'/assets/images/autoregistro-acudientes.png'"
+  ></app-header>
+
+  <div class="container mt-5 pb-5">
+
+    <div class="row g-3">
+      <div class="col-12 col-md-6">
+        <label for="nombre" class="form-label">Nombre <span class="text-danger">*</span></label>
+        <input class="form-control form-control-lg" type="text" id="nombre" maxlength="150"
+          [(ngModel)]="model.nombre" placeholder="Ej: Reunión de padres septiembre"
+          [ngClass]="{'is-invalid': !model.nombre && submitted}" [disabled]="!editable">
+      </div>
+      <div class="col-12 col-sm-7 col-md-4">
+        <label for="vence" class="form-label">Vence <span class="text-danger">*</span></label>
+        <input class="form-control form-control-lg" type="datetime-local" id="vence"
+          [(ngModel)]="model.fecha_vencimiento"
+          [ngClass]="{'is-invalid': !model.fecha_vencimiento && submitted}" [disabled]="!editable">
+      </div>
+      <div class="col-12 col-sm-5 col-md-2">
+        <label for="activo" class="form-label">Estado</label>
+        <select class="form-select form-select-lg" id="activo" [(ngModel)]="model.activo" [disabled]="!editable">
+          <option [ngValue]="1">Activo</option>
+          <option [ngValue]="0">Inactivo</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="mt-4">
+      <label class="form-label">Grupos <span class="text-danger">*</span></label>
+      <p class="ayuda">Marca los grupos para ver sus estudiantes.</p>
+      <div class="chips-grupos">
+        <button type="button" class="chip-grupo" *ngFor="let grupo of grupos"
+          [class.activo]="estaGrupoSeleccionado(grupo.id)"
+          [attr.aria-pressed]="estaGrupoSeleccionado(grupo.id)"
+          [disabled]="!editable"
+          (click)="alternarGrupo(grupo.id)">
+          <i class="fas" [ngClass]="estaGrupoSeleccionado(grupo.id) ? 'fa-check-circle' : 'fa-circle'"></i>
+          {{ grupo.nombre }}
+        </button>
+      </div>
+    </div>
+
+    <div class="mt-4" *ngIf="gruposSeleccionados.length > 0">
+      <div class="d-flex flex-wrap align-items-end justify-content-between gap-2 mb-3">
+        <div>
+          <label class="form-label mb-0">Estudiantes que se muestran en el enlace</label>
+          <div class="contador" [class.sin-marcar]="idsParaGuardar.length === 0">
+            {{ idsParaGuardar.length }} marcados
+          </div>
+        </div>
+        <div class="buscador">
+          <i class="fas fa-search"></i>
+          <input type="search" class="form-control" placeholder="Buscar estudiante"
+            [(ngModel)]="busqueda" (ngModelChange)="armarBloques()">
+        </div>
+      </div>
+
+      <div class="bloque-grupo" *ngFor="let bloque of bloques">
+        <div class="bloque-cabecera">
+          <div>
+            <strong>{{ bloque.nombre_grupo }}</strong>
+            <span class="bloque-conteo">{{ marcadosEnBloque(bloque.id_grupo) }} de {{ totalEnBloque(bloque.id_grupo) }}</span>
+          </div>
+          <div class="bloque-acciones" *ngIf="editable">
+            <button type="button" class="btn btn-sm btn-outline-dark" (click)="marcarBloque(bloque, true)">Marcar todos</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" (click)="marcarBloque(bloque, false)">Desmarcar</button>
+          </div>
+        </div>
+
+        <div class="row g-2">
+          <div class="col-12 col-md-6 col-lg-4" *ngFor="let est of bloque.estudiantes">
+            <label class="fila-estudiante" [class.marcado]="seleccionados.has(est.id_estudiante)">
+              <input class="form-check-input" type="checkbox"
+                [checked]="seleccionados.has(est.id_estudiante)"
+                [disabled]="!editable"
+                (change)="alternarEstudiante(est.id_estudiante)">
+              <span>{{ est.nombre_estudiante }}</span>
+            </label>
+          </div>
+        </div>
+
+        <p class="text-muted small mb-0" *ngIf="bloque.estudiantes.length === 0">
+          {{ busqueda ? 'Ningún estudiante coincide con la búsqueda.' : 'Este grupo no tiene estudiantes activos.' }}
+        </p>
+      </div>
+    </div>
+
+    <div class="row mt-5 g-2">
+      <div class="col-sm-6" *ngIf="editable">
+        <button class="btn btn-lg btn-warning w-100" [disabled]="guardando" (click)="guardar()">
+          {{ guardando ? 'Grabando...' : 'Grabar' }}
+        </button>
+      </div>
+      <div class="col-sm-6">
+        <button class="btn btn-lg btn-secondary w-100" (click)="volver()">Volver</button>
+      </div>
+    </div>
+  </div>
+</div>

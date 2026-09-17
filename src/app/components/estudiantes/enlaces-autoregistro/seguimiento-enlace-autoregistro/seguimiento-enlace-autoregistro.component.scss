@@ -1,0 +1,62 @@
+$dorado: #D4A03C;
+
+.resumen-enlace {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.5rem;
+  background: #fff;
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+
+  .btn {
+    margin-left: auto;
+  }
+}
+
+.pasos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.paso {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  background: #fff;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 0.5rem 0.8rem;
+
+  &.completo {
+    border-color: $dorado;
+  }
+}
+
+.paso-total {
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+.paso-nombre {
+  color: #495057;
+  font-size: 0.9rem;
+}
+
+.sin-datos {
+  background: #fff;
+  border-radius: 10px;
+  padding: 1rem;
+  text-align: center;
+  color: #6c757d;
+}
+
+@media (max-width: 576px) {
+  .resumen-enlace .btn {
+    margin-left: 0;
+    width: 100%;
+  }
+}

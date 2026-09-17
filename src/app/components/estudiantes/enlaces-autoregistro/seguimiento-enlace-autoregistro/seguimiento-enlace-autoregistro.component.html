@@ -1,0 +1,39 @@
+<div class="modulo">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="false"
+    [accion]="'ConsultarTodos'"
+    [raiz]="regresar"
+    [regresar]="regresar"
+    [iconoTitulo]="'/assets/images/autoregistro-acudientes.png'"
+  ></app-header>
+
+  <div class="container-fluid mt-4">
+    <div class="resumen-enlace" *ngIf="enlace">
+      <span><strong>Vence:</strong> {{ venceTexto }}</span>
+      <span><strong>Estado:</strong> {{ enlace.estado }}</span>
+      <button type="button" class="btn btn-sm btn-outline-dark" (click)="obtenerDatos()">
+        <i class="fas fa-sync-alt"></i> Actualizar
+      </button>
+    </div>
+
+    <div class="pasos" *ngIf="resumen.length > 0">
+      <div class="paso" *ngFor="let r of resumen" [class.completo]="r.paso === 6">
+        <span class="paso-total">{{ r.total }}</span>
+        <span class="paso-nombre">{{ r.nombre }}</span>
+      </div>
+    </div>
+
+    <p class="sin-datos" *ngIf="datos.length === 0">Nadie ha abierto este enlace todavía.</p>
+  </div>
+
+  <app-tablas
+    [titulos]="titulos"
+    [datos]="datos"
+    [raiz]="regresar"
+    [acciones]="acciones"
+    [mostrarBuscar]="true"
+    [columnasFiltro]="columnasFiltro"
+    (clicAccion)="clicAccion($event)"
+  ></app-tablas>
+</div>

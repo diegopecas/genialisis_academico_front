@@ -144,11 +144,12 @@ export class MenuModulosService {
             iconoArbol: '🎓',
             alt: 'Estudiantes',
             imagen: 'assets/images/estudiantes.png',
-            permisos: ['estudiantes.administrar', 'estudiantes.listado'],
+            permisos: ['estudiantes.administrar', 'estudiantes.listado', 'estudiantes.enlaces_autoregistro'],
             keywords: ['alumnos', 'niños', 'ninos', 'matricula'],
             opciones: [
               { id: 'estudiantes', label: 'Gestión', alt: 'Gestión', imagen: 'assets/images/estudiantes.png', iconoArbol: '🎓', ruta: '/estudiantes', permiso: 'estudiantes.listado', keywords: ['alumnos', 'listado', 'matricula', 'estudiantado', 'parvulos'] },
-              { id: 'registro-rapido-estudiante', label: 'Registro rápido', alt: 'Registro rápido', imagen: 'assets/images/registro-rapido-estudiante.png', iconoArbol: '⚡', ruta: '/estudiantes/registro-rapido', permiso: 'estudiantes.administrar', keywords: ['registro rapido', 'registro civil', 'nuip', 'matricula', 'foto'] }
+              { id: 'registro-rapido-estudiante', label: 'Registro rápido', alt: 'Registro rápido', imagen: 'assets/images/registro-rapido-estudiante.png', iconoArbol: '⚡', ruta: '/estudiantes/registro-rapido', permiso: 'estudiantes.administrar', keywords: ['registro rapido', 'registro civil', 'nuip', 'matricula', 'foto'] },
+              { id: 'enlaces-autoregistro', label: 'Autoregistro de acudientes', alt: 'Autoregistro de acudientes', imagen: 'assets/images/autoregistro-acudientes.png', iconoArbol: '🔗', ruta: '/estudiantes/enlaces-autoregistro', permiso: 'estudiantes.enlaces_autoregistro', keywords: ['autoregistro', 'enlaces de autoregistro', 'enlace', 'link', 'reunion de padres', 'crear usuarios padres', 'registro de acudientes', 'portal de padres'] }
             ]
           }
         ]
