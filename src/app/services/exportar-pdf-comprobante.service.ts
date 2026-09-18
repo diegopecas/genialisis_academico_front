@@ -275,8 +275,8 @@ export class ExportarPdfComprobanteService {
   private dibujarTablaDetalle(doc: jsPDF, datos: DatosComprobantePDF, yPos: number,
     pageWidth: number, pageHeight: number, primaryColor: string,
     grayColor: string, greenColor: string): number {
-    const headers = ['Fecha', 'Concepto', 'Saldo Anterior', 'Valor Aplicado', 'Saldo Actual'];
-    const columnWidths = [22, 48, 30, 30, 30];
+    const headers = ['Fecha de Concepto', 'Concepto', 'Valor Aplicado'];
+    const columnWidths = [36, 84, 40];
     const startX = 15;
     const endX = pageWidth - 15;
     const totalTableWidth = endX - startX;
@@ -350,23 +350,13 @@ export class ExportarPdfComprobanteService {
       const conceptoLines = doc.splitTextToSize(cuenta.nombre_producto_servicio, conceptoMaxWidth);
       doc.text(conceptoLines[0], xOffset + 2, yPos);
 
-      // Saldo Anterior (viene directo del backend)
-      xOffset += columnWidths[1];
-      const saldoAnterior = cuenta.saldo_antes_pago || 0;
-      doc.text(this.formatearMoneda(saldoAnterior), xOffset + columnWidths[2] - 2, yPos, { align: 'right' });
-
       // Valor Aplicado
-      xOffset += columnWidths[2];
+      xOffset += columnWidths[1];
       doc.setTextColor(greenColor);
       doc.setFont('helvetica', 'bold');
-      doc.text(this.formatearMoneda(cuenta.valor_aplicado), xOffset + columnWidths[3] - 2, yPos, { align: 'right' });
-
-      // Saldo Actual
-      xOffset += columnWidths[3];
+      doc.text(this.formatearMoneda(cuenta.valor_aplicado), xOffset + columnWidths[2] - 2, yPos, { align: 'right' });
       doc.setTextColor(0);
       doc.setFont('helvetica', 'normal');
-      const saldoActual = cuenta.saldo_actual_cuenta || 0;
-      doc.text(this.formatearMoneda(saldoActual), xOffset + columnWidths[4] - 2, yPos, { align: 'right' });
 
       yPos += rowHeight;
     });
