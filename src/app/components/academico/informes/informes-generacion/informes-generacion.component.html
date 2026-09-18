@@ -153,6 +153,10 @@
 
                             <!-- Marcar toda la sección de una: ahorra clic por clic -->
                             <div class="marcar-todas" *ngIf="editable && sec.se_califica">
+                                <label class="check-sobrescribir" title="Si está apagado, solo se llenan las filas sin marcar">
+                                    <input type="checkbox" [(ngModel)]="sobrescribir">
+                                    <span>Sobrescribir</span>
+                                </label>
                                 <span class="marcar-label">Marcar todas:</span>
                                 <button *ngFor="let v of valores"
                                         class="chip-todas"
@@ -298,6 +302,10 @@
                         <span class="tag-familia" *ngIf="seccionActiva.evalua_a === 'familia'">Evalúa a la familia</span>
                     </h5>
                     <div class="marcar-todas">
+                        <label class="check-sobrescribir" title="Si está apagado, los botones solo llenan las celdas vacías">
+                            <input type="checkbox" [(ngModel)]="sobrescribir">
+                            <span>Sobrescribir</span>
+                        </label>
                         <span class="marcar-label">Toda la tabla:</span>
                         <button *ngFor="let v of valores"
                                 class="chip-todas"

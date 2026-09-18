@@ -50,6 +50,10 @@ export class InformesGeneracionComponent implements OnInit {
   secciones: any[] = [];
   cargandoInforme = false;
 
+  // Los botones de marcar en masa solo llenan lo vacio por defecto: asi no
+  // se pierden las excepciones que ya se corrigieron a mano.
+  sobrescribir = false;
+
   // ===== Vista masiva =====
   // 'estudiante' califica un niño completo; 'seccion' califica una sección
   // para todo el grupo de una sentada.
@@ -396,6 +400,9 @@ export class InformesGeneracionComponent implements OnInit {
         return;
       }
       (sec.filas || []).forEach((f: any) => {
+        if (!this.sobrescribir && f.id_valor_parametro) {
+          return;
+        }
         f.id_valor_parametro = idValor;
         f.origen = 'manual';
       });
@@ -695,26 +702,36 @@ export class InformesGeneracionComponent implements OnInit {
     }
   }
 
-  /** Mismo valor en esa columna para todo el grupo */
+  /**
+   * Mismo valor en esa columna para todo el grupo. Solo llena lo vacío,
+   * salvo que se pida sobrescribir.
+   */
   marcarColumna(columna: any, idValor: any) {
     this.estudiantesMasivo.forEach(est => {
       if (!this.editableMasivo(est)) {
         return;
       }
       const fila = this.filaDe(est, columna);
-      if (fila) {
-        fila.id_valor_parametro = idValor;
+      if (!fila) {
+        return;
       }
+      if (!this.sobrescribir && fila.id_valor_parametro) {
+        return;
+      }
+      fila.id_valor_parametro = idValor;
     });
   }
 
-  /** Mismo valor en toda la tabla */
+  /** Mismo valor en toda la tabla, con la misma regla */
   marcarTodoMasivo(idValor: any) {
     this.estudiantesMasivo.forEach(est => {
       if (!this.editableMasivo(est)) {
         return;
       }
       (est.filas || []).forEach((f: any) => {
+        if (!this.sobrescribir && f.id_valor_parametro) {
+          return;
+        }
         f.id_valor_parametro = idValor;
       });
     });
