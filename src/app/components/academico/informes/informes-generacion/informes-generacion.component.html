@@ -168,6 +168,11 @@
                                 <button class="chip-todas limpiar" (click)="limpiarSeccion(sec)">
                                     Limpiar
                                 </button>
+                                <button class="chip-todas deshacer" *ngIf="hayDeshacer"
+                                        [title]="'Deshacer: ' + respaldoDescripcion"
+                                        (click)="deshacer()">
+                                    <i class="fas fa-rotate-left"></i> Deshacer
+                                </button>
                             </div>
                         </div>
 
@@ -277,6 +282,9 @@
                                 <option *ngFor="let sec of seccionesGrupo" [ngValue]="sec.id">
                                     {{ nombreSeccion(sec) }}
                                 </option>
+                                <!-- No es una sección configurada: es el texto
+                                     de cierre, que vive en el maestro -->
+                                <option [ngValue]="'cierre'">Observaciones generales</option>
                             </select>
                         </div>
                         <div class="col-md-3 mb-2" *ngIf="seccionActiva">
@@ -313,6 +321,11 @@
                                 [style.color]="v.color || '#8B6914'"
                                 (click)="marcarTodoMasivo(v.id)">
                             {{ v.valor_cualitativo }}
+                        </button>
+                        <button class="chip-todas deshacer" *ngIf="hayDeshacer"
+                                [title]="'Deshacer: ' + respaldoDescripcion"
+                                (click)="deshacer()">
+                            <i class="fas fa-rotate-left"></i> Deshacer
                         </button>
                     </div>
                 </div>
@@ -368,8 +381,34 @@
             <div class="card-seccion" *ngIf="!cargandoMasivo && seccionActiva && seccionActiva.tipo_contenido === 'texto'">
                 <div class="card-seccion-header">
                     <h5><i class="fas fa-comment-dots"></i> {{ seccionActiva.nombre }}</h5>
+                    <div class="marcar-todas">
+                        <label class="check-sobrescribir" title="Si está apagado, solo se llenan las observaciones vacías">
+                            <input type="checkbox" [(ngModel)]="sobrescribir">
+                            <span>Sobrescribir</span>
+                        </label>
+                        <button class="chip-todas limpiar" (click)="limpiarTextos()">
+                            Limpiar
+                        </button>
+                        <button class="chip-todas deshacer" *ngIf="hayDeshacer"
+                                [title]="'Deshacer: ' + respaldoDescripcion"
+                                (click)="deshacer()">
+                            <i class="fas fa-rotate-left"></i> Deshacer
+                        </button>
+                    </div>
                 </div>
                 <div class="card-seccion-body">
+
+                    <!-- Texto base para rellenar de una todo el grupo -->
+                    <div class="texto-base">
+                        <label class="form-label">Texto para todos</label>
+                        <textarea class="form-control" rows="2"
+                                  [(ngModel)]="textoBase"
+                                  placeholder="Escribe aquí un texto y aplícalo a todo el grupo..."></textarea>
+                        <button class="btn btn-corporate-primary btn-aplicar" (click)="aplicarTextoBase()">
+                            <i class="fas fa-wand-magic-sparkles me-1"></i> Aplicar a todos
+                        </button>
+                    </div>
+
                     <div class="texto-estudiante" *ngFor="let est of estudiantesMasivo">
                         <label class="form-label">
                             {{ est.nombre_completo }}

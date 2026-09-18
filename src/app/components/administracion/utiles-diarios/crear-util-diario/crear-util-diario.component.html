@@ -18,12 +18,54 @@
           [disabled]="!editable">
       </div>
       <div class="col-sm-12 col-md-3">
-        <label for="icono" class="form-label">Icono (clase FontAwesome)</label>
-        <div class="input-group input-group-lg">
-          <span class="input-group-text"><i [class]="model.icono"></i></span>
-          <input class="form-control" type="text" id="icono"
-            [(ngModel)]="model.icono" placeholder="fas fa-book"
-            [disabled]="!editable">
+        <label class="form-label">Icono</label>
+
+        <!-- Se escoge de la galería; antes tocaba saberse la clase de FontAwesome -->
+        <button
+          type="button"
+          class="selector-icono"
+          [disabled]="!editable"
+          (click)="alternarIconos()">
+          <span class="icono-actual">
+            <i [class]="model.icono || 'fas fa-circle-question'"></i>
+          </span>
+          <span class="icono-texto">
+            {{ model.icono ? 'Cambiar icono' : 'Escoger icono' }}
+          </span>
+          <i class="fas fa-chevron-down icono-chevron" [class.abierto]="mostrarIconos"></i>
+        </button>
+      </div>
+
+      <div class="col-12" *ngIf="mostrarIconos && editable">
+        <div class="galeria-iconos">
+          <div class="galeria-busqueda">
+            <i class="fas fa-magnifying-glass"></i>
+            <input
+              type="text"
+              class="form-control"
+              placeholder="Buscar icono..."
+              [(ngModel)]="busquedaIcono">
+          </div>
+
+          <div class="galeria-grupo" *ngFor="let grupo of gruposIconos">
+            <span class="galeria-titulo">{{ grupo.grupo }}</span>
+            <div class="galeria-lista">
+              <button
+                type="button"
+                class="galeria-icono"
+                *ngFor="let icono of grupo.iconos"
+                [class.activo]="model.icono === icono.clase"
+                [title]="icono.nombre"
+                (click)="seleccionarIcono(icono.clase)">
+                <i [class]="icono.clase"></i>
+                <span>{{ icono.nombre }}</span>
+              </button>
+            </div>
+          </div>
+
+          <p class="galeria-vacia" *ngIf="gruposIconos.length === 0">
+            Ningún icono coincide con la búsqueda.
+          </p>
         </div>
       </div>
       <div class="col-sm-12 col-md-3">

@@ -531,6 +531,13 @@
                   {{ dato[titulo.clave] }}
                 </label>
 
+                <!-- Icono: el valor es una clase de FontAwesome y se pinta,
+                     no se muestra el texto de la clase -->
+                <label [class]="titulo.alinear" *ngIf="titulo.tipo == 'icono'">
+                  <i *ngIf="dato[titulo.clave]" [class]="dato[titulo.clave]"></i>
+                  <span *ngIf="!dato[titulo.clave]" class="sin-icono">—</span>
+                </label>
+
                 <!-- Formato Money actual -->
                 <label [class]="titulo.alinear" *ngIf="titulo.tipo == 'money'">
                   $ {{ dato[titulo.clave] | customDecimalFormat: 0 }}

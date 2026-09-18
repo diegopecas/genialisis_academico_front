@@ -137,6 +137,21 @@ export class RegistroUtilesDiariosService {
     );
   }
 
+  /**
+   * Matriz del mes: estudiantes en filas, días en columnas.
+   * El backend arma el agrupado; aquí solo se pinta.
+   */
+  obtenerMatriz(filtros: any) {
+    const body = JSON.stringify(filtros);
+    return this.http.post<any>(this.servicio + '/matriz', body, httpOptions).pipe(
+      tap((respuesta: any) => {
+        if (respuesta.error) throw respuesta.error;
+        return respuesta;
+      }),
+      catchError(this.handleError)
+    );
+  }
+
   crear(dato: any) {
     const body = JSON.stringify(dato);
     return this.http.post<any>(this.servicio, body, httpOptions).pipe(

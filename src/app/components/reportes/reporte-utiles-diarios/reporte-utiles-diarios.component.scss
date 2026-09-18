@@ -1,0 +1,338 @@
+
+
+// =============================================
+// Matriz del mes
+// =============================================
+$gold: #d4af37;
+$light-gold: rgba(212, 175, 55, 0.12);
+
+$primary-color: #ffbd31;
+$secondary-color: #ff9800;
+
+// Contenedor de pestañas, mismo patrón del reporte de asistencia
+.tabs-container {
+  margin-bottom: 1.5rem;
+
+  .custom-tabs {
+    border-bottom: 3px solid #dee2e6;
+    background: white;
+    border-radius: 10px 10px 0 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+    .tab-button {
+      border: none;
+      border-radius: 10px 10px 0 0;
+      padding: 1rem 2rem;
+      font-weight: 500;
+      background: transparent;
+      color: #6c757d;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+
+      i {
+        font-size: 1.1rem;
+      }
+
+      &:hover {
+        background-color: rgba($primary-color, 0.1);
+        color: $primary-color;
+      }
+
+      &.active {
+        background-color: $primary-color;
+        color: white;
+        border-bottom: 3px solid $secondary-color;
+
+        &:hover {
+          background-color: $secondary-color;
+        }
+      }
+    }
+  }
+}
+
+// Contenedor de filtros
+.filters-container {
+  background: white;
+  padding: 1.25rem;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1.25rem;
+
+  .form-label {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.4rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+
+    i {
+      color: $primary-color;
+      font-size: 0.85rem;
+    }
+  }
+}
+
+.convenciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin: 16px 0 10px;
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.convencion {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cargando {
+  display: flex;
+  justify-content: center;
+  padding: 30px 0;
+}
+
+.sin-datos {
+  color: #888;
+  font-size: 0.9rem;
+  text-align: center;
+  padding: 26px 0;
+}
+
+// Estados: el color dice qué pasó sin tener que abrir nada
+.estado-trajo { color: #4f7a3f; }
+.estado-pendiente { color: #c07a2c; }
+.estado-falto { color: #b1442f; }
+.estado-sin-revisar { color: #b9b9b9; }
+
+// Con 20 y pico de días la tabla no cabe: se desplaza en horizontal y la
+// columna del estudiante queda fija para no perder la referencia.
+.matriz-scroll {
+  overflow-x: auto;
+  background: #fff;
+  border: 1px solid #e9ecef;
+  border-radius: 10px;
+}
+
+.matriz {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+  font-size: 0.8rem;
+
+  th,
+  td {
+    border-bottom: 1px solid #f1f3f5;
+    border-right: 1px solid #f6f6f6;
+  }
+
+  thead th {
+    position: sticky;
+    top: 0;
+    background: #faf8f2;
+    z-index: 2;
+    padding: 6px 4px;
+    font-weight: 700;
+    color: #8a6d1f;
+    text-align: center;
+  }
+
+  .col-estudiante {
+    position: sticky;
+    left: 0;
+    z-index: 3;
+    background: #fff;
+    min-width: 190px;
+    max-width: 190px;
+    padding: 8px 12px;
+    text-align: left;
+    border-right: 2px solid #ececec;
+  }
+
+  thead .col-estudiante {
+    z-index: 4;
+    background: #faf8f2;
+  }
+
+  .col-dia {
+    min-width: 46px;
+  }
+
+  .fin-semana {
+    background: #fbfbfb;
+    color: #bbb;
+  }
+}
+
+.dia-numero {
+  display: block;
+  font-size: 0.82rem;
+}
+
+.dia-nombre {
+  display: block;
+  font-size: 0.65rem;
+  font-weight: 500;
+  opacity: 0.7;
+}
+
+.estudiante-nombre {
+  display: block;
+  font-weight: 600;
+  color: #333;
+  font-size: 0.82rem;
+  line-height: 1.25;
+}
+
+.estudiante-grupo {
+  display: block;
+  font-size: 0.7rem;
+  color: #999;
+}
+
+.celda-dia {
+  padding: 5px 3px;
+  text-align: center;
+  vertical-align: middle;
+
+  &.con-datos {
+    cursor: pointer;
+
+    &:hover {
+      background: $light-gold;
+    }
+  }
+
+  // Algo sin traer o sin devolver: se marca la celda para que salte a la vista
+  &.con-alerta {
+    box-shadow: inset 0 -3px 0 rgba(192, 122, 44, 0.55);
+  }
+}
+
+.util-icono {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 1px;
+
+  i {
+    font-size: 0.85rem;
+  }
+
+  // Lo que no se trajo o no se reviso queda apagado, para que resalte lo que si
+  &.estado-falto i {
+    opacity: 0.75;
+  }
+
+  &.estado-sin-revisar i {
+    opacity: 0.45;
+  }
+}
+
+// Detalle del día
+.detalle-fondo {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050;
+  padding: 16px;
+}
+
+.detalle-panel {
+  background: #fff;
+  border-radius: 12px;
+  padding: 18px;
+  width: 100%;
+  max-width: 420px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+.detalle-cabecera {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 12px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid #f1f3f5;
+}
+
+.detalle-estudiante {
+  display: block;
+  font-weight: 700;
+  color: #333;
+}
+
+.detalle-fecha {
+  display: block;
+  font-size: 0.82rem;
+  color: #999;
+}
+
+.btn-cerrar {
+  border: none;
+  background: none;
+  font-size: 1rem;
+  color: #999;
+  cursor: pointer;
+}
+
+.detalle-util {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 0;
+  border-bottom: 1px solid #f6f6f6;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.detalle-util-texto {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.detalle-util-nombre {
+  font-weight: 600;
+  color: #444;
+  font-size: 0.9rem;
+}
+
+.detalle-util-estado {
+  font-size: 0.8rem;
+}
+
+@media (max-width: 768px) {
+  .tabs-container .custom-tabs .tab-button {
+    padding: 0.7rem 1rem;
+    font-size: 0.85rem;
+  }
+
+  .filters-container {
+    padding: 1rem;
+  }
+
+  .matriz .col-estudiante {
+    min-width: 140px;
+    max-width: 140px;
+  }
+
+  .convenciones {
+    gap: 10px;
+    font-size: 0.75rem;
+  }
+}

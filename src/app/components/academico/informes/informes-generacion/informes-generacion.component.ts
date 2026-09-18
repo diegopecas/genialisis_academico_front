@@ -54,6 +54,17 @@ export class InformesGeneracionComponent implements OnInit {
   // se pierden las excepciones que ya se corrigieron a mano.
   sobrescribir = false;
 
+  // Deshacer de un paso para las acciones en masa, que son las que borran
+  // mucho de un golpe. Guarda el valor que tenia cada fila antes.
+  private respaldo: { id: string, valor: any }[] | null = null;
+  // El deshacer tambien cubre los textos: se guardan aparte porque no
+  // cuelgan de una fila calificada sino del estudiante.
+  private respaldoTextos: { id_informe: string, texto: any }[] | null = null;
+  respaldoDescripcion = '';
+
+  // Texto base para rellenar las observaciones de todo el grupo
+  textoBase = '';
+
   // ===== Vista masiva =====
   // 'estudiante' califica un niño completo; 'seccion' califica una sección
   // para todo el grupo de una sentada.
@@ -303,6 +314,8 @@ export class InformesGeneracionComponent implements OnInit {
   // =================================================================
 
   abrirInforme(est: any) {
+    this.limpiarRespaldo();
+
     if (est.estado === 'sin_generar') {
       this.generar(est, true);
       return;
@@ -395,6 +408,10 @@ export class InformesGeneracionComponent implements OnInit {
       return;
     }
 
+    const afectadas = (seccion.filas || []).concat(
+      ...this.subsecciones(seccion.id).map((sub: any) => sub.filas || []));
+    this.respaldar(afectadas, `Marcar todas en ${seccion.nombre}`);
+
     const aplicar = (sec: any) => {
       if (!sec.se_califica) {
         return;
@@ -416,6 +433,10 @@ export class InformesGeneracionComponent implements OnInit {
     if (!this.editable) {
       return;
     }
+
+    const afectadas = (seccion.filas || []).concat(
+      ...this.subsecciones(seccion.id).map((sub: any) => sub.filas || []));
+    this.respaldar(afectadas, `Limpiar ${seccion.nombre}`);
 
     const limpiar = (sec: any) => {
       (sec.filas || []).forEach((f: any) => {
@@ -629,11 +650,74 @@ export class InformesGeneracionComponent implements OnInit {
   }
 
   // =================================================================
+  // DESHACER
+  // =================================================================
+
+  /** Guarda el valor actual de las filas antes de una acción en masa */
+  private respaldar(filas: any[], descripcion: string) {
+    this.respaldo = filas.map(f => ({ id: f.id, valor: f.id_valor_parametro }));
+    this.respaldoDescripcion = descripcion;
+  }
+
+  /** Guarda el texto actual de cada estudiante antes de rellenar en masa */
+  private respaldarTextos(descripcion: string) {
+    this.respaldoTextos = this.estudiantesMasivo.map(e => ({
+      id_informe: e.id_informe,
+      texto: e.texto
+    }));
+    this.respaldoDescripcion = descripcion;
+  }
+
+  get hayDeshacer(): boolean {
+    return (this.respaldo !== null && this.respaldo.length > 0)
+        || (this.respaldoTextos !== null && this.respaldoTextos.length > 0);
+  }
+
+  /** Todas las filas que hay en pantalla, según la vista activa */
+  private filasEnPantalla(): any[] {
+    if (this.vista === 'seccion') {
+      return this.estudiantesMasivo.reduce(
+        (acc: any[], est: any) => acc.concat(est.filas || []), []);
+    }
+    return this.secciones.reduce(
+      (acc: any[], sec: any) => acc.concat(sec.filas || []), []);
+  }
+
+  deshacer() {
+    if (this.respaldo) {
+      const porId = new Map(this.respaldo.map(r => [r.id, r.valor]));
+      this.filasEnPantalla().forEach((f: any) => {
+        if (porId.has(f.id)) {
+          f.id_valor_parametro = porId.get(f.id);
+        }
+      });
+    }
+
+    if (this.respaldoTextos) {
+      const porInforme = new Map(this.respaldoTextos.map(r => [r.id_informe, r.texto]));
+      this.estudiantesMasivo.forEach((e: any) => {
+        if (porInforme.has(e.id_informe)) {
+          e.texto = porInforme.get(e.id_informe);
+        }
+      });
+    }
+
+    this.limpiarRespaldo();
+  }
+
+  private limpiarRespaldo() {
+    this.respaldo = null;
+    this.respaldoTextos = null;
+    this.respaldoDescripcion = '';
+  }
+
+  // =================================================================
   // VISTA MASIVA POR SECCIÓN
   // =================================================================
 
   cambiarVista(vista: 'estudiante' | 'seccion') {
     this.vista = vista;
+    this.limpiarRespaldo();
 
     if (vista === 'seccion') {
       this.cerrarInforme();
@@ -664,6 +748,8 @@ export class InformesGeneracionComponent implements OnInit {
       return;
     }
 
+    this.limpiarRespaldo();
+    this.textoBase = '';
     this.cargandoMasivo = true;
     this.informesEstudiantesService
       .obtenerSeccionPorGrupo(this.idGrupo, this.idCorte, this.idSeccion)
@@ -707,6 +793,12 @@ export class InformesGeneracionComponent implements OnInit {
    * salvo que se pida sobrescribir.
    */
   marcarColumna(columna: any, idValor: any) {
+    const afectadas = this.estudiantesMasivo
+      .filter(est => this.editableMasivo(est))
+      .map(est => this.filaDe(est, columna))
+      .filter(f => !!f);
+    this.respaldar(afectadas, 'Marcar columna');
+
     this.estudiantesMasivo.forEach(est => {
       if (!this.editableMasivo(est)) {
         return;
@@ -724,6 +816,11 @@ export class InformesGeneracionComponent implements OnInit {
 
   /** Mismo valor en toda la tabla, con la misma regla */
   marcarTodoMasivo(idValor: any) {
+    const afectadas = this.estudiantesMasivo
+      .filter(est => this.editableMasivo(est))
+      .reduce((acc: any[], est: any) => acc.concat(est.filas || []), []);
+    this.respaldar(afectadas, 'Marcar toda la tabla');
+
     this.estudiantesMasivo.forEach(est => {
       if (!this.editableMasivo(est)) {
         return;
@@ -734,6 +831,41 @@ export class InformesGeneracionComponent implements OnInit {
         }
         f.id_valor_parametro = idValor;
       });
+    });
+  }
+
+  /**
+   * Pone el texto base en las observaciones del grupo. Como en las marcas,
+   * por defecto solo llena las que están vacías.
+   */
+  aplicarTextoBase() {
+    if (!this.textoBase || this.textoBase.trim() === '') {
+      Swal.fire('Advertencia', 'Escribe primero el texto que quieres aplicar', 'warning');
+      return;
+    }
+
+    this.respaldarTextos('Aplicar texto a todos');
+
+    this.estudiantesMasivo.forEach(est => {
+      if (!this.editableMasivo(est)) {
+        return;
+      }
+      const tieneTexto = est.texto && est.texto.trim() !== '';
+      if (!this.sobrescribir && tieneTexto) {
+        return;
+      }
+      est.texto = this.textoBase;
+    });
+  }
+
+  /** Borra las observaciones del grupo */
+  limpiarTextos() {
+    this.respaldarTextos('Limpiar observaciones');
+
+    this.estudiantesMasivo.forEach(est => {
+      if (this.editableMasivo(est)) {
+        est.texto = '';
+      }
     });
   }
 

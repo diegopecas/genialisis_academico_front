@@ -7,7 +7,170 @@
     [iconoTitulo]="'/assets/images/estudiantes.png'"
   ></app-header>
 
+  <!-- Navegación por pestañas -->
   <div class="container-fluid mt-4">
+    <div class="tabs-container">
+      <div class="nav nav-tabs custom-tabs" role="tablist">
+        <button class="nav-link tab-button" [class.active]="vista === 'matriz'"
+          (click)="cambiarVista('matriz')" type="button">
+          <i class="fas fa-table-cells"></i>
+          Matriz del Mes
+        </button>
+        <button class="nav-link tab-button" [class.active]="vista === 'lista'"
+          (click)="cambiarVista('lista')" type="button">
+          <i class="fas fa-list"></i>
+          Listado Detallado
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== MATRIZ ====== -->
+  <div class="container-fluid" *ngIf="vista === 'matriz'">
+
+    <div class="filters-container">
+      <div class="row g-3 align-items-end">
+        <div class="col-sm-6 col-md-2">
+          <label for="mes" class="form-label"><i class="fas fa-calendar"></i> Mes</label>
+          <select class="form-select" id="mes" [(ngModel)]="filtrosMatriz.mes" (change)="consultarMatriz()">
+            <option *ngFor="let mes of meses" [ngValue]="mes.valor">{{ mes.nombre }}</option>
+          </select>
+        </div>
+        <div class="col-sm-6 col-md-2">
+          <label for="anio" class="form-label"><i class="fas fa-calendar-days"></i> Año</label>
+          <select class="form-select" id="anio" [(ngModel)]="filtrosMatriz.anio" (change)="consultarMatriz()">
+            <option *ngFor="let anio of anios" [ngValue]="anio">{{ anio }}</option>
+          </select>
+        </div>
+        <div class="col-sm-6 col-md-3">
+          <label for="grupoMatriz" class="form-label"><i class="fas fa-users"></i> Grupo</label>
+          <select class="form-select" id="grupoMatriz" [(ngModel)]="filtrosMatriz.id_grupo">
+            <option [ngValue]="null">Todos los grupos</option>
+            <option *ngFor="let grupo of grupos" [ngValue]="grupo.id">{{ grupo.nombre }}</option>
+          </select>
+        </div>
+        <div class="col-sm-6 col-md-2">
+          <label for="utilFiltro" class="form-label"><i class="fas fa-box"></i> Útil</label>
+          <select class="form-select" id="utilFiltro" [(ngModel)]="filtrosMatriz.util">
+            <option value="">Todos</option>
+            <option *ngFor="let util of utilesDelMes" [value]="util">{{ util }}</option>
+          </select>
+        </div>
+        <div class="col-sm-6 col-md-3">
+          <label for="estadoFiltro" class="form-label"><i class="fas fa-circle-check"></i> Estado</label>
+          <select class="form-select" id="estadoFiltro" [(ngModel)]="filtrosMatriz.estado">
+            <option value="">Todos</option>
+            <option *ngFor="let estado of estados" [value]="estado.valor">{{ estado.nombre }}</option>
+          </select>
+        </div>
+        <div class="col-sm-12 col-md-6">
+          <label for="buscarEstudiante" class="form-label"><i class="fas fa-magnifying-glass"></i> Estudiante</label>
+          <input
+            type="text"
+            id="buscarEstudiante"
+            class="form-control"
+            placeholder="Buscar por nombre..."
+            [(ngModel)]="filtrosMatriz.estudiante">
+        </div>
+        <div class="col-sm-12 col-md-3" *ngIf="hayFiltrosMatriz">
+          <button type="button" class="btn btn-outline-secondary w-100" (click)="limpiarFiltrosMatriz()">
+            <i class="fas fa-eraser me-1"></i> Limpiar filtros
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="convenciones">
+      <span class="convencion"><i class="fas fa-circle-check estado-trajo"></i> Lo trajo y se lo llevó</span>
+      <span class="convencion"><i class="fas fa-circle-exclamation estado-pendiente"></i> Lo trajo, no se lo llevó</span>
+      <span class="convencion"><i class="fas fa-circle-xmark estado-falto"></i> No lo trajo</span>
+      <span class="convencion"><i class="fas fa-circle-question estado-sin-revisar"></i> Sin revisar</span>
+    </div>
+
+    <div class="cargando" *ngIf="cargandoMatriz">
+      <div class="spinner-border text-warning" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+    </div>
+
+    <p class="sin-datos" *ngIf="consultadoMatriz && !cargandoMatriz && estudiantesVisibles.length === 0">
+      No hay estudiantes para el filtro seleccionado.
+    </p>
+
+    <p class="sin-datos" *ngIf="consultadoMatriz && !cargandoMatriz && estudiantesVisibles.length > 0 && diasVisibles.length === 0">
+      No hay registros de útiles en este mes con los filtros seleccionados.
+    </p>
+
+    <!-- La tabla se desplaza en horizontal y la columna del estudiante queda fija -->
+    <div class="matriz-scroll" *ngIf="!cargandoMatriz && estudiantesVisibles.length > 0 && diasVisibles.length > 0">
+      <table class="matriz">
+        <thead>
+          <tr>
+            <th class="col-estudiante">Estudiante</th>
+            <th
+              *ngFor="let dia of diasVisibles"
+              class="col-dia"
+              [class.fin-semana]="dia.fin_de_semana === 1">
+              <span class="dia-numero">{{ dia.dia }}</span>
+              <span class="dia-nombre">{{ dia.nombre_dia }}</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let estudiante of estudiantesVisibles">
+            <td class="col-estudiante">
+              <span class="estudiante-nombre">{{ estudiante.nombre }}</span>
+              <span class="estudiante-grupo" *ngIf="estudiante.grupo">{{ estudiante.grupo }}</span>
+            </td>
+            <td
+              *ngFor="let dia of diasVisibles"
+              class="celda-dia"
+              [class.fin-semana]="dia.fin_de_semana === 1"
+              [class.con-alerta]="tieneAlerta(estudiante, dia)"
+              [class.con-datos]="utilesDe(estudiante, dia).length > 0"
+              (click)="abrirDetalle(estudiante, dia)">
+              <span
+                class="util-icono"
+                *ngFor="let util of utilesDe(estudiante, dia)"
+                [ngClass]="'estado-' + estadoDe(util)"
+                [title]="tituloDe(util)">
+                <i [class]="util.icono || 'fas fa-circle'"></i>
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Detalle del día -->
+    <div class="detalle-fondo" *ngIf="detalle" (click)="cerrarDetalle()">
+      <div class="detalle-panel" (click)="$event.stopPropagation()">
+        <div class="detalle-cabecera">
+          <div>
+            <span class="detalle-estudiante">{{ detalle.estudiante }}</span>
+            <span class="detalle-fecha">{{ fechaTexto(detalle.fecha) }}</span>
+          </div>
+          <button type="button" class="btn-cerrar" (click)="cerrarDetalle()">✕</button>
+        </div>
+
+        <div class="detalle-util" *ngFor="let util of detalle.utiles">
+          <span class="util-icono" [ngClass]="'estado-' + estadoDe(util)">
+            <i [class]="util.icono || 'fas fa-circle'"></i>
+          </span>
+          <div class="detalle-util-texto">
+            <span class="detalle-util-nombre">{{ util.util }}</span>
+            <span class="detalle-util-estado" [ngClass]="'estado-' + estadoDe(util)">
+              {{ tituloDe(util) }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <!-- ====== FIN MATRIZ ====== -->
+
+  <div class="container-fluid mt-4" *ngIf="vista === 'lista'">
     <div class="row g-3 align-items-end">
       <div class="col-sm-12 col-md-3">
         <label for="grupo" class="form-label">Grupo</label>

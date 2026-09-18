@@ -83,7 +83,7 @@ export class UtilesDiariosGruposService {
 
   obtenerPorUtil(idUtil: any) {
     return this.http
-      .get<HttpResponse<Object>>(environment.api + `utiles-diarios-grupos-elemento/${idUtil}`, { observe: 'response' })
+      .get<HttpResponse<Object>>(environment.api + `utiles-diarios-grupos-util/${idUtil}`, { observe: 'response' })
       .pipe(
         tap((response: HttpResponse<Object>) => {
           let respuesta: any = response.body;
@@ -100,7 +100,7 @@ export class UtilesDiariosGruposService {
   // deja el elemento aplicando a todos los grupos.
   reemplazarGruposUtil(idUtil: any, grupos: any[]) {
     const body = JSON.stringify({ id_util_diario: idUtil, grupos: grupos });
-    return this.http.put<any>(environment.api + 'utiles-diarios-grupos-elemento', body, httpOptions).pipe(
+    return this.http.put<any>(environment.api + 'utiles-diarios-grupos-util', body, httpOptions).pipe(
       tap((respuesta: any) => {
         if (respuesta.error) throw respuesta.error;
         return respuesta;

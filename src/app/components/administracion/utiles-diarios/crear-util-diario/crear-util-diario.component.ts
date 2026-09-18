@@ -29,6 +29,64 @@ export class CrearUtilDiarioComponent implements OnInit {
   public gruposSeleccionados = [] as any[];
   public aplicaATodos: boolean = true;
 
+  // ---- Selector de iconos ----
+  // El icono se escribia a mano, o sea que tocaba saberse las clases de
+  // FontAwesome. Aqui se escoge de una galeria y se ve al instante.
+  public mostrarIconos = false;
+  public busquedaIcono = '';
+
+  public catalogoIconos = [
+    { grupo: 'Ropa', iconos: [
+      { clase: 'fas fa-shirt', nombre: 'Camiseta' },
+      { clase: 'fas fa-vest', nombre: 'Chaleco o ruana' },
+      { clase: 'fas fa-mitten', nombre: 'Guantes' },
+      { clase: 'fas fa-hat-cowboy', nombre: 'Gorro o sombrero' },
+      { clase: 'fas fa-socks', nombre: 'Medias' },
+      { clase: 'fas fa-shoe-prints', nombre: 'Zapatos' },
+      { clase: 'fas fa-umbrella', nombre: 'Capa o impermeable' },
+      { clase: 'fas fa-glasses', nombre: 'Gafas' },
+    ]},
+    { grupo: 'Alimentación', iconos: [
+      { clase: 'fas fa-utensils', nombre: 'Lonchera' },
+      { clase: 'fas fa-mug-hot', nombre: 'Termo' },
+      { clase: 'fas fa-bottle-water', nombre: 'Botella' },
+      { clase: 'fas fa-apple-whole', nombre: 'Fruta' },
+      { clase: 'fas fa-cookie-bite', nombre: 'Onces' },
+      { clase: 'fas fa-bowl-food', nombre: 'Plato' },
+    ]},
+    { grupo: 'Útiles', iconos: [
+      { clase: 'fas fa-book', nombre: 'Agenda' },
+      { clase: 'fas fa-book-open', nombre: 'Libro o plan lector' },
+      { clase: 'fas fa-pencil', nombre: 'Lápiz' },
+      { clase: 'fas fa-palette', nombre: 'Colores' },
+      { clase: 'fas fa-scissors', nombre: 'Tijeras' },
+      { clase: 'fas fa-folder', nombre: 'Carpeta' },
+      { clase: 'fas fa-backpack', nombre: 'Maleta' },
+      { clase: 'fas fa-paperclip', nombre: 'Anexo' },
+    ]},
+    { grupo: 'Juego y descanso', iconos: [
+      { clase: 'fas fa-paw', nombre: 'Peluche' },
+      { clase: 'fas fa-puzzle-piece', nombre: 'Juguete' },
+      { clase: 'fas fa-bed', nombre: 'Cobija o almohada' },
+      { clase: 'fas fa-wind', nombre: 'Cometa' },
+      { clase: 'fas fa-music', nombre: 'Música' },
+    ]},
+    { grupo: 'Aseo y salud', iconos: [
+      { clase: 'fas fa-soap', nombre: 'Jabón' },
+      { clase: 'fas fa-toothbrush', nombre: 'Cepillo de dientes' },
+      { clase: 'fas fa-pump-soap', nombre: 'Crema o gel' },
+      { clase: 'fas fa-baby', nombre: 'Pañales' },
+      { clase: 'fas fa-kit-medical', nombre: 'Medicamento' },
+      { clase: 'fas fa-head-side-mask', nombre: 'Tapabocas' },
+    ]},
+    { grupo: 'Deporte', iconos: [
+      { clase: 'fas fa-person-swimming', nombre: 'Natación' },
+      { clase: 'fas fa-futbol', nombre: 'Balón' },
+      { clase: 'fas fa-dumbbell', nombre: 'Educación física' },
+      { clase: 'fas fa-bicycle', nombre: 'Bicicleta' },
+    ]},
+  ];
+
   model = {
     id: null,
     nombre: '',
@@ -129,6 +187,44 @@ export class CrearUtilDiarioComponent implements OnInit {
       this.gruposSeleccionados.push(idGrupo);
     }
     this.aplicaATodos = this.gruposSeleccionados.length === 0;
+  }
+
+  alternarIconos(): void {
+    this.mostrarIconos = !this.mostrarIconos;
+  }
+
+  seleccionarIcono(clase: string): void {
+    this.model.icono = clase;
+    this.mostrarIconos = false;
+    this.busquedaIcono = '';
+  }
+
+  /** Grupos que quedan tras la búsqueda, sin tildes ni mayúsculas. */
+  get gruposIconos(): any[] {
+    const texto = this.normalizarTexto(this.busquedaIcono);
+
+    if (texto === '') {
+      return this.catalogoIconos;
+    }
+
+    return this.catalogoIconos
+      .map((grupo: any) => ({
+        grupo: grupo.grupo,
+        iconos: grupo.iconos.filter((icono: any) =>
+          this.normalizarTexto(icono.nombre).includes(texto)
+          || this.normalizarTexto(grupo.grupo).includes(texto)
+          || icono.clase.includes(texto)
+        )
+      }))
+      .filter((grupo: any) => grupo.iconos.length > 0);
+  }
+
+  private normalizarTexto(texto: string): string {
+    return (texto || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .trim();
   }
 
   guardar() {

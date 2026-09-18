@@ -1,0 +1,171 @@
+
+
+// =============================================
+// Selector de iconos
+// =============================================
+$gold: #d4af37;
+$light-gold: rgba(212, 175, 55, 0.12);
+
+.selector-icono {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid #ced4da;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 0.92rem;
+  color: #555;
+
+  &:hover:not(:disabled) {
+    border-color: $gold;
+  }
+
+  &:disabled {
+    background: #f5f5f5;
+    cursor: default;
+  }
+}
+
+.icono-actual {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: $light-gold;
+  color: #8a6d1f;
+  font-size: 1.05rem;
+  flex-shrink: 0;
+}
+
+.icono-texto {
+  flex: 1;
+  text-align: left;
+}
+
+.icono-chevron {
+  color: #aaa;
+  font-size: 0.75rem;
+  transition: transform 0.25s ease;
+
+  &.abierto {
+    transform: rotate(180deg);
+  }
+}
+
+.galeria-iconos {
+  margin-top: 6px;
+  padding: 14px;
+  border: 1px solid #e9ecef;
+  border-radius: 10px;
+  background: #fcfcfc;
+}
+
+.galeria-busqueda {
+  position: relative;
+  max-width: 320px;
+  margin-bottom: 14px;
+
+  i {
+    position: absolute;
+    left: 11px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #aaa;
+    font-size: 0.82rem;
+  }
+
+  input {
+    padding-left: 32px;
+    font-size: 0.88rem;
+  }
+}
+
+.galeria-grupo {
+  margin-bottom: 14px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.galeria-titulo {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #8a6d1f;
+  margin-bottom: 7px;
+}
+
+.galeria-lista {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.galeria-icono {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 92px;
+  padding: 10px 6px;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  i {
+    font-size: 1.25rem;
+    color: #777;
+  }
+
+  span {
+    font-size: 0.7rem;
+    color: #888;
+    text-align: center;
+    line-height: 1.2;
+  }
+
+  &:hover {
+    border-color: rgba($gold, 0.6);
+    background: $light-gold;
+  }
+
+  &.activo {
+    border-color: $gold;
+    background: $light-gold;
+    box-shadow: 0 0 0 1px $gold inset;
+
+    i {
+      color: #8a6d1f;
+    }
+
+    span {
+      color: #555;
+      font-weight: 600;
+    }
+  }
+}
+
+.galeria-vacia {
+  color: #888;
+  font-size: 0.87rem;
+  text-align: center;
+  padding: 14px 0;
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .galeria-icono {
+    width: 78px;
+  }
+}

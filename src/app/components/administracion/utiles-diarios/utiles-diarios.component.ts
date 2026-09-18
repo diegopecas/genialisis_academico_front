@@ -43,7 +43,7 @@ export class UtilesDiariosComponent implements OnInit {
 
   crearTitulos() {
     this.titulos = [
-      { clave: 'icono', alias: 'Icono', alinear: 'centrado' },
+      { clave: 'icono', alias: 'Icono', alinear: 'centrado', tipo: 'icono' },
       { clave: 'nombre', alias: 'Nombre', alinear: 'izquierda' },
       { clave: 'descripcion', alias: 'Descripción', alinear: 'izquierda' },
       { clave: 'orden', alias: 'Orden', alinear: 'centrado' },

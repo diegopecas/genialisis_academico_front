@@ -721,3 +721,30 @@ $light-gray: #f5f7fa;
 
   input { cursor: pointer; margin: 0; }
 }
+
+// Deshacer de un paso para las acciones en masa
+.chip-todas.deshacer {
+  border-style: solid;
+  border-color: #0D47A1;
+  color: #0D47A1;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+
+  &:hover { background: rgba(13, 71, 161, 0.08); }
+}
+
+// Texto base de las observaciones masivas
+.texto-base {
+  background: #FCFBF6;
+  border: 1px dashed rgba($gold, 0.55);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+
+  .btn-aplicar {
+    margin-top: 8px;
+    font-size: 0.82rem;
+    padding: 6px 16px;
+  }
+}
