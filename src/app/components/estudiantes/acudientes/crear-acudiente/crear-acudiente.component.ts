@@ -156,6 +156,7 @@ export class CrearAcudienteComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
+    this.aplicarSeccionDeLaUrl();
     this.cargarRolesPortalPadres();
     this.route.params.subscribe(params => {
       this.accion = params['accion'];
@@ -955,6 +956,21 @@ export class CrearAcudienteComponent implements OnInit {
       this.model.primerApellido,
       this.model.segundoApellido
     ].filter(Boolean).join(' ');
+  }
+
+  /**
+   * El buscador del menu enlaza directo a una seccion del editor con
+   * ?seccion=documentos. Sin esto la pantalla siempre abria en datos
+   * personales y el enlace no servia de nada.
+   */
+  private aplicarSeccionDeLaUrl(): void {
+    const seccion = this.route.snapshot.queryParamMap.get('seccion');
+
+    const validas = ['datos-personales', 'datos-acudiente', 'documentos', 'usuario'];
+
+    if (seccion && validas.indexOf(seccion) >= 0) {
+      this.seccionActiva = seccion as any;
+    }
   }
 
   cambiarSeccion(seccion: 'datos-personales' | 'datos-acudiente' | 'documentos' | 'usuario') {

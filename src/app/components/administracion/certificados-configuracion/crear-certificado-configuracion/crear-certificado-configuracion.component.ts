@@ -42,6 +42,7 @@ export class CrearCertificadoConfiguracionComponent implements OnInit {
   } as any;
 
   public productos = [] as any[];
+  public busquedaProducto = '';
 
   constructor(
     private configuracionService: CertificadosConfiguracionService,
@@ -105,6 +106,54 @@ export class CrearCertificadoConfiguracionComponent implements OnInit {
 
   get pideProductos(): boolean {
     return this.model.regla === 'al_dia_productos' && Number(this.model.regla_fija) !== 1;
+  }
+
+  /** Productos que quedan tras el filtro de texto, sin tildes ni mayúsculas. */
+  get productosVisibles(): any[] {
+    const texto = this.normalizar(this.busquedaProducto);
+
+    if (texto === '') {
+      return this.productos;
+    }
+
+    return this.productos.filter((producto: any) =>
+      this.normalizar(producto.nombre || '').includes(texto)
+    );
+  }
+
+  private normalizar(texto: string): string {
+    return (texto || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .trim();
+  }
+
+  /** Marca o desmarca solo lo que está a la vista con el filtro puesto. */
+  get todosVisiblesSeleccionados(): boolean {
+    const visibles = this.productosVisibles;
+    return visibles.length > 0
+      && visibles.every((producto: any) => this.estaProductoSeleccionado(producto.id));
+  }
+
+  alternarVisibles(): void {
+    const visibles = this.productosVisibles;
+
+    if (this.todosVisiblesSeleccionados) {
+      visibles.forEach((producto: any) => {
+        const indice = this.model.productos.indexOf(producto.id);
+        if (indice >= 0) {
+          this.model.productos.splice(indice, 1);
+        }
+      });
+      return;
+    }
+
+    visibles.forEach((producto: any) => {
+      if (this.model.productos.indexOf(producto.id) < 0) {
+        this.model.productos.push(producto.id);
+      }
+    });
   }
 
   estaProductoSeleccionado(idProducto: string): boolean {

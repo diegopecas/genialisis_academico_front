@@ -30,6 +30,7 @@ export class InformesCalificarComponent implements OnInit {
 
   idEstudiante: any = null;
   idCorte: any = null;
+  idGrupo: any = null;
 
   informe: any = null;
   secciones: any[] = [];
@@ -47,6 +48,12 @@ export class InformesCalificarComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
+    // El grupo viene por query param solo para poder devolver la lista
+    // con el mismo filtro con el que se abrio el informe.
+    this.route.queryParams.subscribe(params => {
+      this.idGrupo = params['grupo'] || null;
+    });
+
     this.route.params.subscribe(params => {
       this.idEstudiante = params['idEstudiante'];
       this.idCorte = params['idCorte'];
@@ -136,6 +143,110 @@ export class InformesCalificarComponent implements OnInit {
     // Volver a tocar el mismo valor lo quita, por si se marcó por error
     fila.id_valor_parametro = fila.id_valor_parametro === idValor ? null : idValor;
     fila.origen = 'manual';
+  }
+
+  /**
+   * Marca todas las filas de la sección y de sus subsecciones con el mismo
+   * valor. Es lo que más tiempo ahorra: en un boletín de 44 filas la
+   * docente suele poner el mismo valor en casi toda una dimensión y
+   * corregir solo las excepciones.
+   */
+  marcarTodasSeccion(seccion: any, idValor: any) {
+    if (!this.editable) {
+      return;
+    }
+
+    const aplicar = (sec: any) => {
+      if (!sec.se_califica) {
+        return;
+      }
+      (sec.filas || []).forEach((f: any) => {
+        f.id_valor_parametro = idValor;
+        f.origen = 'manual';
+      });
+    };
+
+    aplicar(seccion);
+    this.subsecciones(seccion.id).forEach(aplicar);
+  }
+
+  /** Quita las marcas de la sección y sus subsecciones */
+  limpiarSeccion(seccion: any) {
+    if (!this.editable) {
+      return;
+    }
+
+    const limpiar = (sec: any) => {
+      (sec.filas || []).forEach((f: any) => {
+        f.id_valor_parametro = null;
+      });
+    };
+
+    limpiar(seccion);
+    this.subsecciones(seccion.id).forEach(limpiar);
+  }
+
+  /** Cuántas filas de la sección y sus subsecciones ya tienen valor */
+  avanceSeccion(seccion: any): { calificadas: number, total: number } {
+    let total = 0;
+    let calificadas = 0;
+
+    const contar = (sec: any) => {
+      (sec.filas || []).forEach((f: any) => {
+        total++;
+        if (f.id_valor_parametro) {
+          calificadas++;
+        }
+      });
+    };
+
+    contar(seccion);
+    this.subsecciones(seccion.id).forEach(contar);
+
+    return { calificadas, total };
+  }
+
+  /**
+   * Vuelve a sembrar las filas que falten. No pisa lo ya calificado: sirve
+   * cuando cambia la configuración de secciones o la malla del corte.
+   */
+  async regenerar() {
+    const result = await Swal.fire({
+      title: '¿Regenerar el informe?',
+      text: 'Se agregan las filas que falten según la configuración actual. Lo que ya está calificado no se pierde.',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, regenerar',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#d4af37',
+      reverseButtons: true
+    });
+
+    if (!result.isConfirmed) {
+      return;
+    }
+
+    const usuario = this.authService.getUsuarioActual();
+    this.cargando = true;
+
+    this.informesEstudiantesService.generar({
+      id_estudiante: this.idEstudiante,
+      id_corte_academico: this.idCorte,
+      id_usuario: usuario?.id || null
+    }).subscribe({
+      next: (respuesta: any) => {
+        this.cargarInforme();
+        const nuevas = respuesta?.filas_nuevas || 0;
+        Swal.fire('Listo', nuevas > 0
+          ? `Se agregaron ${nuevas} filas al informe.`
+          : 'El informe ya estaba completo.', 'success');
+      },
+      error: (error: any) => {
+        console.error("Error al regenerar el informe", error);
+        this.cargando = false;
+        Swal.fire('Error', 'No se pudo regenerar el informe', 'error');
+      }
+    });
   }
 
   get totalFilas(): number {
@@ -266,6 +377,13 @@ export class InformesCalificarComponent implements OnInit {
   }
 
   volver() {
+    // Se devuelve el filtro para que la lista no quede en blanco
+    if (this.idGrupo && this.idCorte) {
+      this.router.navigate([this.regresar], {
+        queryParams: { grupo: this.idGrupo, corte: this.idCorte }
+      });
+      return;
+    }
     this.router.navigate([this.regresar]);
   }
 }

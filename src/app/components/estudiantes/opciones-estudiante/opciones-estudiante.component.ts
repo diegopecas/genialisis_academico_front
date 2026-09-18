@@ -9,15 +9,7 @@ import { GruposService } from '../../../services/grupos.service';
 import { GradosXGrupoService } from '../../../services/grados-x-grupo.service';
 import { InstitucionConfigService } from '../../../services/institucion-config.service';
 import { PermisosService } from '../../../services/permisos.service';
-
-interface OpcionEstudiante {
-  id: string;
-  label: string;
-  icono: string;
-  categoria: string;
-  permiso: string | null; // null => visible para todos
-  ruta: string | null;    // null => acción en sitio (ej. cambio de grupo)
-}
+import { OpcionesEstudianteService, OpcionEstudiante } from '../../../services/opciones-estudiante.service';
 
 interface CategoriaOpciones {
   nombre: string;
@@ -48,28 +40,6 @@ export class OpcionesEstudianteComponent implements OnInit {
   // Registro recibido desde el listado por router state (evita re-consultar)
   private registroDesdeState: any = null;
 
-  // Catálogo completo de opciones, agrupado por categoría.
-  private opciones: OpcionEstudiante[] = [
-    { id: 'vista_360', label: 'Vista 360', icono: '/assets/images/vista_360.png', categoria: 'Información', permiso: 'estudiantes.vista_360', ruta: '/estudiantes/vista/' },
-    { id: 'registro_acudientes', label: 'Acudientes', icono: '/assets/images/familia.png', categoria: 'Información', permiso: 'estudiantes.acudientes', ruta: '/estudiantes/acudientes/' },
-    { id: 'registro_medidas', label: 'Medidas', icono: '/assets/images/medidas.png', categoria: 'Información', permiso: 'estudiantes.medidas', ruta: '/estudiantes/medidas/' },
-    { id: 'observaciones', label: 'Observaciones', icono: '/assets/images/observaciones.png', categoria: 'Información', permiso: 'estudiantes.observaciones', ruta: '/estudiantes/observaciones/' },
-    { id: 'informes', label: 'Informes', icono: '/assets/images/informes-estudiante.png', categoria: 'Información', permiso: 'estudiantes.informes', ruta: '/estudiantes/informes/' },
-    { id: 'estado_cuenta', label: 'Estado de Cuenta', icono: '/assets/images/estado-cuenta.png', categoria: 'Servicios y cobros', permiso: 'estudiantes.estado_cuenta', ruta: '/estudiantes/estado-cuenta/' },
-    { id: 'pagos', label: 'Pagos', icono: '/assets/images/pagos.png', categoria: 'Servicios y cobros', permiso: 'estudiantes.pagos', ruta: '/estudiantes/pagos/' },
-    { id: 'productos_servicios', label: 'Productos', icono: '/assets/images/productos.png', categoria: 'Servicios y cobros', permiso: 'estudiantes.productos_servicios', ruta: '/estudiantes/productos-servicios/' },
-    { id: 'contratos', label: 'Contratos', icono: '/assets/images/contratos.png', categoria: 'Servicios y cobros', permiso: 'estudiantes.contratos', ruta: '/estudiantes/contratos/' },
-    { id: 'cursos_extra', label: 'Cursos Extra', icono: '/assets/images/cursos-extra.png', categoria: 'Servicios y cobros', permiso: null, ruta: '/estudiantes/cursos-extra/' },
-    { id: 'onces', label: 'Onces', icono: '/assets/images/onces.png', categoria: 'Servicios y cobros', permiso: 'estudiantes.onces', ruta: '/estudiantes/onces/' },
-    { id: 'certificados', label: 'Certificados', icono: '/assets/images/certificados.png', categoria: 'Servicios y cobros', permiso: 'estudiantes.certificados', ruta: '/estudiantes/certificados/' },
-    { id: 'acudiente_pagos', label: 'Acudiente de Pagos', icono: '/assets/images/acudiente-pagos.png', categoria: 'Servicios y cobros', permiso: 'estudiantes.acudiente_pagos', ruta: '/estudiantes/acudiente-pagos/' },
-    { id: 'editar', label: 'Editar', icono: '/assets/images/editar.png', categoria: 'Gestión', permiso: 'estudiantes.administrar', ruta: 'estudiantes/editar/' },
-    { id: 'cambiar_grupo', label: 'Cambio Grupo', icono: '/assets/images/cambio_grupo.png', categoria: 'Gestión', permiso: 'estudiantes.cambio_grupo', ruta: null },
-  ];
-
-  // Orden de presentación de las categorías
-  private ordenCategorias = ['Información', 'Servicios y cobros', 'Gestión'];
-
   public categorias: CategoriaOpciones[] = [];
 
   constructor(
@@ -79,7 +49,8 @@ export class OpcionesEstudianteComponent implements OnInit {
     private gruposService: GruposService,
     private gradosXGrupoService: GradosXGrupoService,
     private institucionConfigService: InstitucionConfigService,
-    private permisosService: PermisosService
+    private permisosService: PermisosService,
+    private opcionesEstudianteService: OpcionesEstudianteService
   ) {
     // El registro enviado por el listado viaja en el state de la navegación.
     // Debe leerse con getCurrentNavigation() en el constructor; history.state
@@ -103,10 +74,10 @@ export class OpcionesEstudianteComponent implements OnInit {
   }
 
   configurarOpciones(): void {
-    this.categorias = this.ordenCategorias
+    this.categorias = this.opcionesEstudianteService.getOrdenCategorias()
       .map((nombre) => ({
         nombre,
-        opciones: this.opciones.filter(
+        opciones: this.opcionesEstudianteService.getOpciones().filter(
           (o) =>
             o.categoria === nombre &&
             (o.permiso === null || this.permisosService.tienePermiso(o.permiso))

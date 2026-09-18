@@ -34,7 +34,11 @@ export class NotificacionesDestinatariosService {
 
   obtenerNoLeidas() {
     return this.http
-      .get<HttpResponse<Object>>(this.servicio + '/no-leidas', { observe: 'response' })
+      .get<HttpResponse<Object>>(this.servicio + '/no-leidas', {
+        observe: 'response',
+        // Consulta de fondo: sin X-Silent el spinner bloquea el menu al entrar.
+        headers: { 'X-Silent': 'true' },
+      })
       .pipe(
         tap((response: HttpResponse<Object>) => {
           let respuesta: any = response.body;

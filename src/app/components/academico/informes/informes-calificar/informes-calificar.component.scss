@@ -283,3 +283,79 @@ $light-gray: #f5f7fa;
     .btn { width: 100%; }
   }
 }
+
+// ============================================================
+// MARCAR TODAS POR SECCIÓN
+// ============================================================
+.card-seccion-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.tag-avance {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #888;
+  background: #F4F4F4;
+  padding: 2px 9px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.marcar-todas {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+
+  .marcar-label {
+    font-size: 0.72rem;
+    color: #999;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+}
+
+.chip-todas {
+  border: 1.5px dashed;
+  background: #fff;
+  border-radius: 999px;
+  padding: 3px 11px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+
+  &:hover { background: rgba(0, 0, 0, 0.03); }
+
+  &.limpiar {
+    border-color: #CCC;
+    color: #999;
+  }
+}
+
+.btn-regenerar {
+  background-color: #fff;
+  border: 1.5px solid #0D47A1;
+  color: #0D47A1;
+  font-weight: 600;
+
+  &:hover { background: rgba(13, 71, 161, 0.08); color: #0D47A1; }
+}
+
+@media (max-width: 768px) {
+  .card-seccion-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .marcar-todas {
+    justify-content: flex-start;
+
+    .chip-todas { flex: 1; text-align: center; }
+  }
+}

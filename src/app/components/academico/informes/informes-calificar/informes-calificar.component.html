@@ -37,7 +37,25 @@
                     {{ sec.nombre }}
                     <span class="tag-familia" *ngIf="sec.evalua_a === 'familia'">Evalúa a la familia</span>
                     <span class="tag-info" *ngIf="!sec.se_califica">Informativa</span>
+                    <span class="tag-avance">
+                        {{ avanceSeccion(sec).calificadas }} / {{ avanceSeccion(sec).total }}
+                    </span>
                 </h5>
+
+                <!-- Marcar toda la sección de una: ahorra clic por clic -->
+                <div class="marcar-todas" *ngIf="editable && sec.se_califica">
+                    <span class="marcar-label">Marcar todas:</span>
+                    <button *ngFor="let v of valores"
+                            class="chip-todas"
+                            [style.borderColor]="v.color || '#d4af37'"
+                            [style.color]="v.color || '#8B6914'"
+                            (click)="marcarTodasSeccion(sec, v.id)">
+                        {{ v.valor_cualitativo }}
+                    </button>
+                    <button class="chip-todas limpiar" (click)="limpiarSeccion(sec)">
+                        Limpiar
+                    </button>
+                </div>
             </div>
             <div class="card-seccion-body">
 
@@ -112,6 +130,9 @@
         <div class="botones-accion">
             <button class="btn btn-corporate-primary btn-lg px-4" *ngIf="editable" (click)="guardar()">
                 <i class="fas fa-save me-2"></i>Guardar
+            </button>
+            <button class="btn btn-regenerar btn-lg px-4" *ngIf="editable" (click)="regenerar()">
+                <i class="fas fa-rotate me-2"></i>Regenerar
             </button>
             <button class="btn btn-confirmar btn-lg px-4" *ngIf="editable" (click)="confirmar()">
                 <i class="fas fa-check me-2"></i>Confirmar

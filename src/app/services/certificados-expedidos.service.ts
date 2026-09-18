@@ -104,6 +104,27 @@ export class CertificadosExpedidosService {
       );
   }
 
+  /**
+   * Certificados que el acudiente puede ver: los que generó él y los que el
+   * jardín le compartió desde el portal institucional.
+   */
+  obtenerCompartidos(idEstudiante: string) {
+    return this.http
+      .get<HttpResponse<Object>>(`${this.servicio}/compartidos/${idEstudiante}`, {
+        observe: 'response',
+      })
+      .pipe(
+        tap((response: HttpResponse<Object>) => {
+          let respuesta: any = response.body;
+          if (respuesta.error) {
+            throw respuesta.error;
+          }
+          return response;
+        }),
+        catchError(this.handleError)
+      );
+  }
+
   /** Un certificado ya expedido, con su HTML, para volver a descargarlo. */
   obtenerById(id: string) {
     return this.http
@@ -129,6 +150,21 @@ export class CertificadosExpedidosService {
   expedir(datos: ExpedirCertificado) {
     const body = JSON.stringify(datos);
     return this.http.post<any>(this.servicio, body, httpOptions).pipe(
+      tap((respuesta: any) => {
+        if (respuesta.error) throw respuesta.error;
+        return respuesta;
+      }),
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Deja un certificado ya expedido disponible para el acudiente en su portal.
+   * Se usa con los certificados en modo manual, que solo genera el jardín.
+   */
+  compartir(id: string, compartido: number) {
+    const body = JSON.stringify({ id, compartido });
+    return this.http.put<any>(`${this.servicio}/compartir`, body, httpOptions).pipe(
       tap((respuesta: any) => {
         if (respuesta.error) throw respuesta.error;
         return respuesta;

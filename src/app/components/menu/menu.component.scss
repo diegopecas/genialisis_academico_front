@@ -1025,6 +1025,82 @@ $confetti-colors: #FF6B6B, #FFD93D, #6BCB77, #4D96FF, #FF6BD6, #FF8C42, #A66CFF,
   padding: 8px 12px 12px 12px;
 }
 
+// Aviso de que lo buscado es una opción de la ficha, no del menú
+.aviso-opcion-ficha {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  max-width: 900px;
+  margin: 0 auto 14px auto;
+  padding: 11px 15px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(255, 193, 7, 0.45);
+  font-size: 0.88rem;
+  color: rgba(0, 0, 0, 0.72);
+  line-height: 1.4;
+
+  .aviso-icono {
+    font-size: 1rem;
+    line-height: 1.3;
+  }
+
+  @media (max-width: 768px) {
+    font-size: 0.82rem;
+    padding: 10px 12px;
+  }
+}
+
+.persona-destino-bloque {
+  margin: 4px 0;
+}
+
+// Chevron para desplegar las opciones de la ficha del estudiante
+.destino-chevron {
+  margin-left: auto;
+  padding: 0 4px;
+  font-size: 0.85rem;
+  color: rgba(0, 0, 0, 0.45);
+  transition: transform 0.25s ease;
+
+  &.abierto {
+    transform: rotate(90deg);
+  }
+}
+
+// Opciones de la ficha, bajo el destino
+.destino-opciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  padding: 6px 6px 4px 14px;
+}
+
+.destino-opcion {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border: 1px solid rgba(255, 193, 7, 0.4);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  font-size: 0.72rem;
+  color: rgba(0, 0, 0, 0.75);
+  transition: $transition-base;
+
+  &:hover {
+    background: $white;
+    box-shadow: 0 3px 10px rgba(255, 193, 7, 0.28);
+  }
+}
+
+.destino-opcion-icono {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+}
+
 .persona-destino {
   display: flex;
   align-items: center;

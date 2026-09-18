@@ -345,11 +345,6 @@ export class CertificadosEstudianteComponent implements OnInit {
     return this.claveSeleccionada === 'constancia_anio_cursado';
   }
 
-  nombreDe(clave: string): string {
-    const certificado = this.certificados.find((c: any) => c.clave_certificado === clave);
-    return certificado ? certificado.nombre : clave;
-  }
-
   async generar(): Promise<void> {
     this.submitted = true;
 
@@ -488,6 +483,32 @@ export class CertificadosEstudianteComponent implements OnInit {
     }
 
     await this.exportarPdfService.generarPDF(contenidoHtml, nombre);
+  }
+
+  /**
+   * Deja el certificado disponible para el acudiente en su portal. Aplica sobre
+   * todo a los certificados en modo manual: el jardín igual se los hace llegar,
+   * y así también los tiene a la mano.
+   */
+  alternarCompartido(certificado: any): void {
+    const nuevoValor = Number(certificado.compartido) === 1 ? 0 : 1;
+
+    this.certificadosService.compartir(certificado.id, nuevoValor).subscribe({
+      next: () => {
+        certificado.compartido = nuevoValor;
+        Swal.fire(
+          nuevoValor === 1 ? 'Compartido' : 'Ya no se comparte',
+          nuevoValor === 1
+            ? 'El acudiente ya puede descargarlo desde el portal de padres.'
+            : 'El certificado dejó de estar disponible en el portal de padres.',
+          'success'
+        );
+      },
+      error: (error: any) => {
+        console.error('Error al compartir el certificado', error);
+        Swal.fire('Error', 'No se pudo cambiar el estado del certificado.', 'error');
+      }
+    });
   }
 
   private nombreArchivo(numero: string): string {

@@ -330,10 +330,26 @@
               <span class="fila-origen" *ngIf="certificado.origen === 'padres'">· portal de padres</span>
             </span>
           </div>
-          <button type="button" class="btn btn-descargar" (click)="descargar(certificado)">
-            <i class="fas" [ngClass]="formatoArchivo === 'word' ? 'fa-file-word' : 'fa-file-pdf'"></i>
-            <span class="texto-descargar">Descargar</span>
-          </button>
+          <div class="fila-acciones">
+            <button
+              type="button"
+              class="btn btn-compartir"
+              [class.activo]="certificado.compartido === 1"
+              (click)="alternarCompartido(certificado)"
+              [title]="certificado.compartido === 1
+                ? 'El acudiente lo ve en su portal. Clic para dejar de compartirlo.'
+                : 'Compartir con el acudiente en el portal de padres'">
+              <i class="fas" [ngClass]="certificado.compartido === 1 ? 'fa-eye' : 'fa-eye-slash'"></i>
+              <span class="texto-compartir">
+                {{ certificado.compartido === 1 ? 'Compartido' : 'Compartir' }}
+              </span>
+            </button>
+
+            <button type="button" class="btn btn-descargar" (click)="descargar(certificado)">
+              <i class="fas" [ngClass]="formatoArchivo === 'word' ? 'fa-file-word' : 'fa-file-pdf'"></i>
+              <span class="texto-descargar">Descargar</span>
+            </button>
+          </div>
         </div>
       </div>
 

@@ -66,16 +66,32 @@
       <div class="row" *ngIf="pideProductos">
         <div class="col-12 mb-3">
           <label class="form-label">Productos que se exigen al día</label>
+
+          <div class="filtros-productos">
+            <div class="campo-busqueda">
+              <i class="fas fa-magnifying-glass"></i>
+              <input
+                type="text"
+                class="form-control"
+                placeholder="Buscar producto..."
+                [(ngModel)]="busquedaProducto">
+            </div>
+            <label class="marcar-visibles" *ngIf="productosVisibles.length > 0">
+              <input type="checkbox" [checked]="todosVisiblesSeleccionados" (change)="alternarVisibles()">
+              <span>Marcar los visibles</span>
+            </label>
+          </div>
+
           <div class="lista-productos">
-            <label class="item-producto" *ngFor="let producto of productos">
+            <label class="item-producto" *ngFor="let producto of productosVisibles">
               <input
                 type="checkbox"
                 [checked]="estaProductoSeleccionado(producto.id)"
                 (change)="alternarProducto(producto.id)">
               <span>{{ producto.nombre }}</span>
             </label>
-            <p class="sin-productos" *ngIf="productos.length === 0">
-              No hay productos registrados.
+            <p class="sin-productos" *ngIf="productosVisibles.length === 0">
+              {{ busquedaProducto ? 'Ningún producto coincide con la búsqueda.' : 'No hay productos registrados.' }}
             </p>
           </div>
         </div>

@@ -8,16 +8,13 @@
         [iconoTitulo]="'/assets/images/informes-generacion.png'">
     </app-header>
 
-    <div class="container-informe">
+    <div class="contenedor">
 
         <!-- ================= FILTROS ================= -->
-        <div class="card-seccion">
-            <div class="card-seccion-header">
-                <h5><i class="fas fa-filter"></i> Grupo y corte</h5>
-            </div>
+        <div class="card-seccion filtros">
             <div class="card-seccion-body">
                 <div class="row align-items-end">
-                    <div class="col-md-5 mb-3">
+                    <div class="col-md-5 mb-2">
                         <label for="grupo" class="form-label">Grupo</label>
                         <select class="form-select" id="grupo" [(ngModel)]="idGrupo">
                             <option [ngValue]="null">Seleccione...</option>
@@ -25,7 +22,7 @@
                         </select>
                     </div>
 
-                    <div class="col-md-5 mb-3">
+                    <div class="col-md-5 mb-2">
                         <label for="corte" class="form-label">Corte académico</label>
                         <select class="form-select" id="corte" [(ngModel)]="idCorte">
                             <option [ngValue]="null">Seleccione...</option>
@@ -33,8 +30,8 @@
                         </select>
                     </div>
 
-                    <div class="col-md-2 mb-3">
-                        <button class="btn btn-corporate-primary w-100" (click)="consultar()">
+                    <div class="col-md-2 mb-2">
+                        <button class="btn btn-corporate-primary w-100" (click)="buscar()">
                             <i class="fas fa-search me-1"></i> Consultar
                         </button>
                     </div>
@@ -42,58 +39,211 @@
             </div>
         </div>
 
-        <!-- ================= CARGANDO ================= -->
         <div class="estado-carga" *ngIf="cargando">
             <div class="spinner"></div>
             <p>Procesando...</p>
         </div>
 
-        <!-- ================= SIN RESULTADOS ================= -->
         <div class="card-seccion" *ngIf="consultado && !cargando && estudiantes.length === 0">
             <div class="card-seccion-body text-center text-muted">
                 No hay estudiantes activos en ese grupo.
             </div>
         </div>
 
-        <!-- ================= LISTA ================= -->
-        <div class="card-seccion" *ngIf="!cargando && estudiantes.length > 0">
-            <div class="card-seccion-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-                <h5><i class="fas fa-users"></i> Estudiantes ({{ estudiantes.length }})</h5>
-                <button class="btn btn-corporate-primary btn-sm" (click)="generarTodos()">
-                    <i class="fas fa-bolt me-1"></i> Generar los que faltan
-                </button>
-            </div>
-            <div class="card-seccion-body">
+        <!-- ================= TRABAJO: LISTA + INFORME ================= -->
+        <div class="area-trabajo" *ngIf="!cargando && estudiantes.length > 0">
 
-                <div class="fila-estudiante" *ngFor="let est of estudiantes">
-                    <div class="est-nombre">
-                        <span class="nombre">{{ est.nombre_completo }}</span>
-                        <span class="badge-estado" [ngClass]="'estado-' + est.estado">
-                            {{ etiquetaEstado(est.estado) }}
-                        </span>
-                    </div>
-
-                    <div class="est-avance" *ngIf="est.estado !== 'sin_generar'">
-                        <div class="barra">
-                            <div class="barra-relleno" [style.width.%]="porcentaje(est)"></div>
-                        </div>
-                        <span class="avance-texto">
-                            {{ est.filas_calificadas }} / {{ est.filas_total }}
-                        </span>
-                    </div>
-
-                    <div class="est-acciones">
-                        <button class="btn-accion" *ngIf="est.estado === 'sin_generar'" (click)="generar(est)">
-                            <i class="fas fa-plus"></i> Generar
-                        </button>
-                        <button class="btn-accion primario" *ngIf="est.estado !== 'sin_generar'" (click)="calificar(est)">
-                            <i class="fas fa-pen"></i> Abrir
-                        </button>
-                    </div>
+            <!-- ---------- PANEL DE ESTUDIANTES ---------- -->
+            <aside class="panel-lista" [class.oculto-movil]="estudianteActivo">
+                <div class="panel-encabezado">
+                    <span class="panel-titulo">Estudiantes ({{ estudiantes.length }})</span>
+                    <button class="btn-mini" (click)="generarTodos()" title="Generar los que faltan">
+                        <i class="fas fa-bolt"></i>
+                    </button>
                 </div>
 
-            </div>
-        </div>
+                <div class="panel-cuerpo">
+                    <button *ngFor="let est of estudiantes"
+                            class="item-estudiante"
+                            [class.activo]="estudianteActivo?.id_estudiante === est.id_estudiante"
+                            (click)="abrirInforme(est)">
+                        <span class="item-nombre">{{ est.nombre_completo }}</span>
+                        <span class="item-meta">
+                            <span class="punto-estado" [ngClass]="'estado-' + est.estado"></span>
+                            <span class="item-estado">{{ etiquetaEstado(est.estado) }}</span>
+                            <span class="item-avance" *ngIf="est.estado !== 'sin_generar'">
+                                {{ est.filas_calificadas }}/{{ est.filas_total }}
+                            </span>
+                        </span>
+                        <span class="barra-mini" *ngIf="est.estado !== 'sin_generar'">
+                            <span class="barra-mini-relleno" [style.width.%]="porcentaje(est)"></span>
+                        </span>
+                    </button>
+                </div>
+            </aside>
 
+            <!-- ---------- INFORME ---------- -->
+            <main class="panel-informe">
+
+                <!-- Sin estudiante seleccionado -->
+                <div class="vacio" *ngIf="!estudianteActivo">
+                    <span class="vacio-ico">📝</span>
+                    <p>Selecciona un estudiante de la lista para calificar su informe.</p>
+                </div>
+
+                <div class="estado-carga" *ngIf="estudianteActivo && cargandoInforme">
+                    <div class="spinner"></div>
+                    <p>Cargando el informe...</p>
+                </div>
+
+                <ng-container *ngIf="estudianteActivo && !cargandoInforme && informe">
+
+                    <!-- Barra del estudiante -->
+                    <div class="barra-resumen">
+                        <button class="btn-cerrar-movil" (click)="cerrarInforme()">
+                            <i class="fas fa-arrow-left"></i> Lista
+                        </button>
+
+                        <div class="resumen-info">
+                            <span class="resumen-nombre">{{ informe.nombre_estudiante }}</span>
+                            <span class="resumen-grupo" *ngIf="informe.nombre_grupo">{{ informe.nombre_grupo }}</span>
+                        </div>
+
+                        <div class="resumen-estado">
+                            <span class="badge-estado" [ngClass]="'estado-' + informe.estado">
+                                {{ informe.estado === 'borrador' ? 'En borrador' : 'Confirmado' }}
+                            </span>
+                            <span class="resumen-avance">{{ filasCalificadas }} / {{ totalFilas }}</span>
+                            <span class="nav-estudiantes">
+                                <button class="btn-nav" [disabled]="!hayAnterior" (click)="anterior()" title="Anterior">
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <button class="btn-nav" [disabled]="!haySiguiente" (click)="siguiente()" title="Siguiente">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Secciones -->
+                    <div class="card-seccion" *ngFor="let sec of seccionesRaiz">
+                        <div class="card-seccion-header">
+                            <h5>
+                                <i class="fas fa-layer-group"></i>
+                                {{ sec.nombre }}
+                                <span class="tag-familia" *ngIf="sec.evalua_a === 'familia'">Evalúa a la familia</span>
+                                <span class="tag-info" *ngIf="!sec.se_califica">Informativa</span>
+                                <span class="tag-avance">
+                                    {{ avanceSeccion(sec).calificadas }} / {{ avanceSeccion(sec).total }}
+                                </span>
+                            </h5>
+
+                            <!-- Marcar toda la sección de una: ahorra clic por clic -->
+                            <div class="marcar-todas" *ngIf="editable && sec.se_califica">
+                                <span class="marcar-label">Marcar todas:</span>
+                                <button *ngFor="let v of valores"
+                                        class="chip-todas"
+                                        [style.borderColor]="v.color || '#d4af37'"
+                                        [style.color]="v.color || '#8B6914'"
+                                        (click)="marcarTodasSeccion(sec, v.id)">
+                                    {{ v.valor_cualitativo }}
+                                </button>
+                                <button class="chip-todas limpiar" (click)="limpiarSeccion(sec)">
+                                    Limpiar
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="card-seccion-body">
+
+                            <div class="tabla-filas" *ngIf="sec.filas?.length">
+                                <div class="fila" *ngFor="let f of sec.filas">
+                                    <span class="fila-texto">{{ f.texto_fila }}</span>
+                                    <div class="fila-valores" *ngIf="sec.se_califica">
+                                        <button *ngFor="let v of valores"
+                                                class="chip-valor"
+                                                [class.activo]="f.id_valor_parametro === v.id"
+                                                [style.borderColor]="f.id_valor_parametro === v.id ? (v.color || '#d4af37') : ''"
+                                                [style.backgroundColor]="f.id_valor_parametro === v.id ? (v.color || '#d4af37') : ''"
+                                                [disabled]="!editable"
+                                                (click)="marcar(f, v.id)">
+                                            {{ v.valor_cualitativo }}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Subsecciones (asignaturas dentro de la dimensión) -->
+                            <div class="subseccion" *ngFor="let sub of subsecciones(sec.id)">
+                                <h6 class="subseccion-titulo">{{ sub.nombre }}</h6>
+                                <div class="tabla-filas">
+                                    <div class="fila" *ngFor="let f of sub.filas">
+                                        <span class="fila-texto">{{ f.texto_fila }}</span>
+                                        <div class="fila-valores" *ngIf="sub.se_califica">
+                                            <button *ngFor="let v of valores"
+                                                    class="chip-valor"
+                                                    [class.activo]="f.id_valor_parametro === v.id"
+                                                    [style.borderColor]="f.id_valor_parametro === v.id ? (v.color || '#d4af37') : ''"
+                                                    [style.backgroundColor]="f.id_valor_parametro === v.id ? (v.color || '#d4af37') : ''"
+                                                    [disabled]="!editable"
+                                                    (click)="marcar(f, v.id)">
+                                                {{ v.valor_cualitativo }}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Texto descriptivo de la sección -->
+                            <div class="texto-seccion" *ngIf="sec.tipo_contenido === 'texto'">
+                                <label class="form-label">Observación de la sección</label>
+                                <textarea class="form-control" rows="3"
+                                          [(ngModel)]="sec.texto"
+                                          [disabled]="!editable"
+                                          placeholder="Escribe aquí el texto que va en el boletín..."></textarea>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- Cierre -->
+                    <div class="card-seccion">
+                        <div class="card-seccion-header">
+                            <h5><i class="fas fa-comment-dots"></i> Observaciones generales</h5>
+                        </div>
+                        <div class="card-seccion-body">
+                            <textarea class="form-control" rows="4"
+                                      [(ngModel)]="informe.texto_cierre"
+                                      [disabled]="!editable"
+                                      placeholder="Texto de cierre del informe..."></textarea>
+                            <div class="dato-ausencias" *ngIf="informe.ausencias !== null && informe.ausencias !== undefined">
+                                Ausencias registradas en el corte: <b>{{ informe.ausencias }}</b>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botones -->
+                    <div class="botones-accion">
+                        <button class="btn btn-corporate-primary px-4" *ngIf="editable" (click)="guardar()">
+                            <i class="fas fa-save me-2"></i>Guardar
+                        </button>
+                        <button class="btn btn-confirmar px-4" *ngIf="editable" (click)="confirmar()">
+                            <i class="fas fa-check me-2"></i>Confirmar
+                        </button>
+                        <button class="btn btn-regenerar px-4" *ngIf="editable" (click)="regenerar()">
+                            <i class="fas fa-rotate me-2"></i>Regenerar
+                        </button>
+                        <button class="btn btn-reabrir px-4" *ngIf="!editable" (click)="reabrir()">
+                            <i class="fas fa-lock-open me-2"></i>Reabrir
+                        </button>
+                        <button class="btn btn-siguiente px-4" *ngIf="haySiguiente" (click)="siguiente()">
+                            Siguiente estudiante <i class="fas fa-arrow-right ms-2"></i>
+                        </button>
+                    </div>
+
+                </ng-container>
+            </main>
+
+        </div>
     </div>
 </div>

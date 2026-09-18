@@ -121,6 +121,7 @@ export class CrearColaboradoresComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.aplicarSeccionDeLaUrl();
     this.cargarRolesSistema();
     if (this.modoEmbebido && this.idColaboradorInput) {
       this.accion = 'editar';
@@ -192,6 +193,22 @@ export class CrearColaboradoresComponent implements OnInit {
 
   establecerValoresPorDefecto() { this.model.activo = 1; this.colaboradorActivoSwitch = true; this.model.validaIngresoJornada = 1; this.model.validaIngresoDescanso = 0; }
   esDocente(): boolean { return this.model.rolCodigo === 'DOCENTE'; }
+
+  /**
+   * El buscador del menu enlaza directo a una seccion del editor con
+   * ?seccion=documentos. Sin esto la pantalla siempre abria en datos
+   * personales y el enlace no servia de nada.
+   */
+  private aplicarSeccionDeLaUrl(): void {
+    const seccion = this.route.snapshot.queryParamMap.get('seccion');
+
+    const validas = ['datos-personales', 'datos-colaborador', 'grupos', 'areas',
+                     'usuario', 'documentos', 'horarios'];
+
+    if (seccion && validas.indexOf(seccion) >= 0) {
+      this.seccionActiva = seccion as any;
+    }
+  }
 
   cambiarSeccion(seccion: 'datos-personales' | 'datos-colaborador' | 'grupos' | 'areas' | 'usuario' | 'documentos' | 'horarios') {
     this.seccionActiva = seccion; this.cerrarSidebar();

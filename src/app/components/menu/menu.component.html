@@ -137,6 +137,12 @@
       >⟳</button>
     </div>
 
+    <!-- Aviso: lo buscado es una opción de la ficha, no del menú -->
+    <div class="aviso-opcion-ficha" *ngIf="avisoOpcionDeFicha">
+      <span class="aviso-icono">💡</span>
+      <span>{{ avisoOpcionDeFicha }}</span>
+    </div>
+
     <!-- ====== RESULTADOS DE PERSONAS ====== -->
     <section class="personas-resultados" *ngIf="personasVisibles.length > 0">
       <div class="personas-header">
@@ -172,16 +178,30 @@
         </div>
 
         <!-- Con un solo destino el clic navega directo; con varios se escoge aquí -->
-        <div class="persona-destinos" *ngIf="persona.destinos.length > 1 && esPersonaExpandida(persona)">
-          <div
-            class="persona-destino"
-            *ngFor="let destino of persona.destinosMostrados"
-            [class.inactivo]="!destino.activo"
-            (click)="irADestino(destino)"
-          >
-            <span class="destino-tipo">{{ destino.etiqueta }}</span>
-            <span class="destino-detalle" *ngIf="destino.detalle">{{ destino.detalle }}</span>
-            <span class="destino-estado" *ngIf="!destino.activo">Inactivo</span>
+        <div class="persona-destinos" *ngIf="(persona.destinos.length > 1 && esPersonaExpandida(persona)) || personaTieneOpciones(persona)">
+          <div class="persona-destino-bloque" *ngFor="let destino of persona.destinosMostrados">
+            <div
+              class="persona-destino"
+              [class.inactivo]="!destino.activo"
+              (click)="irADestino(destino)"
+            >
+              <span class="destino-tipo">{{ destino.etiqueta }}</span>
+              <span class="destino-detalle" *ngIf="destino.detalle">{{ destino.detalle }}</span>
+              <span class="destino-estado" *ngIf="!destino.activo">Inactivo</span>
+            </div>
+
+            <!-- Opciones de la ficha, a la vista: es lo que se busca al encontrar a la persona -->
+            <div class="destino-opciones" *ngIf="destino.opciones.length > 0">
+              <button
+                type="button"
+                class="destino-opcion"
+                *ngFor="let opcion of destino.opciones"
+                (click)="irAOpcion($event, opcion)"
+              >
+                <img class="destino-opcion-icono" [src]="opcion.icono" [alt]="opcion.label" loading="lazy" decoding="async" />
+                <span [innerHTML]="resaltar(opcion.label)"></span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -190,7 +210,7 @@
     <!-- ====== FIN RESULTADOS DE PERSONAS ====== -->
 
     <!-- Mensaje sin resultados -->
-    <div class="menu-sin-resultados" *ngIf="enBusqueda && arbolVisible.length === 0 && personasVisibles.length === 0">
+    <div class="menu-sin-resultados" *ngIf="enBusqueda && arbolVisible.length === 0 && personasVisibles.length === 0 && !avisoOpcionDeFicha">
       No se encontraron opciones ni personas para "{{ terminoBusqueda }}"
     </div>
 

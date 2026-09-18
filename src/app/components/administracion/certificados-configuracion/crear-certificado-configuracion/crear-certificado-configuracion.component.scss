@@ -73,3 +73,48 @@ $light-gold: rgba(212, 175, 55, 0.1);
   font-size: 0.88rem;
   margin: 6px 0;
 }
+
+// Filtro de la lista de productos
+.filtros-productos {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.campo-busqueda {
+  position: relative;
+  flex: 1;
+  min-width: 180px;
+
+  i {
+    position: absolute;
+    left: 11px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #aaa;
+    font-size: 0.82rem;
+  }
+
+  input {
+    padding-left: 32px;
+    font-size: 0.88rem;
+  }
+}
+
+.marcar-visibles {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 0.87rem;
+  color: #555;
+  cursor: pointer;
+  white-space: nowrap;
+
+  input {
+    width: 17px;
+    height: 17px;
+  }
+}

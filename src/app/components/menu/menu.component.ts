@@ -9,6 +9,7 @@ import { PermisosService } from '../../services/permisos.service';
 import { AyudaModalService } from '../../services/ayuda-modal.service';
 import { AccesosRapidosService, AccesoRapido } from '../../services/accesos-rapidos.service';
 import { MenuArbolService, MenuNodo } from '../../services/menu-arbol.service';
+import { OpcionesEstudianteService, OpcionEstudiante } from '../../services/opciones-estudiante.service';
 import { DailyMessageComponent } from '../daily-message/daily-message.component';
 
 /**
@@ -21,6 +22,17 @@ interface PersonaDestino {
   detalle: string | null;
   ruta: string;
   activo: boolean;
+  // Opciones de la ficha a las que se puede entrar directo desde el buscador.
+  // Hoy solo el estudiante tiene catalogo propio; los demas van vacias.
+  opciones: OpcionDestino[];
+}
+
+/** Una opcion de la ficha, con la ruta ya resuelta para ese destino. */
+interface OpcionDestino {
+  id: string;
+  label: string;
+  icono: string;
+  ruta: string;
 }
 
 /**
@@ -108,6 +120,7 @@ export class MenuComponent implements OnInit {
     private router: Router,
     private institucionConfigService: InstitucionConfigService,
     private personasService: PersonasService,
+    private opcionesEstudianteService: OpcionesEstudianteService,
     public permisosService: PermisosService,
     private ayudaModalService: AyudaModalService,
     private accesosRapidosService: AccesosRapidosService,
@@ -430,6 +443,7 @@ export class MenuComponent implements OnInit {
         detalle: fila.detalle,
         ruta: this.rutaDeDestino(fila),
         activo: fila.activo === 1,
+        opciones: this.opcionesDeDestino(fila),
       });
     }
 
@@ -524,6 +538,171 @@ export class MenuComponent implements OnInit {
    * `estudiantes.acudientes.administrar`; quien no lo tenga se queda en el
    * listado de acudientes del estudiante, que sí puede ver.
    */
+  /**
+   * Opciones de la ficha a las que se puede entrar directo desde el buscador.
+   * Solo el estudiante tiene catalogo propio; para colaborador y acudiente se
+   * deja vacio y el destino sigue llevando a su pantalla, como siempre.
+   */
+  private opcionesDeDestino(fila: PersonaBuscador): OpcionDestino[] {
+    if (fila.tipo === 'estudiante') {
+      return this.opcionesEstudianteService
+        .getOpcionesNavegables()
+        .filter((opcion: OpcionEstudiante) =>
+          !opcion.permiso || this.permisosService.tienePermiso(opcion.permiso)
+        )
+        .map((opcion: OpcionEstudiante) => ({
+          id: opcion.id,
+          label: opcion.label,
+          icono: opcion.icono,
+          // Las rutas del catalogo terminan en "/" y esperan el id.
+          ruta: (opcion.ruta as string) + fila.id_destino,
+        }));
+    }
+
+    if (fila.tipo === 'colaborador') {
+      const opciones = this.opcionesEstudianteService
+        .getOpcionesColaboradorNavegables()
+        .filter((opcion: OpcionEstudiante) =>
+          !opcion.permiso || this.permisosService.tienePermiso(opcion.permiso)
+        )
+        .map((opcion: OpcionEstudiante) => ({
+          id: opcion.id,
+          label: opcion.label,
+          icono: opcion.icono,
+          ruta: (opcion.ruta as string) + fila.id_destino,
+        }));
+
+      // Las secciones del editor no son pantallas: van sobre la misma ruta
+      // con la seccion como parametro de consulta.
+      const secciones = this.opcionesEstudianteService
+        .getSeccionesColaborador()
+        .map((seccion: { id: string; label: string; icono: string }) => ({
+          id: 'seccion_' + seccion.id,
+          label: seccion.label,
+          icono: seccion.icono,
+          ruta: '/colaboradores/editar/' + fila.id_destino + '?seccion=' + seccion.id,
+        }));
+
+      return opciones.concat(secciones);
+    }
+
+    if (fila.tipo === 'acudiente') {
+      if (!this.permisosService.tienePermiso('estudiantes.acudientes.administrar') || !fila.id_secundario) {
+        return [];
+      }
+
+      return this.opcionesEstudianteService
+        .getSeccionesAcudiente()
+        .map((seccion: { id: string; label: string; icono: string }) => ({
+          id: 'seccion_' + seccion.id,
+          label: seccion.label,
+          icono: seccion.icono,
+          ruta: '/estudiantes/acudientes/editar/' + fila.id_destino + '/' + fila.id_secundario
+                + '?seccion=' + seccion.id,
+        }));
+    }
+
+    return [];
+  }
+
+  /**
+   * Opciones que coinciden con lo buscado y a quien pertenecen. Alimenta el
+   * aviso que explica que esas opciones viven dentro de cada persona y no en el
+   * menu, que es donde el usuario las busca primero.
+   */
+  get avisoOpcionDeFicha(): string {
+    const termino = this.normalizarTexto(this.terminoBusqueda);
+
+    if (termino.length < this.MIN_CARACTERES_PERSONAS) {
+      return '';
+    }
+
+    const coincide = (opcion: OpcionEstudiante) =>
+      (!opcion.permiso || this.permisosService.tienePermiso(opcion.permiso))
+      && this.normalizarTexto(opcion.label).includes(termino);
+
+    const deEstudiante = this.opcionesEstudianteService.getOpcionesNavegables().filter(coincide);
+    const deColaborador = this.opcionesEstudianteService.getOpcionesColaboradorNavegables().filter(coincide);
+
+    const seccionCoincide = (seccion: { label: string }) =>
+      this.normalizarTexto(seccion.label).includes(termino);
+
+    const seccionesColaborador = this.opcionesEstudianteService
+      .getSeccionesColaborador()
+      .filter(seccionCoincide);
+    const seccionesAcudiente = this.opcionesEstudianteService
+      .getSeccionesAcudiente()
+      .filter(seccionCoincide);
+
+    const etiquetas = new Set<string>();
+    deEstudiante.forEach(o => etiquetas.add(o.label));
+    deColaborador.forEach(o => etiquetas.add(o.label));
+    seccionesColaborador.forEach(o => etiquetas.add(o.label));
+    seccionesAcudiente.forEach(o => etiquetas.add(o.label));
+
+    if (etiquetas.size === 0) {
+      return '';
+    }
+
+    const tipos: number =
+      (deEstudiante.length > 0 ? 1 : 0) +
+      (deColaborador.length > 0 || seccionesColaborador.length > 0 ? 1 : 0) +
+      (seccionesAcudiente.length > 0 ? 1 : 0);
+
+    const lista = Array.from(etiquetas).join(', ');
+    const verbo = etiquetas.size === 1 ? 'se maneja' : 'se manejan';
+
+    // Cuando la opcion existe en varios tipos, enumerarlos alarga el mensaje
+    // sin aportar: basta con decir que va por la persona.
+    if (tipos > 1) {
+      return `${lista} ${verbo} desde cada persona. Busca su nombre y entra desde ahí.`;
+    }
+
+    const donde = deEstudiante.length > 0
+      ? 'estudiante'
+      : (seccionesAcudiente.length > 0 ? 'acudiente' : 'colaborador');
+
+    return `${lista} ${verbo} dentro de cada ${donde}. Busca su nombre y entra desde ahí.`;
+  }
+
+  /** True si alguno de los destinos tiene opciones de ficha para mostrar. */
+  personaTieneOpciones(persona: PersonaResultado): boolean {
+    return persona.destinos.some((destino: PersonaDestino) => destino.opciones.length > 0);
+  }
+
+  irAOpcion(evento: Event, opcion: OpcionDestino): void {
+    evento.stopPropagation();
+    this.limpiarBusqueda();
+
+    // Las secciones de los editores llevan la seccion como parametro de
+    // consulta; navigate() no lo interpreta si va dentro de la ruta.
+    const partes = opcion.ruta.split('?');
+
+    if (partes.length === 1) {
+      this.router.navigate([opcion.ruta]);
+      return;
+    }
+
+    const parametros: any = {};
+    partes[1].split('&').forEach((par: string) => {
+      const [clave, valor] = par.split('=');
+      if (clave) {
+        parametros[clave] = valor || '';
+      }
+    });
+
+    this.router.navigate([partes[0]], { queryParams: parametros });
+  }
+
+  /** Sin tildes ni mayusculas, para que "informacion" encuentre "Información". */
+  private normalizarTexto(texto: string): string {
+    return (texto || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .trim();
+  }
+
   private rutaDeDestino(fila: PersonaBuscador): string {
     switch (fila.tipo) {
       case 'estudiante':
