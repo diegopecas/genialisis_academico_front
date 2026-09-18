@@ -60,22 +60,16 @@
       <table class="tabla-pago">
         <thead>
           <tr>
-            <th>Fecha</th>
+            <th>Fecha de Concepto</th>
             <th>Concepto</th>
-            <th class="columna-derecha">Saldo Anterior</th>
             <th class="columna-derecha">Valor Aplicado</th>
-            <th class="columna-derecha">Saldo Actual</th>
           </tr>
         </thead>
         <tbody>
           <tr *ngFor="let cuenta of pago.cuentas_aplicadas">
             <td class="columna-fecha">{{formatearFechaCorta(cuenta.fecha_cuenta || cuenta.fecha)}}</td>
             <td>{{cuenta.nombre_producto_servicio}}</td>
-            <td class="columna-derecha">{{formatearMoneda(cuenta.saldo_antes_pago || 0)}}</td>
             <td class="columna-derecha valor-aplicado">{{formatearMoneda(cuenta.valor_aplicado)}}</td>
-            <td class="columna-derecha">
-              {{formatearMoneda(cuenta.saldo_actual_cuenta || 0)}}
-            </td>
           </tr>
         </tbody>
       </table>
