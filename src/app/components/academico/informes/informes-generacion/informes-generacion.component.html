@@ -48,6 +48,10 @@
                             (click)="cambiarVista('seccion')">
                         <i class="fas fa-table-cells"></i> Por sección
                     </button>
+                    <button class="btn-vista" [class.activo]="vista === 'descargas'"
+                            (click)="cambiarVista('descargas')">
+                        <i class="fas fa-file-pdf"></i> Descargas
+                    </button>
                 </div>
             </div>
         </div>
@@ -436,6 +440,49 @@
                     <i class="fas fa-save me-2"></i>Guardar todos
                 </button>
             </div>
+
+        </div>
+
+        <!-- ================= DESCARGAS ================= -->
+        <div class="area-descargas" *ngIf="!cargando && estudiantes.length > 0 && vista === 'descargas'">
+
+            <div class="card-seccion">
+                <div class="card-seccion-header">
+                    <h5><i class="fas fa-file-pdf"></i> Boletines del grupo</h5>
+                    <button class="btn btn-corporate-primary btn-sm"
+                            [disabled]="descargandoTodos"
+                            (click)="descargarTodos()">
+                        <i class="fas fa-download me-1"></i>
+                        {{ descargandoTodos ? 'Generando ' + progresoDescarga + '...' : 'Descargar todos' }}
+                    </button>
+                </div>
+
+                <div class="card-seccion-body">
+                    <div class="fila-descarga" *ngFor="let est of estudiantes">
+                        <span class="descarga-nombre">{{ est.nombre_completo }}</span>
+
+                        <span class="descarga-estado">
+                            <span class="punto-estado" [ngClass]="'estado-' + est.estado"></span>
+                            {{ etiquetaEstado(est.estado) }}
+                        </span>
+
+                        <span class="descarga-avance" *ngIf="est.estado !== 'sin_generar'">
+                            {{ est.filas_calificadas }} / {{ est.filas_total }}
+                        </span>
+
+                        <button class="btn-pdf"
+                                [disabled]="est.estado === 'sin_generar' || descargando || descargandoTodos"
+                                (click)="descargar(est)">
+                            <i class="fas fa-file-pdf"></i> Descargar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <p class="nota-descargas">
+                Los informes en borrador se descargan marcados como tal, para que no se
+                entreguen por equivocación.
+            </p>
 
         </div>
     </div>

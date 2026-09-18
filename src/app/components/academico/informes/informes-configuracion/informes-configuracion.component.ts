@@ -40,7 +40,11 @@ export class InformesConfiguracionComponent implements OnInit {
     pie_pagina: '',
     firma_uno: '',
     firma_dos: '',
-    firma_acudiente: 0
+    firma_acudiente: 0,
+    estilo_marca: 'columnas',
+    simbolo_marca: 'x',
+    color_principal: null,
+    mostrar_convencion: 1
   } as any;
 
   constructor(
@@ -96,7 +100,11 @@ export class InformesConfiguracionComponent implements OnInit {
       pie_pagina: this.model.pie_pagina || null,
       firma_uno: this.model.firma_uno || null,
       firma_dos: this.model.firma_dos || null,
-      firma_acudiente: this.model.firma_acudiente ? 1 : 0
+      firma_acudiente: this.model.firma_acudiente ? 1 : 0,
+      estilo_marca: this.model.estilo_marca || 'columnas',
+      simbolo_marca: this.model.simbolo_marca || 'x',
+      color_principal: this.model.color_principal || null,
+      mostrar_convencion: this.model.mostrar_convencion ? 1 : 0
     } as any;
 
     // Sin id todavía no existe la fila del jardín: se crea la primera vez

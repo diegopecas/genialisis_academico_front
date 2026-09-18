@@ -94,6 +94,66 @@
             </div>
         </div>
 
+        <!-- ================= FORMATO DEL BOLETÍN ================= -->
+        <div class="card-seccion">
+            <div class="card-seccion-header">
+                <h5><i class="fas fa-palette"></i> Formato del boletín</h5>
+            </div>
+            <div class="card-seccion-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="estiloMarca" class="form-label">¿Cómo se marca cada fila?</label>
+                        <select class="form-select" id="estiloMarca"
+                                [(ngModel)]="model.estilo_marca" [disabled]="!editable">
+                            <option value="columnas">Una columna por cada valor</option>
+                            <option value="columna_unica">Una sola columna con el valor</option>
+                        </select>
+                        <small class="form-text text-muted">
+                            Con columnas el boletín se parece a una rúbrica; con una sola es más compacto
+                        </small>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="simboloMarca" class="form-label">¿Qué se imprime en la marca?</label>
+                        <select class="form-select" id="simboloMarca"
+                                [(ngModel)]="model.simbolo_marca" [disabled]="!editable">
+                            <option value="x">Una X</option>
+                            <option value="punto">Un punto del color del valor</option>
+                            <option value="valor">El número del valor</option>
+                            <option value="texto">El nombre del valor</option>
+                        </select>
+                        <small class="form-text text-muted">
+                            El punto necesita que los valores tengan color asignado
+                        </small>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="colorPrincipal" class="form-label">Color del jardín</label>
+                        <input class="form-control" type="text" id="colorPrincipal"
+                               [(ngModel)]="model.color_principal"
+                               placeholder="Ej: #2E7D32"
+                               [disabled]="!editable">
+                        <small class="form-text text-muted">
+                            Se usa en las líneas y títulos del boletín. Vacío deja un gris neutro
+                        </small>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label d-block">Convención</label>
+                        <div class="form-check form-switch mt-2">
+                            <input class="form-check-input" type="checkbox" id="convencion"
+                                   [(ngModel)]="model.mostrar_convencion" [disabled]="!editable">
+                            <label class="form-check-label" for="convencion">
+                                Mostrar la leyenda de la escala
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- ================= FIRMAS ================= -->
         <div class="card-seccion">
             <div class="card-seccion-header">

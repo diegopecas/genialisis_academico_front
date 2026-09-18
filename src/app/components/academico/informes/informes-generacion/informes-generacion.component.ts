@@ -9,6 +9,7 @@ import { ValoresParametrosCalificacionesService } from '../../../../services/val
 import { GruposService } from '../../../../services/grupos.service';
 import { CortesAcademicosService } from '../../../../services/cortes-academicos.service';
 import { AuthService } from '../../../../services/auth.service';
+import { ExportarPdfInformeService } from '../../../../services/exportar-pdf-informe.service';
 import Swal from 'sweetalert2';
 
 /**
@@ -65,10 +66,18 @@ export class InformesGeneracionComponent implements OnInit {
   // Texto base para rellenar las observaciones de todo el grupo
   textoBase = '';
 
+  // Configuración del jardín: la necesita el PDF para el encabezado,
+  // el pie y las firmas.
+  configuracion: any = null;
+  private logoBase64 = '';
+  descargando = false;
+  descargandoTodos = false;
+  progresoDescarga = 0;
+
   // ===== Vista masiva =====
   // 'estudiante' califica un niño completo; 'seccion' califica una sección
   // para todo el grupo de una sentada.
-  vista: 'estudiante' | 'seccion' = 'estudiante';
+  vista: 'estudiante' | 'seccion' | 'descargas' = 'estudiante';
   seccionesGrupo: any[] = [];
   idSeccion: any = null;
   seccionActiva: any = null;
@@ -83,6 +92,7 @@ export class InformesGeneracionComponent implements OnInit {
     private gruposService: GruposService,
     private cortesAcademicosService: CortesAcademicosService,
     private authService: AuthService,
+    private exportarPdfInformeService: ExportarPdfInformeService,
     private route: ActivatedRoute,
     private router: Router
   ) { }
@@ -90,6 +100,11 @@ export class InformesGeneracionComponent implements OnInit {
   ngOnInit(): void {
     this.cargarCatalogos();
     this.cargarEscala();
+
+    // El logo se carga una sola vez: lo usan todos los PDF del grupo
+    this.exportarPdfInformeService.cargarLogoBase64().then(logo => {
+      this.logoBase64 = logo;
+    });
 
     // El grupo y el corte viajan en la URL para poder volver al filtro
     this.route.queryParams.subscribe(params => {
@@ -129,7 +144,8 @@ export class InformesGeneracionComponent implements OnInit {
     this.informesConfiguracionService.obtenerTodos().subscribe({
       next: (response: any) => {
         const body = (response.body as any[]) || [];
-        const idParametro = body.length > 0 ? body[0].id_parametro_evaluacion : null;
+        this.configuracion = body.length > 0 ? body[0] : null;
+        const idParametro = this.configuracion ? this.configuracion.id_parametro_evaluacion : null;
 
         if (!idParametro) {
           Swal.fire(
@@ -715,7 +731,7 @@ export class InformesGeneracionComponent implements OnInit {
   // VISTA MASIVA POR SECCIÓN
   // =================================================================
 
-  cambiarVista(vista: 'estudiante' | 'seccion') {
+  cambiarVista(vista: 'estudiante' | 'seccion' | 'descargas') {
     this.vista = vista;
     this.limpiarRespaldo();
 
@@ -906,6 +922,142 @@ export class InformesGeneracionComponent implements OnInit {
         Swal.fire('Error', mensaje, 'error');
       }
     });
+  }
+
+  // =================================================================
+  // DESCARGA DEL BOLETÍN
+  // =================================================================
+
+  /** Nombre del corte seleccionado, para el encabezado del PDF */
+  private get nombreCorte(): string {
+    const corte = this.cortes.find(c => c.id === this.idCorte);
+    return corte ? corte.nombre : '';
+  }
+
+  /**
+   * Arma el objeto que espera el servicio de PDF a partir del informe
+   * cargado y de la configuración del jardín.
+   */
+  private armarDatosPdf(informe: any, secciones: any[]): any {
+    return {
+      tituloInforme:   this.configuracion?.titulo_informe,
+      encabezado:      this.configuracion?.encabezado,
+      piePagina:       this.configuracion?.pie_pagina,
+      firmaUno:        this.configuracion?.firma_uno,
+      firmaDos:        this.configuracion?.firma_dos,
+      firmaAcudiente:  this.configuracion?.firma_acudiente == 1,
+      muestraAusencias: this.configuracion?.muestra_ausencias == 1,
+      logoBase64:      this.logoBase64,
+
+      // Formato configurable por jardín
+      estiloMarca:       this.configuracion?.estilo_marca || 'columnas',
+      simboloMarca:      this.configuracion?.simbolo_marca || 'x',
+      colorPrincipal:    this.configuracion?.color_principal || null,
+      mostrarConvencion: this.configuracion?.mostrar_convencion != 0,
+
+      nombreEstudiante: informe.nombre_estudiante,
+      nombreGrupo:      informe.nombre_grupo,
+      nombreCorte:      this.nombreCorte,
+      ausencias:        informe.ausencias,
+      textoCierre:      informe.texto_cierre,
+      estado:           informe.estado,
+
+      valores:   this.valores,
+      secciones: secciones
+    };
+  }
+
+  /** Descarga el boletín de un estudiante */
+  descargar(est: any) {
+    if (est.estado === 'sin_generar') {
+      Swal.fire('Sin informe', 'Este estudiante todavía no tiene informe generado.', 'info');
+      return;
+    }
+
+    this.descargando = true;
+
+    this.informesEstudiantesService.obtenerPorEstudianteCorte(est.id_estudiante, this.idCorte).subscribe({
+      next: (response: any) => {
+        const body: any = response.body;
+        this.descargando = false;
+
+        if (!body?.informe) {
+          Swal.fire('Sin informe', 'No se encontró el informe del estudiante.', 'info');
+          return;
+        }
+
+        this.exportarPdfInformeService.generarPDF(
+          this.armarDatosPdf(body.informe, body.secciones || [])
+        );
+      },
+      error: (error: any) => {
+        console.error("Error al descargar el informe", error);
+        this.descargando = false;
+        Swal.fire('Error', 'No se pudo generar el boletín', 'error');
+      }
+    });
+  }
+
+  /**
+   * Descarga los boletines de todo el grupo, uno por estudiante.
+   *
+   * Se piden en serie a propósito: bajar quince PDF de golpe satura el
+   * navegador y algunos se pierden.
+   */
+  async descargarTodos() {
+    const conInforme = this.estudiantes.filter(e => e.estado !== 'sin_generar');
+
+    if (conInforme.length === 0) {
+      Swal.fire('Sin informes', 'Ningún estudiante del grupo tiene informe generado.', 'info');
+      return;
+    }
+
+    const borradores = conInforme.filter(e => e.estado === 'borrador').length;
+    const aviso = borradores > 0
+      ? ` ${borradores} están en borrador y saldrán marcados como tal.`
+      : '';
+
+    const result = await Swal.fire({
+      title: '¿Descargar los boletines?',
+      text: `Se generarán ${conInforme.length} archivos PDF, uno por estudiante.${aviso}`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, descargar',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#d4af37',
+      reverseButtons: true
+    });
+
+    if (!result.isConfirmed) {
+      return;
+    }
+
+    this.descargandoTodos = true;
+    this.progresoDescarga = 0;
+
+    for (const est of conInforme) {
+      await new Promise<void>((resolve) => {
+        this.informesEstudiantesService.obtenerPorEstudianteCorte(est.id_estudiante, this.idCorte).subscribe({
+          next: (response: any) => {
+            const body: any = response.body;
+            if (body?.informe) {
+              this.exportarPdfInformeService.generarPDF(
+                this.armarDatosPdf(body.informe, body.secciones || [])
+              );
+            }
+            this.progresoDescarga++;
+            resolve();
+          },
+          error: () => {
+            this.progresoDescarga++;
+            resolve();
+          }
+        });
+      });
+    }
+
+    this.descargandoTodos = false;
+    Swal.fire('Listo', `Se generaron ${this.progresoDescarga} boletines.`, 'success');
   }
 
   volver() {

@@ -695,6 +695,7 @@ export class RegistroPagosRapidoComponent implements OnInit, OnDestroy {
 
     filasParaValidar.forEach((fila: FilaPago) => {
       const nombre = fila.estudiante.nombre_estudiante;
+      if (!fila.id_acudiente) errores.push(`${nombre}: Debe seleccionar quién realizó el pago`);
       if (!fila.id_tipo_pago) errores.push(`${nombre}: Debe seleccionar un tipo de pago`);
       if (!fila.fecha) errores.push(`${nombre}: Debe ingresar una fecha`);
       if (!fila.valor_recibido || fila.valor_recibido <= 0) errores.push(`${nombre}: El valor debe ser mayor a cero`);
