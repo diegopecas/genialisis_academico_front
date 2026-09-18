@@ -469,6 +469,9 @@ export class InformesGeneracionComponent implements OnInit {
     let calificadas = 0;
 
     const contar = (sec: any) => {
+      if (sec.se_califica != 1) {
+        return;
+      }
       (sec.filas || []).forEach((f: any) => {
         total++;
         if (f.id_valor_parametro) {
@@ -483,13 +486,21 @@ export class InformesGeneracionComponent implements OnInit {
     return { calificadas, total };
   }
 
+  /**
+   * Solo cuentan las secciones que se califican: las informativas listan
+   * sus filas pero no llevan marca, y contarlas dejaba el informe imposible
+   * de confirmar.
+   */
   get totalFilas(): number {
-    return this.secciones.reduce((acc, s) => acc + (s.filas?.length || 0), 0);
+    return this.secciones
+      .filter(s => s.se_califica == 1)
+      .reduce((acc, s) => acc + (s.filas?.length || 0), 0);
   }
 
   get filasCalificadas(): number {
-    return this.secciones.reduce(
-      (acc, s) => acc + (s.filas?.filter((f: any) => f.id_valor_parametro).length || 0), 0);
+    return this.secciones
+      .filter(s => s.se_califica == 1)
+      .reduce((acc, s) => acc + (s.filas?.filter((f: any) => f.id_valor_parametro).length || 0), 0);
   }
 
   /** Arma el cuerpo que espera el backend */

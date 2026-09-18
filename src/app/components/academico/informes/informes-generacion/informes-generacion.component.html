@@ -150,7 +150,7 @@
                                 {{ sec.nombre }}
                                 <span class="tag-familia" *ngIf="sec.evalua_a === 'familia'">Evalúa a la familia</span>
                                 <span class="tag-info" *ngIf="!sec.se_califica">Informativa</span>
-                                <span class="tag-avance">
+                                <span class="tag-avance" *ngIf="sec.se_califica == 1">
                                     {{ avanceSeccion(sec).calificadas }} / {{ avanceSeccion(sec).total }}
                                 </span>
                             </h5>
