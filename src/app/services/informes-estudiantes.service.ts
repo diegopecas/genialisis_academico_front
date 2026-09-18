@@ -115,6 +115,74 @@ export class InformesEstudiantesService {
     );
   }
 
+  /** Secciones configuradas que aplican al grado del grupo */
+  obtenerSeccionesPorGrupo(idGrupo: any): Observable<HttpResponse<Object>> {
+    return this.http
+      .get<HttpResponse<Object>>(`${this.servicio}/secciones-grupo/${idGrupo}`, {
+        observe: 'response',
+      })
+      .pipe(
+        tap((response: HttpResponse<Object>) => {
+          let respuesta: any = response.body;
+          if (respuesta && respuesta.error) {
+            throw respuesta.error;
+          }
+          return response;
+        }),
+        catchError(this.handleError)
+      );
+  }
+
+  /** Vista masiva: una sección para todo el grupo */
+  obtenerSeccionPorGrupo(idGrupo: any, idCorte: any, idSeccion: any): Observable<HttpResponse<Object>> {
+    return this.http
+      .get<HttpResponse<Object>>(`${this.servicio}/seccion-grupo/${idGrupo}/corte/${idCorte}/seccion/${idSeccion}`, {
+        observe: 'response',
+      })
+      .pipe(
+        tap((response: HttpResponse<Object>) => {
+          let respuesta: any = response.body;
+          if (respuesta && respuesta.error) {
+            throw respuesta.error;
+          }
+          return response;
+        }),
+        catchError(this.handleError)
+      );
+  }
+
+  /** Guarda de una todos los estudiantes de la vista masiva */
+  guardarMasivo(elemento: any): Observable<any> {
+    var body = JSON.stringify(elemento);
+    return this.http.put<any>(this.servicio + '/guardar-masivo', body, httpOptions).pipe(
+      tap((respuesta: any) => {
+        if (respuesta && respuesta.error) {
+          console.log(respuesta);
+          throw respuesta.error;
+        }
+        console.log(respuesta);
+        return respuesta;
+      }),
+      catchError(this.handleError)
+    );
+  }
+
+  /** Genera varios informes en una sola llamada */
+  generarMasivo(elemento: any): Observable<any> {
+    var body = JSON.stringify(elemento);
+    return this.http.post<any>(this.servicio + '/generar-masivo', body, httpOptions).pipe(
+      tap((respuesta: any) => {
+        if (respuesta && respuesta.error) {
+          console.log(respuesta);
+          throw respuesta.error;
+        }
+        console.log(respuesta);
+        return respuesta;
+      }),
+      catchError(this.handleError)
+    );
+  }
+
   private handleError(error: HttpErrorResponse) {
     return throwError(() => error);
   }

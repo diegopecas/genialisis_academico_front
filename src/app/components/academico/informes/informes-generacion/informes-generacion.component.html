@@ -36,6 +36,19 @@
                         </button>
                     </div>
                 </div>
+
+                <!-- Dos formas de calificar lo mismo: un niño completo, o
+                     una sección para todo el grupo -->
+                <div class="selector-vista" *ngIf="estudiantes.length > 0">
+                    <button class="btn-vista" [class.activo]="vista === 'estudiante'"
+                            (click)="cambiarVista('estudiante')">
+                        <i class="fas fa-user"></i> Por estudiante
+                    </button>
+                    <button class="btn-vista" [class.activo]="vista === 'seccion'"
+                            (click)="cambiarVista('seccion')">
+                        <i class="fas fa-table-cells"></i> Por sección
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -51,7 +64,7 @@
         </div>
 
         <!-- ================= TRABAJO: LISTA + INFORME ================= -->
-        <div class="area-trabajo" *ngIf="!cargando && estudiantes.length > 0">
+        <div class="area-trabajo" *ngIf="!cargando && estudiantes.length > 0 && vista === 'estudiante'">
 
             <!-- ---------- PANEL DE ESTUDIANTES ---------- -->
             <aside class="panel-lista" [class.oculto-movil]="estudianteActivo">
@@ -243,6 +256,139 @@
 
                 </ng-container>
             </main>
+
+        </div>
+
+        <!-- ================= VISTA MASIVA POR SECCIÓN ================= -->
+        <div class="area-masiva" *ngIf="!cargando && estudiantes.length > 0 && vista === 'seccion'">
+
+            <div class="card-seccion">
+                <div class="card-seccion-body">
+                    <div class="row align-items-end">
+                        <div class="col-md-9 mb-2">
+                            <label for="seccion" class="form-label">Sección del informe</label>
+                            <select class="form-select" id="seccion"
+                                    [(ngModel)]="idSeccion" (ngModelChange)="cargarSeccionMasiva()">
+                                <option [ngValue]="null">Seleccione una sección...</option>
+                                <option *ngFor="let sec of seccionesGrupo" [ngValue]="sec.id">
+                                    {{ nombreSeccion(sec) }}
+                                </option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-2" *ngIf="seccionActiva">
+                            <button class="btn btn-corporate-primary w-100" (click)="guardarMasivo()">
+                                <i class="fas fa-save me-1"></i> Guardar todos
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="estado-carga" *ngIf="cargandoMasivo">
+                <div class="spinner"></div>
+                <p>Cargando la sección...</p>
+            </div>
+
+            <!-- ---------- SECCIÓN DE ESCALA: tabla ---------- -->
+            <div class="card-seccion" *ngIf="!cargandoMasivo && seccionActiva && seccionActiva.se_califica == 1 && columnas.length > 0">
+                <div class="card-seccion-header">
+                    <h5>
+                        <i class="fas fa-table-cells"></i>
+                        {{ seccionActiva.nombre }}
+                        <span class="tag-familia" *ngIf="seccionActiva.evalua_a === 'familia'">Evalúa a la familia</span>
+                    </h5>
+                    <div class="marcar-todas">
+                        <span class="marcar-label">Toda la tabla:</span>
+                        <button *ngFor="let v of valores"
+                                class="chip-todas"
+                                [style.borderColor]="v.color || '#d4af37'"
+                                [style.color]="v.color || '#8B6914'"
+                                (click)="marcarTodoMasivo(v.id)">
+                            {{ v.valor_cualitativo }}
+                        </button>
+                    </div>
+                </div>
+
+                <div class="tabla-masiva-scroll">
+                    <table class="tabla-masiva">
+                        <thead>
+                            <tr>
+                                <th class="col-estudiante">Estudiante</th>
+                                <th *ngFor="let col of columnas">
+                                    <span class="th-texto">{{ col.texto_fila }}</span>
+                                    <span class="th-acciones">
+                                        <button *ngFor="let v of valores"
+                                                class="punto-valor"
+                                                [style.backgroundColor]="v.color || '#d4af37'"
+                                                [title]="'Marcar toda la columna: ' + v.valor_cualitativo"
+                                                (click)="marcarColumna(col, v.id)"></button>
+                                    </span>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let est of estudiantesMasivo"
+                                [class.fila-bloqueada]="!editableMasivo(est)">
+                                <td class="col-estudiante">
+                                    <span class="td-nombre">{{ est.nombre_completo }}</span>
+                                    <span class="td-estado" *ngIf="est.estado !== 'borrador'">
+                                        {{ etiquetaEstado(est.estado) }}
+                                    </span>
+                                </td>
+                                <td *ngFor="let col of columnas">
+                                    <div class="celda-valores" *ngIf="filaDe(est, col)">
+                                        <button *ngFor="let v of valores"
+                                                class="chip-celda"
+                                                [class.activo]="filaDe(est, col).id_valor_parametro === v.id"
+                                                [style.borderColor]="filaDe(est, col).id_valor_parametro === v.id ? (v.color || '#d4af37') : ''"
+                                                [style.backgroundColor]="filaDe(est, col).id_valor_parametro === v.id ? (v.color || '#d4af37') : ''"
+                                                [disabled]="!editableMasivo(est)"
+                                                [title]="v.valor_cualitativo"
+                                                (click)="marcarMasivo(est, col, v.id)">
+                                            {{ v.valor_cualitativo.charAt(0) }}
+                                        </button>
+                                    </div>
+                                    <span class="sin-fila" *ngIf="!filaDe(est, col)">—</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ---------- SECCIÓN DE TEXTO: observaciones del grupo ---------- -->
+            <div class="card-seccion" *ngIf="!cargandoMasivo && seccionActiva && seccionActiva.tipo_contenido === 'texto'">
+                <div class="card-seccion-header">
+                    <h5><i class="fas fa-comment-dots"></i> {{ seccionActiva.nombre }}</h5>
+                </div>
+                <div class="card-seccion-body">
+                    <div class="texto-estudiante" *ngFor="let est of estudiantesMasivo">
+                        <label class="form-label">
+                            {{ est.nombre_completo }}
+                            <span class="td-estado" *ngIf="est.estado !== 'borrador'">
+                                {{ etiquetaEstado(est.estado) }}
+                            </span>
+                        </label>
+                        <textarea class="form-control" rows="3"
+                                  [(ngModel)]="est.texto"
+                                  [disabled]="!editableMasivo(est)"
+                                  placeholder="Escribe aquí la observación..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ---------- SIN FILAS ---------- -->
+            <div class="card-seccion" *ngIf="!cargandoMasivo && seccionActiva && seccionActiva.se_califica == 1 && columnas.length === 0">
+                <div class="card-seccion-body text-center text-muted">
+                    Esta sección no tiene filas para este corte. Genera los informes primero.
+                </div>
+            </div>
+
+            <div class="botones-accion" *ngIf="seccionActiva">
+                <button class="btn btn-corporate-primary px-4" (click)="guardarMasivo()">
+                    <i class="fas fa-save me-2"></i>Guardar todos
+                </button>
+            </div>
 
         </div>
     </div>

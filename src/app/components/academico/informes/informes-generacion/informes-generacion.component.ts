@@ -50,6 +50,17 @@ export class InformesGeneracionComponent implements OnInit {
   secciones: any[] = [];
   cargandoInforme = false;
 
+  // ===== Vista masiva =====
+  // 'estudiante' califica un niño completo; 'seccion' califica una sección
+  // para todo el grupo de una sentada.
+  vista: 'estudiante' | 'seccion' = 'estudiante';
+  seccionesGrupo: any[] = [];
+  idSeccion: any = null;
+  seccionActiva: any = null;
+  columnas: any[] = [];
+  estudiantesMasivo: any[] = [];
+  cargandoMasivo = false;
+
   constructor(
     private informesEstudiantesService: InformesEstudiantesService,
     private informesConfiguracionService: InformesConfiguracionService,
@@ -159,6 +170,7 @@ export class InformesGeneracionComponent implements OnInit {
         this.estudiantes = (response.body as any[]) || [];
         this.cargando = false;
         this.consultado = true;
+        this.cargarSeccionesGrupo();
       },
       error: (error: any) => {
         console.error("Error al consultar el estado de los informes", error);
@@ -262,28 +274,24 @@ export class InformesGeneracionComponent implements OnInit {
 
     const usuario = this.authService.getUsuarioActual();
     this.cargando = true;
-    let procesados = 0;
 
-    for (const est of pendientes) {
-      try {
-        await new Promise<void>((resolve) => {
-          this.informesEstudiantesService.generar({
-            id_estudiante: est.id_estudiante,
-            id_corte_academico: this.idCorte,
-            id_usuario: usuario?.id || null
-          }).subscribe({
-            next: () => { procesados++; resolve(); },
-            error: () => resolve()
-          });
-        });
-      } catch (e) {
-        console.error("Error al generar informe", e);
+    // Una sola llamada con el arreglo, no una peticion por estudiante
+    this.informesEstudiantesService.generarMasivo({
+      estudiantes: pendientes.map(e => e.id_estudiante),
+      id_corte_academico: this.idCorte,
+      id_usuario: usuario?.id || null
+    }).subscribe({
+      next: (respuesta: any) => {
+        this.cargando = false;
+        Swal.fire('Listo', `Se procesaron ${respuesta?.procesados || 0} informes.`, 'success');
+        this.consultar();
+      },
+      error: (error: any) => {
+        console.error("Error al generar los informes", error);
+        this.cargando = false;
+        Swal.fire('Error', 'No se pudieron generar los informes', 'error');
       }
-    }
-
-    this.cargando = false;
-    Swal.fire('Listo', `Se procesaron ${procesados} informes.`, 'success');
-    this.consultar();
+    });
   }
 
   // =================================================================
@@ -609,6 +617,144 @@ export class InformesGeneracionComponent implements OnInit {
       error: (error: any) => {
         console.error("Error al regenerar el informe", error);
         Swal.fire('Error', 'No se pudo regenerar el informe', 'error');
+      }
+    });
+  }
+
+  // =================================================================
+  // VISTA MASIVA POR SECCIÓN
+  // =================================================================
+
+  cambiarVista(vista: 'estudiante' | 'seccion') {
+    this.vista = vista;
+
+    if (vista === 'seccion') {
+      this.cerrarInforme();
+      if (this.seccionesGrupo.length === 0 && this.idGrupo) {
+        this.cargarSeccionesGrupo();
+      }
+    }
+  }
+
+  cargarSeccionesGrupo() {
+    this.informesEstudiantesService.obtenerSeccionesPorGrupo(this.idGrupo).subscribe({
+      next: (response: any) => {
+        this.seccionesGrupo = (response.body as any[]) || [];
+      },
+      error: (error: any) => console.error("Error al cargar las secciones del grupo", error)
+    });
+  }
+
+  /** Nombre con la dimensión adelante, para distinguir las asignaturas */
+  nombreSeccion(sec: any): string {
+    return sec.nombre_seccion_padre
+      ? `${sec.nombre_seccion_padre} · ${sec.nombre}`
+      : sec.nombre;
+  }
+
+  cargarSeccionMasiva() {
+    if (!this.idGrupo || !this.idCorte || !this.idSeccion) {
+      return;
+    }
+
+    this.cargandoMasivo = true;
+    this.informesEstudiantesService
+      .obtenerSeccionPorGrupo(this.idGrupo, this.idCorte, this.idSeccion)
+      .subscribe({
+        next: (response: any) => {
+          const body: any = response.body;
+          this.seccionActiva = body?.seccion || null;
+          this.columnas = body?.columnas || [];
+          this.estudiantesMasivo = body?.estudiantes || [];
+          this.cargandoMasivo = false;
+        },
+        error: (error: any) => {
+          console.error("Error al cargar la sección", error);
+          this.cargandoMasivo = false;
+          Swal.fire('Error', 'No se pudo cargar la sección', 'error');
+        }
+      });
+  }
+
+  /** La fila del estudiante que corresponde a esa columna */
+  filaDe(est: any, columna: any): any {
+    return (est.filas || []).find((f: any) => f.id_fila === columna.id_fila);
+  }
+
+  editableMasivo(est: any): boolean {
+    return est.estado === 'borrador';
+  }
+
+  marcarMasivo(est: any, columna: any, idValor: any) {
+    if (!this.editableMasivo(est)) {
+      return;
+    }
+    const fila = this.filaDe(est, columna);
+    if (fila) {
+      fila.id_valor_parametro = fila.id_valor_parametro === idValor ? null : idValor;
+    }
+  }
+
+  /** Mismo valor en esa columna para todo el grupo */
+  marcarColumna(columna: any, idValor: any) {
+    this.estudiantesMasivo.forEach(est => {
+      if (!this.editableMasivo(est)) {
+        return;
+      }
+      const fila = this.filaDe(est, columna);
+      if (fila) {
+        fila.id_valor_parametro = idValor;
+      }
+    });
+  }
+
+  /** Mismo valor en toda la tabla */
+  marcarTodoMasivo(idValor: any) {
+    this.estudiantesMasivo.forEach(est => {
+      if (!this.editableMasivo(est)) {
+        return;
+      }
+      (est.filas || []).forEach((f: any) => {
+        f.id_valor_parametro = idValor;
+      });
+    });
+  }
+
+  guardarMasivo() {
+    if (!this.idSeccion) {
+      return;
+    }
+
+    // Se manda el arreglo completo en una sola peticion
+    const payload = {
+      id_seccion: this.idSeccion,
+      estudiantes: this.estudiantesMasivo
+        .filter(e => e.id_informe)
+        .map(e => ({
+          id_informe: e.id_informe,
+          filas: (e.filas || []).map((f: any) => ({
+            id: f.id,
+            id_valor_parametro: f.id_valor_parametro || null
+          })),
+          texto: e.texto ?? null
+        }))
+    };
+
+    this.informesEstudiantesService.guardarMasivo(payload).subscribe({
+      next: (respuesta: any) => {
+        const omitidos = respuesta?.omitidos || 0;
+        Swal.fire(
+          'Guardado',
+          omitidos > 0
+            ? `Se guardaron ${respuesta.guardados} informes. ${omitidos} se omitieron por estar confirmados o sin generar.`
+            : `Se guardaron ${respuesta.guardados} informes.`,
+          'success'
+        );
+      },
+      error: (error: any) => {
+        console.error("Error al guardar la sección", error);
+        const mensaje = error?.error?.error || 'No se pudo guardar';
+        Swal.fire('Error', mensaje, 'error');
       }
     });
   }
