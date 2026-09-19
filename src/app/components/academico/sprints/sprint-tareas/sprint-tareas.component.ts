@@ -3,13 +3,15 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import Swal from 'sweetalert2';
-import { forkJoin, firstValueFrom } from 'rxjs';
+import { forkJoin, firstValueFrom, Observable } from 'rxjs';
 import { TablasComponent } from '../../../../common/tablas/tablas.component';
 import { SprintsService } from '../../../../services/sprints.service';
 import { TareasXSprintsService } from '../../../../services/tareas-x-sprints.service';
 import { EstadosTareasService } from '../../../../services/estados-tareas.service';
 import { HorariosService } from '../../../../services/horarios.service';
 import { ActividadesAcademicasService } from '../../../../services/actividades-academicas.service';
+import { CursosExtraService } from '../../../../services/cursos-extra.service';
+import { HorariosCursosExtraService } from '../../../../services/horarios-cursos-extra.service';
 
 @Component({
   selector: 'app-sprint-tareas',
@@ -67,6 +69,18 @@ export class SprintTareasComponent implements OnInit, OnChanges {
   public filtroAreaModal = '';
   public filtroEsferaModal = '';
 
+  /* Origen de las actividades del modal: un grupo del jardin o un curso
+     extracurricular. El curso hace las veces de grupo (es el conjunto de ninos)
+     y su area academica es la materia de la que salen las actividades. */
+  public origenModal: 'grupo' | 'curso' = 'grupo';
+  public filtroCursoModal = '';
+  public cursosExtra: any[] = [];
+
+  /* Los cursos y sus horarios se traen una sola vez: los modales se abren y
+     cierran varias veces por sesion y el dato no cambia entre una y otra. */
+  private cursosExtraCargados = false;
+  private horariosCursosCargados = false;
+
   // Modal de horarios
   public mostrarModalHorarios = false;
   public areasSeleccionadasFiltroHorarios: { [key: string]: boolean } = {};
@@ -100,7 +114,9 @@ export class SprintTareasComponent implements OnInit, OnChanges {
     private tareasXSprintsService: TareasXSprintsService,
     private estadosTareasService: EstadosTareasService,
     private horariosService: HorariosService,
-    private actividadesAcademicasService: ActividadesAcademicasService
+    private actividadesAcademicasService: ActividadesAcademicasService,
+    private cursosExtraService: CursosExtraService,
+    private horariosCursosExtraService: HorariosCursosExtraService
   ) { }
 
   ngOnInit(): void {
@@ -519,14 +535,73 @@ export class SprintTareasComponent implements OnInit, OnChanges {
     this.filtroGrupoModal = this.filtroGrupo;
     this.filtroAreaModal = this.filtroArea;
     this.filtroEsferaModal = '';
+    this.origenModal = 'grupo';
+    this.filtroCursoModal = '';
 
-    if (this.filtroGrupoModal && this.filtroAreaModal) {
+    this.cargarCursosExtra();
+
+    if (this.modalListo) {
       this.cargarActividadesDisponibles();
     } else {
       this.actividadesDisponibles = [];
     }
 
     this.mostrarModalActividades = true;
+  }
+
+  /* Solo los cursos que tienen area academica: sin area no hay logros ni
+     actividades que asociar. */
+  cargarCursosExtra() {
+    if (this.cursosExtraCargados) {
+      return;
+    }
+
+    this.cursosExtraService.obtenerActivos().subscribe({
+      next: (response: any) => {
+        const body = response.body || [];
+        this.cursosExtra = body.filter((c: any) => !!c.id_area_academica);
+        this.cursosExtraCargados = true;
+      },
+      error: (error: any) => {
+        console.error('Error al cargar cursos extracurriculares:', error);
+      }
+    });
+  }
+
+  /* El modal esta listo cuando hay area y, segun el origen, grupo o curso. */
+  get modalListo(): boolean {
+    if (!this.filtroAreaModal) {
+      return false;
+    }
+    return this.origenModal === 'curso' ? !!this.filtroCursoModal : !!this.filtroGrupoModal;
+  }
+
+  /* Al cambiar de origen se limpia lo del otro para no mezclar seleccion. */
+  onOrigenModalChange() {
+    this.filtroGrupoModal = '';
+    this.filtroCursoModal = '';
+    this.filtroAreaModal = '';
+    this.filtroEsferaModal = '';
+    this.actividadesSeleccionadas = [];
+    this.actividadesBusqueda = '';
+    this.actividadesDisponibles = [];
+  }
+
+  /* El area no se elige: viene del curso, que es quien tiene la malla. */
+  onCursoModalChange() {
+    const curso = this.cursosExtra.find((c: any) => c.id == this.filtroCursoModal);
+    this.filtroAreaModal = curso ? curso.id_area_academica : '';
+    this.onGrupoAreaModalChange();
+  }
+
+  getNombreCursoSeleccionado(): string {
+    const curso = this.cursosExtra.find((c: any) => c.id == this.filtroCursoModal);
+    return curso ? curso.nombre : '';
+  }
+
+  getNombreAreaSeleccionada(): string {
+    const area = this.areas.find((a: any) => a.id == this.filtroAreaModal);
+    return area ? area.nombre : '';
   }
 
   cerrarModalActividades() {
@@ -544,7 +619,7 @@ export class SprintTareasComponent implements OnInit, OnChanges {
     this.filtroEsferaModal = '';
     this.actividadesBusqueda = '';
 
-    if (this.filtroGrupoModal && this.filtroAreaModal) {
+    if (this.modalListo) {
       this.cargarActividadesDisponibles();
     } else {
       this.actividadesDisponibles = [];
@@ -552,11 +627,18 @@ export class SprintTareasComponent implements OnInit, OnChanges {
   }
 
   cargarActividadesDisponibles() {
-    const params: any = {
-      id_corte: this.idCorteAcademico
-    };
+    const params: any = {};
 
-    if (this.filtroGrupoModal) {
+    // El corte solo aplica a la malla regular. En un curso extracurricular las
+    // actividades son del curso completo y el docente arma la clase con la que
+    // necesite, sin importar el periodo.
+    if (this.origenModal === 'grupo') {
+      params.id_corte = this.idCorteAcademico;
+    }
+
+    // Con origen curso no se filtra por grupo: los logros del curso no tienen
+    // grado, asi que el filtro por grupo los dejaria por fuera.
+    if (this.origenModal === 'grupo' && this.filtroGrupoModal) {
       params.id_grupo = this.filtroGrupoModal;
     }
 
@@ -791,11 +873,13 @@ export class SprintTareasComponent implements OnInit, OnChanges {
     });
 
     const observables = actividadesValidas.map(actividad => {
+      // Los ids son UUID: no se convierten a numero.
       const body = {
         id_sprint: this.idSprint,
         id_actividad_academica: actividad.id,
-        id_grupo: parseInt(this.filtroGrupoModal),
-        id_area_academica: parseInt(this.filtroAreaModal),
+        id_grupo: this.origenModal === 'curso' ? null : this.filtroGrupoModal,
+        id_area_academica: this.filtroAreaModal,
+        id_curso_extra: this.origenModal === 'curso' ? this.filtroCursoModal : null,
         id_estado_tarea: 1,
         id_docente: null,
         fecha_ejecucion: null,
@@ -857,6 +941,11 @@ export class SprintTareasComponent implements OnInit, OnChanges {
   // Modal de horarios
   // =========================================================
   abrirModalHorarios() {
+    // Los cursos extracurriculares se cargan aquí porque el modal puede abrirse
+    // sin haber pasado antes por el de asociar actividades.
+    this.cargarCursosExtra();
+    this.cargarHorariosCursosExtra();
+
     // Calcular horas dinámicamente antes de abrir el modal
     this.calcularHorasDelDia();
 
@@ -879,6 +968,68 @@ export class SprintTareasComponent implements OnInit, OnChanges {
     }
 
     this.mostrarModalHorarios = true;
+  }
+
+  /**
+   * Trae los horarios de cada curso extracurricular y los deja con la misma
+   * forma que los de los grupos, usando id_grupo = id del curso.
+   *
+   * Asi toda la logica de la grilla (getHorarioInfo, calcularHorasDelDia,
+   * obtenerDiasGrupo) funciona igual sin tener que duplicarla.
+   */
+  cargarHorariosCursosExtra() {
+    if (this.horariosCursosCargados) {
+      return;
+    }
+
+    this.cursosExtraService.obtenerActivos().subscribe({
+      next: (response: any) => {
+        const cursos = (response.body || []).filter((c: any) => !!c.id_area_academica);
+
+        if (cursos.length === 0) {
+          return;
+        }
+
+        // El tipo va suelto a proposito: forkJoin sobre un arreglo construido con
+        // map infiere unknown y no concilia con any[] al tipar el parametro.
+        const peticiones: Observable<any>[] = cursos.map((curso: any) =>
+          this.horariosCursosExtraService.obtenerByCurso(curso.id)
+        );
+
+        forkJoin(peticiones).subscribe({
+          next: (respuestas: any) => {
+            // Se quitan primero los del curso para no duplicar si se reabre el modal.
+            this.horariosData = this.horariosData.filter((h: any) => !h.es_curso_extra);
+
+            respuestas.forEach((resp: any, i: number) => {
+              const curso = cursos[i];
+              const horarios = resp.body || [];
+
+              horarios.forEach((h: any) => {
+                this.horariosData.push({
+                  ...h,
+                  id_grupo: curso.id,
+                  id_area_academica: curso.id_area_academica,
+                  nombre_area: curso.nombre_area_academica,
+                  nombre_grupo: curso.nombre,
+                  es_curso_extra: true
+                });
+              });
+            });
+
+            this.horariosCursosCargados = true;
+            this.calcularHorasDelDia();
+            cursos.forEach((curso: any) => this.inicializarFiltroAreasHorarios(curso.id));
+          },
+          error: (error: any) => {
+            console.error('Error al cargar horarios de cursos extracurriculares:', error);
+          }
+        });
+      },
+      error: (error: any) => {
+        console.error('Error al cargar cursos extracurriculares:', error);
+      }
+    });
   }
 
   cerrarModalHorarios() {
@@ -1104,8 +1255,21 @@ export class SprintTareasComponent implements OnInit, OnChanges {
 
   get grupoHorarioSeleccionado(): any {
     if (this.grupoHorarioActivo) {
-      return this.grupos.find(g => g.id == this.grupoHorarioActivo);
+      const grupo = this.grupos.find(g => g.id == this.grupoHorarioActivo);
+      if (grupo) {
+        return grupo;
+      }
+      // Si no es un grupo, se busca entre los cursos extracurriculares.
+      const curso = this.cursosExtra.find(c => c.id == this.grupoHorarioActivo);
+      return curso ? { ...curso, es_curso_extra: true } : null;
     }
     return this.grupos.length > 0 ? this.grupos[0] : null;
+  }
+
+  /** Solo los cursos que ya tienen horarios cargados en la grilla. */
+  get cursosExtraConHorario(): any[] {
+    return this.cursosExtra.filter((curso: any) =>
+      this.horariosData.some((h: any) => h.es_curso_extra && h.id_grupo == curso.id)
+    );
   }
 }

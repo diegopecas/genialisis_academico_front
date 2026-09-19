@@ -170,6 +170,7 @@ $light-gold: rgba(212, 175, 55, 0.1);
 
 .modal-content-custom {
   background: #fff;
+  width: 100%;
   border-radius: 14px;
   width: 100%;
   max-width: 700px;
@@ -609,6 +610,160 @@ $light-gold: rgba(212, 175, 55, 0.1);
 // =============================================
 // Responsive
 // =============================================
+
+// ============================================
+// Modal de asociar actividades: origen y área
+// ============================================
+
+// Selector de origen: grupo del jardín o curso extracurricular
+.origen-selector {
+  display: flex;
+  gap: 8px;
+  padding: 4px;
+  background: #f1f3f5;
+  border-radius: 10px;
+}
+
+.origen-opcion {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #6c757d;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  i {
+    font-size: 0.95rem;
+  }
+
+  &:hover:not(:disabled):not(.activa) {
+    background: rgba(255, 255, 255, 0.6);
+    color: #495057;
+  }
+
+  &.activa {
+    background: #fff;
+    color: #8a6d1f;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+}
+
+// El área del curso no se elige: se muestra como dato fijo
+.area-fija {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 8px 12px;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  background: rgba(212, 175, 55, 0.08);
+  font-size: 0.9rem;
+  color: #495057;
+
+  i {
+    color: #d4af37;
+  }
+
+  &.vacia {
+    background: #f8f9fa;
+    color: #adb5bd;
+    font-style: italic;
+
+    i {
+      color: #ced4da;
+    }
+  }
+}
+
+
+// Chips de cursos extracurriculares en el modal de horarios
+.grupos-chips-extra {
+  align-items: center;
+  padding-top: 8px;
+  margin-top: 4px;
+  border-top: 1px dashed #e9ecef;
+}
+
+.chips-etiqueta {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #8a6d1f;
+  margin-right: 4px;
+}
+
+.grupo-chip-extra {
+  i {
+    color: #d4af37;
+  }
+
+  &.active i {
+    color: inherit;
+  }
+}
+
+.etiqueta-extra {
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: rgba(212, 175, 55, 0.15);
+  color: #8a6d1f;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+
+// ============================================
+// Grilla de horarios: encabezados fijos al hacer scroll
+// ============================================
+.horario-grid-scroll {
+  position: relative;
+  overflow: auto;
+  max-height: 60vh;
+}
+
+// Fila de días: se queda arriba al bajar
+.horario-row.horario-header-dias {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: #fff;
+}
+
+// Columna de horas: se queda a la izquierda al desplazarse de lado
+.horario-cell.horario-time-cell,
+.horario-cell.horario-time-header {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background: #fff;
+}
+
+// La esquina tiene que estar por encima de las dos
+.horario-cell.horario-time-header {
+  z-index: 4;
+}
+
+// Los chips de grupos y cursos comparten la etiqueta
+.grupos-chips {
+  align-items: center;
+}
+
 @media (max-width: 768px) {
   .tareas-header {
     flex-direction: column;
@@ -644,5 +799,96 @@ $light-gold: rgba(212, 175, 55, 0.1);
 
   .actividades-list {
     max-height: 45vh;
+  }
+}
+
+@media (max-width: 768px) {
+  .horario-grid-scroll {
+    max-height: 55vh;
+  }
+
+  // Sin esto la columna de horas se come media pantalla en el celular
+  .horario-cell.horario-time-cell,
+  .horario-cell.horario-time-header {
+    min-width: 58px;
+    font-size: 0.72rem;
+  }
+
+  .origen-selector {
+    flex-direction: column;
+  }
+
+  .chips-etiqueta {
+    width: 100%;
+    margin-bottom: 4px;
+  }
+}
+
+// ============================================
+// Tab de tareas: proporciones del encabezado y la tabla
+// ============================================
+.tareas-wrapper {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 4px;
+}
+
+.tareas-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 1rem;
+}
+
+.tareas-titulo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #212529;
+
+  i {
+    color: #d4af37;
+  }
+}
+
+.tareas-acciones {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+// La tabla traia bloques sueltos con mucho aire entre el buscador,
+// el boton de exportar y el encabezado.
+.tabla-tareas {
+  ::ng-deep .card,
+  ::ng-deep .contenedor-busqueda,
+  ::ng-deep .contenedor-exportar {
+    margin-bottom: 0.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .tareas-wrapper {
+    padding: 0;
+  }
+
+  .tareas-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .tareas-acciones {
+    justify-content: stretch;
+
+    .btn-secundario,
+    .btn-principal {
+      flex: 1;
+      justify-content: center;
+    }
   }
 }

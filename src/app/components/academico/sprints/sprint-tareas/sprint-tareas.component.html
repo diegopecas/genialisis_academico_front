@@ -63,8 +63,21 @@
         </div>
 
         <div class="modal-body-custom">
+            <!-- Origen de las actividades: grupo del jardín o curso extracurricular -->
+            <div class="origen-selector mb-3">
+                <button type="button" class="origen-opcion" [class.activa]="origenModal === 'grupo'"
+                    (click)="origenModal = 'grupo'; onOrigenModalChange()">
+                    <i class="fas fa-users"></i> Grupo
+                </button>
+                <button type="button" class="origen-opcion" [class.activa]="origenModal === 'curso'"
+                    (click)="origenModal = 'curso'; onOrigenModalChange()"
+                    [disabled]="cursosExtra.length === 0">
+                    <i class="fas fa-star"></i> Curso extracurricular
+                </button>
+            </div>
+
             <!-- Selección obligatoria: Grupo y Área -->
-            <div class="row g-3 mb-3">
+            <div class="row g-3 mb-3" *ngIf="origenModal === 'grupo'">
                 <div class="col-12 col-md-6">
                     <label for="filtroGrupoModal" class="form-label">
                         Seleccione Grupo <span class="text-danger">*</span>
@@ -91,9 +104,35 @@
                 </div>
             </div>
 
+            <!-- Curso extracurricular: el área no se elige, viene del curso -->
+            <div class="row g-3 mb-3" *ngIf="origenModal === 'curso'">
+                <div class="col-12 col-md-6">
+                    <label for="filtroCursoModal" class="form-label">
+                        Seleccione Curso <span class="text-danger">*</span>
+                    </label>
+                    <select class="form-select" id="filtroCursoModal" [(ngModel)]="filtroCursoModal"
+                        (ngModelChange)="onCursoModalChange()">
+                        <option value="">-- Seleccione un curso --</option>
+                        <option *ngFor="let curso of cursosExtra" [value]="curso.id">
+                            {{ curso.nombre }}
+                        </option>
+                    </select>
+                </div>
+                <div class="col-12 col-md-6">
+                    <label class="form-label">Área Académica</label>
+                    <div class="area-fija" [class.vacia]="!filtroAreaModal">
+                        <i class="fas fa-book"></i>
+                        <span *ngIf="filtroAreaModal">{{ getNombreAreaSeleccionada() }}</span>
+                        <span *ngIf="!filtroAreaModal">Se toma del curso seleccionado</span>
+                    </div>
+                </div>
+            </div>
+
             <!-- Filtros opcionales: Esfera y Texto -->
-            <div class="row g-3 mb-3" *ngIf="filtroGrupoModal && filtroAreaModal">
-                <div class="col-12 col-md-4">
+            <div class="row g-3 mb-3" *ngIf="modalListo">
+                <!-- La esfera solo filtra con origen grupo: en un curso todas las
+                     actividades son de la misma area y el filtro no discrimina. -->
+                <div class="col-12 col-md-4" *ngIf="origenModal === 'grupo'">
                     <label for="filtroEsferaModal" class="form-label">Filtrar por Esfera</label>
                     <select class="form-select" id="filtroEsferaModal" [(ngModel)]="filtroEsferaModal">
                         <option value="">Todas las esferas</option>
@@ -102,21 +141,22 @@
                         </option>
                     </select>
                 </div>
-                <div class="col-12 col-md-8">
+                <div class="col-12" [class.col-md-8]="origenModal === 'grupo'">
                     <label for="buscarActividad" class="form-label">Buscar por texto</label>
                     <input type="text" class="form-control" id="buscarActividad" [(ngModel)]="actividadesBusqueda"
                         placeholder="Buscar actividad...">
                 </div>
             </div>
 
-            <!-- Mensaje cuando no se ha seleccionado grupo y área -->
-            <div *ngIf="!filtroGrupoModal || !filtroAreaModal" class="empty-state">
+            <!-- Mensaje cuando falta seleccionar el origen -->
+            <div *ngIf="!modalListo" class="empty-state">
                 <i class="fas fa-hand-point-up"></i>
-                <p>Seleccione un grupo y un área académica para ver las actividades disponibles.</p>
+                <p *ngIf="origenModal === 'grupo'">Seleccione un grupo y un área académica para ver las actividades disponibles.</p>
+                <p *ngIf="origenModal === 'curso'">Seleccione un curso extracurricular para ver las actividades de su área.</p>
             </div>
 
             <!-- Lista de actividades -->
-            <div *ngIf="filtroGrupoModal && filtroAreaModal">
+            <div *ngIf="modalListo">
                 <div class="lista-encabezado">
                     <span>Actividades Disponibles</span>
                     <span class="chip">{{ actividadesFiltradas.length }} disponibles</span>
@@ -128,7 +168,8 @@
                 <div class="actividades-list" [class.invalida]="actividadesSeleccionadas.length === 0 && actividadSubmitted">
                     <div class="empty-state" *ngIf="actividadesFiltradas.length === 0">
                         <i class="fas fa-search"></i>
-                        <p>No se encontraron actividades para el grupo y área seleccionados</p>
+                        <p *ngIf="origenModal === 'grupo'">No se encontraron actividades para el grupo y área seleccionados</p>
+                        <p *ngIf="origenModal === 'curso'">No se encontraron actividades para el área del curso. Revise que los logros del área tengan actividades asociadas.</p>
                     </div>
                     <div class="actividad-item" *ngFor="let actividad of actividadesFiltradas"
                         [class.selected]="isActividadSeleccionada(actividad)"
@@ -182,7 +223,7 @@
 <div class="modal-overlay" *ngIf="mostrarModalHorarios" (click)="cerrarModalHorarios()">
     <div class="modal-content-custom modal-ancho" (click)="$event.stopPropagation()">
         <div class="modal-header-custom">
-            <h3><i class="fas fa-calendar-week"></i> Horarios por Grupo - {{ nombreSprint }}</h3>
+            <h3><i class="fas fa-calendar-week"></i> Horarios - {{ nombreSprint }}</h3>
             <button type="button" class="btn-close-custom" (click)="cerrarModalHorarios()">
                 <i class="fas fa-times"></i>
             </button>
@@ -191,10 +232,21 @@
         <div class="modal-body-custom">
             <!-- Selector de grupo -->
             <div class="grupos-chips">
+                <span class="chips-etiqueta">Grupos</span>
                 <button class="grupo-chip" *ngFor="let grupo of grupos"
                     [class.active]="grupoHorarioSeleccionado && grupoHorarioSeleccionado.id === grupo.id"
                     (click)="seleccionarGrupoHorario(grupo.id)">
                     <i class="fas fa-users"></i> {{ grupo.nombre }}
+                </button>
+            </div>
+
+            <!-- Cursos extracurriculares: van aparte porque no son grupos del jardín -->
+            <div class="grupos-chips grupos-chips-extra" *ngIf="cursosExtraConHorario.length > 0">
+                <span class="chips-etiqueta">Cursos</span>
+                <button class="grupo-chip grupo-chip-extra" *ngFor="let curso of cursosExtraConHorario"
+                    [class.active]="grupoHorarioSeleccionado && grupoHorarioSeleccionado.id === curso.id"
+                    (click)="seleccionarGrupoHorario(curso.id)">
+                    <i class="fas fa-star"></i> {{ curso.nombre }}
                 </button>
             </div>
 
@@ -206,8 +258,11 @@
             <div *ngIf="grupoHorarioSeleccionado">
                 <div class="horario-header">
                     <h6>
-                        <i class="fas fa-users"></i>
+                        <i class="fas" [ngClass]="grupoHorarioSeleccionado.es_curso_extra ? 'fa-star' : 'fa-users'"></i>
                         Horario de {{ grupoHorarioSeleccionado.nombre }}
+                        <small class="etiqueta-extra" *ngIf="grupoHorarioSeleccionado.es_curso_extra">
+                            Curso extracurricular
+                        </small>
                     </h6>
                     <div class="horario-stats">
                         <span class="chip">

@@ -10,6 +10,7 @@ import { CalendariosService } from '../../../../services/calendarios.service';
 import { CortesAcademicosService } from '../../../../services/cortes-academicos.service';
 import { GruposService } from '../../../../services/grupos.service';
 import { AreasAcademicasService } from '../../../../services/areas-academicas.service';
+import { CursosExtraService } from '../../../../services/cursos-extra.service';
 import { TareasXSprintsService } from '../../../../services/tareas-x-sprints.service';
 import { SprintCapacidadComponent } from '../sprint-capacidad/sprint-capacidad.component';
 import { SprintTareasComponent } from '../sprint-tareas/sprint-tareas.component';
@@ -56,7 +57,10 @@ export class CrearSprintsComponent implements OnInit {
   public listas = {
     cortesAcademicos: [] as any[],
     grupos: [] as any[],
-    areas: [] as any[]
+    areas: [] as any[],
+    // Los cursos extracurriculares hacen las veces de grupo en el filtro:
+    // sus tareas no tienen grupo, se identifican por id_curso_extra.
+    cursosExtra: [] as any[]
   };
   private listasSecundariasCargadas = false;
 
@@ -98,6 +102,7 @@ export class CrearSprintsComponent implements OnInit {
     private cortesAcademicosService: CortesAcademicosService,
     private gruposService: GruposService,
     private areasAcademicasService: AreasAcademicasService,
+    private cursosExtraService: CursosExtraService,
     private tareasXSprintsService: TareasXSprintsService
   ) { }
 
@@ -187,11 +192,14 @@ export class CrearSprintsComponent implements OnInit {
 
     forkJoin({
       grupos: this.gruposService.obtenerTodos(),
-      areas: this.areasAcademicasService.obtenerTodos()
+      areas: this.areasAcademicasService.obtenerTodos(),
+      cursosExtra: this.cursosExtraService.obtenerActivos()
     }).subscribe({
       next: (responses: any) => {
         this.listas.grupos = responses.grupos.body || [];
         this.listas.areas = responses.areas.body || [];
+        this.listas.cursosExtra = (responses.cursosExtra.body || [])
+          .filter((c: any) => !!c.id_area_academica);
       },
       error: (error: any) => {
         console.error("Error cargando grupos y áreas:", error);

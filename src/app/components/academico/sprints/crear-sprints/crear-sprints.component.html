@@ -99,9 +99,16 @@
         <div class="filtros-campos">
             <select class="form-select form-select-sm" [(ngModel)]="filtroGrupo">
                 <option value="">Todos los grupos</option>
-                <option *ngFor="let grupo of listas.grupos" [value]="grupo.id">
-                    {{ grupo.nombre }}
-                </option>
+                <optgroup label="Grupos">
+                    <option *ngFor="let grupo of listas.grupos" [value]="grupo.id">
+                        {{ grupo.nombre }}
+                    </option>
+                </optgroup>
+                <optgroup label="Cursos extracurriculares" *ngIf="listas.cursosExtra.length > 0">
+                    <option *ngFor="let curso of listas.cursosExtra" [value]="curso.id">
+                        {{ curso.nombre }}
+                    </option>
+                </optgroup>
             </select>
             <select class="form-select form-select-sm" [(ngModel)]="filtroArea">
                 <option value="">Todas las áreas</option>
