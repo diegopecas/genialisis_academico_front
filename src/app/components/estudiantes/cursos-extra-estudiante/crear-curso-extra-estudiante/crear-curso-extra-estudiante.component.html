@@ -51,14 +51,21 @@
             </select>
           </div>
           <div class="col-md-3">
-            <label class="form-label">Fecha Inicio <span class="text-danger">*</span></label>
-            <input type="date" class="form-control" [(ngModel)]="model.fecha_inicio"
-              [ngClass]="{'is-invalid': !model.fecha_inicio && submitted}">
+            <label class="form-label">Fecha de Inscripción <span class="text-danger">*</span></label>
+            <input type="date" class="form-control" [(ngModel)]="model.fecha_inscripcion"
+              [ngClass]="{'is-invalid': !model.fecha_inscripcion && submitted}" [disabled]="idInscripcion">
+            <small class="form-text text-muted">Las cuotas se generan desde esta fecha</small>
           </div>
           <div class="col-md-3">
             <label class="form-label">Fecha Fin <span class="text-danger">*</span></label>
             <input type="date" class="form-control" [(ngModel)]="model.fecha_fin"
               [ngClass]="{'is-invalid': !model.fecha_fin && submitted}">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Fecha Inicio del Curso</label>
+            <input type="date" class="form-control" [(ngModel)]="model.fecha_inicio"
+              [ngClass]="{'is-invalid': !model.fecha_inicio && submitted}">
+            <small class="form-text text-muted">Informativa: viene del curso</small>
           </div>
         </div>
 
@@ -189,7 +196,7 @@
   <div class="container-custom pb-4">
     <div class="row g-3">
       <div class="col-md-3" *ngIf="editable && !idInscripcion">
-        <button class="btn btn-warning w-100" (click)="guardar()" [disabled]="guardando">
+        <button class="btn btn-warning w-100" (click)="guardar()" [disabled]="guardando || idInscripcion">
           <i class="fas fa-save me-2"></i>{{guardando ? 'Guardando...' : 'Guardar Inscripción'}}
         </button>
       </div>

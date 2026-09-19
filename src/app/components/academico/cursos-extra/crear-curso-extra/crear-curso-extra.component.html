@@ -79,11 +79,44 @@
 
         <div class="row mt-3">
             <div class="col-md-6 col-12">
+                <label for="tipo_curso" class="form-label">Tipo de curso</label>
+                <select class="form-select form-select-lg" id="tipo_curso"
+                    [(ngModel)]="model.id_tipo_curso_extracurricular" [disabled]="!editable">
+                    <option [ngValue]="null">-- Sin tipo --</option>
+                    <option *ngFor="let t of tiposCursoExtra" [ngValue]="t.id">{{t.nombre}}</option>
+                </select>
+                <small class="form-text text-muted">Agrupa los cursos de la misma actividad para los reportes</small>
+            </div>
+            <div class="col-md-6 col-12">
+                <label for="lugar_curso" class="form-label">Lugar donde se dicta</label>
+                <select class="form-select form-select-lg" id="lugar_curso"
+                    [(ngModel)]="model.id_lugar_curso_extra" [disabled]="!editable">
+                    <option [ngValue]="null">-- Sin lugar --</option>
+                    <option *ngFor="let l of lugaresCursoExtra" [ngValue]="l.id">{{l.nombre}}</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="row mt-3">
+            <div class="col-md-3 col-12">
                 <label for="cupo_maximo" class="form-label">Cupo máximo</label>
                 <input class="form-control form-control-lg" type="number" id="cupo_maximo" [(ngModel)]="model.cupo_maximo"
                     placeholder="Ej: 20" min="1" [disabled]="!editable">
             </div>
-            <div class="col-md-6 col-12">
+            <div class="col-md-3 col-12">
+                <label for="cupo_minimo" class="form-label">Cupo mínimo</label>
+                <input class="form-control form-control-lg" type="number" id="cupo_minimo" [(ngModel)]="model.cupo_minimo"
+                    placeholder="Ej: 8" min="1" [disabled]="!editable">
+                <small class="form-text text-muted">Inscritos necesarios para abrir el curso</small>
+            </div>
+            <div class="col-md-3 col-12 d-flex align-items-center">
+                <div class="form-check form-switch mt-4">
+                    <input class="form-check-input" type="checkbox" id="permite_sobrecupo"
+                        [(ngModel)]="model.permite_sobrecupo" [disabled]="!editable">
+                    <label class="form-check-label" for="permite_sobrecupo">Permite sobrecupo</label>
+                </div>
+            </div>
+            <div class="col-md-3 col-12">
                 <label for="color" class="form-label">Color</label>
                 <input class="form-control form-control-lg" type="color" id="color" [(ngModel)]="model.color"
                     [disabled]="!editable" style="height: 48px;">
@@ -91,15 +124,35 @@
         </div>
 
         <div class="row mt-3">
-            <div class="col-md-6 col-12">
+            <div class="col-md-4 col-12">
                 <label for="fecha_inicio" class="form-label">Fecha inicio <span class="text-danger">*</span></label>
                 <input class="form-control form-control-lg" type="date" id="fecha_inicio" [(ngModel)]="model.fecha_inicio"
                     [ngClass]="{'is-invalid': !model.fecha_inicio && submitted}" [disabled]="!editable">
             </div>
-            <div class="col-md-6 col-12">
+            <div class="col-md-4 col-12">
                 <label for="fecha_fin" class="form-label">Fecha fin <span class="text-danger">*</span></label>
                 <input class="form-control form-control-lg" type="date" id="fecha_fin" [(ngModel)]="model.fecha_fin"
                     [ngClass]="{'is-invalid': !model.fecha_fin && submitted}" [disabled]="!editable">
+            </div>
+            <div class="col-md-4 col-12">
+                <label for="fecha_limite_inscripcion" class="form-label">Fecha límite de inscripción</label>
+                <input class="form-control form-control-lg" type="date" id="fecha_limite_inscripcion"
+                    [(ngModel)]="model.fecha_limite_inscripcion" [disabled]="!editable">
+                <small class="form-text text-muted">Vacía: no se valida</small>
+            </div>
+        </div>
+
+        <div class="row mt-3">
+            <div class="col-md-6 col-12">
+                <label for="edad_minima_meses" class="form-label">Edad mínima (meses)</label>
+                <input class="form-control form-control-lg" type="number" id="edad_minima_meses"
+                    [(ngModel)]="model.edad_minima_meses" placeholder="Ej: 24" min="0" [disabled]="!editable">
+            </div>
+            <div class="col-md-6 col-12">
+                <label for="edad_maxima_meses" class="form-label">Edad máxima (meses)</label>
+                <input class="form-control form-control-lg" type="number" id="edad_maxima_meses"
+                    [(ngModel)]="model.edad_maxima_meses" placeholder="Ej: 72" min="0" [disabled]="!editable">
+                <small class="form-text text-muted">Vacías: no se valida la edad</small>
             </div>
         </div>
 
@@ -315,11 +368,18 @@
                 <div class="row">
                     <div class="col-md-5 col-12">
                         <label class="form-label">Producto matrícula</label>
-                        <select class="form-select" [(ngModel)]="tarifaActual.id_producto_matricula"
-                            (change)="onProductoMatriculaChange()" [disabled]="!editable">
-                            <option [ngValue]="null">-- Seleccione --</option>
-                            <option *ngFor="let p of productosMatricula" [ngValue]="p.id">{{p.nombre}}</option>
-                        </select>
+                        <div class="input-group">
+                            <select class="form-select" [(ngModel)]="tarifaActual.id_producto_matricula"
+                                (change)="onProductoMatriculaChange()" [disabled]="!editable">
+                                <option [ngValue]="null">-- Seleccione --</option>
+                                <option *ngFor="let p of productosMatricula" [ngValue]="p.id">{{p.nombre}}</option>
+                            </select>
+                            <button class="btn btn-outline-warning btn-nuevo-producto" type="button"
+                                title="Crear producto de matrícula"
+                                (click)="abrirModalProducto('matricula')" *ngIf="editable">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
                     </div>
                     <div class="col-md-4 col-12">
                         <label class="form-label">Valor matrícula</label>
@@ -345,11 +405,18 @@
                 <div class="row">
                     <div class="col-md-6 col-12">
                         <label class="form-label">Producto pensión</label>
-                        <select class="form-select" [(ngModel)]="tarifaActual.id_producto_pension"
-                            (change)="onProductoPensionChange()" [disabled]="!editable">
-                            <option [ngValue]="null">-- Seleccione --</option>
-                            <option *ngFor="let p of productosPension" [ngValue]="p.id">{{p.nombre}}</option>
-                        </select>
+                        <div class="input-group">
+                            <select class="form-select" [(ngModel)]="tarifaActual.id_producto_pension"
+                                (change)="onProductoPensionChange()" [disabled]="!editable">
+                                <option [ngValue]="null">-- Seleccione --</option>
+                                <option *ngFor="let p of productosPension" [ngValue]="p.id">{{p.nombre}}</option>
+                            </select>
+                            <button class="btn btn-outline-warning btn-nuevo-producto" type="button"
+                                title="Crear producto de pensión"
+                                (click)="abrirModalProducto('pension')" *ngIf="editable">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
                     </div>
                     <div class="col-md-6 col-12">
                         <label class="form-label">Valor pensión</label>
@@ -370,11 +437,18 @@
                 <div class="row">
                     <div class="col-md-5 col-12">
                         <label class="form-label">Producto cobro único</label>
-                        <select class="form-select" [(ngModel)]="tarifaActual.id_producto_unico"
-                            (change)="onProductoUnicoChange()" [disabled]="!editable">
-                            <option [ngValue]="null">-- Seleccione --</option>
-                            <option *ngFor="let p of productosUnico" [ngValue]="p.id">{{p.nombre}}</option>
-                        </select>
+                        <div class="input-group">
+                            <select class="form-select" [(ngModel)]="tarifaActual.id_producto_unico"
+                                (change)="onProductoUnicoChange()" [disabled]="!editable">
+                                <option [ngValue]="null">-- Seleccione --</option>
+                                <option *ngFor="let p of productosUnico" [ngValue]="p.id">{{p.nombre}}</option>
+                            </select>
+                            <button class="btn btn-outline-warning btn-nuevo-producto" type="button"
+                                title="Crear producto de cobro único"
+                                (click)="abrirModalProducto('unico')" *ngIf="editable">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
                     </div>
                     <div class="col-md-4 col-12">
                         <label class="form-label">Valor cobro único</label>
@@ -456,6 +530,53 @@
                 <div class="modal-footer-custom">
                     <button class="btn btn-secondary" (click)="cerrarModalHorario()">Cancelar</button>
                     <button class="btn btn-warning" (click)="guardarHorario()">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL NUEVO PRODUCTO ==================== -->
+    <div class="modal-overlay" *ngIf="mostrarModalProducto" (click)="cerrarModalProducto()">
+        <div class="modal-content-producto" (click)="$event.stopPropagation()">
+            <div class="modal-header-custom">
+                <h3>Nuevo producto de {{getNombreTipoProducto()}}</h3>
+                <button class="btn-close-custom" (click)="cerrarModalProducto()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body-custom">
+                <div class="producto-precargado mb-3">
+                    <div><i class="fas fa-tag"></i> Clasificación: <strong>Extra académico</strong></div>
+                    <div><i class="fas fa-redo"></i> Periodicidad: <strong>{{getNombrePeriodicidadProducto()}}</strong></div>
+                    <div><i class="fas fa-file-invoice-dollar"></i> Tipo de cobro: <strong>{{getNombreTipoProducto()}}</strong></div>
+                    <div><i class="fas fa-calendar"></i> Año: <strong>{{anioTarifa}}</strong></div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Nombre del producto <span class="text-danger">*</span></label>
+                    <input class="form-control" type="text" [(ngModel)]="productoModal.nombre"
+                        placeholder="Ej: Natación - Pensión">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Detalles</label>
+                    <textarea class="form-control" rows="2" [(ngModel)]="productoModal.detalles"
+                        placeholder="Descripción opcional del producto"></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Valor sugerido</label>
+                    <input class="form-control" type="text" [value]="valorSugeridoProductoFormateado"
+                        (input)="onValorSugeridoProductoInput($event)" placeholder="$0">
+                </div>
+
+                <div class="text-muted">
+                    <small>El producto se crea sin configuración de mora. Si la necesita, configúrela en Datos Maestros.</small>
+                </div>
+
+                <div class="modal-footer-custom">
+                    <button class="btn btn-secondary" (click)="cerrarModalProducto()">Cancelar</button>
+                    <button class="btn btn-warning" (click)="guardarProducto()" [disabled]="guardandoProducto">
+                        {{guardandoProducto ? 'Guardando...' : 'Crear producto'}}
+                    </button>
                 </div>
             </div>
         </div>

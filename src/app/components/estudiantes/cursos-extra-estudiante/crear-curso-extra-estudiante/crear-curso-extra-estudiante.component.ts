@@ -50,6 +50,9 @@ export class CrearCursoExtraEstudianteComponent implements OnInit {
     id_curso_extra: null,
     fecha_inicio: '',
     fecha_fin: '',
+    // Fecha con la que se registra la inscripcion. Arranca en hoy, es editable, y
+    // es el punto de partida del calculo de las cuotas.
+    fecha_inscripcion: '',
   } as any;
 
   // Valores editables de tarifa
@@ -101,6 +104,8 @@ export class CrearCursoExtraEstudianteComponent implements OnInit {
         this.titulo = "Inscribir a Curso Extracurricular";
         this.editable = true;
       }
+
+      this.model.fecha_inscripcion = this.formatearFechaISO(new Date());
 
       this.obtenerEstudiante(this.idEstudiante);
       this.cargarCursosDisponibles();
@@ -205,6 +210,10 @@ export class CrearCursoExtraEstudianteComponent implements OnInit {
       Swal.fire('Advertencia', 'Seleccione un curso', 'warning');
       return;
     }
+    if (!this.model.fecha_inscripcion) {
+      Swal.fire('Advertencia', 'Debe indicar la fecha de inscripción', 'warning');
+      return;
+    }
     if (!this.model.fecha_inicio || !this.model.fecha_fin) {
       Swal.fire('Advertencia', 'Debe indicar fecha de inicio y fin', 'warning');
       return;
@@ -234,7 +243,9 @@ export class CrearCursoExtraEstudianteComponent implements OnInit {
 
   private ejecutarGeneracion() {
     this.valores = [];
-    const fechaInicio = new Date(this.model.fecha_inicio + 'T00:00:00');
+    // Las cuotas arrancan en la fecha de inscripcion, no en la de inicio del curso:
+    // quien entra tarde solo paga desde que entra. La fecha fin del curso es el tope.
+    const fechaInicio = new Date(this.model.fecha_inscripcion + 'T00:00:00');
     const fechaFin = new Date(this.model.fecha_fin + 'T00:00:00');
     const nombreCurso = this.cursoSeleccionado?.nombre || 'Curso';
 
@@ -377,7 +388,7 @@ export class CrearCursoExtraEstudianteComponent implements OnInit {
   }
 
   async validarFechas(): Promise<boolean> {
-    const inicio = new Date(this.model.fecha_inicio + 'T00:00:00');
+    const inicio = new Date(this.model.fecha_inscripcion + 'T00:00:00');
     const fin = new Date(this.model.fecha_fin + 'T00:00:00');
     const fueraDeRango: ValorGenerado[] = [];
 
@@ -391,7 +402,7 @@ export class CrearCursoExtraEstudianteComponent implements OnInit {
     if (fueraDeRango.length > 0) {
       const result = await Swal.fire({
         title: 'Fechas fuera de rango',
-        html: `Hay <strong>${fueraDeRango.length}</strong> cobro(s) con fecha fuera del período ${this.model.fecha_inicio} al ${this.model.fecha_fin}.<br><br>¿Desea continuar de todas formas?`,
+        html: `Hay <strong>${fueraDeRango.length}</strong> cobro(s) con fecha fuera del período ${this.model.fecha_inscripcion} al ${this.model.fecha_fin}.<br><br>¿Desea continuar de todas formas?`,
         icon: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Sí, continuar',
@@ -413,12 +424,23 @@ export class CrearCursoExtraEstudianteComponent implements OnInit {
       return;
     }
 
+    if (!this.model.fecha_inscripcion) {
+      Swal.fire('Advertencia', 'Debe indicar la fecha de inscripción', 'warning');
+      return;
+    }
+
+    // Sin esto un segundo clic crea una inscripcion duplicada.
+    if (this.idInscripcion) {
+      Swal.fire('Advertencia', 'El estudiante ya quedó inscrito. Continúe con la generación de cuentas.', 'warning');
+      return;
+    }
+
     this.guardando = true;
 
     const data = {
       id_estudiante: this.idEstudiante,
       id_curso_extra: this.model.id_curso_extra,
-      fecha_inscripcion: new Date().toISOString().split('T')[0],
+      fecha_inscripcion: this.model.fecha_inscripcion,
       anio: this.cursoSeleccionado?.anio || this.institucionConfigService.getAnioAcademicoActual()
     };
 
@@ -435,7 +457,9 @@ export class CrearCursoExtraEstudianteComponent implements OnInit {
       error: (error: any) => {
         this.guardando = false;
         console.error("Error al inscribir", error);
-        Swal.fire('Error', 'No se pudo inscribir al estudiante', 'error');
+        // El back responde 400 con el motivo (fecha limite, edad o cupo).
+        const mensaje = error?.error?.error ? error.error.error : 'No se pudo inscribir al estudiante';
+        Swal.fire('Error', mensaje, 'error');
       }
     });
   }
@@ -480,8 +504,6 @@ export class CrearCursoExtraEstudianteComponent implements OnInit {
 
     const idUsuario = this.utilService.obtenerIdUsuarioActual();
 
-    console.log('DEBUG idInscripcion antes de data:', this.idInscripcion);
-    
     const data = {
       id_persona: this.estudiante.id_persona,
       id_usuario: idUsuario,
@@ -496,8 +518,6 @@ export class CrearCursoExtraEstudianteComponent implements OnInit {
         detalle: v.detalle
       }))
     };
-
-    console.log('DEBUG data completo:', JSON.stringify(data));
 
     this.cuentasPorCobrarService.generarDesdeCursoExtra(data).subscribe({
       next: (response: any) => {

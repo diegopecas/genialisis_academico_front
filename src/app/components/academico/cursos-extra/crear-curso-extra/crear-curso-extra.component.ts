@@ -5,6 +5,10 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { HeaderComponent } from '../../../../common/header/header.component';
 import { CursosExtraService } from '../../../../services/cursos-extra.service';
 import { ProductosServiciosService } from '../../../../services/productos-servicios.service';
+import { ClasificacionProductosServiciosService } from '../../../../services/clasificacion-productos-servicios.service';
+import { TiposCobroProductoService } from '../../../../services/tipos-cobro-producto.service';
+import { TiposCursosExtracurricularesService } from '../../../../services/tipos-cursos-extracurriculares.service';
+import { LugaresCursosExtraService } from '../../../../services/lugares-cursos-extra.service';
 import { DiasSemanaService } from '../../../../services/dias-semana.service';
 import { HorariosCursosExtraService } from '../../../../services/horarios-cursos-extra.service';
 import { TarifasCursosExtraService } from '../../../../services/tarifas-cursos-extra.service';
@@ -44,8 +48,19 @@ export class CrearCursoExtraComponent implements OnInit {
     fecha_inicio: '',
     fecha_fin: '',
     anio: new Date().getFullYear(),
-    activo: 1
+    activo: 1,
+    id_tipo_curso_extracurricular: null,
+    id_lugar_curso_extra: null,
+    permite_sobrecupo: 0,
+    cupo_minimo: null,
+    fecha_limite_inscripcion: '',
+    edad_minima_meses: null,
+    edad_maxima_meses: null
   } as any;
+
+  // Catalogos del tab de Datos Basicos
+  tiposCursoExtra: any[] = [];
+  lugaresCursoExtra: any[] = [];
 
   // Modal de imágenes
   mostrarModalImagenes: boolean = false;
@@ -100,9 +115,44 @@ export class CrearCursoExtraComponent implements OnInit {
     anio: new Date().getFullYear()
   };
 
+  /* Creación rápida de producto desde el tab de Tarifas.
+     El producto nace siempre con clasificación Extra académico; la periodicidad
+     y el tipo de cobro los define la sección desde donde se abrió el modal. */
+  mostrarModalProducto: boolean = false;
+  guardandoProducto: boolean = false;
+  tipoProductoModal: string = '';
+  idClasificacionExtraAcademico: any = null;
+  tiposCobro: any[] = [];
+  valorSugeridoProductoFormateado: string = '';
+  productoModal = {
+    nombre: '',
+    detalles: '',
+    valor_sugerido: 0
+  } as any;
+
+  /* Periodicidades con las que se filtra cada select de producto en este tab:
+     1 Anual (matrícula), 2 Mensual (pensión), 4 Único (cobro único). */
+  private readonly periodicidadPorTipo: any = {
+    matricula: 1,
+    pension: 2,
+    unico: 4
+  };
+
+  /* Tipo de cobro del producto según la sección. El cobro único no tiene
+     equivalente propio en tipos_cobro_producto, por eso va como OTRO. */
+  private readonly codigoTipoCobroPorTipo: any = {
+    matricula: 'MATRICULA',
+    pension: 'PENSION',
+    unico: 'OTRO'
+  };
+
   constructor(
     private cursosExtraService: CursosExtraService,
     private productosServiciosService: ProductosServiciosService,
+    private clasificacionProductosServiciosService: ClasificacionProductosServiciosService,
+    private tiposCobroProductoService: TiposCobroProductoService,
+    private tiposCursosExtracurricularesService: TiposCursosExtracurricularesService,
+    private lugaresCursosExtraService: LugaresCursosExtraService,
     private diasSemanaService: DiasSemanaService,
     private horariosCursosExtraService: HorariosCursosExtraService,
     private tarifasCursosExtraService: TarifasCursosExtraService,
@@ -132,6 +182,7 @@ export class CrearCursoExtraComponent implements OnInit {
         this.cargarProveedoresCurso(id);
         this.cargarTarifas(id);
         this.cargarProductosTarifas();
+        this.cargarCatalogosProducto();
         this.cargarAniosEscolares();
       } else if (this.accion === 'consultar') {
         this.titulo = "Consultar Curso Extracurricular";
@@ -148,6 +199,8 @@ export class CrearCursoExtraComponent implements OnInit {
     this.cargarImagenes();
     this.cargarDocentesDisponibles();
     this.cargarProveedoresDisponibles();
+    this.cargarTiposCursoExtra();
+    this.cargarLugaresCursoExtra();
   }
 
   // ==================== DATOS BASICOS ====================
@@ -158,6 +211,9 @@ export class CrearCursoExtraComponent implements OnInit {
         const body = response.body;
         if (body && body.length > 0) {
           this.model = body[0];
+          // Los inputs de tipo date y number no aceptan null: se normalizan aqui.
+          this.model.fecha_limite_inscripcion = this.model.fecha_limite_inscripcion || '';
+          this.model.permite_sobrecupo = this.model.permite_sobrecupo ? 1 : 0;
           if (this.accion === 'editar') {
             this.titulo = `Editar Curso: ${this.model.nombre}`;
           } else if (this.accion === 'consultar') {
@@ -168,6 +224,29 @@ export class CrearCursoExtraComponent implements OnInit {
       error: (error: any) => {
         console.error("Error al cargar curso", error);
         Swal.fire('Error', 'No se pudo cargar el curso', 'error');
+      }
+    });
+  }
+
+  // Solo activos: el catalogo completo se administra en Datos Maestros.
+  cargarTiposCursoExtra() {
+    this.tiposCursosExtracurricularesService.obtenerActivos().subscribe({
+      next: (response: any) => {
+        this.tiposCursoExtra = response.body || [];
+      },
+      error: (error: any) => {
+        console.error("Error al cargar tipos de curso extracurricular", error);
+      }
+    });
+  }
+
+  cargarLugaresCursoExtra() {
+    this.lugaresCursosExtraService.obtenerActivos().subscribe({
+      next: (response: any) => {
+        this.lugaresCursoExtra = response.body || [];
+      },
+      error: (error: any) => {
+        console.error("Error al cargar lugares de cursos extracurriculares", error);
       }
     });
   }
@@ -232,6 +311,18 @@ export class CrearCursoExtraComponent implements OnInit {
       return;
     }
 
+    if (this.model.cupo_minimo && this.model.cupo_maximo &&
+        parseInt(this.model.cupo_minimo) > parseInt(this.model.cupo_maximo)) {
+      Swal.fire('Advertencia', 'El cupo mínimo no puede ser mayor al cupo máximo', 'warning');
+      return;
+    }
+
+    if (this.model.edad_minima_meses && this.model.edad_maxima_meses &&
+        parseInt(this.model.edad_minima_meses) > parseInt(this.model.edad_maxima_meses)) {
+      Swal.fire('Advertencia', 'La edad mínima no puede ser mayor a la edad máxima', 'warning');
+      return;
+    }
+
     const data = {
       nombre: this.model.nombre.trim(),
       descripcion: this.model.descripcion ? this.model.descripcion.trim() : '',
@@ -241,7 +332,14 @@ export class CrearCursoExtraComponent implements OnInit {
       fecha_inicio: this.model.fecha_inicio,
       fecha_fin: this.model.fecha_fin,
       anio: parseInt(this.model.anio),
-      activo: this.model.activo
+      activo: this.model.activo,
+      id_tipo_curso_extracurricular: this.model.id_tipo_curso_extracurricular ? this.model.id_tipo_curso_extracurricular : null,
+      id_lugar_curso_extra: this.model.id_lugar_curso_extra ? this.model.id_lugar_curso_extra : null,
+      permite_sobrecupo: this.model.permite_sobrecupo ? 1 : 0,
+      cupo_minimo: this.model.cupo_minimo ? parseInt(this.model.cupo_minimo) : null,
+      fecha_limite_inscripcion: this.model.fecha_limite_inscripcion ? this.model.fecha_limite_inscripcion : null,
+      edad_minima_meses: this.model.edad_minima_meses ? parseInt(this.model.edad_minima_meses) : null,
+      edad_maxima_meses: this.model.edad_maxima_meses ? parseInt(this.model.edad_maxima_meses) : null
     } as any;
 
     if (this.accion === 'crear') {
@@ -593,7 +691,9 @@ export class CrearCursoExtraComponent implements OnInit {
 
   // ==================== TARIFAS ====================
 
-  cargarProductosTarifas() {
+  /* alTerminar permite encadenar una acción después de refrescar las listas
+     (se usa al crear un producto desde el modal para dejarlo seleccionado). */
+  cargarProductosTarifas(alTerminar?: () => void) {
     this.productosServiciosService.obtenerTodos().subscribe({
       next: (response: any) => {
         const productos = response.body || [];
@@ -606,6 +706,9 @@ export class CrearCursoExtraComponent implements OnInit {
         this.productosUnico = productos.filter((p: any) =>
           p.clasificacion_codigo === 'EXTRA_ACADEMICO' && p.id_periodicidad_cobro == 4
         );
+        if (alTerminar) {
+          alTerminar();
+        }
       },
       error: (error: any) => {
         console.error("Error al cargar productos para tarifas", error);
@@ -782,5 +885,153 @@ export class CrearCursoExtraComponent implements OnInit {
       currency: 'COP',
       minimumFractionDigits: 0,
     }) || '$0';
+  }
+
+  // ==================== CREACION RAPIDA DE PRODUCTO ====================
+
+  /* La clasificación se resuelve por código porque su id es distinto en cada
+     tenant. Los tipos de cobro son de tabla global (no llevan id_tenant). */
+  cargarCatalogosProducto() {
+    this.clasificacionProductosServiciosService.obtenerTodos().subscribe({
+      next: (response: any) => {
+        const clasificaciones = response.body || [];
+        const extraAcademico = clasificaciones.find((c: any) => c.codigo === 'EXTRA_ACADEMICO');
+        this.idClasificacionExtraAcademico = extraAcademico ? extraAcademico.id : null;
+      },
+      error: (error: any) => {
+        console.error("Error al cargar clasificaciones de productos", error);
+      }
+    });
+
+    this.tiposCobroProductoService.obtenerActivos().subscribe({
+      next: (response: any) => {
+        this.tiposCobro = response.body || [];
+      },
+      error: (error: any) => {
+        console.error("Error al cargar tipos de cobro", error);
+      }
+    });
+  }
+
+  abrirModalProducto(tipo: string) {
+    if (!this.idClasificacionExtraAcademico) {
+      Swal.fire('Advertencia', 'No existe la clasificación Extra académico en productos y servicios. Créela primero en Datos Maestros.', 'warning');
+      return;
+    }
+
+    this.tipoProductoModal = tipo;
+
+    // El valor que ya esté escrito en la sección se propone como valor sugerido.
+    let valorPrecargado = 0;
+    if (tipo === 'matricula') {
+      valorPrecargado = this.tarifaActual.valor_matricula || 0;
+    } else if (tipo === 'pension') {
+      valorPrecargado = this.tarifaActual.valor_pension || 0;
+    } else if (tipo === 'unico') {
+      valorPrecargado = this.tarifaActual.valor_unico || 0;
+    }
+
+    this.productoModal = {
+      nombre: this.model.nombre ? `${this.model.nombre} - ${this.getNombreTipoProducto()}` : '',
+      detalles: '',
+      valor_sugerido: valorPrecargado
+    };
+    this.valorSugeridoProductoFormateado = this.formatearNumero(valorPrecargado);
+    this.mostrarModalProducto = true;
+  }
+
+  cerrarModalProducto() {
+    this.mostrarModalProducto = false;
+  }
+
+  getNombreTipoProducto(): string {
+    const nombres: any = {
+      'matricula': 'Matrícula',
+      'pension': 'Pensión',
+      'unico': 'Cobro único'
+    };
+    return nombres[this.tipoProductoModal] || '';
+  }
+
+  getNombrePeriodicidadProducto(): string {
+    const nombres: any = {
+      'matricula': 'Anual',
+      'pension': 'Mensual',
+      'unico': 'Único'
+    };
+    return nombres[this.tipoProductoModal] || '';
+  }
+
+  onValorSugeridoProductoInput(event: any) {
+    let valor = event.target.value.replace(/\./g, '').replace(/\D/g, '');
+    this.productoModal.valor_sugerido = valor ? parseInt(valor) : 0;
+    if (this.productoModal.valor_sugerido > 0) {
+      event.target.value = this.productoModal.valor_sugerido.toLocaleString('es-CO');
+    } else {
+      event.target.value = '';
+    }
+  }
+
+  guardarProducto() {
+    if (!this.productoModal.nombre || this.productoModal.nombre.trim() === '') {
+      Swal.fire('Advertencia', 'El nombre del producto es obligatorio', 'warning');
+      return;
+    }
+
+    const codigoTipoCobro = this.codigoTipoCobroPorTipo[this.tipoProductoModal];
+    const tipoCobro = this.tiposCobro.find((t: any) => t.codigo === codigoTipoCobro);
+
+    const data = {
+      nombre: this.productoModal.nombre.trim(),
+      detalles: this.productoModal.detalles ? this.productoModal.detalles.trim() : '',
+      id_clasificacion_productos_servicios: this.idClasificacionExtraAcademico,
+      id_categoria_productos_servicios: null,
+      id_periodicidad_cobro: this.periodicidadPorTipo[this.tipoProductoModal],
+      valor_sugerido: this.productoModal.valor_sugerido || 0,
+      disponible: 1,
+      anio: this.anioTarifa,
+      id_horario_alimentacion_sugerido: null,
+      id_tipo_cobro: tipoCobro ? tipoCobro.id : null
+    };
+
+    this.guardandoProducto = true;
+
+    this.productosServiciosService.crear(data).subscribe({
+      next: (response: any) => {
+        this.guardandoProducto = false;
+
+        if (response && response.error) {
+          Swal.fire('Error', response.error, 'error');
+          return;
+        }
+
+        const idNuevo = response ? response.id : null;
+        const tipoCreado = this.tipoProductoModal;
+        this.cerrarModalProducto();
+
+        // Se refrescan las tres listas y se deja seleccionado el producto nuevo.
+        this.cargarProductosTarifas(() => {
+          if (!idNuevo) return;
+
+          if (tipoCreado === 'matricula') {
+            this.tarifaActual.id_producto_matricula = idNuevo;
+            this.onProductoMatriculaChange();
+          } else if (tipoCreado === 'pension') {
+            this.tarifaActual.id_producto_pension = idNuevo;
+            this.onProductoPensionChange();
+          } else if (tipoCreado === 'unico') {
+            this.tarifaActual.id_producto_unico = idNuevo;
+            this.onProductoUnicoChange();
+          }
+
+          Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Producto creado', showConfirmButton: false, timer: 2000 });
+        });
+      },
+      error: (error: any) => {
+        this.guardandoProducto = false;
+        console.error("Error al crear el producto", error);
+        Swal.fire('Error', 'No se pudo crear el producto', 'error');
+      }
+    });
   }
 }

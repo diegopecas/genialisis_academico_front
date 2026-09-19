@@ -1,0 +1,110 @@
+<div class="modulo">
+    <app-header
+        [tituloModulo]="titulo"
+        [mostrarCrear]="false"
+        [accion]="accion"
+        [raiz]="'/administracion/datos-maestros/tipos-cursos-extracurriculares'"
+        [regresar]="regresar"
+        [iconoTitulo]="'/assets/images/tipos-cursos-extra.png'">
+    </app-header>
+
+    <div class="container mt-4">
+        <div class="card card-formulario mb-4">
+            <div class="card-header-custom">
+                <i class="fas fa-info-circle"></i>
+                <span>Información Básica</span>
+            </div>
+            <div class="card-body-custom">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="nombre" class="form-label">Nombre <span class="text-danger">*</span></label>
+                        <input
+                            class="form-control"
+                            type="text"
+                            id="nombre"
+                            [(ngModel)]="model.nombre"
+                            placeholder="Ej: Natación, Ballet, Fútbol..."
+                            required
+                            maxlength="150"
+                            [ngClass]="{'is-invalid': !model.nombre && submitted}"
+                            [disabled]="!editable">
+                        <small class="form-text text-muted">Agrupa los cursos que son de la misma actividad</small>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="color" class="form-label">Color</label>
+                        <input
+                            class="form-control"
+                            type="color"
+                            id="color"
+                            [(ngModel)]="model.color"
+                            [disabled]="!editable"
+                            style="height: 38px;">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="orden" class="form-label">Orden</label>
+                        <input
+                            class="form-control"
+                            type="number"
+                            id="orden"
+                            [(ngModel)]="model.orden"
+                            min="0"
+                            placeholder="0"
+                            [disabled]="!editable">
+                        <small class="form-text text-muted">Posición en los listados</small>
+                    </div>
+                    <div class="col-12">
+                        <label for="descripcion" class="form-label">Descripción</label>
+                        <textarea
+                            class="form-control"
+                            id="descripcion"
+                            [(ngModel)]="model.descripcion"
+                            rows="3"
+                            placeholder="Descripción del tipo de curso"
+                            [disabled]="!editable"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card card-formulario mb-4">
+            <div class="card-header-custom">
+                <i class="fas fa-cogs"></i>
+                <span>Configuración</span>
+            </div>
+            <div class="card-body-custom">
+                <div class="toggle-card" [class.active]="model.activo">
+                    <div class="toggle-info">
+                        <div class="toggle-icon">
+                            <i class="fas fa-toggle-on"></i>
+                        </div>
+                        <div class="toggle-text">
+                            <span class="toggle-label">Activo</span>
+                            <small class="toggle-description">Solo los tipos activos se ofrecen al crear un curso extracurricular</small>
+                        </div>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input
+                            class="form-check-input custom-switch"
+                            type="checkbox"
+                            id="activo"
+                            [(ngModel)]="model.activo"
+                            [disabled]="!editable">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-5">
+            <div class="col-sm-6" *ngIf="editable">
+                <button class="btn btn-lg btn-warning w-100" (click)="guardar()">
+                    <i class="fas fa-save me-2"></i> Grabar
+                </button>
+            </div>
+            <div class="col-sm-6">
+                <button class="btn btn-lg btn-secondary w-100" (click)="volver()">
+                    <i class="fas fa-arrow-left me-2"></i> Volver
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

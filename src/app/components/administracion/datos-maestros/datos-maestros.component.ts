@@ -96,6 +96,12 @@ export class DatosMaestrosComponent implements OnInit {
       case 'calendario-eventos':
         this.router.navigate(['/administracion/datos-maestros/calendario-eventos']);
         break;
+      case 'tipos-cursos-extracurriculares':
+        this.router.navigate(['/administracion/datos-maestros/tipos-cursos-extracurriculares']);
+        break;
+      case 'lugares-cursos-extra':
+        this.router.navigate(['/administracion/datos-maestros/lugares-cursos-extra']);
+        break;
       case 'configuracion-global':
         this.router.navigate(['/administracion/datos-maestros/configuracion-global']);
         break;

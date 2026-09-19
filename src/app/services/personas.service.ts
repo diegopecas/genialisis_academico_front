@@ -32,7 +32,7 @@ export interface PersonaBuscador {
 }
 
 // El header X-Silent evita que el interceptor muestre el spinner de carga:
-// esta consulta se hace sola al abrir la aplicación y no debe interrumpir.
+// estas consultas se hacen solas al abrir la aplicación y no deben interrumpir.
 const httpOptionsSilent = {
   headers: new HttpHeaders({
     'Content-Type': 'application/json',
@@ -322,6 +322,7 @@ export class PersonasService {
     return this.http
       .get<HttpResponse<Object>>(environment.api + 'personas-cumpleanos-hoy', {
         observe: 'response',
+        headers: httpOptionsSilent.headers,
       })
       .pipe(
         tap((response: HttpResponse<Object>) => {

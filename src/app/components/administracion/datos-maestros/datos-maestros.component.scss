@@ -12,6 +12,7 @@ $color-infraestructura: #3498db;
 $color-operaciones: #27ae60;
 $color-configuracion: #9b59b6;
 $color-seguridad: #2196F3;
+$color-clientes-institucionales: #e67e22;
 
 .modulo {
   min-height: 100vh;
@@ -143,6 +144,12 @@ $color-seguridad: #2196F3;
     background: linear-gradient(135deg, #bbdefb 0%, #90caf9 100%);
     --color-principal: #{$color-seguridad};
     --color-secundario: #{lighten($color-seguridad, 10%)};
+  }
+
+  &.clientes-institucionales {
+    background: linear-gradient(135deg, #ffe0c2 0%, #ffca99 100%);
+    --color-principal: #{$color-clientes-institucionales};
+    --color-secundario: #{lighten($color-clientes-institucionales, 10%)};
   }
 }
 

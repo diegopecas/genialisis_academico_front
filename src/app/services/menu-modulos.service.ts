@@ -701,7 +701,7 @@ export class MenuModulosService {
             iconoArbol: '⚙️',
             alt: 'Operaciones',
             imagen: 'assets/images/operaciones.png',
-            permisos: ['admin.gestion_medidas', 'admin.menus', 'admin.calendario_eventos'],
+            permisos: ['admin.gestion_medidas', 'admin.menus', 'admin.calendario_eventos', 'admin.tipos_cursos_extracurriculares', 'admin.lugares_cursos_extra'],
             keywords: ['cocina', 'medidas', 'minuta', 'calendario', 'eventos'],
             opciones: [
               {
@@ -746,7 +746,9 @@ export class MenuModulosService {
                   { id: 'calendario-eventos-tipos', label: 'Tipos de Evento', iconoArbol: '🏷️', ruta: '/administracion/datos-maestros/calendario-eventos/tipos', permiso: 'admin.tipos_evento_calendario', keywords: ['iconos', 'clasificacion eventos'] },
                   { id: 'calendario-eventos-lista', label: 'Eventos', iconoArbol: '🗓️', ruta: '/administracion/datos-maestros/calendario-eventos/eventos', permiso: 'admin.eventos_calendario', keywords: ['fechas', 'salidas', 'celebraciones', 'calendario'] }
                 ]
-              }
+              },
+              { id: 'tipos-cursos-extracurriculares', label: 'Tipos de Curso Extracurricular', alt: 'Tipos de Curso Extracurricular', imagen: 'assets/images/tipos-cursos-extra.png', iconoArbol: '🎭', ruta: '/administracion/datos-maestros/tipos-cursos-extracurriculares', permiso: 'admin.tipos_cursos_extracurriculares', keywords: ['extracurriculares', 'talleres', 'natacion', 'ballet', 'futbol', 'agrupador', 'actividades'] },
+              { id: 'lugares-cursos-extra', label: 'Lugares de Cursos Extracurriculares', alt: 'Lugares de Cursos Extracurriculares', imagen: 'assets/images/lugares-cursos-extra.png', iconoArbol: '📍', ruta: '/administracion/datos-maestros/lugares-cursos-extra', permiso: 'admin.lugares_cursos_extra', keywords: ['lugares', 'sitios', 'sedes', 'donde se dicta', 'extracurriculares', 'piscina', 'gimnasio'] }
             ]
           },
           {
