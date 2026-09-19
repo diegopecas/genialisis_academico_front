@@ -95,6 +95,7 @@ export class SprintTareasComponent implements OnInit, OnChanges {
    * Duración y fecha de ejecución van por rango (desde / hasta).
    */
   public columnasFiltro: (string | { columna: string, tipoFiltro?: 'fecha' | 'normal' | 'rango' })[] = [
+    'Destino',
     { columna: 'Duración (min)', tipoFiltro: 'rango' },
     'Estado',
     { columna: 'Fecha Ejecución', tipoFiltro: 'rango' }
@@ -141,6 +142,11 @@ export class SprintTareasComponent implements OnInit, OnChanges {
    * estado y los horarios para los límites y el modal de horarios.
    */
   cargarDatos() {
+    // Los cursos y sus horarios se cargan aquí y no solo al abrir el modal,
+    // porque el cálculo de límites de tiempo también los necesita.
+    this.cargarCursosExtra();
+    this.cargarHorariosCursosExtra();
+
     if (!this.idSprint) {
       return;
     }
@@ -195,13 +201,32 @@ export class SprintTareasComponent implements OnInit, OnChanges {
 
   private procesarTareas(tareas: any[]) {
     // Procesar tareas para unificar formato
-    const procesadas = tareas.map((tarea: any) => ({
-      ...tarea,
-      estado_nombre: tarea.nombre_estado,
-      // El back entrega id_area_academica; se deja también como id_area
-      // porque es el nombre que usa el resto del componente.
-      id_area: tarea.id_area_academica
-    }));
+    const procesadas = tareas.map((tarea: any) => {
+      // Destino: el grupo del jardín o el curso extracurricular. El backend ya
+      // lo resuelve, pero se recalcula aquí como respaldo para no depender de
+      // que esa versión del backend esté desplegada.
+      const idDestino = tarea.id_destino || tarea.id_curso_extra || tarea.id_grupo || null;
+      const tipoDestino = tarea.tipo_destino || (tarea.id_curso_extra ? 'curso' : 'grupo');
+      const nombreDestino = tarea.nombre_destino
+        || tarea.nombre_curso_extra
+        || tarea.nombre_grupo
+        || this.obtenerNombreDestino(idDestino);
+
+      return {
+        ...tarea,
+        estado_nombre: tarea.nombre_estado,
+        // El back entrega id_area_academica; se deja también como id_area
+        // porque es el nombre que usa el resto del componente.
+        id_area: tarea.id_area_academica,
+        id_destino: idDestino,
+        tipo_destino: tipoDestino,
+        // El nombre lleva el icono para distinguir de un vistazo una clase de
+        // curso extracurricular de una del jardin en la misma tabla.
+        nombre_destino: tipoDestino === 'curso'
+          ? '⭐ ' + (nombreDestino || '-')
+          : (nombreDestino || '-')
+      };
+    });
 
     // Guardar copia de todas las tareas sin filtrar
     this.todasLasTareas = [...procesadas];
@@ -213,6 +238,22 @@ export class SprintTareasComponent implements OnInit, OnChanges {
   obtenerNombreGrupo(idGrupo: any): string {
     const grupo = this.grupos.find(g => g.id == idGrupo);
     return grupo ? grupo.nombre : '';
+  }
+
+  /**
+   * Nombre del destino de una tarea, sea grupo o curso extracurricular.
+   * Se usa como respaldo cuando el backend no envía nombre_destino.
+   */
+  obtenerNombreDestino(idDestino: any): string {
+    if (!idDestino) {
+      return '';
+    }
+    const grupo = this.grupos.find(g => g.id == idDestino);
+    if (grupo) {
+      return grupo.nombre;
+    }
+    const curso = this.cursosExtra.find(c => c.id == idDestino);
+    return curso ? curso.nombre : '';
   }
 
   obtenerNombreArea(idArea: any): string {
@@ -228,9 +269,9 @@ export class SprintTareasComponent implements OnInit, OnChanges {
 
     let tareasFiltradas = [...this.todasLasTareas];
 
-    // Filtro por grupo
+    // Filtro por destino: el valor puede ser un grupo o un curso extracurricular.
     if (this.filtroGrupo) {
-      tareasFiltradas = tareasFiltradas.filter(t => t.id_grupo == this.filtroGrupo);
+      tareasFiltradas = tareasFiltradas.filter(t => t.id_destino == this.filtroGrupo);
     }
 
     // Filtro por área
@@ -253,7 +294,7 @@ export class SprintTareasComponent implements OnInit, OnChanges {
 
     if (horariosRelevantes.length === 0) {
       this.limitesConfig = {
-        mensaje: 'No hay horarios configurados para este grupo y área.',
+        mensaje: 'No hay horarios configurados para este destino y área.',
         limite: 0
       };
       return;
@@ -295,8 +336,8 @@ export class SprintTareasComponent implements OnInit, OnChanges {
         alinear: 'izquierda',
       },
       {
-        clave: 'nombre_grupo',
-        alias: 'Grupo',
+        clave: 'nombre_destino',
+        alias: 'Destino',
         alinear: 'izquierda',
       },
       {
@@ -821,99 +862,58 @@ export class SprintTareasComponent implements OnInit, OnChanges {
     });
   }
 
-  async asociarActividades() {
+  /**
+   * Asocia al sprint las actividades seleccionadas, en UNA sola peticion.
+   *
+   * Antes se hacian dos llamadas por actividad (una para validar el tiempo y
+   * otra para crear la tarea): con ocho actividades eran dieciseis viajes al
+   * backend, y las validaciones ademas iban en serie.
+   */
+  asociarActividades() {
     this.actividadSubmitted = true;
 
     if (this.actividadesSeleccionadas.length === 0) {
       return;
     }
 
-    // Validar cada actividad antes de asociar
-    const actividadesValidas: any[] = [];
-    const actividadesInvalidas: any[] = [];
-
-    for (const actividad of this.actividadesSeleccionadas) {
-      const esValida = await this.validarActividadAnteDeAsociar(actividad);
-      if (esValida) {
-        actividadesValidas.push(actividad);
-      } else {
-        actividadesInvalidas.push(actividad);
-      }
-    }
-
-    if (actividadesInvalidas.length > 0) {
-      const continuar = await Swal.fire({
-        title: 'Algunas actividades exceden el tiempo',
-        html: `
-        <p>${actividadesInvalidas.length} actividad(es) excederían el tiempo disponible.</p>
-        <p>¿Desea continuar solo con las ${actividadesValidas.length} actividad(es) válidas?</p>
-      `,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Sí, continuar',
-        cancelButtonText: 'Cancelar',
-        confirmButtonColor: '#d4af37',
-        cancelButtonColor: '#6c757d'
-      });
-
-      if (!continuar.isConfirmed || actividadesValidas.length === 0) {
-        return;
-      }
-    }
-
-    const totalActividades = actividadesValidas.length;
+    const total = this.actividadesSeleccionadas.length;
 
     Swal.fire({
       title: 'Asociando actividades',
-      html: `Procesando ${totalActividades} actividad${totalActividades > 1 ? 'es' : ''}...`,
+      html: `Procesando ${total} actividad${total > 1 ? 'es' : ''}...`,
       allowOutsideClick: false,
-      didOpen: () => {
-        Swal.showLoading();
-      }
+      didOpen: () => { Swal.showLoading(); }
     });
 
-    const observables = actividadesValidas.map(actividad => {
-      // Los ids son UUID: no se convierten a numero.
-      const body = {
-        id_sprint: this.idSprint,
-        id_actividad_academica: actividad.id,
-        id_grupo: this.origenModal === 'curso' ? null : this.filtroGrupoModal,
-        id_area_academica: this.filtroAreaModal,
-        id_curso_extra: this.origenModal === 'curso' ? this.filtroCursoModal : null,
-        id_estado_tarea: 1,
-        id_docente: null,
-        fecha_ejecucion: null,
-        fecha_registro: new Date().toISOString()
-      };
+    // Los ids son UUID: no se convierten a numero.
+    const body = {
+      id_sprint: this.idSprint,
+      actividades: this.actividadesSeleccionadas.map((a: any) => a.id),
+      id_grupo: this.origenModal === 'curso' ? null : this.filtroGrupoModal,
+      id_area_academica: this.filtroAreaModal,
+      id_curso_extra: this.origenModal === 'curso' ? this.filtroCursoModal : null,
+      id_docente: null
+    };
 
-      return this.tareasXSprintsService.crear(body);
-    });
-
-    forkJoin(observables).subscribe({
-      next: (results) => {
-        const asociadas = results.filter(r => r && r.id).length;
-        const errores = totalActividades - asociadas;
-
-        let mensaje = '';
-        let icon: any = 'success';
-
-        if (asociadas === totalActividades) {
-          mensaje = `${asociadas} actividad${asociadas > 1 ? 'es asociadas' : ' asociada'} correctamente.`;
-        } else {
-          icon = 'warning';
-          mensaje = `Proceso completado:<br>`;
-          if (asociadas > 0) mensaje += `✓ ${asociadas} actividad${asociadas > 1 ? 'es asociadas' : ' asociada'}<br>`;
-          if (errores > 0) mensaje += `✗ ${errores} error${errores > 1 ? 'es' : ''}`;
+    this.tareasXSprintsService.crearLote(body).subscribe({
+      next: (resp: any) => {
+        if (resp && resp.error) {
+          Swal.fire({ title: 'Error', text: resp.error, icon: 'error', confirmButtonText: 'Aceptar' });
+          return;
         }
 
-        if (actividadesInvalidas.length > 0) {
-          mensaje += `<br><br>⚠️ ${actividadesInvalidas.length} actividad${actividadesInvalidas.length > 1 ? 'es' : ''} no ${actividadesInvalidas.length > 1 ? 'fueron asociadas' : 'fue asociada'} por exceder el tiempo disponible.`;
+        const creadas = resp?.creadas || 0;
+        const omitidas = resp?.omitidas || [];
+
+        let mensaje = `${creadas} actividad${creadas > 1 ? 'es asociadas' : ' asociada'} correctamente.`;
+        if (omitidas.length > 0) {
+          mensaje += `<br><br>${omitidas.length} no se pudo asociar.`;
         }
 
         Swal.fire({
           title: 'Proceso completado',
           html: mensaje,
-          icon: icon,
+          icon: omitidas.length > 0 ? 'warning' : 'success',
           confirmButtonText: 'Aceptar',
           confirmButtonColor: '#d4af37'
         }).then(() => {
@@ -923,16 +923,14 @@ export class SprintTareasComponent implements OnInit, OnChanges {
           this.tareasCambiaron.emit();
         });
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('Error al asociar actividades:', error);
-        Swal.fire({
-          title: 'Error',
-          text: 'Ocurrió un error al asociar las actividades.',
-          icon: 'error',
-          confirmButtonText: 'Aceptar'
-        }).then(() => {
-          this.cerrarModalActividades();
-        });
+        const detalle = error?.error?.error || 'Ocurrió un error al asociar las actividades.';
+        Swal.fire({ title: 'Error', text: detalle, icon: 'error', confirmButtonText: 'Aceptar' })
+          .then(() => {
+            this.cerrarModalActividades();
+            this.obtenerTareasSprint();
+          });
       }
     });
   }

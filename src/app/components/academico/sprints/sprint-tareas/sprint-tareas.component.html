@@ -211,7 +211,7 @@
                 <i class="fas fa-times"></i> Cancelar
             </button>
             <button type="button" class="btn-principal" (click)="asociarActividades()"
-                [disabled]="!actividadesSeleccionadas || actividadesSeleccionadas.length === 0 || !filtroGrupoModal || !filtroAreaModal">
+                [disabled]="!actividadesSeleccionadas || actividadesSeleccionadas.length === 0 || !modalListo">
                 <i class="fas fa-link"></i>
                 Asociar {{ actividadesSeleccionadas.length || '' }} Actividad{{ actividadesSeleccionadas.length !== 1 ? 'es' : '' }}
             </button>

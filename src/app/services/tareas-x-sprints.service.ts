@@ -169,6 +169,13 @@ export class TareasXSprintsService {
       );
   }
 
+  /** Asocia varias actividades al sprint en una sola peticion. */
+  crearLote(data: any): Observable<any> {
+    return this.http
+      .post<any>(this.servicio + '/lote', data, httpOptions)
+      .pipe(catchError(this.handleError));
+  }
+
   crear(elemento: any): Observable<any> {
     var body = JSON.stringify(elemento);
     return this.http.post<any>(this.servicio, body, httpOptions).pipe(
