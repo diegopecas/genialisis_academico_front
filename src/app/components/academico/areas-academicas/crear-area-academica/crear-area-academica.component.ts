@@ -5,6 +5,8 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { HeaderComponent } from '../../../../common/header/header.component';
 import { AreasAcademicasService } from '../../../../services/areas-academicas.service';
 import { HttpClient } from '@angular/common/http';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -32,7 +34,10 @@ export class CrearAreaAcademicaComponent implements OnInit {
     id: null,
     nombre: '',
     icono: '',
-    color: '#FFFFFF'
+    color: '#FFFFFF',
+    // Marca el area como materia de un curso extracurricular. Las areas
+    // extracurriculares no se ofrecen en la malla regular ni al revés.
+    es_extracurricular: false
   } as any;
 
   constructor(
@@ -48,7 +53,8 @@ export class CrearAreaAcademicaComponent implements OnInit {
       const id = params['id'];
 
       if (this.accion === 'crear') {
-        this.titulo = "Crear Área Académica";
+        // Sin el prefijo: app-header antepone "Crear " cuando la accion es crear.
+        this.titulo = "Área Académica";
         this.editable = true;
       } else if (this.accion === 'editar') {
         this.titulo = "Editar Área Académica";
@@ -68,9 +74,9 @@ export class CrearAreaAcademicaComponent implements OnInit {
     this.areasAcademicasService.obtenerById(id).subscribe({
       next: (response: any) => {
         const body = response.body;
-        console.log("Área académica cargada", body);
         if (body && body.length > 0) {
           this.model = body[0];
+          this.model.es_extracurricular = !!this.model.es_extracurricular;
           // Actualizar título con el nombre
           if (this.accion === 'editar') {
             this.titulo = `Editar Área Académica: ${this.model.nombre}`;
@@ -86,23 +92,48 @@ export class CrearAreaAcademicaComponent implements OnInit {
     });
   }
 
+  /**
+   * Carga el catálogo de iconos.
+   *
+   * Se fusionan los dos catálogos (áreas académicas y cursos extracurriculares)
+   * para que un área extracurricular pueda usar iconos como Natación o Ballet.
+   * Se muestran siempre, esté o no marcada como extracurricular.
+   *
+   * Si uno de los dos archivos falla se continúa con el otro: quedarse sin la
+   * mitad del catálogo es mejor que quedarse sin ninguno.
+   */
   cargarImagenes() {
-    console.log("Intentando cargar imágenes...");
-    this.http.get<any>('assets/data/imagenes-areas-academicas.json').subscribe({
-      next: (data: any) => {
-        console.log("Imágenes cargadas exitosamente", data);
-        this.imagenesDisponibles = data.imagenes;
-        this.imagenesFiltradas = data.imagenes;
-      },
-      error: (error: any) => {
-        console.error("Error al cargar imágenes", error);
-        Swal.fire('Error', 'No se pudo cargar el catálogo de imágenes. Verifica que el archivo imagenes-areas-academicas.json esté en /assets/data/', 'error');
+    forkJoin({
+      areas: this.http.get<any>('assets/data/imagenes-areas-academicas.json')
+        .pipe(catchError(() => of(null))),
+      cursosExtra: this.http.get<any>('assets/data/imagenes-cursos-extra.json')
+        .pipe(catchError(() => of(null)))
+    }).subscribe((data: any) => {
+      const listaAreas = data.areas?.imagenes || [];
+      const listaCursos = data.cursosExtra?.imagenes || [];
+
+      if (listaAreas.length === 0 && listaCursos.length === 0) {
+        console.error("No se pudo cargar ningún catálogo de imágenes");
+        Swal.fire('Error', 'No se pudo cargar el catálogo de imágenes. Verifica que los archivos imagenes-areas-academicas.json e imagenes-cursos-extra.json estén en /assets/data/', 'error');
+        return;
       }
+
+      // La ruta identifica la imagen: si un icono está en los dos catálogos se
+      // deja una sola vez.
+      const porRuta = new Map<string, any>();
+      [...listaAreas, ...listaCursos].forEach((img: any) => {
+        if (img && img.ruta && !porRuta.has(img.ruta)) {
+          porRuta.set(img.ruta, img);
+        }
+      });
+
+      this.imagenesDisponibles = Array.from(porRuta.values())
+        .sort((a: any, b: any) => (a.nombre || '').localeCompare(b.nombre || ''));
+      this.imagenesFiltradas = this.imagenesDisponibles;
     });
   }
 
   abrirModalImagenes() {
-    console.log("Abriendo modal. Imágenes disponibles:", this.imagenesDisponibles.length);
     if (this.imagenesDisponibles.length === 0) {
       Swal.fire('Advertencia', 'No se han cargado las imágenes. Verifica que el archivo JSON esté disponible.', 'warning');
       return;
@@ -147,13 +178,13 @@ export class CrearAreaAcademicaComponent implements OnInit {
     const data = {
       nombre: this.model.nombre.trim(),
       icono: this.model.icono,
-      color: this.model.color || '#FFFFFF'
+      color: this.model.color || '#FFFFFF',
+      es_extracurricular: this.model.es_extracurricular ? 1 : 0
     } as any;
 
     if (this.accion === 'crear') {
       this.areasAcademicasService.crear(data).subscribe({
         next: (response: any) => {
-          console.log("Área académica creada", response);
           Swal.fire('Éxito', 'Área académica creada correctamente', 'success');
           this.router.navigate(['/academico/areas-academicas']);
         },
@@ -166,7 +197,6 @@ export class CrearAreaAcademicaComponent implements OnInit {
       data.id = this.model.id;
       this.areasAcademicasService.actualizar(data).subscribe({
         next: (response: any) => {
-          console.log("Área académica actualizada", response);
           Swal.fire('Éxito', 'Área académica actualizada correctamente', 'success');
           this.router.navigate(['/academico/areas-academicas']);
         },

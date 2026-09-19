@@ -112,6 +112,7 @@ export class CrearSprintsComponent implements OnInit {
           this.editable = true;
           this.nuevo = true;
           this.consultarCortes();
+          this.sugerirNumeroSprint();
           break;
         case 'editar':
           this.titulo = "Editar Sprint Académico";
@@ -127,6 +128,34 @@ export class CrearSprintsComponent implements OnInit {
           this.consultarCortes();
           this.obtenerSprint(this.id);
           break;
+      }
+    });
+  }
+
+  /**
+   * Propone el siguiente numero de sprint del año: el mayor existente mas uno.
+   * Es una sugerencia, no un bloqueo: el campo queda editable y la validacion
+   * de numero unico se sigue haciendo al grabar.
+   */
+  sugerirNumeroSprint() {
+    this.sprintsService.obtenerPorAnio(this.model.anio).subscribe({
+      next: (response: any) => {
+        const sprints = response.body || [];
+
+        // Si el usuario ya escribio un numero no se le pisa.
+        if (this.model.numero_sprint) {
+          return;
+        }
+
+        const numeros = sprints
+          .map((sp: any) => Number(sp.numero_sprint))
+          .filter((n: number) => !isNaN(n));
+
+        this.model.numero_sprint = numeros.length > 0 ? Math.max(...numeros) + 1 : 1;
+      },
+      error: (error: any) => {
+        // Sin sugerencia el formulario sigue funcionando: el usuario lo escribe.
+        console.error("Error al calcular el número de sprint:", error);
       }
     });
   }

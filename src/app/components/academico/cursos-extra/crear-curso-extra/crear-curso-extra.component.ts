@@ -9,6 +9,7 @@ import { ClasificacionProductosServiciosService } from '../../../../services/cla
 import { TiposCobroProductoService } from '../../../../services/tipos-cobro-producto.service';
 import { TiposCursosExtracurricularesService } from '../../../../services/tipos-cursos-extracurriculares.service';
 import { LugaresCursosExtraService } from '../../../../services/lugares-cursos-extra.service';
+import { AreasAcademicasService } from '../../../../services/areas-academicas.service';
 import { DiasSemanaService } from '../../../../services/dias-semana.service';
 import { HorariosCursosExtraService } from '../../../../services/horarios-cursos-extra.service';
 import { TarifasCursosExtraService } from '../../../../services/tarifas-cursos-extra.service';
@@ -51,6 +52,7 @@ export class CrearCursoExtraComponent implements OnInit {
     activo: 1,
     id_tipo_curso_extracurricular: null,
     id_lugar_curso_extra: null,
+    id_area_academica: null,
     permite_sobrecupo: 0,
     cupo_minimo: null,
     fecha_limite_inscripcion: '',
@@ -58,9 +60,17 @@ export class CrearCursoExtraComponent implements OnInit {
     edad_maxima_meses: null
   } as any;
 
+  /* La edad se guarda en meses, pero se pide en anios y meses porque nadie
+     dice "de 24 a 72 meses". La conversion se hace al cargar y al guardar. */
+  edadMinimaAnios: any = null;
+  edadMinimaMesesResto: any = null;
+  edadMaximaAnios: any = null;
+  edadMaximaMesesResto: any = null;
+
   // Catalogos del tab de Datos Basicos
   tiposCursoExtra: any[] = [];
   lugaresCursoExtra: any[] = [];
+  areasExtracurriculares: any[] = [];
 
   // Modal de imágenes
   mostrarModalImagenes: boolean = false;
@@ -153,6 +163,7 @@ export class CrearCursoExtraComponent implements OnInit {
     private tiposCobroProductoService: TiposCobroProductoService,
     private tiposCursosExtracurricularesService: TiposCursosExtracurricularesService,
     private lugaresCursosExtraService: LugaresCursosExtraService,
+    private areasAcademicasService: AreasAcademicasService,
     private diasSemanaService: DiasSemanaService,
     private horariosCursosExtraService: HorariosCursosExtraService,
     private tarifasCursosExtraService: TarifasCursosExtraService,
@@ -201,6 +212,7 @@ export class CrearCursoExtraComponent implements OnInit {
     this.cargarProveedoresDisponibles();
     this.cargarTiposCursoExtra();
     this.cargarLugaresCursoExtra();
+    this.cargarAreasExtracurriculares();
   }
 
   // ==================== DATOS BASICOS ====================
@@ -214,6 +226,7 @@ export class CrearCursoExtraComponent implements OnInit {
           // Los inputs de tipo date y number no aceptan null: se normalizan aqui.
           this.model.fecha_limite_inscripcion = this.model.fecha_limite_inscripcion || '';
           this.model.permite_sobrecupo = this.model.permite_sobrecupo ? 1 : 0;
+          this.desglosarEdades();
           if (this.accion === 'editar') {
             this.titulo = `Editar Curso: ${this.model.nombre}`;
           } else if (this.accion === 'consultar') {
@@ -240,6 +253,20 @@ export class CrearCursoExtraComponent implements OnInit {
     });
   }
 
+  /* El area academica es la materia del curso: de ella cuelgan los logros, los
+     indicadores y las actividades que luego se califican. Solo se ofrecen las
+     marcadas como extracurriculares. */
+  cargarAreasExtracurriculares() {
+    this.areasAcademicasService.obtenerExtracurriculares().subscribe({
+      next: (response: any) => {
+        this.areasExtracurriculares = response.body || [];
+      },
+      error: (error: any) => {
+        console.error("Error al cargar áreas extracurriculares", error);
+      }
+    });
+  }
+
   cargarLugaresCursoExtra() {
     this.lugaresCursosExtraService.obtenerActivos().subscribe({
       next: (response: any) => {
@@ -249,6 +276,48 @@ export class CrearCursoExtraComponent implements OnInit {
         console.error("Error al cargar lugares de cursos extracurriculares", error);
       }
     });
+  }
+
+  /* Parte los meses guardados en anios + meses para mostrarlos en el formulario. */
+  desglosarEdades() {
+    if (this.model.edad_minima_meses !== null && this.model.edad_minima_meses !== undefined && this.model.edad_minima_meses !== '') {
+      const total = parseInt(this.model.edad_minima_meses);
+      this.edadMinimaAnios = Math.floor(total / 12);
+      this.edadMinimaMesesResto = total % 12;
+    } else {
+      this.edadMinimaAnios = null;
+      this.edadMinimaMesesResto = null;
+    }
+
+    if (this.model.edad_maxima_meses !== null && this.model.edad_maxima_meses !== undefined && this.model.edad_maxima_meses !== '') {
+      const total = parseInt(this.model.edad_maxima_meses);
+      this.edadMaximaAnios = Math.floor(total / 12);
+      this.edadMaximaMesesResto = total % 12;
+    } else {
+      this.edadMaximaAnios = null;
+      this.edadMaximaMesesResto = null;
+    }
+  }
+
+  /* Convierte anios + meses al total en meses que espera la base.
+     Devuelve null si los dos campos estan vacios: asi la edad no se valida. */
+  calcularMeses(anios: any, meses: any): number | null {
+    const a = anios === null || anios === undefined || anios === '' ? null : parseInt(anios);
+    const m = meses === null || meses === undefined || meses === '' ? null : parseInt(meses);
+
+    if (a === null && m === null) {
+      return null;
+    }
+    return (a || 0) * 12 + (m || 0);
+  }
+
+  // Texto de apoyo bajo los campos, para que se vea el total que se va a guardar.
+  get totalEdadMinima(): number | null {
+    return this.calcularMeses(this.edadMinimaAnios, this.edadMinimaMesesResto);
+  }
+
+  get totalEdadMaxima(): number | null {
+    return this.calcularMeses(this.edadMaximaAnios, this.edadMaximaMesesResto);
   }
 
   cargarImagenes() {
@@ -317,8 +386,10 @@ export class CrearCursoExtraComponent implements OnInit {
       return;
     }
 
-    if (this.model.edad_minima_meses && this.model.edad_maxima_meses &&
-        parseInt(this.model.edad_minima_meses) > parseInt(this.model.edad_maxima_meses)) {
+    const edadMinima = this.calcularMeses(this.edadMinimaAnios, this.edadMinimaMesesResto);
+    const edadMaxima = this.calcularMeses(this.edadMaximaAnios, this.edadMaximaMesesResto);
+
+    if (edadMinima !== null && edadMaxima !== null && edadMinima > edadMaxima) {
       Swal.fire('Advertencia', 'La edad mínima no puede ser mayor a la edad máxima', 'warning');
       return;
     }
@@ -335,11 +406,12 @@ export class CrearCursoExtraComponent implements OnInit {
       activo: this.model.activo,
       id_tipo_curso_extracurricular: this.model.id_tipo_curso_extracurricular ? this.model.id_tipo_curso_extracurricular : null,
       id_lugar_curso_extra: this.model.id_lugar_curso_extra ? this.model.id_lugar_curso_extra : null,
+      id_area_academica: this.model.id_area_academica ? this.model.id_area_academica : null,
       permite_sobrecupo: this.model.permite_sobrecupo ? 1 : 0,
       cupo_minimo: this.model.cupo_minimo ? parseInt(this.model.cupo_minimo) : null,
       fecha_limite_inscripcion: this.model.fecha_limite_inscripcion ? this.model.fecha_limite_inscripcion : null,
-      edad_minima_meses: this.model.edad_minima_meses ? parseInt(this.model.edad_minima_meses) : null,
-      edad_maxima_meses: this.model.edad_maxima_meses ? parseInt(this.model.edad_maxima_meses) : null
+      edad_minima_meses: edadMinima,
+      edad_maxima_meses: edadMaxima
     } as any;
 
     if (this.accion === 'crear') {

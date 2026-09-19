@@ -194,40 +194,51 @@ $light-gold: rgba(212, 175, 55, 0.1);
 // =============================================
 // Preview del icono
 // =============================================
-.icono-preview {
-  width: 100px;
-  height: 100px;
-  border: 2px solid #dee2e6;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #f8f9fa;
-  overflow: hidden;
+// Icono del curso, en la columna derecha del panel de Identificacion.
+// Mismas medidas que el formulario de areas academicas.
+.icono-section {
 
-  &.is-invalid-border {
-    border-color: #dc3545;
-  }
-
-  .img-preview {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-  }
-
-  .sin-icono {
+  .icono-preview-large {
+    width: 100%;
+    height: 180px;
+    border: 2px dashed #e0e0e0;
+    border-radius: 12px;
+    background-color: #fff;
     display: flex;
-    flex-direction: column;
     align-items: center;
-    color: #6c757d;
+    justify-content: center;
+    overflow: hidden;
+    transition: border-color 0.3s ease;
 
-    i {
-      font-size: 2rem;
-      margin-bottom: 0.5rem;
+    &:hover {
+      border-color: $gold;
     }
 
-    span {
-      font-size: 0.8rem;
+    &.is-invalid-border {
+      border-color: #dc3545;
+    }
+
+    .img-preview {
+      max-width: 80%;
+      max-height: 80%;
+      object-fit: contain;
+    }
+
+    .sin-icono {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      color: #6c757d;
+
+      i {
+        font-size: 2.5rem;
+        opacity: 0.4;
+      }
+
+      span {
+        font-size: 0.85rem;
+      }
     }
   }
 }
@@ -479,6 +490,95 @@ $light-gold: rgba(212, 175, 55, 0.1);
   }
 }
 
+
+// Switch de sobrecupo dentro del panel de cupos
+.switch-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  height: 100%;
+  min-height: 58px;
+  padding: 10px 14px;
+  border: 1px solid #e9ecef;
+  border-radius: 10px;
+  background: #fff;
+  transition: all 0.25s ease;
+
+  &.active {
+    border-color: rgba($gold, 0.55);
+    background: $light-gold;
+  }
+}
+
+.switch-texto {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+
+  .switch-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: $black;
+  }
+
+  small {
+    font-size: 0.75rem;
+    color: #6c757d;
+  }
+}
+
+// Nota informativa al pie de un panel
+.aviso-inline {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: $light-gold;
+  border: 1px solid rgba($gold, 0.25);
+  font-size: 0.82rem;
+  color: #6c5310;
+
+  i {
+    color: $gold;
+    margin-top: 2px;
+  }
+}
+
+// El input de color ocupa el alto de los demás campos de su fila
+.form-control-color {
+  height: 38px;
+  padding: 3px 6px;
+  cursor: pointer;
+}
+
+
+// Edad en dos partes: anios y meses. Se guarda el total en meses.
+.edad-campo {
+  display: flex;
+  gap: 8px;
+}
+
+.edad-parte {
+  position: relative;
+  flex: 1;
+
+  input {
+    padding-right: 48px;
+  }
+}
+
+.edad-unidad {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.75rem;
+  color: #6c757d;
+  pointer-events: none;
+}
+
 // =============================================
 // Responsive
 // =============================================
@@ -503,6 +603,14 @@ $light-gold: rgba(212, 175, 55, 0.1);
   .modal-content-producto {
     max-width: 100%;
     max-height: 95vh;
+  }
+
+  .switch-card {
+    min-height: 0;
+  }
+
+  .icono-section .icono-preview-large {
+    height: 140px;
   }
 
   .imagenes-grid {

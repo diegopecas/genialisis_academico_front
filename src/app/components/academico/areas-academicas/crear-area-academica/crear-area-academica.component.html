@@ -49,6 +49,24 @@
                         </div>
                         <small class="form-text text-muted">Seleccione un color identificador para el área académica</small>
                     </div>
+
+                    <div class="col-12 mt-3">
+                        <div class="form-check form-switch">
+                            <input
+                                class="form-check-input"
+                                type="checkbox"
+                                id="es_extracurricular"
+                                [(ngModel)]="model.es_extracurricular"
+                                [disabled]="!editable">
+                            <label class="form-check-label" for="es_extracurricular">
+                                Es un área extracurricular
+                            </label>
+                        </div>
+                        <small class="form-text text-muted">
+                            Márquela si esta área es la materia de un curso extracurricular (Natación, Ballet).
+                            Las áreas extracurriculares no se ofrecen al asignar áreas a un grupo.
+                        </small>
+                    </div>
                 </div>
             </div>
 

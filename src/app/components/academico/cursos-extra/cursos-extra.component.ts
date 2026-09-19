@@ -16,7 +16,7 @@ import { Router } from '@angular/router';
 export class CursosExtraComponent implements OnInit {
 
   titulo = "Cursos Extracurriculares";
-  public columnasFiltro = ['Nombre'];
+  public columnasFiltro = ['Nombre', 'Tipo', 'Área', 'Lugar', 'Activo'];
   public titulos = [] as any[];
   public datos = [] as any[];
 
@@ -35,19 +35,41 @@ export class CursosExtraComponent implements OnInit {
   obtenerCursos() {
     this.cursosExtraService.obtenerTodos().subscribe((response: any) => {
       const body = response.body as any[];
-      console.log("consumo servicio cursos extra", body);
       this.datos = body.map((curso: any) => {
         return {
           id: curso.id,
           nombre: curso.nombre,
+          // Los tres son opcionales en el curso: se muestra un guion cuando faltan
+          // para que la columna no quede en blanco y parezca un error.
+          nombre_tipo_curso: curso.nombre_tipo_curso || '-',
+          nombre_area_academica: curso.nombre_area_academica || '-',
+          nombre_lugar: curso.nombre_lugar || '-',
           fecha_inicio: curso.fecha_inicio,
           fecha_fin: curso.fecha_fin,
-          cupo_maximo: curso.cupo_maximo,
+          cupo_label: this.armarCupo(curso),
           activo: curso.activo,
-          anio: curso.anio
+          anio: curso.anio,
+          color: curso.activo === 0 ? "#e2e9f3" : "",
         };
       });
     });
+  }
+
+  /* El cupo se muestra junto con el minimo y el sobrecupo, que son los datos
+     que decidien si el curso se puede abrir y si admite mas inscritos. */
+  armarCupo(curso: any): string {
+    if (!curso.cupo_maximo) {
+      return curso.permite_sobrecupo ? 'Sin límite' : '-';
+    }
+
+    let texto = String(curso.cupo_maximo);
+    if (curso.cupo_minimo) {
+      texto = curso.cupo_minimo + ' - ' + texto;
+    }
+    if (curso.permite_sobrecupo) {
+      texto += ' (+)';
+    }
+    return texto;
   }
 
   crearTitulos() {
@@ -55,6 +77,21 @@ export class CursosExtraComponent implements OnInit {
       {
         clave: 'nombre',
         alias: 'Nombre',
+        alinear: 'izquierda',
+      },
+      {
+        clave: 'nombre_tipo_curso',
+        alias: 'Tipo',
+        alinear: 'izquierda',
+      },
+      {
+        clave: 'nombre_area_academica',
+        alias: 'Área',
+        alinear: 'izquierda',
+      },
+      {
+        clave: 'nombre_lugar',
+        alias: 'Lugar',
         alinear: 'izquierda',
       },
       {
@@ -68,7 +105,7 @@ export class CursosExtraComponent implements OnInit {
         alinear: 'centrado',
       },
       {
-        clave: 'cupo_maximo',
+        clave: 'cupo_label',
         alias: 'Cupo',
         alinear: 'centrado',
       },
@@ -82,7 +119,6 @@ export class CursosExtraComponent implements OnInit {
   }
 
   clicAccion($event: any) {
-    console.log("Acción", $event);
     switch ($event.accion) {
       case 'editar':
         this.router.navigate(['academico/cursos-extra/editar/' + $event.registro.id]);

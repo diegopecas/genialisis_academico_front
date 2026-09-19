@@ -16,7 +16,7 @@ import { Router } from '@angular/router';
 export class AreasAcademicasComponent implements OnInit {
 
   titulo = "Gestión de Áreas Académicas";
-  public columnasFiltro = ['Nombre'];
+  public columnasFiltro = ['Nombre', 'Tipo'];
   public titulos = [] as any[];
   public datos = [] as any[];
 
@@ -35,8 +35,10 @@ export class AreasAcademicasComponent implements OnInit {
   obtenerAreasAcademicas() {
     this.areasAcademicasService.obtenerTodosList().subscribe((response: any) => {
       const body = response.body as any[];
-      console.log("consumo servicio areas academicas", body);
-      this.datos = body;
+      this.datos = body.map((item: any) => ({
+        ...item,
+        tipo_label: item.es_extracurricular ? 'Extracurricular' : 'Regular',
+      }));
     });
   }
 
@@ -58,11 +60,15 @@ export class AreasAcademicasComponent implements OnInit {
         alinear: 'centrado',
         tipo: 'imagen',
       },
+      {
+        clave: 'tipo_label',
+        alias: 'Tipo',
+        alinear: 'centrado',
+      },
     ];
   }
 
   clicAccion($event: any) {
-    console.log("Acción", $event);
     switch ($event.accion) {
       case 'editar':
         this.router.navigate(['academico/areas-academicas/editar/' + $event.registro.id]);

@@ -50,6 +50,38 @@ export class AreasAcademicasService {
       );
   }
 
+  /** Solo las areas marcadas como extracurriculares (malla de los cursos extra). */
+  obtenerExtracurriculares() {
+    return this.http
+      .get<HttpResponse<Object>>(this.servicio + '/extracurriculares', { observe: 'response' })
+      .pipe(
+        tap((response: HttpResponse<Object>) => {
+          let respuesta: any = response.body;
+          if (respuesta.error) {
+            throw respuesta.error;
+          }
+          return response;
+        }),
+        catchError(this.handleError)
+      );
+  }
+
+  /** Solo las areas regulares, para los selectores de la malla academica normal. */
+  obtenerRegulares() {
+    return this.http
+      .get<HttpResponse<Object>>(this.servicio + '/regulares', { observe: 'response' })
+      .pipe(
+        tap((response: HttpResponse<Object>) => {
+          let respuesta: any = response.body;
+          if (respuesta.error) {
+            throw respuesta.error;
+          }
+          return response;
+        }),
+        catchError(this.handleError)
+      );
+  }
+
   obtenerById(id: any): Observable<HttpResponse<Object>> {
     return this.http
       .get<HttpResponse<Object>>(`${this.servicio}/${id}`, {

@@ -55,138 +55,239 @@
 
     <!-- ==================== TAB: DATOS BASICOS ==================== -->
     <div class="container mt-4" *ngIf="pestanaActiva === 'basico'">
-        <div class="row">
-            <div class="col-md-8 col-12">
-                <label for="nombre" class="form-label">Nombre del curso <span class="text-danger">*</span></label>
-                <input class="form-control form-control-lg" type="text" id="nombre" [(ngModel)]="model.nombre"
-                    placeholder="Ej: Música, Natación, Inglés..."
-                    [ngClass]="{'is-invalid': !model.nombre && submitted}" [disabled]="!editable">
-            </div>
-            <div class="col-md-4 col-12">
-                <label for="anio" class="form-label">Año <span class="text-danger">*</span></label>
-                <input class="form-control form-control-lg" type="number" id="anio" [(ngModel)]="model.anio"
-                    [disabled]="!editable">
-            </div>
-        </div>
 
-        <div class="row mt-3">
-            <div class="col-12">
-                <label for="descripcion" class="form-label">Descripción</label>
-                <textarea class="form-control form-control-lg" id="descripcion" [(ngModel)]="model.descripcion"
-                    placeholder="Descripción del curso extracurricular" rows="3" [disabled]="!editable"></textarea>
+        <!-- Identificación -->
+        <div class="panel-card mb-4">
+            <div class="panel-header">
+                <i class="fas fa-info-circle"></i>
+                <span>Identificación</span>
             </div>
-        </div>
-
-        <div class="row mt-3">
-            <div class="col-md-6 col-12">
-                <label for="tipo_curso" class="form-label">Tipo de curso</label>
-                <select class="form-select form-select-lg" id="tipo_curso"
-                    [(ngModel)]="model.id_tipo_curso_extracurricular" [disabled]="!editable">
-                    <option [ngValue]="null">-- Sin tipo --</option>
-                    <option *ngFor="let t of tiposCursoExtra" [ngValue]="t.id">{{t.nombre}}</option>
-                </select>
-                <small class="form-text text-muted">Agrupa los cursos de la misma actividad para los reportes</small>
-            </div>
-            <div class="col-md-6 col-12">
-                <label for="lugar_curso" class="form-label">Lugar donde se dicta</label>
-                <select class="form-select form-select-lg" id="lugar_curso"
-                    [(ngModel)]="model.id_lugar_curso_extra" [disabled]="!editable">
-                    <option [ngValue]="null">-- Sin lugar --</option>
-                    <option *ngFor="let l of lugaresCursoExtra" [ngValue]="l.id">{{l.nombre}}</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="row mt-3">
-            <div class="col-md-3 col-12">
-                <label for="cupo_maximo" class="form-label">Cupo máximo</label>
-                <input class="form-control form-control-lg" type="number" id="cupo_maximo" [(ngModel)]="model.cupo_maximo"
-                    placeholder="Ej: 20" min="1" [disabled]="!editable">
-            </div>
-            <div class="col-md-3 col-12">
-                <label for="cupo_minimo" class="form-label">Cupo mínimo</label>
-                <input class="form-control form-control-lg" type="number" id="cupo_minimo" [(ngModel)]="model.cupo_minimo"
-                    placeholder="Ej: 8" min="1" [disabled]="!editable">
-                <small class="form-text text-muted">Inscritos necesarios para abrir el curso</small>
-            </div>
-            <div class="col-md-3 col-12 d-flex align-items-center">
-                <div class="form-check form-switch mt-4">
-                    <input class="form-check-input" type="checkbox" id="permite_sobrecupo"
-                        [(ngModel)]="model.permite_sobrecupo" [disabled]="!editable">
-                    <label class="form-check-label" for="permite_sobrecupo">Permite sobrecupo</label>
-                </div>
-            </div>
-            <div class="col-md-3 col-12">
-                <label for="color" class="form-label">Color</label>
-                <input class="form-control form-control-lg" type="color" id="color" [(ngModel)]="model.color"
-                    [disabled]="!editable" style="height: 48px;">
-            </div>
-        </div>
-
-        <div class="row mt-3">
-            <div class="col-md-4 col-12">
-                <label for="fecha_inicio" class="form-label">Fecha inicio <span class="text-danger">*</span></label>
-                <input class="form-control form-control-lg" type="date" id="fecha_inicio" [(ngModel)]="model.fecha_inicio"
-                    [ngClass]="{'is-invalid': !model.fecha_inicio && submitted}" [disabled]="!editable">
-            </div>
-            <div class="col-md-4 col-12">
-                <label for="fecha_fin" class="form-label">Fecha fin <span class="text-danger">*</span></label>
-                <input class="form-control form-control-lg" type="date" id="fecha_fin" [(ngModel)]="model.fecha_fin"
-                    [ngClass]="{'is-invalid': !model.fecha_fin && submitted}" [disabled]="!editable">
-            </div>
-            <div class="col-md-4 col-12">
-                <label for="fecha_limite_inscripcion" class="form-label">Fecha límite de inscripción</label>
-                <input class="form-control form-control-lg" type="date" id="fecha_limite_inscripcion"
-                    [(ngModel)]="model.fecha_limite_inscripcion" [disabled]="!editable">
-                <small class="form-text text-muted">Vacía: no se valida</small>
-            </div>
-        </div>
-
-        <div class="row mt-3">
-            <div class="col-md-6 col-12">
-                <label for="edad_minima_meses" class="form-label">Edad mínima (meses)</label>
-                <input class="form-control form-control-lg" type="number" id="edad_minima_meses"
-                    [(ngModel)]="model.edad_minima_meses" placeholder="Ej: 24" min="0" [disabled]="!editable">
-            </div>
-            <div class="col-md-6 col-12">
-                <label for="edad_maxima_meses" class="form-label">Edad máxima (meses)</label>
-                <input class="form-control form-control-lg" type="number" id="edad_maxima_meses"
-                    [(ngModel)]="model.edad_maxima_meses" placeholder="Ej: 72" min="0" [disabled]="!editable">
-                <small class="form-text text-muted">Vacías: no se valida la edad</small>
-            </div>
-        </div>
-
-        <div class="row mt-3">
-            <div class="col-md-4 col-12">
-                <label class="form-label">Icono</label>
-                <div class="d-flex align-items-center gap-3">
-                    <div class="icono-preview" [class.is-invalid-border]="!model.icono && submitted">
-                        <img *ngIf="model.icono" [src]="model.icono" class="img-preview" />
-                        <div *ngIf="!model.icono" class="sin-icono">
-                            <i class="fas fa-image"></i>
-                            <span>Sin icono</span>
+            <div class="panel-body">
+                <div class="row g-3">
+                    <!-- Columna principal -->
+                    <div class="col-md-8 col-12">
+                        <div class="row g-3">
+                            <div class="col-md-8 col-12">
+                                <label for="nombre" class="form-label">Nombre del curso <span class="text-danger">*</span></label>
+                                <input class="form-control" type="text" id="nombre" [(ngModel)]="model.nombre"
+                                    placeholder="Ej: Natación Lunes, Ballet Tarde..."
+                                    [ngClass]="{'is-invalid': !model.nombre && submitted}" [disabled]="!editable">
+                            </div>
+                            <div class="col-md-4 col-12">
+                                <label for="anio" class="form-label">Año <span class="text-danger">*</span></label>
+                                <input class="form-control" type="number" id="anio" [(ngModel)]="model.anio"
+                                    [disabled]="!editable">
+                            </div>
+                            <div class="col-12">
+                                <label for="descripcion" class="form-label">Descripción</label>
+                                <textarea class="form-control" id="descripcion" [(ngModel)]="model.descripcion"
+                                    placeholder="Descripción del curso extracurricular" rows="3" [disabled]="!editable"></textarea>
+                            </div>
+                            <div class="col-md-6 col-12">
+                                <label for="color" class="form-label">Color</label>
+                                <input class="form-control form-control-color w-100" type="color" id="color"
+                                    [(ngModel)]="model.color" [disabled]="!editable">
+                            </div>
+                            <div class="col-md-6 col-12" *ngIf="accion === 'editar'">
+                                <label class="form-label">Estado</label>
+                                <select class="form-select" [(ngModel)]="model.activo" [disabled]="!editable">
+                                    <option [ngValue]="1">Activo</option>
+                                    <option [ngValue]="0">Inactivo</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
-                    <button class="btn btn-outline-secondary" (click)="abrirModalImagenes()" *ngIf="editable">
-                        <i class="fas fa-search"></i> Seleccionar
-                    </button>
+
+                    <!-- Columna del icono (superior derecha) -->
+                    <div class="col-md-4 col-12">
+                        <div class="icono-section">
+                            <label class="form-label text-center d-block">Icono</label>
+                            <div class="icono-preview-large" [ngClass]="{'is-invalid-border': !model.icono && submitted}">
+                                <img *ngIf="model.icono" [src]="model.icono" alt="Icono seleccionado" class="img-preview">
+                                <div *ngIf="!model.icono" class="sin-icono">
+                                    <i class="fas fa-image"></i>
+                                    <span>Sin icono</span>
+                                </div>
+                            </div>
+                            <div class="d-flex gap-2 mt-3">
+                                <button
+                                    type="button"
+                                    class="btn btn-primary flex-grow-1 btn-sm"
+                                    (click)="abrirModalImagenes()"
+                                    [disabled]="!editable">
+                                    <i class="fas fa-folder-open"></i> Seleccionar
+                                </button>
+                                <button
+                                    *ngIf="model.icono && editable"
+                                    type="button"
+                                    class="btn btn-danger btn-sm"
+                                    (click)="model.icono = ''">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            <small class="form-text text-muted d-block text-center mt-2">Icono del curso</small>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            <div class="col-md-4 col-12" *ngIf="accion === 'editar'">
-                <label class="form-label">Estado</label>
-                <select class="form-select form-select-lg" [(ngModel)]="model.activo" [disabled]="!editable">
-                    <option [ngValue]="1">Activo</option>
-                    <option [ngValue]="0">Inactivo</option>
-                </select>
             </div>
         </div>
 
-        <div class="row mt-4 mb-4">
+        <!-- Clasificación -->
+        <div class="panel-card mb-4">
+            <div class="panel-header">
+                <i class="fas fa-tags"></i>
+                <span>Clasificación</span>
+            </div>
+            <div class="panel-body">
+                <div class="row g-3">
+                    <div class="col-md-4 col-12">
+                        <label for="tipo_curso" class="form-label">Tipo de curso</label>
+                        <select class="form-select" id="tipo_curso"
+                            [(ngModel)]="model.id_tipo_curso_extracurricular" [disabled]="!editable">
+                            <option [ngValue]="null">-- Sin tipo --</option>
+                            <option *ngFor="let t of tiposCursoExtra" [ngValue]="t.id">{{t.nombre}}</option>
+                        </select>
+                        <small class="form-text text-muted">Agrupa los cursos para los reportes</small>
+                    </div>
+                    <div class="col-md-4 col-12">
+                        <label for="area_academica" class="form-label">Área académica</label>
+                        <select class="form-select" id="area_academica"
+                            [(ngModel)]="model.id_area_academica" [disabled]="!editable">
+                            <option [ngValue]="null">-- Sin área --</option>
+                            <option *ngFor="let a of areasExtracurriculares" [ngValue]="a.id">{{a.nombre}}</option>
+                        </select>
+                        <small class="form-text text-muted">Trae los logros y actividades. Sin área el curso no se califica.</small>
+                    </div>
+                    <div class="col-md-4 col-12">
+                        <label for="lugar_curso" class="form-label">Lugar donde se dicta</label>
+                        <select class="form-select" id="lugar_curso"
+                            [(ngModel)]="model.id_lugar_curso_extra" [disabled]="!editable">
+                            <option [ngValue]="null">-- Sin lugar --</option>
+                            <option *ngFor="let l of lugaresCursoExtra" [ngValue]="l.id">{{l.nombre}}</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="aviso-inline mt-3" *ngIf="areasExtracurriculares.length === 0">
+                    <i class="fas fa-info-circle"></i>
+                    <span>No hay áreas extracurriculares. Cree una en Áreas Académicas y márquela como extracurricular.</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cupos -->
+        <div class="panel-card mb-4">
+            <div class="panel-header">
+                <i class="fas fa-users"></i>
+                <span>Cupos</span>
+            </div>
+            <div class="panel-body">
+                <div class="row g-3">
+                    <div class="col-md-4 col-12">
+                        <label for="cupo_maximo" class="form-label">Cupo máximo</label>
+                        <input class="form-control" type="number" id="cupo_maximo" [(ngModel)]="model.cupo_maximo"
+                            placeholder="Ej: 20" min="1" [disabled]="!editable">
+                    </div>
+                    <div class="col-md-4 col-12">
+                        <label for="cupo_minimo" class="form-label">Cupo mínimo</label>
+                        <input class="form-control" type="number" id="cupo_minimo" [(ngModel)]="model.cupo_minimo"
+                            placeholder="Ej: 8" min="1" [disabled]="!editable">
+                        <small class="form-text text-muted">Inscritos necesarios para abrir el curso</small>
+                    </div>
+                    <div class="col-md-4 col-12">
+                        <div class="switch-card" [class.active]="model.permite_sobrecupo">
+                            <div class="switch-texto">
+                                <span class="switch-label">Permite sobrecupo</span>
+                                <small>Deja inscribir por encima del cupo máximo</small>
+                            </div>
+                            <div class="form-check form-switch m-0">
+                                <input class="form-check-input" type="checkbox" id="permite_sobrecupo"
+                                    [(ngModel)]="model.permite_sobrecupo" [disabled]="!editable">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vigencia y edades -->
+        <div class="panel-card mb-4">
+            <div class="panel-header">
+                <i class="fas fa-calendar-alt"></i>
+                <span>Vigencia y edades</span>
+            </div>
+            <div class="panel-body">
+                <div class="row g-3">
+                    <div class="col-md-4 col-12">
+                        <label for="fecha_inicio" class="form-label">Fecha inicio <span class="text-danger">*</span></label>
+                        <input class="form-control" type="date" id="fecha_inicio" [(ngModel)]="model.fecha_inicio"
+                            [ngClass]="{'is-invalid': !model.fecha_inicio && submitted}" [disabled]="!editable">
+                    </div>
+                    <div class="col-md-4 col-12">
+                        <label for="fecha_fin" class="form-label">Fecha fin <span class="text-danger">*</span></label>
+                        <input class="form-control" type="date" id="fecha_fin" [(ngModel)]="model.fecha_fin"
+                            [ngClass]="{'is-invalid': !model.fecha_fin && submitted}" [disabled]="!editable">
+                    </div>
+                    <div class="col-md-4 col-12">
+                        <label for="fecha_limite_inscripcion" class="form-label">Límite de inscripción</label>
+                        <input class="form-control" type="date" id="fecha_limite_inscripcion"
+                            [(ngModel)]="model.fecha_limite_inscripcion" [disabled]="!editable">
+                    </div>
+                    <div class="col-md-4 col-12">
+                        <label class="form-label">Edad mínima</label>
+                        <div class="edad-campo">
+                            <div class="edad-parte">
+                                <input class="form-control" type="number" id="edad_minima_anios"
+                                    [(ngModel)]="edadMinimaAnios" placeholder="0" min="0" [disabled]="!editable">
+                                <span class="edad-unidad">años</span>
+                            </div>
+                            <div class="edad-parte">
+                                <input class="form-control" type="number" id="edad_minima_meses_resto"
+                                    [(ngModel)]="edadMinimaMesesResto" placeholder="0" min="0" max="11" [disabled]="!editable">
+                                <span class="edad-unidad">meses</span>
+                            </div>
+                        </div>
+                        <small class="form-text text-muted" *ngIf="totalEdadMinima !== null">
+                            Se guarda como {{totalEdadMinima}} meses
+                        </small>
+                    </div>
+                    <div class="col-md-4 col-12">
+                        <label class="form-label">Edad máxima</label>
+                        <div class="edad-campo">
+                            <div class="edad-parte">
+                                <input class="form-control" type="number" id="edad_maxima_anios"
+                                    [(ngModel)]="edadMaximaAnios" placeholder="0" min="0" [disabled]="!editable">
+                                <span class="edad-unidad">años</span>
+                            </div>
+                            <div class="edad-parte">
+                                <input class="form-control" type="number" id="edad_maxima_meses_resto"
+                                    [(ngModel)]="edadMaximaMesesResto" placeholder="0" min="0" max="11" [disabled]="!editable">
+                                <span class="edad-unidad">meses</span>
+                            </div>
+                        </div>
+                        <small class="form-text text-muted" *ngIf="totalEdadMaxima !== null">
+                            Se guarda como {{totalEdadMaxima}} meses
+                        </small>
+                    </div>
+                </div>
+
+                <div class="aviso-inline mt-3">
+                    <i class="fas fa-lightbulb"></i>
+                    <span>La fecha límite y las edades solo se validan si las llena. Vacías no bloquean la inscripción.</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-5">
             <div class="col-sm-6" *ngIf="editable">
-                <button class="btn btn-lg btn-warning w-100" (click)="guardar()">Grabar</button>
+                <button class="btn btn-lg btn-warning w-100" (click)="guardar()">
+                    <i class="fas fa-save me-2"></i> Grabar
+                </button>
             </div>
             <div class="col-sm-6">
-                <button class="btn btn-lg btn-secondary w-100" (click)="volver()">Volver</button>
+                <button class="btn btn-lg btn-secondary w-100" (click)="volver()">
+                    <i class="fas fa-arrow-left me-2"></i> Volver
+                </button>
             </div>
         </div>
     </div>
