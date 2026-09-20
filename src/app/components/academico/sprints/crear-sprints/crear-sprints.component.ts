@@ -60,7 +60,9 @@ export class CrearSprintsComponent implements OnInit {
     areas: [] as any[],
     // Los cursos extracurriculares hacen las veces de grupo en el filtro:
     // sus tareas no tienen grupo, se identifican por id_curso_extra.
-    cursosExtra: [] as any[]
+    cursosExtra: [] as any[],
+    // Areas que quedan visibles segun el grupo o curso elegido en el filtro.
+    areasFiltradas: [] as any[]
   };
   private listasSecundariasCargadas = false;
 
@@ -200,6 +202,7 @@ export class CrearSprintsComponent implements OnInit {
         this.listas.areas = responses.areas.body || [];
         this.listas.cursosExtra = (responses.cursosExtra.body || [])
           .filter((c: any) => !!c.id_area_academica);
+        this.listas.areasFiltradas = this.listas.areas;
       },
       error: (error: any) => {
         console.error("Error cargando grupos y áreas:", error);
@@ -755,11 +758,59 @@ export class CrearSprintsComponent implements OnInit {
   cambiarFiltros(filtros: { grupo: string, area: string }) {
     this.filtroGrupo = filtros.grupo;
     this.filtroArea = filtros.area;
+    this.actualizarAreasFiltradas();
   }
 
   limpiarFiltros() {
     this.filtroGrupo = '';
     this.filtroArea = '';
+    this.listas.areasFiltradas = this.listas.areas;
+  }
+
+  /**
+   * Deja en el selector de areas solo las que aplican al destino elegido.
+   *
+   * Un curso extracurricular tiene una sola area, la de su malla. Un grupo
+   * tiene las que le hayan asignado. Sin destino se muestran todas.
+   */
+  onFiltroGrupoChange() {
+    this.filtroArea = '';
+    this.actualizarAreasFiltradas();
+  }
+
+  actualizarAreasFiltradas() {
+    if (!this.filtroGrupo) {
+      this.listas.areasFiltradas = this.listas.areas;
+      return;
+    }
+
+    const curso = this.listas.cursosExtra.find((c: any) => c.id == this.filtroGrupo);
+    if (curso) {
+      this.listas.areasFiltradas = this.listas.areas
+        .filter((a: any) => a.id == curso.id_area_academica);
+      // El curso tiene una sola area: se deja seleccionada.
+      if (this.listas.areasFiltradas.length === 1) {
+        this.filtroArea = this.listas.areasFiltradas[0].id;
+      }
+      return;
+    }
+
+    this.areasAcademicasService.obtenerAreasAcademicasGrupo(this.filtroGrupo).subscribe({
+      next: (response: any) => {
+        const delGrupo = response.body || [];
+        const ids = delGrupo.map((a: any) => a.id_area_academica);
+        this.listas.areasFiltradas = this.listas.areas.filter((a: any) => ids.includes(a.id));
+
+        // Si el area que estaba elegida ya no aplica, se limpia.
+        if (this.filtroArea && !ids.includes(this.filtroArea)) {
+          this.filtroArea = '';
+        }
+      },
+      error: (error: any) => {
+        console.error('Error cargando áreas del grupo:', error);
+        this.listas.areasFiltradas = this.listas.areas;
+      }
+    });
   }
 
   /**

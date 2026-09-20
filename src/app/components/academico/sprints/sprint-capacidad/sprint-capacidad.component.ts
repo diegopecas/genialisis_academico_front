@@ -17,6 +17,9 @@ export class SprintCapacidadComponent implements OnInit, OnChanges {
   @Input() idSprint: any = null;
   /** Listas que carga el contenedor para no pedirlas dos veces */
   @Input() grupos: any[] = [];
+  /* Cursos extracurriculares: el analisis los devuelve en la misma columna que
+     los grupos, asi que el nombre hay que resolverlo en las dos listas. */
+  @Input() cursosExtra: any[] = [];
   @Input() areas: any[] = [];
   /** Filtros globales del formulario */
   @Input() filtroGrupo = '';
@@ -81,7 +84,11 @@ export class SprintCapacidadComponent implements OnInit, OnChanges {
 
   obtenerNombreGrupo(idGrupo: any): string {
     const grupo = this.grupos.find(g => g.id == idGrupo);
-    return grupo ? grupo.nombre : '';
+    if (grupo) {
+      return grupo.nombre;
+    }
+    const curso = this.cursosExtra.find(c => c.id == idGrupo);
+    return curso ? curso.nombre : '';
   }
 
   obtenerNombreArea(idArea: any): string {

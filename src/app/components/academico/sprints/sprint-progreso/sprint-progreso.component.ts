@@ -45,6 +45,9 @@ export class SprintProgresoComponent implements OnInit, AfterViewInit, OnChanges
   @Input() nombreSprint = '';
   /** Listas que carga el contenedor para no pedirlas dos veces */
   @Input() grupos: any[] = [];
+  /* Cursos extracurriculares: hacen las veces de grupo, porque sus tareas no
+     tienen id_grupo sino id_curso_extra. */
+  @Input() cursosExtra: any[] = [];
   @Input() areas: any[] = [];
   /** Filtros globales del formulario */
   @Input() filtroGrupo = '';
@@ -156,6 +159,24 @@ export class SprintProgresoComponent implements OnInit, AfterViewInit, OnChanges
     return grupo ? grupo.nombre : '';
   }
 
+  /** Nombre del destino de una tarea, sea grupo o curso extracurricular. */
+  obtenerNombreDestino(idDestino: any): string {
+    if (!idDestino) {
+      return '';
+    }
+    const grupo = this.grupos.find(g => g.id == idDestino);
+    if (grupo) {
+      return grupo.nombre;
+    }
+    const curso = this.cursosExtra.find(c => c.id == idDestino);
+    return curso ? curso.nombre : '';
+  }
+
+  /** Id del destino de una tarea: el curso si lo tiene, si no el grupo. */
+  private idDestinoTarea(tarea: any): any {
+    return tarea.id_destino || tarea.id_curso_extra || tarea.id_grupo || null;
+  }
+
   obtenerNombreArea(idArea: any): string {
     const area = this.areas.find(a => a.id == idArea);
     return area ? area.nombre : '';
@@ -165,7 +186,8 @@ export class SprintProgresoComponent implements OnInit, AfterViewInit, OnChanges
     let tareas = [...this.todasLasTareas];
 
     if (this.filtroGrupo) {
-      tareas = tareas.filter(t => t.id_grupo == this.filtroGrupo);
+      // El filtro puede traer un grupo o un curso extracurricular.
+      tareas = tareas.filter(t => this.idDestinoTarea(t) == this.filtroGrupo);
     }
 
     if (this.filtroArea) {
@@ -209,7 +231,10 @@ export class SprintProgresoComponent implements OnInit, AfterViewInit, OnChanges
     this.tareasFiltradas.forEach(tarea => {
       // Cada tarea pertenece a un solo grupo; si no vino el nombre se resuelve
       // con el id.
-      const grupo = tarea.nombre_grupo || this.obtenerNombreGrupo(tarea.id_grupo);
+      const grupo = tarea.nombre_destino
+        || tarea.nombre_curso_extra
+        || tarea.nombre_grupo
+        || this.obtenerNombreDestino(this.idDestinoTarea(tarea));
 
       if (!grupo) {
         return;

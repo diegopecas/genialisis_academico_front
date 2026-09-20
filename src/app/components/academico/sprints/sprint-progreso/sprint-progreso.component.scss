@@ -368,3 +368,29 @@ $bajo: #ef9a9a;
     gap: 0.4rem;
   }
 }
+
+// ============================================
+// Ajustes de proporcion: mismo ancho que los demas tabs (1100px).
+// Antes iba a 1400 y quedaba desalineado con la barra de filtros.
+// ============================================
+.progreso-wrapper {
+  max-width: 1100px;
+  padding: 0 4px;
+}
+
+.resumen-cards {
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  margin-bottom: 1.25rem;
+}
+
+@media (max-width: 768px) {
+  .progreso-wrapper {
+    padding: 0;
+  }
+
+  .resumen-cards {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+}

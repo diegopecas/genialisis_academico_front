@@ -97,7 +97,7 @@
             <i class="fas fa-filter"></i> Filtros
         </div>
         <div class="filtros-campos">
-            <select class="form-select form-select-sm" [(ngModel)]="filtroGrupo">
+            <select class="form-select form-select-sm" [(ngModel)]="filtroGrupo" (ngModelChange)="onFiltroGrupoChange()">
                 <option value="">Todos los grupos</option>
                 <optgroup label="Grupos">
                     <option *ngFor="let grupo of listas.grupos" [value]="grupo.id">
@@ -112,7 +112,7 @@
             </select>
             <select class="form-select form-select-sm" [(ngModel)]="filtroArea">
                 <option value="">Todas las áreas</option>
-                <option *ngFor="let area of listas.areas" [value]="area.id">
+                <option *ngFor="let area of listas.areasFiltradas" [value]="area.id">
                     {{ area.nombre }}
                 </option>
             </select>
@@ -298,6 +298,7 @@
             <app-sprint-capacidad
                 [idSprint]="id"
                 [grupos]="listas.grupos"
+                [cursosExtra]="listas.cursosExtra"
                 [areas]="listas.areas"
                 [filtroGrupo]="filtroGrupo"
                 [filtroArea]="filtroArea"
@@ -337,6 +338,7 @@
                 [idCorteAcademico]="model.id_corte_academico"
                 [nombreSprint]="model.nombre_sprint"
                 [grupos]="listas.grupos"
+                [cursosExtra]="listas.cursosExtra"
                 [areas]="listas.areas"
                 [filtroGrupo]="filtroGrupo"
                 [filtroArea]="filtroArea"
