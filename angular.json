@@ -113,6 +113,27 @@
               ],
               "outputHashing": "all"
             },
+            "demo": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.demo.ts"
+                }
+              ],
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "6mb",
+                  "maximumError": "8mb"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "6mb",
+                  "maximumError": "8mb"
+                }
+              ],
+              "outputHashing": "all"
+            },
             "development": {
               "optimization": false,
               "extractLicenses": false,
@@ -139,6 +160,15 @@
           "configurations": {
             "production": {
               "buildTarget": "genialisis_academico:build:production"
+            },
+            "qa": {
+              "buildTarget": "genialisis_academico:build:qa"
+            },
+            "genialisis": {
+              "buildTarget": "genialisis_academico:build:genialisis"
+            },
+            "demo": {
+              "buildTarget": "genialisis_academico:build:demo"
             },
             "development": {
               "buildTarget": "genialisis_academico:build:development"
