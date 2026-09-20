@@ -50,6 +50,18 @@
               <option *ngFor="let c of cursosDisponibles" [ngValue]="c.id">{{c.nombre}} ({{c.anio}})</option>
             </select>
           </div>
+          <!-- Solo aparece si el curso tiene convenios con instituciones cliente -->
+          <div class="col-md-6" *ngIf="conveniosCurso.length > 0">
+            <label class="form-label">Convenio</label>
+            <select class="form-select" [(ngModel)]="model.id_institucion_cliente" (change)="onConvenioChange()"
+              [disabled]="idInscripcion">
+              <option [ngValue]="null">Particular (sin convenio)</option>
+              <option *ngFor="let c of conveniosCurso" [ngValue]="c.id_institucion_cliente">
+                {{c.nombre_institucion}}<span *ngIf="c.paga_institucion == 1"> &mdash; paga la institución</span>
+              </option>
+            </select>
+            <small class="form-text text-muted">Define la tarifa y a nombre de quién se emite la cuenta</small>
+          </div>
           <div class="col-md-3">
             <label class="form-label">Fecha de Inscripción <span class="text-danger">*</span></label>
             <input type="date" class="form-control" [(ngModel)]="model.fecha_inscripcion"

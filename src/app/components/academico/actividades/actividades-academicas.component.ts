@@ -18,7 +18,7 @@ export class ActividadesAcademicasComponent implements OnInit {
 
   public titulos: any[] = [];
   public datos: any[] = [];
-  public columnasFiltro = ['Tipo de Actividad', 'Título', 'Duración']; // Columnas para filtrar
+  public columnasFiltro = ['Tipo de Actividad', 'Título', 'Duración', 'Tipo', 'Área(s)', 'Grupo(s) / Curso(s)']; // Columnas para filtrar
 
   public acciones = [
     { id: 'duplicar', label: 'Duplicar Actividad', icono: '/assets/images/duplicar_actividad.png' }
@@ -39,7 +39,16 @@ export class ActividadesAcademicasComponent implements OnInit {
       next: (response: any) => {
         const body = response.body as any[];
         console.log("Consumo servicio actividades académicas", body);
-        this.datos = body;
+        this.datos = body.map((item: any) => ({
+          ...item,
+          // Una actividad sin indicadores no tiene area ni curso: se muestra
+          // un guion para que no parezca un error de carga.
+          nombres_areas: item.nombres_areas || '-',
+          nombres_grupos: item.nombres_grupos || '-',
+          nombres_destinos: this.armarDestinos(item),
+          tipo_malla: this.armarTipoMalla(item),
+          tipo_malla_clase: this.armarClaseTipoMalla(item),
+        }));
       },
       error: (error: any) => {
         console.error("Error al obtener actividades académicas", error);
@@ -113,6 +122,55 @@ export class ActividadesAcademicasComponent implements OnInit {
     });
   }
 
+  /**
+   * Tipo de malla de la actividad, segun las areas a las que sirve:
+   * Regular, Extracurricular o Mixta si toca las dos.
+   *
+   * Se calcula con el conteo de areas de cada clase y no con la lista de
+   * cursos: el curso es un dato derivado del area y cambia cada vez que se
+   * crea uno nuevo, sin que nadie haya tocado la actividad.
+   */
+  /**
+   * Junta grupos del jardin y cursos extracurriculares en una sola columna.
+   * Los logros extracurriculares no tienen grado, asi que para ellos la lista
+   * de grupos siempre viene vacia y quien trabaja la actividad es el curso.
+   */
+  armarDestinos(item: any): string {
+    const grupos = item.nombres_grupos && item.nombres_grupos !== '-' ? item.nombres_grupos : '';
+    const cursos = item.nombres_cursos || '';
+
+    if (grupos && cursos) {
+      return grupos + ', ' + cursos;
+    }
+    return grupos || cursos || '-';
+  }
+
+  armarTipoMalla(item: any): string {
+    const extra = Number(item.total_areas_extra) || 0;
+    const regulares = Number(item.total_areas_regulares) || 0;
+
+    if (extra > 0 && regulares > 0) {
+      return 'Mixta';
+    }
+    if (extra > 0) {
+      return 'Extracurricular';
+    }
+    if (regulares > 0) {
+      return 'Regular';
+    }
+    // Sin indicadores asociados no se puede saber a que malla pertenece.
+    return 'Sin asociar';
+  }
+
+  armarClaseTipoMalla(item: any): string {
+    switch (this.armarTipoMalla(item)) {
+      case 'Extracurricular': return 'bg-info text-white';
+      case 'Mixta': return 'bg-primary text-white';
+      case 'Regular': return 'bg-secondary text-white';
+      default: return 'bg-light text-dark';
+    }
+  }
+
   crearTitulos(): void {
     this.titulos = [
       {
@@ -135,6 +193,24 @@ export class ActividadesAcademicasComponent implements OnInit {
         alias: 'Duración (min)',
         alinear: 'centrado',
       },
+      {
+        clave: 'tipo_malla',
+        alias: 'Tipo',
+        alinear: 'centrado',
+        tipo: 'badge',
+        claseCSS: 'tipo_malla_clase',
+      },
+      {
+        clave: 'nombres_areas',
+        alias: 'Área(s)',
+        alinear: 'izquierda',
+      },
+      {
+        clave: 'nombres_destinos',
+        alias: 'Grupo(s) / Curso(s)',
+        alinear: 'izquierda',
+      },
+
       {
         clave: 'materiales',
         alias: 'Materiales',

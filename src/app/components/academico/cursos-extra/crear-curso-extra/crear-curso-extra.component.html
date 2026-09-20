@@ -21,6 +21,9 @@
                 <li class="tab-item" [class.active]="pestanaActiva === 'responsables'" (click)="cambiarPestana('responsables')">
                     <i class="fas fa-chalkboard-teacher"></i> Docentes / Proveedores
                 </li>
+                <li class="tab-item" [class.active]="pestanaActiva === 'clientes'" (click)="cambiarPestana('clientes')">
+                    <i class="fas fa-school"></i> Clientes
+                </li>
                 <li class="tab-item" [class.active]="pestanaActiva === 'tarifas'" (click)="cambiarPestana('tarifas')">
                     <i class="fas fa-dollar-sign"></i> Tarifas
                 </li>
@@ -45,6 +48,9 @@
                 </button>
                 <button class="tabs-movil-item" [class.active]="pestanaActiva === 'responsables'" (click)="cambiarPestana('responsables')">
                     <i class="fas fa-chalkboard-teacher"></i> Docentes / Proveedores
+                </button>
+                <button class="tabs-movil-item" [class.active]="pestanaActiva === 'clientes'" (click)="cambiarPestana('clientes')">
+                    <i class="fas fa-school"></i> Clientes Institucionales
                 </button>
                 <button class="tabs-movil-item" [class.active]="pestanaActiva === 'tarifas'" (click)="cambiarPestana('tarifas')">
                     <i class="fas fa-dollar-sign"></i> Tarifas
@@ -447,8 +453,100 @@
     </div>
 
     <!-- ==================== TAB: TARIFAS ==================== -->
+    <!-- ==================== TAB: CLIENTES INSTITUCIONALES ==================== -->
+    <div class="container mt-4" *ngIf="pestanaActiva === 'clientes'">
+
+        <div class="panel-card mb-4">
+            <div class="panel-header">
+                <i class="fas fa-school"></i>
+                <span>Instituciones a las que se les presta este curso</span>
+            </div>
+            <div class="panel-body">
+                <p class="text-muted small">
+                    El horario, el lugar y el cupo son del curso y se comparten entre todas.
+                    Lo único propio de cada convenio es quién paga y la tarifa.
+                </p>
+
+                <div class="row mb-3" *ngIf="editable">
+                    <div class="col-md-6 col-12">
+                        <select class="form-select" [(ngModel)]="idInstitucionSeleccionada">
+                            <option [ngValue]="null">-- Seleccione institución --</option>
+                            <option *ngFor="let i of institucionesDisponibles" [ngValue]="i.id">
+                                {{i.nombre_institucion}} ({{i.nombre_tipo_institucion}})
+                            </option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 col-12 d-flex align-items-center">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="pagaInstitucionNueva"
+                                [(ngModel)]="pagaInstitucionSeleccionada">
+                            <label class="form-check-label" for="pagaInstitucionNueva">Paga la institución</label>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-12">
+                        <button class="btn btn-warning w-100" (click)="agregarConvenio()">
+                            <i class="fas fa-plus"></i> Agregar
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-responsive" *ngIf="conveniosCurso.length > 0">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Institución</th>
+                                <th>Tipo</th>
+                                <th class="text-center">Paga la institución</th>
+                                <th class="text-center">Estado</th>
+                                <th class="text-center" *ngIf="editable">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let c of conveniosCurso">
+                                <td>{{c.nombre_institucion}}</td>
+                                <td>{{c.nombre_tipo_institucion}}</td>
+                                <td class="text-center">
+                                    <div class="form-check form-switch d-inline-block" *ngIf="editable">
+                                        <input class="form-check-input" type="checkbox"
+                                            [(ngModel)]="c.paga_institucion"
+                                            [ngModelOptions]="{standalone: true}"
+                                            (change)="actualizarConvenio(c)">
+                                    </div>
+                                    <span class="badge" *ngIf="!editable"
+                                        [ngClass]="c.paga_institucion == 1 ? 'bg-success' : 'bg-secondary'">
+                                        {{c.paga_institucion == 1 ? 'Sí' : 'No'}}
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <div class="form-check form-switch d-inline-block" *ngIf="editable">
+                                        <input class="form-check-input" type="checkbox"
+                                            [(ngModel)]="c.activo"
+                                            [ngModelOptions]="{standalone: true}"
+                                            (change)="actualizarConvenio(c)">
+                                    </div>
+                                    <span class="badge" *ngIf="!editable"
+                                        [ngClass]="c.activo == 1 ? 'bg-success' : 'bg-secondary'">
+                                        {{c.activo == 1 ? 'Activo' : 'Inactivo'}}
+                                    </span>
+                                </td>
+                                <td class="text-center" *ngIf="editable">
+                                    <button class="btn btn-sm btn-outline-danger" (click)="eliminarConvenio(c)">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="text-center text-muted py-3" *ngIf="conveniosCurso.length === 0">
+                    <p class="mb-0">Este curso no tiene clientes institucionales. Es un curso propio del jardín.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="container mt-4" *ngIf="pestanaActiva === 'tarifas'">
-        <h5 class="mb-3">Tarifas del curso</h5>
+        <h5 class="mb-3">Tarifas del curso &mdash; {{getNombreConvenioTarifa()}}</h5>
 
         <div class="row mb-4">
             <div class="col-md-4 col-12">
@@ -456,6 +554,19 @@
                 <select class="form-select" [(ngModel)]="anioTarifa" (change)="onAnioTarifaChange()" [disabled]="!editable">
                     <option *ngFor="let a of aniosEscolares" [ngValue]="a">{{a}}</option>
                 </select>
+            </div>
+            <div class="col-md-5 col-12">
+                <label class="form-label">Tarifa de</label>
+                <select class="form-select" [(ngModel)]="idInstitucionTarifa" (change)="onConvenioTarifaChange()"
+                    [disabled]="!editable">
+                    <option [ngValue]="null">Interna del jardín</option>
+                    <option *ngFor="let c of conveniosCurso" [ngValue]="c.id_institucion_cliente">
+                        {{c.nombre_institucion}}
+                    </option>
+                </select>
+                <small class="form-text text-muted">
+                    Si un convenio no tiene tarifa propia, se le cobra con la interna.
+                </small>
             </div>
         </div>
 

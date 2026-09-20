@@ -678,6 +678,21 @@ export class MenuModulosService {
             ]
           },
           {
+            id: 'clientes-institucionales',
+            titulo: 'Clientes Institucionales',
+            descripcion: 'Administra las instituciones a las que se les presta el servicio',
+            claseIcono: 'clientes-institucionales',
+            iconoArbol: '🏫',
+            alt: 'Clientes Institucionales',
+            imagen: 'assets/images/clientes-institucionales.png',
+            permisos: ['admin.clientes_institucionales'],
+            keywords: ['colegios', 'escuelas', 'convenios', 'externos', 'extracurriculares'],
+            opciones: [
+              { id: 'instituciones-cliente', label: 'Instituciones Cliente', alt: 'Instituciones Cliente', imagen: 'assets/images/instituciones-cliente.png', iconoArbol: '🏫', ruta: '/administracion/datos-maestros/instituciones-cliente', permiso: 'admin.instituciones_cliente', keywords: ['colegios', 'escuelas', 'jardines', 'universidades', 'clientes'] },
+              { id: 'tipos-institucion', label: 'Tipos de Institución', alt: 'Tipos de Institución', imagen: 'assets/images/tipos-institucion.png', iconoArbol: '🏷️', ruta: '/administracion/datos-maestros/tipos-institucion', permiso: 'admin.tipos_institucion', keywords: ['tipos', 'clasificacion', 'categorias', 'colegio', 'escuela', 'universidad'] }
+            ]
+          },
+          {
             id: 'infraestructura',
             titulo: 'Infraestructura y Espacios',
             descripcion: 'Administra áreas físicas y elementos del colegio',

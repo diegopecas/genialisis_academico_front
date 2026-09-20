@@ -7,6 +7,7 @@ import { UtilService } from '../../../../common/constantes/util.service';
 import { CursosExtraService } from '../../../../services/cursos-extra.service';
 import { EstudiantesXCursosExtraService } from '../../../../services/estudiantes-x-cursos-extra.service';
 import { TarifasCursosExtraService } from '../../../../services/tarifas-cursos-extra.service';
+import { CursosExtraXInstitucionesClienteService } from '../../../../services/cursos-extra-x-instituciones-cliente.service';
 import { EstudiantesService } from '../../../../services/estudiantes.service';
 import { CuentasPorCobrarService } from '../../../../services/cuentas-por-cobrar.service';
 import { InstitucionConfigService } from '../../../../services/institucion-config.service';
@@ -46,8 +47,15 @@ export class CrearCursoExtraEstudianteComponent implements OnInit {
   public tarifa: any = null;
   public cursoSeleccionado: any = null;
 
+  // Convenios del curso. Si el curso no tiene, el selector no se muestra y la
+  // inscripcion es particular, que es como funcionaba antes.
+  public conveniosCurso: any[] = [];
+
   public model = {
     id_curso_extra: null,
+    // Convenio por el que entra el estudiante. Null = particular. Decide la
+    // tarifa y a nombre de quien se emite la cuenta.
+    id_institucion_cliente: null,
     fecha_inicio: '',
     fecha_fin: '',
     // Fecha con la que se registra la inscripcion. Arranca en hoy, es editable, y
@@ -88,6 +96,7 @@ export class CrearCursoExtraEstudianteComponent implements OnInit {
     private cursosExtraService: CursosExtraService,
     private estudiantesXCursosExtraService: EstudiantesXCursosExtraService,
     private tarifasCursosExtraService: TarifasCursosExtraService,
+    private cursosExtraXInstitucionesClienteService: CursosExtraXInstitucionesClienteService,
     private estudiantesService: EstudiantesService,
     private cuentasPorCobrarService: CuentasPorCobrarService,
     private institucionConfigService: InstitucionConfigService,
@@ -143,6 +152,8 @@ export class CrearCursoExtraEstudianteComponent implements OnInit {
     this.valoresGenerados = false;
     this.valores = [];
     this.tarifa = null;
+    this.model.id_institucion_cliente = null;
+    this.conveniosCurso = [];
 
     if (!this.model.id_curso_extra) {
       this.cursoSeleccionado = null;
@@ -154,16 +165,42 @@ export class CrearCursoExtraEstudianteComponent implements OnInit {
     if (this.cursoSeleccionado) {
       this.model.fecha_inicio = this.cursoSeleccionado.fecha_inicio;
       this.model.fecha_fin = this.cursoSeleccionado.fecha_fin;
+      this.cargarConvenios();
       this.cargarTarifa();
     }
   }
 
+  // Solo los convenios activos: uno inactivo no deja inscribir, el back lo
+  // rechaza.
+  cargarConvenios() {
+    this.cursosExtraXInstitucionesClienteService.obtenerPorCurso(this.model.id_curso_extra).subscribe({
+      next: (response: any) => {
+        const todos = response.body || [];
+        this.conveniosCurso = todos.filter((c: any) => c.activo == 1);
+      },
+      error: (error: any) => {
+        console.error("Error al cargar los convenios del curso", error);
+      }
+    });
+  }
+
+  // Al cambiar de convenio cambia la tarifa que aplica, asi que hay que
+  // recargarla y descartar los valores que ya se hubieran generado.
+  onConvenioChange() {
+    this.valoresGenerados = false;
+    this.valores = [];
+    this.cargarTarifa();
+  }
+
+  // La tarifa que aplica la resuelve el back: la del convenio si existe, y si
+  // no la interna del jardin. Es el mismo criterio con el que se generan las
+  // cuentas, para que lo que se ve aqui sea lo que se va a cobrar.
   cargarTarifa() {
     const anio = this.cursoSeleccionado?.anio || this.institucionConfigService.getAnioAcademicoActual();
-    this.tarifasCursosExtraService.obtenerByCurso(this.model.id_curso_extra).subscribe({
+    this.tarifasCursosExtraService.obtenerVigente(this.model.id_curso_extra, anio, this.model.id_institucion_cliente).subscribe({
       next: (response: any) => {
         const tarifas = response.body || [];
-        this.tarifa = tarifas.find((t: any) => t.anio == anio) || null;
+        this.tarifa = tarifas.length > 0 ? tarifas[0] : null;
         if (this.tarifa) {
           this.valorMatricula = parseFloat(this.tarifa.valor_matricula) || 0;
           this.valorMatriculaFormateado = this.formatearNumero(this.valorMatricula);
@@ -441,7 +478,8 @@ export class CrearCursoExtraEstudianteComponent implements OnInit {
       id_estudiante: this.idEstudiante,
       id_curso_extra: this.model.id_curso_extra,
       fecha_inscripcion: this.model.fecha_inscripcion,
-      anio: this.cursoSeleccionado?.anio || this.institucionConfigService.getAnioAcademicoActual()
+      anio: this.cursoSeleccionado?.anio || this.institucionConfigService.getAnioAcademicoActual(),
+      id_institucion_cliente: this.model.id_institucion_cliente
     };
 
     this.estudiantesXCursosExtraService.crear(data).subscribe({

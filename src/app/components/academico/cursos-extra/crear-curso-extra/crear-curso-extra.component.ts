@@ -16,6 +16,7 @@ import { TarifasCursosExtraService } from '../../../../services/tarifas-cursos-e
 import { DocentesXCursosExtraService } from '../../../../services/docentes-x-cursos-extra.service';
 import { ProveedoresXCursosExtraService } from '../../../../services/proveedores-x-cursos-extra.service';
 import { ProveedoresService } from '../../../../services/proveedores.service';
+import { CursosExtraXInstitucionesClienteService } from '../../../../services/cursos-extra-x-instituciones-cliente.service';
 import { InstitucionConfigService } from '../../../../services/institucion-config.service';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../../environments/environment';
@@ -101,6 +102,18 @@ export class CrearCursoExtraComponent implements OnInit {
   proveedoresDisponibles: any[] = [];
   idProveedorSeleccionado: any = null;
 
+  // Clientes institucionales (convenios). El horario, el lugar y el cupo
+  // siguen siendo del curso y se comparten entre todos sus convenios; lo
+  // unico propio del convenio es quien paga.
+  conveniosCurso: any[] = [];
+  institucionesDisponibles: any[] = [];
+  idInstitucionSeleccionada: any = null;
+  pagaInstitucionSeleccionada: boolean = false;
+
+  // Convenio cuya tarifa se esta editando en el tab de Tarifas. null = la
+  // tarifa interna del jardin, que es la que existia antes.
+  idInstitucionTarifa: any = null;
+
   // Tarifas
   tarifasCurso: any[] = [];
   productosMatricula: any[] = [];
@@ -170,6 +183,7 @@ export class CrearCursoExtraComponent implements OnInit {
     private docentesXCursosExtraService: DocentesXCursosExtraService,
     private proveedoresXCursosExtraService: ProveedoresXCursosExtraService,
     private proveedoresService: ProveedoresService,
+    private cursosExtraXInstitucionesClienteService: CursosExtraXInstitucionesClienteService,
     private institucionConfigService: InstitucionConfigService,
     private http: HttpClient,
     private route: ActivatedRoute,
@@ -191,6 +205,8 @@ export class CrearCursoExtraComponent implements OnInit {
         this.cargarHorarios(id);
         this.cargarDocentes(id);
         this.cargarProveedoresCurso(id);
+        this.cargarConvenios(id);
+        this.cargarInstitucionesDisponibles(id);
         this.cargarTarifas(id);
         this.cargarProductosTarifas();
         this.cargarCatalogosProducto();
@@ -202,6 +218,7 @@ export class CrearCursoExtraComponent implements OnInit {
         this.cargarHorarios(id);
         this.cargarDocentes(id);
         this.cargarProveedoresCurso(id);
+        this.cargarConvenios(id);
         this.cargarTarifas(id);
       }
     });
@@ -466,6 +483,7 @@ export class CrearCursoExtraComponent implements OnInit {
       'basico': 'Datos Básicos',
       'horarios': 'Horarios',
       'responsables': 'Docentes y Proveedores',
+      'clientes': 'Clientes Institucionales',
       'tarifas': 'Tarifas'
     };
     return nombres[this.pestanaActiva] || '';
@@ -476,6 +494,7 @@ export class CrearCursoExtraComponent implements OnInit {
       'basico': 'fas fa-info-circle',
       'horarios': 'fas fa-clock',
       'responsables': 'fas fa-chalkboard-teacher',
+      'clientes': 'fas fa-school',
       'tarifas': 'fas fa-dollar-sign'
     };
     return iconos[this.pestanaActiva] || '';
@@ -788,6 +807,120 @@ export class CrearCursoExtraComponent implements OnInit {
     });
   }
 
+  // ==================== CLIENTES INSTITUCIONALES ====================
+
+  cargarConvenios(id: any) {
+    this.cursosExtraXInstitucionesClienteService.obtenerPorCurso(id).subscribe({
+      next: (response: any) => {
+        this.conveniosCurso = response.body || [];
+      },
+      error: (error: any) => {
+        console.error("Error al cargar los convenios del curso", error);
+      }
+    });
+  }
+
+  cargarInstitucionesDisponibles(id: any) {
+    this.cursosExtraXInstitucionesClienteService.obtenerDisponibles(id).subscribe({
+      next: (response: any) => {
+        this.institucionesDisponibles = response.body || [];
+      },
+      error: (error: any) => {
+        console.error("Error al cargar las instituciones disponibles", error);
+      }
+    });
+  }
+
+  agregarConvenio() {
+    if (!this.idInstitucionSeleccionada) {
+      Swal.fire('Advertencia', 'Debe seleccionar una institución', 'warning');
+      return;
+    }
+
+    const data = {
+      id_curso_extra: this.model.id,
+      id_institucion_cliente: this.idInstitucionSeleccionada,
+      paga_institucion: this.pagaInstitucionSeleccionada ? 1 : 0
+    };
+
+    this.cursosExtraXInstitucionesClienteService.crear(data).subscribe({
+      next: () => {
+        Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Institución asociada', showConfirmButton: false, timer: 2000 });
+        this.cargarConvenios(this.model.id);
+        this.cargarInstitucionesDisponibles(this.model.id);
+        this.idInstitucionSeleccionada = null;
+        this.pagaInstitucionSeleccionada = false;
+      },
+      error: (error: any) => {
+        console.error("Error al asociar la institución", error);
+        const mensaje = error?.error?.error || 'No se pudo asociar la institución';
+        Swal.fire('Error', mensaje, 'error');
+      }
+    });
+  }
+
+  // Cambia quien paga o el estado del convenio. Se dispara desde los
+  // controles de la fila, por eso guarda de una sin boton aparte.
+  actualizarConvenio(convenio: any) {
+    const data = {
+      id: convenio.id,
+      paga_institucion: convenio.paga_institucion ? 1 : 0,
+      observaciones: convenio.observaciones || null,
+      activo: convenio.activo ? 1 : 0
+    };
+
+    this.cursosExtraXInstitucionesClienteService.actualizar(data).subscribe({
+      next: () => {
+        Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Convenio actualizado', showConfirmButton: false, timer: 2000 });
+        this.cargarConvenios(this.model.id);
+      },
+      error: (error: any) => {
+        console.error("Error al actualizar el convenio", error);
+        const mensaje = error?.error?.error || 'No se pudo actualizar el convenio';
+        Swal.fire('Error', mensaje, 'error');
+        this.cargarConvenios(this.model.id);
+      }
+    });
+  }
+
+  async eliminarConvenio(convenio: any) {
+    const result = await Swal.fire({
+      title: '¿Está seguro?',
+      text: `Se va a quitar el convenio con ${convenio.nombre_institucion}. Si tiene tarifa propia, también se borra.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Sí, quitar',
+      cancelButtonText: 'Cancelar'
+    });
+
+    if (!result.isConfirmed) {
+      return;
+    }
+
+    this.cursosExtraXInstitucionesClienteService.eliminar(convenio.id).subscribe({
+      next: () => {
+        Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Convenio eliminado', showConfirmButton: false, timer: 2000 });
+        this.cargarConvenios(this.model.id);
+        this.cargarInstitucionesDisponibles(this.model.id);
+        // La tarifa del convenio se borro con el, asi que hay que recargarlas
+        // y volver a la interna si era la que se estaba viendo.
+        if (this.idInstitucionTarifa === convenio.id_institucion_cliente) {
+          this.idInstitucionTarifa = null;
+        }
+        this.cargarTarifas(this.model.id);
+      },
+      error: (error: any) => {
+        console.error("Error al eliminar el convenio", error);
+        const mensaje = error?.error?.error || 'No se pudo eliminar el convenio';
+        Swal.fire('Error', mensaje, 'error');
+      }
+    });
+  }
+
+  // ==================== TARIFAS ====================
+
   cargarTarifas(id: any) {
     this.tarifasCursosExtraService.obtenerByCurso(id).subscribe({
       next: (response: any) => {
@@ -808,14 +941,21 @@ export class CrearCursoExtraComponent implements OnInit {
     }
   }
 
+  // La tarifa se busca por anio y por convenio: idInstitucionTarifa en null
+  // es la interna del jardin, que es la que guarda id_institucion_cliente
+  // nulo en la base.
   seleccionarTarifaAnio() {
-    const tarifaExistente = this.tarifasCurso.find(t => t.anio == this.anioTarifa);
+    const tarifaExistente = this.tarifasCurso.find(t =>
+      t.anio == this.anioTarifa &&
+      (t.id_institucion_cliente || null) === (this.idInstitucionTarifa || null)
+    );
     if (tarifaExistente) {
       this.tarifaActual = { ...tarifaExistente };
     } else {
       this.tarifaActual = {
         id: null,
         id_curso_extra: this.model.id,
+        id_institucion_cliente: this.idInstitucionTarifa,
         id_producto_matricula: null,
         valor_matricula: 0,
         cuotas_matricula: 1,
@@ -835,6 +975,22 @@ export class CrearCursoExtraComponent implements OnInit {
   onAnioTarifaChange() {
     this.tarifaActual.anio = this.anioTarifa;
     this.seleccionarTarifaAnio();
+  }
+
+  // Cambia el convenio cuya tarifa se edita. No guarda nada: solo trae la
+  // tarifa que ya exista para ese convenio y anio, o deja el formulario en
+  // blanco para crearla.
+  onConvenioTarifaChange() {
+    this.seleccionarTarifaAnio();
+  }
+
+  // Nombre del convenio que se esta editando, para el encabezado del tab.
+  getNombreConvenioTarifa(): string {
+    if (!this.idInstitucionTarifa) {
+      return 'Tarifa interna del jardín';
+    }
+    const convenio = this.conveniosCurso.find((c: any) => c.id_institucion_cliente === this.idInstitucionTarifa);
+    return convenio ? convenio.nombre_institucion : '';
   }
 
   formatearNumero(valor: number): string {
@@ -922,7 +1078,8 @@ export class CrearCursoExtraComponent implements OnInit {
       id_producto_unico: this.tarifaActual.id_producto_unico ? this.tarifaActual.id_producto_unico : null,
       valor_unico: this.tarifaActual.valor_unico || 0,
       cuotas_unico: this.tarifaActual.cuotas_unico ? parseInt(this.tarifaActual.cuotas_unico) : 1,
-      anio: parseInt(this.tarifaActual.anio)
+      anio: parseInt(this.tarifaActual.anio),
+      id_institucion_cliente: this.idInstitucionTarifa ? this.idInstitucionTarifa : null
     } as any;
 
     if (this.tarifaActual.id) {
@@ -945,7 +1102,7 @@ export class CrearCursoExtraComponent implements OnInit {
         },
         error: (error: any) => {
           console.error("Error al crear tarifa", error);
-          Swal.fire('Error', 'No se pudo crear la tarifa', 'error');
+          Swal.fire('Error', error?.error?.error || 'No se pudo crear la tarifa', 'error');
         }
       });
     }

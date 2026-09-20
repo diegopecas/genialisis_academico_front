@@ -299,9 +299,24 @@ export class CrearActividadesAcademicasComponent implements OnInit, OnDestroy, A
       { clave: 'id', alias: 'ID', alinear: 'centrado' },
       { clave: 'nombre_indicador', alias: 'Indicador de Logro', alinear: 'izquierda' },
       { clave: 'nombre_grado', alias: 'Grado', alinear: 'izquierda' },
-      { clave: 'nombres_grupos', alias: 'Grupo(s)', alinear: 'izquierda' },
+      { clave: 'nombres_destinos', alias: 'Grupo(s) / Curso(s)', alinear: 'izquierda' },
       { clave: 'nombre_area', alias: 'Área Académica', alinear: 'izquierda' }
     ];
+  }
+
+  /**
+   * Junta en una sola columna los grupos del jardin y los cursos
+   * extracurriculares. Un logro con grado trae grupos; uno de area
+   * extracurricular trae cursos, porque sus logros no tienen grado.
+   */
+  armarDestinos(item: any): string {
+    const grupos = this.parsearGruposJson(item.grupos_json);
+    const cursos = this.parsearGruposJson(item.cursos_json);
+
+    if (grupos && cursos) {
+      return grupos + ', ' + cursos;
+    }
+    return grupos || cursos || '';
   }
 
   parsearGruposJson(gruposJson: any): string {
@@ -334,6 +349,7 @@ export class CrearActividadesAcademicasComponent implements OnInit, OnDestroy, A
       
       this.indicadoresDisponibles.forEach((indicador: any) => {
         indicador.nombres_grupos = this.parsearGruposJson(indicador.grupos_json);
+        indicador.nombres_destinos = this.armarDestinos(indicador);
       });
 
       const gruposSet = new Set<string>();
@@ -758,6 +774,7 @@ export class CrearActividadesAcademicasComponent implements OnInit, OnDestroy, A
       const datos = response.body || [];
       datos.forEach((item: any) => {
         item.nombres_grupos = this.parsearGruposJson(item.grupos_json);
+        item.nombres_destinos = this.armarDestinos(item);
       });
       this.datosIndicadoresLogro = datos;
       this.crearTitulos();
@@ -1070,7 +1087,7 @@ export class CrearActividadesAcademicasComponent implements OnInit, OnDestroy, A
   crearTitulosSprints() {
     this.titulosSprints = [
       { clave: 'nombre_sprint', alias: 'Sprint', alinear: 'izquierda' },
-      { clave: 'nombre_grupo', alias: 'Grupo', alinear: 'izquierda' },
+      { clave: 'nombre_destino', alias: 'Grupo / Curso', alinear: 'izquierda' },
       { clave: 'nombre_area', alias: 'Área Académica', alinear: 'izquierda' },
       { clave: 'nombre_estado', alias: 'Estado', alinear: 'centrado', tipo: 'badge', claseCSS: 'claseCSS' },
       { clave: 'fecha_registro', alias: 'Fecha Registro', alinear: 'centrado', tipo: 'date' }
@@ -1082,6 +1099,11 @@ export class CrearActividadesAcademicasComponent implements OnInit, OnDestroy, A
       next: (response: any) => {
         const datos = response.body || [];
         datos.forEach((tarea: any) => {
+          // Respaldo por si el backend aun no envia nombre_destino.
+          tarea.nombre_destino = tarea.nombre_destino
+            || tarea.nombre_curso_extra
+            || tarea.nombre_grupo
+            || '-';
           switch (parseInt(tarea.id_estado_tarea)) {
             case 1: tarea.claseCSS = 'bg-warning text-dark'; break;
             case 2: tarea.claseCSS = 'bg-success text-white'; break;

@@ -48,6 +48,26 @@ export class TarifasCursosExtraService {
       );
   }
 
+  /**
+   * Tarifa que aplica a una inscripción: la del convenio si existe, y si no la
+   * interna del jardín. Sin idInstitucionCliente devuelve la interna.
+   */
+  obtenerVigente(id_curso_extra: any, anio: any, id_institucion_cliente: any = null): Observable<HttpResponse<Object>> {
+    const sufijo = id_institucion_cliente ? `?id_institucion_cliente=${id_institucion_cliente}` : '';
+    return this.http
+      .get<HttpResponse<Object>>(`${this.servicio}/vigente/${id_curso_extra}/${anio}${sufijo}`, { observe: 'response' })
+      .pipe(
+        tap((response: HttpResponse<Object>) => {
+          let respuesta: any = response.body;
+          if (respuesta && respuesta.error) {
+            throw respuesta.error;
+          }
+          return response;
+        }),
+        catchError(this.handleError)
+      );
+  }
+
   crear(elemento: any): Observable<any> {
     var body = JSON.stringify(elemento);
     return this.http.post<any>(this.servicio, body, httpOptions).pipe(

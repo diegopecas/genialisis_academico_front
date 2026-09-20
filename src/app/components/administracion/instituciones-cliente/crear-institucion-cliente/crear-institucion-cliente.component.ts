@@ -11,6 +11,8 @@ import { PersonasService } from '../../../../services/personas.service';
 import { TiposIdentificacionService } from '../../../../services/tipos-identificacion.service';
 import { GenerosService } from '../../../../services/generos.service';
 import { CiudadesService } from '../../../../services/ciudades.service';
+import { EstudiantesXInstitucionesClienteService } from '../../../../services/estudiantes-x-instituciones-cliente.service';
+import { CursosExtraXInstitucionesClienteService } from '../../../../services/cursos-extra-x-instituciones-cliente.service';
 
 interface InstitucionClienteModel {
     idPersona: string;
@@ -54,6 +56,22 @@ export class CrearInstitucionClienteComponent implements OnInit {
     public documentoEncontrado = false;
     public camposHabilitados = false;
     public esPersonaJuridica = false; // Para manejar si es empresa o persona natural
+
+    // Pestanas. El tab de estudiantes solo tiene sentido con la institucion
+    // ya creada, por eso no se muestra en la accion de crear.
+    public pestanaActiva: string = 'datos';
+    public menuMovilAbierto: boolean = false;
+
+    // Estudiantes de la institucion. Es una relacion con vigencia por anio y
+    // no un atributo del estudiante: un nino puede venir del Colegio X este
+    // anio y del Y el siguiente, y el historico tiene que quedar.
+    public estudiantesInstitucion = [] as any[];
+    public estudiantesDisponibles = [] as any[];
+    public idEstudianteSeleccionado: any = null;
+    public anioEstudiantes: number = new Date().getFullYear();
+
+    // Cursos extracurriculares que tienen convenio con esta institucion.
+    public cursosInstitucion = [] as any[];
 
     public listas = {
         tiposIdentificacion: [] as any[],
@@ -105,7 +123,9 @@ export class CrearInstitucionClienteComponent implements OnInit {
         private tiposInstitucionService: TiposInstitucionService,
         private personasService: PersonasService,
         private institucionesClienteService: InstitucionesClienteService,
-        private ciudadesService: CiudadesService
+        private ciudadesService: CiudadesService,
+        private estudiantesXInstitucionesClienteService: EstudiantesXInstitucionesClienteService,
+        private cursosExtraXInstitucionesClienteService: CursosExtraXInstitucionesClienteService
     ) { }
 
     ngOnInit(): void {
@@ -126,6 +146,9 @@ export class CrearInstitucionClienteComponent implements OnInit {
                     this.documentoEncontrado = true;
                     this.titulo = "Editar institución cliente";
                     this.obtenerInstitucion(this.id);
+                    this.cargarEstudiantes(this.id);
+                    this.cargarEstudiantesDisponibles(this.id);
+                    this.cargarCursos(this.id);
                     break;
                 case 'consultar':
                     this.editable = false;
@@ -133,6 +156,8 @@ export class CrearInstitucionClienteComponent implements OnInit {
                     this.documentoEncontrado = true;
                     this.titulo = "Consultar institución cliente";
                     this.obtenerInstitucion(this.id);
+                    this.cargarEstudiantes(this.id);
+                    this.cargarCursos(this.id);
                     break;
                 default:
                     this.editable = true;
@@ -583,6 +608,158 @@ export class CrearInstitucionClienteComponent implements OnInit {
         this.camposHabilitados = false;
         this.institucionActivaSwitch = true;
         this.esPersonaJuridica = false;
+    }
+
+    // ==================== PESTANAS ====================
+
+    cambiarPestana(pestana: string) {
+        this.pestanaActiva = pestana;
+        this.menuMovilAbierto = false;
+    }
+
+    toggleMenuMovil() {
+        this.menuMovilAbierto = !this.menuMovilAbierto;
+    }
+
+    getNombrePestana(): string {
+        const nombres: any = {
+            'datos': 'Datos de la institución',
+            'estudiantes': 'Estudiantes',
+            'cursos': 'Cursos'
+        };
+        return nombres[this.pestanaActiva] || '';
+    }
+
+    getIconoPestana(): string {
+        const iconos: any = {
+            'datos': 'fas fa-building',
+            'estudiantes': 'fas fa-child',
+            'cursos': 'fas fa-book'
+        };
+        return iconos[this.pestanaActiva] || '';
+    }
+
+    // ==================== ESTUDIANTES ====================
+
+    cargarEstudiantes(id: any) {
+        this.estudiantesXInstitucionesClienteService.obtenerPorInstitucion(id).subscribe({
+            next: (response: any) => {
+                this.estudiantesInstitucion = response.body || [];
+            },
+            error: (error: any) => {
+                console.error("Error al cargar los estudiantes de la institución", error);
+            }
+        });
+    }
+
+    cargarEstudiantesDisponibles(id: any) {
+        this.estudiantesXInstitucionesClienteService.obtenerDisponibles(id, this.anioEstudiantes).subscribe({
+            next: (response: any) => {
+                this.estudiantesDisponibles = response.body || [];
+            },
+            error: (error: any) => {
+                console.error("Error al cargar los estudiantes disponibles", error);
+            }
+        });
+    }
+
+    // Al cambiar el anio cambia la lista de disponibles, porque la relacion
+    // es por anio y un nino puede estar en la institucion un anio y en otra
+    // el siguiente.
+    onAnioEstudiantesChange() {
+        this.idEstudianteSeleccionado = null;
+        this.cargarEstudiantesDisponibles(this.id);
+    }
+
+    agregarEstudiante() {
+        if (!this.idEstudianteSeleccionado) {
+            Swal.fire('Advertencia', 'Debe seleccionar un estudiante', 'warning');
+            return;
+        }
+
+        const data = {
+            id_estudiante: this.idEstudianteSeleccionado,
+            id_institucion_cliente: this.id,
+            anio: this.anioEstudiantes
+        };
+
+        this.estudiantesXInstitucionesClienteService.crear(data).subscribe({
+            next: () => {
+                Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Estudiante agregado', showConfirmButton: false, timer: 2000 });
+                this.cargarEstudiantes(this.id);
+                this.cargarEstudiantesDisponibles(this.id);
+                this.idEstudianteSeleccionado = null;
+            },
+            error: (error: any) => {
+                console.error("Error al agregar el estudiante", error);
+                const mensaje = error?.error?.error || 'No se pudo agregar el estudiante';
+                Swal.fire('Error', mensaje, 'error');
+            }
+        });
+    }
+
+    // Cierra la vigencia sin borrar el registro, para no perder el historico.
+    actualizarEstudiante(registro: any) {
+        const data = {
+            id: registro.id,
+            activo: registro.activo ? 1 : 0,
+            fecha_fin: registro.fecha_fin || null
+        };
+
+        this.estudiantesXInstitucionesClienteService.actualizar(data).subscribe({
+            next: () => {
+                Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Registro actualizado', showConfirmButton: false, timer: 2000 });
+                this.cargarEstudiantes(this.id);
+            },
+            error: (error: any) => {
+                console.error("Error al actualizar el registro", error);
+                Swal.fire('Error', 'No se pudo actualizar el registro', 'error');
+                this.cargarEstudiantes(this.id);
+            }
+        });
+    }
+
+    async eliminarEstudiante(registro: any) {
+        const result = await Swal.fire({
+            title: '¿Está seguro?',
+            text: `Se va a quitar a ${registro.nombre_completo} del listado ${registro.anio}. Si solo dejó de pertenecer, es mejor desactivarlo para conservar el histórico.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Sí, quitar',
+            cancelButtonText: 'Cancelar'
+        });
+
+        if (!result.isConfirmed) {
+            return;
+        }
+
+        this.estudiantesXInstitucionesClienteService.eliminar(registro.id).subscribe({
+            next: () => {
+                Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Estudiante quitado', showConfirmButton: false, timer: 2000 });
+                this.cargarEstudiantes(this.id);
+                this.cargarEstudiantesDisponibles(this.id);
+            },
+            error: (error: any) => {
+                console.error("Error al quitar el estudiante", error);
+                const mensaje = error?.error?.error || 'No se pudo quitar el estudiante';
+                Swal.fire('Error', mensaje, 'error');
+            }
+        });
+    }
+
+    // ==================== CURSOS ====================
+
+    cargarCursos(id: any) {
+        this.cursosExtraXInstitucionesClienteService.obtenerPorInstitucion(id).subscribe({
+            next: (response: any) => {
+                this.cursosInstitucion = response.body || [];
+            },
+            error: (error: any) => {
+                console.error("Error al cargar los cursos de la institución", error);
+            }
+        });
     }
 
     volver(): void {
