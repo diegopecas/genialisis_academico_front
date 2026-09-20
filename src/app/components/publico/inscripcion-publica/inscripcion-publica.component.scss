@@ -1,0 +1,660 @@
+/* Portal publico de inscripcion.
+   Los colores y las fuentes NO se queman: llegan como variables CSS que el
+   componente inyecta desde configuracion_portal_publico. Los valores de
+   abajo son solo el respaldo por si la configuracion viene vacia. */
+
+:host {
+  --portal-primario: #d4af37;
+  --portal-secundario: #222222;
+  --portal-fondo: #f5f5f7;
+  --portal-texto: #222222;
+  --portal-boton: #d4af37;
+  --portal-texto-boton: #ffffff;
+  --portal-fuente-titulos: inherit;
+  --portal-fuente-texto: inherit;
+
+  display: block;
+  min-height: 100vh;
+  background: var(--portal-fondo);
+  color: var(--portal-texto);
+  font-family: var(--portal-fuente-texto);
+}
+
+.portal {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+h1, h2, h3 {
+  font-family: var(--portal-fuente-titulos);
+}
+
+/* ==================== ESTADOS ==================== */
+
+.portal-centro {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.spinner {
+  width: 44px;
+  height: 44px;
+  border: 4px solid rgba(0, 0, 0, 0.08);
+  border-top-color: var(--portal-primario);
+  border-radius: 50%;
+  animation: girar 0.9s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes girar {
+  to { transform: rotate(360deg); }
+}
+
+.aviso {
+  background: #fff;
+  border-radius: 16px;
+  padding: 40px;
+  max-width: 460px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+}
+
+/* ==================== ENCABEZADO ==================== */
+
+.portal-header {
+  background: #fff;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.portal-header-contenido {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.portal-logo {
+  max-height: 48px;
+  max-width: 200px;
+  object-fit: contain;
+}
+
+.portal-nombre {
+  font-family: var(--portal-fuente-titulos);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--portal-secundario);
+}
+
+.portal-volver {
+  margin-left: auto;
+  color: var(--portal-primario);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+/* ==================== PORTADA ==================== */
+
+.portal-portada {
+  background-color: var(--portal-secundario);
+  background-size: cover;
+  background-position: center;
+}
+
+.portal-portada-capa {
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.55));
+  padding: 64px 20px;
+  text-align: center;
+  color: #fff;
+}
+
+.portal-portada-capa h1 {
+  margin: 0 0 12px 0;
+  font-size: 2.2rem;
+  font-weight: 700;
+}
+
+.portal-portada-capa p {
+  margin: 0 auto;
+  max-width: 620px;
+  font-size: 1.05rem;
+  opacity: 0.95;
+}
+
+/* ==================== CONTENIDO ==================== */
+
+.portal-main {
+  flex: 1;
+  max-width: 1080px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 40px 20px 60px 20px;
+}
+
+.portal-titulo {
+  font-size: 1.6rem;
+  margin: 0 0 6px 0;
+  color: var(--portal-secundario);
+}
+
+.portal-titulo-extra {
+  font-weight: 400;
+  opacity: 0.7;
+}
+
+.portal-sub {
+  margin: 0 0 28px 0;
+  opacity: 0.75;
+}
+
+.enlace-volver {
+  background: none;
+  border: none;
+  color: var(--portal-primario);
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 18px;
+  font-size: 0.95rem;
+}
+
+.vacio {
+  background: #fff;
+  border-radius: 14px;
+  padding: 40px;
+  text-align: center;
+  opacity: 0.75;
+}
+
+/* ==================== TARJETAS ==================== */
+
+.tarjetas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
+}
+
+.tarjeta {
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 16px;
+  overflow: hidden;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.tarjeta:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.1);
+}
+
+/* --- institucion --- */
+
+.tarjeta-institucion {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 28px 18px;
+  font: inherit;
+  color: inherit;
+}
+
+.tarjeta-logo {
+  width: 78px;
+  height: 78px;
+  border-radius: 50%;
+  background: var(--portal-fondo);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.tarjeta-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.tarjeta-inicial {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--portal-primario);
+}
+
+.tarjeta-nombre {
+  font-weight: 600;
+  text-align: center;
+}
+
+.tarjeta-pie {
+  font-size: 0.82rem;
+  opacity: 0.65;
+  text-align: center;
+}
+
+.tarjeta-particular {
+  border-style: dashed;
+}
+
+/* --- curso --- */
+
+.tarjeta-curso-top {
+  height: 96px;
+  background: var(--portal-primario);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tarjeta-curso-top img {
+  max-height: 60px;
+  max-width: 60px;
+  object-fit: contain;
+}
+
+.tarjeta-curso-cuerpo {
+  padding: 18px;
+}
+
+.tarjeta-curso-cuerpo h3 {
+  margin: 0 0 6px 0;
+  font-size: 1.1rem;
+  color: var(--portal-secundario);
+}
+
+.tarjeta-curso-desc {
+  margin: 0 0 12px 0;
+  font-size: 0.9rem;
+  opacity: 0.75;
+}
+
+.tarjeta-datos {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 12px 0;
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+.tarjeta-datos li {
+  padding: 2px 0;
+}
+
+.tarjeta-datos .cupo {
+  font-weight: 600;
+  opacity: 1;
+  color: var(--portal-primario);
+}
+
+.tarjeta-datos .sin-cupo {
+  color: #b23b3b;
+}
+
+.tarjeta-precio {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--portal-secundario);
+  margin-bottom: 14px;
+}
+
+.tarjeta.cerrado {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.tarjeta.cerrado:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.tarjeta-cerrado {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 0.82rem;
+  text-align: center;
+}
+
+/* ==================== FORMULARIO ==================== */
+
+.resumen {
+  background: #fff;
+  border-radius: 14px;
+  padding: 18px 20px;
+  margin-bottom: 26px;
+  border-left: 4px solid var(--portal-primario);
+}
+
+.resumen-linea {
+  padding: 3px 0;
+  font-size: 0.93rem;
+}
+
+.grupo-titulo {
+  font-size: 1.1rem;
+  margin: 26px 0 14px 0;
+  color: var(--portal-secundario);
+}
+
+.campos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.campo-ancho {
+  grid-column: 1 / -1;
+}
+
+.campo label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  opacity: 0.85;
+}
+
+.req {
+  color: #b23b3b;
+}
+
+.campo input,
+.campo select,
+.campo textarea {
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 10px;
+  padding: 11px 12px;
+  font: inherit;
+  background: #fff;
+  color: inherit;
+}
+
+.campo input:focus,
+.campo select:focus,
+.campo textarea:focus {
+  outline: none;
+  border-color: var(--portal-primario);
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.04);
+}
+
+.campo .invalido {
+  border-color: #b23b3b;
+}
+
+.nota {
+  margin: 24px 0 18px 0;
+  font-size: 0.88rem;
+  opacity: 0.75;
+}
+
+/* ==================== BOTONES ==================== */
+
+.boton {
+  background: var(--portal-boton);
+  color: var(--portal-texto-boton);
+  border: none;
+  border-radius: 10px;
+  padding: 12px 26px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.boton:hover:not(:disabled) {
+  filter: brightness(0.94);
+}
+
+.boton:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.boton-bloque {
+  width: 100%;
+}
+
+.boton-grande {
+  width: 100%;
+  padding: 15px;
+  font-size: 1.02rem;
+}
+
+/* ==================== EXITO ==================== */
+
+.exito {
+  background: #fff;
+  border-radius: 18px;
+  padding: 46px 32px;
+  max-width: 480px;
+  box-shadow: 0 6px 28px rgba(0, 0, 0, 0.07);
+}
+
+.exito-check {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: var(--portal-primario);
+  color: var(--portal-texto-boton);
+  font-size: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 18px auto;
+}
+
+.exito h2 {
+  margin: 0 0 10px 0;
+}
+
+.exito p {
+  margin: 0 0 22px 0;
+  opacity: 0.8;
+}
+
+/* ==================== PIE ==================== */
+
+.portal-footer {
+  background: var(--portal-secundario);
+  color: #fff;
+  padding: 26px 20px;
+  text-align: center;
+  font-size: 0.88rem;
+}
+
+.portal-footer p {
+  margin: 0 0 6px 0;
+}
+
+.portal-contacto {
+  display: flex;
+  gap: 18px;
+  justify-content: center;
+  flex-wrap: wrap;
+  opacity: 0.85;
+}
+
+.portal-contacto a {
+  color: #fff;
+  text-decoration: underline;
+}
+
+/* ==================== MOVIL ==================== */
+
+@media (max-width: 640px) {
+  .portal-portada-capa {
+    padding: 44px 18px;
+  }
+
+  .portal-portada-capa h1 {
+    font-size: 1.6rem;
+  }
+
+  .portal-main {
+    padding: 28px 16px 44px 16px;
+  }
+
+  .portal-titulo {
+    font-size: 1.3rem;
+  }
+
+  .tarjetas {
+    grid-template-columns: 1fr;
+  }
+
+  .campos {
+    grid-template-columns: 1fr;
+  }
+
+  .portal-header-contenido {
+    padding: 12px 16px;
+  }
+}
+
+/* ==================== ACEPTACION ==================== */
+
+.acepto {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 18px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.acepto input {
+  margin-top: 3px;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  accent-color: var(--portal-primario);
+}
+
+.acepto-falta {
+  border-color: #b23b3b;
+}
+
+.enlace-modal {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: var(--portal-primario);
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* ==================== MODAL ==================== */
+
+.modal-fondo {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 100;
+}
+
+.modal-caja {
+  background: #fff;
+  color: var(--portal-texto);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 620px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.modal-cabecera {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 22px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.modal-cabecera h3 {
+  margin: 0;
+  font-size: 1.15rem;
+  color: var(--portal-secundario);
+}
+
+.modal-cerrar {
+  margin-left: auto;
+  background: none;
+  border: none;
+  font-size: 1.6rem;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.6;
+}
+
+.modal-cuerpo {
+  padding: 20px 22px;
+  overflow-y: auto;
+}
+
+/* El texto viene de la configuracion con saltos de linea reales */
+.modal-texto {
+  margin: 0;
+  white-space: pre-line;
+  font-size: 0.93rem;
+  line-height: 1.6;
+}
+
+.modal-pie {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  padding: 16px 22px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.boton-plano {
+  background: transparent;
+  color: var(--portal-texto);
+  border: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+@media (max-width: 640px) {
+  .modal-caja {
+    max-height: 90vh;
+  }
+
+  .modal-pie {
+    flex-direction: column-reverse;
+  }
+
+  .modal-pie .boton {
+    width: 100%;
+  }
+}

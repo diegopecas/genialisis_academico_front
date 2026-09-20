@@ -13,6 +13,7 @@ import { GenerosService } from '../../../../services/generos.service';
 import { CiudadesService } from '../../../../services/ciudades.service';
 import { EstudiantesXInstitucionesClienteService } from '../../../../services/estudiantes-x-instituciones-cliente.service';
 import { CursosExtraXInstitucionesClienteService } from '../../../../services/cursos-extra-x-instituciones-cliente.service';
+import { SolicitudesInscripcionPublicaService } from '../../../../services/solicitudes-inscripcion-publica.service';
 
 interface InstitucionClienteModel {
     idPersona: string;
@@ -73,6 +74,16 @@ export class CrearInstitucionClienteComponent implements OnInit {
     // Cursos extracurriculares que tienen convenio con esta institucion.
     public cursosInstitucion = [] as any[];
 
+    // Logo de la institucion. No es un campo nuevo: es la foto de la persona
+    // juridica, que ya tiene subida y borrado en el servicio de personas.
+    public logo: any = null;
+    public subiendoLogo: boolean = false;
+
+    // Solicitudes que llegaron por el portal publico para esta institucion.
+    // Al aprobar se crea el estudiante y queda inscrito al curso.
+    public solicitudes = [] as any[];
+    public aprobandoId: any = null;
+
     public listas = {
         tiposIdentificacion: [] as any[],
         generos: [] as any[],
@@ -125,7 +136,8 @@ export class CrearInstitucionClienteComponent implements OnInit {
         private institucionesClienteService: InstitucionesClienteService,
         private ciudadesService: CiudadesService,
         private estudiantesXInstitucionesClienteService: EstudiantesXInstitucionesClienteService,
-        private cursosExtraXInstitucionesClienteService: CursosExtraXInstitucionesClienteService
+        private cursosExtraXInstitucionesClienteService: CursosExtraXInstitucionesClienteService,
+        private solicitudesInscripcionService: SolicitudesInscripcionPublicaService
     ) { }
 
     ngOnInit(): void {
@@ -149,6 +161,7 @@ export class CrearInstitucionClienteComponent implements OnInit {
                     this.cargarEstudiantes(this.id);
                     this.cargarEstudiantesDisponibles(this.id);
                     this.cargarCursos(this.id);
+                    this.cargarSolicitudes(this.id);
                     break;
                 case 'consultar':
                     this.editable = false;
@@ -158,6 +171,7 @@ export class CrearInstitucionClienteComponent implements OnInit {
                     this.obtenerInstitucion(this.id);
                     this.cargarEstudiantes(this.id);
                     this.cargarCursos(this.id);
+                    this.cargarSolicitudes(this.id);
                     break;
                 default:
                     this.editable = true;
@@ -345,6 +359,8 @@ export class CrearInstitucionClienteComponent implements OnInit {
 
                         // Verificar si es persona jurídica
                         this.onTipoIdentificacionChange();
+
+                        this.cargarLogo();
 
                         const nombreCompleto = this.model.razonSocial || `${institucion.primer_nombre || ''} ${institucion.primer_apellido || ''}`.trim();
                         if (this.accion === 'editar') {
@@ -610,6 +626,193 @@ export class CrearInstitucionClienteComponent implements OnInit {
         this.esPersonaJuridica = false;
     }
 
+    // ==================== SOLICITUDES DEL PORTAL ====================
+
+    cargarSolicitudes(id: any) {
+        this.solicitudesInscripcionService.obtenerPorInstitucion(id).subscribe({
+            next: (response: any) => {
+                const body = (response.body || []) as any[];
+                this.solicitudes = body.map((s: any) => ({
+                    ...s,
+                    nombre_estudiante: (s.nombre_estudiante || '').replace(/\s+/g, ' ').trim(),
+                    nombre_acudiente: (s.nombre_acudiente || '').replace(/\s+/g, ' ').trim(),
+                    // El cupo cuenta inscritos mas solicitudes pendientes, igual
+                    // que en el portal, para que no se aprueben de mas.
+                    cupos_disponibles: s.cupo_maximo === null || s.cupo_maximo === undefined
+                        ? null
+                        : Math.max(0, Number(s.cupo_maximo) - Number(s.inscritos) - Number(s.pendientes))
+                }));
+            },
+            error: (error: any) => {
+                console.error('Error al cargar las solicitudes de la institución', error);
+            }
+        });
+    }
+
+    contarPendientes(): number {
+        return this.solicitudes.filter((s: any) => s.estado === 'pendiente').length;
+    }
+
+    etiquetaEstadoSolicitud(estado: string): string {
+        if (estado === 'aprobada') return 'Aprobada';
+        if (estado === 'rechazada') return 'Rechazada';
+        return 'Pendiente';
+    }
+
+    async aprobarSolicitud(solicitud: any) {
+        const result = await Swal.fire({
+            title: '¿Aprobar la inscripción?',
+            html: `Se va a crear el estudiante <b>${solicitud.nombre_estudiante}</b> y se inscribirá a ` +
+                  `<b>${solicitud.nombre_curso}</b>.<br><br>` +
+                  `Las cuentas por cobrar no se generan aquí: quedan para la pantalla del estudiante.`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Sí, aprobar',
+            cancelButtonText: 'Cancelar'
+        });
+
+        if (!result.isConfirmed) {
+            return;
+        }
+
+        this.aprobandoId = solicitud.id;
+
+        this.solicitudesInscripcionService.aprobar(solicitud.id).subscribe({
+            next: (response: any) => {
+                this.aprobandoId = null;
+                Swal.fire('Aprobada', response.mensaje || 'El estudiante quedó inscrito.', 'success');
+                this.cargarSolicitudes(this.id);
+                this.cargarEstudiantes(this.id);
+                if (this.editable) {
+                    this.cargarEstudiantesDisponibles(this.id);
+                }
+            },
+            error: (error: any) => {
+                this.aprobandoId = null;
+                console.error('Error al aprobar la solicitud', error);
+                // El back responde 400 con el motivo: cupo lleno, ya resuelta, etc.
+                const mensaje = error?.error?.error || 'No se pudo aprobar la solicitud.';
+                Swal.fire('No se pudo aprobar', mensaje, 'error');
+            }
+        });
+    }
+
+    async rechazarSolicitud(solicitud: any) {
+        const result = await Swal.fire({
+            title: 'Rechazar la solicitud',
+            input: 'textarea',
+            inputLabel: 'Motivo (opcional)',
+            inputPlaceholder: 'Por qué se rechaza...',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            confirmButtonText: 'Rechazar',
+            cancelButtonText: 'Cancelar'
+        });
+
+        if (!result.isConfirmed) {
+            return;
+        }
+
+        this.solicitudesInscripcionService.rechazar(solicitud.id, result.value || null).subscribe({
+            next: () => {
+                Swal.fire('Rechazada', 'La solicitud quedó rechazada.', 'success');
+                this.cargarSolicitudes(this.id);
+            },
+            error: (error: any) => {
+                console.error('Error al rechazar la solicitud', error);
+                const mensaje = error?.error?.error || 'No se pudo rechazar la solicitud.';
+                Swal.fire('Error', mensaje, 'error');
+            }
+        });
+    }
+
+    // ==================== LOGO ====================
+
+    cargarLogo() {
+        if (!this.model.idPersona) {
+            this.logo = null;
+            return;
+        }
+
+        this.personasService.obtenerFoto(this.model.idPersona).subscribe({
+            next: (response: any) => {
+                const body = response.body;
+                this.logo = body && body.foto ? body.foto : null;
+            },
+            error: () => {
+                // Sin logo cargado el backend responde error; no es una falla.
+                this.logo = null;
+            }
+        });
+    }
+
+    onLogoSeleccionado(event: any) {
+        const archivo = event.target.files && event.target.files[0];
+        if (!archivo) {
+            return;
+        }
+
+        if (!archivo.type.startsWith('image/')) {
+            Swal.fire('Archivo no válido', 'Debe seleccionar una imagen.', 'warning');
+            return;
+        }
+
+        if (archivo.size > 500 * 1024) {
+            Swal.fire('Imagen muy pesada', 'El logo no debe superar 500 KB.', 'warning');
+            return;
+        }
+
+        this.subiendoLogo = true;
+
+        this.personasService.subirFoto(this.model.idPersona, archivo).subscribe({
+            next: () => {
+                this.subiendoLogo = false;
+                Swal.fire({
+                    toast: true, position: 'top-end', icon: 'success',
+                    title: 'Logo actualizado', showConfirmButton: false, timer: 2000
+                });
+                this.cargarLogo();
+            },
+            error: (error: any) => {
+                this.subiendoLogo = false;
+                console.error('Error al subir el logo', error);
+                Swal.fire('Error', 'No se pudo subir el logo.', 'error');
+            }
+        });
+    }
+
+    async eliminarLogo() {
+        const result = await Swal.fire({
+            title: '¿Quitar el logo?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Sí, quitar',
+            cancelButtonText: 'Cancelar'
+        });
+
+        if (!result.isConfirmed) {
+            return;
+        }
+
+        this.personasService.eliminarFoto(this.model.idPersona).subscribe({
+            next: () => {
+                this.logo = null;
+                Swal.fire({
+                    toast: true, position: 'top-end', icon: 'success',
+                    title: 'Logo eliminado', showConfirmButton: false, timer: 2000
+                });
+            },
+            error: (error: any) => {
+                console.error('Error al eliminar el logo', error);
+                Swal.fire('Error', 'No se pudo eliminar el logo.', 'error');
+            }
+        });
+    }
+
     // ==================== PESTANAS ====================
 
     cambiarPestana(pestana: string) {
@@ -625,7 +828,8 @@ export class CrearInstitucionClienteComponent implements OnInit {
         const nombres: any = {
             'datos': 'Datos de la institución',
             'estudiantes': 'Estudiantes',
-            'cursos': 'Cursos'
+            'cursos': 'Cursos',
+            'solicitudes': 'Solicitudes'
         };
         return nombres[this.pestanaActiva] || '';
     }
@@ -634,7 +838,8 @@ export class CrearInstitucionClienteComponent implements OnInit {
         const iconos: any = {
             'datos': 'fas fa-building',
             'estudiantes': 'fas fa-child',
-            'cursos': 'fas fa-book'
+            'cursos': 'fas fa-book',
+            'solicitudes': 'fas fa-inbox'
         };
         return iconos[this.pestanaActiva] || '';
     }

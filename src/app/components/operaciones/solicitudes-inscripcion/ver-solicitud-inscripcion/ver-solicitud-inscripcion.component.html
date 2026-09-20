@@ -1,0 +1,115 @@
+<div class="modulo">
+    <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [accion]="'consultar'"
+        [raiz]="'/operaciones/solicitudes-inscripcion'" [regresar]="regresar"
+        [iconoTitulo]="'/assets/images/solicitudes-inscripcion.png'">
+    </app-header>
+
+    <div class="container mt-4" *ngIf="!cargando && solicitud">
+
+        <!-- Estado -->
+        <div class="estado-barra" [ngClass]="solicitud.estado">
+            <span class="estado-etiqueta">{{ etiquetaEstado() }}</span>
+            <span class="estado-fecha">Recibida el {{ solicitud.fecha_registro }}</span>
+            <span class="estado-fecha" *ngIf="solicitud.fecha_resolucion">
+                &middot; Resuelta el {{ solicitud.fecha_resolucion }}
+            </span>
+        </div>
+
+        <div class="alert alert-secondary mt-3" *ngIf="solicitud.motivo_rechazo">
+            <strong>Motivo del rechazo:</strong> {{ solicitud.motivo_rechazo }}
+        </div>
+
+        <!-- Curso -->
+        <div class="panel-card mb-4 mt-3">
+            <div class="panel-header">
+                <i class="fas fa-graduation-cap"></i>
+                <span>Curso solicitado</span>
+            </div>
+            <div class="panel-body">
+                <div class="dato"><span>Curso</span><strong>{{ solicitud.nombre_curso }}</strong></div>
+                <div class="dato"><span>Año</span><strong>{{ solicitud.anio }}</strong></div>
+                <div class="dato"><span>Fechas</span><strong>{{ solicitud.fecha_inicio }} al {{ solicitud.fecha_fin }}</strong></div>
+                <div class="dato">
+                    <span>Institución</span>
+                    <strong>{{ solicitud.nombre_institucion || 'Particular (sin convenio)' }}</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- Estudiante -->
+        <div class="panel-card mb-4">
+            <div class="panel-header">
+                <i class="fas fa-child"></i>
+                <span>Estudiante</span>
+            </div>
+            <div class="panel-body">
+                <div class="dato"><span>Nombre</span><strong>{{ nombreEstudiante() }}</strong></div>
+                <div class="dato">
+                    <span>Documento</span>
+                    <strong>{{ solicitud.tipo_identificacion_estudiante }} {{ solicitud.est_numero_identificacion }}</strong>
+                </div>
+                <div class="dato" *ngIf="solicitud.est_fecha_nacimiento">
+                    <span>Nacimiento</span><strong>{{ solicitud.est_fecha_nacimiento }}</strong>
+                </div>
+                <div class="dato" *ngIf="solicitud.nombre_genero">
+                    <span>Género</span><strong>{{ solicitud.nombre_genero }}</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quien inscribe -->
+        <div class="panel-card mb-4">
+            <div class="panel-header">
+                <i class="fas fa-user"></i>
+                <span>Quien inscribe</span>
+            </div>
+            <div class="panel-body">
+                <div class="dato"><span>Nombre</span><strong>{{ nombreAcudiente() || 'No informado' }}</strong></div>
+                <div class="dato" *ngIf="solicitud.acu_numero_identificacion">
+                    <span>Documento</span>
+                    <strong>{{ solicitud.tipo_identificacion_acudiente }} {{ solicitud.acu_numero_identificacion }}</strong>
+                </div>
+                <div class="dato"><span>Teléfono</span><strong>{{ solicitud.acu_telefono || 'No informado' }}</strong></div>
+                <div class="dato"><span>Correo</span><strong>{{ solicitud.acu_correo || 'No informado' }}</strong></div>
+            </div>
+        </div>
+
+        <div class="panel-card mb-4" *ngIf="solicitud.observaciones">
+            <div class="panel-header">
+                <i class="fas fa-comment"></i>
+                <span>Observaciones del solicitante</span>
+            </div>
+            <div class="panel-body">
+                <p class="mb-0">{{ solicitud.observaciones }}</p>
+            </div>
+        </div>
+
+        <!-- Acciones -->
+        <div class="row mb-5" *ngIf="esPendiente()">
+            <div class="col-md-4 col-12 mb-2">
+                <button class="btn btn-lg btn-warning w-100" (click)="aprobar()" [disabled]="procesando">
+                    {{ procesando ? 'Procesando...' : 'Aprobar e inscribir' }}
+                </button>
+            </div>
+            <div class="col-md-4 col-12 mb-2">
+                <button class="btn btn-lg btn-outline-danger w-100" (click)="rechazar()" [disabled]="procesando">
+                    Rechazar
+                </button>
+            </div>
+            <div class="col-md-4 col-12 mb-2">
+                <button class="btn btn-lg btn-secondary w-100" (click)="volver()">Volver</button>
+            </div>
+        </div>
+
+        <div class="row mb-5" *ngIf="!esPendiente()">
+            <div class="col-md-6 col-12 mb-2" *ngIf="solicitud.id_estudiante_creado">
+                <button class="btn btn-lg btn-warning w-100" (click)="irAInscripcion()">
+                    Ver estudiante y generar cuentas
+                </button>
+            </div>
+            <div class="col-md-6 col-12 mb-2">
+                <button class="btn btn-lg btn-secondary w-100" (click)="volver()">Volver</button>
+            </div>
+        </div>
+    </div>
+</div>

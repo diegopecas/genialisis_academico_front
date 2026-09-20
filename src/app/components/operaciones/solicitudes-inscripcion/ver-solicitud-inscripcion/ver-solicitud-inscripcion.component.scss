@@ -1,0 +1,105 @@
+$gold: #d4af37;
+$black: #222;
+
+.modulo {
+  padding: 20px;
+}
+
+.container {
+  max-width: 800px;
+}
+
+/* Barra de estado: el color dice de una si hay que hacer algo */
+
+.estado-barra {
+  border-radius: 10px;
+  padding: 12px 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  background: rgba(212, 175, 55, 0.12);
+  border-left: 4px solid $gold;
+}
+
+.estado-barra.aprobada {
+  background: rgba(40, 167, 69, 0.12);
+  border-left-color: #28a745;
+}
+
+.estado-barra.rechazada {
+  background: rgba(178, 59, 59, 0.12);
+  border-left-color: #b23b3b;
+}
+
+.estado-etiqueta {
+  font-weight: 700;
+  color: $black;
+}
+
+.estado-fecha {
+  font-size: 0.88rem;
+  opacity: 0.75;
+}
+
+.panel-card {
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.panel-header {
+  background: rgba(212, 175, 55, 0.1);
+  border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+  padding: 12px 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  color: $black;
+}
+
+.panel-header i {
+  color: $gold;
+}
+
+.panel-body {
+  padding: 18px;
+}
+
+.dato {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 7px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.dato:last-child {
+  border-bottom: none;
+}
+
+.dato span {
+  opacity: 0.7;
+  font-size: 0.9rem;
+}
+
+.dato strong {
+  text-align: right;
+}
+
+@media (max-width: 640px) {
+  .modulo {
+    padding: 12px;
+  }
+
+  .dato {
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .dato strong {
+    text-align: left;
+  }
+}

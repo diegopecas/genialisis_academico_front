@@ -1,0 +1,309 @@
+<div class="portal">
+
+  <!-- Cargando -->
+  <div class="portal-centro" *ngIf="cargando">
+    <div class="spinner"></div>
+    <p>Cargando...</p>
+  </div>
+
+  <!-- Portal apagado o enlace inválido -->
+  <div class="portal-centro" *ngIf="!cargando && !portalDisponible">
+    <div class="aviso">
+      <h2>No disponible</h2>
+      <p>{{ mensajeNoDisponible }}</p>
+    </div>
+  </div>
+
+  <ng-container *ngIf="!cargando && portalDisponible">
+
+    <!-- Encabezado -->
+    <header class="portal-header">
+      <div class="portal-header-contenido">
+        <img class="portal-logo" *ngIf="config.logo" [src]="config.logo" [alt]="config.nombre_mostrar">
+        <span class="portal-nombre" *ngIf="!config.logo">{{ config.nombre_mostrar }}</span>
+        <a class="portal-volver" *ngIf="config.url_sitio_web" [href]="config.url_sitio_web">
+          Ir al sitio
+        </a>
+      </div>
+    </header>
+
+    <!-- Portada: solo en el primer paso -->
+    <section class="portal-portada" *ngIf="paso === 'institucion'"
+      [style.background-image]="config.imagen_portada ? 'url(' + config.imagen_portada + ')' : null">
+      <div class="portal-portada-capa">
+        <h1>{{ config.titulo_portada || 'Inscríbete a nuestros cursos' }}</h1>
+        <p *ngIf="config.mensaje_bienvenida">{{ config.mensaje_bienvenida }}</p>
+      </div>
+    </section>
+
+    <main class="portal-main">
+
+      <!-- ==================== PASO 1: INSTITUCION ==================== -->
+      <section *ngIf="paso === 'institucion'">
+        <h2 class="portal-titulo">¿De qué institución vienes?</h2>
+        <p class="portal-sub">Selecciona tu colegio o jardín para ver los cursos disponibles para ti.</p>
+
+        <div class="tarjetas">
+          <button class="tarjeta tarjeta-institucion" *ngFor="let i of instituciones"
+            (click)="seleccionarInstitucion(i)">
+            <div class="tarjeta-logo">
+              <img *ngIf="i.logo" [src]="i.logo" [alt]="i.nombre_institucion">
+              <span class="tarjeta-inicial" *ngIf="!i.logo">{{ i.nombre_institucion.charAt(0) }}</span>
+            </div>
+            <span class="tarjeta-nombre">{{ i.nombre_institucion }}</span>
+          </button>
+
+          <button class="tarjeta tarjeta-institucion tarjeta-particular" (click)="seleccionarInstitucion(null)">
+            <div class="tarjeta-logo">
+              <span class="tarjeta-inicial">+</span>
+            </div>
+            <span class="tarjeta-nombre">Ninguna de las anteriores</span>
+            <span class="tarjeta-pie">Quiero inscribirme por mi cuenta</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- ==================== PASO 2: CURSOS ==================== -->
+      <section *ngIf="paso === 'cursos'">
+        <button class="enlace-volver" (click)="volverAInstituciones()">&larr; Cambiar institución</button>
+
+        <h2 class="portal-titulo">
+          Cursos disponibles
+          <span class="portal-titulo-extra" *ngIf="institucionSeleccionada">
+            para {{ institucionSeleccionada.nombre_institucion }}
+          </span>
+        </h2>
+
+        <div class="vacio" *ngIf="cursos.length === 0">
+          <p>Por ahora no hay cursos disponibles para esta opción.</p>
+        </div>
+
+        <div class="tarjetas">
+          <article class="tarjeta tarjeta-curso" *ngFor="let c of cursos" [class.cerrado]="c.cerrado"
+            (click)="seleccionarCurso(c)">
+            <div class="tarjeta-curso-top" [style.background]="c.color || null">
+              <img *ngIf="c.icono" [src]="c.icono" [alt]="c.nombre">
+            </div>
+            <div class="tarjeta-curso-cuerpo">
+              <h3>{{ c.nombre }}</h3>
+              <p class="tarjeta-curso-desc" *ngIf="c.descripcion">{{ c.descripcion }}</p>
+
+              <ul class="tarjeta-datos">
+                <li *ngIf="c.nombre_lugar">{{ c.nombre_lugar }}</li>
+                <li>{{ c.fecha_inicio }} al {{ c.fecha_fin }}</li>
+                <li class="cupo" [class.sin-cupo]="c.cupos_disponibles === 0">{{ textoCupo(c) }}</li>
+              </ul>
+
+              <div class="tarjeta-precio" *ngIf="tieneValores(c)">
+                <span *ngIf="c.valor_matricula > 0">
+                  Matrícula {{ formatearMoneda(c.valor_matricula) }}
+                </span>
+                <span *ngIf="c.valor_pension > 0">
+                  Mensualidad {{ formatearMoneda(c.valor_pension) }}
+                </span>
+                <span *ngIf="c.valor_unico > 0">
+                  Pago único {{ formatearMoneda(c.valor_unico) }}
+                </span>
+              </div>
+              <div class="tarjeta-precio" *ngIf="!tieneValores(c)">
+                <span>Consulta el valor con nosotros</span>
+              </div>
+
+              <div class="tarjeta-cerrado" *ngIf="c.cerrado">{{ c.motivo_cierre }}</div>
+              <button class="boton boton-bloque" *ngIf="!c.cerrado">Inscribirme</button>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- ==================== PASO 3: FORMULARIO ==================== -->
+      <section *ngIf="paso === 'formulario'">
+        <button class="enlace-volver" (click)="volverACursos()">&larr; Ver otros cursos</button>
+
+        <h2 class="portal-titulo">Inscripción a {{ cursoSeleccionado.nombre }}</h2>
+
+        <div class="resumen">
+          <div class="resumen-linea" *ngIf="institucionSeleccionada">
+            <strong>Institución:</strong> {{ institucionSeleccionada.nombre_institucion }}
+          </div>
+          <div class="resumen-linea" *ngIf="horarios.length > 0">
+            <strong>Horario:</strong>
+            <span *ngFor="let h of horarios; let ultimo = last">
+              {{ h.nombre_dia }} {{ h.hora_inicial }} a {{ h.hora_final }}<span *ngIf="!ultimo">, </span>
+            </span>
+          </div>
+          <div class="resumen-linea" *ngIf="tieneValores(cursoSeleccionado)">
+            <strong>Valor:</strong>
+            <span *ngIf="cursoSeleccionado.valor_matricula > 0">
+              matrícula {{ formatearMoneda(cursoSeleccionado.valor_matricula) }}.
+            </span>
+            <span *ngIf="cursoSeleccionado.valor_pension > 0">
+              mensualidad {{ formatearMoneda(cursoSeleccionado.valor_pension) }}.
+            </span>
+            <span *ngIf="cursoSeleccionado.valor_unico > 0">
+              pago único {{ formatearMoneda(cursoSeleccionado.valor_unico) }}.
+            </span>
+          </div>
+        </div>
+
+        <h3 class="grupo-titulo">Datos del estudiante</h3>
+        <div class="campos">
+          <div class="campo">
+            <label>Tipo de documento <span class="req">*</span></label>
+            <select [(ngModel)]="model.est_tipo_identificacion"
+              [class.invalido]="!model.est_tipo_identificacion && submitted">
+              <option value="">Seleccionar</option>
+              <option *ngFor="let t of listas.tiposIdentificacion" [value]="t.id">{{ t.nombre }}</option>
+            </select>
+          </div>
+          <div class="campo">
+            <label>Número de documento <span class="req">*</span></label>
+            <input type="text" [(ngModel)]="model.est_numero_identificacion"
+              [class.invalido]="!model.est_numero_identificacion && submitted">
+          </div>
+          <div class="campo">
+            <label>Primer nombre <span class="req">*</span></label>
+            <input type="text" [(ngModel)]="model.est_primer_nombre"
+              [class.invalido]="!model.est_primer_nombre && submitted">
+          </div>
+          <div class="campo">
+            <label>Segundo nombre</label>
+            <input type="text" [(ngModel)]="model.est_segundo_nombre">
+          </div>
+          <div class="campo">
+            <label>Primer apellido <span class="req">*</span></label>
+            <input type="text" [(ngModel)]="model.est_primer_apellido"
+              [class.invalido]="!model.est_primer_apellido && submitted">
+          </div>
+          <div class="campo">
+            <label>Segundo apellido</label>
+            <input type="text" [(ngModel)]="model.est_segundo_apellido">
+          </div>
+          <div class="campo">
+            <label>Fecha de nacimiento</label>
+            <input type="date" [(ngModel)]="model.est_fecha_nacimiento">
+          </div>
+          <div class="campo">
+            <label>Género</label>
+            <select [(ngModel)]="model.est_id_genero">
+              <option value="">Seleccionar</option>
+              <option *ngFor="let g of listas.generos" [value]="g.id">{{ g.nombre }}</option>
+            </select>
+          </div>
+        </div>
+
+        <h3 class="grupo-titulo">Datos de quien inscribe</h3>
+        <div class="campos">
+          <div class="campo">
+            <label>Parentesco</label>
+            <select [(ngModel)]="model.acu_id_tipo_acudiente">
+              <option value="">Seleccionar</option>
+              <option *ngFor="let t of listas.tiposAcudiente" [value]="t.id">{{ t.nombre }}</option>
+            </select>
+          </div>
+          <div class="campo">
+            <label>Tipo de documento</label>
+            <select [(ngModel)]="model.acu_tipo_identificacion">
+              <option value="">Seleccionar</option>
+              <option *ngFor="let t of listas.tiposIdentificacion" [value]="t.id">{{ t.nombre }}</option>
+            </select>
+          </div>
+          <div class="campo">
+            <label>Número de documento</label>
+            <input type="text" [(ngModel)]="model.acu_numero_identificacion">
+          </div>
+          <div class="campo">
+            <label>Nombre <span class="req">*</span></label>
+            <input type="text" [(ngModel)]="model.acu_primer_nombre"
+              [class.invalido]="!model.acu_primer_nombre && submitted">
+          </div>
+          <div class="campo">
+            <label>Apellido <span class="req">*</span></label>
+            <input type="text" [(ngModel)]="model.acu_primer_apellido"
+              [class.invalido]="!model.acu_primer_apellido && submitted">
+          </div>
+          <div class="campo">
+            <label>Teléfono <span class="req">*</span></label>
+            <input type="tel" [(ngModel)]="model.acu_telefono"
+              [class.invalido]="!model.acu_telefono && submitted">
+          </div>
+          <div class="campo campo-ancho">
+            <label>Correo electrónico</label>
+            <input type="email" [(ngModel)]="model.acu_correo">
+          </div>
+          <div class="campo campo-ancho">
+            <label>¿Algo que debamos saber?</label>
+            <textarea rows="3" [(ngModel)]="model.observaciones"></textarea>
+          </div>
+        </div>
+
+        <p class="nota">
+          Al enviar, tu solicitud queda registrada y el equipo la revisa antes de confirmar el cupo.
+          Te contactaremos al teléfono que nos dejes.
+        </p>
+
+        <!-- Sin esta aceptación el backend rechaza la solicitud -->
+        <label class="acepto" [class.acepto-falta]="!aceptoTerminos && submitted">
+          <input type="checkbox" [(ngModel)]="aceptoTerminos">
+          <span>
+            He leído y acepto los
+            <button type="button" class="enlace-modal" (click)="abrirModal('terminos')">términos y condiciones</button>
+            y autorizo el tratamiento de mis datos personales y los del menor que inscribo, según la
+            <button type="button" class="enlace-modal" (click)="abrirModal('politica')">política de tratamiento de datos</button>.
+            <span class="req">*</span>
+          </span>
+        </label>
+
+        <button class="boton boton-grande" (click)="enviar()" [disabled]="enviando">
+          {{ enviando ? 'Enviando...' : 'Enviar solicitud' }}
+        </button>
+      </section>
+
+      <!-- ==================== PASO 4: LISTO ==================== -->
+      <section *ngIf="paso === 'listo'" class="portal-centro">
+        <div class="exito">
+          <div class="exito-check">&#10003;</div>
+          <h2>¡Solicitud enviada!</h2>
+          <p>
+            Recibimos tu inscripción a <strong>{{ cursoSeleccionado?.nombre }}</strong>.
+            La revisaremos y te contactaremos para confirmar el cupo.
+          </p>
+          <button class="boton" (click)="nuevaInscripcion()">Inscribir a alguien más</button>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Pie -->
+    <footer class="portal-footer">
+      <p *ngIf="config.texto_pie">{{ config.texto_pie }}</p>
+      <p class="portal-contacto">
+        <span *ngIf="config.telefono">Tel: {{ config.telefono }}</span>
+        <span *ngIf="config.correo">{{ config.correo }}</span>
+        <a *ngIf="config.whatsapp" [href]="'https://wa.me/' + config.whatsapp" target="_blank"
+          rel="noopener">WhatsApp</a>
+      </p>
+    </footer>
+
+    <!-- ==================== MODAL ==================== -->
+    <div class="modal-fondo" *ngIf="modalAbierto" (click)="cerrarModal()">
+      <div class="modal-caja" (click)="$event.stopPropagation()">
+        <div class="modal-cabecera">
+          <h3>{{ tituloModal() }}</h3>
+          <button class="modal-cerrar" (click)="cerrarModal()">&times;</button>
+        </div>
+        <div class="modal-cuerpo">
+          <p class="modal-texto" *ngIf="textoModal()">{{ textoModal() }}</p>
+          <p class="modal-texto" *ngIf="!textoModal()">
+            El jardín todavía no ha publicado este texto. Consúltalo por los canales de contacto.
+          </p>
+        </div>
+        <div class="modal-pie">
+          <button class="boton" (click)="aceptarDesdeModal()">Acepto</button>
+          <button class="boton boton-plano" (click)="cerrarModal()">Cerrar</button>
+        </div>
+      </div>
+    </div>
+
+  </ng-container>
+</div>

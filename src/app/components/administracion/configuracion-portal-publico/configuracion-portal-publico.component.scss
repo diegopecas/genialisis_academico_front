@@ -1,0 +1,129 @@
+$gold: #d4af37;
+$black: #222;
+
+.modulo {
+  padding: 20px;
+}
+
+.container {
+  max-width: 900px;
+}
+
+.panel-card {
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.panel-header {
+  background: rgba(212, 175, 55, 0.1);
+  border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+  padding: 12px 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  color: $black;
+}
+
+.panel-header i {
+  color: $gold;
+}
+
+.panel-body {
+  padding: 18px;
+}
+
+.form-label {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.form-control-color {
+  width: 100%;
+  height: 42px;
+  padding: 4px;
+}
+
+/* Previsualizacion de las imagenes cargadas */
+
+.previsualizacion {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  padding: 8px;
+  background: #fafafa;
+}
+
+.previsualizacion img {
+  max-height: 70px;
+  max-width: 220px;
+  object-fit: contain;
+  display: block;
+}
+
+.previsualizacion-chica img {
+  max-height: 44px;
+  max-width: 44px;
+}
+
+.previsualizacion-ancha img {
+  max-height: 120px;
+  max-width: 100%;
+}
+
+.previsualizacion button {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #fff;
+  border-radius: 50%;
+  padding: 2px 7px;
+  line-height: 1;
+}
+
+/* Muestra de como quedan los colores, para no tener que abrir el portal */
+
+.muestra {
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  padding: 0 0 20px 0;
+  overflow: hidden;
+}
+
+.muestra-barra {
+  height: 12px;
+}
+
+.muestra-titulo {
+  margin: 18px 20px 6px 20px;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.muestra-texto {
+  margin: 0 20px 16px 20px;
+  font-size: 0.92rem;
+}
+
+.muestra-boton {
+  margin-left: 20px;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 22px;
+  font-weight: 600;
+  cursor: default;
+}
+
+@media (max-width: 640px) {
+  .modulo {
+    padding: 12px;
+  }
+
+  .panel-body {
+    padding: 14px;
+  }
+}

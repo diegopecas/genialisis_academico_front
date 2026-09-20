@@ -69,6 +69,9 @@ export class DatosMaestrosComponent implements OnInit {
       case 'tipos-institucion':
         this.router.navigate(['/administracion/datos-maestros/tipos-institucion']);
         break;
+      case 'configuracion-portal-publico':
+        this.router.navigate(['/administracion/datos-maestros/configuracion-portal-publico']);
+        break;
       case 'productos':
         this.router.navigate(['/administracion/datos-maestros/productos']);
         break;

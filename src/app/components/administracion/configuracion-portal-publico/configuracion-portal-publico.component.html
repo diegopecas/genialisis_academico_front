@@ -1,0 +1,272 @@
+<div class="modulo">
+    <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [accion]="'editar'"
+        [raiz]="'/administracion/datos-maestros/configuracion-portal-publico'" [regresar]="regresar"
+        [iconoTitulo]="'/assets/images/configuracion-portal-publico.png'">
+    </app-header>
+
+    <div class="container mt-4" *ngIf="!cargando">
+
+        <!-- Estado y enlace -->
+        <div class="panel-card mb-4">
+            <div class="panel-header">
+                <i class="fas fa-globe"></i>
+                <span>Estado del portal</span>
+            </div>
+            <div class="panel-body">
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" id="portalActivo" [(ngModel)]="model.activo">
+                    <label class="form-check-label" for="portalActivo">
+                        <strong>{{ model.activo ? 'Portal publicado' : 'Portal apagado' }}</strong>
+                    </label>
+                    <small class="d-block mt-1 text-muted">
+                        Apagado, la página responde que no está disponible. Nadie puede inscribirse.
+                    </small>
+                </div>
+
+                <label class="form-label">Enlace para publicar en la web del jardín</label>
+                <div class="input-group">
+                    <input class="form-control" type="text" [value]="getUrlPortal()" readonly>
+                    <button class="btn btn-outline-warning" type="button" (click)="copiarUrl()">
+                        <i class="fas fa-copy"></i> Copiar
+                    </button>
+                    <button class="btn btn-outline-secondary" type="button" (click)="abrirPortal()">
+                        <i class="fas fa-external-link-alt"></i> Abrir
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Identidad -->
+        <div class="panel-card mb-4">
+            <div class="panel-header">
+                <i class="fas fa-id-badge"></i>
+                <span>Identidad</span>
+            </div>
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-md-6 col-12">
+                        <label class="form-label">Nombre a mostrar</label>
+                        <input class="form-control" type="text" [(ngModel)]="model.nombre_mostrar"
+                            placeholder="Cómo se llama el jardín en el portal">
+                    </div>
+                    <div class="col-md-6 col-12">
+                        <label class="form-label">Sitio web</label>
+                        <input class="form-control" type="url" [(ngModel)]="model.url_sitio_web"
+                            placeholder="https://...">
+                        <small class="form-text text-muted">Para el botón de volver a tu página</small>
+                    </div>
+                </div>
+
+                <div class="row mt-3">
+                    <div class="col-md-6 col-12">
+                        <label class="form-label">Logo</label>
+                        <div class="previsualizacion" *ngIf="model.logo">
+                            <img [src]="model.logo" alt="Logo">
+                            <button class="btn btn-sm btn-outline-danger" (click)="quitarImagen('logo')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                        <input class="form-control" type="file" accept="image/*"
+                            (change)="onImagenSeleccionada($event, 'logo')">
+                        <small class="form-text text-muted">Máximo 500 KB. Preferible horizontal con fondo transparente</small>
+                    </div>
+                    <div class="col-md-6 col-12">
+                        <label class="form-label">Favicon</label>
+                        <div class="previsualizacion previsualizacion-chica" *ngIf="model.favicon">
+                            <img [src]="model.favicon" alt="Favicon">
+                            <button class="btn btn-sm btn-outline-danger" (click)="quitarImagen('favicon')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                        <input class="form-control" type="file" accept="image/*"
+                            (change)="onImagenSeleccionada($event, 'favicon')">
+                        <small class="form-text text-muted">Máximo 500 KB. Cuadrado</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Colores -->
+        <div class="panel-card mb-4">
+            <div class="panel-header">
+                <i class="fas fa-palette"></i>
+                <span>Colores</span>
+            </div>
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-md-4 col-6">
+                        <label class="form-label">Primario</label>
+                        <input class="form-control form-control-color" type="color" [(ngModel)]="model.color_primario">
+                    </div>
+                    <div class="col-md-4 col-6">
+                        <label class="form-label">Secundario</label>
+                        <input class="form-control form-control-color" type="color" [(ngModel)]="model.color_secundario">
+                    </div>
+                    <div class="col-md-4 col-6">
+                        <label class="form-label">Fondo</label>
+                        <input class="form-control form-control-color" type="color" [(ngModel)]="model.color_fondo">
+                    </div>
+                    <div class="col-md-4 col-6">
+                        <label class="form-label">Texto</label>
+                        <input class="form-control form-control-color" type="color" [(ngModel)]="model.color_texto">
+                    </div>
+                    <div class="col-md-4 col-6">
+                        <label class="form-label">Botones</label>
+                        <input class="form-control form-control-color" type="color" [(ngModel)]="model.color_boton">
+                    </div>
+                    <div class="col-md-4 col-6">
+                        <label class="form-label">Texto de botones</label>
+                        <input class="form-control form-control-color" type="color" [(ngModel)]="model.color_texto_boton">
+                    </div>
+                </div>
+
+                <!-- Muestra cómo se ven los colores sin tener que abrir el portal -->
+                <div class="muestra mt-4" [style.background]="model.color_fondo" [style.color]="model.color_texto">
+                    <div class="muestra-barra" [style.background]="model.color_secundario"></div>
+                    <p class="muestra-titulo" [style.color]="model.color_secundario">Así se va a ver</p>
+                    <p class="muestra-texto">Un párrafo de ejemplo con el color de texto.</p>
+                    <button class="muestra-boton" [style.background]="model.color_boton"
+                        [style.color]="model.color_texto_boton">Inscribirme</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tipografía -->
+        <div class="panel-card mb-4">
+            <div class="panel-header">
+                <i class="fas fa-font"></i>
+                <span>Tipografía</span>
+            </div>
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-md-6 col-12">
+                        <label class="form-label">Fuente de títulos</label>
+                        <select class="form-select" [(ngModel)]="model.fuente_titulos">
+                            <option value="">Por defecto</option>
+                            <option *ngFor="let f of fuentesDisponibles" [value]="f">{{ f }}</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 col-12">
+                        <label class="form-label">Fuente de texto</label>
+                        <select class="form-select" [(ngModel)]="model.fuente_texto">
+                            <option value="">Por defecto</option>
+                            <option *ngFor="let f of fuentesDisponibles" [value]="f">{{ f }}</option>
+                        </select>
+                    </div>
+                </div>
+                <small class="form-text text-muted d-block mt-2">
+                    Son fuentes de Google. Se cargan solas al abrir el portal.
+                </small>
+            </div>
+        </div>
+
+        <!-- Contenido -->
+        <div class="panel-card mb-4">
+            <div class="panel-header">
+                <i class="fas fa-align-left"></i>
+                <span>Contenido</span>
+            </div>
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-12">
+                        <label class="form-label">Título de portada</label>
+                        <input class="form-control" type="text" [(ngModel)]="model.titulo_portada"
+                            placeholder="Inscríbete a nuestros cursos">
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <label class="form-label">Mensaje de bienvenida</label>
+                        <textarea class="form-control" rows="2" [(ngModel)]="model.mensaje_bienvenida"></textarea>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <label class="form-label">Imagen de portada</label>
+                        <div class="previsualizacion previsualizacion-ancha" *ngIf="model.imagen_portada">
+                            <img [src]="model.imagen_portada" alt="Portada">
+                            <button class="btn btn-sm btn-outline-danger" (click)="quitarImagen('imagen_portada')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                        <input class="form-control" type="file" accept="image/*"
+                            (change)="onImagenSeleccionada($event, 'imagen_portada')">
+                        <small class="form-text text-muted">Máximo 800 KB. Se muestra de fondo con una capa oscura encima</small>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <label class="form-label">Texto del pie</label>
+                        <input class="form-control" type="text" [(ngModel)]="model.texto_pie">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contacto -->
+        <div class="panel-card mb-4">
+            <div class="panel-header">
+                <i class="fas fa-phone"></i>
+                <span>Contacto</span>
+            </div>
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-md-4 col-12">
+                        <label class="form-label">Teléfono</label>
+                        <input class="form-control" type="tel" [(ngModel)]="model.telefono">
+                    </div>
+                    <div class="col-md-4 col-12">
+                        <label class="form-label">Correo</label>
+                        <input class="form-control" type="email" [(ngModel)]="model.correo">
+                    </div>
+                    <div class="col-md-4 col-12">
+                        <label class="form-label">WhatsApp</label>
+                        <input class="form-control" type="tel" [(ngModel)]="model.whatsapp"
+                            placeholder="573001234567">
+                        <small class="form-text text-muted">Solo dígitos, con indicativo</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Textos legales del portal -->
+        <div class="panel-card mb-4">
+            <div class="panel-header">
+                <i class="fas fa-file-contract"></i>
+                <span>Términos y política de datos</span>
+            </div>
+            <div class="panel-body">
+                <p class="text-muted small">
+                    Son los textos que la persona ve en el portal antes de enviar la inscripción.
+                    Sin aceptarlos no puede continuar, y la aceptación queda registrada con fecha e IP.
+                    Los saltos de línea se respetan tal como los escribas.
+                </p>
+                <div class="row">
+                    <div class="col-12">
+                        <label class="form-label">Términos y condiciones</label>
+                        <textarea class="form-control" rows="8"
+                            [(ngModel)]="model.terminos_condiciones"></textarea>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <label class="form-label">Política de tratamiento de datos personales</label>
+                        <textarea class="form-control" rows="10"
+                            [(ngModel)]="model.politica_datos"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-5">
+            <div class="col-sm-6">
+                <button class="btn btn-lg btn-warning w-100" (click)="guardar()" [disabled]="guardando">
+                    {{ guardando ? 'Guardando...' : 'Grabar' }}
+                </button>
+            </div>
+            <div class="col-sm-6">
+                <button class="btn btn-lg btn-secondary w-100" (click)="volver()">Volver</button>
+            </div>
+        </div>
+    </div>
+</div>

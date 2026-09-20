@@ -125,6 +125,9 @@ export class OperacionesComponent implements OnInit {
       case 'inscripcion-cursos-extra':
         this.router.navigate(['/operaciones/inscripcion-cursos-extra']);
         break;
+      case 'solicitudes-inscripcion':
+        this.router.navigate(['/operaciones/solicitudes-inscripcion']);
+        break;
       case 'observaciones-informe':
         this.router.navigate(['/operaciones/observaciones-informe']);
         break;
