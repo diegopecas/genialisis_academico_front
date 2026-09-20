@@ -2,12 +2,14 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { forkJoin } from 'rxjs';
+import { forkJoin, Observable } from 'rxjs';
 import Swal from 'sweetalert2';
 import { HeaderComponent } from '../../../../common/header/header.component';
 import { SprintsService } from '../../../../services/sprints.service';
 import { TareasXSprintsService } from '../../../../services/tareas-x-sprints.service';
 import { GruposService } from '../../../../services/grupos.service';
+import { CursosExtraService } from '../../../../services/cursos-extra.service';
+import { HorariosCursosExtraService } from '../../../../services/horarios-cursos-extra.service';
 import { AreasAcademicasService } from '../../../../services/areas-academicas.service';
 import { ActividadesAcademicasService } from '../../../../services/actividades-academicas.service';
 import { HorariosService } from '../../../../services/horarios.service';
@@ -30,6 +32,9 @@ export class ConfigurarSprintComponent implements OnInit {
   // Listas para selectores
   public grupos: any[] = [];
   public areas: any[] = [];
+  /* Cursos extracurriculares: hacen las veces de grupo. Solo los que tienen
+     area academica, porque sin ella no hay actividades que configurar. */
+  public cursosExtra: any[] = [];
 
   // Filtros seleccionados
   public filtroGrupo = "";
@@ -88,6 +93,8 @@ export class ConfigurarSprintComponent implements OnInit {
     private sprintsService: SprintsService,
     private tareasXSprintsService: TareasXSprintsService,
     private gruposService: GruposService,
+    private cursosExtraService: CursosExtraService,
+    private horariosCursosExtraService: HorariosCursosExtraService,
     private areasAcademicasService: AreasAcademicasService,
     private actividadesAcademicasService: ActividadesAcademicasService,
     private horariosService: HorariosService,
@@ -106,6 +113,7 @@ export class ConfigurarSprintComponent implements OnInit {
     forkJoin({
       sprint: this.sprintsService.obtenerById(this.idSprint),
       grupos: this.gruposService.obtenerTodos(),
+      cursosExtra: this.cursosExtraService.obtenerActivos(),
       areas: this.areasAcademicasService.obtenerTodos(),
       horarios: this.horariosService.obtenerTodos(),
       diasSprint: this.diasXSprintService.obtenerBySprintId(this.idSprint)
@@ -115,6 +123,9 @@ export class ConfigurarSprintComponent implements OnInit {
         this.sprint = Array.isArray(sprintData) ? sprintData[0] : sprintData;
         this.titulo = `Configurar: ${this.sprint.nombre_sprint}`;
         this.grupos = responses.grupos.body || [];
+        this.cursosExtra = (responses.cursosExtra.body || [])
+          .filter((c: any) => !!c.id_area_academica);
+        this.cargarHorariosCursosExtra();
         this.areas = responses.areas.body || [];
         this.horariosData = responses.horarios.body || [];
         this.diasPorSprint = responses.diasSprint.body || [];
@@ -130,6 +141,76 @@ export class ConfigurarSprintComponent implements OnInit {
         }).then(() => {
           this.router.navigate(['/academico/sprints']);
         });
+      }
+    });
+  }
+
+  /** True cuando el destino elegido es un curso extracurricular y no un grupo. */
+  get destinoEsCurso(): boolean {
+    return this.cursosExtra.some((c: any) => c.id == this.filtroGrupo);
+  }
+
+  /** Nombre del destino, sea grupo o curso extracurricular. */
+  obtenerNombreDestino(idDestino: any): string {
+    if (!idDestino) {
+      return '';
+    }
+    const grupo = this.grupos.find((g: any) => g.id == idDestino);
+    if (grupo) {
+      return grupo.nombre;
+    }
+    const curso = this.cursosExtra.find((c: any) => c.id == idDestino);
+    return curso ? curso.nombre : '';
+  }
+
+  /**
+   * Al elegir un curso el area no se pregunta: es la de su malla.
+   * Se llama desde el selector antes de onFiltroChange.
+   */
+  onDestinoChange() {
+    const curso = this.cursosExtra.find((c: any) => c.id == this.filtroGrupo);
+    if (curso) {
+      this.filtroArea = curso.id_area_academica;
+    }
+    this.onFiltroChange();
+  }
+
+  /**
+   * Trae los horarios de los cursos extracurriculares y los deja con la misma
+   * forma que los de grupo, usando id_grupo = id del curso.
+   *
+   * Asi los calculos de tiempo disponible y el resumen de horarios funcionan
+   * igual para los dos destinos, sin duplicar la logica.
+   */
+  cargarHorariosCursosExtra() {
+    if (this.cursosExtra.length === 0) {
+      return;
+    }
+
+    const peticiones: Observable<any>[] = this.cursosExtra.map((curso: any) =>
+      this.horariosCursosExtraService.obtenerByCurso(curso.id)
+    );
+
+    forkJoin(peticiones).subscribe({
+      next: (respuestas: any) => {
+        // Se quitan primero los del curso para no duplicar si se recarga.
+        this.horariosData = this.horariosData.filter((h: any) => !h.es_curso_extra);
+
+        respuestas.forEach((resp: any, i: number) => {
+          const curso = this.cursosExtra[i];
+          (resp.body || []).forEach((h: any) => {
+            this.horariosData.push({
+              ...h,
+              id_grupo: curso.id,
+              id_area_academica: curso.id_area_academica,
+              nombre_grupo: curso.nombre,
+              es_curso_extra: true
+            });
+          });
+        });
+      },
+      error: (error: any) => {
+        console.error('Error al cargar horarios de cursos extracurriculares:', error);
       }
     });
   }
@@ -175,7 +256,12 @@ export class ConfigurarSprintComponent implements OnInit {
 
   cargarTareasAsignadas() {
     this.cargandoTareas = true;
-    this.tareasXSprintsService.obtenerPorSprintGrupoArea(this.idSprint, this.filtroGrupo, this.filtroArea).subscribe({
+    // El endpoint cambia segun el destino: las tareas de un curso no tienen grupo.
+    const peticion = this.destinoEsCurso
+      ? this.tareasXSprintsService.obtenerPorSprintCursoExtra(this.idSprint, this.filtroGrupo)
+      : this.tareasXSprintsService.obtenerPorSprintGrupoArea(this.idSprint, this.filtroGrupo, this.filtroArea);
+
+    peticion.subscribe({
       next: (response: any) => {
         this.tareasAsignadas = (response.body || []).map((t: any, i: number) => ({
           ...t,
@@ -198,11 +284,15 @@ export class ConfigurarSprintComponent implements OnInit {
   cargarActividadesDisponibles() {
     this.cargandoActividades = true;
 
-    const params: any = {
-      id_corte: this.sprint.id_corte_academico,
-      id_grupo: this.filtroGrupo,
-      id_area: this.filtroArea
-    };
+    // En un curso extracurricular no se filtra por grupo ni por corte: sus
+    // logros no tienen grado y sus actividades sirven todo el ano.
+    const params: any = this.destinoEsCurso
+      ? { id_area: this.filtroArea }
+      : {
+          id_corte: this.sprint.id_corte_academico,
+          id_grupo: this.filtroGrupo,
+          id_area: this.filtroArea
+        };
 
     this.actividadesAcademicasService.obtenerPorFiltros(params).subscribe({
       next: (response: any) => {
@@ -516,8 +606,10 @@ export class ConfigurarSprintComponent implements OnInit {
       id: null,
       id_sprint: this.idSprint,
       id_actividad_academica: actividad.id,
-      id_grupo: parseInt(this.filtroGrupo),
-      id_area_academica: parseInt(this.filtroArea),
+      // Los ids son UUID: no se convierten a numero.
+      id_grupo: this.destinoEsCurso ? null : this.filtroGrupo,
+      id_curso_extra: this.destinoEsCurso ? this.filtroGrupo : null,
+      id_area_academica: this.filtroArea,
       id_estado_tarea: 1,
       orden_ejecucion: siguienteOrden,
       titulo_actividad: actividad.titulo,
@@ -616,8 +708,10 @@ export class ConfigurarSprintComponent implements OnInit {
 
     const body = {
       id_sprint: this.idSprint,
-      id_grupo: parseInt(this.filtroGrupo),
-      id_area_academica: parseInt(this.filtroArea),
+      // Los ids son UUID: no se convierten a numero.
+      id_grupo: this.destinoEsCurso ? null : this.filtroGrupo,
+      id_curso_extra: this.destinoEsCurso ? this.filtroGrupo : null,
+      id_area_academica: this.filtroArea,
       tareas: estadoFinal
     };
 
@@ -669,7 +763,7 @@ export class ConfigurarSprintComponent implements OnInit {
     if (horariosGrupo.length === 0) {
       Swal.fire({
         title: 'Sin horarios',
-        text: 'No hay horarios configurados para este grupo y área.',
+        text: 'No hay horarios configurados para este destino y área.',
         icon: 'info',
         confirmButtonText: 'Cerrar',
         confirmButtonColor: '#F5A623'
@@ -869,6 +963,12 @@ export class ConfigurarSprintComponent implements OnInit {
 
   obtenerNombreGrupo(idGrupo: any): string {
     const grupo = this.grupos.find(g => g.id == idGrupo);
+    if (!grupo) {
+      const curso = this.cursosExtra.find((c: any) => c.id == idGrupo);
+      if (curso) {
+        return curso.nombre;
+      }
+    }
     return grupo ? grupo.nombre : '';
   }
 

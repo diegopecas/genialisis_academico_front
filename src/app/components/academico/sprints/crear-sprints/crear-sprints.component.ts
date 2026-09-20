@@ -64,6 +64,12 @@ export class CrearSprintsComponent implements OnInit {
     // Areas que quedan visibles segun el grupo o curso elegido en el filtro.
     areasFiltradas: [] as any[]
   };
+
+  /* Areas por grupo, cacheadas: el selector se usa mucho y el dato no cambia
+     mientras se esta en la pantalla. Antes se consultaba el backend en cada
+     cambio de grupo. */
+  private cacheAreasPorGrupo: { [idGrupo: string]: string[] } = {
+  };
   private listasSecundariasCargadas = false;
 
   // Datos del sprint
@@ -778,6 +784,16 @@ export class CrearSprintsComponent implements OnInit {
     this.actualizarAreasFiltradas();
   }
 
+  /** Deja en el selector solo las areas cuyo id esta en la lista recibida. */
+  private aplicarAreasDelGrupo(ids: string[]) {
+    this.listas.areasFiltradas = this.listas.areas.filter((a: any) => ids.includes(a.id));
+
+    // Si el area que estaba elegida ya no aplica, se limpia.
+    if (this.filtroArea && !ids.includes(this.filtroArea)) {
+      this.filtroArea = '';
+    }
+  }
+
   actualizarAreasFiltradas() {
     if (!this.filtroGrupo) {
       this.listas.areasFiltradas = this.listas.areas;
@@ -795,16 +811,19 @@ export class CrearSprintsComponent implements OnInit {
       return;
     }
 
+    // Si ya se consultó antes, se usa el cache y no se va al backend.
+    const enCache = this.cacheAreasPorGrupo[this.filtroGrupo];
+    if (enCache) {
+      this.aplicarAreasDelGrupo(enCache);
+      return;
+    }
+
     this.areasAcademicasService.obtenerAreasAcademicasGrupo(this.filtroGrupo).subscribe({
       next: (response: any) => {
         const delGrupo = response.body || [];
         const ids = delGrupo.map((a: any) => a.id_area_academica);
-        this.listas.areasFiltradas = this.listas.areas.filter((a: any) => ids.includes(a.id));
-
-        // Si el area que estaba elegida ya no aplica, se limpia.
-        if (this.filtroArea && !ids.includes(this.filtroArea)) {
-          this.filtroArea = '';
-        }
+        this.cacheAreasPorGrupo[this.filtroGrupo] = ids;
+        this.aplicarAreasDelGrupo(ids);
       },
       error: (error: any) => {
         console.error('Error cargando áreas del grupo:', error);

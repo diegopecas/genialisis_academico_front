@@ -69,11 +69,6 @@ export class SprintCapacidadComponent implements OnInit, OnChanges {
         this.analisisTiempo = response.body as any;
         this.aplicarOrdenamientoCapacidad();
         this.cargando = false;
-
-        if (this.analisisTiempo && this.analisisTiempo.resumen &&
-          this.analisisTiempo.resumen.grupos_excedidos.length > 0) {
-          this.mostrarAlertaTiempoExcedido();
-        }
       },
       error: (error) => {
         console.error('Error cargando análisis de tiempo:', error);
@@ -210,6 +205,11 @@ export class SprintCapacidadComponent implements OnInit, OnChanges {
     }
   }
 
+  /**
+   * Aviso de tiempo excedido. Ya no se dispara solo al abrir el tab: la tarjeta
+   * en rojo y el contador de "Excedidos" muestran lo mismo sin interrumpir.
+   * Se deja disponible por si se quiere lanzar desde un boton.
+   */
   mostrarAlertaTiempoExcedido() {
     if (!this.analisisTiempo) return;
 

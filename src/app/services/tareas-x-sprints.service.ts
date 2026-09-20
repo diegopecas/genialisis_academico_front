@@ -309,6 +309,15 @@ export class TareasXSprintsService {
     );
   }
 
+  /** Clases de un curso extracurricular en el sprint (hermano del de grupo/area). */
+  obtenerPorSprintCursoExtra(idSprint: any, idCursoExtra: any) {
+    return this.http
+      .get<HttpResponse<Object>>(`${this.servicio}/sprint-curso-extra/${idSprint}/${idCursoExtra}`, {
+        observe: 'response',
+      })
+      .pipe(catchError(this.handleError));
+  }
+
   obtenerPorSprintGrupoArea(idSprint: any, idGrupo: any, idArea: any) {
     return this.http
       .get<HttpResponse<Object>>(`${this.servicio}/sprint-grupo-area/${idSprint}/${idGrupo}/${idArea}`, {
