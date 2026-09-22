@@ -1,4 +1,5 @@
-<div class="portal">
+<div class="portal" [style.background-image]="getFondo() ? 'url(' + getFondo() + ')' : null"
+  [class.portal-con-fondo]="!!getFondo()">
 
   <!-- Cargando -->
   <div class="portal-centro" *ngIf="cargando">
@@ -19,8 +20,8 @@
     <!-- Encabezado -->
     <header class="portal-header">
       <div class="portal-header-contenido">
-        <img class="portal-logo" *ngIf="config.logo" [src]="config.logo" [alt]="config.nombre_mostrar">
-        <span class="portal-nombre" *ngIf="!config.logo">{{ config.nombre_mostrar }}</span>
+        <img class="portal-logo" *ngIf="getLogo()" [src]="getLogo()" [alt]="config.nombre_mostrar">
+        <span class="portal-nombre" *ngIf="!getLogo()">{{ config.nombre_mostrar }}</span>
         <a class="portal-volver" *ngIf="config.url_sitio_web" [href]="config.url_sitio_web">
           Ir al sitio
         </a>
@@ -28,8 +29,7 @@
     </header>
 
     <!-- Portada: solo en el primer paso -->
-    <section class="portal-portada" *ngIf="paso === 'institucion'"
-      [style.background-image]="config.imagen_portada ? 'url(' + config.imagen_portada + ')' : null">
+    <section class="portal-portada" *ngIf="paso === 'institucion'">
       <div class="portal-portada-capa">
         <h1>{{ config.titulo_portada || 'Inscríbete a nuestros cursos' }}</h1>
         <p *ngIf="config.mensaje_bienvenida">{{ config.mensaje_bienvenida }}</p>
@@ -47,8 +47,8 @@
           <button class="tarjeta tarjeta-institucion" *ngFor="let i of instituciones"
             (click)="seleccionarInstitucion(i)">
             <div class="tarjeta-logo">
-              <img *ngIf="i.logo" [src]="i.logo" [alt]="i.nombre_institucion">
-              <span class="tarjeta-inicial" *ngIf="!i.logo">{{ i.nombre_institucion.charAt(0) }}</span>
+              <img *ngIf="getLogoInstitucion(i)" [src]="getLogoInstitucion(i)" [alt]="i.nombre_institucion">
+              <span class="tarjeta-inicial" *ngIf="!getLogoInstitucion(i)">{{ i.nombre_institucion.charAt(0) }}</span>
             </div>
             <span class="tarjeta-nombre">{{ i.nombre_institucion }}</span>
           </button>

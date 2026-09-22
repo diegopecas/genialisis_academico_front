@@ -3,6 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import Swal from 'sweetalert2';
 import { HeaderComponent } from '../../../../common/header/header.component';
+import { FotoPersonaComponent } from '../../../../common/foto-persona/foto-persona.component';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { InstitucionesClienteService } from '../../../../services/instituciones-cliente.service';
@@ -42,7 +43,7 @@ interface InstitucionClienteModel {
 @Component({
     selector: 'app-crear-institucion-cliente',
     standalone: true,
-    imports: [HeaderComponent, CommonModule, FormsModule],
+    imports: [HeaderComponent, CommonModule, FormsModule, FotoPersonaComponent],
     templateUrl: './crear-institucion-cliente.component.html',
     styleUrl: './crear-institucion-cliente.component.scss'
 })
@@ -74,10 +75,6 @@ export class CrearInstitucionClienteComponent implements OnInit {
     // Cursos extracurriculares que tienen convenio con esta institucion.
     public cursosInstitucion = [] as any[];
 
-    // Logo de la institucion. No es un campo nuevo: es la foto de la persona
-    // juridica, que ya tiene subida y borrado en el servicio de personas.
-    public logo: any = null;
-    public subiendoLogo: boolean = false;
 
     // Solicitudes que llegaron por el portal publico para esta institucion.
     // Al aprobar se crea el estudiante y queda inscrito al curso.
@@ -359,8 +356,6 @@ export class CrearInstitucionClienteComponent implements OnInit {
 
                         // Verificar si es persona jurídica
                         this.onTipoIdentificacionChange();
-
-                        this.cargarLogo();
 
                         const nombreCompleto = this.model.razonSocial || `${institucion.primer_nombre || ''} ${institucion.primer_apellido || ''}`.trim();
                         if (this.accion === 'editar') {
@@ -728,89 +723,13 @@ export class CrearInstitucionClienteComponent implements OnInit {
         });
     }
 
-    // ==================== LOGO ====================
-
-    cargarLogo() {
-        if (!this.model.idPersona) {
-            this.logo = null;
-            return;
+    // El componente comun de foto lo usa para las iniciales cuando todavia
+    // no hay logo cargado.
+    obtenerNombreInstitucion(): string {
+        if (this.model.razonSocial) {
+            return this.model.razonSocial;
         }
-
-        this.personasService.obtenerFoto(this.model.idPersona).subscribe({
-            next: (response: any) => {
-                const body = response.body;
-                this.logo = body && body.foto ? body.foto : null;
-            },
-            error: () => {
-                // Sin logo cargado el backend responde error; no es una falla.
-                this.logo = null;
-            }
-        });
-    }
-
-    onLogoSeleccionado(event: any) {
-        const archivo = event.target.files && event.target.files[0];
-        if (!archivo) {
-            return;
-        }
-
-        if (!archivo.type.startsWith('image/')) {
-            Swal.fire('Archivo no válido', 'Debe seleccionar una imagen.', 'warning');
-            return;
-        }
-
-        if (archivo.size > 500 * 1024) {
-            Swal.fire('Imagen muy pesada', 'El logo no debe superar 500 KB.', 'warning');
-            return;
-        }
-
-        this.subiendoLogo = true;
-
-        this.personasService.subirFoto(this.model.idPersona, archivo).subscribe({
-            next: () => {
-                this.subiendoLogo = false;
-                Swal.fire({
-                    toast: true, position: 'top-end', icon: 'success',
-                    title: 'Logo actualizado', showConfirmButton: false, timer: 2000
-                });
-                this.cargarLogo();
-            },
-            error: (error: any) => {
-                this.subiendoLogo = false;
-                console.error('Error al subir el logo', error);
-                Swal.fire('Error', 'No se pudo subir el logo.', 'error');
-            }
-        });
-    }
-
-    async eliminarLogo() {
-        const result = await Swal.fire({
-            title: '¿Quitar el logo?',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Sí, quitar',
-            cancelButtonText: 'Cancelar'
-        });
-
-        if (!result.isConfirmed) {
-            return;
-        }
-
-        this.personasService.eliminarFoto(this.model.idPersona).subscribe({
-            next: () => {
-                this.logo = null;
-                Swal.fire({
-                    toast: true, position: 'top-end', icon: 'success',
-                    title: 'Logo eliminado', showConfirmButton: false, timer: 2000
-                });
-            },
-            error: (error: any) => {
-                console.error('Error al eliminar el logo', error);
-                Swal.fire('Error', 'No se pudo eliminar el logo.', 'error');
-            }
-        });
+        return [this.model.primerNombre, this.model.primerApellido].filter(Boolean).join(' ');
     }
 
     // ==================== PESTANAS ====================

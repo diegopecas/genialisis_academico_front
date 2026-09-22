@@ -313,30 +313,8 @@ $light-gold: rgba(212, 175, 55, 0.1);
 // Panel cards (docentes, proveedores, tarifas)
 // =============================================
 
-/* Logo de la institucion: es la foto de la persona juridica */
+/* Contenedor del componente comun de foto, usado como logo */
 .logo-institucion {
-  position: relative;
   display: inline-block;
   margin-bottom: 10px;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: 8px;
-  padding: 8px;
-  background: #fafafa;
-}
-
-.logo-institucion img {
-  max-height: 80px;
-  max-width: 220px;
-  object-fit: contain;
-  display: block;
-}
-
-.logo-institucion button {
-  position: absolute;
-  top: -8px;
-  right: -8px;
-  background: #fff;
-  border-radius: 50%;
-  padding: 2px 7px;
-  line-height: 1;
 }

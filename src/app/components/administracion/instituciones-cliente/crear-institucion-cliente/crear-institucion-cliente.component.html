@@ -204,20 +204,20 @@
             </div>
         </div>
 
-        <!-- Logo: es la foto de la persona jurídica, se muestra en el portal público -->
-        <div class="row mt-4" *ngIf="accion === 'editar' || accion === 'consultar'">
+        <!-- Logo: es la foto de la persona jurídica. Se usa el componente
+             común de foto, el mismo del acudiente y el estudiante. -->
+        <div class="row mt-4" *ngIf="(accion === 'editar' || accion === 'consultar') && model.idPersona">
             <div class="col-12">
                 <label class="form-label">Logo de la institución</label>
-                <div class="logo-institucion" *ngIf="logo">
-                    <img [src]="logo" alt="Logo">
-                    <button class="btn btn-sm btn-outline-danger" (click)="eliminarLogo()" *ngIf="editable">
-                        <i class="fas fa-trash"></i>
-                    </button>
+                <div class="logo-institucion">
+                    <app-foto-persona
+                        [idPersona]="model.idPersona"
+                        [nombrePersona]="obtenerNombreInstitucion()"
+                        [soloLectura]="accion === 'consultar'">
+                    </app-foto-persona>
                 </div>
-                <input class="form-control" type="file" accept="image/*" *ngIf="editable"
-                    (change)="onLogoSeleccionado($event)" [disabled]="subiendoLogo">
-                <small class="form-text text-muted">
-                    Máximo 500 KB. Se muestra en el portal público de inscripción.
+                <small class="form-text text-muted d-block">
+                    Se muestra en las tarjetas del portal público de inscripción.
                 </small>
             </div>
         </div>

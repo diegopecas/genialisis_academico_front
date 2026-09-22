@@ -862,8 +862,8 @@ export class CrearPagosRecibidosComponent implements OnInit {
       errores.push("Debe seleccionar una fecha válida");
     }
 
-    if (!this.model.id_acudiente || this.model.id_acudiente == "0") {
-      errores.push("Debe seleccionar quién realizó el pago");
+    if (this.model.id_acudiente == "0") {
+      errores.push("Debe seleccionar un acudiente");
     }
 
     if (!this.model.id_tipo_pago) {

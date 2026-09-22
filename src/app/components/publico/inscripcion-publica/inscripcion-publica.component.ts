@@ -1,10 +1,11 @@
 // ========== inscripcion-publica.component.ts ==========
-import { Component, OnInit } from '@angular/core';
+import { Component, ElementRef, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { InscripcionPublicaService } from '../../../services/inscripcion-publica.service';
 import { InstitucionConfigService } from '../../../services/institucion-config.service';
+import { PersonasService } from '../../../services/personas.service';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -26,6 +27,13 @@ export class InscripcionPublicaComponent implements OnInit {
   public submitted: boolean = false;
 
   public config: any = null;
+
+  // Logo y fondo del tenant, con el mismo patron del menu:
+  // /assets/images/instituciones/{codigo}/logo.png y fondo.png
+  // Si la configuracion del portal trae su propia imagen, esa manda: sirve
+  // para publicar un logo distinto del que usa el sistema por dentro.
+  public logoUrl: string = '';
+  public fondoUrl: string = '';
   public instituciones: any[] = [];
   public cursos: any[] = [];
   public horarios: any[] = [];
@@ -66,7 +74,9 @@ export class InscripcionPublicaComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private inscripcionPublicaService: InscripcionPublicaService,
-    private institucionConfigService: InstitucionConfigService
+    private institucionConfigService: InstitucionConfigService,
+    private personasService: PersonasService,
+    private elementRef: ElementRef
   ) { }
 
   ngOnInit(): void {
@@ -82,7 +92,60 @@ export class InscripcionPublicaComponent implements OnInit {
     }
 
     this.institucionConfigService.setTenantManual(tenant, '');
+    this.cargarImagenesTenant();
     this.cargarConfiguracion();
+  }
+
+  /**
+   * Toma el logo y el fondo de los assets del tenant. Si el archivo no
+   * existe se deja vacío y la página muestra el nombre en lugar del logo,
+   * igual que hace el menú con su fallback.
+   */
+  cargarImagenesTenant() {
+    const logo = this.institucionConfigService.getLogoUrl();
+    const fondo = this.institucionConfigService.getFondoUrl();
+
+    if (logo) {
+      const img = new Image();
+      img.onload = () => { this.logoUrl = logo; };
+      img.onerror = () => { this.logoUrl = ''; };
+      img.src = logo;
+    }
+
+    if (fondo) {
+      const img = new Image();
+      img.onload = () => { this.fondoUrl = fondo; };
+      img.onerror = () => { this.fondoUrl = ''; };
+      img.src = fondo;
+    }
+  }
+
+  // Lo que se pinta: la imagen de la configuración si la cargaron, y si no
+  // el asset del tenant.
+  getLogo(): string {
+    if (this.config && this.config.logo) {
+      return this.config.logo;
+    }
+    return this.logoUrl;
+  }
+
+  /**
+   * El logo del cliente institucional es la foto de su persona jurídica, y
+   * el backend devuelve la ruta relativa del archivo, no la imagen. La URL
+   * pública se arma igual que en el componente común de foto.
+   */
+  getLogoInstitucion(institucion: any): string {
+    if (!institucion || !institucion.logo) {
+      return '';
+    }
+    return this.personasService.obtenerUrlFoto(institucion.logo);
+  }
+
+  getFondo(): string {
+    if (this.config && this.config.imagen_portada) {
+      return this.config.imagen_portada;
+    }
+    return this.fondoUrl;
   }
 
   cargarConfiguracion() {
@@ -111,9 +174,14 @@ export class InscripcionPublicaComponent implements OnInit {
   /**
    * Los colores y las fuentes se inyectan como variables CSS sobre el host,
    * así todo el portal se repinta cambiando la configuración, sin tocar código.
+   *
+   * Van sobre el elemento del componente y NO sobre document.documentElement:
+   * el SCSS declara los valores por defecto en :host, que gana en
+   * especificidad contra :root, así que escribirlas en la raíz no tenía
+   * ningún efecto y el portal se quedaba con los colores de fábrica.
    */
   aplicarTema() {
-    const raiz = document.documentElement;
+    const raiz = this.elementRef.nativeElement as HTMLElement;
     raiz.style.setProperty('--portal-primario', this.config.color_primario || '#d4af37');
     raiz.style.setProperty('--portal-secundario', this.config.color_secundario || '#222222');
     raiz.style.setProperty('--portal-fondo', this.config.color_fondo || '#f5f5f7');
@@ -137,6 +205,10 @@ export class InscripcionPublicaComponent implements OnInit {
 
     raiz.style.setProperty('--portal-fuente-titulos', this.config.fuente_titulos ? `'${this.config.fuente_titulos}', sans-serif` : 'inherit');
     raiz.style.setProperty('--portal-fuente-texto', this.config.fuente_texto ? `'${this.config.fuente_texto}', sans-serif` : 'inherit');
+
+    // El fondo sí va al body: el portal ocupa toda la pantalla y sin esto
+    // queda una franja blanca al desbordar el scroll.
+    document.body.style.background = this.config.color_fondo || '#f5f5f7';
 
     if (this.config.nombre_mostrar) {
       document.title = this.config.nombre_mostrar;

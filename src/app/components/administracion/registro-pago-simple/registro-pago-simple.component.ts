@@ -736,7 +736,6 @@ export class RegistroPagoSimpleComponent implements OnInit, OnDestroy {
   private validar(): string[] {
     const errores: string[] = [];
     if (!this.estudiante) errores.push('Debe seleccionar el estudiante');
-    if (!this.id_acudiente) errores.push('Debe seleccionar quién realizó el pago');
     if (!this.id_tipo_pago) errores.push('Debe seleccionar un tipo de pago');
     if (!this.fecha) errores.push('Debe ingresar la fecha');
     if (!this.valor_recibido || this.valor_recibido <= 0) errores.push('El valor debe ser mayor a cero');
