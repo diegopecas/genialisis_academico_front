@@ -4,10 +4,7 @@
 <app-ayuda-modal></app-ayuda-modal>
 <ngx-spinner>
   <div class="player-container" [class.is-hiding]="!loading">
-    <video #spinnerVideo class="player" autoplay loop muted playsinline preload="auto"
-           poster="assets/images/spinner-loader.png">
-      <source src="assets/images/spinner-loader.webm" type="video/webm" />
-      <img class="player" src="assets/images/spinner-loader.png" alt="Cargando" />
-    </video>
+    <!-- WebP animado: conserva la transparencia en todos los navegadores -->
+    <img class="player" src="assets/images/spinner-loader.webp" alt="Cargando" />
   </div>
 </ngx-spinner>
