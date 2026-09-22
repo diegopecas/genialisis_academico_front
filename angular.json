@@ -33,6 +33,7 @@
               "src/favicon.ico",
               "src/assets",
               "src/sw-push.js",
+              "src/manifest.webmanifest",
               {
                 "glob": ".htaccess",
                 "input": "src",

@@ -39,3 +39,23 @@ ng build --configuration production
 ng build --configuration genialisis
 ng build --configuration genialisis --output-path=dist/prod
 ng build --configuration qa --output-path=dist/qa
+
+
+## Ambientes — genialisis_academico (puerto 4200)
+
+### Servidor local
+```
+ng serve genialisis_academico --port 4200                              # development
+ng serve genialisis_academico --configuration qa --port 4200
+ng serve genialisis_academico --configuration genialisis --port 4200
+ng serve genialisis_academico --configuration demo --port 4200
+ng serve genialisis_academico --configuration production --port 4200
+```
+
+### Compilación
+```
+ng build genialisis_academico --configuration qa           # dist/genialisis_academico/browser
+ng build genialisis_academico --configuration genialisis   # dist/genialisis_academico/browser
+ng build genialisis_academico --configuration demo         # dist/demo/browser
+ng build genialisis_academico --configuration production   # dist/genialisis_academico/browser
+```

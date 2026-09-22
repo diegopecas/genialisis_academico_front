@@ -1,0 +1,32 @@
+{
+  "id": "/",
+  "name": "Genialisis Institucional",
+  "short_name": "Genialisis",
+  "description": "Sistema de gestión educativa Genialisis",
+  "lang": "es",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#FFC107",
+  "icons": [
+    {
+      "src": "assets/images/pwa/icono-app-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/images/pwa/icono-app-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/images/pwa/icono-app-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

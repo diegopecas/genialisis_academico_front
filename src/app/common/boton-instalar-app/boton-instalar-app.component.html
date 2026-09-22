@@ -1,0 +1,12 @@
+<!-- Solo se pinta en celulares y tabletas donde Genialisis no está instalado -->
+<div class="instalar-app" *ngIf="modo !== 'oculto'">
+  <button
+    type="button"
+    class="boton-instalar"
+    (click)="instalar()"
+    [disabled]="instalando"
+  >
+    <span class="boton-icono">📲</span>
+    <span class="boton-texto">Instalar Genialisis</span>
+  </button>
+</div>

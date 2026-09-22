@@ -11,6 +11,7 @@ import { environment } from '../../../environments/environment';
 import { AuthService } from '../../services/auth.service';
 import { AutorizacionesHabeasDataService } from '../../services/autorizaciones-habeas-data.service';
 import { HabeasDataModalComponent } from '../habeas-data-modal/habeas-data-modal.component';
+import { BotonInstalarAppComponent } from '../../common/boton-instalar-app/boton-instalar-app.component';
 
 interface Tenant {
   id: string;
@@ -24,7 +25,7 @@ interface Tenant {
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
   standalone: true,
-  imports: [CommonModule, FormsModule, HabeasDataModalComponent],
+  imports: [CommonModule, FormsModule, HabeasDataModalComponent, BotonInstalarAppComponent],
 })
 export class LoginComponent implements OnInit {
   public usuario: string = '';

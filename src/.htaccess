@@ -13,6 +13,9 @@
   RewriteRule . /index.html [L]
 </IfModule>
 
+# --- Manifest de instalacion: algunos Apache no conocen la extension ---
+AddType application/manifest+json .webmanifest
+
 # --- Tiempos de expiración ---
 <IfModule mod_expires.c>
   ExpiresActive On
