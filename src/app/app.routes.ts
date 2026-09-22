@@ -114,7 +114,11 @@ export const routes: Routes = [
       { path: '', loadComponent: () => import('./components/calificacion/selector-grupos/selector-grupos.component').then(m => m.SelectorGruposComponent) },
       { path: 'grupo/:idGrupo', loadComponent: () => import('./components/calificacion/selector-areas/selector-areas.component').then(m => m.SelectorAreasComponent), data: { trackear: true, labelAcceso: 'Áreas del Grupo', iconoAcceso: '📚' } },
       { path: 'grupo/:idGrupo/area/:idArea', loadComponent: () => import('./components/calificacion/lista-actividades/lista-actividades.component').then(m => m.ListaActividadesComponent) },
-      { path: 'grupo/:idGrupo/area/:idArea/actividad/:idTareaSprint', loadComponent: () => import('./components/calificacion/calificacion-estudiantes/calificacion-estudiantes.component').then(m => m.CalificacionEstudiantesComponent) }
+      { path: 'grupo/:idGrupo/area/:idArea/actividad/:idTareaSprint', loadComponent: () => import('./components/calificacion/calificacion-estudiantes/calificacion-estudiantes.component').then(m => m.CalificacionEstudiantesComponent) },
+      // Cursos extracurriculares: el curso ocupa el lugar del grupo y el área
+      // sale del propio curso, por eso la ruta no la lleva.
+      { path: 'curso-extra/:idCursoExtra', loadComponent: () => import('./components/calificacion/lista-actividades/lista-actividades.component').then(m => m.ListaActividadesComponent) },
+      { path: 'curso-extra/:idCursoExtra/actividad/:idTareaSprint', loadComponent: () => import('./components/calificacion/calificacion-estudiantes/calificacion-estudiantes.component').then(m => m.CalificacionEstudiantesComponent) }
     ]
   },
 

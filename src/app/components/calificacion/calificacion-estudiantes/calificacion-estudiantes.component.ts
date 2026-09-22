@@ -11,6 +11,7 @@ import { TareasXSprintsService } from '../../../services/tareas-x-sprints.servic
 import { TareasXSprintsXEstudianteService } from '../../../services/tareas-x-sprints-x-estudiante.service';
 import { CalificacionContextService } from '../../../services/calificacion-context.service';
 import { GruposService } from '../../../services/grupos.service';
+import { CursosExtraService } from '../../../services/cursos-extra.service';
 import { AreasAcademicasService } from '../../../services/areas-academicas.service';
 import { UtilService } from '../../../common/constantes/util.service';
 import collect from 'collect.js';
@@ -56,12 +57,16 @@ export class CalificacionEstudiantesComponent implements OnInit {
 
   public idGrupo: string = '';
   public idArea: string = '';
+  /* Cuando la clase es de un curso extracurricular, el curso ocupa el lugar
+     del grupo: los estudiantes salen de la inscripción, no del grupo. */
+  public idCursoExtra: string = '';
   public idTareaSprint: string = '';
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private gruposService: GruposService,
+    private cursosExtraService: CursosExtraService,
     private areasAcademicasService: AreasAcademicasService,
     private actividadesAcademicasService: ActividadesAcademicasService,
     private parametrosCalificacionesService: ParametrosCalificacionesService,
@@ -80,6 +85,7 @@ export class CalificacionEstudiantesComponent implements OnInit {
     this.route.params.subscribe(params => {
       this.idGrupo = params['idGrupo'];
       this.idArea = params['idArea'];
+      this.idCursoExtra = params['idCursoExtra'] || '';
       this.idTareaSprint = params['idTareaSprint'];
       this.cargarDatos();
     });
@@ -90,19 +96,42 @@ export class CalificacionEstudiantesComponent implements OnInit {
   }
 
   private cargarDatos(): void {
-    this.gruposService.obtenerTodos().subscribe((resp: any) => {
-      const grupos = resp.body || [];
-      this.grupo = grupos.find((g: any) => g.id == this.idGrupo) || null;
-      this.actualizarTitulo();
-      this.cargarActividad();
-    });
-
-    this.areasAcademicasService.obtenerAreasAcademicasGrupo(this.idGrupo)
-      .subscribe((resp: any) => {
-        const areas = resp.body || [];
-        this.area = areas.find((a: any) => a.id_area_academica == this.idArea) || null;
+    if (this.idCursoExtra) {
+      this.cursosExtraService.obtenerById(this.idCursoExtra).subscribe((resp: any) => {
+        const body = resp.body || [];
+        const curso = body.length > 0 ? body[0] : null;
+        if (curso) {
+          // Se reusa `grupo` para que el encabezado no tenga que distinguir.
+          this.grupo = {
+            id: curso.id,
+            nombre: curso.nombre,
+            color: curso.color,
+            icono: curso.icono
+          };
+          this.idArea = curso.id_area_academica;
+          this.area = {
+            id_area_academica: curso.id_area_academica,
+            nombre: curso.nombre_area_academica
+          };
+        }
         this.actualizarTitulo();
+        this.cargarActividad();
       });
+    } else {
+      this.gruposService.obtenerTodos().subscribe((resp: any) => {
+        const grupos = resp.body || [];
+        this.grupo = grupos.find((g: any) => g.id == this.idGrupo) || null;
+        this.actualizarTitulo();
+        this.cargarActividad();
+      });
+
+      this.areasAcademicasService.obtenerAreasAcademicasGrupo(this.idGrupo)
+        .subscribe((resp: any) => {
+          const areas = resp.body || [];
+          this.area = areas.find((a: any) => a.id_area_academica == this.idArea) || null;
+          this.actualizarTitulo();
+        });
+    }
 
     this.cargarParametrosCalificaciones();
     this.cargarBloquesHorario();
@@ -124,6 +153,15 @@ export class CalificacionEstudiantesComponent implements OnInit {
   }
 
   private cargarBloquesHorario(): void {
+    // Los bloques salen del horario del grupo. Un curso extracurricular tiene
+    // los suyos en otra tabla y el docente no los necesita para calificar,
+    // así que la franja no se muestra.
+    if (this.idCursoExtra) {
+      this.bloquesHorario = [];
+      this.horarioSeleccionado = null;
+      return;
+    }
+
     const jsDay = new Date().getDay();
     const diaSemana = jsDay === 0 ? 7 : jsDay;
     this.bloquesHorario = this.calificacionContext.getHorariosAreaDia(this.idGrupo, this.idArea, diaSemana);
@@ -175,7 +213,11 @@ export class CalificacionEstudiantesComponent implements OnInit {
   }
 
   private cargarActividad(): void {
-    this.actividadesAcademicasService.obtenerByGrupoArea(this.idGrupo, this.idArea)
+    const peticionActividad = this.idCursoExtra
+      ? this.actividadesAcademicasService.obtenerByCursoExtra(this.idCursoExtra)
+      : this.actividadesAcademicasService.obtenerByGrupoArea(this.idGrupo, this.idArea);
+
+    peticionActividad
       .subscribe((response: any) => {
         const actividades = response.body || [];
         const actividad = actividades.find((a: any) => a.id_tarea_x_sprint == this.idTareaSprint);
@@ -200,7 +242,12 @@ export class CalificacionEstudiantesComponent implements OnInit {
    * en una sola llamada al backend.
    */
   private cargarVistaTarea(): void {
-    this.calificacionesService.obtenerVistaTarea(this.idGrupo, this.idTareaSprint)
+    // Los estudiantes de un curso salen de la inscripción, no del grupo.
+    const peticionVista = this.idCursoExtra
+      ? this.calificacionesService.obtenerVistaTareaCursoExtra(this.idCursoExtra, this.idTareaSprint)
+      : this.calificacionesService.obtenerVistaTarea(this.idGrupo, this.idTareaSprint);
+
+    peticionVista
       .subscribe((resp: any) => {
         const todos: any[] = resp.body || [];
 
@@ -512,7 +559,9 @@ export class CalificacionEstudiantesComponent implements OnInit {
       this.actividadAcademica.id_tarea_x_sprint,
       this.usuario.id_docente
     ).subscribe((response: any) => {
-      this.router.navigate(['/calificacion/grupo', this.idGrupo, 'area', this.idArea]);
+      this.router.navigate(this.idCursoExtra
+        ? ['/calificacion/curso-extra', this.idCursoExtra]
+        : ['/calificacion/grupo', this.idGrupo, 'area', this.idArea]);
     });
   }
 
@@ -525,6 +574,9 @@ export class CalificacionEstudiantesComponent implements OnInit {
   }
 
   get rutaRegresar(): string {
+    if (this.idCursoExtra) {
+      return '/calificacion/curso-extra/' + this.idCursoExtra;
+    }
     return '/calificacion/grupo/' + this.idGrupo + '/area/' + this.idArea;
   }
 

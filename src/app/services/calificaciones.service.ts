@@ -68,6 +68,17 @@ export class CalificacionesService {
    * con sus calificaciones, observaciones y flag de asistencia ya anidados.
    * Hace una sola llamada en lugar de varias separadas.
    */
+  /** Misma vista, pero los estudiantes salen de la inscripción al curso. */
+  obtenerVistaTareaCursoExtra(idCursoExtra: any, idTareaSprint: any) {
+    return this.http
+      .get<HttpResponse<Object>>(environment.api + `calificaciones-vista-tarea-curso-extra/${idCursoExtra}/${idTareaSprint}`, {
+        observe: 'response',
+      })
+      .pipe(
+        catchError(this.handleError)
+      );
+  }
+
   obtenerVistaTarea(id_grupo: any, id_tarea_sprint: any) {
     return this.http
       .get<HttpResponse<Object>>(this.servicioCalificacionesVistaTarea + `/${id_grupo}/${id_tarea_sprint}`, { observe: 'response' })

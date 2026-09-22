@@ -8,6 +8,7 @@ import { normalizarTexto } from '../../../common/pipes/search';
 import { ActividadesAcademicasService } from '../../../services/actividades-academicas.service';
 import { AreasAcademicasService } from '../../../services/areas-academicas.service';
 import { GruposService } from '../../../services/grupos.service';
+import { CursosExtraService } from '../../../services/cursos-extra.service';
 import { AmbientesService } from '../../../services/ambientes.service';
 import { TiposActividadesAcademicasService } from '../../../services/tipos-actividades-academicas.service';
 import { IaMaquinaActividadesService } from '../../../services/ia-maquina-actividades.service';
@@ -78,6 +79,8 @@ export class ListaActividadesComponent implements OnInit {
 
   public idGrupo: string = '';
   public idArea: string = '';
+  /* Id del curso extracurricular cuando la pantalla se abre por esa ruta. */
+  public idCursoExtra: string = '';
 
   // Touch drag state
   private touchStartY: number = 0;
@@ -90,6 +93,7 @@ export class ListaActividadesComponent implements OnInit {
     private actividadesAcademicasService: ActividadesAcademicasService,
     private areasAcademicasService: AreasAcademicasService,
     private gruposService: GruposService,
+    private cursosExtraService: CursosExtraService,
     private ambientesService: AmbientesService,
     private tiposActividadesService: TiposActividadesAcademicasService,
     private iaMaquinaService: IaMaquinaActividadesService,
@@ -105,28 +109,68 @@ export class ListaActividadesComponent implements OnInit {
     this.route.params.subscribe(params => {
       this.idGrupo = params['idGrupo'];
       this.idArea = params['idArea'];
+      // Cuando la pantalla se abre para un curso extracurricular, el curso
+      // ocupa el lugar del grupo y el área sale del propio curso.
+      this.idCursoExtra = params['idCursoExtra'] || '';
       this.cargarDatosIniciales();
     });
   }
 
   private cargarDatosIniciales(): void {
-    this.gruposService.obtenerTodos().subscribe((resp: any) => {
-      const grupos = resp.body || [];
-      this.grupo = grupos.find((g: any) => g.id == this.idGrupo) || null;
-    });
-
-    this.areasAcademicasService.obtenerAreasAcademicasGrupo(this.idGrupo)
-      .subscribe((resp: any) => {
-        const areas = resp.body || [];
-        this.area = areas.find((a: any) => a.id_area_academica == this.idArea) || null;
+    if (this.idCursoExtra) {
+      this.cargarDatosCursoExtra();
+    } else {
+      this.gruposService.obtenerTodos().subscribe((resp: any) => {
+        const grupos = resp.body || [];
+        this.grupo = grupos.find((g: any) => g.id == this.idGrupo) || null;
       });
+
+      this.areasAcademicasService.obtenerAreasAcademicasGrupo(this.idGrupo)
+        .subscribe((resp: any) => {
+          const areas = resp.body || [];
+          this.area = areas.find((a: any) => a.id_area_academica == this.idArea) || null;
+        });
+    }
 
     this.cargarActividades();
     this.cargarCatalogosCrear();
   }
 
+  /**
+   * El curso hace las veces de grupo en el encabezado, y su área académica es
+   * la materia de la que salen los logros.
+   */
+  private cargarDatosCursoExtra(): void {
+    this.cursosExtraService.obtenerById(this.idCursoExtra).subscribe((resp: any) => {
+      const body = resp.body || [];
+      const curso = body.length > 0 ? body[0] : null;
+      if (!curso) {
+        return;
+      }
+
+      // Se reusa `grupo` para que el encabezado y el resto de la pantalla no
+      // tengan que distinguir de qué tipo de destino se trata.
+      this.grupo = {
+        id: curso.id,
+        nombre: curso.nombre,
+        color: curso.color,
+        icono: curso.icono
+      };
+      this.idArea = curso.id_area_academica;
+      this.area = {
+        id_area_academica: curso.id_area_academica,
+        nombre: curso.nombre_area_academica
+      };
+    });
+  }
+
   private cargarActividades(): void {
-    this.actividadesAcademicasService.obtenerByGrupoArea(this.idGrupo, this.idArea)
+    // Las clases de un curso no tienen grupo ni área en la ruta: se piden por curso.
+    const peticion = this.idCursoExtra
+      ? this.actividadesAcademicasService.obtenerByCursoExtra(this.idCursoExtra)
+      : this.actividadesAcademicasService.obtenerByGrupoArea(this.idGrupo, this.idArea);
+
+    peticion
       .subscribe((response: any) => {
         const todas = (response.body || []).map((actividad: any) => ({
           ...actividad,
@@ -185,11 +229,15 @@ export class ListaActividadesComponent implements OnInit {
 
   seleccionarActividad(actividad: any): void {
     if (this.modoEdicion) return;
-    this.router.navigate([
-      '/calificacion/grupo', this.idGrupo,
-      'area', this.idArea,
-      'actividad', actividad.id_tarea_x_sprint
-    ]);
+    this.router.navigate(this.rutaCalificar(actividad.id_tarea_x_sprint));
+  }
+
+  /** Ruta de la pantalla de calificar, según el destino. */
+  private rutaCalificar(idTareaSprint: any): any[] {
+    if (this.idCursoExtra) {
+      return ['/calificacion/curso-extra', this.idCursoExtra, 'actividad', idTareaSprint];
+    }
+    return ['/calificacion/grupo', this.idGrupo, 'area', this.idArea, 'actividad', idTareaSprint];
   }
 
   toggleVerTodas(): void {
@@ -611,11 +659,7 @@ export class ListaActividadesComponent implements OnInit {
           const actividadCreada = resp.actividades[0];
           const idTarea = actividadCreada.id_tarea_sprint;
           if (idTarea) {
-            this.router.navigate([
-              '/calificacion/grupo', this.idGrupo,
-              'area', this.idArea,
-              'actividad', idTarea
-            ]);
+            this.router.navigate(this.rutaCalificar(idTarea));
           }
         } else {
           Swal.fire('Error', resp.error || 'No se pudo crear.', 'error');

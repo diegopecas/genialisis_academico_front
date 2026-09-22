@@ -69,6 +69,17 @@ export class ActividadesAcademicasService {
       );
   }
 
+  /** Clases de un curso extracurricular en el sprint actual. */
+  obtenerByCursoExtra(idCursoExtra: any) {
+    return this.http
+      .get<HttpResponse<Object>>(environment.api + `actividades-academicas-curso-extra/${idCursoExtra}`, {
+        observe: 'response',
+      })
+      .pipe(
+        catchError(this.handleError)
+      );
+  }
+
   obtenerByGrupoArea(idGrupo: any, idAreaAcademica: any) {
     console.log("consulta actividades",this.servicioActividadGrupo + `/${idGrupo}/${idAreaAcademica}`);
     return this.http

@@ -58,3 +58,45 @@ $color-text: #555555;
   }
   .imagen-container img { max-width: 80px; max-height: 80px; }
 }
+
+// Separador entre los grupos del jardín y los cursos extracurriculares
+.separador-seccion {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 1.5rem 0;
+  padding: 0 15px;
+
+  span {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: $color-text;
+    white-space: nowrap;
+  }
+
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: $color-primary;
+    opacity: 0.4;
+  }
+}
+
+// Ficha de curso sin icono cargado
+.sin-icono-ficha {
+  font-size: 2.5rem;
+  color: $color-primary;
+  opacity: 0.5;
+}
+
+// Área académica bajo el nombre del curso
+.sub-nombre {
+  display: block;
+  font-size: 0.75em;
+  font-weight: 400;
+  color: #777;
+  margin-top: 2px;
+}
