@@ -114,6 +114,7 @@
               "outputHashing": "all"
             },
             "demo": {
+              "outputPath": "dist/demo",
               "fileReplacements": [
                 {
                   "replace": "src/environments/environment.ts",
