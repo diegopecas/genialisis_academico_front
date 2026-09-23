@@ -252,7 +252,14 @@ export class InformesGeneracionComponent implements OnInit {
       id_usuario: usuario?.id || null
     }).subscribe({
       next: () => {
+        // El estado se marca de una, antes de refrescar la lista: si se
+        // espera a consultar(), el estudiante sigue en 'sin_generar' y
+        // abrirInforme vuelve a llamar a generar en un bucle infinito.
+        est.estado = 'borrador';
+        this.refrescarFila(est.id_estudiante, { estado: 'borrador' });
+
         this.consultar();
+
         if (abrirDespues) {
           this.abrirInforme(est);
         }
@@ -333,9 +340,17 @@ export class InformesGeneracionComponent implements OnInit {
     this.limpiarRespaldo();
 
     if (est.estado === 'sin_generar') {
+      // Se marca el intento para no reentrar si el estado no alcanza a
+      // cambiar: generar y abrir se llaman en cadena.
+      if (est.generando) {
+        return;
+      }
+      est.generando = true;
       this.generar(est, true);
       return;
     }
+
+    est.generando = false;
 
     this.estudianteActivo = est;
     this.cargandoInforme = true;
