@@ -27,7 +27,7 @@ export interface DatosInformePDF {
     // Opciones de formato, configurables por jardín
     estiloMarca?: string;      // 'columnas' | 'columna_unica'
     simboloMarca?: string;     // 'x' | 'punto' | 'valor' | 'texto'
-    colorPrincipal?: string;   // color del jardín; sin él se usa gris neutro
+    colorPrincipal?: string;   // color del jardín; sin él se usa un azul suave
     mostrarConvencion?: boolean;
 
     // Datos del estudiante
@@ -69,7 +69,8 @@ export interface DatosInformePDF {
  * autoTable, márgenes fijos y control manual de los saltos de página.
  *
  * El formato sale de la configuración del jardín: encabezado, secciones,
- * escala, ausencias y firmas. No es una réplica del Word de cada jardín.
+ * escala, ausencias y firmas. Toda la paleta se deriva del color que
+ * configure el jardín, así que el documento se siente suyo y no nuestro.
  */
 @Injectable({
     providedIn: 'root'
@@ -79,31 +80,34 @@ export class ExportarPdfInformeService {
     private pdf!: jsPDF;
     private pageWidth = 210;
     private pageHeight = 297;
-    private marginLeft = 15;
-    private marginRight = 15;
-    private marginTop = 18;
-    private marginBottom = 20;
+    private marginLeft = 14;
+    private marginRight = 14;
+    private marginTop = 42;      // deja sitio a la banda del encabezado
+    private marginBottom = 22;
     private contentWidth = this.pageWidth - this.marginLeft - this.marginRight;
     private currentY = this.marginTop;
 
-    // Neutros por defecto: el boletín lleva la marca del jardín, no la
-    // nuestra, así que el dorado corporativo de Genialisis no va aquí.
+    private alturaBanda = 32;
+
+    // Neutros de base. El acento sale del color del jardín.
     private colors = {
-        acento: '#555555',
-        black: '#222222',
-        darkGray: '#666666',
-        lightGray: '#f5f5f5',
-        borde: '#dddddd'
+        acento: '#4A6FA5',
+        black: '#2B2B2B',
+        texto: '#444444',
+        darkGray: '#777777',
+        lightGray: '#F7F8FA',
+        borde: '#E3E6EB',
+        blanco: '#FFFFFF'
     };
 
-    /** El color del jardín si lo configuró; si no, el neutro */
-    private acento(datos: DatosInformePDF): string {
-        return datos.colorPrincipal || this.colors.acento;
-    }
+    // Datos del informe en curso, para no pasarlos por cada método
+    private datos!: DatosInformePDF;
 
     constructor(private institucionConfigService: InstitucionConfigService) { }
 
     generarPDF(datos: DatosInformePDF): void {
+        this.datos = datos;
+
         this.pdf = new jsPDF({
             orientation: 'p',
             unit: 'mm',
@@ -113,162 +117,298 @@ export class ExportarPdfInformeService {
         this.currentY = this.marginTop;
         this.pdf.setFont('helvetica', 'normal');
 
-        this.generarEncabezado(datos);
-        this.generarDatosEstudiante(datos);
+        this.generarDatosEstudiante();
 
         // Solo las secciones de primer nivel: las subsecciones se pintan
         // dentro de su dimensión
         const raiz = datos.secciones.filter(s => !s.id_seccion_padre);
         raiz.forEach(sec => {
             const subs = datos.secciones.filter(s => s.id_seccion_padre === sec.id);
-            this.generarSeccion(sec, subs, datos);
+            this.generarSeccion(sec, subs);
         });
 
-        this.generarCierre(datos);
-        this.generarFirmas(datos);
-        this.generarPiePaginas(datos);
+        this.generarCierre();
+        this.generarFirmas();
+
+        // El encabezado y el pie se pintan al final, sobre todas las hojas,
+        // para poder poner el total de páginas.
+        this.decorarPaginas();
 
         const nombreArchivo = `Informe_${datos.nombreEstudiante.replace(/\s+/g, '_')}_${new Date().getTime()}.pdf`;
         this.pdf.save(nombreArchivo);
     }
 
     // =================================================================
-    // ENCABEZADO
+    // PALETA
     // =================================================================
 
-    private generarEncabezado(datos: DatosInformePDF): void {
-        const acentoRgb = this.hexToRgb(this.acento(datos));
-        const blackRgb = this.hexToRgb(this.colors.black);
-        const grayRgb = this.hexToRgb(this.colors.darkGray);
+    /** El color del jardín si lo configuró; si no, el neutro */
+    private get acento(): string {
+        return this.datos.colorPrincipal || this.colors.acento;
+    }
 
-        if (datos.logoBase64) {
+    /**
+     * Mezcla un color con blanco. Con esto toda la paleta del boletín sale
+     * del color del jardín, sin pedirle que configure cinco colores.
+     */
+    private aclarar(hex: string, factor: number): { r: number, g: number, b: number } {
+        const c = this.hexToRgb(hex);
+        return {
+            r: Math.round(c.r + (255 - c.r) * factor),
+            g: Math.round(c.g + (255 - c.g) * factor),
+            b: Math.round(c.b + (255 - c.b) * factor)
+        };
+    }
+
+    private oscurecer(hex: string, factor: number): { r: number, g: number, b: number } {
+        const c = this.hexToRgb(hex);
+        return {
+            r: Math.round(c.r * (1 - factor)),
+            g: Math.round(c.g * (1 - factor)),
+            b: Math.round(c.b * (1 - factor))
+        };
+    }
+
+    // =================================================================
+    // ENCABEZADO Y PIE, SOBRE TODAS LAS PÁGINAS
+    // =================================================================
+
+    private decorarPaginas(): void {
+        const total = this.pdf.getNumberOfPages();
+
+        for (let i = 1; i <= total; i++) {
+            this.pdf.setPage(i);
+            this.marcaDeAgua();
+            this.bandaEncabezado(i);
+            this.piePagina(i, total);
+        }
+    }
+
+    /**
+     * El logo al fondo, muy tenue. Se dibuja primero para que todo lo demás
+     * quede encima; como el contenido ya está pintado, se usa la opacidad
+     * del estado gráfico para que no tape nada.
+     */
+    private marcaDeAgua(): void {
+        if (!this.datos.logoBase64) {
+            return;
+        }
+
+        try {
+            const ancho = 110;
+            const x = (this.pageWidth - ancho) / 2;
+            const y = (this.pageHeight - ancho) / 2;
+
+            const gs = (this.pdf as any).GState;
+            if (gs) {
+                (this.pdf as any).setGState(new gs({ opacity: 0.045 }));
+                this.pdf.addImage(this.datos.logoBase64, 'PNG', x, y, ancho, ancho, undefined, 'FAST');
+                (this.pdf as any).setGState(new gs({ opacity: 1 }));
+            }
+        } catch (error) {
+            // Si la versión de jsPDF no soporta opacidad se sigue sin marca
+            console.warn('No se pudo dibujar la marca de agua', error);
+        }
+    }
+
+    /** Banda de color con el logo y el título del informe */
+    private bandaEncabezado(pagina: number): void {
+        const fuerte = this.hexToRgb(this.acento);
+        const suave = this.aclarar(this.acento, 0.55);
+
+        this.pdf.setFillColor(fuerte.r, fuerte.g, fuerte.b);
+        this.pdf.rect(0, 0, this.pageWidth, this.alturaBanda, 'F');
+
+        // Filo claro al pie de la banda, para que no corte en seco
+        this.pdf.setFillColor(suave.r, suave.g, suave.b);
+        this.pdf.rect(0, this.alturaBanda, this.pageWidth, 1.6, 'F');
+
+        // Logo sobre un círculo blanco, que funciona con cualquier logo
+        let xTexto = this.marginLeft;
+        if (this.datos.logoBase64) {
             try {
-                this.pdf.addImage(datos.logoBase64, 'PNG', this.marginLeft, this.currentY - 3, 20, 20);
+                this.pdf.setFillColor(255, 255, 255);
+                this.pdf.circle(this.marginLeft + 10, this.alturaBanda / 2, 11, 'F');
+                this.pdf.addImage(
+                    this.datos.logoBase64, 'PNG',
+                    this.marginLeft + 2.5, (this.alturaBanda / 2) - 7.5, 15, 15
+                );
+                xTexto = this.marginLeft + 26;
             } catch (error) {
                 console.error('No se pudo agregar el logo al PDF', error);
             }
         }
 
-        const xTexto = datos.logoBase64 ? this.marginLeft + 25 : this.marginLeft;
-        const anchoTexto = this.contentWidth - (datos.logoBase64 ? 25 : 0);
+        const anchoTexto = this.pageWidth - xTexto - this.marginRight;
 
-        // Nombre de la institución
-        this.pdf.setFontSize(13);
+        this.pdf.setTextColor(255, 255, 255);
+        this.pdf.setFontSize(12.5);
         this.pdf.setFont('helvetica', 'bold');
-        this.pdf.setTextColor(blackRgb.r, blackRgb.g, blackRgb.b);
-        this.pdf.text(this.institucionConfigService.getNombreInstitucion() || '', xTexto, this.currentY + 3);
-
-        let y = this.currentY + 9;
-
-        // Texto institucional configurado (NIT, resolución, lema)
-        if (datos.encabezado) {
-            this.pdf.setFontSize(8);
-            this.pdf.setFont('helvetica', 'normal');
-            this.pdf.setTextColor(grayRgb.r, grayRgb.g, grayRgb.b);
-            const lineas = this.pdf.splitTextToSize(datos.encabezado, anchoTexto);
-            this.pdf.text(lineas, xTexto, y);
-            y += lineas.length * 4;
-        }
-
-        this.currentY = Math.max(y + 3, this.currentY + 21);
-
-        // Título del informe
-        this.pdf.setFontSize(12);
-        this.pdf.setFont('helvetica', 'bold');
-        this.pdf.setTextColor(blackRgb.r, blackRgb.g, blackRgb.b);
         this.pdf.text(
-            (datos.tituloInforme || 'Informe de Calificaciones').toUpperCase(),
-            this.pageWidth / 2, this.currentY, { align: 'center' }
+            this.institucionConfigService.getNombreInstitucion() || '',
+            xTexto, 13, { maxWidth: anchoTexto }
         );
 
-        this.currentY += 3;
-        this.pdf.setDrawColor(acentoRgb.r, acentoRgb.g, acentoRgb.b);
-        this.pdf.setLineWidth(0.8);
-        this.pdf.line(this.marginLeft, this.currentY, this.pageWidth - this.marginRight, this.currentY);
-        this.currentY += 8;
+        this.pdf.setFontSize(9.5);
+        this.pdf.setFont('helvetica', 'normal');
+        this.pdf.text(
+            this.datos.tituloInforme || 'Informe de Calificaciones',
+            xTexto, 19.5, { maxWidth: anchoTexto }
+        );
+
+        // El texto institucional solo en la primera hoja: en las demás
+        // repetirlo roba espacio sin aportar.
+        //
+        // La primera línea va en cursiva porque suele ser el eslogan, y la
+        // segunda normal porque suele ser un dato formal (resolución, NIT).
+        if (pagina === 1 && this.datos.encabezado) {
+            const lineas = this.datos.encabezado
+                .split('\n')
+                .map(l => l.trim())
+                .filter(l => l !== '')
+                .slice(0, 2);
+
+            let y = 25;
+            lineas.forEach((linea, i) => {
+                this.pdf.setFontSize(i === 0 ? 7.5 : 7);
+                this.pdf.setFont('helvetica', i === 0 ? 'italic' : 'normal');
+                this.pdf.text(linea, xTexto, y, { maxWidth: anchoTexto });
+                y += 3.8;
+            });
+
+            this.pdf.setFont('helvetica', 'normal');
+        }
+    }
+
+    private piePagina(pagina: number, total: number): void {
+        const suave = this.aclarar(this.acento, 0.82);
+        const grisRgb = this.hexToRgb(this.colors.darkGray);
+
+        this.pdf.setFillColor(suave.r, suave.g, suave.b);
+        this.pdf.rect(0, this.pageHeight - 14, this.pageWidth, 14, 'F');
+
+        this.pdf.setFontSize(7);
+        this.pdf.setFont('helvetica', 'normal');
+        this.pdf.setTextColor(grisRgb.r, grisRgb.g, grisRgb.b);
+
+        if (this.datos.piePagina) {
+            const lineas = this.pdf.splitTextToSize(this.datos.piePagina, this.contentWidth - 40);
+            this.pdf.text(lineas.slice(0, 2), this.pageWidth / 2, this.pageHeight - 8.5, { align: 'center' });
+        }
+
+        this.pdf.text(
+            `${pagina} / ${total}`,
+            this.pageWidth - this.marginRight, this.pageHeight - 5, { align: 'right' }
+        );
+
+        // El borrador se marca para que nadie entregue uno sin confirmar
+        if (this.datos.estado === 'borrador') {
+            this.pdf.setTextColor(200, 90, 0);
+            this.pdf.setFont('helvetica', 'bold');
+            this.pdf.text('BORRADOR', this.marginLeft, this.pageHeight - 5);
+        }
     }
 
     // =================================================================
     // DATOS DEL ESTUDIANTE
     // =================================================================
 
-    private generarDatosEstudiante(datos: DatosInformePDF): void {
+    private generarDatosEstudiante(): void {
         const blackRgb = this.hexToRgb(this.colors.black);
-        const grayRgb = this.hexToRgb(this.colors.darkGray);
-        const bgRgb = this.hexToRgb(this.colors.lightGray);
+        const grisRgb = this.hexToRgb(this.colors.darkGray);
+        const fondo = this.aclarar(this.acento, 0.92);
+        const fuerte = this.hexToRgb(this.acento);
 
-        const alto = 16;
-        this.pdf.setFillColor(bgRgb.r, bgRgb.g, bgRgb.b);
-        this.pdf.roundedRect(this.marginLeft, this.currentY, this.contentWidth, alto, 2, 2, 'F');
+        const alto = 20;
+        this.pdf.setFillColor(fondo.r, fondo.g, fondo.b);
+        this.pdf.roundedRect(this.marginLeft, this.currentY, this.contentWidth, alto, 3, 3, 'F');
 
-        this.pdf.setFontSize(11);
+        // Barra de acento a la izquierda de la tarjeta
+        this.pdf.setFillColor(fuerte.r, fuerte.g, fuerte.b);
+        this.pdf.roundedRect(this.marginLeft, this.currentY, 2.6, alto, 1.3, 1.3, 'F');
+
+        this.pdf.setFontSize(13);
         this.pdf.setFont('helvetica', 'bold');
         this.pdf.setTextColor(blackRgb.r, blackRgb.g, blackRgb.b);
-        this.pdf.text(datos.nombreEstudiante, this.marginLeft + 4, this.currentY + 6.5);
+        this.pdf.text(this.datos.nombreEstudiante, this.marginLeft + 7, this.currentY + 8.5);
 
         this.pdf.setFontSize(8.5);
         this.pdf.setFont('helvetica', 'normal');
-        this.pdf.setTextColor(grayRgb.r, grayRgb.g, grayRgb.b);
+        this.pdf.setTextColor(grisRgb.r, grisRgb.g, grisRgb.b);
 
         const detalle: string[] = [];
-        if (datos.nombreGrupo) {
-            detalle.push(`Grupo: ${datos.nombreGrupo}`);
+        if (this.datos.nombreGrupo) {
+            detalle.push(this.datos.nombreGrupo);
         }
-        if (datos.nombreCorte) {
-            detalle.push(`Periodo: ${datos.nombreCorte}`);
+        if (this.datos.nombreCorte) {
+            detalle.push(this.datos.nombreCorte);
         }
-        if (datos.muestraAusencias && datos.ausencias !== null && datos.ausencias !== undefined) {
-            detalle.push(`Ausencias: ${datos.ausencias}`);
+        if (this.datos.muestraAusencias && this.datos.ausencias !== null && this.datos.ausencias !== undefined) {
+            detalle.push(`${this.datos.ausencias} ausencias`);
         }
-        this.pdf.text(detalle.join('     '), this.marginLeft + 4, this.currentY + 12);
+        this.pdf.text(detalle.join('   ·   '), this.marginLeft + 7, this.currentY + 14.5);
 
-        this.currentY += alto + 7;
+        this.currentY += alto + 6;
 
-        // Convención de la escala
-        this.generarConvencion(datos);
+        this.generarConvencion();
     }
 
-    /** La leyenda de la escala, para que el acudiente entienda las marcas */
-    private generarConvencion(datos: DatosInformePDF): void {
-        if (!datos.valores || datos.valores.length === 0) {
+    /** La leyenda de la escala, en pastillas de color */
+    private generarConvencion(): void {
+        if (!this.datos.valores || this.datos.valores.length === 0) {
             return;
         }
 
         // Con columnas por valor la leyenda sobra: el encabezado ya dice
         // qué es cada una.
-        if (datos.mostrarConvencion === false) {
+        if (this.datos.mostrarConvencion === false) {
             return;
         }
 
-        const grayRgb = this.hexToRgb(this.colors.darkGray);
-        this.pdf.setFontSize(7.5);
-        this.pdf.setFont('helvetica', 'normal');
-        this.pdf.setTextColor(grayRgb.r, grayRgb.g, grayRgb.b);
-
         let x = this.marginLeft;
-        datos.valores.forEach(v => {
-            const rgb = this.hexToRgb(v.color || this.colors.acento);
-            this.pdf.setFillColor(rgb.r, rgb.g, rgb.b);
-            this.pdf.circle(x + 1.5, this.currentY - 1, 1.5, 'F');
+        const alto = 6;
 
-            this.pdf.text(v.valor_cualitativo, x + 5, this.currentY);
-            x += 5 + this.pdf.getTextWidth(v.valor_cualitativo) + 7;
+        this.datos.valores.forEach(v => {
+            const rgb = this.hexToRgb(v.color || this.acento);
+            const claro = this.aclarar(v.color || this.acento, 0.86);
+
+            this.pdf.setFontSize(7.5);
+            this.pdf.setFont('helvetica', 'bold');
+            const ancho = this.pdf.getTextWidth(v.valor_cualitativo) + 11;
+
+            // Salta de renglón si no cabe
+            if (x + ancho > this.pageWidth - this.marginRight) {
+                x = this.marginLeft;
+                this.currentY += alto + 2;
+            }
+
+            this.pdf.setFillColor(claro.r, claro.g, claro.b);
+            this.pdf.roundedRect(x, this.currentY - 4, ancho, alto, 3, 3, 'F');
+
+            this.pdf.setFillColor(rgb.r, rgb.g, rgb.b);
+            this.pdf.circle(x + 3.5, this.currentY - 1, 1.5, 'F');
+
+            const oscuro = this.oscurecer(v.color || this.acento, 0.25);
+            this.pdf.setTextColor(oscuro.r, oscuro.g, oscuro.b);
+            this.pdf.text(v.valor_cualitativo, x + 6.5, this.currentY);
+
+            x += ancho + 3;
         });
 
-        this.currentY += 6;
+        this.currentY += 8;
     }
 
     // =================================================================
     // SECCIONES
     // =================================================================
 
-    private generarSeccion(seccion: any, subsecciones: any[], datos: DatosInformePDF): void {
-        this.verificarEspacio(28);
-        this.generarTituloSeccion(seccion, datos);
+    private generarSeccion(seccion: any, subsecciones: any[]): void {
+        this.verificarEspacio(30);
+        this.generarTituloSeccion(seccion);
 
         // Filas propias de la sección
         if (seccion.filas && seccion.filas.length > 0) {
-            this.generarTablaFilas(seccion, datos);
+            this.generarTablaFilas(seccion);
         }
 
         // Subsecciones: van con su propio subtítulo dentro de la dimensión
@@ -276,9 +416,9 @@ export class ExportarPdfInformeService {
             if (!sub.filas || sub.filas.length === 0) {
                 return;
             }
-            this.verificarEspacio(22);
+            this.verificarEspacio(24);
             this.generarSubtitulo(sub.nombre);
-            this.generarTablaFilas(sub, datos);
+            this.generarTablaFilas(sub);
         });
 
         // Texto descriptivo de la sección
@@ -286,38 +426,55 @@ export class ExportarPdfInformeService {
             this.generarParrafo(seccion.texto);
         }
 
-        this.currentY += 3;
-    }
-
-    private generarTituloSeccion(seccion: any, datos: DatosInformePDF): void {
-        const acentoRgb = this.hexToRgb(this.acento(datos));
-        const blackRgb = this.hexToRgb(this.colors.black);
-
-        this.pdf.setFillColor(255, 255, 255);
-        this.pdf.setFontSize(10);
-        this.pdf.setFont('helvetica', 'bold');
-        this.pdf.setTextColor(blackRgb.r, blackRgb.g, blackRgb.b);
-
-        let titulo = seccion.nombre;
-        if (seccion.evalua_a === 'familia') {
-            titulo += '  (familia)';
-        }
-        this.pdf.text(titulo.toUpperCase(), this.marginLeft, this.currentY);
-
-        this.currentY += 1.5;
-        this.pdf.setDrawColor(acentoRgb.r, acentoRgb.g, acentoRgb.b);
-        this.pdf.setLineWidth(0.5);
-        this.pdf.line(this.marginLeft, this.currentY, this.pageWidth - this.marginRight, this.currentY);
         this.currentY += 4;
     }
 
-    private generarSubtitulo(nombre: string): void {
-        const blackRgb = this.hexToRgb(this.colors.black);
-        this.pdf.setFontSize(9);
+    /** Encabezado de sección: barra de acento, fondo suave y esquinas */
+    private generarTituloSeccion(seccion: any): void {
+        const fuerte = this.hexToRgb(this.acento);
+        const fondo = this.aclarar(this.acento, 0.9);
+        const oscuro = this.oscurecer(this.acento, 0.3);
+
+        const alto = 9.5;
+
+        this.pdf.setFillColor(fondo.r, fondo.g, fondo.b);
+        this.pdf.roundedRect(this.marginLeft, this.currentY, this.contentWidth, alto, 2.2, 2.2, 'F');
+
+        this.pdf.setFillColor(fuerte.r, fuerte.g, fuerte.b);
+        this.pdf.roundedRect(this.marginLeft, this.currentY, 2.2, alto, 1.1, 1.1, 'F');
+
+        this.pdf.setFontSize(9.5);
         this.pdf.setFont('helvetica', 'bold');
-        this.pdf.setTextColor(blackRgb.r, blackRgb.g, blackRgb.b);
-        this.pdf.text(nombre, this.marginLeft + 2, this.currentY);
-        this.currentY += 3;
+        this.pdf.setTextColor(oscuro.r, oscuro.g, oscuro.b);
+        this.pdf.text(seccion.nombre.toUpperCase(), this.marginLeft + 6, this.currentY + 6.3);
+
+        // Marca de que la sección evalúa a la familia, no al niño
+        if (seccion.evalua_a === 'familia') {
+            const etiqueta = 'FAMILIA';
+            this.pdf.setFontSize(6.5);
+            const ancho = this.pdf.getTextWidth(etiqueta) + 7;
+            const x = this.pageWidth - this.marginRight - ancho - 3;
+
+            this.pdf.setFillColor(fuerte.r, fuerte.g, fuerte.b);
+            this.pdf.roundedRect(x, this.currentY + 2.4, ancho, 5, 2.5, 2.5, 'F');
+            this.pdf.setTextColor(255, 255, 255);
+            this.pdf.text(etiqueta, x + ancho / 2, this.currentY + 5.9, { align: 'center' });
+        }
+
+        this.currentY += alto + 3;
+    }
+
+    private generarSubtitulo(nombre: string): void {
+        const oscuro = this.oscurecer(this.acento, 0.15);
+
+        this.pdf.setFillColor(oscuro.r, oscuro.g, oscuro.b);
+        this.pdf.circle(this.marginLeft + 3, this.currentY - 1, 1.1, 'F');
+
+        this.pdf.setFontSize(8.5);
+        this.pdf.setFont('helvetica', 'bold');
+        this.pdf.setTextColor(oscuro.r, oscuro.g, oscuro.b);
+        this.pdf.text(nombre, this.marginLeft + 6, this.currentY);
+        this.currentY += 3.5;
     }
 
     /**
@@ -329,32 +486,33 @@ export class ExportarPdfInformeService {
      *   columna_unica -> una sola columna con el valor alcanzado
      *                    (Jugando y Creando, que usa semáforo)
      */
-    private generarTablaFilas(seccion: any, datos: DatosInformePDF): void {
-        const califica = seccion.se_califica == 1 && datos.valores.length > 0;
-        const porColumnas = (datos.estiloMarca || 'columnas') === 'columnas';
+    private generarTablaFilas(seccion: any): void {
+        const califica = seccion.se_califica == 1 && this.datos.valores.length > 0;
+        const porColumnas = (this.datos.estiloMarca || 'columnas') === 'columnas';
 
         if (!califica) {
-            this.generarTablaSimple(seccion, datos);
+            this.generarTablaSimple(seccion);
             return;
         }
 
         if (porColumnas) {
-            this.generarTablaPorColumnas(seccion, datos);
+            this.generarTablaPorColumnas(seccion);
         } else {
-            this.generarTablaColumnaUnica(seccion, datos);
+            this.generarTablaColumnaUnica(seccion);
         }
     }
 
     /** Secciones informativas: solo el listado, sin marca */
-    private generarTablaSimple(seccion: any, datos: DatosInformePDF): void {
+    private generarTablaSimple(seccion: any): void {
         const body = (seccion.filas || []).map((f: any) => [f.texto_fila || '']);
 
         autoTable(this.pdf, {
             startY: this.currentY,
             body: body,
-            theme: 'grid',
-            margin: { left: this.marginLeft, right: this.marginRight, bottom: this.marginBottom },
+            theme: 'plain',
+            margin: { left: this.marginLeft, right: this.marginRight, bottom: this.marginBottom, top: this.marginTop },
             styles: this.estilosBase(),
+            alternateRowStyles: { fillColor: this.hexToArray(this.colors.lightGray) },
             columnStyles: { 0: { cellWidth: this.contentWidth } }
         });
 
@@ -362,25 +520,25 @@ export class ExportarPdfInformeService {
     }
 
     /** Una columna por cada valor de la escala */
-    private generarTablaPorColumnas(seccion: any, datos: DatosInformePDF): void {
+    private generarTablaPorColumnas(seccion: any): void {
         const head: any[] = [[{ content: '', styles: { halign: 'left' } }]];
-        datos.valores.forEach(v => {
+        this.datos.valores.forEach(v => {
             head[0].push({ content: v.valor_cualitativo, styles: { halign: 'center' } });
         });
 
         const body = (seccion.filas || []).map((f: any) => {
             const fila: any[] = [f.texto_fila || ''];
-            datos.valores.forEach(v => {
-                fila.push(f.id_valor_parametro === v.id ? this.simbolo(v, datos) : '');
+            this.datos.valores.forEach(v => {
+                fila.push(f.id_valor_parametro === v.id ? this.simbolo(v) : '');
             });
             return fila;
         });
 
-        const anchoValor = Math.min(26, (this.contentWidth * 0.45) / datos.valores.length);
+        const anchoValor = Math.min(26, (this.contentWidth * 0.45) / this.datos.valores.length);
         const columnStyles: any = {
-            0: { cellWidth: this.contentWidth - (anchoValor * datos.valores.length) }
+            0: { cellWidth: this.contentWidth - (anchoValor * this.datos.valores.length) }
         };
-        datos.valores.forEach((v, i) => {
+        this.datos.valores.forEach((v, i) => {
             columnStyles[i + 1] = { cellWidth: anchoValor, halign: 'center', fontStyle: 'bold' };
         });
 
@@ -388,17 +546,18 @@ export class ExportarPdfInformeService {
             startY: this.currentY,
             head: head,
             body: body,
-            theme: 'grid',
-            margin: { left: this.marginLeft, right: this.marginRight, bottom: this.marginBottom },
+            theme: 'plain',
+            margin: { left: this.marginLeft, right: this.marginRight, bottom: this.marginBottom, top: this.marginTop },
             styles: this.estilosBase(),
-            headStyles: this.estilosCabecera(datos),
+            headStyles: this.estilosCabecera(),
+            alternateRowStyles: { fillColor: this.hexToArray(this.colors.lightGray) },
             columnStyles: columnStyles,
             // El punto se pinta a mano porque autoTable no dibuja formas
             didDrawCell: (data: any) => {
-                if (datos.simboloMarca !== 'punto' || data.section !== 'body' || data.column.index === 0) {
+                if (this.datos.simboloMarca !== 'punto' || data.section !== 'body' || data.column.index === 0) {
                     return;
                 }
-                const valor = datos.valores[data.column.index - 1];
+                const valor = this.datos.valores[data.column.index - 1];
                 const fila = (seccion.filas || [])[data.row.index];
                 if (!fila || fila.id_valor_parametro !== valor.id) {
                     return;
@@ -410,38 +569,40 @@ export class ExportarPdfInformeService {
         this.currentY = this.pdf.lastAutoTable.finalY + 4;
     }
 
-    /** Una sola columna con el valor alcanzado */
-    private generarTablaColumnaUnica(seccion: any, datos: DatosInformePDF): void {
-        const anchoMarca = 45;
+    /** Una sola columna con el valor alcanzado, en pastilla de color */
+    private generarTablaColumnaUnica(seccion: any): void {
+        const anchoMarca = 48;
 
         const body = (seccion.filas || []).map((f: any) => {
-            const valor = datos.valores.find(v => v.id === f.id_valor_parametro);
+            const valor = this.datos.valores.find(v => v.id === f.id_valor_parametro);
             return [
                 f.texto_fila || '',
-                valor ? this.textoMarca(valor, datos) : ''
+                // El texto va vacío: la pastilla se dibuja encima de la celda
+                valor ? '' : ''
             ];
         });
 
         autoTable(this.pdf, {
             startY: this.currentY,
             body: body,
-            theme: 'grid',
-            margin: { left: this.marginLeft, right: this.marginRight, bottom: this.marginBottom },
+            theme: 'plain',
+            margin: { left: this.marginLeft, right: this.marginRight, bottom: this.marginBottom, top: this.marginTop },
             styles: this.estilosBase(),
+            alternateRowStyles: { fillColor: this.hexToArray(this.colors.lightGray) },
             columnStyles: {
                 0: { cellWidth: this.contentWidth - anchoMarca },
-                1: { cellWidth: anchoMarca, halign: 'center', fontStyle: 'bold', fontSize: 7.5 }
+                1: { cellWidth: anchoMarca, halign: 'center' }
             },
             didDrawCell: (data: any) => {
-                if (datos.simboloMarca !== 'punto' || data.section !== 'body' || data.column.index !== 1) {
+                if (data.section !== 'body' || data.column.index !== 1) {
                     return;
                 }
                 const fila = (seccion.filas || [])[data.row.index];
-                const valor = datos.valores.find(v => v.id === fila?.id_valor_parametro);
+                const valor = this.datos.valores.find(v => v.id === fila?.id_valor_parametro);
                 if (!valor) {
                     return;
                 }
-                this.pintarPunto(data, valor, true);
+                this.pintarPastilla(data, valor);
             }
         });
 
@@ -449,8 +610,8 @@ export class ExportarPdfInformeService {
     }
 
     /** Lo que se imprime dentro de la celda marcada */
-    private simbolo(valor: any, datos: DatosInformePDF): string {
-        switch (datos.simboloMarca) {
+    private simbolo(valor: any): string {
+        switch (this.datos.simboloMarca) {
             case 'valor': return String(valor.valor_cuantitativo ?? 'X');
             case 'texto': return valor.valor_cualitativo;
             case 'punto': return '';   // el punto se dibuja aparte
@@ -458,101 +619,120 @@ export class ExportarPdfInformeService {
         }
     }
 
-    /** Texto de la columna única: el nombre del valor, o nada si es punto */
-    private textoMarca(valor: any, datos: DatosInformePDF): string {
-        if (datos.simboloMarca === 'punto') {
-            return '';
-        }
-        if (datos.simboloMarca === 'valor') {
-            return String(valor.valor_cuantitativo ?? '');
-        }
-        return valor.valor_cualitativo;
-    }
-
     /** Punto de color centrado en la celda */
-    private pintarPunto(data: any, valor: any, conTexto: boolean = false): void {
-        const rgb = this.hexToRgb(valor.color || this.colors.acento);
+    private pintarPunto(data: any, valor: any): void {
+        const rgb = this.hexToRgb(valor.color || this.acento);
         const cx = data.cell.x + (data.cell.width / 2);
         const cy = data.cell.y + (data.cell.height / 2);
 
-        if (conTexto) {
-            // En columna única cabe el punto y el nombre al lado
-            this.pdf.setFillColor(rgb.r, rgb.g, rgb.b);
-            this.pdf.circle(data.cell.x + 4, cy, 1.8, 'F');
-
-            const blackRgb = this.hexToRgb(this.colors.black);
-            this.pdf.setTextColor(blackRgb.r, blackRgb.g, blackRgb.b);
-            this.pdf.setFontSize(7);
-            this.pdf.setFont('helvetica', 'normal');
-            this.pdf.text(valor.valor_cualitativo, data.cell.x + 8, cy + 1);
-            return;
-        }
+        const claro = this.aclarar(valor.color || this.acento, 0.78);
+        this.pdf.setFillColor(claro.r, claro.g, claro.b);
+        this.pdf.circle(cx, cy, 3.1, 'F');
 
         this.pdf.setFillColor(rgb.r, rgb.g, rgb.b);
-        this.pdf.circle(cx, cy, 2, 'F');
+        this.pdf.circle(cx, cy, 1.9, 'F');
+    }
+
+    /** Pastilla con el nombre del valor, para la columna única */
+    private pintarPastilla(data: any, valor: any): void {
+        const color = valor.color || this.acento;
+        const claro = this.aclarar(color, 0.85);
+        const rgb = this.hexToRgb(color);
+        const oscuro = this.oscurecer(color, 0.28);
+
+        const texto = this.datos.simboloMarca === 'valor'
+            ? String(valor.valor_cuantitativo ?? '')
+            : valor.valor_cualitativo;
+
+        this.pdf.setFontSize(6.8);
+        this.pdf.setFont('helvetica', 'bold');
+
+        const anchoTexto = this.pdf.getTextWidth(texto);
+        const ancho = Math.min(anchoTexto + 11, data.cell.width - 3);
+        const alto = 5.4;
+        const x = data.cell.x + (data.cell.width - ancho) / 2;
+        const y = data.cell.y + (data.cell.height - alto) / 2;
+
+        this.pdf.setFillColor(claro.r, claro.g, claro.b);
+        this.pdf.roundedRect(x, y, ancho, alto, 2.7, 2.7, 'F');
+
+        this.pdf.setFillColor(rgb.r, rgb.g, rgb.b);
+        this.pdf.circle(x + 3.2, y + alto / 2, 1.3, 'F');
+
+        this.pdf.setTextColor(oscuro.r, oscuro.g, oscuro.b);
+        this.pdf.text(texto, x + 5.6, y + 3.7, { maxWidth: ancho - 7 });
     }
 
     private estilosBase(): any {
-        const blackRgb = this.hexToRgb(this.colors.black);
+        const textoRgb = this.hexToRgb(this.colors.texto);
         return {
             font: 'helvetica',
             fontSize: 8,
-            cellPadding: 2,
+            cellPadding: { top: 2.4, bottom: 2.4, left: 3, right: 3 },
             lineColor: this.hexToArray(this.colors.borde),
-            lineWidth: 0.1,
-            textColor: [blackRgb.r, blackRgb.g, blackRgb.b],
+            lineWidth: 0,
+            textColor: [textoRgb.r, textoRgb.g, textoRgb.b],
             valign: 'middle'
         };
     }
 
-    private estilosCabecera(datos: DatosInformePDF): any {
-        const blackRgb = this.hexToRgb(this.colors.black);
-        // Cabecera clara: el color fuerte solo va en las líneas de sección
+    private estilosCabecera(): any {
+        const oscuro = this.oscurecer(this.acento, 0.3);
+        const fondo = this.aclarar(this.acento, 0.86);
         return {
-            fillColor: this.hexToArray(this.colors.lightGray),
-            textColor: [blackRgb.r, blackRgb.g, blackRgb.b],
+            fillColor: [fondo.r, fondo.g, fondo.b],
+            textColor: [oscuro.r, oscuro.g, oscuro.b],
             fontStyle: 'bold',
-            fontSize: 7.5,
-            lineColor: this.hexToArray(this.colors.borde),
-            lineWidth: 0.1
+            fontSize: 7,
+            cellPadding: { top: 2.2, bottom: 2.2, left: 2, right: 2 },
+            lineWidth: 0
         };
     }
 
     private generarParrafo(texto: string): void {
-        const blackRgb = this.hexToRgb(this.colors.black);
-        this.pdf.setFontSize(9);
-        this.pdf.setFont('helvetica', 'normal');
-        this.pdf.setTextColor(blackRgb.r, blackRgb.g, blackRgb.b);
+        const textoRgb = this.hexToRgb(this.colors.texto);
+        const fondo = this.aclarar(this.acento, 0.94);
 
-        const lineas = this.pdf.splitTextToSize(texto, this.contentWidth - 4);
-        this.verificarEspacio(lineas.length * 4.5 + 6);
-        this.pdf.text(lineas, this.marginLeft + 2, this.currentY);
-        this.currentY += lineas.length * 4.5 + 4;
+        this.pdf.setFontSize(8.5);
+        this.pdf.setFont('helvetica', 'normal');
+
+        const lineas = this.pdf.splitTextToSize(texto, this.contentWidth - 12);
+        const alto = lineas.length * 4.4 + 8;
+
+        this.verificarEspacio(alto + 4);
+
+        this.pdf.setFillColor(fondo.r, fondo.g, fondo.b);
+        this.pdf.roundedRect(this.marginLeft, this.currentY, this.contentWidth, alto, 2.5, 2.5, 'F');
+
+        this.pdf.setTextColor(textoRgb.r, textoRgb.g, textoRgb.b);
+        this.pdf.text(lineas, this.marginLeft + 6, this.currentY + 6);
+
+        this.currentY += alto + 4;
     }
 
     // =================================================================
     // CIERRE Y FIRMAS
     // =================================================================
 
-    private generarCierre(datos: DatosInformePDF): void {
-        if (!datos.textoCierre) {
+    private generarCierre(): void {
+        if (!this.datos.textoCierre) {
             return;
         }
 
-        this.verificarEspacio(30);
-        this.generarTituloSeccion({ nombre: 'Observaciones', evalua_a: 'estudiante' }, datos);
-        this.generarParrafo(datos.textoCierre);
+        this.verificarEspacio(34);
+        this.generarTituloSeccion({ nombre: 'Observaciones', evalua_a: 'estudiante' });
+        this.generarParrafo(this.datos.textoCierre);
     }
 
-    private generarFirmas(datos: DatosInformePDF): void {
+    private generarFirmas(): void {
         const firmas: string[] = [];
-        if (datos.firmaUno) {
-            firmas.push(datos.firmaUno);
+        if (this.datos.firmaUno) {
+            firmas.push(this.datos.firmaUno);
         }
-        if (datos.firmaDos) {
-            firmas.push(datos.firmaDos);
+        if (this.datos.firmaDos) {
+            firmas.push(this.datos.firmaDos);
         }
-        if (datos.firmaAcudiente) {
+        if (this.datos.firmaAcudiente) {
             firmas.push('Firma de recibido del acudiente');
         }
 
@@ -560,61 +740,28 @@ export class ExportarPdfInformeService {
             return;
         }
 
-        this.verificarEspacio(32);
-        this.currentY += 14;
+        this.verificarEspacio(34);
+        this.currentY += 16;
 
-        const grayRgb = this.hexToRgb(this.colors.darkGray);
+        const grisRgb = this.hexToRgb(this.colors.darkGray);
+        const suave = this.aclarar(this.acento, 0.5);
         const anchoFirma = this.contentWidth / firmas.length;
 
         firmas.forEach((firma, i) => {
             const x = this.marginLeft + (anchoFirma * i);
             const centro = x + (anchoFirma / 2);
 
-            this.pdf.setDrawColor(grayRgb.r, grayRgb.g, grayRgb.b);
-            this.pdf.setLineWidth(0.2);
+            this.pdf.setDrawColor(suave.r, suave.g, suave.b);
+            this.pdf.setLineWidth(0.4);
             this.pdf.line(x + 8, this.currentY, x + anchoFirma - 8, this.currentY);
 
-            this.pdf.setFontSize(8);
+            this.pdf.setFontSize(7.5);
             this.pdf.setFont('helvetica', 'normal');
-            this.pdf.setTextColor(grayRgb.r, grayRgb.g, grayRgb.b);
-            this.pdf.text(firma, centro, this.currentY + 4, { align: 'center' });
+            this.pdf.setTextColor(grisRgb.r, grisRgb.g, grisRgb.b);
+            this.pdf.text(firma, centro, this.currentY + 4.5, { align: 'center', maxWidth: anchoFirma - 6 });
         });
 
         this.currentY += 12;
-    }
-
-    /**
-     * Pie de página en todas las hojas. Se hace al final para poder poner
-     * el total de páginas.
-     */
-    private generarPiePaginas(datos: DatosInformePDF): void {
-        const grayRgb = this.hexToRgb(this.colors.darkGray);
-        const total = this.pdf.getNumberOfPages();
-
-        for (let i = 1; i <= total; i++) {
-            this.pdf.setPage(i);
-            this.pdf.setFontSize(7);
-            this.pdf.setFont('helvetica', 'normal');
-            this.pdf.setTextColor(grayRgb.r, grayRgb.g, grayRgb.b);
-
-            if (datos.piePagina) {
-                const lineas = this.pdf.splitTextToSize(datos.piePagina, this.contentWidth - 30);
-                this.pdf.text(lineas, this.pageWidth / 2, this.pageHeight - 12, { align: 'center' });
-            }
-
-            this.pdf.text(
-                `Página ${i} de ${total}`,
-                this.pageWidth - this.marginRight,
-                this.pageHeight - 8,
-                { align: 'right' }
-            );
-
-            // El borrador se marca para que nadie entregue uno sin confirmar
-            if (datos.estado === 'borrador') {
-                this.pdf.setTextColor(200, 120, 0);
-                this.pdf.text('BORRADOR', this.marginLeft, this.pageHeight - 8);
-            }
-        }
     }
 
     // =================================================================
