@@ -143,8 +143,10 @@
 
       <div class="tarjeta-acciones">
         <button type="button" class="btn-informe" (click)="generarInforme(estudiante)"
-          [disabled]="generandoInforme === estudiante.id_estudiante || !sprintInforme"
-          title="Generar el informe para revisarlo">
+          [disabled]="generandoInforme === estudiante.id_estudiante || !puedeVerInforme(estudiante)"
+          [title]="puedeVerInforme(estudiante)
+                    ? 'Generar el informe para revisarlo'
+                    : 'Este estudiante todavía no tiene informe para este corte'">
           <span class="spinner-border spinner-border-sm"
             *ngIf="generandoInforme === estudiante.id_estudiante"></span>
           <i class="fas fa-file-pdf" *ngIf="generandoInforme !== estudiante.id_estudiante"></i>

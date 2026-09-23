@@ -833,3 +833,29 @@ $light-gray: #f5f7fa;
     cursor: default;
   }
 }
+
+// Marcar todo el informe del estudiante de una
+.barra-global {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+  background: #FFFDF5;
+  border: 1px dashed rgba($gold, 0.55);
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 1rem;
+
+  .marcar-label {
+    font-size: 0.75rem;
+    color: #8B6914;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 768px) {
+  .barra-global {
+    .chip-todas { flex: 1; text-align: center; }
+  }
+}

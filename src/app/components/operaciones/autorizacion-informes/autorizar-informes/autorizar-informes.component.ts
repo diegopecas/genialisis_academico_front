@@ -6,6 +6,10 @@ import { Subscription } from 'rxjs';
 import { HeaderComponent } from '../../../../common/header/header.component';
 import { AutorizacionesInformesEstudiantesService } from '../../../../services/autorizaciones-informes-estudiantes.service';
 import { InformeEstudianteService } from '../../../../services/informe-estudiante.service';
+import { InformesEstudiantesService } from '../../../../services/informes-estudiantes.service';
+import { InformesConfiguracionService } from '../../../../services/informes-configuracion.service';
+import { ValoresParametrosCalificacionesService } from '../../../../services/valores-parametros-calificaciones.service';
+import { ExportarPdfInformeService } from '../../../../services/exportar-pdf-informe.service';
 import Swal from 'sweetalert2';
 
 interface EstudianteAutorizacion {
@@ -57,6 +61,14 @@ export class AutorizarInformesComponent implements OnInit, OnDestroy {
   public guardando: boolean = false;
   public generandoInforme: string = '';
 
+  // Informes del módulo nuevo para este corte, por estudiante. Cuando el
+  // estudiante tiene uno confirmado, el botón descarga ese boletín; si no,
+  // cae al informe viejo del sprint, que es lo que todavía usa Lumen.
+  private informesNuevos = new Map<string, any>();
+  private valores: any[] = [];
+  private configuracion: any = null;
+  private logoBase64 = '';
+
   // Estado inicial de cada autorizacion, para saber que cambio y no mandar al
   // backend filas que el usuario no toco.
   private estadoOriginal: Map<string, number> = new Map();
@@ -67,7 +79,11 @@ export class AutorizarInformesComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     private autorizacionesService: AutorizacionesInformesEstudiantesService,
-    private informeEstudianteService: InformeEstudianteService
+    private informeEstudianteService: InformeEstudianteService,
+    private informesEstudiantesService: InformesEstudiantesService,
+    private informesConfiguracionService: InformesConfiguracionService,
+    private valoresService: ValoresParametrosCalificacionesService,
+    private exportarPdfInformeService: ExportarPdfInformeService
   ) { }
 
   ngOnInit(): void {
@@ -77,6 +93,12 @@ export class AutorizarInformesComponent implements OnInit, OnDestroy {
 
     this.cargarCorte();
     this.cargarEstudiantes();
+    this.cargarInformesNuevos();
+    this.cargarEscala();
+
+    this.exportarPdfInformeService.cargarLogoBase64().then(logo => {
+      this.logoBase64 = logo;
+    });
   }
 
   ngOnDestroy(): void {
@@ -307,14 +329,128 @@ export class AutorizarInformesComponent implements OnInit, OnDestroy {
     this.subscriptions.push(sub);
   }
 
+  /**
+   * Informes del módulo nuevo para este corte. Se piden por grupo porque no
+   * hay un endpoint por corte completo, y se indexan por estudiante.
+   */
+  cargarInformesNuevos(): void {
+    const sub = this.informesEstudiantesService.obtenerGruposConInforme(this.idCorte).subscribe({
+      next: (response: any) => {
+        const body = (response.body as any[]) || [];
+        body.forEach(i => this.informesNuevos.set(i.id_estudiante, i));
+      },
+      error: (error) => console.error('Error al cargar los informes del corte:', error)
+    });
+
+    this.subscriptions.push(sub);
+  }
+
+  /** La escala del parámetro marcado, para pintar el PDF */
+  cargarEscala(): void {
+    const sub = this.informesConfiguracionService.obtenerTodos().subscribe({
+      next: (response: any) => {
+        const body = (response.body as any[]) || [];
+        this.configuracion = body.length > 0 ? body[0] : null;
+
+        if (!this.configuracion?.id_parametro_evaluacion) {
+          return;
+        }
+
+        const sub2 = this.valoresService
+          .obtenerByParametro(this.configuracion.id_parametro_evaluacion)
+          .subscribe({
+            next: (resp: any) => {
+              const valores = (resp.body as any[]) || [];
+              this.valores = valores.sort((a: any, b: any) => (a.orden || 0) - (b.orden || 0));
+            },
+            error: (error) => console.error('Error al cargar la escala:', error)
+          });
+        this.subscriptions.push(sub2);
+      },
+      error: (error) => console.error('Error al cargar la configuración del informe:', error)
+    });
+
+    this.subscriptions.push(sub);
+  }
+
+  /** True si el estudiante tiene informe del módulo nuevo en este corte */
+  tieneInformeNuevo(estudiante: any): boolean {
+    return this.informesNuevos.has(estudiante.id_estudiante);
+  }
+
+  /** El botón solo se bloquea cuando no hay ninguno de los dos informes */
+  puedeVerInforme(estudiante: any): boolean {
+    return this.tieneInformeNuevo(estudiante) || !!this.sprintInforme;
+  }
+
+  /** Descarga el boletín nuevo con el mismo formato del portal de padres */
+  private descargarInformeNuevo(estudiante: any): void {
+    this.generandoInforme = estudiante.id_estudiante;
+
+    const sub = this.informesEstudiantesService
+      .obtenerPorEstudianteCorte(estudiante.id_estudiante, this.idCorte)
+      .subscribe({
+        next: (response: any) => {
+          const body: any = response.body;
+          this.generandoInforme = '';
+
+          if (!body?.informe) {
+            Swal.fire('Sin informe', 'No se encontró el informe de este estudiante.', 'info');
+            return;
+          }
+
+          this.exportarPdfInformeService.generarPDF({
+            tituloInforme:     this.configuracion?.titulo_informe,
+            encabezado:        this.configuracion?.encabezado,
+            piePagina:         this.configuracion?.pie_pagina,
+            firmaUno:          this.configuracion?.firma_uno,
+            firmaDos:          this.configuracion?.firma_dos,
+            firmaAcudiente:    this.configuracion?.firma_acudiente == 1,
+            muestraAusencias:  this.configuracion?.muestra_ausencias == 1,
+            logoBase64:        this.logoBase64,
+
+            estiloMarca:       this.configuracion?.estilo_marca || 'columnas',
+            simboloMarca:      this.configuracion?.simbolo_marca || 'x',
+            colorPrincipal:    this.configuracion?.color_principal || null,
+            mostrarConvencion: this.configuracion?.mostrar_convencion != 0,
+
+            nombreEstudiante:  body.informe.nombre_estudiante,
+            nombreGrupo:       body.informe.nombre_grupo,
+            nombreCorte:       this.nombreCorte,
+            ausencias:         body.informe.ausencias,
+            textoCierre:       body.informe.texto_cierre,
+            estado:            body.informe.estado,
+
+            valores:   this.valores,
+            secciones: body.secciones || []
+          });
+        },
+        error: (error) => {
+          console.error('Error al descargar el informe:', error);
+          this.generandoInforme = '';
+          Swal.fire('Error', 'No se pudo generar el informe de este estudiante.', 'error');
+        }
+      });
+
+    this.subscriptions.push(sub);
+  }
+
   // Reusa el mismo servicio que genera el PDF del portal de padres, para que el
   // documento que revisas sea exactamente el que va a ver el acudiente.
   generarInforme(estudiante: EstudianteAutorizacion): void {
+    // El boletín nuevo manda: si el estudiante lo tiene, es el que el
+    // acudiente va a ver. El del sprint queda para los jardines que aún
+    // no migraron.
+    if (this.tieneInformeNuevo(estudiante)) {
+      this.descargarInformeNuevo(estudiante);
+      return;
+    }
+
     if (!this.sprintInforme) {
       Swal.fire({
         icon: 'warning',
-        title: 'Falta el sprint de informe',
-        text: 'Este corte no tiene un sprint marcado como sprint de informe, así que no hay de dónde generar el documento.',
+        title: 'Este estudiante no tiene informe',
+        text: 'No hay informe confirmado para este corte ni un sprint marcado como sprint de informe.',
         confirmButtonText: 'Entendido'
       });
       return;

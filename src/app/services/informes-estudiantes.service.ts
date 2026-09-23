@@ -115,6 +115,46 @@ export class InformesEstudiantesService {
     );
   }
 
+  /** Estudiantes que ya tienen informe del módulo nuevo en un corte */
+  obtenerGruposConInforme(idCorte: any): Observable<HttpResponse<Object>> {
+    return this.http
+      .get<HttpResponse<Object>>(`${this.servicio}/con-informe/corte/${idCorte}`, {
+        observe: 'response',
+      })
+      .pipe(
+        tap((response: HttpResponse<Object>) => {
+          let respuesta: any = response.body;
+          if (respuesta && respuesta.error) {
+            throw respuesta.error;
+          }
+          return response;
+        }),
+        catchError(this.handleError)
+      );
+  }
+
+  /**
+   * Todos los informes del grupo con sus secciones y filas, en una sola
+   * consulta. La pantalla trabaja sobre esto en memoria y no vuelve al
+   * servidor al cambiar de estudiante, de vista o de sección.
+   */
+  obtenerGrupoCompleto(idGrupo: any, idCorte: any): Observable<HttpResponse<Object>> {
+    return this.http
+      .get<HttpResponse<Object>>(`${this.servicio}/grupo-completo/${idGrupo}/corte/${idCorte}`, {
+        observe: 'response',
+      })
+      .pipe(
+        tap((response: HttpResponse<Object>) => {
+          let respuesta: any = response.body;
+          if (respuesta && respuesta.error) {
+            throw respuesta.error;
+          }
+          return response;
+        }),
+        catchError(this.handleError)
+      );
+  }
+
   /** Secciones configuradas que aplican al grado del grupo */
   obtenerSeccionesPorGrupo(idGrupo: any): Observable<HttpResponse<Object>> {
     return this.http

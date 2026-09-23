@@ -142,6 +142,31 @@
                         </div>
                     </div>
 
+                    <!-- Marcar todo el informe de una: lo mismo que el de
+                         cada sección, pero para el niño completo -->
+                    <div class="barra-global" *ngIf="editable && valores.length > 0">
+                        <label class="check-sobrescribir" title="Si está apagado, solo se llenan las filas sin marcar">
+                            <input type="checkbox" [(ngModel)]="sobrescribir">
+                            <span>Sobrescribir</span>
+                        </label>
+                        <span class="marcar-label">Marcar todo el informe:</span>
+                        <button *ngFor="let v of valores"
+                                class="chip-todas"
+                                [style.borderColor]="v.color || '#d4af37'"
+                                [style.color]="v.color || '#8B6914'"
+                                (click)="marcarTodoElInforme(v.id)">
+                            {{ v.valor_cualitativo }}
+                        </button>
+                        <button class="chip-todas limpiar" (click)="limpiarTodoElInforme()">
+                            Limpiar
+                        </button>
+                        <button class="chip-todas deshacer" *ngIf="hayDeshacer"
+                                [title]="'Deshacer: ' + respaldoDescripcion"
+                                (click)="deshacer()">
+                            <i class="fas fa-rotate-left"></i> Deshacer
+                        </button>
+                    </div>
+
                     <!-- Secciones -->
                     <div class="card-seccion" *ngFor="let sec of seccionesRaiz">
                         <div class="card-seccion-header">

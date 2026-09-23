@@ -190,18 +190,34 @@ export class InformesGeneracionComponent implements OnInit {
     });
   }
 
+  /**
+   * Una sola consulta trae los informes completos del grupo. De ahí en
+   * adelante cambiar de estudiante, de vista o de sección no vuelve al
+   * servidor: todo sale de esta copia en memoria.
+   */
   consultar() {
     if (!this.idGrupo || !this.idCorte) {
       return;
     }
 
     this.cargando = true;
-    this.informesEstudiantesService.obtenerEstadoPorGrupo(this.idGrupo, this.idCorte).subscribe({
+    this.informesEstudiantesService.obtenerGrupoCompleto(this.idGrupo, this.idCorte).subscribe({
       next: (response: any) => {
         this.estudiantes = (response.body as any[]) || [];
         this.cargando = false;
         this.consultado = true;
         this.cargarSeccionesGrupo();
+
+        // Si había un estudiante abierto, se vuelve a apuntar a su copia
+        // nueva para no quedar trabajando sobre datos viejos.
+        if (this.estudianteActivo) {
+          const mismo = this.estudiantes.find(e => e.id_estudiante === this.estudianteActivo.id_estudiante);
+          if (mismo) {
+            this.abrirInforme(mismo);
+          } else {
+            this.cerrarInforme();
+          }
+        }
       },
       error: (error: any) => {
         console.error("Error al consultar el estado de los informes", error);
@@ -215,6 +231,30 @@ export class InformesGeneracionComponent implements OnInit {
   /**
    * Refresca solo la fila del estudiante, sin volver a pedir toda la lista.
    */
+  /**
+   * Recalcula el avance de un estudiante desde sus propias secciones, sin
+   * volver al servidor. Las informativas no cuentan.
+   */
+  private recalcularAvance(est: any) {
+    let total = 0;
+    let calificadas = 0;
+
+    (est.secciones || []).forEach((sec: any) => {
+      if (sec.se_califica != 1) {
+        return;
+      }
+      (sec.filas || []).forEach((f: any) => {
+        total++;
+        if (f.id_valor_parametro) {
+          calificadas++;
+        }
+      });
+    });
+
+    est.filas_total = total;
+    est.filas_calificadas = calificadas;
+  }
+
   private refrescarFila(idEstudiante: any, cambios: any) {
     const fila = this.estudiantes.find(e => e.id_estudiante === idEstudiante);
     if (fila) {
@@ -336,6 +376,10 @@ export class InformesGeneracionComponent implements OnInit {
   // INFORME ABIERTO
   // =================================================================
 
+  /**
+   * Abre el informe desde la copia en memoria. No hay petición: las
+   * secciones ya vinieron con la consulta del grupo.
+   */
   abrirInforme(est: any) {
     this.limpiarRespaldo();
 
@@ -353,23 +397,21 @@ export class InformesGeneracionComponent implements OnInit {
     est.generando = false;
 
     this.estudianteActivo = est;
-    this.cargandoInforme = true;
-    this.informe = null;
-    this.secciones = [];
+    this.cargandoInforme = false;
 
-    this.informesEstudiantesService.obtenerPorEstudianteCorte(est.id_estudiante, this.idCorte).subscribe({
-      next: (response: any) => {
-        const body: any = response.body;
-        this.informe = body?.informe || null;
-        this.secciones = body?.secciones || [];
-        this.cargandoInforme = false;
-      },
-      error: (error: any) => {
-        console.error("Error al cargar el informe", error);
-        this.cargandoInforme = false;
-        Swal.fire('Error', 'No se pudo cargar el informe', 'error');
-      }
-    });
+    // Se trabaja sobre el mismo objeto de la lista, no sobre una copia: asi
+    // lo que se marca aqui se ve en la vista por sección y al revés.
+    this.secciones = est.secciones || [];
+    this.informe = {
+      id: est.id_informe,
+      estado: est.estado,
+      nombre_estudiante: est.nombre_completo,
+      nombre_grupo: est.nombre_grupo,
+      nombre_corte: this.nombreCorte,
+      ausencias: est.ausencias,
+      texto_cierre: est.texto_cierre,
+      id_corte_academico: this.idCorte
+    };
   }
 
   cerrarInforme() {
@@ -458,6 +500,46 @@ export class InformesGeneracionComponent implements OnInit {
 
     aplicar(seccion);
     this.subsecciones(seccion.id).forEach(aplicar);
+  }
+
+  /**
+   * Marca de una todas las filas del informe, en todas las secciones que se
+   * califican. Respeta el interruptor de sobrescribir, así que por defecto
+   * solo llena lo que está vacío.
+   */
+  marcarTodoElInforme(idValor: any) {
+    if (!this.editable) {
+      return;
+    }
+
+    const afectadas = this.secciones
+      .filter(s => s.se_califica == 1)
+      .reduce((acc: any[], s: any) => acc.concat(s.filas || []), []);
+    this.respaldar(afectadas, 'Marcar todo el informe');
+
+    afectadas.forEach((f: any) => {
+      if (!this.sobrescribir && f.id_valor_parametro) {
+        return;
+      }
+      f.id_valor_parametro = idValor;
+      f.origen = 'manual';
+    });
+  }
+
+  /** Quita todas las marcas del informe */
+  limpiarTodoElInforme() {
+    if (!this.editable) {
+      return;
+    }
+
+    const afectadas = this.secciones
+      .filter(s => s.se_califica == 1)
+      .reduce((acc: any[], s: any) => acc.concat(s.filas || []), []);
+    this.respaldar(afectadas, 'Limpiar todo el informe');
+
+    afectadas.forEach((f: any) => {
+      f.id_valor_parametro = null;
+    });
   }
 
   limpiarSeccion(seccion: any) {
@@ -552,10 +634,12 @@ export class InformesGeneracionComponent implements OnInit {
 
     this.informesEstudiantesService.guardar(this.armarPayload()).subscribe({
       next: () => {
-        // Se actualiza solo la fila de la lista, sin recargar todo
+        // Las secciones son las mismas de la lista, así que ya están al día.
+        // Solo se recalcula el avance para la barra del panel.
         this.refrescarFila(this.estudianteActivo.id_estudiante, {
           filas_calificadas: this.filasCalificadas,
-          filas_total: this.totalFilas
+          filas_total: this.totalFilas,
+          texto_cierre: this.informe.texto_cierre
         });
         Swal.fire('Guardado', 'El informe se guardó correctamente', 'success');
       },
@@ -678,7 +762,8 @@ export class InformesGeneracionComponent implements OnInit {
       id_usuario: usuario?.id || null
     }).subscribe({
       next: (respuesta: any) => {
-        this.abrirInforme(est);
+        // Regenerar agrega filas nuevas, así que aquí sí hay que releer
+        this.consultar();
         const nuevas = respuesta?.filas_nuevas || 0;
         Swal.fire('Listo', nuevas > 0
           ? `Se agregaron ${nuevas} filas al informe.`
@@ -785,29 +870,77 @@ export class InformesGeneracionComponent implements OnInit {
       : sec.nombre;
   }
 
+  /**
+   * Arma la vista por sección desde la copia en memoria. Las filas son las
+   * mismas del informe de cada estudiante, no copias: marcar aquí se ve al
+   * abrir el estudiante y al revés.
+   */
   cargarSeccionMasiva() {
-    if (!this.idGrupo || !this.idCorte || !this.idSeccion) {
+    if (!this.idSeccion) {
+      this.seccionActiva = null;
+      this.columnas = [];
+      this.estudiantesMasivo = [];
       return;
     }
 
     this.limpiarRespaldo();
     this.textoBase = '';
-    this.cargandoMasivo = true;
-    this.informesEstudiantesService
-      .obtenerSeccionPorGrupo(this.idGrupo, this.idCorte, this.idSeccion)
-      .subscribe({
-        next: (response: any) => {
-          const body: any = response.body;
-          this.seccionActiva = body?.seccion || null;
-          this.columnas = body?.columnas || [];
-          this.estudiantesMasivo = body?.estudiantes || [];
-          this.cargandoMasivo = false;
-        },
-        error: (error: any) => {
-          console.error("Error al cargar la sección", error);
-          this.cargandoMasivo = false;
-          Swal.fire('Error', 'No se pudo cargar la sección', 'error');
+
+    // El texto de cierre no es una sección: vive en el maestro
+    if (this.idSeccion === 'cierre') {
+      this.seccionActiva = {
+        id: 'cierre',
+        nombre: 'Observaciones generales',
+        se_califica: 0,
+        tipo_contenido: 'texto',
+        evalua_a: 'estudiante'
+      };
+      this.columnas = [];
+      this.estudiantesMasivo = this.estudiantes
+        .filter(e => e.id_informe)
+        .map(e => ({
+          id_estudiante: e.id_estudiante,
+          nombre_completo: e.nombre_completo,
+          id_informe: e.id_informe,
+          estado: e.estado,
+          filas: [],
+          texto: e.texto_cierre,
+          ref: e
+        }));
+      return;
+    }
+
+    const datosSeccion = this.seccionesGrupo.find(s => s.id === this.idSeccion);
+    this.seccionActiva = datosSeccion || null;
+    this.columnas = [];
+
+    this.estudiantesMasivo = this.estudiantes
+      .filter(e => e.id_informe)
+      .map(e => {
+        const sec = (e.secciones || []).find((s: any) => s.id === this.idSeccion);
+        const filas = sec ? (sec.filas || []) : [];
+
+        // Las columnas salen del primer estudiante que tenga filas: todos
+        // los del mismo grado comparten las mismas.
+        if (this.columnas.length === 0 && filas.length > 0) {
+          this.columnas = filas.map((f: any) => ({
+            id_fila: f.id_fila,
+            tipo_fila: f.tipo_fila,
+            texto_fila: f.texto_fila,
+            orden: f.orden
+          }));
         }
+
+        return {
+          id_estudiante: e.id_estudiante,
+          nombre_completo: e.nombre_completo,
+          id_informe: e.id_informe,
+          estado: e.estado,
+          filas: filas,
+          texto: sec ? sec.texto : null,
+          ref: e,
+          seccion: sec
+        };
       });
   }
 
@@ -933,6 +1066,20 @@ export class InformesGeneracionComponent implements OnInit {
 
     this.informesEstudiantesService.guardarMasivo(payload).subscribe({
       next: (respuesta: any) => {
+        // Las filas son las mismas de la lista, así que el detalle ya quedó.
+        // Falta reflejar los textos y recalcular el avance de cada uno.
+        this.estudiantesMasivo.forEach(e => {
+          if (!e.ref) {
+            return;
+          }
+          if (this.idSeccion === 'cierre') {
+            e.ref.texto_cierre = e.texto;
+          } else if (e.seccion) {
+            e.seccion.texto = e.texto;
+          }
+          this.recalcularAvance(e.ref);
+        });
+
         const omitidos = respuesta?.omitidos || 0;
         Swal.fire(
           'Guardado',
@@ -993,45 +1140,42 @@ export class InformesGeneracionComponent implements OnInit {
     };
   }
 
-  /** Descarga el boletín de un estudiante */
+  /** Datos del PDF de un estudiante, tomados de la copia en memoria */
+  private datosPdfDe(est: any): any {
+    return this.armarDatosPdf({
+      nombre_estudiante: est.nombre_completo,
+      nombre_grupo:      est.nombre_grupo,
+      ausencias:         est.ausencias,
+      texto_cierre:      est.texto_cierre,
+      estado:            est.estado
+    }, est.secciones || []);
+  }
+
+  /** Descarga el boletín de un estudiante. No consulta: ya está en memoria. */
   descargar(est: any) {
     if (est.estado === 'sin_generar') {
       Swal.fire('Sin informe', 'Este estudiante todavía no tiene informe generado.', 'info');
       return;
     }
 
-    this.descargando = true;
+    if (!est.secciones || est.secciones.length === 0) {
+      Swal.fire('Sin informe', 'No se encontró el informe del estudiante.', 'info');
+      return;
+    }
 
-    this.informesEstudiantesService.obtenerPorEstudianteCorte(est.id_estudiante, this.idCorte).subscribe({
-      next: (response: any) => {
-        const body: any = response.body;
-        this.descargando = false;
-
-        if (!body?.informe) {
-          Swal.fire('Sin informe', 'No se encontró el informe del estudiante.', 'info');
-          return;
-        }
-
-        this.exportarPdfInformeService.generarPDF(
-          this.armarDatosPdf(body.informe, body.secciones || [])
-        );
-      },
-      error: (error: any) => {
-        console.error("Error al descargar el informe", error);
-        this.descargando = false;
-        Swal.fire('Error', 'No se pudo generar el boletín', 'error');
-      }
-    });
+    this.exportarPdfInformeService.generarPDF(this.datosPdfDe(est));
   }
 
   /**
    * Descarga los boletines de todo el grupo, uno por estudiante.
    *
-   * Se piden en serie a propósito: bajar quince PDF de golpe satura el
+   * Ya no hay peticiones: los informes están en memoria. Se genera uno a
+   * uno con una pausa corta, porque bajar quince PDF de golpe satura el
    * navegador y algunos se pierden.
    */
   async descargarTodos() {
-    const conInforme = this.estudiantes.filter(e => e.estado !== 'sin_generar');
+    const conInforme = this.estudiantes.filter(
+      e => e.estado !== 'sin_generar' && (e.secciones || []).length > 0);
 
     if (conInforme.length === 0) {
       Swal.fire('Sin informes', 'Ningún estudiante del grupo tiene informe generado.', 'info');
@@ -1062,24 +1206,9 @@ export class InformesGeneracionComponent implements OnInit {
     this.progresoDescarga = 0;
 
     for (const est of conInforme) {
-      await new Promise<void>((resolve) => {
-        this.informesEstudiantesService.obtenerPorEstudianteCorte(est.id_estudiante, this.idCorte).subscribe({
-          next: (response: any) => {
-            const body: any = response.body;
-            if (body?.informe) {
-              this.exportarPdfInformeService.generarPDF(
-                this.armarDatosPdf(body.informe, body.secciones || [])
-              );
-            }
-            this.progresoDescarga++;
-            resolve();
-          },
-          error: () => {
-            this.progresoDescarga++;
-            resolve();
-          }
-        });
-      });
+      this.exportarPdfInformeService.generarPDF(this.datosPdfDe(est));
+      this.progresoDescarga++;
+      await new Promise(resolve => setTimeout(resolve, 300));
     }
 
     this.descargandoTodos = false;

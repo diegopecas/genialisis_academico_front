@@ -78,18 +78,27 @@ export class AutorizacionInformesComponent implements OnInit {
             ? 'badge-secondary'
             : (autorizados >= total ? 'badge-success' : 'badge-warning');
 
-          // Tres estados posibles, en orden de bloqueo: sin sprint marcado,
-          // sprint sin finalizar, y listo para publicar.
+          // El estado se basa en los informes confirmados del corte, que es
+          // lo que el boletin nuevo publica. El sprint se sigue mostrando
+          // porque el informe viejo todavia lo usa, pero ya no manda.
+          const confirmados = Number(corte.total_informes_confirmados) || 0;
+          corte.total_informes_confirmados = confirmados;
+
           if (!corte.id_sprint_informe) {
-            corte.estado = 'Sin sprint de informe';
-            corte.estado_clase = 'badge-danger';
             corte.nombre_sprint = '—';
-          } else if (Number(corte.sprint_finalizado) !== 1) {
-            corte.estado = 'Sprint sin finalizar';
-            corte.estado_clase = 'badge-warning';
-          } else {
+          }
+
+          if (confirmados > 0) {
+            corte.estado = `${confirmados} informes listos`;
+            corte.estado_clase = 'badge-success';
+          } else if (corte.id_sprint_informe && Number(corte.sprint_finalizado) === 1) {
+            // Sin informes nuevos pero con sprint finalizado: es el caso del
+            // informe viejo, que sigue siendo publicable.
             corte.estado = 'Publicable';
             corte.estado_clase = 'badge-success';
+          } else {
+            corte.estado = 'Sin informes confirmados';
+            corte.estado_clase = 'badge-secondary';
           }
         });
 
@@ -115,8 +124,11 @@ export class AutorizacionInformesComponent implements OnInit {
     }
   }
 
-  // Un corte sin sprint de informe no puede publicar nada, asi que se avisa en
-  // vez de abrir una pantalla que no va a servir de nada.
+  /**
+   * El sprint ya no bloquea: el boletin nuevo cuelga del corte y no de un
+   * sprint. Si el corte no tiene informes confirmados ni sprint finalizado
+   * se avisa, pero se deja entrar.
+   */
   abrirAutorizacion(registro: any): void {
     const corte = typeof registro === 'string'
       ? this.datos.find(c => c.id === registro)
@@ -124,14 +136,16 @@ export class AutorizacionInformesComponent implements OnInit {
 
     if (!corte) return;
 
-    if (!corte.id_sprint_informe) {
+    const confirmados = Number(corte.total_informes_confirmados) || 0;
+    const sprintListo = corte.id_sprint_informe && Number(corte.sprint_finalizado) === 1;
+
+    if (confirmados === 0 && !sprintListo) {
       Swal.fire({
-        icon: 'warning',
-        title: 'Falta el sprint de informe',
-        text: 'Este corte no tiene ningún sprint marcado como sprint de informe. Márcalo en la pantalla de sprints antes de autorizar.',
+        icon: 'info',
+        title: 'Este corte todavía no tiene informes',
+        text: 'No hay informes confirmados para este corte. Puedes autorizar de una vez, pero el acudiente no verá nada hasta que los confirmes en Generación de Informes.',
         confirmButtonText: 'Entendido'
       });
-      return;
     }
 
     this.router.navigate(
