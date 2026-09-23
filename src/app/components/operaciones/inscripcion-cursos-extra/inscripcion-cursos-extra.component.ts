@@ -9,6 +9,7 @@ import { CuentasPorCobrarService } from '../../../services/cuentas-por-cobrar.se
 import { InstitucionConfigService } from '../../../services/institucion-config.service';
 import { UtilService } from '../../../common/constantes/util.service';
 import Swal from 'sweetalert2';
+import { NivelesAreaAcademicaService } from '../../../services/niveles-area-academica.service';
 
 /** Una cuota a generar. Misma forma que usa el flujo individual. */
 interface ValorGenerado {
@@ -41,6 +42,11 @@ export class InscripcionCursosExtraComponent implements OnInit {
   // porque a veces se registra despues de que el nino ya empezo el curso.
   fechaInscripcion: string = '';
 
+  /* Nivel con el que entran los estudiantes seleccionados. Solo aplica si el
+     área del curso tiene niveles definidos; si no, el selector no se muestra. */
+  niveles: any[] = [];
+  idNivelSeleccionado: any = null;
+
   disponibles: any[] = [];
   inscritos: any[] = [];
   disponiblesFiltrados: any[] = [];
@@ -61,6 +67,7 @@ export class InscripcionCursosExtraComponent implements OnInit {
   constructor(
     private cursosExtraService: CursosExtraService,
     private estudiantesXCursosExtraService: EstudiantesXCursosExtraService,
+    private nivelesAreaAcademicaService: NivelesAreaAcademicaService,
     private tarifasCursosExtraService: TarifasCursosExtraService,
     private cuentasPorCobrarService: CuentasPorCobrarService,
     private institucionConfigService: InstitucionConfigService,
@@ -106,8 +113,29 @@ export class InscripcionCursosExtraComponent implements OnInit {
     }
 
     this.cursoSeleccionado = this.cursos.find((c: any) => c.id == this.idCursoSeleccionado);
+    this.cargarNiveles();
     this.cargarDisponibles();
     this.cargarInscritos();
+  }
+
+  /* Los niveles salen del área del curso. Un curso sin área no tiene niveles y
+     el selector queda oculto. */
+  cargarNiveles() {
+    this.niveles = [];
+    this.idNivelSeleccionado = null;
+
+    if (!this.cursoSeleccionado || !this.cursoSeleccionado.id_area_academica) {
+      return;
+    }
+
+    this.nivelesAreaAcademicaService.obtenerByCursoExtra(this.idCursoSeleccionado).subscribe({
+      next: (response: any) => {
+        this.niveles = response.body || [];
+      },
+      error: (error: any) => {
+        console.error("Error al cargar los niveles del curso", error);
+      }
+    });
   }
 
   cargarDisponibles() {
@@ -362,7 +390,10 @@ export class InscripcionCursosExtraComponent implements OnInit {
         id_estudiante: idEstudiante,
         id_curso_extra: this.idCursoSeleccionado,
         fecha_inscripcion: this.fechaInscripcion,
-        anio: anio
+        anio: anio,
+        // Todos los seleccionados entran con el mismo nivel; después se cambia
+        // uno por uno desde el listado de inscritos.
+        id_nivel: this.idNivelSeleccionado
       }).toPromise());
     });
 

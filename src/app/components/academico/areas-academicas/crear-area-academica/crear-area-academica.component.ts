@@ -8,6 +8,7 @@ import { HttpClient } from '@angular/common/http';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import Swal from 'sweetalert2';
+import { NivelesAreaAcademicaService, NivelAreaAcademica } from '../../../../services/niveles-area-academica.service';
 
 @Component({
   selector: 'app-crear-area-academica',
@@ -30,6 +31,20 @@ export class CrearAreaAcademicaComponent implements OnInit {
   imagenesFiltradas: any[] = [];
   busquedaImagen: string = '';
 
+  /* Niveles del area. Solo aplican a las areas extracurriculares: son el eje
+     contra el que se define un logro cuando el curso mezcla ninos de varios
+     grupos y recibe ninos externos, que no tienen grado. */
+  niveles: any[] = [];
+  mostrarModalNivel: boolean = false;
+  guardandoNivel: boolean = false;
+  nivelModal = {
+    id: null,
+    nombre: '',
+    descripcion: '',
+    orden: 0,
+    activo: true
+  } as any;
+
   model = {
     id: null,
     nombre: '',
@@ -42,6 +57,7 @@ export class CrearAreaAcademicaComponent implements OnInit {
 
   constructor(
     private areasAcademicasService: AreasAcademicasService,
+    private nivelesAreaAcademicaService: NivelesAreaAcademicaService,
     private http: HttpClient,
     private route: ActivatedRoute,
     private router: Router
@@ -77,6 +93,7 @@ export class CrearAreaAcademicaComponent implements OnInit {
         if (body && body.length > 0) {
           this.model = body[0];
           this.model.es_extracurricular = !!this.model.es_extracurricular;
+          this.cargarNiveles();
           // Actualizar título con el nombre
           if (this.accion === 'editar') {
             this.titulo = `Editar Área Académica: ${this.model.nombre}`;
@@ -160,6 +177,105 @@ export class CrearAreaAcademicaComponent implements OnInit {
         img.nombre.toLowerCase().includes(this.busquedaImagen.toLowerCase())
       );
     }
+  }
+
+  // ==================== NIVELES ====================
+
+  cargarNiveles() {
+    if (!this.model.id) {
+      return;
+    }
+    this.nivelesAreaAcademicaService.obtenerByArea(this.model.id).subscribe({
+      next: (response: any) => {
+        this.niveles = response.body || [];
+      },
+      error: (error: any) => {
+        console.error('Error al cargar los niveles del área', error);
+      }
+    });
+  }
+
+  abrirModalNivel() {
+    this.nivelModal = {
+      id: null,
+      nombre: '',
+      descripcion: '',
+      // Se propone el siguiente en la secuencia para no tener que pensarlo.
+      orden: this.niveles.length + 1,
+      activo: true
+    };
+    this.mostrarModalNivel = true;
+  }
+
+  editarNivel(nivel: any) {
+    this.nivelModal = { ...nivel, activo: !!nivel.activo };
+    this.mostrarModalNivel = true;
+  }
+
+  cerrarModalNivel() {
+    this.mostrarModalNivel = false;
+  }
+
+  guardarNivel() {
+    if (!this.nivelModal.nombre || this.nivelModal.nombre.trim() === '') {
+      Swal.fire('Advertencia', 'El nombre del nivel es obligatorio', 'warning');
+      return;
+    }
+
+    const data: NivelAreaAcademica = {
+      id_area_academica: this.model.id,
+      nombre: this.nivelModal.nombre.trim(),
+      descripcion: this.nivelModal.descripcion ? this.nivelModal.descripcion.trim() : undefined,
+      orden: this.nivelModal.orden ? Number(this.nivelModal.orden) : 0,
+      activo: this.nivelModal.activo ? 1 : 0
+    };
+
+    this.guardandoNivel = true;
+
+    const peticion = this.nivelModal.id
+      ? this.nivelesAreaAcademicaService.actualizar({ ...data, id: this.nivelModal.id })
+      : this.nivelesAreaAcademicaService.crear(data);
+
+    peticion.subscribe({
+      next: () => {
+        this.guardandoNivel = false;
+        this.cerrarModalNivel();
+        this.cargarNiveles();
+        Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Nivel guardado', showConfirmButton: false, timer: 2000 });
+      },
+      error: (error: any) => {
+        this.guardandoNivel = false;
+        console.error('Error al guardar el nivel', error);
+        Swal.fire('Error', 'No se pudo guardar el nivel', 'error');
+      }
+    });
+  }
+
+  async eliminarNivel(nivel: any) {
+    const result = await Swal.fire({
+      title: '¿Eliminar nivel?',
+      text: `¿Desea eliminar el nivel "${nivel.nombre}"?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar'
+    });
+
+    if (!result.isConfirmed) {
+      return;
+    }
+
+    this.nivelesAreaAcademicaService.eliminar(nivel.id).subscribe({
+      next: () => {
+        this.cargarNiveles();
+      },
+      error: (error: any) => {
+        console.error('Error al eliminar el nivel', error);
+        // El backend responde 400 con el detalle cuando el nivel esta en uso.
+        const mensaje = error?.error?.error ? error.error.error : 'No se pudo eliminar el nivel.';
+        Swal.fire('Error', mensaje, 'error');
+      }
+    });
   }
 
   guardar() {

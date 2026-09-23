@@ -81,6 +81,13 @@
           <label class="form-label">Fecha de inscripción</label>
           <input class="form-control" type="date" [(ngModel)]="fechaInscripcion">
         </div>
+        <div class="col-md-3 col-12" *ngIf="niveles.length > 0">
+          <label class="form-label">Nivel</label>
+          <select class="form-select" [(ngModel)]="idNivelSeleccionado">
+            <option [ngValue]="null">-- Sin nivel --</option>
+            <option *ngFor="let n of niveles" [ngValue]="n.id">{{n.nombre}}</option>
+          </select>
+        </div>
         <div class="col-md-3 col-12 d-flex align-items-end">
           <div class="cupo-chip w-100" *ngIf="cursoSeleccionado">
             <i class="fas fa-users"></i>
@@ -219,6 +226,7 @@
                 <th style="width: 40px;"></th>
                 <th>Estudiante</th>
                 <th>Grupo</th>
+                <th>Nivel</th>
                 <th class="text-center">Inscripción</th>
                 <th class="text-center">Cuentas</th>
                 <th class="text-center">Estado</th>
@@ -232,6 +240,7 @@
                 </td>
                 <td>{{e.nombre_completo}}</td>
                 <td>{{e.nombre_grupo || '-'}}</td>
+                <td>{{e.nombre_nivel || '-'}}</td>
                 <td class="text-center">{{e.fecha_inscripcion}}</td>
                 <td class="text-center">{{e.total_cuentas || 0}}</td>
                 <td class="text-center">

@@ -166,6 +166,24 @@ export class LogrosService {
       );
   }
 
+  /**
+   * Logros de un area extracurricular con sus indicadores.
+   *
+   * Hermano del de grupo y area: en un curso no hay grupo, y sus logros van
+   * por nivel, no por grado. Trae los de todos los niveles porque una misma
+   * actividad puede amarrar indicadores de varios: en la clase estan los ninos
+   * de todos los niveles al tiempo.
+   */
+  obtenerByAreaConIndicadores(id_area_academica: any): Observable<HttpResponse<Object>> {
+    return this.http
+      .get<HttpResponse<Object>>(environment.api + `logros-area-indicadores/${id_area_academica}`, {
+        observe: 'response',
+      })
+      .pipe(
+        catchError(this.handleError)
+      );
+  }
+
   obtenerByGrupoAreaConIndicadores(id_grupo: any, id_area_academica: any): Observable<HttpResponse<Object>> {
     return this.http
       .get<HttpResponse<Object>>(environment.api + `logros-grupo-area-indicadores/${id_grupo}/${id_area_academica}`, {

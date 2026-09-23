@@ -6,6 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { HeaderComponent } from '../../../../common/header/header.component';
 import { LogrosService } from '../../../../services/logros.service';
 import { GradosService } from '../../../../services/grados.service';
+import { NivelesAreaAcademicaService } from '../../../../services/niveles-area-academica.service';
 import { AreasAcademicasService } from '../../../../services/areas-academicas.service';
 import { EsferasDesarrolloService } from '../../../../services/esferas-desarrollo.service';
 import { EjesCurricularesService } from '../../../../services/ejes-curriculares.service';
@@ -51,6 +52,10 @@ export class CrearLogrosComponent implements OnInit, OnDestroy {
 
   public listas = {
     grados: [] as any[],
+    // Niveles del area elegida. Solo tienen las areas extracurriculares: alli
+    // el nivel reemplaza al grado, porque el curso mezcla ninos de varios
+    // grupos y recibe ninos externos, que no tienen grado.
+    niveles: [] as any[],
     areasAcademicas: [] as any[],
     esferasDesarrollo: [] as any[],
     ejesCurriculares: [] as any[],
@@ -65,6 +70,7 @@ export class CrearLogrosComponent implements OnInit, OnDestroy {
   public model = {
     id: 0 as any,
     id_grado: "",
+    id_nivel: "",
     id_area_academica: "",
     id_esfera_desarrollo: "",
     id_eje_curricular: "",
@@ -79,6 +85,7 @@ export class CrearLogrosComponent implements OnInit, OnDestroy {
     private router: Router,
     private logrosService: LogrosService,
     private gradosService: GradosService,
+    private nivelesAreaAcademicaService: NivelesAreaAcademicaService,
     private areasAcademicasService: AreasAcademicasService,
     private esferasDesarrolloService: EsferasDesarrolloService,
     private ejesCurricularesService: EjesCurricularesService,
@@ -270,6 +277,7 @@ export class CrearLogrosComponent implements OnInit, OnDestroy {
     this.model = {
       id: 0 as any,
       id_grado: "",
+      id_nivel: "",
       id_area_academica: "",
       id_esfera_desarrollo: "",
       id_eje_curricular: "",
@@ -284,8 +292,49 @@ export class CrearLogrosComponent implements OnInit, OnDestroy {
     this.tituloHeader = "logros";
   }
 
+  /** True cuando el área elegida es extracurricular: entonces pide nivel. */
+  get areaEsExtracurricular(): boolean {
+    const area = this.listas.areasAcademicas.find((a: any) => a.id == this.model.id_area_academica);
+    return !!(area && area.es_extracurricular);
+  }
+
+  /**
+   * Al cambiar de área se recargan los niveles y se limpia el destino que ya
+   * no aplica: un logro lleva grado o nivel, nunca los dos.
+   */
+  onAreaAcademicaChange() {
+    this.listas.niveles = [];
+
+    if (!this.model.id_area_academica) {
+      this.model.id_nivel = "";
+      this.formularioValido();
+      return;
+    }
+
+    if (this.areaEsExtracurricular) {
+      this.model.id_grado = "";
+      this.nivelesAreaAcademicaService.obtenerActivosByArea(this.model.id_area_academica).subscribe({
+        next: (response: any) => {
+          this.listas.niveles = response.body || [];
+        },
+        error: (error: any) => {
+          console.error('Error al cargar los niveles del área', error);
+        }
+      });
+    } else {
+      this.model.id_nivel = "";
+    }
+
+    this.formularioValido();
+  }
+
   formularioValido() {
-    const camposValidos = !!(this.model.id_grado &&
+    // El area extracurricular pide nivel en lugar de grado.
+    const destinoValido = this.areaEsExtracurricular
+      ? !!this.model.id_nivel
+      : !!this.model.id_grado;
+
+    const camposValidos = !!(destinoValido &&
       this.model.id_area_academica &&
       this.model.id_esfera_desarrollo &&
       this.model.id_eje_curricular &&
@@ -364,6 +413,7 @@ export class CrearLogrosComponent implements OnInit, OnDestroy {
 
   formularioModificado(): boolean {
     return !!(this.model.id_grado !== "" ||
+      this.model.id_nivel !== "" ||
       this.model.id_area_academica !== "" ||
       this.model.id_esfera_desarrollo !== "" ||
       this.model.id_eje_curricular !== "" ||

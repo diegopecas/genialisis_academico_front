@@ -104,6 +104,66 @@
     </div>
 
     <!-- Botones de acción -->
+    <!-- Niveles: solo para áreas extracurriculares, y solo al editar, porque
+         el nivel cuelga de un área que ya exista -->
+    <div class="container mt-4" *ngIf="model.es_extracurricular && accion !== 'crear'">
+        <div class="panel-niveles">
+            <div class="panel-niveles-header">
+                <span><i class="fas fa-layer-group"></i> Niveles del área</span>
+                <button class="btn btn-sm btn-warning" (click)="abrirModalNivel()" *ngIf="editable">
+                    <i class="fas fa-plus"></i> Agregar nivel
+                </button>
+            </div>
+            <div class="panel-niveles-body">
+                <p class="text-muted small mb-3">
+                    Los niveles reemplazan al grado en los logros de esta área. Un niño se inscribe
+                    al curso con un nivel y puede subir de nivel sin cambiar de curso.
+                </p>
+
+                <div class="table-responsive" *ngIf="niveles.length > 0">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th class="text-center" style="width: 70px;">Orden</th>
+                                <th>Nombre</th>
+                                <th>Descripción</th>
+                                <th class="text-center">Logros</th>
+                                <th class="text-center">Estado</th>
+                                <th class="text-center" *ngIf="editable">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let n of niveles">
+                                <td class="text-center">{{ n.orden }}</td>
+                                <td>{{ n.nombre }}</td>
+                                <td class="text-muted small">{{ n.descripcion || '-' }}</td>
+                                <td class="text-center">{{ n.total_logros || 0 }}</td>
+                                <td class="text-center">
+                                    <span class="badge" [ngClass]="n.activo ? 'bg-success' : 'bg-secondary'">
+                                        {{ n.activo ? 'Activo' : 'Inactivo' }}
+                                    </span>
+                                </td>
+                                <td class="text-center" *ngIf="editable">
+                                    <button class="btn btn-sm btn-outline-primary me-1" (click)="editarNivel(n)">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger" (click)="eliminarNivel(n)">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="text-center text-muted py-4" *ngIf="niveles.length === 0">
+                    <i class="fas fa-layer-group fa-2x mb-2"></i>
+                    <p class="mb-0">Esta área no tiene niveles todavía</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="container mt-5">
         <div class="row">
             <div class="col-sm-6" *ngIf="editable">
@@ -160,6 +220,47 @@
             <div *ngIf="imagenesFiltradas.length === 0" class="sin-resultados">
                 <i class="fas fa-search"></i>
                 <p>No se encontraron imágenes</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL NIVEL ==================== -->
+    <div class="modal-overlay" *ngIf="mostrarModalNivel" (click)="cerrarModalNivel()">
+        <div class="modal-content-nivel" (click)="$event.stopPropagation()">
+            <div class="modal-header-custom">
+                <h3>{{ nivelModal.id ? 'Editar' : 'Agregar' }} Nivel</h3>
+                <button class="btn-close-custom" (click)="cerrarModalNivel()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body-custom">
+                <div class="row g-3">
+                    <div class="col-md-8">
+                        <label class="form-label">Nombre <span class="text-danger">*</span></label>
+                        <input class="form-control" type="text" [(ngModel)]="nivelModal.nombre"
+                            placeholder="Ej: Adaptación, Flotación, Autonomía...">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Orden</label>
+                        <input class="form-control" type="number" [(ngModel)]="nivelModal.orden" min="0">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Descripción</label>
+                        <textarea class="form-control" rows="2" [(ngModel)]="nivelModal.descripcion"
+                            placeholder="Qué se trabaja en este nivel"></textarea>
+                    </div>
+                    <div class="col-12">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="nivel_activo" [(ngModel)]="nivelModal.activo">
+                            <label class="form-check-label" for="nivel_activo">Activo</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer-custom">
+                    <button class="btn btn-secondary" (click)="cerrarModalNivel()">Cancelar</button>
+                    <button class="btn btn-warning" (click)="guardarNivel()" [disabled]="guardandoNivel">
+                        {{ guardandoNivel ? 'Guardando...' : 'Guardar' }}
+                    </button>
+                </div>
             </div>
         </div>
     </div>

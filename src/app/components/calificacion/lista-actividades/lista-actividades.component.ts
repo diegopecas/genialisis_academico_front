@@ -490,7 +490,14 @@ export class ListaActividadesComponent implements OnInit {
   private cargarLogrosParaCrear(): void {
     this.logrosCargados = false;
     if (!this.grupo || !this.area) return;
-    this.logrosService.obtenerByGrupoAreaConIndicadores(this.grupo.id, this.area.id_area_academica)
+
+    // En un curso extracurricular los logros van por nivel y no por grado, y
+    // no hay grupo contra el cual filtrar: se traen todos los del área.
+    const peticion = this.idCursoExtra
+      ? this.logrosService.obtenerByAreaConIndicadores(this.area.id_area_academica)
+      : this.logrosService.obtenerByGrupoAreaConIndicadores(this.grupo.id, this.area.id_area_academica);
+
+    peticion
       .subscribe({
         next: (resp: any) => {
           this.logrosDisponibles = resp.body || [];

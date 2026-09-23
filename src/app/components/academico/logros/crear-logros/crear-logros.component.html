@@ -12,7 +12,9 @@
             <div class="card-body">
                 <div class="row g-3">
                     <!-- Primera fila -->
-                    <div class="col-md-6">
+                    <!-- Grado o nivel: el área extracurricular usa nivel porque
+                         el curso mezcla niños de varios grupos y recibe externos -->
+                    <div class="col-md-6" *ngIf="!areaEsExtracurricular">
                         <label for="grados" class="form-label fw-semibold">Grado<span class="text-danger">*</span></label>
                         <select class="form-select" id="grados"
                             [(ngModel)]="model.id_grado" (ngModelChange)="formularioValido()" required
@@ -25,10 +27,26 @@
                         <div *ngIf="!model.id_grado && submitted" class="invalid-feedback">Este campo es obligatorio</div>
                     </div>
 
+                    <div class="col-md-6" *ngIf="areaEsExtracurricular">
+                        <label for="niveles" class="form-label fw-semibold">Nivel<span class="text-danger">*</span></label>
+                        <select class="form-select" id="niveles"
+                            [(ngModel)]="model.id_nivel" (ngModelChange)="formularioValido()" required
+                            [ngClass]="{'is-invalid': !model.id_nivel && submitted}">
+                            <option value="">Seleccionar nivel...</option>
+                            <ng-container *ngFor="let nivel of listas.niveles">
+                                <option [value]="nivel.id">{{ nivel.nombre }}</option>
+                            </ng-container>
+                        </select>
+                        <div *ngIf="!model.id_nivel && submitted" class="invalid-feedback">Este campo es obligatorio</div>
+                        <small class="form-text text-muted" *ngIf="listas.niveles.length === 0">
+                            Esta área no tiene niveles. Créelos desde el área académica.
+                        </small>
+                    </div>
+
                     <div class="col-md-6">
                         <label for="areasAcademicas" class="form-label fw-semibold">Área Académica<span class="text-danger">*</span></label>
                         <select class="form-select" id="areasAcademicas"
-                            [(ngModel)]="model.id_area_academica" (ngModelChange)="formularioValido()" required
+                            [(ngModel)]="model.id_area_academica" (ngModelChange)="onAreaAcademicaChange()" required
                             [ngClass]="{'is-invalid': !model.id_area_academica && submitted}">
                             <option value="">Seleccionar área...</option>
                             <ng-container *ngFor="let area of listas.areasAcademicas">
