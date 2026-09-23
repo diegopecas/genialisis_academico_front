@@ -11,6 +11,7 @@ import { AccesosRapidosService, AccesoRapido } from '../../services/accesos-rapi
 import { MenuArbolService, MenuNodo } from '../../services/menu-arbol.service';
 import { OpcionesEstudianteService, OpcionEstudiante } from '../../services/opciones-estudiante.service';
 import { DailyMessageComponent } from '../daily-message/daily-message.component';
+import { BotonInstalarAppComponent } from '../../common/boton-instalar-app/boton-instalar-app.component';
 
 /**
  * Un destino al que se puede ir desde una persona encontrada en el buscador.
@@ -73,7 +74,7 @@ interface CumpleaneroInfo {
   templateUrl: './menu.component.html',
   styleUrl: './menu.component.scss',
   standalone: true,
-  imports: [CommonModule, RouterModule, DailyMessageComponent],
+  imports: [CommonModule, RouterModule, DailyMessageComponent, BotonInstalarAppComponent],
 })
 export class MenuComponent implements OnInit {
   public logoBasicoUrl: string = '';

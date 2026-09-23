@@ -64,6 +64,12 @@ self.addEventListener('notificationclick', function (event) {
   );
 });
 
+// Instalacion: activa de una la version nueva del Service Worker, sin esperar
+// a que se cierren las pestanas abiertas con la version anterior.
+self.addEventListener('install', function (event) {
+  self.skipWaiting();
+});
+
 // Manejador de fetch: Chrome exige que el Service Worker tenga uno para
 // ofrecer la instalacion de la aplicacion (evento beforeinstallprompt).
 // No se cachea nada: las peticiones siguen su curso normal hacia la red.

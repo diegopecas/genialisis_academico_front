@@ -83,7 +83,7 @@ export class ExportarPdfInformeService {
     private marginLeft = 14;
     private marginRight = 14;
     private marginTop = 42;      // deja sitio a la banda del encabezado
-    private marginBottom = 22;
+    private marginBottom = 25;
     private contentWidth = this.pageWidth - this.marginLeft - this.marginRight;
     private currentY = this.marginTop;
 
@@ -214,98 +214,195 @@ export class ExportarPdfInformeService {
     /** Banda de color con el logo y el título del informe */
     private bandaEncabezado(pagina: number): void {
         const fuerte = this.hexToRgb(this.acento);
+        const medio = this.oscurecer(this.acento, 0.12);
         const suave = this.aclarar(this.acento, 0.55);
 
-        this.pdf.setFillColor(fuerte.r, fuerte.g, fuerte.b);
+        // Dos tonos en vez de uno plano: jsPDF no hace degradados, pero una
+        // franja más oscura arriba da algo de profundidad.
+        this.pdf.setFillColor(medio.r, medio.g, medio.b);
         this.pdf.rect(0, 0, this.pageWidth, this.alturaBanda, 'F');
+        this.pdf.setFillColor(fuerte.r, fuerte.g, fuerte.b);
+        this.pdf.rect(0, 3, this.pageWidth, this.alturaBanda - 3, 'F');
 
-        // Filo claro al pie de la banda, para que no corte en seco
+        // La banda termina en curva, que se siente menos rígido que un filo
+        this.curvaInferior(fuerte);
+
         this.pdf.setFillColor(suave.r, suave.g, suave.b);
-        this.pdf.rect(0, this.alturaBanda, this.pageWidth, 1.6, 'F');
+        this.pdf.rect(0, this.alturaBanda + 4, this.pageWidth, 1.2, 'F');
 
         // Logo sobre un círculo blanco, que funciona con cualquier logo
         let xTexto = this.marginLeft;
         if (this.datos.logoBase64) {
             try {
                 this.pdf.setFillColor(255, 255, 255);
-                this.pdf.circle(this.marginLeft + 10, this.alturaBanda / 2, 11, 'F');
+                this.pdf.circle(this.marginLeft + 10, this.alturaBanda / 2, 11.5, 'F');
                 this.pdf.addImage(
                     this.datos.logoBase64, 'PNG',
                     this.marginLeft + 2.5, (this.alturaBanda / 2) - 7.5, 15, 15
                 );
-                xTexto = this.marginLeft + 26;
+                xTexto = this.marginLeft + 27;
             } catch (error) {
                 console.error('No se pudo agregar el logo al PDF', error);
             }
         }
 
-        const anchoTexto = this.pageWidth - xTexto - this.marginRight;
+        // El bloque institucional va a la derecha para equilibrar con el
+        // logo; el nombre y el título quedan con aire a la izquierda.
+        const lineasInst = (pagina === 1 && this.datos.encabezado)
+            ? this.datos.encabezado.split('\n').map(l => l.trim()).filter(l => l !== '').slice(0, 2)
+            : [];
+
+        const anchoInst = lineasInst.length > 0 ? 62 : 0;
+        const anchoTexto = this.pageWidth - xTexto - this.marginRight - anchoInst - 6;
+
+        // El nombre puede ocupar una o dos líneas según el ancho que le deje
+        // el bloque institucional, así que el título se ubica después de
+        // medirlo: si va fijo, se monta encima.
+        const nombre = this.institucionConfigService.getNombreInstitucion() || '';
+
+        this.pdf.setFont('helvetica', 'bold');
+        let tamNombre = 13;
+        this.pdf.setFontSize(tamNombre);
+        let lineasNombre = this.pdf.splitTextToSize(nombre, anchoTexto);
+
+        // Con dos líneas se baja un punto para que no quede apretado
+        if (lineasNombre.length > 1) {
+            tamNombre = 11.5;
+            this.pdf.setFontSize(tamNombre);
+            lineasNombre = this.pdf.splitTextToSize(nombre, anchoTexto);
+        }
+
+        // Máximo dos líneas: más no cabe en la banda
+        lineasNombre = lineasNombre.slice(0, 2);
+
+        const altoLinea = tamNombre * 0.42;
+        const yNombre = lineasNombre.length > 1 ? 12 : 14.5;
 
         this.pdf.setTextColor(255, 255, 255);
-        this.pdf.setFontSize(12.5);
-        this.pdf.setFont('helvetica', 'bold');
-        this.pdf.text(
-            this.institucionConfigService.getNombreInstitucion() || '',
-            xTexto, 13, { maxWidth: anchoTexto }
-        );
+        this.pdf.text(lineasNombre, xTexto, yNombre);
 
-        this.pdf.setFontSize(9.5);
+        const claro = this.aclarar(this.acento, 0.72);
+        this.pdf.setTextColor(claro.r, claro.g, claro.b);
+        this.pdf.setFontSize(9);
         this.pdf.setFont('helvetica', 'normal');
         this.pdf.text(
             this.datos.tituloInforme || 'Informe de Calificaciones',
-            xTexto, 19.5, { maxWidth: anchoTexto }
+            xTexto, yNombre + (lineasNombre.length * altoLinea) + 2.5,
+            { maxWidth: anchoTexto }
         );
 
-        // El texto institucional solo en la primera hoja: en las demás
-        // repetirlo roba espacio sin aportar.
-        //
-        // La primera línea va en cursiva porque suele ser el eslogan, y la
-        // segunda normal porque suele ser un dato formal (resolución, NIT).
-        if (pagina === 1 && this.datos.encabezado) {
-            const lineas = this.datos.encabezado
+        if (lineasInst.length === 0) {
+            return;
+        }
+
+        // Bloque institucional alineado a la derecha, con una línea fina
+        // que lo separa del título.
+        const xDer = this.pageWidth - this.marginRight;
+
+        this.pdf.setDrawColor(claro.r, claro.g, claro.b);
+        this.pdf.setLineWidth(0.25);
+        this.pdf.line(xDer - anchoInst, 11, xDer - anchoInst, 24);
+
+        let y = 15;
+        lineasInst.forEach((linea, i) => {
+            this.pdf.setFontSize(i === 0 ? 7.5 : 6.8);
+            this.pdf.setFont('helvetica', i === 0 ? 'italic' : 'normal');
+            this.pdf.setTextColor(i === 0 ? 255 : claro.r, i === 0 ? 255 : claro.g, i === 0 ? 255 : claro.b);
+            this.pdf.text(linea, xDer, y, { align: 'right', maxWidth: anchoInst - 4 });
+            y += 4.4;
+        });
+
+        this.pdf.setFont('helvetica', 'normal');
+    }
+
+    /**
+     * Cierra la banda con una curva suave. Se dibuja con una curva de Bézier
+     * rellena, que es lo más parecido a un borde redondeado amplio que
+     * permite jsPDF.
+     */
+    private curvaInferior(color: { r: number, g: number, b: number }): void {
+        const y = this.alturaBanda;
+        const alto = 4;
+
+        this.pdf.setFillColor(color.r, color.g, color.b);
+
+        // El trazo baja por el centro y vuelve a subir en los extremos
+        (this.pdf as any).lines(
+            [
+                [this.pageWidth / 2, alto * 1.4, this.pageWidth / 2, alto * 1.4, this.pageWidth, 0],
+                [0, -alto],
+                [-this.pageWidth, 0]
+            ],
+            0, y,
+            [1, 1],
+            'F',
+            true
+        );
+    }
+
+    private piePagina(pagina: number, total: number): void {
+        const suave = this.aclarar(this.acento, 0.88);
+        const linea = this.aclarar(this.acento, 0.6);
+        const texto = this.oscurecer(this.acento, 0.2);
+        const grisRgb = this.hexToRgb(this.colors.darkGray);
+
+        const altoPie = 17;
+        const yPie = this.pageHeight - altoPie;
+
+        this.pdf.setFillColor(suave.r, suave.g, suave.b);
+        this.pdf.rect(0, yPie, this.pageWidth, altoPie, 'F');
+
+        // Línea fina de acento al borde superior del pie
+        this.pdf.setFillColor(linea.r, linea.g, linea.b);
+        this.pdf.rect(0, yPie, this.pageWidth, 0.5, 'F');
+
+        // Datos de contacto y frase de cierre. El pie viene con un salto de
+        // línea: la primera es el contacto y la segunda la frase, que va en
+        // cursiva porque habla a la familia y no es un dato.
+        if (this.datos.piePagina) {
+            const lineas = this.datos.piePagina
                 .split('\n')
                 .map(l => l.trim())
                 .filter(l => l !== '')
                 .slice(0, 2);
 
-            let y = 25;
-            lineas.forEach((linea, i) => {
-                this.pdf.setFontSize(i === 0 ? 7.5 : 7);
-                this.pdf.setFont('helvetica', i === 0 ? 'italic' : 'normal');
-                this.pdf.text(linea, xTexto, y, { maxWidth: anchoTexto });
-                y += 3.8;
+            let y = yPie + 6;
+            lineas.forEach((l, i) => {
+                if (i === 0) {
+                    this.pdf.setFontSize(7);
+                    this.pdf.setFont('helvetica', 'normal');
+                    this.pdf.setTextColor(texto.r, texto.g, texto.b);
+                } else {
+                    this.pdf.setFontSize(7.2);
+                    this.pdf.setFont('helvetica', 'italic');
+                    this.pdf.setTextColor(grisRgb.r, grisRgb.g, grisRgb.b);
+                }
+                this.pdf.text(l, this.pageWidth / 2, y, { align: 'center', maxWidth: this.contentWidth - 34 });
+                y += 5;
             });
-
-            this.pdf.setFont('helvetica', 'normal');
         }
-    }
 
-    private piePagina(pagina: number, total: number): void {
-        const suave = this.aclarar(this.acento, 0.82);
-        const grisRgb = this.hexToRgb(this.colors.darkGray);
-
-        this.pdf.setFillColor(suave.r, suave.g, suave.b);
-        this.pdf.rect(0, this.pageHeight - 14, this.pageWidth, 14, 'F');
-
-        this.pdf.setFontSize(7);
         this.pdf.setFont('helvetica', 'normal');
-        this.pdf.setTextColor(grisRgb.r, grisRgb.g, grisRgb.b);
-
-        if (this.datos.piePagina) {
-            const lineas = this.pdf.splitTextToSize(this.datos.piePagina, this.contentWidth - 40);
-            this.pdf.text(lineas.slice(0, 2), this.pageWidth / 2, this.pageHeight - 8.5, { align: 'center' });
-        }
-
+        this.pdf.setFontSize(6.8);
+        this.pdf.setTextColor(texto.r, texto.g, texto.b);
         this.pdf.text(
             `${pagina} / ${total}`,
-            this.pageWidth - this.marginRight, this.pageHeight - 5, { align: 'right' }
+            this.pageWidth - this.marginRight, yPie + 11, { align: 'right' }
         );
 
         // El borrador se marca para que nadie entregue uno sin confirmar
         if (this.datos.estado === 'borrador') {
-            this.pdf.setTextColor(200, 90, 0);
+            const x = this.marginLeft;
+            const y = yPie + 7.5;
+
+            this.pdf.setFillColor(255, 235, 210);
+            this.pdf.roundedRect(x, y, 22, 5.6, 2.8, 2.8, 'F');
+
+            this.pdf.setFontSize(6.5);
             this.pdf.setFont('helvetica', 'bold');
-            this.pdf.text('BORRADOR', this.marginLeft, this.pageHeight - 5);
+            this.pdf.setTextColor(190, 90, 10);
+            this.pdf.text('BORRADOR', x + 11, y + 3.8, { align: 'center' });
+            this.pdf.setFont('helvetica', 'normal');
         }
     }
 
@@ -740,8 +837,21 @@ export class ExportarPdfInformeService {
             return;
         }
 
-        this.verificarEspacio(34);
-        this.currentY += 16;
+        // Las firmas necesitan poco: si caben con el contenido, se pegan
+        // debajo en vez de saltar a una hoja nueva casi vacía.
+        const altoFirmas = 22;
+        const espacioLibre = this.pageHeight - this.marginBottom - this.currentY;
+
+        if (espacioLibre < altoFirmas) {
+            this.pdf.addPage();
+            this.currentY = this.marginTop;
+            this.currentY += 10;
+        } else {
+            // Si sobra sitio, se bajan un poco para separarlas del contenido,
+            // sin pasarse del borde.
+            const aire = Math.min(16, espacioLibre - altoFirmas);
+            this.currentY += aire;
+        }
 
         const grisRgb = this.hexToRgb(this.colors.darkGray);
         const suave = this.aclarar(this.acento, 0.5);
