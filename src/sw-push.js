@@ -64,6 +64,13 @@ self.addEventListener('notificationclick', function (event) {
   );
 });
 
+// Manejador de fetch: Chrome exige que el Service Worker tenga uno para
+// ofrecer la instalacion de la aplicacion (evento beforeinstallprompt).
+// No se cachea nada: las peticiones siguen su curso normal hacia la red.
+self.addEventListener('fetch', function (event) {
+  return;
+});
+
 // Activación del Service Worker
 self.addEventListener('activate', function (event) {
   event.waitUntil(clients.claim());

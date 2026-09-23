@@ -22,6 +22,12 @@ export class InstalarAppService {
   public readonly modo$: Observable<ModoInstalacion> = this.modoSubject.asObservable();
 
   constructor() {
+    // Chrome solo ofrece la instalacion si hay un Service Worker registrado.
+    // El de push solo se registra despues de iniciar sesion, asi que aqui se
+    // registra el mismo archivo desde el arranque (registrarlo dos veces no
+    // crea una instancia nueva).
+    this.registrarServiceWorker();
+
     // El aviso puede llegar antes de que Angular arranque. El script de
     // index.html lo deja guardado en window para no perderlo.
     const avisoPrevio = (window as any).__avisoInstalacionGenialisis;
@@ -68,6 +74,16 @@ export class InstalarAppService {
       ? window.matchMedia('(display-mode: standalone)').matches
       : false;
     return modoStandalone || (navigator as any).standalone === true;
+  }
+
+  private registrarServiceWorker(): void {
+    if (!('serviceWorker' in navigator)) {
+      return;
+    }
+
+    navigator.serviceWorker.register('/sw-push.js', { scope: '/' }).catch((error) => {
+      console.warn('No se pudo registrar el Service Worker:', error);
+    });
   }
 
   private limpiarAviso(): void {
