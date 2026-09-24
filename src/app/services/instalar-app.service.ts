@@ -7,7 +7,8 @@ import { BehaviorSubject, Observable } from 'rxjs';
  * - 'ios': iPhone o iPad. No hay aviso programable, se muestran instrucciones.
  * - 'manual': Android sin aviso disponible (el usuario lo rechazo antes o el
  *   navegador no lo ofrece). Se muestran las instrucciones del menu.
- * - 'oculto': ya esta instalada, o es un computador sin aviso.
+ * - 'oculto': el sistema confirma que ya esta instalada, o es un computador
+ *   sin aviso de instalacion.
  */
 export type ModoInstalacion = 'nativo' | 'ios' | 'manual' | 'oculto';
 
@@ -18,6 +19,11 @@ export type ResultadoInstalacion = 'aceptada' | 'rechazada' | 'sin-aviso';
 })
 export class InstalarAppService {
   private avisoInstalacion: any = null;
+
+  // Solo se pone en true cuando el sistema confirma que la app esta instalada.
+  // Se parte de false: es preferible mostrar el boton de mas que esconderlo
+  // para siempre, que es lo que pasaba al confiar en display-mode.
+  private instalada: boolean = false;
   private readonly modoSubject = new BehaviorSubject<ModoInstalacion>('oculto');
   public readonly modo$: Observable<ModoInstalacion> = this.modoSubject.asObservable();
 
@@ -44,10 +50,14 @@ export class InstalarAppService {
 
     window.addEventListener('appinstalled', () => {
       this.limpiarAviso();
+      this.instalada = true;
       this.actualizarModo();
     });
 
     this.actualizarModo();
+
+    // La consulta al sistema es asincrona; al responder se recalcula el modo.
+    this.verificarInstalada();
   }
 
   /**
@@ -70,10 +80,39 @@ export class InstalarAppService {
   }
 
   estaInstalada(): boolean {
-    const modoStandalone = window.matchMedia
-      ? window.matchMedia('(display-mode: standalone)').matches
-      : false;
-    return modoStandalone || (navigator as any).standalone === true;
+    return this.instalada;
+  }
+
+  /**
+   * Pregunta al sistema si esta app ya esta instalada.
+   *
+   * No se usa display-mode: Chrome lo reporta como instalada aunque el usuario
+   * haya borrado el icono, y el boton quedaba escondido para siempre en ese
+   * equipo. getInstalledRelatedApps si refleja el estado real; donde no exista
+   * (iPhone, Firefox) se deja el boton visible y las instrucciones se encargan.
+   */
+  private async verificarInstalada(): Promise<void> {
+    // En iPhone la unica senal disponible es navigator.standalone, que solo es
+    // true cuando la pagina corre desde el icono de inicio.
+    if ((navigator as any).standalone === true) {
+      this.instalada = true;
+      this.actualizarModo();
+      return;
+    }
+
+    const consultar = (navigator as any).getInstalledRelatedApps;
+    if (typeof consultar !== 'function') {
+      return;
+    }
+
+    try {
+      const apps = await consultar.call(navigator);
+      this.instalada = Array.isArray(apps) && apps.length > 0;
+      this.actualizarModo();
+    } catch (error) {
+      // Si la consulta falla se deja el boton visible a proposito
+      console.warn('No se pudo consultar si la aplicación está instalada:', error);
+    }
   }
 
   private registrarServiceWorker(): void {

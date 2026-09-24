@@ -1,5 +1,8 @@
-<!-- Solo se pinta en celulares y tabletas donde Genialisis no está instalado -->
-<div class="instalar-app" *ngIf="modo !== 'oculto'">
+<!-- El boton se muestra siempre: vive dentro del panel de configuracion, asi
+     que no estorba, y esconderlo por deteccion automatica dejaba sin salida a
+     quien si necesitaba instalar. Si no hay aviso del navegador, el clic abre
+     las instrucciones manuales. -->
+<div class="instalar-app">
   <button
     type="button"
     class="boton-instalar"

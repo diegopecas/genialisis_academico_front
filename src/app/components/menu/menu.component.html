@@ -31,6 +31,9 @@
         <button class="help-button" (click)="abrirAyuda()">
           <span>?</span>
         </button>
+        <button class="help-button" (click)="panelConfiguracion.abrir()" title="Configuración">
+          <img src="/assets/images/configuracion_app.png" alt="Configuración" decoding="async" />
+        </button>
         <button class="logout-button" (click)="salir()">
           <img src="/assets/images/salir.png" alt="Salir" decoding="async" />
           <span>Salir</span>
@@ -40,8 +43,9 @@
     </div>
   </header>
 
-  <!-- Boton para instalar Genialisis como aplicacion en el celular -->
-  <app-boton-instalar-app></app-boton-instalar-app>
+  <!-- Panel de configuracion: instalacion de la app y notificaciones.
+       Lo abre el engranaje del encabezado por referencia local -->
+  <app-panel-configuracion #panelConfiguracion></app-panel-configuracion>
 
   <!-- ====== BANNER DE CUMPLEAÑOS ====== -->
   <div class="birthday-banner-wrapper" *ngIf="mostrarBannerCumple">

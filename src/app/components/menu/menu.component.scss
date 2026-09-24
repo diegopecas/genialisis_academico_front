@@ -279,10 +279,22 @@ $confetti-colors: #FF6B6B, #FFD93D, #6BCB77, #4D96FF, #FF6BD6, #FF8C42, #A66CFF,
     box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
   }
 
+  // Los botones redondos que llevan icono (configuracion) en vez de texto
+  img {
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
+  }
+
   @media (max-width: 768px) {
     width: 38px;
     height: 38px;
     font-size: 16px;
+
+    img {
+      width: 20px;
+      height: 20px;
+    }
   }
 }
 

@@ -1,0 +1,55 @@
+<!-- Panel de configuracion. Se abre desde el engranaje del menu -->
+<div class="config-fondo" *ngIf="abierto" (click)="cerrar()">
+
+  <!-- El clic dentro del panel no lo cierra -->
+  <div class="config-panel" (click)="$event.stopPropagation()">
+
+    <div class="config-encabezado">
+      <h3>Configuración</h3>
+      <button type="button" class="config-cerrar" (click)="cerrar()" title="Cerrar">✕</button>
+    </div>
+
+    <!-- Instalacion de la aplicacion -->
+    <div class="config-fila">
+      <div class="config-texto">
+        <span class="config-titulo">Aplicación en el dispositivo</span>
+        <span class="config-detalle">Instala Genialisis para abrirlo desde un ícono, sin entrar al navegador.</span>
+      </div>
+      <app-boton-instalar-app></app-boton-instalar-app>
+    </div>
+
+    <!-- Permiso de notificaciones -->
+    <div class="config-fila">
+      <div class="config-texto">
+        <span class="config-titulo">Notificaciones</span>
+
+        <span class="config-detalle" *ngIf="estadoNotificaciones === 'granted'">
+          Están activadas en este dispositivo.
+        </span>
+        <span class="config-detalle" *ngIf="estadoNotificaciones === 'default'">
+          Actívalas para recibir los avisos del portal en este dispositivo.
+        </span>
+        <span class="config-detalle" *ngIf="estadoNotificaciones === 'denied'">
+          Están bloqueadas. Se habilitan desde los permisos del navegador.
+        </span>
+        <span class="config-detalle" *ngIf="estadoNotificaciones === 'no-soportado'">
+          Este navegador no maneja notificaciones.
+        </span>
+      </div>
+
+      <span class="config-estado-ok" *ngIf="estadoNotificaciones === 'granted'">✅ Activadas</span>
+
+      <button
+        type="button"
+        class="config-boton"
+        *ngIf="estadoNotificaciones === 'default' || estadoNotificaciones === 'denied'"
+        (click)="activarNotificaciones()"
+        [disabled]="activando"
+      >
+        <span class="config-boton-icono">🔔</span>
+        <span>{{ estadoNotificaciones === 'denied' ? 'Cómo habilitarlas' : 'Activar' }}</span>
+      </button>
+    </div>
+
+  </div>
+</div>
