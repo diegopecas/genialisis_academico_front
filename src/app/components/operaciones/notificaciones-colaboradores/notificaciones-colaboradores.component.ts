@@ -26,6 +26,7 @@ export class NotificacionesColaboradoresComponent implements OnInit {
   readonly TIPO_POR_APROBAR = 1;
   readonly TIPO_COMPROMISO_PROXIMO = 2;
   readonly TIPO_SOLICITUD_NUEVA = 3;
+  readonly TIPO_PREGUNTA_TAREA = 4;
 
   constructor(
     private destinatariosService: NotificacionesColaboradoresDestinatariosService,
@@ -82,6 +83,12 @@ export class NotificacionesColaboradoresComponent implements OnInit {
     if (alerta.id_tipo_notificacion_colaborador === this.TIPO_COMPROMISO_PROXIMO ||
         alerta.id_tipo_notificacion_colaborador === this.TIPO_SOLICITUD_NUEVA) {
       this.router.navigate(['/operaciones/solicitudes-acudientes']);
+      return;
+    }
+
+    // id_referencia es la tarea: se abre directo en su foro de preguntas
+    if (alerta.id_tipo_notificacion_colaborador === this.TIPO_PREGUNTA_TAREA && alerta.id_referencia) {
+      this.router.navigate(['/estudiantes/tareas/calificar/' + alerta.id_referencia]);
       return;
     }
   }
