@@ -350,12 +350,13 @@ export class MenuModulosService {
             iconoArbol: '🗄️',
             alt: 'Administración',
             imagen: 'assets/images/administracion.png',
-            permisos: ['dashboard.gerencial.listado', 'reportes.documentos_registrados', 'reportes.cumplimiento_documental'],
-            keywords: ['gerencia', 'documentos', 'tablero'],
+            permisos: ['dashboard.gerencial.listado', 'reportes.documentos_registrados', 'reportes.cumplimiento_documental', 'reportes.consumos_ia'],
+            keywords: ['gerencia', 'documentos', 'tablero', 'inteligencia artificial'],
             opciones: [
               { id: 'dashboard-gerencial', label: 'Dashboard Gerencial', alt: 'Dashboard Gerencial', imagen: 'assets/images/dashboard-gerencial.png', iconoArbol: '📊', ruta: '/reportes/dashboard-gerencial', permiso: 'dashboard.gerencial.listado', keywords: ['tablero', 'indicadores', 'gerencia'] },
               { id: 'documentos-registrados', label: 'Documentos Registrados', alt: 'Documentos Registrados', imagen: 'assets/images/reporte-documentos.png', iconoArbol: '📎', ruta: '/reportes/documentos-registrados', permiso: 'reportes.documentos_registrados', keywords: ['documentos', 'archivos', 'papeles', 'vencidos', 'vencimientos', 'hoja de vida'] },
-              { id: 'cumplimiento-documental', label: 'Cumplimiento Documental', alt: 'Cumplimiento Documental', imagen: 'assets/images/reporte-cumplimiento-documental.png', iconoArbol: '✅', ruta: '/reportes/cumplimiento-documental', permiso: 'reportes.cumplimiento_documental', keywords: ['documentos faltantes', 'que falta', 'pendientes', 'sin subir', 'completitud', 'requisitos'] }
+              { id: 'cumplimiento-documental', label: 'Cumplimiento Documental', alt: 'Cumplimiento Documental', imagen: 'assets/images/reporte-cumplimiento-documental.png', iconoArbol: '✅', ruta: '/reportes/cumplimiento-documental', permiso: 'reportes.cumplimiento_documental', keywords: ['documentos faltantes', 'que falta', 'pendientes', 'sin subir', 'completitud', 'requisitos'] },
+              { id: 'consumos-ia', label: 'Consumos de IA', alt: 'Consumos de IA', imagen: 'assets/images/consumos-ia.png', iconoArbol: '🤖', ruta: '/reportes/consumos-ia', permiso: 'reportes.consumos_ia', keywords: ['ia', 'inteligencia artificial', 'tokens', 'gemini', 'groq', 'llave paga', 'uso de ia', 'consumo'] }
             ]
           },
           {

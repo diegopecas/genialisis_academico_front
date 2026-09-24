@@ -1,0 +1,97 @@
+.modulo {
+  min-height: 100vh;
+}
+
+.filtros {
+  .form-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+  }
+}
+
+// Resumen
+.resumen-pie {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 0.75rem;
+}
+
+.resumen-item {
+  font-size: 0.82rem;
+  color: #495057;
+  background: #f1f3f5;
+  border-radius: 999px;
+  padding: 5px 12px;
+
+  &.exito {
+    background: rgba(25, 135, 84, 0.1);
+    color: #146c43;
+  }
+
+  &.peligro {
+    background: rgba(220, 53, 69, 0.1);
+    color: #b02a37;
+  }
+
+  &.alerta {
+    background: rgba(253, 126, 20, 0.12);
+    color: #b35309;
+  }
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 3rem 1rem;
+  color: #6c757d;
+}
+
+// Detalle de intentos: se pinta dentro del SweetAlert, que vive fuera del
+// componente, por eso va con ::ng-deep.
+::ng-deep .intentos-ia {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: left;
+  font-size: 0.85rem;
+
+  .intento-ia {
+    border-radius: 8px;
+    padding: 8px 12px;
+    border-left: 4px solid #adb5bd;
+    background: #f8f9fa;
+
+    &.ok {
+      border-left-color: #198754;
+    }
+
+    &.fallo {
+      border-left-color: #dc3545;
+    }
+  }
+
+  .intento-ia-cabecera {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 2px;
+  }
+
+  .intento-ia-error {
+    margin-top: 4px;
+    color: #b02a37;
+    word-break: break-word;
+  }
+}
+
+@media (max-width: 768px) {
+  .resumen-pie {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+}

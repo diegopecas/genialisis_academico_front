@@ -131,6 +131,9 @@ export class ReportesComponent implements OnInit {
       case 'cumplimiento-documental':
         this.router.navigate(['/reportes/cumplimiento-documental']);
         break;
+      case 'consumos-ia':
+        this.router.navigate(['/reportes/consumos-ia']);
+        break;
       // Apoyo
       case 'alimentacion':
         this.router.navigate(['/reportes/alimentacion']);
