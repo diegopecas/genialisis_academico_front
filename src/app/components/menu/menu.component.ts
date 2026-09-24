@@ -11,6 +11,7 @@ import { AccesosRapidosService, AccesoRapido } from '../../services/accesos-rapi
 import { MenuArbolService, MenuNodo } from '../../services/menu-arbol.service';
 import { OpcionesEstudianteService, OpcionEstudiante } from '../../services/opciones-estudiante.service';
 import { DailyMessageComponent } from '../daily-message/daily-message.component';
+import { NotificacionesColaboradoresDestinatariosService } from '../../services/notificaciones-colaboradores-destinatarios.service';
 import { PanelConfiguracionComponent } from '../../common/panel-configuracion/panel-configuracion.component';
 
 /**
@@ -114,6 +115,9 @@ export class MenuComponent implements OnInit {
   public totalPersonasCoincidencias: number = 0;
   public refrescandoPersonas: boolean = false;
 
+  // Alertas del colaborador sin leer, para la insignia de la campanita
+  public alertasNoLeidas: number = 0;
+
   // Ids de personas con la lista de destinos desplegada
   private personasExpandidas: Set<string> = new Set<string>();
 
@@ -126,6 +130,7 @@ export class MenuComponent implements OnInit {
     private ayudaModalService: AyudaModalService,
     private accesosRapidosService: AccesosRapidosService,
     private menuArbolService: MenuArbolService,
+    private notificacionesColaboradoresDestinatariosService: NotificacionesColaboradoresDestinatariosService,
     private sanitizer: DomSanitizer,
   ) {}
 
@@ -138,6 +143,7 @@ export class MenuComponent implements OnInit {
     this.verificarCumpleanos();
     this.cargarAccesosRapidos();
     this.cargarArbolMenu();
+    this.cargarAlertasNoLeidas();
     // Se pide el buscador de personas por debajo. Si el cache de la sesión
     // sigue vigente no genera petición; si está vencido se refresca solo.
     this.personasService.cargarBuscador();
@@ -1060,5 +1066,31 @@ export class MenuComponent implements OnInit {
         this.router.navigate(['/login']);
       }
     });
+  }
+
+  /**
+   * Contador de la campanita. Es una consulta liviana e independiente del
+   * push: si el aviso no llego al celular, el colaborador igual ve aqui que
+   * tiene alertas sin leer.
+   */
+  cargarAlertasNoLeidas(): void {
+    if (!this.permisosService.tienePermiso('operaciones.notificaciones_colaboradores')) {
+      return;
+    }
+
+    this.notificacionesColaboradoresDestinatariosService.obtenerNoLeidas().subscribe({
+      next: (respuesta: any) => {
+        const cuerpo: any = respuesta.body;
+        // El endpoint puede responder el conteo o el listado; se aceptan los dos
+        this.alertasNoLeidas = Array.isArray(cuerpo) ? cuerpo.length : (cuerpo?.no_leidas || 0);
+      },
+      error: () => {
+        this.alertasNoLeidas = 0;
+      }
+    });
+  }
+
+  irAMisAlertas(): void {
+    this.router.navigate(['/operaciones/mis-alertas']);
   }
 }

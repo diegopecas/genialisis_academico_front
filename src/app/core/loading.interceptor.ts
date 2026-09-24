@@ -9,6 +9,48 @@ import { NotificationService } from '../services/notification.service';
 // Contador de solicitudes activas
 let activeRequests = 0;
 
+// Mensajes fijos: no dependen de lo que devuelva el backend
+const MENSAJE_SIN_CONEXION = 'No hay conexión con el servidor.';
+const MENSAJE_4XX_GENERICO = 'Error en la solicitud. Verifique los datos ingresados.';
+const MENSAJE_5XX = 'Error interno del servidor. Intente más tarde.';
+const MENSAJE_INESPERADO = 'Ocurrió un error inesperado';
+
+/**
+ * Extrae el mensaje de negocio que envía el backend en un error 4xx.
+ * Formas soportadas: {error: 'texto'}, {message: 'texto'}, {mensaje: 'texto'}
+ * y string plano. Si no hay un texto utilizable devuelve null.
+ */
+const extraerMensajeBackend = (cuerpo: any): string | null => {
+    if (!cuerpo) {
+        return null;
+    }
+
+    if (typeof cuerpo === 'string') {
+        return esTextoUtilizable(cuerpo) ? cuerpo.trim() : null;
+    }
+
+    if (typeof cuerpo === 'object') {
+        // {error: true, message: '...'} trae el texto en message, no en error
+        const candidatos = [cuerpo.error, cuerpo.message, cuerpo.mensaje];
+        for (const candidato of candidatos) {
+            if (typeof candidato === 'string' && esTextoUtilizable(candidato)) {
+                return candidato.trim();
+            }
+        }
+    }
+
+    return null;
+};
+
+/**
+ * Descarta textos vacíos o páginas HTML (p.ej. el 404 por defecto del servidor
+ * cuando la ruta no existe), que no sirven como mensaje para el usuario.
+ */
+const esTextoUtilizable = (texto: string): boolean => {
+    const limpio = texto.trim();
+    return limpio.length > 0 && !limpio.startsWith('<');
+};
+
 export const loadingInterceptor: HttpInterceptorFn = (req, next) => {
     const spinnerService = inject(SpinnerService);
     const notificationService = inject(NotificationService);
@@ -54,14 +96,16 @@ export const loadingInterceptor: HttpInterceptorFn = (req, next) => {
                 return throwError(() => error);
             }
 
-            let errorMessage = 'Ocurrió un error inesperado';
+            let errorMessage = MENSAJE_INESPERADO;
 
             if (error.status === 0) {
-                errorMessage = 'No hay conexión con el servidor.';
+                errorMessage = MENSAJE_SIN_CONEXION;
             } else if (error.status >= 400 && error.status < 500) {
-                errorMessage = 'Error en la solicitud. Verifique los datos ingresados.';
+                // 4xx: errores de negocio redactados para el usuario en el backend
+                errorMessage = extraerMensajeBackend(error.error) ?? MENSAJE_4XX_GENERICO;
             } else if (error.status >= 500) {
-                errorMessage = 'Error interno del servidor. Intente más tarde.';
+                // 5xx: mensaje fijo, lo del backend puede exponer detalles de BD
+                errorMessage = MENSAJE_5XX;
             }
 
             notificationService.showError(errorMessage);

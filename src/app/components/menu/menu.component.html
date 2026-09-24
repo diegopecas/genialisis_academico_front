@@ -28,6 +28,12 @@
           <img src="/assets/images/colaboradores.png" alt="Mi Perfil" decoding="async" />
           <span>Mi Perfil</span>
         </button>
+        <button class="bell-button" (click)="irAMisAlertas()"
+          *ngIf="permisosService.tienePermiso('operaciones.notificaciones_colaboradores')"
+          title="Mis Alertas">
+          <span class="bell-icon">🔔</span>
+          <span class="bell-badge" *ngIf="alertasNoLeidas > 0">{{ alertasNoLeidas }}</span>
+        </button>
         <button class="help-button" (click)="abrirAyuda()">
           <span>?</span>
         </button>

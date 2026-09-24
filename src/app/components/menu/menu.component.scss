@@ -1356,3 +1356,49 @@ $confetti-colors: #FF6B6B, #FFD93D, #6BCB77, #4D96FF, #FF6BD6, #FF8C42, #A66CFF,
     }
   }
 }
+
+// ====== Campanita de Mis Alertas ======
+.bell-button {
+  position: relative;
+  background: rgba(255, 255, 255, 0.85);
+  border: 2px solid #f0c040;
+  border-radius: 50%;
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  }
+
+  @media (max-width: 768px) {
+    width: 38px;
+    height: 38px;
+  }
+}
+
+.bell-icon {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.bell-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 10px;
+  background: #dc3545;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 20px;
+  text-align: center;
+}
