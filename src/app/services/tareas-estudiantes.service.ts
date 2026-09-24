@@ -1,49 +1,25 @@
-import {
-  HttpClient,
-  HttpErrorResponse,
-  HttpResponse,
-} from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from '../../environments/environment';
 import { throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { httpOptions } from './http';
 
+/**
+ * Tareas para la casa (tabla tareas_estudiantes) y sus vistas del portal institucional.
+ */
 @Injectable({
   providedIn: 'root'
 })
-export class JornadaLaboralService {
+export class TareasEstudiantesService {
 
-  private servicio = environment.api + 'jornada-laboral';
+  private servicio = environment.api + 'tareas-estudiantes';
 
   constructor(private http: HttpClient) { }
 
-  /**
-   * Los siete dias con la jornada del jardin. Siempre vienen los siete:
-   * los que el tenant no ha configurado traen las horas de respaldo.
-   */
   obtenerTodos() {
     return this.http
       .get<HttpResponse<Object>>(this.servicio, { observe: 'response' })
-      .pipe(
-        tap((response: HttpResponse<Object>) => {
-          let respuesta: any = response.body;
-          if (respuesta.error) {
-            throw respuesta.error;
-          }
-          return response;
-        }),
-        catchError(this.handleError)
-      );
-  }
-
-  /**
-   * Jornada vigente segun el servidor. fecha_actual es hoy, o el siguiente
-   * dia habil si la jornada de hoy ya termino o el jardin no atiende.
-   */
-  obtenerVigente() {
-    return this.http
-      .get<HttpResponse<Object>>(environment.api + 'jornada-laboral-vigente', { observe: 'response' })
       .pipe(
         tap((response: HttpResponse<Object>) => {
           let respuesta: any = response.body;
@@ -71,33 +47,72 @@ export class JornadaLaboralService {
       );
   }
 
-  crear(dato: any) {
-    const body = JSON.stringify(dato);
+  /** Niños de la tarea con su estado y calificación. */
+  obtenerEstudiantes(id: any) {
+    return this.http
+      .get<HttpResponse<Object>>(this.servicio + `/${id}/estudiantes`, { observe: 'response' })
+      .pipe(
+        tap((response: HttpResponse<Object>) => {
+          let respuesta: any = response.body;
+          if (respuesta.error) {
+            throw respuesta.error;
+          }
+          return response;
+        }),
+        catchError(this.handleError)
+      );
+  }
+
+  crear(elemento: any) {
+    const body = JSON.stringify(elemento);
     return this.http.post<any>(this.servicio, body, httpOptions).pipe(
       tap((respuesta: any) => {
-        if (respuesta.error) throw respuesta.error;
+        if (respuesta.error) {
+          throw respuesta.error;
+        }
         return respuesta;
       }),
       catchError(this.handleError)
     );
   }
 
-  actualizar(dato: any) {
-    const body = JSON.stringify(dato);
+  actualizar(elemento: any) {
+    const body = JSON.stringify(elemento);
     return this.http.put<any>(this.servicio, body, httpOptions).pipe(
       tap((respuesta: any) => {
-        if (respuesta.error) throw respuesta.error;
+        if (respuesta.error) {
+          throw respuesta.error;
+        }
         return respuesta;
       }),
       catchError(this.handleError)
     );
   }
 
-  eliminar(id: any) {
-    const body = JSON.stringify({ id: id });
-    return this.http.delete<any>(this.servicio, { ...httpOptions, body: body }).pipe(
+  /** Publica la tarea y avisa a los acudientes. */
+  publicar(elemento: any) {
+    const body = JSON.stringify(elemento);
+    return this.http.post<any>(this.servicio + '/publicar', body, httpOptions).pipe(
       tap((respuesta: any) => {
-        if (respuesta.error) throw respuesta.error;
+        if (respuesta.error) {
+          throw respuesta.error;
+        }
+        return respuesta;
+      }),
+      catchError(this.handleError)
+    );
+  }
+
+  eliminar(elemento: any) {
+    const body = JSON.stringify(elemento);
+    return this.http.request<any>('DELETE', this.servicio, {
+      body: body,
+      headers: httpOptions.headers
+    }).pipe(
+      tap((respuesta: any) => {
+        if (respuesta.error) {
+          throw respuesta.error;
+        }
         return respuesta;
       }),
       catchError(this.handleError)

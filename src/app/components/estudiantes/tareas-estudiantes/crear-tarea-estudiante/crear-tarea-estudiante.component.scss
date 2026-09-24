@@ -1,0 +1,357 @@
+// Mismo lenguaje visual del formulario de notificaciones: tarjetas blancas
+// con sombra suave, títulos con icono y listas seleccionables.
+$primario: #6610f2;
+$borde: #e6e8eb;
+$texto-suave: #6c757d;
+
+.contenedor-tarea {
+  padding: 1.25rem 1.5rem 6rem;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.tarjeta {
+  background: #fff;
+  border-radius: 14px;
+  padding: 1.25rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+}
+
+.tarjeta-titulo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  font-size: 1.05rem;
+  margin-bottom: 1rem;
+
+  i {
+    color: $primario;
+  }
+}
+
+.form-label {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: #495057;
+}
+
+.form-control,
+.form-select {
+  border-radius: 10px;
+  border-color: $borde;
+
+  &:focus {
+    border-color: $primario;
+    box-shadow: 0 0 0 0.2rem rgba($primario, 0.15);
+  }
+}
+
+.estado-tarea {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border-radius: 999px;
+  padding: 0.3rem 0.8rem;
+  font-weight: 600;
+  font-size: 0.85rem;
+
+  &.chip-publicada {
+    background: rgba(25, 135, 84, 0.12);
+    color: #146c43;
+  }
+
+  &.chip-borrador {
+    background: rgba(253, 126, 20, 0.14);
+    color: #b35309;
+  }
+}
+
+.interruptor {
+  background: #f8f9fb;
+  border-radius: 10px;
+  padding: 0.75rem 0.9rem;
+
+  .form-check-label {
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+}
+
+// Adjuntos
+.zona-archivos {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  border: 2px dashed $borde;
+  border-radius: 12px;
+  padding: 1rem;
+  color: $texto-suave;
+  cursor: pointer;
+  text-align: center;
+  font-size: 0.88rem;
+  transition: border-color 0.2s ease, background 0.2s ease;
+
+  i {
+    font-size: 1.5rem;
+    color: $primario;
+  }
+
+  input {
+    display: none;
+  }
+
+  &:hover {
+    border-color: $primario;
+    background: rgba($primario, 0.03);
+  }
+}
+
+.lista-archivos {
+  margin-top: 0.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.archivo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #f8f9fb;
+  border-radius: 8px;
+  padding: 0.35rem 0.6rem;
+  font-size: 0.85rem;
+
+  &.archivo-nuevo {
+    background: rgba($primario, 0.06);
+  }
+
+  .archivo-nombre {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+// Listas seleccionables (niños y responsables)
+.badge-contador {
+  background: rgba($primario, 0.1);
+  color: $primario;
+  border-radius: 999px;
+  padding: 0.2rem 0.7rem;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.lista-seleccion {
+  max-height: 340px;
+  overflow-y: auto;
+  border: 1px solid $borde;
+  border-radius: 12px;
+  padding: 0.35rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+
+  &.lista-colaboradores {
+    max-height: 280px;
+  }
+}
+
+.item-seleccion {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  width: 100%;
+  border: none;
+  background: transparent;
+  border-radius: 10px;
+  padding: 0.5rem 0.6rem;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: #f4f5f8;
+  }
+
+  &.seleccionado {
+    background: rgba($primario, 0.08);
+
+    .check {
+      background: $primario;
+      border-color: $primario;
+      color: #fff;
+    }
+  }
+
+  .check {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    border: 2px solid #ced4da;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+  }
+
+  .avatar {
+    flex-shrink: 0;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: linear-gradient(45deg, #f0b429, #fbe417);
+    color: #222;
+    font-weight: 700;
+    font-size: 0.8rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .item-texto {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .item-nombre {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #222;
+  }
+
+  .item-detalle {
+    font-size: 0.78rem;
+    color: $texto-suave;
+  }
+}
+
+// Secciones del celular
+.secciones-movil {
+  display: none;
+}
+
+// Barra de acciones
+.barra-acciones {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+
+  .btn {
+    border-radius: 10px;
+    font-weight: 600;
+    padding: 0.55rem 1.1rem;
+  }
+
+  .btn-primary {
+    background: $primario;
+    border-color: $primario;
+  }
+
+  .btn-outline-primary {
+    color: $primario;
+    border-color: $primario;
+
+    &:hover {
+      background: $primario;
+      color: #fff;
+    }
+  }
+}
+
+@media (max-width: 991px) {
+  .contenedor-tarea {
+    padding: 0.75rem 0.75rem 7rem;
+  }
+
+  .secciones-movil {
+    display: flex;
+    gap: 0.35rem;
+    background: #f1f3f5;
+    border-radius: 12px;
+    padding: 0.3rem;
+    margin-bottom: 1rem;
+    overflow-x: auto;
+
+    button {
+      flex: 1 0 auto;
+      border: none;
+      background: transparent;
+      border-radius: 9px;
+      padding: 0.55rem 0.75rem;
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: $texto-suave;
+      white-space: nowrap;
+
+      i {
+        color: $primario;
+      }
+
+      &.activa {
+        background: #fff;
+        color: #222;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+      }
+    }
+
+    .contador {
+      background: rgba($primario, 0.12);
+      color: $primario;
+      border-radius: 999px;
+      padding: 0 0.45rem;
+      margin-left: 0.2rem;
+      font-size: 0.75rem;
+    }
+  }
+
+  .oculto-movil {
+    display: none;
+  }
+
+  .form-control,
+  .form-select {
+    font-size: 16px;
+  }
+
+  .barra-acciones {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 50;
+    margin: 0;
+    background: #fff;
+    padding: 0.6rem 0.75rem calc(0.6rem + env(safe-area-inset-bottom, 0px));
+    box-shadow: 0 -4px 14px rgba(0, 0, 0, 0.08);
+
+    .btn {
+      flex: 1;
+      padding: 0.6rem 0.4rem;
+      font-size: 0.85rem;
+    }
+
+    .btn-light {
+      flex: 0 0 auto;
+    }
+  }
+}

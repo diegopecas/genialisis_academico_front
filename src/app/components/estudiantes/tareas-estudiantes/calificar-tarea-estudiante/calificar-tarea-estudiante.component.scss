@@ -1,0 +1,354 @@
+$primario: #6610f2;
+$borde: #e6e8eb;
+$texto-suave: #6c757d;
+
+.contenedor {
+  padding: 1.25rem 1.5rem 3rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.resumen {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  background: #fff;
+  border-radius: 14px;
+  padding: 1.1rem 1.25rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+  border-left: 5px solid $primario;
+
+  h4 {
+    margin: 0.35rem 0;
+    font-weight: 700;
+  }
+
+  .fechas {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin: 0;
+    color: $texto-suave;
+    font-size: 0.88rem;
+
+    i {
+      color: $primario;
+    }
+  }
+}
+
+.resumen-chips {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.chip {
+  border-radius: 999px;
+  padding: 0.2rem 0.7rem;
+  font-weight: 600;
+  font-size: 0.78rem;
+
+  &.chip-publicada { background: rgba(25, 135, 84, 0.12); color: #146c43; }
+  &.chip-borrador { background: rgba(253, 126, 20, 0.14); color: #b35309; }
+  &.chip-area { background: rgba($primario, 0.1); color: $primario; }
+}
+
+.metricas {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.metrica {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 78px;
+  background: #f8f9fb;
+  border-radius: 10px;
+  padding: 0.45rem 0.6rem;
+
+  strong { font-size: 1.3rem; line-height: 1.1; }
+  span { font-size: 0.72rem; color: $texto-suave; }
+}
+
+.pestanas {
+  display: flex;
+  gap: 0.35rem;
+  background: #f1f3f5;
+  border-radius: 12px;
+  padding: 0.3rem;
+  margin: 1.1rem 0;
+  max-width: 420px;
+
+  button {
+    flex: 1;
+    border: none;
+    background: transparent;
+    border-radius: 9px;
+    padding: 0.55rem 0.75rem;
+    font-weight: 600;
+    color: $texto-suave;
+
+    i { color: $primario; }
+
+    &.activa {
+      background: #fff;
+      color: #222;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+    }
+  }
+
+  .contador {
+    background: rgba($primario, 0.12);
+    color: $primario;
+    border-radius: 999px;
+    padding: 0 0.45rem;
+    margin-left: 0.25rem;
+    font-size: 0.75rem;
+
+    &.alerta { background: #dc3545; color: #fff; }
+  }
+}
+
+.filtros {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+
+  .form-control { flex: 2; }
+  .form-select { flex: 1; }
+}
+
+.form-control,
+.form-select {
+  border-radius: 10px;
+  border-color: $borde;
+}
+
+// Tarjetas de calificación
+.tarjetas-estudiantes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 0.9rem;
+}
+
+.tarjeta-estudiante {
+  background: #fff;
+  border-radius: 14px;
+  padding: 0.9rem 1rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+  border-top: 4px solid #ced4da;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+
+  &.estado-enviada { border-top-color: #0d6efd; }
+  &.estado-calificada { border-top-color: #198754; }
+  &.estado-no-entregada { border-top-color: #dc3545; }
+
+  .cabecera {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .nombre {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+
+    small { color: $texto-suave; }
+  }
+
+  .estado {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-align: right;
+    color: $texto-suave;
+  }
+
+  &.estado-enviada .estado { color: #0d6efd; }
+  &.estado-calificada .estado { color: #198754; }
+  &.estado-no-entregada .estado { color: #dc3545; }
+
+  .envio {
+    margin: 0;
+    font-size: 0.8rem;
+    color: #0d6efd;
+    background: rgba(13, 110, 253, 0.06);
+    border-radius: 8px;
+    padding: 0.35rem 0.55rem;
+  }
+}
+
+.avatar {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(45deg, #f0b429, #fbe417);
+  color: #222;
+  font-weight: 700;
+  font-size: 0.8rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// Escala: un toque califica
+.escala {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+
+  .valor {
+    --color-valor: #{$primario};
+    border: 2px solid var(--color-valor);
+    color: var(--color-valor);
+    background: #fff;
+    border-radius: 999px;
+    padding: 0.3rem 0.8rem;
+    font-weight: 700;
+    font-size: 0.82rem;
+    transition: all 0.15s ease;
+
+    &.elegido,
+    &:hover:not(:disabled) {
+      background: var(--color-valor);
+      color: #fff;
+    }
+  }
+}
+
+.acciones-fila {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+}
+
+// Foro
+.hilo {
+  background: #fff;
+  border-radius: 14px;
+  padding: 1rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+  margin-bottom: 1rem;
+  max-width: 820px;
+}
+
+.mensaje {
+  display: flex;
+  gap: 0.6rem;
+  margin-bottom: 0.6rem;
+
+  &.respuesta {
+    margin-left: 2.6rem;
+
+    .avatar { width: 30px; height: 30px; font-size: 0.72rem; }
+  }
+
+  &.del-jardin .burbuja {
+    background: rgba($primario, 0.07);
+  }
+
+  .burbuja {
+    flex: 1;
+    min-width: 0;
+    background: #f4f5f8;
+    border-radius: 12px;
+    padding: 0.55rem 0.8rem;
+
+    p {
+      margin: 0.25rem 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+  }
+
+  .meta {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    font-size: 0.85rem;
+
+    small { color: $texto-suave; }
+  }
+
+  .visibilidad {
+    margin-left: auto;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #b35309;
+
+    &.publica { color: #146c43; }
+  }
+
+  .pie {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    small { color: $texto-suave; font-size: 0.75rem; }
+  }
+}
+
+.responder {
+  display: flex;
+  gap: 0.5rem;
+  margin-left: 2.6rem;
+
+  textarea { resize: vertical; }
+
+  .btn-primary {
+    background: $primario;
+    border-color: $primario;
+    border-radius: 10px;
+  }
+}
+
+.vacio {
+  text-align: center;
+  color: $texto-suave;
+  padding: 2.5rem 1rem;
+
+  i { font-size: 2rem; color: rgba($primario, 0.4); }
+}
+
+@media (max-width: 768px) {
+  .contenedor {
+    padding: 0.75rem 0.75rem 2rem;
+  }
+
+  .metricas {
+    width: 100%;
+
+    .metrica { flex: 1; min-width: 0; }
+  }
+
+  .pestanas {
+    max-width: none;
+  }
+
+  .filtros {
+    flex-direction: column;
+  }
+
+  .form-control,
+  .form-select {
+    font-size: 16px;
+  }
+
+  .tarjetas-estudiantes {
+    grid-template-columns: 1fr;
+  }
+
+  .mensaje.respuesta,
+  .responder {
+    margin-left: 1.2rem;
+  }
+}

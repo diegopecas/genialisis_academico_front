@@ -1,0 +1,218 @@
+<div class="modulo">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="false"
+    [accion]="accion"
+    [raiz]="'/estudiantes/tareas'"
+    [regresar]="regresar"
+    [iconoTitulo]="'/assets/images/tareas-estudiantes.png'">
+  </app-header>
+
+  <div *ngIf="cargando" class="text-center py-5">
+    <div class="spinner-border text-warning" role="status"></div>
+    <p class="mt-3 text-muted">Cargando...</p>
+  </div>
+
+  <div class="contenedor-tarea" *ngIf="!cargando">
+
+    <div class="estado-tarea" *ngIf="esEdicion">
+      <span class="chip" [class.chip-publicada]="model.publicada" [class.chip-borrador]="!model.publicada">
+        <i class="fas" [ngClass]="model.publicada ? 'fa-check-circle' : 'fa-pen'"></i>
+        {{ model.publicada ? 'Publicada' : 'Borrador' }}
+      </span>
+      <small class="text-muted" *ngIf="model.publicada">Si guardas cambios, los acudientes reciben un aviso nuevo.</small>
+    </div>
+
+    <!-- Secciones en el celular: una a la vez para no hacer scroll infinito -->
+    <nav class="secciones-movil">
+      <button type="button" [class.activa]="seccionMovil === 'datos'" (click)="seccionMovil = 'datos'">
+        <i class="fas fa-book-open"></i> Tarea
+      </button>
+      <button type="button" [class.activa]="seccionMovil === 'destinatarios'" (click)="seccionMovil = 'destinatarios'">
+        <i class="fas fa-children"></i> Niños <span class="contador">{{ totalSeleccionados }}</span>
+      </button>
+      <button type="button" [class.activa]="seccionMovil === 'responsables'" (click)="seccionMovil = 'responsables'">
+        <i class="fas fa-user-tie"></i> Responsables <span class="contador">{{ totalResponsables }}</span>
+      </button>
+    </nav>
+
+    <div class="row g-4">
+
+      <!-- ===================== DATOS DE LA TAREA ===================== -->
+      <div class="col-lg-6" [class.oculto-movil]="seccionMovil !== 'datos'">
+        <div class="tarjeta">
+          <h5 class="tarjeta-titulo"><i class="fas fa-book-open"></i> La tarea</h5>
+
+          <div class="mb-3">
+            <label for="titulo" class="form-label">Título <span class="text-danger">*</span></label>
+            <input class="form-control" type="text" id="titulo" maxlength="255"
+              [(ngModel)]="model.titulo" placeholder="Ej: Traer una hoja seca del parque"
+              [ngClass]="{'is-invalid': !model.titulo && submitted}">
+          </div>
+
+          <div class="mb-3">
+            <div class="d-flex justify-content-between align-items-center">
+              <label for="descripcion" class="form-label mb-0">Instrucciones</label>
+              <div>
+                <button type="button" class="btn btn-sm btn-outline-secondary me-1"
+                  *ngIf="descripcionAnterior !== null" (click)="deshacerMejora()">Deshacer</button>
+                <button type="button" class="btn btn-sm btn-outline-primary" (click)="mejorarConIa()" [disabled]="mejorando">
+                  <span *ngIf="!mejorando">✨ Mejorar con IA</span>
+                  <span *ngIf="mejorando">Redactando...</span>
+                </button>
+              </div>
+            </div>
+            <textarea class="form-control mt-2" id="descripcion" rows="5" [(ngModel)]="model.descripcion"
+              placeholder="Explica a los papás qué deben hacer con el niño"></textarea>
+          </div>
+
+          <div class="mb-3">
+            <label for="area" class="form-label">Área</label>
+            <select class="form-select" id="area" [(ngModel)]="model.id_area_academica">
+              <option value="">Sin área (ej: "mañana todos con máscaras")</option>
+              <option *ngFor="let area of areas" [value]="area.id">{{ area.nombre }}</option>
+            </select>
+          </div>
+
+          <div class="row">
+            <div class="col-sm-6 mb-3">
+              <label for="fechaAsignacion" class="form-label">Asignación <span class="text-danger">*</span></label>
+              <input class="form-control" type="date" id="fechaAsignacion" [(ngModel)]="model.fecha_asignacion"
+                [ngClass]="{'is-invalid': !model.fecha_asignacion && submitted}">
+              <small class="form-text text-muted">Día en que sale en la agenda</small>
+            </div>
+            <div class="col-sm-6 mb-3">
+              <label for="fechaEntrega" class="form-label">Entrega <span class="text-danger">*</span></label>
+              <input class="form-control" type="date" id="fechaEntrega" [(ngModel)]="model.fecha_entrega"
+                [min]="model.fecha_asignacion"
+                [ngClass]="{'is-invalid': (!model.fecha_entrega || model.fecha_entrega < model.fecha_asignacion) && submitted}">
+              <small class="form-text text-muted">Día en que sale en el calendario</small>
+            </div>
+          </div>
+
+          <div class="interruptor mb-3">
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" role="switch" id="permiteRespuestas"
+                [(ngModel)]="model.permite_respuestas_acudientes">
+              <label class="form-check-label" for="permiteRespuestas">Los acudientes pueden responder las preguntas públicas</label>
+            </div>
+            <small class="text-muted">Si está apagado, solo el jardín responde en el foro de la tarea.</small>
+          </div>
+
+          <!-- Adjuntos -->
+          <label class="form-label">Archivos</label>
+          <label class="zona-archivos" for="archivos">
+            <i class="fas fa-cloud-arrow-up"></i>
+            <span>Toca para adjuntar (PDF, imágenes, Word, Excel)</span>
+            <input type="file" id="archivos" multiple (change)="seleccionarArchivos($event)"
+              accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx">
+          </label>
+
+          <div class="lista-archivos" *ngIf="adjuntos.length > 0 || archivosNuevos.length > 0">
+            <div class="archivo" *ngFor="let adjunto of adjuntos">
+              <i class="fas fa-paperclip"></i>
+              <span class="archivo-nombre">{{ adjunto.nombre_archivo }}</span>
+              <small class="text-muted">{{ tamanio(adjunto.tamanio_bytes) }}</small>
+              <button type="button" class="btn btn-sm btn-link text-danger" (click)="eliminarAdjunto(adjunto)" title="Quitar">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+            <div class="archivo archivo-nuevo" *ngFor="let archivo of archivosNuevos; let i = index">
+              <i class="fas fa-file-circle-plus"></i>
+              <span class="archivo-nombre">{{ archivo.name }}</span>
+              <small class="text-muted">{{ tamanio(archivo.size) }}</small>
+              <button type="button" class="btn btn-sm btn-link text-danger" (click)="quitarArchivoNuevo(i)" title="Quitar">
+                <i class="fas fa-xmark"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-6">
+        <!-- ===================== DESTINATARIOS ===================== -->
+        <div class="tarjeta mb-4" [class.oculto-movil]="seccionMovil !== 'destinatarios'">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="tarjeta-titulo mb-0"><i class="fas fa-children"></i> Niños</h5>
+            <span class="badge-contador">{{ totalSeleccionados }} de {{ estudiantes.length }}</span>
+          </div>
+
+          <div class="row g-2 mb-2">
+            <div class="col-sm-5">
+              <select class="form-select form-select-sm" [(ngModel)]="filtroGrupo">
+                <option [value]="GRUPO_TODOS">Todos los grupos</option>
+                <option *ngFor="let grupo of grupos" [value]="grupo.id">{{ grupo.nombre }}</option>
+              </select>
+            </div>
+            <div class="col-sm-7">
+              <input type="text" class="form-control form-control-sm" [(ngModel)]="filtroEstudiante" placeholder="Buscar niño...">
+            </div>
+          </div>
+
+          <div class="d-flex gap-2 mb-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary" (click)="marcarVisibles(true)">Marcar los que veo</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" (click)="marcarVisibles(false)">Quitar los que veo</button>
+          </div>
+
+          <div class="lista-seleccion">
+            <button type="button" class="item-seleccion" *ngFor="let estudiante of estudiantesVisibles"
+              [class.seleccionado]="estudiante.seleccionado" (click)="alternarEstudiante(estudiante)">
+              <span class="check"><i class="fas" [ngClass]="estudiante.seleccionado ? 'fa-check' : ''"></i></span>
+              <span class="item-texto">
+                <span class="item-nombre">{{ estudiante.nombre }}</span>
+                <span class="item-detalle" *ngIf="estudiante.grupo">{{ estudiante.grupo }}</span>
+              </span>
+            </button>
+            <p class="text-muted small p-2 mb-0" *ngIf="estudiantesVisibles.length === 0">No hay niños con ese filtro.</p>
+          </div>
+
+          <div class="mt-3">
+            <label for="criterio" class="form-label">A quién va dirigida</label>
+            <input class="form-control" type="text" id="criterio" maxlength="500" [(ngModel)]="model.criterio_texto"
+              placeholder="Se llena solo según lo que marques">
+          </div>
+
+          <p class="text-muted small mt-2 mb-0" *ngIf="esEdicion">
+            Si quitas niños, se borra su estado y su calificación en esta tarea.
+          </p>
+        </div>
+
+        <!-- ===================== RESPONSABLES ===================== -->
+        <div class="tarjeta" [class.oculto-movil]="seccionMovil !== 'responsables'">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5 class="tarjeta-titulo mb-0"><i class="fas fa-user-tie"></i> Responsables</h5>
+            <span class="badge-contador">{{ totalResponsables }}</span>
+          </div>
+          <p class="text-muted small">Reciben un aviso cuando un acudiente pregunta. Responder puede cualquiera con acceso a Tareas.</p>
+
+          <input type="text" class="form-control form-control-sm mb-2" [(ngModel)]="filtroColaborador" placeholder="Buscar colaborador...">
+
+          <div class="lista-seleccion lista-colaboradores">
+            <button type="button" class="item-seleccion" *ngFor="let colaborador of colaboradoresVisibles"
+              [class.seleccionado]="colaborador.seleccionado" (click)="colaborador.seleccionado = !colaborador.seleccionado">
+              <span class="avatar">{{ iniciales(colaborador.nombre) }}</span>
+              <span class="item-texto">
+                <span class="item-nombre">{{ colaborador.nombre }}</span>
+                <span class="item-detalle" *ngIf="colaborador.rol">{{ colaborador.rol }}</span>
+              </span>
+              <span class="check"><i class="fas" [ngClass]="colaborador.seleccionado ? 'fa-check' : ''"></i></span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Barra de acciones: fija abajo en el celular -->
+    <div class="barra-acciones">
+      <button type="button" class="btn btn-light" (click)="cancelar()" [disabled]="guardando">Cancelar</button>
+      <button type="button" class="btn btn-outline-primary" (click)="guardar(false)" [disabled]="guardando">
+        <i class="fas fa-floppy-disk"></i>
+        {{ model.publicada ? 'Guardar cambios' : 'Guardar borrador' }}
+      </button>
+      <button type="button" class="btn btn-primary" *ngIf="!model.publicada" (click)="guardar(true)" [disabled]="guardando">
+        <i class="fas fa-paper-plane"></i> Guardar y publicar
+      </button>
+      <span class="spinner-border spinner-border-sm text-primary" *ngIf="guardando"></span>
+    </div>
+  </div>
+</div>

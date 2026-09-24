@@ -1,0 +1,166 @@
+<div class="modulo">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="false"
+    [raiz]="'/estudiantes/tareas'"
+    [regresar]="regresar"
+    [iconoTitulo]="'/assets/images/tarea-calificar.png'">
+  </app-header>
+
+  <div *ngIf="cargando" class="text-center py-5">
+    <div class="spinner-border text-warning" role="status"></div>
+  </div>
+
+  <div class="contenedor" *ngIf="!cargando && tarea">
+
+    <!-- Resumen de la tarea -->
+    <div class="resumen">
+      <div class="resumen-texto">
+        <div class="resumen-chips">
+          <span class="chip" [class.chip-publicada]="tarea.publicada == 1" [class.chip-borrador]="tarea.publicada != 1">
+            {{ tarea.publicada == 1 ? 'Publicada' : 'Borrador' }}
+          </span>
+          <span class="chip chip-area" *ngIf="tarea.area_nombre">{{ tarea.area_nombre }}</span>
+        </div>
+        <h4>{{ tarea.titulo }}</h4>
+        <p class="fechas">
+          <span><i class="fas fa-calendar-plus"></i> Asignada {{ tarea.fecha_asignacion | date:'d MMM' }}</span>
+          <span><i class="fas fa-flag-checkered"></i> Entrega {{ tarea.fecha_entrega | date:'d MMM' }}</span>
+        </p>
+      </div>
+      <div class="metricas">
+        <div class="metrica"><strong>{{ contar('enviada') }}</strong><span>Enviadas</span></div>
+        <div class="metrica"><strong>{{ contar('calificada') }}</strong><span>Calificadas</span></div>
+        <div class="metrica"><strong>{{ contar('no_entregada') }}</strong><span>No entregadas</span></div>
+        <div class="metrica"><strong>{{ estudiantes.length }}</strong><span>Niños</span></div>
+      </div>
+    </div>
+
+    <nav class="pestanas">
+      <button type="button" [class.activa]="pestana === 'estudiantes'" (click)="pestana = 'estudiantes'">
+        <i class="fas fa-star"></i> Calificar
+      </button>
+      <button type="button" [class.activa]="pestana === 'preguntas'" (click)="pestana = 'preguntas'">
+        <i class="fas fa-comments"></i> Preguntas
+        <span class="contador" *ngIf="totalPreguntas > 0" [class.alerta]="sinResponder > 0">{{ sinResponder > 0 ? sinResponder : totalPreguntas }}</span>
+      </button>
+    </nav>
+
+    <!-- ===================== CALIFICAR ===================== -->
+    <div *ngIf="pestana === 'estudiantes'">
+      <div class="filtros">
+        <input type="text" class="form-control" [(ngModel)]="filtroTexto" placeholder="Buscar niño...">
+        <select class="form-select" [(ngModel)]="filtroEstado">
+          <option value="todos">Todos ({{ estudiantes.length }})</option>
+          <option value="enviada">Enviadas ({{ contar('enviada') }})</option>
+          <option value="pendiente">Pendientes ({{ contar('pendiente') }})</option>
+          <option value="calificada">Calificadas ({{ contar('calificada') }})</option>
+          <option value="no_entregada">No entregadas ({{ contar('no_entregada') }})</option>
+        </select>
+      </div>
+
+      <p class="text-warning small" *ngIf="escala.length === 0">
+        El jardín no tiene configurado el parámetro de valoración de los informes: sin él no se puede calificar.
+      </p>
+
+      <div class="tarjetas-estudiantes">
+        <div class="tarjeta-estudiante" *ngFor="let fila of estudiantesVisibles" [ngClass]="ESTADOS[fila.estado]?.clase">
+          <div class="cabecera">
+            <span class="avatar">{{ iniciales(fila.nombre_estudiante) }}</span>
+            <div class="nombre">
+              <strong>{{ fila.nombre_estudiante }}</strong>
+              <small *ngIf="fila.nombre_grupo">{{ fila.nombre_grupo }}</small>
+            </div>
+            <span class="estado">{{ ESTADOS[fila.estado]?.texto }}</span>
+          </div>
+
+          <p class="envio" *ngIf="fila.fecha_envio_acudiente">
+            <i class="fas fa-house-circle-check"></i>
+            {{ fila.nombre_acudiente_envio || 'El acudiente' }} la marcó como enviada el {{ fila.fecha_envio_acudiente | date:'d MMM, h:mm a' }}
+          </p>
+
+          <div class="escala">
+            <button type="button" class="valor" *ngFor="let valor of escala"
+              [class.elegido]="fila.estado === 'calificada' && fila.id_valor_parametro_calificacion === valor.id"
+              [style.--color-valor]="valor.color || '#6610f2'"
+              [disabled]="guardandoFila[fila.id]"
+              (click)="calificar(fila, valor)">
+              {{ valor.valor_cualitativo }}
+            </button>
+          </div>
+
+          <div class="observacion">
+            <textarea class="form-control" rows="2" [(ngModel)]="observaciones[fila.id]" placeholder="Observación (opcional)"></textarea>
+          </div>
+
+          <div class="acciones-fila">
+            <button type="button" class="btn btn-sm btn-link text-danger" *ngIf="fila.estado !== 'no_entregada'"
+              (click)="marcarNoEntregada(fila)" [disabled]="guardandoFila[fila.id]">No entregada</button>
+            <button type="button" class="btn btn-sm btn-link text-secondary" *ngIf="fila.estado === 'calificada' || fila.estado === 'no_entregada'"
+              (click)="devolverPendiente(fila)" [disabled]="guardandoFila[fila.id]">Quitar calificación</button>
+            <button type="button" class="btn btn-sm btn-outline-primary ms-auto"
+              (click)="guardarObservacion(fila)" [disabled]="guardandoFila[fila.id]">Guardar observación</button>
+          </div>
+        </div>
+      </div>
+
+      <p class="text-muted text-center py-4" *ngIf="estudiantesVisibles.length === 0">No hay niños con ese filtro.</p>
+    </div>
+
+    <!-- ===================== PREGUNTAS ===================== -->
+    <div *ngIf="pestana === 'preguntas'">
+      <p class="text-muted small">
+        Las preguntas privadas solo las ve el jardín.
+        <span *ngIf="tarea.permite_respuestas_acudientes == 1">En las públicas también pueden responder los acudientes.</span>
+      </p>
+
+      <div class="hilo" *ngFor="let hilo of hilos">
+        <div class="mensaje pregunta">
+          <span class="avatar">{{ iniciales(hilo.nombre_autor) }}</span>
+          <div class="burbuja">
+            <div class="meta">
+              <strong>{{ hilo.nombre_autor }}</strong>
+              <small *ngIf="hilo.nombre_estudiante">acudiente de {{ hilo.nombre_estudiante }}</small>
+              <span class="visibilidad" [class.publica]="hilo.es_publica == 1">
+                <i class="fas" [ngClass]="hilo.es_publica == 1 ? 'fa-users' : 'fa-lock'"></i>
+                {{ hilo.es_publica == 1 ? 'Pública' : 'Privada' }}
+              </span>
+            </div>
+            <p>{{ hilo.texto }}</p>
+            <div class="pie">
+              <small>{{ hilo.fecha | date:'d MMM, h:mm a' }}</small>
+              <button type="button" class="btn btn-sm btn-link text-danger p-0" (click)="eliminarMensaje(hilo, true)">Eliminar</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="mensaje respuesta" *ngFor="let respuesta of hilo.respuestas" [class.del-jardin]="respuesta.tipo_autor === 'jardin'">
+          <span class="avatar">{{ iniciales(respuesta.nombre_autor) }}</span>
+          <div class="burbuja">
+            <div class="meta">
+              <strong>{{ respuesta.nombre_autor }}</strong>
+              <small>{{ respuesta.tipo_autor === 'jardin' ? 'jardín' : 'acudiente' }}</small>
+            </div>
+            <p>{{ respuesta.texto }}</p>
+            <div class="pie">
+              <small>{{ respuesta.fecha | date:'d MMM, h:mm a' }}</small>
+              <button type="button" class="btn btn-sm btn-link text-danger p-0" (click)="eliminarMensaje(respuesta, false)">Eliminar</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="responder">
+          <textarea class="form-control" rows="1" [(ngModel)]="respuestas[hilo.id]" placeholder="Escribe una respuesta..."></textarea>
+          <button type="button" class="btn btn-primary" (click)="responder(hilo)" [disabled]="!(respuestas[hilo.id] || '').trim()">
+            <i class="fas fa-paper-plane"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="vacio" *ngIf="hilos.length === 0">
+        <i class="fas fa-comments"></i>
+        <p>Todavía no hay preguntas en esta tarea.</p>
+      </div>
+    </div>
+  </div>
+</div>
