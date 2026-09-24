@@ -34,6 +34,10 @@ export class AsistenciaComponent implements OnInit {
   public titulos = [] as any[];
   public datos = [] as any[];
 
+  // Contador de la pestaña "Hoy": niños distintos que ingresaron hoy, estén
+  // todavía en el jardín o ya hayan salido. Si ingresó dos veces cuenta una.
+  public totalIngresadosHoy = 0;
+
   public listas = {
     noIngresos: [] as any[],
     noSalidas: [] as any[],
@@ -323,8 +327,24 @@ export class AsistenciaComponent implements OnInit {
       this.salidasCompletas = [...noSalidas];
       this.listas.noSalidas = noSalidas;
       this.listas.salidas = (body?.salidas || []) as any[];
+      this.contarIngresadosHoy();
       this.actualizarContadoresGrupos();
     });
+  }
+
+  /**
+   * Se cuenta sobre las listas completas del back (no sobre las filtradas por
+   * el buscador), para que el contador no cambie al buscar.
+   */
+  private contarIngresadosHoy() {
+    const ids = new Set<any>();
+    [...this.salidasCompletas, ...this.listas.salidas].forEach((estudiante: any) => {
+      const id = estudiante.id_estudiante || estudiante.id;
+      if (id) {
+        ids.add(id);
+      }
+    });
+    this.totalIngresadosHoy = ids.size;
   }
 
   private actualizarContadoresGrupos() {
