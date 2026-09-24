@@ -1080,9 +1080,8 @@ export class MenuComponent implements OnInit {
 
     this.notificacionesColaboradoresDestinatariosService.obtenerNoLeidas().subscribe({
       next: (respuesta: any) => {
-        const cuerpo: any = respuesta.body;
-        // El endpoint puede responder el conteo o el listado; se aceptan los dos
-        this.alertasNoLeidas = Array.isArray(cuerpo) ? cuerpo.length : (cuerpo?.no_leidas || 0);
+        // El endpoint responde { total: n }
+        this.alertasNoLeidas = respuesta.body?.total || 0;
       },
       error: () => {
         this.alertasNoLeidas = 0;

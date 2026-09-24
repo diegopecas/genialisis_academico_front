@@ -65,7 +65,11 @@ export class NotificacionesColaboradoresDestinatariosService {
 
   obtenerNoLeidas() {
     return this.http
-      .get<HttpResponse<Object>>(environment.api + 'notificaciones-colaboradores-no-leidas', { observe: 'response' })
+      .get<HttpResponse<Object>>(environment.api + 'notificaciones-colaboradores-no-leidas', {
+        observe: 'response',
+        // Consulta de fondo: sin X-Silent el spinner bloquea el menu al entrar.
+        headers: { 'X-Silent': 'true' },
+      })
       .pipe(
         tap((response: HttpResponse<Object>) => {
           let respuesta: any = response.body;

@@ -25,6 +25,7 @@ export class NotificacionesColaboradoresComponent implements OnInit {
   // resuelve aqui y no se guarda una ruta en base de datos.
   readonly TIPO_POR_APROBAR = 1;
   readonly TIPO_COMPROMISO_PROXIMO = 2;
+  readonly TIPO_SOLICITUD_NUEVA = 3;
 
   constructor(
     private destinatariosService: NotificacionesColaboradoresDestinatariosService,
@@ -78,7 +79,8 @@ export class NotificacionesColaboradoresComponent implements OnInit {
       return;
     }
 
-    if (alerta.id_tipo_notificacion_colaborador === this.TIPO_COMPROMISO_PROXIMO) {
+    if (alerta.id_tipo_notificacion_colaborador === this.TIPO_COMPROMISO_PROXIMO ||
+        alerta.id_tipo_notificacion_colaborador === this.TIPO_SOLICITUD_NUEVA) {
       this.router.navigate(['/operaciones/solicitudes-acudientes']);
       return;
     }
