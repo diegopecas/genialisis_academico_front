@@ -544,16 +544,21 @@ export class ListaActividadesComponent implements OnInit {
     }
     this.sugiriendoIA = true;
 
+    // En un curso extracurricular el destino es el curso, no un grupo: el back
+    // resuelve los logros por área en lugar de por el grado del grupo.
     const datos = {
       titulo: this.formActividad.titulo,
       descripcion: this.formActividad.descripcion,
       nivel_uno: this.formActividad.nivel_uno,
       nivel_dos: this.formActividad.nivel_dos,
-      id_grupo: this.grupo.id,
+      id_grupo: this.idCursoExtra ? null : this.grupo.id,
+      id_curso_extra: this.idCursoExtra || null,
       id_area: this.area.id_area_academica,
       id_sprint: this.sprintActual.id,
       nombre_grupo: this.grupo.nombre,
-      nombre_area: this.area.nombre_area_academica,
+      // El área del curso se arma con la llave `nombre`; la de la malla regular
+      // viene con `nombre_area_academica`.
+      nombre_area: this.area.nombre_area_academica || this.area.nombre,
       id_tipo_actividad: this.formActividad.id_tipo_actividad_academica,
       ambientes: this.ambientes.map((a: any) => ({ id: a.id, nombre: a.nombre })),
       materiales: []
@@ -640,9 +645,12 @@ export class ListaActividadesComponent implements OnInit {
       didOpen: () => { Swal.showLoading(); }
     });
 
+    // La clase de un curso extracurricular se graba contra el curso y no contra
+    // un grupo: el back deja id_grupo nulo cuando llega id_curso_extra.
     const payload = {
       id_sprint: this.sprintActual.id,
-      id_grupo: this.grupo.id,
+      id_grupo: this.idCursoExtra ? null : this.grupo.id,
+      id_curso_extra: this.idCursoExtra || null,
       id_area: this.area.id_area_academica,
       es_tarea_adicional: true,
       actividades: [{
