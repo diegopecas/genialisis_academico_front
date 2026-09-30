@@ -39,7 +39,7 @@ import { obtenerEstiloRotacion } from '../galeria-modos-rotation.helpers';
               loading="lazy" />
               <p class="page-caption">{{ image.alt || ('Página ' + (i + 1)) }}</p>
               <button class="page-girar" (click)="onGirar(image.guid, $event)" title="Girar imagen">↻</button>
-          <button class="page-download" (click)="onDownload(image, $event)">⬇</button>
+          <button *ngIf="puedeDescargar" class="page-download" (click)="onDownload(image, $event)">⬇</button>
             </div>
             <div class="page-back">
               <span class="page-number">{{ i + 1 }}</span>
@@ -229,6 +229,8 @@ export class StorybookModoComponent implements OnChanges {
   @Input() galeriaDescripcion: string = '';
   @Input() isMobile: boolean = false;
   @Input() rotaciones: Map<string, number> = new Map();
+  /** Si el usuario puede descargar las fotos. Sin el permiso, el botón de descarga no se muestra. */
+  @Input() puedeDescargar: boolean = true;
   @Output() imageClick = new EventEmitter<GalleryImage>();
   @Output() imageDownload = new EventEmitter<{ image: GalleryImage; event: Event }>();
   @Output() imageGirar = new EventEmitter<string>();

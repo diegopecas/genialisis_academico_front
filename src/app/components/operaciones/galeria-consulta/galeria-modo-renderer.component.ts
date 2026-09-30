@@ -105,6 +105,12 @@ export class GaleriaModoRendererComponent implements OnChanges {
   /** El padre puede forzar un modo para testing. Si null, se usa el del día. */
   @Input() modoForzado: number | null = null;
 
+  /**
+   * Si el usuario tiene permiso de descargar. Se pasa a cada modo para que
+   * esconda su botón de descarga cuando no lo tiene.
+   */
+  @Input() puedeDescargar: boolean = false;
+
   /** Emite cuando el papá hace clic en una imagen (abrir lightbox). */
   @Output() imageClick = new EventEmitter<GalleryImage>();
 
@@ -160,6 +166,9 @@ export class GaleriaModoRendererComponent implements OnChanges {
   }
 
   onImageDownload(payload: { image: GalleryImage; event: Event }): void {
+    if (!this.puedeDescargar) {
+      return;
+    }
     this.imageDownload.emit(payload);
   }
 

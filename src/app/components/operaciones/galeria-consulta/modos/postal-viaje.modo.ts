@@ -26,7 +26,7 @@ import { obtenerEstiloRotacion } from '../galeria-modos-rotation.helpers';
               loading="lazy" />
         </div>
         <button class="postal-girar" (click)="onGirar(image.guid, $event)" title="Girar imagen">↻</button>
-          <button class="postal-download" (click)="onDownload(image, $event)" title="Descargar">⬇</button>
+          <button *ngIf="puedeDescargar" class="postal-download" (click)="onDownload(image, $event)" title="Descargar">⬇</button>
       </div>
     </div>
   `,
@@ -138,6 +138,8 @@ export class PostalViajeModoComponent {
   @Input() images: GalleryImage[] = [];
   @Input() isMobile: boolean = false;
   @Input() rotaciones: Map<string, number> = new Map();
+  /** Si el usuario puede descargar las fotos. Sin el permiso, el botón de descarga no se muestra. */
+  @Input() puedeDescargar: boolean = true;
   @Input() iniciales: string = '';
   @Output() imageClick = new EventEmitter<GalleryImage>();
   @Output() imageDownload = new EventEmitter<{ image: GalleryImage; event: Event }>();

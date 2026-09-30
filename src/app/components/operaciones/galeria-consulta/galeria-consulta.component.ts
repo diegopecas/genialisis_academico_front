@@ -701,8 +701,8 @@ export class GaleriaConsultaComponent implements OnInit, OnDestroy {
   downloadImage(image: GalleryImage, event: Event): void {
     event.stopPropagation();
 
-    // Los modos pintan su propio botón de descarga sin conocer el permiso,
-    // por eso se valida aquí.
+    // Los modos ya esconden su botón sin el permiso; se valida también aquí
+    // para que ningún camino descargue sin él.
     if (!this.puedeDescargar()) {
       Swal.fire('Sin permiso', 'No tienes permiso para descargar imágenes de la galería', 'info');
       return;

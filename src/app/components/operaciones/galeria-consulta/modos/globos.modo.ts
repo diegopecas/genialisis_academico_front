@@ -31,7 +31,7 @@ interface GloboImage extends GalleryImage {
             <img [src]="image.url" [alt]="image.alt" [ngStyle]="obtenerEstiloRotacion(image.guid)"
               loading="lazy" />
             <button class="globo-girar" (click)="onGirar(image.guid, $event)" title="Girar imagen">↻</button>
-          <button class="globo-download" (click)="onDownload(image, $event)" title="Descargar">⬇</button>
+          <button *ngIf="puedeDescargar" class="globo-download" (click)="onDownload(image, $event)" title="Descargar">⬇</button>
           </div>
         </div>
       </div>
@@ -144,6 +144,8 @@ export class GlobosModoComponent implements OnChanges {
   @Input() images: GalleryImage[] = [];
   @Input() isMobile: boolean = false;
   @Input() rotaciones: Map<string, number> = new Map();
+  /** Si el usuario puede descargar las fotos. Sin el permiso, el botón de descarga no se muestra. */
+  @Input() puedeDescargar: boolean = true;
   @Output() imageClick = new EventEmitter<GalleryImage>();
   @Output() imageDownload = new EventEmitter<{ image: GalleryImage; event: Event }>();
   @Output() imageGirar = new EventEmitter<string>();
