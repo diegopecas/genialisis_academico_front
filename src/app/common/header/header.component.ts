@@ -116,6 +116,15 @@ export class HeaderComponent implements OnChanges, OnInit {
       .join(' ');
   }
 
+  /**
+   * true si el título ya empieza con la palabra de la acción, sin importar
+   * mayúsculas. Algunas pantallas ya mandan el título con la acción
+   * ("Crear Galería", "Editar: Nombre") y no se debe repetir.
+   */
+  private empiezaCon(titulo: any, palabra: string): boolean {
+    return String(titulo || '').trim().toLowerCase().startsWith(palabra);
+  }
+
   ngOnChanges(changes: SimpleChanges): void {
 
     if (changes["tituloModulo"]) {
@@ -143,13 +152,19 @@ export class HeaderComponent implements OnChanges, OnInit {
       const _accion = changes["accion"]["currentValue"];
       switch(_accion) {
         case 'crear':
-          this.titulo = "Crear " + this.titulo;
+          if (!this.empiezaCon(this.titulo, 'crear')) {
+            this.titulo = "Crear " + this.titulo;
+          }
           break;
         case 'editar':
-          this.titulo = "Editar " + this.titulo + ": " + this.idRegistro;
+          if (!this.empiezaCon(this.titulo, 'editar')) {
+            this.titulo = "Editar " + this.titulo + ": " + this.idRegistro;
+          }
           break;
         case 'consultar':
-          this.titulo = "Consultar " + this.titulo + ": " + this.idRegistro;
+          if (!this.empiezaCon(this.titulo, 'consultar')) {
+            this.titulo = "Consultar " + this.titulo + ": " + this.idRegistro;
+          }
           break;
       }
     }
