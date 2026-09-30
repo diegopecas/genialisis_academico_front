@@ -7,22 +7,16 @@
     [iconoTitulo]="'/assets/images/reporte-calificaciones-actividades.png'"
   ></app-header>
 
-  <!-- Corte y grupo se consultan al backend. El resto de filtros los hace la tabla. -->
+  <!-- Rango de fechas: se consulta al backend. El resto de filtros los hace la tabla. -->
   <div class="container-fluid px-4 mt-3">
     <div class="row g-2 align-items-end filtros">
-      <div class="col-12 col-sm-6 col-md-4">
-        <label for="corte" class="form-label"><i class="fas fa-calendar-alt"></i> Corte académico</label>
-        <select id="corte" class="form-select" [(ngModel)]="idCorteSeleccionado">
-          <option value="">Selecciona un corte</option>
-          <option *ngFor="let corte of cortes" [value]="corte.id">{{ corte.nombre }}</option>
-        </select>
+      <div class="col-12 col-sm-6 col-md-3">
+        <label for="fechaInicio" class="form-label"><i class="fas fa-calendar"></i> Fecha inicial</label>
+        <input type="date" id="fechaInicio" class="form-control" [(ngModel)]="fechaInicio" [max]="fechaFin">
       </div>
-      <div class="col-12 col-sm-6 col-md-4">
-        <label for="grupo" class="form-label"><i class="fas fa-users"></i> Grupo</label>
-        <select id="grupo" class="form-select" [(ngModel)]="idGrupoSeleccionado">
-          <option value="">Selecciona un grupo</option>
-          <option *ngFor="let grupo of grupos" [value]="grupo.id">{{ grupo.nombre }}</option>
-        </select>
+      <div class="col-12 col-sm-6 col-md-3">
+        <label for="fechaFin" class="form-label"><i class="fas fa-calendar"></i> Fecha final</label>
+        <input type="date" id="fechaFin" class="form-control" [(ngModel)]="fechaFin" [min]="fechaInicio">
       </div>
       <div class="col-12 col-md-auto">
         <button class="btn btn-warning w-100" (click)="consultar()" [disabled]="cargando">
@@ -34,7 +28,7 @@
   </div>
 
   <!-- Resumen: sigue lo que muestra la tabla, no el total cargado -->
-  <div class="container-fluid px-4 resumen-pie" *ngIf="consultado && !cargando">
+  <div class="container-fluid px-4 resumen-pie" *ngIf="!cargando">
     <span class="resumen-item">
       <strong>{{ totalEstudiantes }}</strong> estudiante{{ totalEstudiantes === 1 ? '' : 's' }}
     </span>
@@ -44,7 +38,7 @@
   </div>
 
   <app-tablas
-    *ngIf="consultado && !cargando"
+    *ngIf="!cargando"
     [titulos]="titulos"
     [datos]="datos"
     [raiz]="'/reportes/calificaciones-actividades'"
@@ -53,13 +47,8 @@
     (datosFiltradosCambiados)="actualizarResumen($event)"
   ></app-tablas>
 
-  <div *ngIf="!consultado && !cargando" class="mensaje-inicial">
-    <i class="fas fa-clipboard-list"></i>
-    <p>Selecciona el corte académico y el grupo, y da clic en Consultar.</p>
-  </div>
-
   <div *ngIf="cargando" class="loading-container">
     <div class="spinner-border text-warning" role="status"></div>
-    <p>Cargando calificaciones...</p>
+    <p>Cargando calificaciones del {{ fechaInicio }} al {{ fechaFin }}...</p>
   </div>
 </div>

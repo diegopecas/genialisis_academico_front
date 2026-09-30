@@ -262,10 +262,13 @@ export class CalificacionesService {
     return this.obtenerCalificacionesPorSprintEstudiantes(id_sprint, { id_grupo });
   }
 
-  /** Reporte de calificaciones por actividad: corte académico + grupo. */
-  obtenerReporteCalificacionesActividades(id_corte_academico: any, id_grupo: any) {
+  /** Reporte de calificaciones por actividad entre dos fechas (YYYY-MM-DD). */
+  obtenerReporteCalificacionesActividades(fecha_inicio: string, fecha_fin: string) {
+    const params = new HttpParams()
+      .set('fecha_inicio', fecha_inicio)
+      .set('fecha_fin', fecha_fin);
     return this.http
-      .get<HttpResponse<Object>>(this.servicioReporteActividades + `/${id_corte_academico}/${id_grupo}`, { observe: 'response' })
+      .get<HttpResponse<Object>>(this.servicioReporteActividades, { params, observe: 'response' })
       .pipe(
         tap((response: HttpResponse<Object>) => {
           let respuesta: any = response.body;

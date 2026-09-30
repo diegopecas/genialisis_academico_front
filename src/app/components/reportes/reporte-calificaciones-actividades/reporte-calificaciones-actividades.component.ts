@@ -5,15 +5,14 @@ import Swal from 'sweetalert2';
 import { HeaderComponent } from '../../../common/header/header.component';
 import { TablasComponent } from '../../../common/tablas/tablas.component';
 import { CalificacionesService } from '../../../services/calificaciones.service';
-import { CortesAcademicosService } from '../../../services/cortes-academicos.service';
-import { GruposService } from '../../../services/grupos.service';
 
 /**
  * Reporte de calificaciones por actividad.
- * Se escoge un corte académico y un grupo; sale una fila por estudiante y
- * actividad del grupo en los sprints del corte. Las columnas de calificación
- * no están fijas: salen de los parámetros que tenga configurados el jardín,
- * y cada celda muestra el valor cuantitativo y el cualitativo.
+ * Se escoge un rango de fechas; salen todas las actividades de grupo y de
+ * cursos extracurriculares del rango, una fila por estudiante y actividad en
+ * la que estuvo. Las columnas de calificación no están fijas: salen de los
+ * parámetros que tenga configurados el jardín, y cada celda muestra el valor
+ * cuantitativo y el cualitativo.
  */
 @Component({
   selector: 'app-reporte-calificaciones-actividades',
@@ -29,67 +28,45 @@ export class ReporteCalificacionesActividadesComponent implements OnInit {
   public datos = [] as any[];
   public columnasFiltro: (string | { columna: string, tipoFiltro?: 'fecha' | 'normal' | 'rango' | 'lista' })[] = [
     'Estudiante',
-    'Sprint',
+    'Tipo',
+    'Grupo / Curso',
     'Área',
+    'Ejecutada por',
   ];
 
-  public cortes = [] as any[];
-  public grupos = [] as any[];
-  public idCorteSeleccionado: any = '';
-  public idGrupoSeleccionado: any = '';
+  // Rango consultado al backend. Por defecto, el mes en curso.
+  public fechaInicio = '';
+  public fechaFin = '';
 
   public cargando = false;
-  // Para no mostrar la tabla vacía antes de la primera consulta
-  public consultado = false;
 
-  // Resumen del pie
+  // Resumen del pie, calculado sobre lo que la tabla deja después de filtrar
   public totalEstudiantes = 0;
   public totalActividades = 0;
 
-  constructor(
-    private calificacionesService: CalificacionesService,
-    private cortesAcademicosService: CortesAcademicosService,
-    private gruposService: GruposService
-  ) {}
+  constructor(private calificacionesService: CalificacionesService) {}
 
   ngOnInit(): void {
+    const hoy = new Date();
+    this.fechaInicio = this.formatoIso(new Date(hoy.getFullYear(), hoy.getMonth(), 1));
+    this.fechaFin = this.formatoIso(hoy);
     this.crearTitulos([]);
-    this.cargarCortes();
-    this.cargarGrupos();
-  }
-
-  cargarCortes(): void {
-    this.cortesAcademicosService.obtenerTodos().subscribe({
-      next: (response: any) => {
-        this.cortes = response.body || [];
-        // Por defecto el corte en el que cae la fecha de hoy
-        const hoy = this.formatoIso(new Date());
-        const corteActual = this.cortes.find((c: any) =>
-          c.fecha_inicio && c.fecha_fin && c.fecha_inicio <= hoy && hoy <= c.fecha_fin);
-        if (corteActual) {
-          this.idCorteSeleccionado = corteActual.id;
-        }
-      },
-      error: () => { this.cortes = []; },
-    });
-  }
-
-  cargarGrupos(): void {
-    this.gruposService.obtenerTodos().subscribe({
-      next: (response: any) => { this.grupos = response.body || []; },
-      error: () => { this.grupos = []; },
-    });
+    this.consultar();
   }
 
   consultar(): void {
-    if (!this.idCorteSeleccionado || !this.idGrupoSeleccionado) {
-      Swal.fire('Filtros incompletos', 'Selecciona el corte académico y el grupo', 'warning');
+    if (!this.fechaInicio || !this.fechaFin) {
+      Swal.fire('Fechas incompletas', 'Selecciona la fecha inicial y la final', 'warning');
+      return;
+    }
+    if (this.fechaInicio > this.fechaFin) {
+      Swal.fire('Rango inválido', 'La fecha inicial no puede ser mayor que la final', 'warning');
       return;
     }
 
     this.cargando = true;
     this.calificacionesService
-      .obtenerReporteCalificacionesActividades(this.idCorteSeleccionado, this.idGrupoSeleccionado)
+      .obtenerReporteCalificacionesActividades(this.fechaInicio, this.fechaFin)
       .subscribe({
         next: (response: any) => {
           const body = response.body || {};
@@ -101,6 +78,8 @@ export class ReporteCalificacionesActividadesComponent implements OnInit {
             const registro: any = {
               ...fila,
               fecha_texto: this.formatearFecha(fila.fecha_ejecucion),
+              nombre_area: fila.nombre_area || '',
+              ejecutada_por: fila.ejecutada_por || '',
             };
             // Una columna por parámetro: "4 · Logrado", vacía si no lo calificaron
             for (const parametro of parametros) {
@@ -113,7 +92,6 @@ export class ReporteCalificacionesActividadesComponent implements OnInit {
           });
 
           this.actualizarResumen(this.datos);
-          this.consultado = true;
           this.cargando = false;
         },
         error: () => {
@@ -128,10 +106,13 @@ export class ReporteCalificacionesActividadesComponent implements OnInit {
   crearTitulos(parametros: any[]): void {
     this.titulos = [
       { clave: 'nombre_estudiante', alias: 'Estudiante', alinear: 'izquierda' },
+      { clave: 'tipo', alias: 'Tipo', alinear: 'centrado' },
+      { clave: 'nombre_grupo_curso', alias: 'Grupo / Curso', alinear: 'izquierda' },
       { clave: 'nombre_sprint', alias: 'Sprint', alinear: 'izquierda' },
       { clave: 'fecha_texto', alias: 'Fecha de ejecución', alinear: 'centrado' },
       { clave: 'nombre_area', alias: 'Área', alinear: 'izquierda' },
       { clave: 'titulo_actividad', alias: 'Actividad', alinear: 'izquierda' },
+      { clave: 'ejecutada_por', alias: 'Ejecutada por', alinear: 'izquierda' },
     ];
 
     for (const parametro of parametros) {
