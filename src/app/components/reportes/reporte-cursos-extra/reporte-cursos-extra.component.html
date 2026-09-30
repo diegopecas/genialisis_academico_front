@@ -14,7 +14,9 @@
             <div class="col-md-6 col-12 d-flex align-items-end" *ngIf="cursoSeleccionado">
                 <div class="curso-info">
                     <span class="info-item"><i class="fas fa-calendar me-1"></i> {{cursoSeleccionado.fecha_inicio}} al {{cursoSeleccionado.fecha_fin}}</span>
-                    <span class="info-item" *ngIf="cursoSeleccionado.cupo_maximo"><i class="fas fa-users me-1"></i> Cupo: {{datos.length}} / {{cursoSeleccionado.cupo_maximo}}</span>
+                    <!-- El cupo lo ocupan los vigentes: los retirados salen en
+                         la tabla pero ya no cuentan contra el cupo maximo. -->
+                    <span class="info-item" *ngIf="cursoSeleccionado.cupo_maximo"><i class="fas fa-users me-1"></i> Cupo: {{contarActivos()}} / {{cursoSeleccionado.cupo_maximo}}</span>
                 </div>
             </div>
         </div>
@@ -27,6 +29,26 @@
         [columnasFiltro]="columnasFiltro"
         [mostrarBuscar]="true">
     </app-tablas>
+
+    <!-- Totales de lo que dejan ver los filtros, no de todo el curso: si se
+         filtra por un grupo o por un rango de fechas, el pie tiene que cuadrar
+         con lo que esta en pantalla. -->
+    <div class="container-fluid px-4 mt-3" *ngIf="datos.length > 0">
+        <div class="totales-pie">
+            <span class="total-item">
+                <span class="total-rotulo">Cobrado</span>
+                <span class="total-valor">$ {{ totalCobrado | number:'1.0-0' }}</span>
+            </span>
+            <span class="total-item">
+                <span class="total-rotulo">Pagado</span>
+                <span class="total-valor">$ {{ totalPagado | number:'1.0-0' }}</span>
+            </span>
+            <span class="total-item">
+                <span class="total-rotulo">Saldo</span>
+                <span class="total-valor" [class.saldo-pendiente]="totalSaldo > 0">$ {{ totalSaldo | number:'1.0-0' }}</span>
+            </span>
+        </div>
+    </div>
 
     <div class="export-container" *ngIf="datos.length > 0">
         <button class="btn btn-success" (click)="exportarExcel()" [disabled]="exportando || cargando">

@@ -148,49 +148,49 @@
                         </div>
                         <div *ngIf="!model.materiales && submitted" class="invalid-feedback">Agregue al menos un material</div>
 
-                        <!-- Productos del inventario (si hay indicadores para saber el grupo) -->
+                        <!-- Productos del inventario (todos los productos académicos activos del jardín) -->
+                        <!-- Cerrado por defecto, igual que en Máquina y Mis Actividades: se abre con el enlace -->
                         <div class="productos-inventario mt-3" *ngIf="productosDisponiblesActividad.length > 0 && editable">
-                            <div class="inventario-encabezado">
-                                <span class="inventario-titulo">📦 Del inventario</span>
-                                <span class="inventario-conteo">{{ productosDisponiblesActividad.length }} disponibles</span>
-                            </div>
+                            <details class="inventario-details">
+                                <summary class="inventario-summary">
+                                    📋 Ver inventario ({{ productosDisponiblesActividad.length }} productos)
+                                </summary>
 
-                            <div class="inventario-buscador">
-                                <span class="buscador-ico">🔍</span>
-                                <input type="text"
-                                       [(ngModel)]="filtroProductoInventario"
-                                       placeholder="Buscar material del inventario..."
-                                       class="inventario-input">
-                                <button type="button" class="btn-limpiar-filtro"
-                                        *ngIf="filtroProductoInventario"
-                                        (click)="limpiarFiltroProductos()">✕</button>
-                            </div>
+                                <div class="inventario-contenido">
+                                    <div class="inventario-buscador">
+                                        <span class="buscador-ico">🔍</span>
+                                        <input type="text"
+                                               [(ngModel)]="filtroProductoInventario"
+                                               placeholder="Buscar material del inventario..."
+                                               class="inventario-input">
+                                        <button type="button" class="btn-limpiar-filtro"
+                                                *ngIf="filtroProductoInventario"
+                                                (click)="limpiarFiltroProductos()">✕</button>
+                                    </div>
 
-                            <div class="productos-badges">
-                                <span *ngFor="let prod of productosInventarioFiltrados"
-                                      class="producto-badge"
-                                      [class.ya-agregado]="isMaterialProductoAgregado(prod.id)"
-                                      (click)="toggleMaterialProducto(prod)">
-                                    {{ prod.nombre }}
-                                    <span *ngIf="isMaterialProductoAgregado(prod.id)">✅</span>
-                                </span>
-                            </div>
+                                    <div class="productos-badges productos-badges-scroll">
+                                        <span *ngFor="let prod of productosInventarioFiltrados"
+                                              class="producto-badge"
+                                              [class.ya-agregado]="isMaterialProductoAgregado(prod.id)"
+                                              (click)="toggleMaterialProducto(prod)">
+                                            {{ prod.nombre }}
+                                            <span *ngIf="isMaterialProductoAgregado(prod.id)">✅</span>
+                                        </span>
+                                    </div>
 
-                            <div class="inventario-sin-resultados"
-                                 *ngIf="filtroProductoInventario && productosInventarioFiltrados.length === 0">
-                                No hay materiales que coincidan con "{{ filtroProductoInventario }}".
-                            </div>
+                                    <div class="inventario-sin-resultados"
+                                         *ngIf="filtroProductoInventario && productosInventarioFiltrados.length === 0">
+                                        No hay materiales que coincidan con "{{ filtroProductoInventario }}".
+                                    </div>
+                                </div>
+                            </details>
+                        </div>
 
-                            <button type="button" class="btn-ver-todos"
-                                    *ngIf="productosInventarioOcultos > 0"
-                                    (click)="toggleVerTodosLosProductos()">
-                                Ver los {{ productosInventarioOcultos }} restantes
-                            </button>
-                            <button type="button" class="btn-ver-todos"
-                                    *ngIf="mostrarTodosLosProductos && !filtroProductoInventario"
-                                    (click)="toggleVerTodosLosProductos()">
-                                Mostrar menos
-                            </button>
+                        <!-- Aviso cuando el jardín no tiene materiales en el inventario -->
+                        <div class="productos-inventario mt-3" *ngIf="inventarioCargado && productosDisponiblesActividad.length === 0 && editable">
+                            <div class="inventario-sin-resultados">
+                                📦 Este jardín no tiene materiales registrados en el inventario. Puedes crearlos en Datos Maestros → Productos Académico.
+                            </div>
                         </div>
                     </div>
                 </div>

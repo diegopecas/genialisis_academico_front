@@ -785,6 +785,35 @@ small.text-muted {
   background: #FCFCFC;
 }
 
+// Acordeón del inventario (cerrado por defecto)
+.inventario-details {
+  summary {
+    list-style: none;
+    &::-webkit-details-marker { display: none; }
+  }
+
+  &[open] .inventario-summary {
+    margin-bottom: 10px;
+  }
+}
+
+.inventario-summary {
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: $corporate-gray;
+  user-select: none;
+
+  &:hover { color: $corporate-black; }
+}
+
+// Productos con scroll para no alargar el formulario
+.productos-badges-scroll {
+  max-height: 220px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
 .inventario-encabezado {
   display: flex;
   align-items: center;

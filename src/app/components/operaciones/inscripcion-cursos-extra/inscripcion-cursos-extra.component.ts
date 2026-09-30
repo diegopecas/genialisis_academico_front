@@ -59,6 +59,10 @@ export class InscripcionCursosExtraComponent implements OnInit {
   gruposDisponibles: any[] = [];
   gruposInscritos: any[] = [];
 
+  // Rango de fecha de inscripcion del listado de inscritos. Vacios = sin tope.
+  inscripcionDesde: string = '';
+  inscripcionHasta: string = '';
+
   seleccionadosDisponibles: Set<string> = new Set();
   seleccionadosInscritos: Set<string> = new Set();
 
@@ -183,6 +187,8 @@ export class InscripcionCursosExtraComponent implements OnInit {
     this.busquedaInscritos = '';
     this.grupoDisponibles = '';
     this.grupoInscritos = '';
+    this.inscripcionDesde = '';
+    this.inscripcionHasta = '';
   }
 
   // ==================== FILTROS ====================
@@ -212,7 +218,31 @@ export class InscripcionCursosExtraComponent implements OnInit {
       lista = lista.filter((e: any) => (e.nombre_completo || '').toLowerCase().includes(texto));
     }
 
+    // Rango de fecha de inscripcion. Los dos extremos son independientes: se
+    // puede dejar solo el desde, solo el hasta, o los dos. Las fechas llegan
+    // en Y-m-d, asi que se comparan como texto sin convertirlas.
+    if (this.inscripcionDesde) {
+      lista = lista.filter((e: any) => e.fecha_inscripcion && e.fecha_inscripcion >= this.inscripcionDesde);
+    }
+    if (this.inscripcionHasta) {
+      lista = lista.filter((e: any) => e.fecha_inscripcion && e.fecha_inscripcion <= this.inscripcionHasta);
+    }
+
     this.inscritosFiltrados = lista;
+  }
+
+  /** Deja el listado de inscritos sin filtros. */
+  limpiarFiltrosInscritos() {
+    this.busquedaInscritos = '';
+    this.grupoInscritos = '';
+    this.inscripcionDesde = '';
+    this.inscripcionHasta = '';
+    this.filtrarInscritos();
+  }
+
+  /** Hay algun filtro puesto sobre el listado de inscritos. */
+  hayFiltrosInscritos(): boolean {
+    return !!(this.busquedaInscritos || this.grupoInscritos || this.inscripcionDesde || this.inscripcionHasta);
   }
 
   // ==================== SELECCION ====================

@@ -88,11 +88,14 @@ export class CrearActividadesAcademicasComponent implements OnInit, OnDestroy, A
   public menuMovilAbierto: boolean = false;
 
   public productosDisponiblesActividad: any[] = [];
+  // true cuando ya respondió el back, para no mostrar el aviso de inventario vacío mientras carga
+  public inventarioCargado = false;
 
   // Buscador del inventario: la lista completa puede pasar de 80 productos y
   // pintarlos todos vuelve la pantalla inmanejable.
   public filtroProductoInventario = '';
-  public mostrarTodosLosProductos = false;
+  // El inventario ya va dentro de un acordeón con scroll: se muestran todos los productos
+  public mostrarTodosLosProductos = true;
   private readonly limiteProductosVisibles = 12;
   public productoDetalleModal: any = null;
   
@@ -478,6 +481,7 @@ export class CrearActividadesAcademicasComponent implements OnInit, OnDestroy, A
     this.materialesXActividadService.obtenerProductosTodos().subscribe({
       next: (resp: any) => {
         this.productosDisponiblesActividad = resp.body || [];
+        this.inventarioCargado = true;
       },
       error: (error: any) => {
         console.error('Error al cargar el inventario de materiales:', error);
@@ -1013,9 +1017,9 @@ export class CrearActividadesAcademicasComponent implements OnInit, OnDestroy, A
     let indicadores = this.indicadoresDisponibles;
     
     if (this.indicadoresBusqueda) {
-      const busqueda = this.indicadoresBusqueda.toLowerCase();
-      indicadores = indicadores.filter((indicador: any) => 
-        indicador.nombre.toLowerCase().includes(busqueda)
+      // Ignora mayúsculas, tildes y signos
+      indicadores = indicadores.filter((indicador: any) =>
+        coincideBusqueda(indicador.nombre, this.indicadoresBusqueda)
       );
     }
     

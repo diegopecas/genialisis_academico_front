@@ -204,7 +204,7 @@
           </small>
         </div>
 
-        <div class="row g-2 mb-3">
+        <div class="row g-2 mb-2">
           <div class="col-md-6 col-12">
             <input class="form-control" type="text" placeholder="Buscar por nombre..."
               [(ngModel)]="busquedaInscritos" (input)="filtrarInscritos()">
@@ -214,6 +214,27 @@
               <option value="">Todos los grupos</option>
               <option *ngFor="let g of gruposInscritos" [value]="g.id">{{g.nombre}}</option>
             </select>
+          </div>
+        </div>
+
+        <!-- Rango de fecha de inscripción. Los dos extremos son opcionales:
+             se puede acotar solo por un lado. -->
+        <div class="row g-2 mb-3 align-items-end">
+          <div class="col-md-4 col-6">
+            <label class="form-label small text-muted mb-1">Inscritos desde</label>
+            <input class="form-control" type="date"
+              [(ngModel)]="inscripcionDesde" (change)="filtrarInscritos()">
+          </div>
+          <div class="col-md-4 col-6">
+            <label class="form-label small text-muted mb-1">Inscritos hasta</label>
+            <input class="form-control" type="date"
+              [(ngModel)]="inscripcionHasta" (change)="filtrarInscritos()">
+          </div>
+          <div class="col-md-4 col-12">
+            <button class="btn btn-outline-secondary w-100" (click)="limpiarFiltrosInscritos()"
+              [disabled]="!hayFiltrosInscritos()">
+              <i class="fas fa-eraser me-1"></i> Limpiar filtros
+            </button>
           </div>
         </div>
 
