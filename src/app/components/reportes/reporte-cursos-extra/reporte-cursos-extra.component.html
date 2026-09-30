@@ -22,11 +22,26 @@
         </div>
     </div>
 
+    <!-- Exportación propia del reporte, en el mismo sitio y con el mismo
+         estilo que el botón genérico de la tabla, que queda apagado. Este
+         nombra el archivo con el curso y la fecha, y manda los valores como
+         número para poder sumarlos en Excel. -->
+    <div class="container-fluid px-4 mt-3" *ngIf="idCursoSeleccionado && datos.length > 0">
+        <div class="d-flex justify-content-end w-100">
+            <button class="btn btn-sm btn-success" (click)="exportarExcel()"
+                [disabled]="exportando || cargando || datosVisibles.length === 0">
+                <i class="fas fa-file-excel me-1"></i>
+                {{ exportando ? 'Exportando...' : 'Exportar Excel' }}
+            </button>
+        </div>
+    </div>
+
     <app-tablas *ngIf="idCursoSeleccionado"
         [titulos]="titulos"
         [datos]="datos"
         [raiz]="'/reportes/cursos-extra'"
         [columnasFiltro]="columnasFiltro"
+        [exportarExcel]="false"
         [mostrarBuscar]="true">
     </app-tablas>
 
@@ -48,13 +63,6 @@
                 <span class="total-valor" [class.saldo-pendiente]="totalSaldo > 0">$ {{ totalSaldo | number:'1.0-0' }}</span>
             </span>
         </div>
-    </div>
-
-    <div class="export-container" *ngIf="datos.length > 0">
-        <button class="btn btn-success" (click)="exportarExcel()" [disabled]="exportando || cargando">
-            <i class="fas fa-file-excel"></i>
-            {{ exportando ? 'Exportando...' : 'Exportar a Excel' }}
-        </button>
     </div>
 
     <div class="text-center text-muted py-5" *ngIf="!idCursoSeleccionado">

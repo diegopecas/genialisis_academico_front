@@ -20,11 +20,7 @@
   }
 }
 
-.export-container {
-  display: flex;
-  justify-content: flex-end;
-  padding: 16px 24px;
-}
+
 // Pie de totales del cobro. Se alinea a la derecha como el boton de exportar,
 // y en movil pasa a columna para que los valores no se aprieten.
 .totales-pie {
