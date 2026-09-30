@@ -465,7 +465,50 @@
 // ========================================
 // Responsive
 // ========================================
+// Volver a la galería. Misma línea dorada de las acciones del formulario.
+.barra-volver {
+  display: flex;
+  justify-content: center;
+  margin-top: 2.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid #eadfbf;
+}
+
+.btn-volver-galeria {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.75rem;
+  border: 2px solid #c9a227;
+  border-radius: 999px;
+  background-color: white;
+  color: #8a6d1d;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+
+  i {
+    transition: transform 0.25s ease;
+  }
+
+  &:hover {
+    box-shadow: 0 6px 16px rgba(201, 162, 39, 0.2);
+    background-color: #fbf6e6;
+    transform: translateY(-2px);
+
+    i {
+      transform: translateX(-3px);
+    }
+  }
+}
+
 @media (max-width: 768px) {
+  .btn-volver-galeria {
+    width: 100%;
+  }
+
   .images-grid {
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
     gap: 1rem;

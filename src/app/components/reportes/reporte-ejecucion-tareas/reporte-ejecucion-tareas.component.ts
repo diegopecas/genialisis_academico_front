@@ -16,7 +16,7 @@ import { TareasXSprintsXEstudianteService } from '../../../services/tareas-x-spr
   styleUrl: './reporte-ejecucion-tareas.component.scss',
 })
 export class ReporteEjecucionTareasComponent implements OnInit {
-  titulo = 'Reporte de Ejecución de Tareas';
+  titulo = 'Reporte de Ejecución de Actividades';
 
   cargando = false;
   anioSeleccionado: any = '';

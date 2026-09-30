@@ -9,6 +9,7 @@ import { GaleriasXGruposService } from '../../../../services/galerias-x-grupos.s
 import { GaleriasService } from '../../../../services/galerias.service';
 import { GruposService } from '../../../../services/grupos.service';
 import { TareasXSprintsService } from '../../../../services/tareas-x-sprints.service';
+import { GestionarImagenesComponent } from '../gestionar-imagenes/gestionar-imagenes.component';
 
 // CKEditor 5 se carga desde el CDN en index.html, igual que en la creación
 // de actividades académicas.
@@ -19,7 +20,7 @@ declare var ClassicEditor: any;
   templateUrl: './crear-galeria.component.html',
   styleUrl: './crear-galeria.component.scss',
   standalone: true,
-  imports: [CommonModule, FormsModule, HeaderComponent]
+  imports: [CommonModule, FormsModule, HeaderComponent, GestionarImagenesComponent]
 })
 export class CrearGaleriaComponent implements OnInit, AfterViewInit, OnDestroy {
 
@@ -31,10 +32,10 @@ export class CrearGaleriaComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly LIMITE_ACTIVIDADES = 20;
 
   /**
-   * Tonos suaves para distinguir las áreas en las tarjetas de actividad.
+   * Tonos suaves y cálidos, en la línea dorada del sistema, para distinguir las áreas en las tarjetas de actividad.
    * Cada área toma siempre el mismo tono (se escoge por su id).
    */
-  private readonly TONOS_AREA = ['#7c6cf0', '#2bb0a1', '#e8839b', '#5b9bd5', '#f0a35e', '#9b7ede', '#43aa8b', '#d47fc4'];
+  private readonly TONOS_AREA = ['#c9a227', '#5f9e8f', '#d9826b', '#6f9bc0', '#a6844f', '#8aa65b', '#c7788f', '#7d8c9c'];
 
   /** Largo máximo de galerias.nombre (varchar 100). */
   readonly MAX_NOMBRE = 100;
@@ -59,6 +60,14 @@ export class CrearGaleriaComponent implements OnInit, AfterViewInit, OnDestroy {
 
   grupos: any[] = [];
   gruposSeleccionados: string[] = [];
+
+  // Pestañas del formulario (mismo patrón del formulario de grupos)
+  pestanaActiva: 'basico' | 'grupos' | 'imagenes' = 'basico';
+  menuMovilAbierto = false;
+  // La pestaña de imágenes se crea la primera vez que se abre y después se
+  // oculta, igual que Horarios y Tarifas en grupos: no carga si no se usa y
+  // no pierde lo que se estaba subiendo al cambiar de pestaña.
+  imagenesAbierta = false;
 
   // Selección opcional de una actividad ejecutada para prellenar la galería.
   // Solo al crear. La lista se pide al back cuando el usuario abre el panel
@@ -470,6 +479,26 @@ export class CrearGaleriaComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
+  seleccionarPestana(pestana: 'basico' | 'grupos' | 'imagenes'): void {
+    if (pestana === 'imagenes') {
+      this.imagenesAbierta = true;
+    }
+    this.pestanaActiva = pestana;
+    this.menuMovilAbierto = false;
+  }
+
+  /** La pestaña de imágenes solo existe al editar: antes no hay galería. */
+  get mostrarPestanaImagenes(): boolean {
+    return this.accion === 'editar' && !!this.model.id;
+  }
+
+  /** Si la galería pasa a pública, la pestaña de grupos desaparece. */
+  onTipoGaleriaChange(): void {
+    if (this.model.es_publica !== 0 && this.pestanaActiva === 'grupos') {
+      this.seleccionarPestana('basico');
+    }
+  }
+
   toggleGrupo(idGrupo: string) {
     const index = this.gruposSeleccionados.indexOf(idGrupo);
     if (index > -1) {
@@ -485,11 +514,13 @@ export class CrearGaleriaComponent implements OnInit, AfterViewInit, OnDestroy {
 
   validarFormulario(): boolean {
     if (!this.model.nombre || !this.model.fecha) {
+      this.seleccionarPestana('basico');
       Swal.fire('Error', 'El nombre y la fecha son obligatorios', 'error');
       return false;
     }
 
     if (this.model.es_publica === 0 && this.gruposSeleccionados.length === 0) {
+      this.seleccionarPestana('grupos');
       Swal.fire('Error', 'Debe seleccionar al menos un grupo para galerías privadas', 'error');
       return false;
     }
@@ -520,7 +551,7 @@ export class CrearGaleriaComponent implements OnInit, AfterViewInit, OnDestroy {
           if (galeria.es_publica === 0 && this.gruposSeleccionados.length > 0) {
             this.asignarGrupos(idGaleria);
           } else {
-            Swal.fire('Éxito', 'Galería creada correctamente. Ya puedes gestionar sus imágenes', 'success');
+            Swal.fire('Éxito', 'Galería creada correctamente. Ya puedes subir sus imágenes', 'success');
             this.pasarAModoEdicion(idGaleria);
           }
         },
@@ -556,7 +587,7 @@ export class CrearGaleriaComponent implements OnInit, AfterViewInit, OnDestroy {
     this.galeriasXGruposService.asignarGrupos(idGaleria, this.gruposSeleccionados).subscribe({
       next: () => {
         if (esNueva) {
-          Swal.fire('Éxito', 'Galería creada y grupos asignados correctamente. Ya puedes gestionar sus imágenes', 'success');
+          Swal.fire('Éxito', 'Galería creada y grupos asignados correctamente. Ya puedes subir sus imágenes', 'success');
           this.pasarAModoEdicion(idGaleria);
         } else {
           Swal.fire('Éxito', 'Galería guardada y grupos asignados correctamente', 'success');
@@ -601,15 +632,19 @@ export class CrearGaleriaComponent implements OnInit, AfterViewInit, OnDestroy {
       : null;
 
     this.location.replaceState('/operaciones/galerias/editar/' + idGaleria);
+
+    // Recién creada, lo que sigue es subir las fotos
+    this.seleccionarPestana('imagenes');
   }
 
   volver() {
     this.router.navigate([this.regresar]);
   }
 
+  /** Las imágenes ahora se gestionan en su pestaña del formulario. */
   gestionarImagenes() {
     if (this.model.id) {
-      this.router.navigate(['/operaciones/galerias/imagenes/' + this.model.id]);
+      this.seleccionarPestana('imagenes');
     }
   }
 }

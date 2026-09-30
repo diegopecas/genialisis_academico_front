@@ -1,31 +1,55 @@
+// Paleta dorada y crema del sistema (encabezado y pestañas de Grupos).
+$dorado: #c9a227;
+$dorado-oscuro: #8a6d1d;
+$crema: #fbf6e6;
+$crema-borde: #eadfbf;
+$crema-claro: #fffdf7;
+$texto: #2d2a26;
+$texto-suave: #6f6857;
+
 .modulo {
   min-height: 100vh;
   background-color: #f8f9fa;
 }
 
+.nota-grupos {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.8rem 1rem;
+  border-radius: 12px;
+  background: linear-gradient(135deg, $crema 0%, $crema-claro 100%);
+  color: $texto-suave;
+  font-size: 0.92rem;
+
+  i {
+    color: $dorado;
+  }
+}
+
 .grupos-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(220px, 100%), 1fr));
+  gap: 0.75rem;
   margin-top: 1rem;
 }
 
 .grupo-checkbox {
-  border: 2px solid #dee2e6;
-  border-radius: 8px;
-  padding: 1rem;
-  transition: all 0.3s ease;
+  border: 1px solid $crema-borde;
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+  transition: all 0.25s ease;
   background-color: white;
   cursor: pointer;
 
   &:hover {
-    border-color: #FFC107;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-color: #dcc77f;
+    box-shadow: 0 4px 12px rgba(201, 162, 39, 0.1);
   }
 
   &.selected {
-    border-color: #FFC107;
-    background-color: #fff8e1;
+    border-color: $dorado;
+    background-color: $crema;
   }
 
   label {
@@ -39,27 +63,253 @@
   .form-check-input {
     width: 20px;
     height: 20px;
-    margin-right: 0.75rem;
+    margin: 0 0.75rem 0 0;
     cursor: pointer;
+
+    &:checked {
+      background-color: $dorado;
+      border-color: $dorado;
+    }
   }
 
   .grupo-nombre {
     font-weight: 500;
     font-size: 0.95rem;
+    color: $texto;
   }
 }
 
 // =========================================
-// Tomar datos de una actividad (opcional)
-// Paleta suave lila y azul, la misma línea de las acciones de la agenda.
+// Pestañas (mismo patrón del formulario de grupos)
 // =========================================
 
-$lila: #6c5ce7;
-$lila-suave: #f4f1ff;
-$lila-borde: #e4defc;
-$azul-suave: #eef6ff;
-$texto: #2d2a3e;
-$texto-suave: #6e6a85;
+.tabs-desktop {
+  display: block;
+  margin-bottom: 1.5rem;
+}
+
+.tabs-movil {
+  display: none;
+  margin-bottom: 1.25rem;
+}
+
+.tabs-nav {
+  display: flex;
+  flex-wrap: nowrap;
+  border-bottom: 1px solid $crema-borde;
+}
+
+.tab-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  margin-right: 3px;
+  margin-bottom: -1px;
+  border: 1px solid transparent;
+  border-radius: 10px 10px 0 0;
+  background: none;
+  color: $texto-suave;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.25s ease;
+
+  i {
+    color: $dorado;
+    font-size: 1.05rem;
+  }
+
+  &:hover:not(.active) {
+    background-color: $crema;
+  }
+
+  &.active {
+    color: $texto;
+    font-weight: 600;
+    border-color: $crema-borde $crema-borde #fff;
+    background-color: #fff;
+  }
+}
+
+.tab-contador {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 11px;
+  background-color: $dorado;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.tab-content {
+  animation: aparecer 0.3s ease;
+}
+
+@keyframes aparecer {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tabs-movil-trigger {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid $crema-borde;
+  border-radius: 12px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: $texto;
+
+  > i:first-child {
+    color: $dorado;
+    font-size: 1.2rem;
+    width: 24px;
+    text-align: center;
+  }
+
+  .tabs-movil-label {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-align: left;
+
+    i {
+      color: $dorado;
+    }
+  }
+
+  .tabs-movil-chevron {
+    color: #999;
+    font-size: 0.75rem;
+    transition: transform 0.3s ease;
+
+    &.rotado {
+      transform: rotate(180deg);
+    }
+  }
+}
+
+.tabs-movil-dropdown {
+  margin-top: 0.35rem;
+  border: 1px solid $crema-borde;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 6px 16px rgba(45, 42, 62, 0.1);
+  overflow: hidden;
+}
+
+.tabs-movil-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 20px;
+  border: none;
+  border-bottom: 1px solid #f3ecd8;
+  background: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: $texto-suave;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  i {
+    color: $dorado;
+    width: 20px;
+    text-align: center;
+  }
+
+  &:hover,
+  &.active {
+    background-color: $crema;
+  }
+
+  &.active {
+    color: $texto;
+    font-weight: 600;
+    border-left: 3px solid $dorado;
+    padding-left: 17px;
+  }
+}
+
+// =========================================
+// Barra de acciones
+// =========================================
+
+.barra-acciones {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 2.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid $crema-borde;
+
+  .barra-acciones-derecha {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .btn-accion-grabar {
+    min-width: 180px;
+    min-height: 48px;
+    border-radius: 12px;
+    font-weight: 600;
+  }
+}
+
+.btn-accion-volver {
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1.4rem;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  border: 1px solid #dee2e6;
+  background-color: white;
+  color: #495057;
+
+  i {
+    transition: transform 0.25s ease;
+  }
+
+  &:hover {
+    background-color: #f8f9fa;
+
+    i {
+      transform: translateX(-3px);
+    }
+  }
+}
+
+
+// =========================================
+// Tomar datos de una actividad (opcional)
+// =========================================
 
 .btn-tomar-actividad {
   display: flex;
@@ -68,16 +318,16 @@ $texto-suave: #6e6a85;
   width: 100%;
   padding: 1rem 1.25rem;
   margin-bottom: 1.5rem;
-  border: 1px solid $lila-borde;
+  border: 1px solid $crema-borde;
   border-radius: 16px;
-  background: linear-gradient(135deg, $lila-suave 0%, $azul-suave 100%);
+  background: linear-gradient(135deg, $crema 0%, $crema-claro 100%);
   text-align: left;
   cursor: pointer;
   transition: box-shadow 0.25s ease, transform 0.25s ease;
 
   &:hover,
   &:focus-visible {
-    box-shadow: 0 8px 22px rgba(108, 92, 231, 0.16);
+    box-shadow: 0 8px 22px rgba(201, 162, 39, 0.16);
     transform: translateY(-2px);
     outline: none;
 
@@ -94,10 +344,10 @@ $texto-suave: #6e6a85;
     width: 48px;
     height: 48px;
     border-radius: 14px;
-    background: linear-gradient(135deg, #8e7cf3 0%, #5b9bd5 100%);
+    background: linear-gradient(135deg, #e0bd52 0%, #c9a227 100%);
     color: white;
     font-size: 1.25rem;
-    box-shadow: 0 4px 10px rgba(108, 92, 231, 0.25);
+    box-shadow: 0 4px 10px rgba(201, 162, 39, 0.25);
   }
 
   .btn-tomar-texto {
@@ -118,18 +368,18 @@ $texto-suave: #6e6a85;
   }
 
   .btn-tomar-flecha {
-    color: $lila;
+    color: $dorado;
     transition: transform 0.25s ease;
   }
 }
 
 .panel-actividades {
   margin-bottom: 1.5rem;
-  border: 1px solid $lila-borde;
+  border: 1px solid $crema-borde;
   border-radius: 18px;
-  background-color: #fbfaff;
+  background-color: #fffdf7;
   overflow: hidden;
-  box-shadow: 0 10px 30px rgba(108, 92, 231, 0.08);
+  box-shadow: 0 10px 30px rgba(201, 162, 39, 0.08);
 
   .panel-actividades-cabecera {
     display: flex;
@@ -137,8 +387,8 @@ $texto-suave: #6e6a85;
     justify-content: space-between;
     gap: 0.5rem;
     padding: 0.9rem 1.25rem;
-    background: linear-gradient(135deg, $lila-suave 0%, $azul-suave 100%);
-    border-bottom: 1px solid $lila-borde;
+    background: linear-gradient(135deg, $crema 0%, $crema-claro 100%);
+    border-bottom: 1px solid $crema-borde;
   }
 
   .panel-actividades-titulo {
@@ -147,7 +397,7 @@ $texto-suave: #6e6a85;
     color: $texto;
 
     i {
-      color: $lila;
+      color: $dorado;
     }
   }
 
@@ -155,17 +405,17 @@ $texto-suave: #6e6a85;
     display: inline-flex;
     align-items: center;
     padding: 0.3rem 0.8rem;
-    border: 1px solid $lila-borde;
+    border: 1px solid $crema-borde;
     border-radius: 20px;
     background-color: white;
     font-size: 0.85rem;
     font-weight: 600;
-    color: $lila;
+    color: $dorado-oscuro;
     cursor: pointer;
     transition: background-color 0.2s ease;
 
     &:hover {
-      background-color: $lila-suave;
+      background-color: $crema;
     }
   }
 
@@ -185,12 +435,12 @@ $texto-suave: #6e6a85;
 
     .form-select,
     .form-control {
-      border-color: $lila-borde;
+      border-color: $crema-borde;
       border-radius: 10px;
 
       &:focus {
-        border-color: #a99cf5;
-        box-shadow: 0 0 0 0.2rem rgba(108, 92, 231, 0.15);
+        border-color: #d9bf6a;
+        box-shadow: 0 0 0 0.2rem rgba(201, 162, 39, 0.15);
       }
     }
 
@@ -200,8 +450,8 @@ $texto-suave: #6e6a85;
     }
 
     .input-group .btn {
-      border-color: $lila-borde;
-      color: $lila;
+      border-color: $crema-borde;
+      color: $dorado;
       border-top-right-radius: 10px;
       border-bottom-right-radius: 10px;
     }
@@ -221,7 +471,7 @@ $texto-suave: #6e6a85;
 }
 
 .actividad-card {
-  --tono-area: #{$lila};
+  --tono-area: #{$dorado};
   position: relative;
   min-width: 0;
   display: flex;
@@ -229,7 +479,7 @@ $texto-suave: #6e6a85;
   align-items: stretch;
   gap: 0.6rem;
   padding: 1rem 1rem 0.9rem;
-  border: 1px solid #ece9f7;
+  border: 1px solid #f1ead6;
   border-top: 4px solid var(--tono-area);
   border-radius: 16px;
   background-color: white;
@@ -241,6 +491,41 @@ $texto-suave: #6e6a85;
   &:hover {
     transform: translateY(-3px);
     box-shadow: 0 10px 24px rgba(45, 42, 62, 0.1);
+  }
+
+  // Actividad que ya tiene galería: tarjeta apagada con cinta en la
+  // esquina. Al pasar el mouse o seleccionarla recupera su color.
+  &.con-galeria {
+    overflow: hidden;
+    background-color: $crema-claro;
+
+    > :not(.actividad-cinta) {
+      opacity: 0.7;
+      transition: opacity 0.25s ease;
+    }
+
+    &:hover > :not(.actividad-cinta),
+    &.selected > :not(.actividad-cinta) {
+      opacity: 1;
+    }
+  }
+
+  .actividad-cinta {
+    position: absolute;
+    top: 22px;
+    right: -42px;
+    width: 160px;
+    padding: 0.2rem 0;
+    transform: rotate(45deg);
+    background: linear-gradient(135deg, #e0bd52 0%, $dorado 100%);
+    color: white;
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-align: center;
+    text-transform: uppercase;
+    box-shadow: 0 2px 6px rgba(138, 109, 29, 0.3);
+    pointer-events: none;
   }
 
   &.selected {
@@ -317,7 +602,12 @@ $texto-suave: #6e6a85;
     }
   }
 
+  // Chulito de selección en la esquina inferior derecha, libre en todas
+  // las tarjetas (la superior la usa la cinta de "Con galería")
   .actividad-check {
+    position: absolute;
+    right: 1rem;
+    bottom: 0.85rem;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -328,6 +618,10 @@ $texto-suave: #6e6a85;
     background-color: var(--tono-area);
     color: white;
     font-size: 0.75rem;
+  }
+
+  &.con-galeria .actividad-titulo {
+    padding-right: 2.5rem;
   }
 
   .actividad-titulo {
@@ -358,7 +652,7 @@ $texto-suave: #6e6a85;
     flex-wrap: wrap;
     gap: 0.4rem;
     padding-top: 0.6rem;
-    border-top: 1px dashed #ece9f7;
+    border-top: 1px dashed #f1ead6;
   }
 
   .actividad-docente {
@@ -382,16 +676,6 @@ $texto-suave: #6e6a85;
     font-weight: 700;
   }
 
-  .actividad-con-galeria {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.15rem 0.55rem;
-    border-radius: 20px;
-    background-color: #fff4e5;
-    color: #b26a00;
-    font-size: 0.72rem;
-    font-weight: 600;
-  }
 }
 
 // =========================================
@@ -404,10 +688,10 @@ $texto-suave: #6e6a85;
   gap: 0.25rem;
   padding: 1rem 1.25rem;
   margin-bottom: 1.25rem;
-  border: 1px solid $lila-borde;
-  border-left: 5px solid $lila;
+  border: 1px solid $crema-borde;
+  border-left: 5px solid $dorado;
   border-radius: 14px;
-  background: linear-gradient(135deg, $lila-suave 0%, $azul-suave 100%);
+  background: linear-gradient(135deg, $crema 0%, $crema-claro 100%);
 
   .actividad-asociada-cabecera {
     display: flex;
@@ -421,14 +705,14 @@ $texto-suave: #6e6a85;
     gap: 0.5rem;
 
     .btn {
-      border-color: $lila-borde;
+      border-color: $crema-borde;
       border-radius: 20px;
       background-color: white;
-      color: $lila;
+      color: $dorado;
       font-weight: 600;
 
       &:hover {
-        background-color: $lila-suave;
+        background-color: $crema;
       }
     }
   }
@@ -436,7 +720,7 @@ $texto-suave: #6e6a85;
   .actividad-asociada-rotulo {
     font-size: 0.75rem;
     font-weight: 700;
-    color: $lila;
+    color: $dorado;
     letter-spacing: 0.04em;
     text-transform: uppercase;
   }
@@ -445,6 +729,17 @@ $texto-suave: #6e6a85;
     font-weight: 700;
     font-size: 1.02rem;
     color: $texto;
+  }
+
+  .actividad-asociada-aviso {
+    align-self: flex-start;
+    margin-top: 0.15rem;
+    padding: 0.2rem 0.65rem;
+    border-radius: 20px;
+    background-color: #fff1d6;
+    color: #9a5b00;
+    font-size: 0.8rem;
+    font-weight: 600;
   }
 
   .actividad-asociada-detalle {
@@ -466,6 +761,30 @@ $texto-suave: #6e6a85;
 }
 
 @media (max-width: 768px) {
+  .tabs-desktop {
+    display: none;
+  }
+
+  .tabs-movil {
+    display: block;
+  }
+
+  // En móvil los botones se apilan, con Grabar primero
+  .barra-acciones {
+    flex-direction: column-reverse;
+    align-items: stretch;
+
+    .barra-acciones-derecha {
+      flex-direction: column-reverse;
+      align-items: stretch;
+    }
+
+    .btn-accion-grabar,
+    .btn-accion-volver {
+      width: 100%;
+    }
+  }
+
   .panel-actividades .panel-actividades-cuerpo {
     padding: 1rem;
   }

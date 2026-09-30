@@ -1,5 +1,6 @@
-<div class="modulo">
+<div [class.modulo]="!embebido">
   <app-header
+    *ngIf="!embebido"
     [tituloModulo]="titulo"
     [mostrarCrear]="false"
     [accion]="'gestionar'"
@@ -8,7 +9,8 @@
     [iconoTitulo]="'/assets/images/galeria.png'"
   ></app-header>
 
-  <div class="container mt-4">
+  <!-- Dentro de la pestaña ya está el contenedor del formulario -->
+  <div [class.container]="!embebido" [class.mt-4]="!embebido">
 
     <!-- Zona de upload -->
     <div class="upload-section">
@@ -328,14 +330,12 @@
       </div>
     </div>
 
-    <!-- Botón volver -->
-    <div class="row mt-5">
-      <div class="col-12">
-        <button class="btn btn-lg btn-secondary w-100" (click)="volver()">
-          <i class="fas fa-arrow-left me-2"></i>
-          Volver a Galerías
-        </button>
-      </div>
+    <!-- Volver a la galería en la que se está (solo como pantalla propia) -->
+    <div class="barra-volver" *ngIf="!embebido">
+      <button type="button" class="btn-volver-galeria" (click)="volver()">
+        <i class="fas fa-arrow-left"></i>
+        Volver a la galería
+      </button>
     </div>
 
   </div>

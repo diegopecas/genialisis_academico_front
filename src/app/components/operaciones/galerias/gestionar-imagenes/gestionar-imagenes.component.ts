@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -53,7 +53,18 @@ interface ImagenSubida {
 })
 export class GestionarImagenesComponent implements OnInit {
 
+  /**
+   * Uso como pestaña dentro del formulario de la galería: el id llega por
+   * aquí y no se pintan el encabezado ni el botón de volver. Sin estos
+   * inputs el componente sigue funcionando como pantalla propia por la ruta
+   * /operaciones/galerias/imagenes/:id.
+   */
+  @Input() idGaleriaEntrada: string | null = null;
+  @Input() embebido = false;
+
   titulo = "Gestionar Imágenes";
+  // Al tener el id de la galería se cambia por su pantalla de edición:
+  // volver lleva a la galería en la que se está, no al listado.
   regresar = "/operaciones/galerias";
 
   idGaleria!: string;
@@ -106,14 +117,17 @@ export class GestionarImagenesComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    const id = this.route.snapshot.paramMap.get('id');
+    const id = this.idGaleriaEntrada || this.route.snapshot.paramMap.get('id');
     if (!id) {
       Swal.fire('Error', 'ID de galería no válido', 'error');
-      this.volver();
+      if (!this.embebido) {
+        this.volver();
+      }
       return;
     }
 
     this.idGaleria = id;
+    this.regresar = '/operaciones/galerias/editar/' + id;
     this.cargarGaleria();
     this.cargarImagenes();
     this.cargarLimites();
@@ -151,7 +165,11 @@ export class GestionarImagenesComponent implements OnInit {
       error: (error) => {
         console.error("Error al cargar galería:", error);
         Swal.fire('Error', 'No se pudo cargar la galería', 'error');
-        this.volver();
+        // Si la galería no carga, su pantalla de edición tampoco: al listado.
+        // Dentro de la pestaña se queda en el formulario.
+        if (!this.embebido) {
+          this.router.navigate(['/operaciones/galerias']);
+        }
       }
     });
   }

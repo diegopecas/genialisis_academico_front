@@ -278,7 +278,7 @@ export class MenuModulosService {
             iconoArbol: '📚',
             alt: 'Académicos',
             imagen: 'assets/images/academico.png',
-            permisos: ['reportes.academicos_estudiante', 'reportes.calificaciones_estudiante', 'reportes.calificaciones_sprint', 'reportes.cobertura_curricular', 'reportes.cursos_extra', 'reportes.ejecucion_tareas', 'reportes.malla_curricular', 'reportes.distribucion_malla', 'reportes.horarios', 'reportes.monitoreo_sprint'],
+            permisos: ['reportes.academicos_estudiante', 'reportes.calificaciones_estudiante', 'reportes.calificaciones_sprint', 'reportes.cobertura_curricular', 'reportes.cursos_extra', 'reportes.ejecucion_actividades', 'reportes.malla_curricular', 'reportes.distribucion_malla', 'reportes.horarios', 'reportes.monitoreo_sprint'],
             keywords: ['notas', 'boletines', 'curriculo', 'pedagogico'],
             opciones: [
               { id: 'academicos-estudiante', label: 'Reportes Académicos', alt: 'Reportes Académicos', imagen: 'assets/images/reporte-academicos-estudiante.png', iconoArbol: '📄', ruta: '/reportes/academicos-estudiante', permiso: 'reportes.academicos_estudiante', keywords: ['boletines', 'notas', 'academico'] },
@@ -289,7 +289,7 @@ export class MenuModulosService {
               { id: 'cobertura-curricular', label: 'Cobertura Curricular', alt: 'Cobertura Curricular', imagen: 'assets/images/cobertura-curricular.png', iconoArbol: '📈', ruta: '/reportes/cobertura-curricular', permiso: 'reportes.cobertura_curricular', keywords: ['avance', 'curriculo', 'cumplimiento'] },
               { id: 'distribucion-malla', label: 'Distribución de la Malla', alt: 'Distribución de la Malla', imagen: 'assets/images/distribucion-malla.png', iconoArbol: '🧩', ruta: '/reportes/distribucion-malla', permiso: 'reportes.distribucion_malla', keywords: ['malla', 'distribucion', 'logros', 'indicadores', 'cobertura', 'faltantes', 'pensum', 'matriz'] },
               { id: 'horarios', label: 'Horarios', alt: 'Horarios', imagen: 'assets/images/reporte-horarios.png', iconoArbol: '🕐', ruta: '/reportes/horarios', permiso: 'reportes.horarios', keywords: ['franjas', 'clases', 'grupos', 'dias', 'docentes', 'cruces', 'choques', 'semana'] },
-              { id: 'ejecucion-tareas', label: 'Ejecución de Tareas', alt: 'Ejecución de Tareas', imagen: 'assets/images/reporte-ejecucion-tareas.png', iconoArbol: '📊', ruta: '/reportes/ejecucion-tareas', permiso: 'reportes.ejecucion_tareas', keywords: ['actividades', 'cumplimiento', 'trabajos'] },
+              { id: 'ejecucion-actividades', label: 'Ejecución de Actividades', alt: 'Ejecución de Actividades', imagen: 'assets/images/reporte-ejecucion-tareas.png', iconoArbol: '📊', ruta: '/reportes/ejecucion-actividades', permiso: 'reportes.ejecucion_actividades', keywords: ['actividades', 'tareas', 'cumplimiento', 'trabajos'] },
               { id: 'cursos-extra', label: 'Reporte Cursos Extra', alt: 'Reporte Cursos Extra', imagen: 'assets/images/reporte-cursos-extra.png', iconoArbol: '🎭', ruta: '/reportes/cursos-extra', permiso: 'reportes.cursos_extra', keywords: ['extracurriculares', 'talleres', 'inscritos'] }
             ]
           },

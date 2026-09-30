@@ -107,9 +107,15 @@
               *ngFor="let actividad of actividadesFiltradas; trackBy: trackById"
               class="actividad-card"
               [class.selected]="esActividadSeleccionada(actividad)"
+              [class.con-galeria]="actividad.tiene_galeria == 1"
               [style.--tono-area]="actividad.vista_color"
               (click)="seleccionarActividad(actividad)"
             >
+              <!-- Cinta de la esquina: la actividad ya tiene galería -->
+              <span class="actividad-cinta" *ngIf="actividad.tiene_galeria == 1">
+                Con galería
+              </span>
+
               <span class="actividad-cabecera">
                 <span class="actividad-fecha-chip" *ngIf="actividad.vista_dia">
                   <strong>{{ actividad.vista_dia }}</strong>
@@ -139,9 +145,6 @@
                   <span class="actividad-avatar">{{ actividad.vista_iniciales }}</span>
                   {{ actividad.nombre_docente }}
                 </span>
-                <span class="actividad-con-galeria" *ngIf="actividad.tiene_galeria == 1">
-                  <i class="fas fa-images me-1"></i>Ya tiene galería
-                </span>
               </span>
             </button>
           </div>
@@ -164,6 +167,9 @@
           </span>
         </div>
         <span class="actividad-asociada-titulo">{{ actividadSeleccionada.titulo_actividad }}</span>
+        <span class="actividad-asociada-aviso" *ngIf="actividadSeleccionada.tiene_galeria == 1">
+          <i class="fas fa-exclamation-circle me-1"></i>Esta actividad ya tiene una galería
+        </span>
         <span class="actividad-asociada-detalle">
           {{ actividadSeleccionada.nombre_grupo }}
           <ng-container *ngIf="actividadSeleccionada.nombre_area"> · {{ actividadSeleccionada.nombre_area }}</ng-container>
@@ -172,26 +178,106 @@
       </div>
     </ng-container>
 
-    <!-- Actividad asociada (solo lectura al editar o consultar) -->
-    <div class="row" *ngIf="accion !== 'crear' && actividadAsociada">
-      <div class="col-12">
-        <div class="actividad-asociada">
-          <span class="actividad-asociada-rotulo">
-            <i class="fas fa-link me-1"></i>Actividad asociada
-          </span>
-          <span class="actividad-asociada-titulo">{{ actividadAsociada.titulo }}</span>
-          <span class="actividad-asociada-detalle">
-            {{ actividadAsociada.nombre_grupo }}
-            <ng-container *ngIf="actividadAsociada.nombre_area"> · {{ actividadAsociada.nombre_area }}</ng-container>
-            <ng-container *ngIf="actividadAsociada.fecha_ejecucion"> · {{ formatearFechaHora(actividadAsociada.fecha_ejecucion) }}</ng-container>
-          </span>
-        </div>
+    <!-- Pestañas DESKTOP. Mismo patrón del formulario de grupos. -->
+    <div class="tabs-desktop">
+      <div class="tabs-nav">
+        <button
+          type="button"
+          class="tab-item"
+          [class.active]="pestanaActiva === 'basico'"
+          (click)="seleccionarPestana('basico')"
+        >
+          <i class="fas fa-info-circle"></i>
+          Información básica
+        </button>
+        <button
+          type="button"
+          *ngIf="model.es_publica === 0"
+          class="tab-item"
+          [class.active]="pestanaActiva === 'grupos'"
+          (click)="seleccionarPestana('grupos')"
+        >
+          <i class="fas fa-users"></i>
+          Grupos con acceso
+          <span class="tab-contador">{{ gruposSeleccionados.length }}</span>
+        </button>
+        <button
+          type="button"
+          *ngIf="mostrarPestanaImagenes"
+          class="tab-item"
+          [class.active]="pestanaActiva === 'imagenes'"
+          (click)="seleccionarPestana('imagenes')"
+        >
+          <i class="fas fa-images"></i>
+          Imágenes
+        </button>
       </div>
     </div>
 
-    <!-- Formulario -->
-    <div>
-      <!-- Información básica -->
+    <!-- Pestañas MÓVIL (menú desplegable) -->
+    <div class="tabs-movil">
+      <button type="button" class="tabs-movil-trigger" (click)="menuMovilAbierto = !menuMovilAbierto">
+        <i class="fas" [ngClass]="menuMovilAbierto ? 'fa-times' : 'fa-bars'"></i>
+        <span class="tabs-movil-label">
+          <ng-container *ngIf="pestanaActiva === 'basico'"><i class="fas fa-info-circle"></i> Información básica</ng-container>
+          <ng-container *ngIf="pestanaActiva === 'grupos'"><i class="fas fa-users"></i> Grupos con acceso</ng-container>
+          <ng-container *ngIf="pestanaActiva === 'imagenes'"><i class="fas fa-images"></i> Imágenes</ng-container>
+        </span>
+        <i class="fas fa-chevron-down tabs-movil-chevron" [class.rotado]="menuMovilAbierto"></i>
+      </button>
+      <div class="tabs-movil-dropdown" *ngIf="menuMovilAbierto">
+        <button
+          type="button"
+          class="tabs-movil-item"
+          [class.active]="pestanaActiva === 'basico'"
+          (click)="seleccionarPestana('basico')"
+        >
+          <i class="fas fa-info-circle"></i>
+          Información básica
+        </button>
+        <button
+          type="button"
+          *ngIf="model.es_publica === 0"
+          class="tabs-movil-item"
+          [class.active]="pestanaActiva === 'grupos'"
+          (click)="seleccionarPestana('grupos')"
+        >
+          <i class="fas fa-users"></i>
+          Grupos con acceso
+          <span class="tab-contador">{{ gruposSeleccionados.length }}</span>
+        </button>
+        <button
+          type="button"
+          *ngIf="mostrarPestanaImagenes"
+          class="tabs-movil-item"
+          [class.active]="pestanaActiva === 'imagenes'"
+          (click)="seleccionarPestana('imagenes')"
+        >
+          <i class="fas fa-images"></i>
+          Imágenes
+        </button>
+      </div>
+    </div>
+
+    <!--
+      Contenido de las pestañas. Se ocultan con [hidden] y no con *ngIf para
+      que el contenedor del CKEditor no se destruya al cambiar de pestaña.
+    -->
+    <div class="tab-content" [hidden]="pestanaActiva !== 'basico'">
+
+      <!-- Actividad asociada (solo lectura al editar o consultar) -->
+      <div class="actividad-asociada" *ngIf="accion !== 'crear' && actividadAsociada">
+        <span class="actividad-asociada-rotulo">
+          <i class="fas fa-link me-1"></i>Actividad asociada
+        </span>
+        <span class="actividad-asociada-titulo">{{ actividadAsociada.titulo }}</span>
+        <span class="actividad-asociada-detalle">
+          {{ actividadAsociada.nombre_grupo }}
+          <ng-container *ngIf="actividadAsociada.nombre_area"> · {{ actividadAsociada.nombre_area }}</ng-container>
+          <ng-container *ngIf="actividadAsociada.fecha_ejecucion"> · {{ formatearFechaHora(actividadAsociada.fecha_ejecucion) }}</ng-container>
+        </span>
+      </div>
+
       <div class="row">
         <div class="col-sm-12 col-md-8">
           <label for="nombre" class="form-label">Nombre <span class="text-danger">*</span></label>
@@ -237,11 +323,15 @@
             class="form-select form-select-lg"
             id="tipoGaleria"
             [(ngModel)]="model.es_publica"
+            (ngModelChange)="onTipoGaleriaChange()"
             [disabled]="!editable"
           >
             <option [ngValue]="1">Pública (visible para todos)</option>
             <option [ngValue]="0">Privada (solo grupos seleccionados)</option>
           </select>
+          <small class="form-text text-muted" *ngIf="model.es_publica === 0">
+            Escoge los grupos en la pestaña <a href="javascript:void(0)" (click)="seleccionarPestana('grupos')">Grupos con acceso</a>
+          </small>
         </div>
         <div class="col-sm-12 col-md-4">
           <label for="orden" class="form-label">Orden</label>
@@ -268,57 +358,60 @@
           </select>
         </div>
       </div>
+    </div>
 
-      <!-- Asignación de grupos (solo si es privada) -->
-      <div class="row" *ngIf="model.es_publica === 0">
-        <div class="col-12">
-          <hr />
-          <h5 class="mb-3">Grupos con acceso <span class="text-danger">*</span></h5>
-          <div class="alert alert-info">
-            <i class="fas fa-info-circle me-2"></i>
-            Selecciona los grupos que podrán ver esta galería
-          </div>
+    <!-- Asignación de grupos (solo si es privada) -->
+    <div class="tab-content" [hidden]="pestanaActiva !== 'grupos'" *ngIf="model.es_publica === 0">
+      <div class="nota-grupos">
+        <i class="fas fa-info-circle"></i>
+        Selecciona los grupos que podrán ver esta galería
+      </div>
 
-          <div class="grupos-grid">
-            <div
-              *ngFor="let grupo of grupos"
-              class="grupo-checkbox"
-              [class.selected]="isGrupoSeleccionado(grupo.id)"
-            >
-              <label class="form-check-label">
-                <input
-                  type="checkbox"
-                  class="form-check-input"
-                  [checked]="isGrupoSeleccionado(grupo.id)"
-                  (change)="toggleGrupo(grupo.id)"
-                  [disabled]="!editable"
-                />
-                <span class="grupo-nombre">{{ grupo.nombre }}</span>
-              </label>
-            </div>
-          </div>
+      <div class="grupos-grid">
+        <div
+          *ngFor="let grupo of grupos"
+          class="grupo-checkbox"
+          [class.selected]="isGrupoSeleccionado(grupo.id)"
+        >
+          <label class="form-check-label">
+            <input
+              type="checkbox"
+              class="form-check-input"
+              [checked]="isGrupoSeleccionado(grupo.id)"
+              (change)="toggleGrupo(grupo.id)"
+              [disabled]="!editable"
+            />
+            <span class="grupo-nombre">{{ grupo.nombre }}</span>
+          </label>
         </div>
       </div>
     </div>
 
-    <!-- Botones de acción -->
-    <div class="row mt-5">
-      <div class="col-sm-6 col-md-4" *ngIf="editable">
-        <button class="btn btn-lg btn-warning w-100" (click)="guardar()">
+    <!-- Imágenes de la galería: el mismo componente de Gestionar Imágenes,
+         dentro de la pestaña. Se crea al abrirla por primera vez. -->
+    <div
+      class="tab-content"
+      *ngIf="mostrarPestanaImagenes && imagenesAbierta"
+      [hidden]="pestanaActiva !== 'imagenes'"
+    >
+      <app-gestionar-imagenes
+        [idGaleriaEntrada]="model.id"
+        [embebido]="true"
+      ></app-gestionar-imagenes>
+    </div>
+
+    <!-- Barra de acciones -->
+    <div class="barra-acciones">
+      <button type="button" class="btn-accion-volver" (click)="volver()">
+        <i class="fas fa-arrow-left"></i>
+        Volver
+      </button>
+      <div class="barra-acciones-derecha">
+        <!-- En la pestaña de imágenes cada foto se guarda al subirla: Grabar
+             no aplica ahí y se oculta para no confundir. -->
+        <button type="button" class="btn btn-lg btn-warning btn-accion-grabar" *ngIf="editable && pestanaActiva !== 'imagenes'" (click)="guardar()">
           <i class="fas fa-save me-2"></i>
           Grabar
-        </button>
-      </div>
-      <div class="col-sm-6 col-md-4" *ngIf="accion === 'editar'">
-        <button class="btn btn-lg btn-primary w-100" (click)="gestionarImagenes()">
-          <i class="fas fa-images me-2"></i>
-          Gestionar Imágenes
-        </button>
-      </div>
-      <div class="col-sm-6" [ngClass]="{'col-md-4': accion === 'editar', 'col-md-8': accion !== 'editar'}">
-        <button class="btn btn-lg btn-secondary w-100" (click)="volver()">
-          <i class="fas fa-arrow-left me-2"></i>
-          Volver
         </button>
       </div>
     </div>
