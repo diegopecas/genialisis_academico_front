@@ -30,6 +30,7 @@ export class CalificacionesService {
   private servicioCalificacionesTareasSprintEstudiantes = environment.api + 'calificaciones-tareas-sprint-estudiantes';
   private servicioCalificacionesPDMEstudiante = environment.api + 'calificaciones-pdm-estudiante';
   private servicioCalificacionesPDMEstudiantes = environment.api + 'calificaciones-pdm-estudiantes';    
+  private servicioReporteActividades = environment.api + 'calificaciones-reporte-actividades';
 
   constructor(private http: HttpClient) {}
 
@@ -259,6 +260,22 @@ export class CalificacionesService {
 
   obtenerCalificacionesPorGrupo(id_sprint: any, id_grupo: any) {
     return this.obtenerCalificacionesPorSprintEstudiantes(id_sprint, { id_grupo });
+  }
+
+  /** Reporte de calificaciones por actividad: corte académico + grupo. */
+  obtenerReporteCalificacionesActividades(id_corte_academico: any, id_grupo: any) {
+    return this.http
+      .get<HttpResponse<Object>>(this.servicioReporteActividades + `/${id_corte_academico}/${id_grupo}`, { observe: 'response' })
+      .pipe(
+        tap((response: HttpResponse<Object>) => {
+          let respuesta: any = response.body;
+          if (respuesta.error) {
+            throw respuesta.error;
+          }
+          return response;
+        }),
+        catchError(this.handleError)
+      );
   }
 
   private handleError(error: HttpErrorResponse) {
