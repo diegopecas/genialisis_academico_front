@@ -10,7 +10,8 @@
 
   <div class="container mt-5">
 
-    <!-- Tomar los datos de una actividad ejecutada (opcional, solo al crear).
+    <!-- Tomar los datos de una actividad ejecutada (opcional: al crear, o al
+         editar una galería que aún no tiene actividad).
          La lista se pide al back cuando se abre el panel, una sola vez, y los
          filtros trabajan sobre ella. -->
     <ng-container *ngIf="mostrarBusquedaActividad && editable">
@@ -24,8 +25,8 @@
       >
         <span class="btn-tomar-icono"><i class="fas fa-chalkboard-teacher"></i></span>
         <span class="btn-tomar-texto">
-          <strong>Tomar datos de una actividad</strong>
-          <small>Opcional. Llena el nombre, la descripción, la fecha y el grupo desde una actividad ejecutada</small>
+          <strong>Asociar una actividad</strong>
+          <small>Opcional. Llena el nombre, la descripción, la fecha y el grupo desde una actividad ejecutada, de grupo o extracurricular</small>
         </span>
         <i class="fas fa-chevron-right btn-tomar-flecha"></i>
       </button>
@@ -44,14 +45,14 @@
         <div class="panel-actividades-cuerpo">
           <div class="row filtros-actividades" *ngIf="actividades.length > 0">
             <div class="col-sm-12 col-md-4">
-              <label for="filtroGrupoActividad" class="form-label">Grupo</label>
+              <label for="filtroGrupoActividad" class="form-label">Grupo o curso</label>
               <select
                 class="form-select"
                 id="filtroGrupoActividad"
                 [(ngModel)]="filtroGrupoActividad"
                 (ngModelChange)="onFiltroGrupoActividadChange()"
               >
-                <option value="">Todos los grupos</option>
+                <option value="">Todos</option>
                 <option *ngFor="let grupo of gruposActividades; trackBy: trackById" [value]="grupo.id">{{ grupo.nombre }}</option>
               </select>
             </div>
@@ -76,7 +77,7 @@
                   id="buscarActividad"
                   [(ngModel)]="filtroTextoActividad"
                   (ngModelChange)="aplicarFiltrosActividades()"
-                  placeholder="Título, grupo, área o docente"
+                  placeholder="Título, grupo, curso, área o docente"
                 />
                 <button
                   type="button"
@@ -124,7 +125,7 @@
                 <span class="actividad-cabecera-texto">
                   <span class="actividad-titulo">{{ actividad.titulo_actividad }}</span>
                   <span class="actividad-grupo">
-                    <i class="fas fa-users me-1"></i>{{ actividad.nombre_grupo }}
+                    <i class="fas me-1" [ngClass]="actividad.vista_extracurricular ? 'fa-shapes' : 'fa-users'"></i>{{ actividad.vista_grupo_curso }}
                     <ng-container *ngIf="actividad.vista_hora"> · {{ actividad.vista_hora }}</ng-container>
                   </span>
                 </span>
@@ -171,7 +172,7 @@
           <i class="fas fa-exclamation-circle me-1"></i>Esta actividad ya tiene una galería
         </span>
         <span class="actividad-asociada-detalle">
-          {{ actividadSeleccionada.nombre_grupo }}
+          {{ actividadSeleccionada.vista_grupo_curso }}
           <ng-container *ngIf="actividadSeleccionada.nombre_area"> · {{ actividadSeleccionada.nombre_area }}</ng-container>
           <ng-container *ngIf="actividadSeleccionada.fecha_ejecucion"> · {{ formatearFechaHora(actividadSeleccionada.fecha_ejecucion) }}</ng-container>
         </span>

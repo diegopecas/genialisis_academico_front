@@ -70,8 +70,10 @@ export class CrearGaleriaComponent implements OnInit, AfterViewInit, OnDestroy {
   imagenesAbierta = false;
 
   // Selección opcional de una actividad ejecutada para prellenar la galería.
-  // Solo al crear. La lista se pide al back cuando el usuario abre el panel
-  // y los filtros trabajan sobre ella sin volver a consultar.
+  // Al crear, y al editar una galería que todavía no tiene actividad. La
+  // lista se pide al back cuando el usuario abre el panel y los filtros
+  // trabajan sobre ella sin volver a consultar. Trae actividades de grupo y
+  // de cursos extracurriculares.
   panelActividadesAbierto = false;
   private actividadesCargadas = false;
   filtroGrupoActividad: string = '';
@@ -89,6 +91,9 @@ export class CrearGaleriaComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // Actividad asociada, de solo lectura al editar o consultar
   actividadAsociada: any = null;
+  // Al editar, el botón de tomar actividad espera a que cargue la galería
+  // para saber si ya tiene una asociada.
+  private galeriaCargada = false;
 
   private editorDescripcion: any = null;
 
@@ -202,9 +207,14 @@ export class CrearGaleriaComponent implements OnInit, AfterViewInit, OnDestroy {
   // Selección de la actividad ejecutada
   // =========================================
 
-  /** Al crear se ofrece tomar los datos de una actividad ejecutada. */
+  /**
+   * Se ofrece tomar los datos de una actividad al crear, y al editar una
+   * galería que aún no tiene actividad asociada. Si ya la tiene, se muestra
+   * de solo lectura y no se puede cambiar.
+   */
   get mostrarBusquedaActividad(): boolean {
-    return this.accion === 'crear';
+    return this.accion === 'crear'
+      || (this.accion === 'editar' && this.galeriaCargada && !this.actividadAsociada);
   }
 
   /** Abre el panel de actividades. La lista se pide solo la primera vez. */
@@ -229,7 +239,7 @@ export class CrearGaleriaComponent implements OnInit, AfterViewInit, OnDestroy {
         this.actividades = (response.body || []).map((a: any) => this.prepararActividad(a));
         this.actividadesCargadas = true;
         this.cargandoActividades = false;
-        this.gruposActividades = this.valoresUnicos(this.actividades, 'id_grupo', 'nombre_grupo');
+        this.gruposActividades = this.valoresUnicos(this.actividades, 'vista_id_grupo_curso', 'vista_grupo_curso');
         this.armarAreasActividades();
         this.aplicarFiltrosActividades();
       },
@@ -245,8 +255,17 @@ export class CrearGaleriaComponent implements OnInit, AfterViewInit, OnDestroy {
     const [fecha, hora] = String(actividad.fecha_ejecucion || '').split(' ');
     const [year, month, day] = (fecha || '').split('-').map(Number);
     const date = new Date(year, (month || 1) - 1, day || 1);
+    const esExtracurricular = !actividad.id_grupo && !!actividad.id_curso_extra;
     return {
       ...actividad,
+      // Grupo de la actividad o, si es de un curso extracurricular, el curso.
+      // El id del curso lleva prefijo para que no choque con el de un grupo
+      // en el filtro.
+      vista_extracurricular: esExtracurricular,
+      vista_id_grupo_curso: esExtracurricular ? 'curso-' + actividad.id_curso_extra : actividad.id_grupo,
+      vista_grupo_curso: esExtracurricular
+        ? `${actividad.nombre_curso || ''} (extracurricular)`
+        : (actividad.nombre_grupo || ''),
       vista_dia: day ? String(day) : '',
       vista_mes: day ? date.toLocaleDateString('es-CO', { month: 'short' }).replace('.', '') : '',
       vista_hora: hora ? hora.substring(0, 5) : '',
@@ -278,10 +297,10 @@ export class CrearGaleriaComponent implements OnInit, AfterViewInit, OnDestroy {
     return partes.slice(0, 2).map((p) => p.charAt(0).toUpperCase()).join('');
   }
 
-  /** Áreas de las actividades cargadas; si hay grupo escogido, solo las de ese grupo. */
+  /** Áreas de las actividades cargadas; si hay grupo o curso escogido, solo las de ese. */
   private armarAreasActividades(): void {
     const base = this.filtroGrupoActividad
-      ? this.actividades.filter((a) => a.id_grupo === this.filtroGrupoActividad)
+      ? this.actividades.filter((a) => a.vista_id_grupo_curso === this.filtroGrupoActividad)
       : this.actividades;
     this.areasActividades = this.valoresUnicos(base, 'id_area_academica', 'nombre_area');
   }
@@ -298,15 +317,15 @@ export class CrearGaleriaComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /**
    * Deja en actividadesFiltradas las cargadas que cumplen los filtros de
-   * grupo, área y texto (título, grupo, área o docente).
+   * grupo o curso, área y texto (título, grupo o curso, área o docente).
    */
   aplicarFiltrosActividades(): void {
     const texto = this.normalizar(this.filtroTextoActividad);
     this.actividadesFiltradas = this.actividades.filter((a) => {
-      if (this.filtroGrupoActividad && a.id_grupo !== this.filtroGrupoActividad) return false;
+      if (this.filtroGrupoActividad && a.vista_id_grupo_curso !== this.filtroGrupoActividad) return false;
       if (this.filtroAreaActividad && a.id_area_academica !== this.filtroAreaActividad) return false;
       if (!texto) return true;
-      const contenido = `${a.titulo_actividad} ${a.nombre_grupo} ${a.nombre_area} ${a.nombre_docente}`;
+      const contenido = `${a.titulo_actividad} ${a.vista_grupo_curso} ${a.nombre_area} ${a.nombre_docente}`;
       return this.normalizar(contenido).includes(texto);
     });
   }
@@ -339,22 +358,70 @@ export class CrearGaleriaComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   /**
-   * Toma de la actividad el nombre, la descripción, la fecha y el grupo.
-   * La galería queda privada con el grupo de la actividad; todo sigue
-   * editable, así que se puede volver pública o agregar grupos.
+   * Asocia la actividad. Al crear, toma de ella el nombre, la descripción, la
+   * fecha y los grupos. Al editar, la galería ya tiene sus datos, así que se
+   * pregunta si solo se asocia o si también se reemplazan con los de la
+   * actividad.
    */
   seleccionarActividad(actividad: any): void {
+    if (this.accion !== 'editar') {
+      this.asociarActividad(actividad, true);
+      return;
+    }
+
+    Swal.fire({
+      title: 'Asociar actividad',
+      text: '¿Quieres reemplazar el nombre, la descripción, la fecha y los grupos de la galería con los de la actividad?',
+      icon: 'question',
+      showDenyButton: true,
+      showCancelButton: true,
+      confirmButtonText: 'Asociar y tomar sus datos',
+      denyButtonText: 'Solo asociar',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#F5A623',
+      denyButtonColor: '#2C2C2C'
+    }).then((resultado) => {
+      if (resultado.isConfirmed) {
+        this.asociarActividad(actividad, true);
+      } else if (resultado.isDenied) {
+        this.asociarActividad(actividad, false);
+      }
+    });
+  }
+
+  /**
+   * Deja la actividad asociada y, si se pide, llena el formulario con sus
+   * datos. La galería queda privada con el grupo de la actividad o, si es de
+   * un curso extracurricular, con los grupos de los niños inscritos. Todo
+   * sigue editable, así que se puede volver pública o cambiar los grupos.
+   */
+  private asociarActividad(actividad: any, tomarDatos: boolean): void {
     this.actividadSeleccionada = actividad;
     this.model.id_tarea_x_sprint = actividad.id;
-    this.model.nombre = (actividad.titulo_actividad || '').substring(0, this.MAX_NOMBRE);
-    this.model.descripcion = actividad.descripcion_actividad || '';
-    this.model.fecha = this.soloFecha(actividad.fecha_ejecucion) || this.model.fecha;
-    this.model.es_publica = 0;
-    this.gruposSeleccionados = actividad.id_grupo ? [actividad.id_grupo] : [];
-    this.ponerDescripcionEnEditor(this.model.descripcion);
+
+    if (tomarDatos) {
+      this.model.nombre = (actividad.titulo_actividad || '').substring(0, this.MAX_NOMBRE);
+      this.model.descripcion = actividad.descripcion_actividad || '';
+      this.model.fecha = this.soloFecha(actividad.fecha_ejecucion) || this.model.fecha;
+      this.model.es_publica = 0;
+      this.gruposSeleccionados = this.gruposDeActividad(actividad);
+      this.ponerDescripcionEnEditor(this.model.descripcion);
+    }
+
     // Con la actividad escogida el panel se cierra; queda la tarjeta de la
     // actividad asociada al inicio del formulario.
     this.panelActividadesAbierto = false;
+  }
+
+  /** Grupo de la actividad, o los grupos de los niños inscritos si es extracurricular. */
+  private gruposDeActividad(actividad: any): string[] {
+    if (actividad.id_grupo) {
+      return [actividad.id_grupo];
+    }
+    return String(actividad.ids_grupos_curso || '')
+      .split(',')
+      .map((id: string) => id.trim())
+      .filter((id: string) => id.length > 0);
   }
 
   esActividadSeleccionada(actividad: any): boolean {
@@ -448,6 +515,7 @@ export class CrearGaleriaComponent implements OnInit, AfterViewInit, OnDestroy {
               nombre_area: galeria.nombre_area_actividad
             }
           : null;
+        this.galeriaCargada = true;
 
         // CORREGIDO: Actualizar título con el nombre de la galería
         if (this.accion === 'editar') {
@@ -620,13 +688,15 @@ export class CrearGaleriaComponent implements OnInit, AfterViewInit, OnDestroy {
     this.titulo = `Editar: ${this.model.nombre}`;
     this.submitted = false;
     this.panelActividadesAbierto = false;
+    // Si se creó sin actividad, en edición se puede asociar después
+    this.galeriaCargada = true;
 
     // La actividad elegida pasa a mostrarse de solo lectura, como al editar
     this.actividadAsociada = this.actividadSeleccionada
       ? {
           titulo: this.actividadSeleccionada.titulo_actividad,
           fecha_ejecucion: this.actividadSeleccionada.fecha_ejecucion,
-          nombre_grupo: this.actividadSeleccionada.nombre_grupo,
+          nombre_grupo: this.actividadSeleccionada.vista_grupo_curso,
           nombre_area: this.actividadSeleccionada.nombre_area
         }
       : null;
