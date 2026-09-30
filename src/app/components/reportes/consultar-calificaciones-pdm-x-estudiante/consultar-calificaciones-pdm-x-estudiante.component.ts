@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HeaderComponent } from '../../../common/header/header.component';
 import { TablasComponent } from '../../../common/tablas/tablas.component';
@@ -7,6 +7,7 @@ import { CalificacionesService } from '../../../services/calificaciones.service'
 import { ActivatedRoute, Router } from '@angular/router';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { EstudiantesService } from '../../../services/estudiantes.service';
+import { destruirGraficosDe } from '../../../common/utils/graficos.util';
 
 @Component({
   selector: 'app-reporte-calificacion-pdm-estudiante',
@@ -15,7 +16,9 @@ import { EstudiantesService } from '../../../services/estudiantes.service';
   templateUrl: './consultar-calificaciones-pdm-x-estudiante.component.html',
   styleUrl: './consultar-calificaciones-pdm-x-estudiante.component.scss'
 })
-export class ConsultarCalificacionesPdmXEstudianteComponent {
+export class ConsultarCalificacionesPdmXEstudianteComponent implements OnInit, OnDestroy {
+
+  private readonly elementoHost = inject(ElementRef);
 
   titulo = "Calificaciones PDM";
 
@@ -34,6 +37,12 @@ export class ConsultarCalificacionesPdmXEstudianteComponent {
     private estudiantesService: EstudiantesService
   ) { }
 
+
+  ngOnDestroy(): void {
+    // Destruye los graficos al salir para que Chart.js no deje listeners vivos
+    // (eso bloqueaba el sistema al volver al menu principal).
+    destruirGraficosDe(this.elementoHost.nativeElement);
+  }
 
   ngOnInit() {
     this.crearTitulos();
@@ -232,6 +241,8 @@ export class ConsultarCalificacionesPdmXEstudianteComponent {
     const niveles = this.logrosAgrupadosNivel.map(d => d.nivel);
     const porcentajeNivel = this.logrosAgrupadosNivel.map(d => d.porcentaje_alcanzado);
 
+    // Si ya hay un grafico en el canvas (recarga de datos) se destruye antes de crear el nuevo.
+    Chart.getChart("graficoNivel")?.destroy();
     new Chart("graficoNivel", {
       type: 'bar',
       data: {
@@ -269,6 +280,7 @@ export class ConsultarCalificacionesPdmXEstudianteComponent {
     const areas = this.logrosAgrupadosArea.map(d => d.area);
     const porcentajeArea = this.logrosAgrupadosArea.map(d => d.porcentaje_alcanzado);
 
+    Chart.getChart("graficoArea")?.destroy();
     new Chart("graficoArea", {
       type: 'bar',
       data: {

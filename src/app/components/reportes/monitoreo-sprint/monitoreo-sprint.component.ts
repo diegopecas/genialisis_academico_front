@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CalificacionesService } from '../../../services/calificaciones.service';
@@ -13,6 +13,7 @@ import { Chart, registerables } from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { HorariosService } from '../../../services/horarios.service';
 import { CalendariosService } from '../../../services/calendarios.service';
+import { destruirGraficosDe } from '../../../common/utils/graficos.util';
 @Component({
   selector: 'app-monitoreo-sprint',
   standalone: true,
@@ -20,7 +21,9 @@ import { CalendariosService } from '../../../services/calendarios.service';
   templateUrl: './monitoreo-sprint.component.html',
   styleUrl: './monitoreo-sprint.component.scss'
 })
-export class MonitoreoSprintComponent {
+export class MonitoreoSprintComponent implements OnInit, OnDestroy {
+
+  private readonly elementoHost = inject(ElementRef);
   titulo = "Monitoreo Sprint";
 
   public titulos: any[] = [];
@@ -108,6 +111,12 @@ export class MonitoreoSprintComponent {
 
   ) {
     Chart.register(...registerables, ChartDataLabels);
+  }
+
+  ngOnDestroy(): void {
+    // Destruye los graficos al salir para que Chart.js no deje listeners vivos
+    // (eso bloqueaba el sistema al volver al menu principal).
+    destruirGraficosDe(this.elementoHost.nativeElement);
   }
 
   ngOnInit() {

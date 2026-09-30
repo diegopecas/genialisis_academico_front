@@ -13,6 +13,7 @@ import { TareasXSprintsService } from '../../../../services/tareas-x-sprints.ser
 import { EstadosTareasService } from '../../../../services/estados-tareas.service';
 import { AmbientesService } from '../../../../services/ambientes.service';
 import { MaterialesXActividadService } from '../../../../services/materiales-x-actividad.service';
+import { coincideBusqueda } from '../../../../common/utils/texto.util';
 import { TablasComponent } from '../../../../common/tablas/tablas.component';
 
 // Declarar el editor globalmente
@@ -133,6 +134,7 @@ export class CrearActividadesAcademicasComponent implements OnInit, OnDestroy, A
           this.editable = true;
           this.nuevo = true;
           this.consultarListas();
+          this.cargarProductosDisponibles();
           break;
         case 'editar':
           this.titulo = "Editar Actividad Académica";
@@ -467,32 +469,18 @@ export class CrearActividadesAcademicasComponent implements OnInit, OnDestroy, A
     });
   }
 
+  /**
+   * Inventario de materiales. Antes solo se cargaba al editar y solo el del
+   * grupo del primer indicador, por eso al crear no aparecía. Ahora se traen
+   * todos los productos académicos activos, al crear y al editar.
+   */
   cargarProductosDisponibles() {
-    // Obtener los grupos de los indicadores para saber qué productos mostrar
-    this.actividadesAcademicasService.getIndicadoresLogrosByActividad(this.id).subscribe({
-      next: (response: any) => {
-        const indicadores = response.body || [];
-        const grupoIds = new Set<number>();
-        indicadores.forEach((ind: any) => {
-          if (ind.grupos_json) {
-            try {
-              const grupos = typeof ind.grupos_json === 'string' ? JSON.parse(ind.grupos_json) : ind.grupos_json;
-              if (Array.isArray(grupos)) {
-                grupos.forEach((g: any) => { if (g.id) grupoIds.add(g.id); });
-              }
-            } catch (e) { /* ignorar */ }
-          }
-        });
-
-        // Tomar el primer grupo para cargar productos
-        if (grupoIds.size > 0) {
-          const primerGrupoId = Array.from(grupoIds)[0];
-          this.materialesXActividadService.obtenerProductosPorGrupo(primerGrupoId).subscribe({
-            next: (resp: any) => {
-              this.productosDisponiblesActividad = resp.body || [];
-            }
-          });
-        }
+    this.materialesXActividadService.obtenerProductosTodos().subscribe({
+      next: (resp: any) => {
+        this.productosDisponiblesActividad = resp.body || [];
+      },
+      error: (error: any) => {
+        console.error('Error al cargar el inventario de materiales:', error);
       }
     });
   }
@@ -701,11 +689,12 @@ export class CrearActividadesAcademicasComponent implements OnInit, OnDestroy, A
    * muestran solo los primeros, hasta que el usuario pida ver todos.
    */
   get productosInventarioFiltrados(): any[] {
-    const filtro = (this.filtroProductoInventario || '').trim().toLowerCase();
+    const filtro = (this.filtroProductoInventario || '').trim();
 
+    // Ignora mayúsculas, tildes y signos
     const coincidencias = filtro
       ? this.productosDisponiblesActividad.filter((prod: any) =>
-          (prod.nombre || '').toLowerCase().includes(filtro))
+          coincideBusqueda(prod.nombre, filtro))
       : this.productosDisponiblesActividad;
 
     if (filtro || this.mostrarTodosLosProductos) {

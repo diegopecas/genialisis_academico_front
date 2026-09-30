@@ -135,6 +135,13 @@ $corporate-info: #17a2b8;    // Azul para información
         -webkit-box-orient: vertical;
         overflow: hidden;
         text-overflow: ellipsis;
+
+        // HTML del editor: sin márgenes propios para respetar el recorte
+        ::ng-deep p,
+        ::ng-deep ul,
+        ::ng-deep ol {
+          margin: 0;
+        }
       }
       
       .activity-meta {

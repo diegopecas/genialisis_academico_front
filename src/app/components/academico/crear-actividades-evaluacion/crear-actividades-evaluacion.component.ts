@@ -5,6 +5,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { HeaderComponent } from '../../../common/header/header.component';
+import { EditorTextoEnriquecidoComponent } from '../../../common/editor-texto-enriquecido/editor-texto-enriquecido.component';
+import { coincideBusqueda, textoPlanoRecortado } from '../../../common/utils/texto.util';
 import { AmbientesService } from '../../../services/ambientes.service';
 import { AreaAcademicaXGrupoService } from '../../../services/area-academica-x-grupo.service';
 import { CortesAcademicosService } from '../../../services/cortes-academicos.service';
@@ -21,7 +23,7 @@ type ModoGeneracion = 'mecanico' | 'ia' | 'manual';
   templateUrl: './crear-actividades-evaluacion.component.html',
   styleUrl: './crear-actividades-evaluacion.component.scss',
   standalone: true,
-  imports: [CommonModule, FormsModule, HeaderComponent]
+  imports: [CommonModule, FormsModule, HeaderComponent, EditorTextoEnriquecidoComponent]
 })
 export class CrearActividadesEvaluacionComponent implements OnInit {
   public titulo = "Actividades de Evaluación";
@@ -225,10 +227,9 @@ export class CrearActividadesEvaluacionComponent implements OnInit {
     if (event.key === 'Enter') { event.preventDefault(); this.agregarMaterialLibre(); }
   }
   quitarMaterial(index: number) { this.materialesSeleccionados.splice(index, 1); }
+  // Ignora mayúsculas, tildes y signos
   productoCoincideBusqueda(prod: any): boolean {
-    const busqueda = (this.busquedaProducto || '').toLowerCase().trim();
-    if (!busqueda) return true;
-    return prod.nombre.toLowerCase().includes(busqueda);
+    return coincideBusqueda(prod.nombre, this.busquedaProducto);
   }
   incluirTodosProductos() {
     this.productosDisponibles.forEach((prod: any) => {
@@ -445,11 +446,10 @@ export class CrearActividadesEvaluacionComponent implements OnInit {
   }
 
   // Trunca un texto a N caracteres con elipsis
+  // La descripción puede traer HTML del editor: se quita y se decodifican
+  // las entidades (&nbsp;, &aacute;...) antes de recortar.
   truncar(texto: string, max: number = 80): string {
-    if (!texto) return '';
-    const limpio = texto.replace(/<[^>]*>/g, '').trim(); // quitar HTML
-    if (limpio.length <= max) return limpio;
-    return limpio.substring(0, max) + '...';
+    return textoPlanoRecortado(texto, max);
   }
 
   // Agrupa logros por área

@@ -32,6 +32,22 @@ export class MaterialesXActividadService {
       );
   }
 
+  /** Todos los productos académicos activos del jardín, sin filtrar por grupo. */
+  obtenerProductosTodos() {
+    return this.http
+      .get<HttpResponse<Object>>(this.servicio + `/productos-todos`, { observe: 'response' })
+      .pipe(
+        tap((response: HttpResponse<Object>) => {
+          let respuesta: any = response.body;
+          if (respuesta.error) {
+            throw respuesta.error;
+          }
+          return response;
+        }),
+        catchError(this.handleError)
+      );
+  }
+
   obtenerProductosPorGrupo(id_grupo: any) {
     return this.http
       .get<HttpResponse<Object>>(this.servicio + `/productos-grupo/${id_grupo}`, { observe: 'response' })

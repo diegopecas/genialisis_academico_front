@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HeaderComponentAnidado } from '../../../common/header-anidado/header-anidado.component';
@@ -11,6 +11,7 @@ import Swal from 'sweetalert2';
 import { Chart, registerables } from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { EstudiantesService } from '../../../services/estudiantes.service';
+import { destruirGraficosDe } from '../../../common/utils/graficos.util';
 
 // Interfaces para trabajar con los datos
 interface Sprint {
@@ -99,7 +100,9 @@ interface MapaColores {
     templateUrl: './calificaciones-estudiante-detalle.component.html',
     styleUrl: './calificaciones-estudiante-detalle.component.scss'
 })
-export class CalificacionesEstudianteDetalleComponent implements OnInit {
+export class CalificacionesEstudianteDetalleComponent implements OnInit, OnDestroy {
+
+    private readonly elementoHost = inject(ElementRef);
     public titulo = "Análisis Individual de Estudiantes";
     public path = "/calificaciones-estudiante";
 
@@ -170,6 +173,12 @@ export class CalificacionesEstudianteDetalleComponent implements OnInit {
         private gruposService: GruposService
     ) {
         Chart.register(...registerables, ChartDataLabels);
+    }
+
+    ngOnDestroy(): void {
+        // Destruye los graficos al salir para que Chart.js no deje listeners vivos
+        // (eso bloqueaba el sistema al volver al menu principal).
+        destruirGraficosDe(this.elementoHost.nativeElement);
     }
 
     ngOnInit() {

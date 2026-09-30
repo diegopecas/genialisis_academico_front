@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HeaderComponentAnidado } from '../../../common/header-anidado/header-anidado.component';
@@ -9,6 +9,7 @@ import { SprintsService } from '../../../services/sprints.service';
 import Swal from 'sweetalert2';
 import { Chart, registerables } from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
+import { destruirGraficosDe } from '../../../common/utils/graficos.util';
 
 // Define interfaces for better type safety
 interface Sprint {
@@ -115,7 +116,9 @@ interface MapaColores {
   templateUrl: './calificaciones-sprint-estudiantes.component.html',
   styleUrl: './calificaciones-sprint-estudiantes.component.scss'
 })
-export class CalificacionesSprintEstudiantesComponent implements OnInit {
+export class CalificacionesSprintEstudiantesComponent implements OnInit, OnDestroy {
+
+  private readonly elementoHost = inject(ElementRef);
   public titulo = "Calificaciones por Sprint";
   public path = "/calificaciones";
   public titulos: any[] = [];
@@ -174,6 +177,12 @@ export class CalificacionesSprintEstudiantesComponent implements OnInit {
   ) {
     // Registrar Chart.js y plugin de datalabels
     Chart.register(...registerables, ChartDataLabels);
+  }
+
+  ngOnDestroy(): void {
+    // Destruye los graficos al salir para que Chart.js no deje listeners vivos
+    // (eso bloqueaba el sistema al volver al menu principal).
+    destruirGraficosDe(this.elementoHost.nativeElement);
   }
 
   ngOnInit() {

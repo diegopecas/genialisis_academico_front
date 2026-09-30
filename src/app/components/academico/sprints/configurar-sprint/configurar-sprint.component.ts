@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { forkJoin, Observable } from 'rxjs';
 import Swal from 'sweetalert2';
 import { HeaderComponent } from '../../../../common/header/header.component';
+import { quitarEtiquetas, textoPlanoRecortado } from '../../../../common/utils/texto.util';
 import { SprintsService } from '../../../../services/sprints.service';
 import { TareasXSprintsService } from '../../../../services/tareas-x-sprints.service';
 import { GruposService } from '../../../../services/grupos.service';
@@ -476,7 +477,7 @@ export class ConfigurarSprintComponent implements OnInit {
               ${act.titulo}
               ${vecesEnSprint > 0 ? `<span style="font-size: 0.7rem; background: rgba(245,166,35,0.2); padding: 0.1rem 0.3rem; border-radius: 0.5rem;">×${vecesEnSprint} en sprint</span>` : ''}
             </div>
-            ${act.descripcion ? `<div style="font-size: 0.8rem; color: #666; margin-top: 0.25rem;">${act.descripcion.substring(0, 150)}${act.descripcion.length > 150 ? '...' : ''}</div>` : ''}
+            ${act.descripcion ? `<div style="font-size: 0.8rem; color: #666; margin-top: 0.25rem;">${textoPlanoRecortado(act.descripcion, 150)}</div>` : ''}
           </div>`;
       });
     } else {
@@ -563,7 +564,8 @@ export class ConfigurarSprintComponent implements OnInit {
       const busqueda = this.busquedaActividad.toLowerCase().trim();
       resultado = resultado.filter((act: any) =>
         act.titulo.toLowerCase().includes(busqueda) ||
-        (act.descripcion && act.descripcion.toLowerCase().includes(busqueda))
+        // La descripción trae HTML del editor: se busca solo en el texto
+        (act.descripcion && quitarEtiquetas(act.descripcion).toLowerCase().includes(busqueda))
       );
     }
 
@@ -585,7 +587,7 @@ export class ConfigurarSprintComponent implements OnInit {
       const busqueda = this.busquedaTarea.toLowerCase().trim();
       resultado = resultado.filter((t: any) =>
         t.titulo_actividad.toLowerCase().includes(busqueda) ||
-        (t.descripcion_actividad && t.descripcion_actividad.toLowerCase().includes(busqueda)) ||
+        (t.descripcion_actividad && quitarEtiquetas(t.descripcion_actividad).toLowerCase().includes(busqueda)) ||
         (t.nombre_estado && t.nombre_estado.toLowerCase().includes(busqueda))
       );
     }
@@ -880,7 +882,7 @@ export class ConfigurarSprintComponent implements OnInit {
       html += `
         <div style="margin-top: 1rem; padding: 0.75rem; background: #fff3cd; border-radius: 0.375rem;">
           <strong style="font-size: 0.85rem;"><i class="fas fa-align-left me-1"></i> Descripción</strong>
-          <p style="margin: 0.5rem 0 0; font-size: 0.85rem;">${tarea.descripcion_actividad}</p>
+          <div style="margin: 0.5rem 0 0; font-size: 0.85rem;">${tarea.descripcion_actividad}</div>
         </div>`;
     }
 
@@ -936,7 +938,7 @@ export class ConfigurarSprintComponent implements OnInit {
       html += `
         <div style="margin-top: 1rem; padding: 0.75rem; background: #fff3cd; border-radius: 0.375rem;">
           <strong style="font-size: 0.85rem;"><i class="fas fa-align-left me-1"></i> Descripción</strong>
-          <p style="margin: 0.5rem 0 0; font-size: 0.85rem;">${actividad.descripcion}</p>
+          <div style="margin: 0.5rem 0 0; font-size: 0.85rem;">${actividad.descripcion}</div>
         </div>`;
     }
 

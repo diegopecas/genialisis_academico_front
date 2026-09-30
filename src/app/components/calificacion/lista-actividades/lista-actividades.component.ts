@@ -3,6 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HeaderComponent } from '../../../common/header/header.component';
+import { EditorTextoEnriquecidoComponent } from '../../../common/editor-texto-enriquecido/editor-texto-enriquecido.component';
 import { SearchPipeGeneral } from '../../../common/pipes/search';
 import { normalizarTexto } from '../../../common/pipes/search';
 import { ActividadesAcademicasService } from '../../../services/actividades-academicas.service';
@@ -26,7 +27,7 @@ import Swal from 'sweetalert2';
   templateUrl: './lista-actividades.component.html',
   styleUrl: './lista-actividades.component.scss',
   standalone: true,
-  imports: [CommonModule, FormsModule, HeaderComponent, SearchPipeGeneral]
+  imports: [CommonModule, FormsModule, HeaderComponent, SearchPipeGeneral, EditorTextoEnriquecidoComponent]
 })
 export class ListaActividadesComponent implements OnInit {
 

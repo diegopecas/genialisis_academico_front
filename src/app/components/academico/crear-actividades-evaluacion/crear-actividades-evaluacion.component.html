@@ -401,7 +401,10 @@
       </div>
       <div class="campo-grupo">
         <label>Descripción</label>
-        <textarea [(ngModel)]="act.descripcion" rows="3" placeholder="Descripción de la actividad..."></textarea>
+        <app-editor-texto-enriquecido
+          [(valor)]="act.descripcion"
+          placeholder="Descripción de la actividad..."
+        ></app-editor-texto-enriquecido>
       </div>
 
       <div class="campos-row">

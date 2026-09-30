@@ -163,7 +163,10 @@
         <div class="actividad-card-body">
           <div class="campo-grupo">
             <label>Descripción</label>
-            <textarea [(ngModel)]="act.descripcion" rows="3" placeholder="Descripción detallada"></textarea>
+            <app-editor-texto-enriquecido
+              [(valor)]="act.descripcion"
+              placeholder="Descripción detallada"
+            ></app-editor-texto-enriquecido>
           </div>
           <div class="campos-row">
             <div class="campo-grupo campo-third">

@@ -221,7 +221,8 @@
                             <span class="badge bg-corporate-yellow text-dark">{{ actividad.nombre_tipo_actividad || 'Sin tipo' }}</span>
                         </div>
                         <div class="activity-body">
-                            <p class="activity-description">{{ actividad.descripcion }}</p>
+                            <!-- La descripción viene del editor con HTML -->
+                            <div class="activity-description" [innerHTML]="actividad.descripcion"></div>
                             <div class="activity-meta">
                                 <div class="meta-item">
                                     <i class="fas fa-clock text-corporate-yellow"></i>

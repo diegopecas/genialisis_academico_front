@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { HeaderComponent } from '../../../common/header/header.component';
+import { textoPlano } from '../../../common/utils/texto.util';
 import { SprintsService } from '../../../services/sprints.service';
 import { TareasXSprintsService } from '../../../services/tareas-x-sprints.service';
 import { GruposService } from '../../../services/grupos.service';
@@ -248,7 +249,8 @@ export class ImportarActividadesSprintComponent implements OnInit {
     const busqueda = this.textoBusqueda.toLowerCase().trim();
     this.tareasFiltradas = this.tareasOrigen.filter(t =>
       t.titulo_actividad.toLowerCase().includes(busqueda) ||
-      (t.descripcion_actividad && t.descripcion_actividad.toLowerCase().includes(busqueda)) ||
+      // La descripción trae HTML del editor: se busca solo en el texto
+      (t.descripcion_actividad && textoPlano(t.descripcion_actividad).toLowerCase().includes(busqueda)) ||
       t.nombre_grupo.toLowerCase().includes(busqueda) ||
       t.nombre_area.toLowerCase().includes(busqueda)
     );

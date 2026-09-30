@@ -6,6 +6,8 @@ import { FormsModule } from '@angular/forms';
 
 import { forkJoin } from 'rxjs';
 import { HeaderComponent } from '../../../common/header/header.component';
+import { EditorTextoEnriquecidoComponent } from '../../../common/editor-texto-enriquecido/editor-texto-enriquecido.component';
+import { coincideBusqueda } from '../../../common/utils/texto.util';
 import { AmbientesService } from '../../../services/ambientes.service';
 import { AreaAcademicaXGrupoService } from '../../../services/area-academica-x-grupo.service';
 import { AreasAcademicasService } from '../../../services/areas-academicas.service';
@@ -20,7 +22,7 @@ import { TiposActividadesAcademicasService } from '../../../services/tipos-activ
   templateUrl: './maquina-actividades.component.html',
   styleUrl: './maquina-actividades.component.scss',
   standalone: true,
-  imports: [CommonModule, FormsModule, HeaderComponent]
+  imports: [CommonModule, FormsModule, HeaderComponent, EditorTextoEnriquecidoComponent]
 })
 export class MaquinaActividadesComponent implements OnInit {
   public titulo = "Máquina de Actividades";
@@ -467,14 +469,26 @@ export class MaquinaActividadesComponent implements OnInit {
     this.iaMaquinaService.grabarActividades(payload).subscribe({
       next: (resp: any) => {
         if (resp.success) {
+          // Antes llevaba siempre al sprint. Ahora se puede ir al sprint o
+          // quedarse aquí para seguir generando actividades.
           Swal.fire({
             title: '¡Actividades creadas!',
             html: `Se crearon <strong>${resp.total_creadas}</strong> actividad${resp.total_creadas > 1 ? 'es' : ''} y se asociaron al sprint correctamente.`,
             icon: 'success',
+            showDenyButton: true,
             confirmButtonColor: '#F5A623',
-            confirmButtonText: 'Ver Sprint'
-          }).then(() => {
-            this.router.navigate(['academico/sprints/editar', this.idSprint]);
+            denyButtonColor: '#2C2C2C',
+            confirmButtonText: 'Aceptar',
+            denyButtonText: 'Ir al sprint'
+          }).then((resultado) => {
+            if (resultado.isDenied) {
+              this.router.navigate(['academico/sprints/editar', this.idSprint]);
+              return;
+            }
+            // Se queda en la máquina: las actividades ya grabadas se limpian
+            // para que no se graben dos veces. Grupo, área, sprint y
+            // materiales quedan como estaban para generar más.
+            this.volverAPaso1();
           });
         } else {
           Swal.fire('Error', resp.error || 'Error al grabar actividades.', 'error');
@@ -503,11 +517,9 @@ export class MaquinaActividadesComponent implements OnInit {
     return amb?.icono || '📍';
   }
 
-  // Búsqueda de productos del inventario
+  // Búsqueda de productos del inventario: ignora mayúsculas, tildes y signos
   productoCoincideBusqueda(prod: any): boolean {
-    const busqueda = (this.busquedaProducto || '').toLowerCase().trim();
-    if (!busqueda) return true;
-    return prod.nombre.toLowerCase().includes(busqueda);
+    return coincideBusqueda(prod.nombre, this.busquedaProducto);
   }
 
   incluirTodosProductos() {

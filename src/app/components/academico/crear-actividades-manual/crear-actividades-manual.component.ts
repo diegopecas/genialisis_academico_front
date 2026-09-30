@@ -5,6 +5,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { HeaderComponent } from '../../../common/header/header.component';
+import { EditorTextoEnriquecidoComponent } from '../../../common/editor-texto-enriquecido/editor-texto-enriquecido.component';
+import { coincideBusqueda } from '../../../common/utils/texto.util';
 import { AmbientesService } from '../../../services/ambientes.service';
 import { AreaAcademicaXGrupoService } from '../../../services/area-academica-x-grupo.service';
 import { AreasAcademicasService } from '../../../services/areas-academicas.service';
@@ -20,7 +22,7 @@ import { TiposActividadesAcademicasService } from '../../../services/tipos-activ
   templateUrl: './crear-actividades-manual.component.html',
   styleUrl: './crear-actividades-manual.component.scss',
   standalone: true,
-  imports: [CommonModule, FormsModule, HeaderComponent]
+  imports: [CommonModule, FormsModule, HeaderComponent, EditorTextoEnriquecidoComponent]
 })
 export class CrearActividadesManualComponent implements OnInit {
   public titulo = "Mis Actividades";
@@ -178,10 +180,9 @@ export class CrearActividadesManualComponent implements OnInit {
     if (event.key === 'Enter') { event.preventDefault(); this.agregarMaterialLibre(); }
   }
   quitarMaterial(index: number) { this.materialesSeleccionados.splice(index, 1); }
+  // Ignora mayúsculas, tildes y signos
   productoCoincideBusqueda(prod: any): boolean {
-    const busqueda = (this.busquedaProducto || '').toLowerCase().trim();
-    if (!busqueda) return true;
-    return prod.nombre.toLowerCase().includes(busqueda);
+    return coincideBusqueda(prod.nombre, this.busquedaProducto);
   }
   incluirTodosProductos() {
     this.productosDisponibles.forEach((prod: any) => {
