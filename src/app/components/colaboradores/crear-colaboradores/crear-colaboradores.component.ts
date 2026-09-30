@@ -8,7 +8,7 @@ import { FotoPersonaComponent } from '../../../common/foto-persona/foto-persona.
 import { ColaboradoresService } from '../../../services/colaboradores.service';
 import { RolesColaboradorService } from '../../../services/roles-colaborador.service';
 import { CasasColaboradoresService } from '../../../services/casas-colaboradores.service';
-import { PersonasService } from '../../../services/personas.service';
+import { PersonasService, DocumentoPersona } from '../../../services/personas.service';
 import { TiposIdentificacionService } from '../../../services/tipos-identificacion.service';
 import { GenerosService } from '../../../services/generos.service';
 import { CiudadesService } from '../../../services/ciudades.service';
@@ -47,6 +47,13 @@ export class CrearColaboradoresComponent implements OnInit {
   public colaboradorActivoSwitch = true;
   public nombreColaborador = '';
   public sidebarAbierto = false;
+
+  // Corrección del documento: con el permiso personas.editar_documento se
+  // habilitan tipo y número en edición. El original sirve para detectar el
+  // cambio y pedir confirmación antes de guardar.
+  public puedeCorregirDocumento = false;
+  public corrigiendoDocumento = false;
+  public documentoOriginal: DocumentoPersona = { tipo: '', numero: '' };
 
   @Input() idColaboradorInput: string | null = null;
   @Input() modoEmbebido: boolean = false;
@@ -121,6 +128,7 @@ export class CrearColaboradoresComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.puedeCorregirDocumento = this.personasService.puedeCorregirDocumento();
     this.aplicarSeccionDeLaUrl();
     this.cargarRolesSistema();
     if (this.modoEmbebido && this.idColaboradorInput) {
@@ -261,6 +269,7 @@ export class CrearColaboradoresComponent implements OnInit {
     this.model.validaIngresoJornada = c.valida_ingreso_jornada != null ? c.valida_ingreso_jornada : 1;
     this.model.validaIngresoDescanso = c.valida_ingreso_descanso != null ? c.valida_ingreso_descanso : 0;
     this.nombreColaborador = [c.primer_nombre, c.segundo_nombre, c.primer_apellido, c.segundo_apellido].filter(Boolean).join(' ');
+    this.registrarDocumentoOriginal();
     this.titulo = `${this.accion === 'editar' ? 'Editar' : 'Ver'} Colaborador: ${this.nombreColaborador}`;
   }
 
@@ -281,7 +290,13 @@ export class CrearColaboradoresComponent implements OnInit {
     this.submitted = true;
     if (!this.model.tipoIdentificacion || !this.model.numeroIdentificacion || !this.model.primerNombre || !this.model.primerApellido || !this.model.fechaNacimiento || !this.model.genero) { Swal.fire({ icon: 'warning', title: 'Campos incompletos', text: 'Por favor complete todos los campos requeridos de datos personales' }); return; }
     const personaData = this.prepararDatosPersona(this.model);
-    if (!!this.model.idPersona) { this.personasService.actualizar(personaData).subscribe({ next: () => Swal.fire({ icon: 'success', title: 'Datos Personales Actualizados', text: 'Los datos personales se han guardado correctamente', confirmButtonText: 'Aceptar' }), error: (e: any) => Swal.fire({ icon: 'error', title: 'Error', text: e.error?.error || 'Error al actualizar' }) }); }
+    if (!!this.model.idPersona) {
+      this.personasService.confirmarCorreccionDocumento(this.documentoOriginal, this.model.tipoIdentificacion, this.model.numeroIdentificacion, this.listas.tiposIdentificacion).then(confirmado => {
+        if (!confirmado) { return; }
+        const cambioDocumento = this.personasService.documentoCambio(this.documentoOriginal, this.model.tipoIdentificacion, this.model.numeroIdentificacion);
+        this.personasService.actualizar(personaData).subscribe({ next: () => { this.despuesDeActualizarPersona(cambioDocumento); Swal.fire({ icon: 'success', title: 'Datos Personales Actualizados', text: 'Los datos personales se han guardado correctamente', confirmButtonText: 'Aceptar' }); }, error: (e: any) => Swal.fire({ icon: 'error', title: 'Error', text: e.error?.error || 'Error al actualizar' }) });
+      });
+    }
     else { this.personasService.crear(personaData).subscribe({ next: (r: any) => { this.model.idPersona = r.id; Swal.fire({ icon: 'success', title: 'Datos Personales Creados', text: 'Ahora puede completar la información del colaborador.', confirmButtonText: 'Aceptar' }); }, error: (e: any) => Swal.fire({ icon: 'error', title: 'Error', text: e.error?.error || 'Error al crear' }) }); }
   }
 
@@ -293,7 +308,13 @@ export class CrearColaboradoresComponent implements OnInit {
   }
 
   crearPersona() { this.personasService.crear(this.prepararDatosPersona(this.model)).subscribe({ next: (r: any) => { this.model.idPersona = r.id; this.crearActualizarColaborador(); }, error: () => Swal.fire({ title: 'Error', text: 'Error al crear la persona', icon: 'error' }) }); }
-  actualizarPersona() { this.personasService.actualizar(this.prepararDatosPersona(this.model)).subscribe({ next: () => this.crearActualizarColaborador(), error: () => Swal.fire({ title: 'Error', text: 'Error al actualizar la persona', icon: 'error' }) }); }
+  actualizarPersona() {
+    this.personasService.confirmarCorreccionDocumento(this.documentoOriginal, this.model.tipoIdentificacion, this.model.numeroIdentificacion, this.listas.tiposIdentificacion).then(confirmado => {
+      if (!confirmado) { return; }
+      const cambioDocumento = this.personasService.documentoCambio(this.documentoOriginal, this.model.tipoIdentificacion, this.model.numeroIdentificacion);
+      this.personasService.actualizar(this.prepararDatosPersona(this.model)).subscribe({ next: () => { this.despuesDeActualizarPersona(cambioDocumento); this.crearActualizarColaborador(); }, error: (e: any) => Swal.fire({ title: 'Error', text: e.error?.error || 'Error al actualizar la persona', icon: 'error' }) });
+    });
+  }
 
   crearActualizarColaborador() {
     const d = { id: this.model.idColaborador || 0, id_persona: this.model.idPersona, id_rol_colaborador: this.model.rolColaborador, id_nivel_escolaridad: this.model.nivelEscolaridad, id_casa_colaborador: this.model.casaColaborador || null, correo_electronico: this.model.correoInstitucional || null, sobrenombre: this.model.sobrenombre || null, fecha_ingreso: this.model.fechaIngreso || null, fecha_retiro: this.model.fechaRetiro || null, id_motivo_retiro: this.model.idMotivoRetiro || null, id_cargo: this.model.idCargo || null, salario_mensual: this.model.salarioMensual || null, id_tipo_contrato: this.model.tipoContrato || null, id_jefe_directo: this.model.jefeDirecto || null, activo: this.model.activo, valida_ingreso_jornada: this.model.validaIngresoJornada, valida_ingreso_descanso: this.model.validaIngresoDescanso };
@@ -754,5 +775,37 @@ export class CrearColaboradoresComponent implements OnInit {
 
   getNombreDia(valor: number): string {
     return this.diasSemana.find(d => d.valor === valor)?.nombre || '';
+  }
+
+  // ==================== CORRECCIÓN DEL DOCUMENTO ====================
+
+  private registrarDocumentoOriginal(): void {
+    this.documentoOriginal = { tipo: this.model.tipoIdentificacion, numero: this.model.numeroIdentificacion };
+    this.corrigiendoDocumento = false;
+  }
+
+  mostrarCorregirDocumento(): boolean {
+    return this.editable && this.puedeCorregirDocumento && !!this.model.idPersona && !!this.documentoOriginal.numero;
+  }
+
+  iniciarCorreccionDocumento(): void {
+    this.corrigiendoDocumento = true;
+  }
+
+  cancelarCorreccionDocumento(): void {
+    this.model.tipoIdentificacion = this.documentoOriginal.tipo;
+    this.model.numeroIdentificacion = this.documentoOriginal.numero;
+    this.corrigiendoDocumento = false;
+  }
+
+  /**
+   * Si se corrigió el documento, el back pudo renombrar el usuario de
+   * ingreso: se recarga para que la pestaña Usuario muestre el nuevo.
+   */
+  private despuesDeActualizarPersona(cambioDocumento: boolean): void {
+    this.registrarDocumentoOriginal();
+    if (cambioDocumento) {
+      this.cargarUsuario();
+    }
   }
 }

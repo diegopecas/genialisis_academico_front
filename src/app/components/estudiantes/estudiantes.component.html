@@ -62,7 +62,7 @@
   </div>
 
   <ng-container *ngIf="busquedaRealizada">
-    <!-- Vista de tabla para desktop/tablet (sin buscador propio: el filtro va en la barra) -->
+    <!-- Vista de tabla para desktop/tablet. El buscador de la tabla filtra al instante sobre lo que ya trajo la barra -->
     <app-tablas
       *ngIf="!isMobile"
       [titulos]="titulos"
@@ -70,7 +70,7 @@
       [raiz]="'/estudiantes'"
       [acciones]="acciones"
       [accionEditar]="puedeAdministrar"
-      [mostrarBuscar]="false"
+      [mostrarBuscar]="true"
       (clicAccion)="clicAccion($event)"
     ></app-tablas>
 

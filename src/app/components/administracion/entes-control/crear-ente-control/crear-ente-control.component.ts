@@ -7,7 +7,7 @@ import { HeaderComponent } from '../../../../common/header/header.component';
 import { DocumentosPersonaComponent } from '../../../../common/documentos-persona/documentos-persona.component';
 import { RecursosEnteControlComponent } from './recursos-ente-control/recursos-ente-control.component';
 import { EntesControlService } from '../../../../services/entes-control.service';
-import { PersonasService } from '../../../../services/personas.service';
+import { PersonasService, DocumentoPersona } from '../../../../services/personas.service';
 import { TiposIdentificacionService } from '../../../../services/tipos-identificacion.service';
 
 @Component({
@@ -39,6 +39,13 @@ export class CrearEnteControlComponent implements OnInit {
   public submitted = false;
   public sidebarAbierto = false;
 
+  // Corrección del documento: con el permiso personas.editar_documento se
+  // habilitan tipo y número en edición. El original sirve para detectar el
+  // cambio y pedir confirmación antes de guardar.
+  public puedeCorregirDocumento = false;
+  public corrigiendoDocumento = false;
+  public documentoOriginal: DocumentoPersona = { tipo: '', numero: '' };
+
   public listas = {
     tiposIdentificacion: [] as any[]
   };
@@ -65,6 +72,7 @@ export class CrearEnteControlComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
+    this.puedeCorregirDocumento = this.personasService.puedeCorregirDocumento();
     this.route.params.subscribe(params => {
       this.accion = params['accion'];
       this.id = params['id'] || '0';
@@ -147,6 +155,7 @@ export class CrearEnteControlComponent implements OnInit {
           this.model.correoElectronico = ente.correo_electronico || '';
           this.model.funciones = ente.funciones || '';
           this.model.activo = ente.activo;
+          this.registrarDocumentoOriginal();
           // El encabezado muestra el nombre del ente, no el UUID.
           this.titulo = 'Ente de Control: ' + (ente.razon_social || '');
         }
@@ -233,17 +242,26 @@ export class CrearEnteControlComponent implements OnInit {
     const personaData = this.prepararDatosPersona();
 
     if (this.model.idPersona) {
-      this.personasService.actualizar(personaData).subscribe({
-        next: () => this.guardarEnte(),
-        error: (error: any) => {
-          console.error('Error al actualizar la persona', error);
-          Swal.fire({ title: 'Error', text: error.error?.error || 'Error al actualizar la persona', icon: 'error', confirmButtonText: 'Aceptar' });
+      this.personasService.confirmarCorreccionDocumento(this.documentoOriginal, this.model.tipoIdentificacion, this.model.numeroIdentificacion, this.listas.tiposIdentificacion).then(confirmado => {
+        if (!confirmado) {
+          return;
         }
+        this.personasService.actualizar(personaData).subscribe({
+          next: () => {
+            this.registrarDocumentoOriginal();
+            this.guardarEnte();
+          },
+          error: (error: any) => {
+            console.error('Error al actualizar la persona', error);
+            Swal.fire({ title: 'Error', text: error.error?.error || 'Error al actualizar la persona', icon: 'error', confirmButtonText: 'Aceptar' });
+          }
+        });
       });
     } else {
       this.personasService.crear(personaData).subscribe({
         next: (response: any) => {
           this.model.idPersona = response.id;
+          this.registrarDocumentoOriginal();
           this.guardarEnte();
         },
         error: (error: any) => {
@@ -295,5 +313,26 @@ export class CrearEnteControlComponent implements OnInit {
 
   volver() {
     this.router.navigate(['/administracion/operaciones/entes-control']);
+  }
+
+  // ==================== CORRECCIÓN DEL DOCUMENTO ====================
+
+  private registrarDocumentoOriginal(): void {
+    this.documentoOriginal = { tipo: this.model.tipoIdentificacion, numero: this.model.numeroIdentificacion };
+    this.corrigiendoDocumento = false;
+  }
+
+  mostrarCorregirDocumento(): boolean {
+    return this.editable && this.puedeCorregirDocumento && !!this.model.idPersona && !!this.documentoOriginal.numero;
+  }
+
+  iniciarCorreccionDocumento(): void {
+    this.corrigiendoDocumento = true;
+  }
+
+  cancelarCorreccionDocumento(): void {
+    this.model.tipoIdentificacion = this.documentoOriginal.tipo;
+    this.model.numeroIdentificacion = this.documentoOriginal.numero;
+    this.corrigiendoDocumento = false;
   }
 }

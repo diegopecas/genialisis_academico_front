@@ -7,7 +7,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ProveedoresService } from '../../../../services/proveedores.service';
 import { TiposProveedorService } from '../../../../services/tipos-proveedor.service';
-import { PersonasService } from '../../../../services/personas.service';
+import { PersonasService, DocumentoPersona } from '../../../../services/personas.service';
 import { TiposIdentificacionService } from '../../../../services/tipos-identificacion.service';
 import { GenerosService } from '../../../../services/generos.service';
 import { CiudadesService } from '../../../../services/ciudades.service';
@@ -54,6 +54,13 @@ export class CrearProveedorComponent implements OnInit {
     public documentoEncontrado = false;
     public camposHabilitados = false;
     public esPersonaJuridica = false; // Para manejar si es empresa o persona natural
+
+    // Corrección del documento: con el permiso personas.editar_documento se
+    // habilitan tipo y número en edición. El original sirve para detectar el
+    // cambio y pedir confirmación antes de guardar.
+    public puedeCorregirDocumento = false;
+    public corrigiendoDocumento = false;
+    public documentoOriginal: DocumentoPersona = { tipo: '', numero: '' };
 
     public listas = {
         tiposIdentificacion: [] as any[],
@@ -109,6 +116,7 @@ export class CrearProveedorComponent implements OnInit {
     ) { }
 
     ngOnInit(): void {
+        this.puedeCorregirDocumento = this.personasService.puedeCorregirDocumento();
         this.route.params.subscribe(params => {
             this.accion = params['accion'];
             this.id = params['id'];
@@ -322,6 +330,7 @@ export class CrearProveedorComponent implements OnInit {
 
                         // Verificar si es persona jurídica
                         this.onTipoIdentificacionChange();
+                        this.registrarDocumentoOriginal();
 
                         const nombreCompleto = this.model.razonSocial || `${proveedor.primer_nombre || ''} ${proveedor.primer_apellido || ''}`.trim();
                         if (this.accion === 'editar') {
@@ -431,6 +440,14 @@ export class CrearProveedorComponent implements OnInit {
         console.log("Actualizar persona", persona);
         const personaData = this.prepararDatosPersona(persona);
 
+        this.personasService.confirmarCorreccionDocumento(this.documentoOriginal, persona.tipoIdentificacion, persona.numeroIdentificacion, this.listas.tiposIdentificacion).then(confirmado => {
+            if (confirmado) {
+                this.enviarActualizacionPersona(persona, personaData);
+            }
+        });
+    }
+
+    private enviarActualizacionPersona(persona: any, personaData: any) {
         this.personasService.actualizar(personaData).subscribe({
             next: (response: any) => {
                 console.log("Persona actualizada", response);
@@ -443,13 +460,14 @@ export class CrearProveedorComponent implements OnInit {
                     });
                     return;
                 }
+                this.registrarDocumentoOriginal();
                 this.crearActualizarProveedor(persona);
             },
             error: (error: any) => {
                 console.error("Error al actualizar persona", error);
                 Swal.fire({
                     title: 'Error',
-                    text: 'Error al actualizar la persona',
+                    text: error?.error?.error || 'Error al actualizar la persona',
                     icon: 'error',
                     confirmButtonText: 'Aceptar'
                 });
@@ -587,6 +605,28 @@ export class CrearProveedorComponent implements OnInit {
 
     volver(): void {
         this.router.navigate(['/administracion/datos-maestros/proveedores']);
+    }
+
+    // ==================== CORRECCIÓN DEL DOCUMENTO ====================
+
+    private registrarDocumentoOriginal(): void {
+        this.documentoOriginal = { tipo: this.model.tipoIdentificacion, numero: this.model.numeroIdentificacion };
+        this.corrigiendoDocumento = false;
+    }
+
+    mostrarCorregirDocumento(): boolean {
+        return this.editable && this.puedeCorregirDocumento && !!this.model.idPersona && !!this.documentoOriginal.numero;
+    }
+
+    iniciarCorreccionDocumento(): void {
+        this.corrigiendoDocumento = true;
+    }
+
+    cancelarCorreccionDocumento(): void {
+        this.model.tipoIdentificacion = this.documentoOriginal.tipo;
+        this.model.numeroIdentificacion = this.documentoOriginal.numero;
+        this.corrigiendoDocumento = false;
+        this.onTipoIdentificacionChange();
     }
 
     establecerValoresPorDefecto(): void {

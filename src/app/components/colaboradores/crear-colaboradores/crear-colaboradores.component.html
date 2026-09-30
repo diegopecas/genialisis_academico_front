@@ -52,10 +52,24 @@
       <!-- ==================== DATOS PERSONALES ==================== -->
       <div *ngIf="seccionActiva === 'datos-personales' || nuevo">
         <div class="row mb-4">
-          <div class="col-sm-12 col-md-6"><label for="tipoDocumento" class="form-label">Tipo de documento <span class="text-danger">*</span></label><select class="form-select form-select-lg" id="tipoDocumento" [(ngModel)]="model.tipoIdentificacion" required [ngClass]="{ 'is-invalid': !model.tipoIdentificacion && submitted }" [disabled]="documentoEncontrado || !editable"><option value="">Seleccionar</option><ng-container *ngFor="let ti of listas.tiposIdentificacion"><option [value]="ti.id">{{ ti.nombre }}</option></ng-container></select></div>
-          <div class="col-sm-12 col-md-6"><label for="numeroDocumento" class="form-label">Número de documento <span class="text-danger">*</span></label><input class="form-control form-control-lg" type="text" id="numeroDocumento" [(ngModel)]="model.numeroIdentificacion" required [ngClass]="{ 'is-invalid': !model.numeroIdentificacion && submitted }" [disabled]="documentoEncontrado || !editable" /></div>
+          <div class="col-sm-12 col-md-6"><label for="tipoDocumento" class="form-label">Tipo de documento <span class="text-danger">*</span></label><select class="form-select form-select-lg" id="tipoDocumento" [(ngModel)]="model.tipoIdentificacion" required [ngClass]="{ 'is-invalid': !model.tipoIdentificacion && submitted }" [disabled]="(documentoEncontrado || !editable) && !corrigiendoDocumento"><option value="">Seleccionar</option><ng-container *ngFor="let ti of listas.tiposIdentificacion"><option [value]="ti.id">{{ ti.nombre }}</option></ng-container></select></div>
+          <div class="col-sm-12 col-md-6"><label for="numeroDocumento" class="form-label">Número de documento <span class="text-danger">*</span></label><input class="form-control form-control-lg" type="text" id="numeroDocumento" [(ngModel)]="model.numeroIdentificacion" required [ngClass]="{ 'is-invalid': !model.numeroIdentificacion && submitted }" [disabled]="(documentoEncontrado || !editable) && !corrigiendoDocumento" /></div>
         </div>
         <div class="row mt-1 mb-3" *ngIf="editable && !documentoEncontrado"><div class="col-sm-12 col-md-6"><button class="btn btn-sm btn-warning" (click)="consultaPersona()"><i class="fas fa-search me-1"></i> Verificar</button></div></div>
+        <!-- Corrección del documento (permiso personas.editar_documento) -->
+        <div class="row mt-1 mb-3" *ngIf="mostrarCorregirDocumento()">
+          <div class="col-12 d-flex flex-wrap align-items-center gap-2">
+            <button *ngIf="!corrigiendoDocumento" type="button" class="btn btn-sm btn-outline-warning" (click)="iniciarCorreccionDocumento()">
+              <i class="fas fa-id-card me-1"></i> Corregir documento
+            </button>
+            <ng-container *ngIf="corrigiendoDocumento">
+              <small class="text-muted">Corrija el tipo o el número y guarde para aplicar el cambio.</small>
+              <button type="button" class="btn btn-sm btn-outline-secondary" (click)="cancelarCorreccionDocumento()">
+                <i class="fas fa-undo me-1"></i> Cancelar corrección
+              </button>
+            </ng-container>
+          </div>
+        </div>
         <hr />
         <div [ngClass]="{ 'disabled-container': !camposHabilitados && editable }">
           <div class="row"><div class="col-sm-12 col-md-6"><label for="primerNombre" class="form-label">Primer nombre <span class="text-danger">*</span></label><input class="form-control form-control-lg" type="text" id="primerNombre" [(ngModel)]="model.primerNombre" required [ngClass]="{ 'is-invalid': !model.primerNombre && submitted }" [disabled]="!camposHabilitados && editable" /></div><div class="col-sm-12 col-md-6"><label for="segundoNombre" class="form-label">Segundo nombre</label><input class="form-control form-control-lg" type="text" id="segundoNombre" [(ngModel)]="model.segundoNombre" [disabled]="!camposHabilitados && editable" /></div></div>

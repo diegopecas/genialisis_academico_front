@@ -62,7 +62,7 @@
                 <select class="form-select form-select-lg" id="tipoDocumento" [(ngModel)]="model.tipoIdentificacion"
                     (change)="onTipoIdentificacionChange()" required
                     [ngClass]="{'is-invalid': !model.tipoIdentificacion && submitted}"
-                    [disabled]="documentoEncontrado || !editable">
+                    [disabled]="(documentoEncontrado || !editable) && !corrigiendoDocumento">
                     <option value="">Seleccionar</option>
                     <ng-container *ngFor="let ti of listas.tiposIdentificacion">
                         <option [value]="ti.id">{{ ti.nombre }}</option>
@@ -75,7 +75,7 @@
                 <input class="form-control form-control-lg" type="text" id="numeroDocumento"
                     [(ngModel)]="model.numeroIdentificacion" required
                     [ngClass]="{'is-invalid': !model.numeroIdentificacion && submitted}"
-                    [disabled]="documentoEncontrado || !editable">
+                    [disabled]="(documentoEncontrado || !editable) && !corrigiendoDocumento">
             </div>
         </div>
         <div class="row mt-1" *ngIf="editable && !documentoEncontrado">
@@ -84,6 +84,20 @@
                     (click)="consultaPersona(model.tipoIdentificacion, model.numeroIdentificacion)">
                     Verificar
                 </button>
+            </div>
+        </div>
+        <!-- Corrección del documento (permiso personas.editar_documento) -->
+        <div class="row mt-1 mb-3" *ngIf="mostrarCorregirDocumento()">
+            <div class="col-12 d-flex flex-wrap align-items-center gap-2">
+                <button *ngIf="!corrigiendoDocumento" type="button" class="btn btn-sm btn-outline-warning" (click)="iniciarCorreccionDocumento()">
+                    <i class="fas fa-id-card me-1"></i> Corregir documento
+                </button>
+                <ng-container *ngIf="corrigiendoDocumento">
+                    <small class="text-muted">Corrija el tipo o el número y guarde para aplicar el cambio.</small>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" (click)="cancelarCorreccionDocumento()">
+                        <i class="fas fa-undo me-1"></i> Cancelar corrección
+                    </button>
+                </ng-container>
             </div>
         </div>
         <hr />

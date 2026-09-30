@@ -7,7 +7,7 @@ import { FormsModule } from '@angular/forms';
 import { AcudientesService } from '../../../../services/acudientes.service';
 import { EstudiantesService } from '../../../../services/estudiantes.service';
 import { GenerosService } from '../../../../services/generos.service';
-import { PersonasService } from '../../../../services/personas.service';
+import { PersonasService, DocumentoPersona } from '../../../../services/personas.service';
 import { TiposAcudienteService } from '../../../../services/tipos-acudiente.service';
 import { TiposIdentificacionService } from '../../../../services/tipos-identificacion.service';
 import { CiudadesService } from '../../../../services/ciudades.service';
@@ -70,6 +70,13 @@ export class CrearAcudienteComponent implements OnInit {
   public camposHabilitados = false;
   public seccionActiva: 'datos-personales' | 'datos-acudiente' | 'documentos' | 'usuario' = 'datos-personales';
   public sidebarAbierto = false;
+
+  // Corrección del documento: con el permiso personas.editar_documento se
+  // habilitan tipo y número en edición. El original sirve para detectar el
+  // cambio y pedir confirmación antes de guardar.
+  public puedeCorregirDocumento = false;
+  public corrigiendoDocumento = false;
+  public documentoOriginal: DocumentoPersona = { tipo: '', numero: '' };
 
   public listas = {
     tiposIdentificacion: [] as any[],
@@ -156,6 +163,7 @@ export class CrearAcudienteComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
+    this.puedeCorregirDocumento = this.personasService.puedeCorregirDocumento();
     this.aplicarSeccionDeLaUrl();
     this.cargarRolesPortalPadres();
     this.route.params.subscribe(params => {
@@ -335,6 +343,7 @@ export class CrearAcudienteComponent implements OnInit {
                   this.model.ciudad = persona.id_ciudad;
                   this.model.ocupacion = persona.ocupacion;
                   this.model.rh = persona.rh;
+                  this.registrarDocumentoOriginal();
                 }
 
                 this.model.idAcudiente = acudiente.id;
@@ -439,6 +448,16 @@ export class CrearAcudienteComponent implements OnInit {
 
     const personaData = this.prepararDatosPersona(persona);
 
+    this.personasService.confirmarCorreccionDocumento(this.documentoOriginal, persona.tipoIdentificacion, persona.numeroIdentificacion, this.listas.tiposIdentificacion).then(confirmado => {
+      if (confirmado) {
+        this.enviarActualizacionPersona(persona, personaData);
+      }
+    });
+  }
+
+  private enviarActualizacionPersona(persona: any, personaData: any) {
+    const cambioDocumento = this.personasService.documentoCambio(this.documentoOriginal, persona.tipoIdentificacion, persona.numeroIdentificacion);
+
     this.personasService.actualizar(personaData).subscribe({
       next: (response: any) => {
         console.log("Persona actualizada", response);
@@ -452,6 +471,7 @@ export class CrearAcudienteComponent implements OnInit {
           return;
         }
 
+        this.despuesDeActualizarPersona(cambioDocumento);
         this.crearActualizarAcudiente(persona);
       },
       error: (error: any) => {
@@ -848,22 +868,30 @@ export class CrearAcudienteComponent implements OnInit {
     const personaData = this.prepararDatosPersona();
 
     if (!!this.model.idPersona) {
-      this.personasService.actualizar(personaData).subscribe({
-        next: (response: any) => {
-          Swal.fire({
-            icon: 'success',
-            title: 'Datos Personales Actualizados',
-            text: 'Los datos personales se han guardado correctamente',
-            confirmButtonText: 'Aceptar',
-          });
-        },
-        error: (error: any) => {
-          Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: this.extraerMensajeError(error, 'Error al actualizar los datos personales'),
-          });
-        },
+      this.personasService.confirmarCorreccionDocumento(this.documentoOriginal, this.model.tipoIdentificacion, this.model.numeroIdentificacion, this.listas.tiposIdentificacion).then(confirmado => {
+        if (!confirmado) {
+          return;
+        }
+        const cambioDocumento = this.personasService.documentoCambio(this.documentoOriginal, this.model.tipoIdentificacion, this.model.numeroIdentificacion);
+
+        this.personasService.actualizar(personaData).subscribe({
+          next: (response: any) => {
+            this.despuesDeActualizarPersona(cambioDocumento);
+            Swal.fire({
+              icon: 'success',
+              title: 'Datos Personales Actualizados',
+              text: 'Los datos personales se han guardado correctamente',
+              confirmButtonText: 'Aceptar',
+            });
+          },
+          error: (error: any) => {
+            Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: this.extraerMensajeError(error, 'Error al actualizar los datos personales'),
+            });
+          },
+        });
       });
     }
   }
@@ -890,17 +918,25 @@ export class CrearAcudienteComponent implements OnInit {
   actualizarPersonaYAcudiente() {
     const personaData = this.prepararDatosPersona();
 
-    this.personasService.actualizar(personaData).subscribe({
-      next: (response: any) => {
-        this.actualizarAcudiente();
-      },
-      error: (error: any) => {
-        Swal.fire({
-          title: 'Error',
-          text: this.extraerMensajeError(error, 'Error al actualizar la persona'),
-          icon: 'error',
-        });
-      },
+    this.personasService.confirmarCorreccionDocumento(this.documentoOriginal, this.model.tipoIdentificacion, this.model.numeroIdentificacion, this.listas.tiposIdentificacion).then(confirmado => {
+      if (!confirmado) {
+        return;
+      }
+      const cambioDocumento = this.personasService.documentoCambio(this.documentoOriginal, this.model.tipoIdentificacion, this.model.numeroIdentificacion);
+
+      this.personasService.actualizar(personaData).subscribe({
+        next: (response: any) => {
+          this.despuesDeActualizarPersona(cambioDocumento);
+          this.actualizarAcudiente();
+        },
+        error: (error: any) => {
+          Swal.fire({
+            title: 'Error',
+            text: this.extraerMensajeError(error, 'Error al actualizar la persona'),
+            icon: 'error',
+          });
+        },
+      });
     });
   }
 
@@ -1360,6 +1396,38 @@ export class CrearAcudienteComponent implements OnInit {
         this.eliminarUsuario();
       }
     });
+  }
+
+  // ==================== CORRECCIÓN DEL DOCUMENTO ====================
+
+  private registrarDocumentoOriginal(): void {
+    this.documentoOriginal = { tipo: this.model.tipoIdentificacion, numero: this.model.numeroIdentificacion };
+    this.corrigiendoDocumento = false;
+  }
+
+  mostrarCorregirDocumento(): boolean {
+    return this.editable && this.puedeCorregirDocumento && !!this.model.idPersona && !!this.documentoOriginal.numero;
+  }
+
+  iniciarCorreccionDocumento(): void {
+    this.corrigiendoDocumento = true;
+  }
+
+  cancelarCorreccionDocumento(): void {
+    this.model.tipoIdentificacion = this.documentoOriginal.tipo;
+    this.model.numeroIdentificacion = this.documentoOriginal.numero;
+    this.corrigiendoDocumento = false;
+  }
+
+  /**
+   * Si se corrigió el documento, el back pudo renombrar el usuario de
+   * ingreso: se recarga para que la pestaña Usuario muestre el nuevo.
+   */
+  private despuesDeActualizarPersona(cambioDocumento: boolean): void {
+    this.registrarDocumentoOriginal();
+    if (cambioDocumento) {
+      this.cargarUsuario();
+    }
   }
 
   eliminarUsuario() {

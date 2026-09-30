@@ -8,7 +8,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { EstudiantesService } from '../../../services/estudiantes.service';
 import { GenerosService } from '../../../services/generos.service';
-import { PersonasService } from '../../../services/personas.service';
+import { PersonasService, DocumentoPersona } from '../../../services/personas.service';
 import { TiposIdentificacionService } from '../../../services/tipos-identificacion.service';
 import { GruposService } from '../../../services/grupos.service';
 import { CiudadesService } from '../../../services/ciudades.service';
@@ -134,6 +134,13 @@ export class CrearEstudianteComponent implements OnInit {
   public seccionActiva: 'datos-personales' | 'datos-academicos' | 'horarios' | 'convenios' | 'datos-medicos' | 'datos-adicionales' | 'documentos' = 'datos-personales';
   public sidebarAbierto = false;
 
+  // Corrección del documento: con el permiso personas.editar_documento se
+  // habilitan tipo y número en edición. El original sirve para detectar el
+  // cambio y pedir confirmación antes de guardar.
+  public puedeCorregirDocumento = false;
+  public corrigiendoDocumento = false;
+  public documentoOriginal: DocumentoPersona = { tipo: '', numero: '' };
+
   public listas = {
     tiposIdentificacion: [] as any[],
     generos: [] as any[],
@@ -238,6 +245,7 @@ export class CrearEstudianteComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.puedeCorregirDocumento = this.personasService.puedeCorregirDocumento();
     this.route.params.subscribe((params) => {
       this.accion = params['accion'];
       this.id = params['id'];
@@ -976,6 +984,7 @@ export class CrearEstudianteComponent implements OnInit {
                   this.model.ciudad = persona.id_ciudad;
                   this.model.rh = persona.rh;
                   this.model.ocupacion = 'Estudiante';
+                  this.registrarDocumentoOriginal();
                   const nombreCompleto = this.construirNombreCompleto(persona);
                   if (this.accion === 'editar') {
                     this.titulo = `Editar estudiante: ${nombreCompleto}`;
@@ -1112,18 +1121,24 @@ export class CrearEstudianteComponent implements OnInit {
 
   actualizarPersona(persona: any) {
     const personaData = this.prepararDatosPersona(persona);
-    this.personasService.actualizar(personaData).subscribe({
-      next: (response: any) => {
-        if (response.error) {
-          Swal.fire({ title: 'Error', text: 'Error al actualizar la persona', icon: 'error', confirmButtonText: 'Aceptar' });
-          return;
-        }
-        this.crearActualizarEstudiante(persona);
-      },
-      error: (error: any) => {
-        console.error('Error al actualizar persona', error);
-        Swal.fire({ title: 'Error', text: 'Error al actualizar la persona', icon: 'error', confirmButtonText: 'Aceptar' });
-      },
+    this.personasService.confirmarCorreccionDocumento(this.documentoOriginal, persona.tipoIdentificacion, persona.numeroIdentificacion, this.listas.tiposIdentificacion).then(confirmado => {
+      if (!confirmado) {
+        return;
+      }
+      this.personasService.actualizar(personaData).subscribe({
+        next: (response: any) => {
+          if (response.error) {
+            Swal.fire({ title: 'Error', text: 'Error al actualizar la persona', icon: 'error', confirmButtonText: 'Aceptar' });
+            return;
+          }
+          this.registrarDocumentoOriginal();
+          this.crearActualizarEstudiante(persona);
+        },
+        error: (error: any) => {
+          console.error('Error al actualizar persona', error);
+          Swal.fire({ title: 'Error', text: error?.error?.error || 'Error al actualizar la persona', icon: 'error', confirmButtonText: 'Aceptar' });
+        },
+      });
     });
   }
 
@@ -1353,6 +1368,27 @@ export class CrearEstudianteComponent implements OnInit {
     this.model.permanente = false;
     this.nuevoConvenio.fecha_inicio = `${año}-${mes}-${dia}`;
     this.nuevoConvenio.crear_cobros_automaticos = false;
+  }
+
+  // ==================== CORRECCIÓN DEL DOCUMENTO ====================
+
+  private registrarDocumentoOriginal(): void {
+    this.documentoOriginal = { tipo: this.model.tipoIdentificacion, numero: this.model.numeroIdentificacion };
+    this.corrigiendoDocumento = false;
+  }
+
+  mostrarCorregirDocumento(): boolean {
+    return this.editable && this.puedeCorregirDocumento && !!this.model.idPersona && !!this.documentoOriginal.numero;
+  }
+
+  iniciarCorreccionDocumento(): void {
+    this.corrigiendoDocumento = true;
+  }
+
+  cancelarCorreccionDocumento(): void {
+    this.model.tipoIdentificacion = this.documentoOriginal.tipo;
+    this.model.numeroIdentificacion = this.documentoOriginal.numero;
+    this.corrigiendoDocumento = false;
   }
 
   obtenerNombreCompleto(): string {

@@ -4,11 +4,22 @@ import {
   HttpHeaders,
   HttpResponse,
 } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { environment } from '../../environments/environment';
 import { Observable, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
+import Swal from 'sweetalert2';
 import { httpOptions } from './http';
+import { PermisosService } from './permisos.service';
+
+/**
+ * Documento de la persona tal como estaba al cargarla, para saber si en el
+ * formulario lo están corrigiendo.
+ */
+export interface DocumentoPersona {
+  tipo: any;
+  numero: any;
+}
 
 /**
  * Fila del buscador de personas del menú principal.
@@ -57,6 +68,12 @@ export class PersonasService {
   private buscadorCache: PersonaBuscador[] = [];
   private buscadorFechaCarga: Date | null = null;
   private buscadorCargando = false;
+
+  // Permiso para corregir el tipo o número de documento de una persona ya
+  // creada. El back lo vuelve a validar en PUT /personas.
+  public readonly PERMISO_EDITAR_DOCUMENTO = 'personas.editar_documento';
+
+  private permisosService = inject(PermisosService);
 
   constructor(private http: HttpClient) {}
 
@@ -156,6 +173,71 @@ export class PersonasService {
   }
   private handleError(error: HttpErrorResponse) {
     return throwError(() => error);
+  }
+
+  // ============================================
+  // CORRECCIÓN DEL DOCUMENTO DE IDENTIDAD
+  // ============================================
+
+  /**
+   * true si el usuario puede corregir el documento de una persona ya creada.
+   */
+  puedeCorregirDocumento(): boolean {
+    return this.permisosService.tienePermiso(this.PERMISO_EDITAR_DOCUMENTO);
+  }
+
+  /**
+   * true si el tipo o el número cambiaron respecto al documento cargado.
+   * Sin documento original (persona nueva) nunca hay corrección.
+   */
+  documentoCambio(original: DocumentoPersona, tipo: any, numero: any): boolean {
+    if (!original || original.numero === null || original.numero === undefined || String(original.numero).trim() === '') {
+      return false;
+    }
+    const cambiaTipo = String(original.tipo ?? '') !== String(tipo ?? '');
+    const cambiaNumero = String(original.numero).trim() !== String(numero ?? '').trim();
+    return cambiaTipo || cambiaNumero;
+  }
+
+  /**
+   * Pide confirmación antes de guardar un documento corregido. Si el
+   * documento no cambió resuelve true sin mostrar nada, así las pantallas
+   * pueden llamarlo siempre antes de actualizar la persona.
+   */
+  async confirmarCorreccionDocumento(original: DocumentoPersona, tipo: any, numero: any, tiposIdentificacion: any[]): Promise<boolean> {
+    if (!this.documentoCambio(original, tipo, numero)) {
+      return true;
+    }
+
+    const nombreTipo = (idTipo: any) => {
+      const encontrado = (tiposIdentificacion || []).find((t: any) => String(t.id) === String(idTipo));
+      return encontrado ? encontrado.nombre : '';
+    };
+    const anterior = `${nombreTipo(original.tipo)} ${original.numero}`.trim();
+    const nuevo = `${nombreTipo(tipo)} ${String(numero ?? '').trim()}`.trim();
+
+    const resultado = await Swal.fire({
+      title: '¿Corregir el documento?',
+      html: `Documento actual: <b>${this.escaparHtml(anterior)}</b><br>` +
+            `Documento corregido: <b>${this.escaparHtml(nuevo)}</b><br><br>` +
+            `Si la persona tiene usuario de ingreso con el número anterior, el usuario también cambia al número nuevo. ` +
+            `El cambio queda registrado en el historial de la persona.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, corregir',
+      cancelButtonText: 'Cancelar',
+    });
+
+    return resultado.isConfirmed;
+  }
+
+  private escaparHtml(texto: string): string {
+    return String(texto)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
   }
 
   subirFoto(idPersona: string, archivo: File) {
