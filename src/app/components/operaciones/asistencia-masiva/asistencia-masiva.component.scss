@@ -39,6 +39,16 @@
     background: #fffaf0;
   }
 
+  // Fila marcada a la que le falta algo para registrarse. Va después de
+  // fila-marcada para que el rojo mande sobre el amarillo.
+  .fila-incompleta {
+    background: #fff1f0;
+
+    td:first-child {
+      box-shadow: inset 4px 0 0 #dc3545;
+    }
+  }
+
   .columna-check {
     width: 42px;
     text-align: center;
@@ -100,6 +110,18 @@
     .reingreso {
       font-size: 0.72rem;
       color: #c98a00;
+    }
+
+    .etiqueta-faltante {
+      display: inline-block;
+      align-self: flex-start;
+      margin-top: 4px;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: #b02a37;
+      background: #f8d7da;
     }
   }
 }
@@ -228,6 +250,15 @@
       border-radius: 10px;
     }
 
+    // En la tarjeta el aviso va en el borde completo.
+    tbody tr.fila-incompleta {
+      border: 2px solid #dc3545;
+
+      td:first-child {
+        box-shadow: none;
+      }
+    }
+
     tbody td {
       display: block;
       border: 0;
@@ -351,4 +382,10 @@
       height: 40px;
     }
   }
+}
+
+// Barra de abajo: solo el botón de registrar, separada de la tabla.
+.barra-inferior {
+  margin-top: 12px;
+  margin-bottom: 24px;
 }

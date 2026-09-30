@@ -74,6 +74,11 @@ export class AsistenciaMasivaComponent implements OnInit {
   public procesando: boolean = false;
   public evaluandoCobros: boolean = false;
 
+  // Se enciende cuando se intenta registrar con filas incompletas. Desde ahí
+  // cada fila marcada muestra en rojo lo que le falta, y la marca se quita
+  // sola apenas se corrige.
+  public mostrarFaltantes: boolean = false;
+
   constructor(
     private asistenciaMasivaService: AsistenciaMasivaService,
     private gruposService: GruposService,
@@ -172,6 +177,7 @@ export class AsistenciaMasivaComponent implements OnInit {
     this.tipo = tipo;
     this.horaGeneral = '';
     this.observacionAplicada = '';
+    this.mostrarFaltantes = false;
 
     if (this.cache[tipo]) {
       this.candidatos = this.cache[tipo];
@@ -187,6 +193,7 @@ export class AsistenciaMasivaComponent implements OnInit {
    */
   cambiarFecha() {
     this.cache = {};
+    this.mostrarFaltantes = false;
     this.consultarCandidatos();
   }
 
@@ -341,10 +348,16 @@ export class AsistenciaMasivaComponent implements OnInit {
     const marcar = !this.todosMarcados;
 
     this.candidatosVisibles.forEach((fila: any) => {
-      fila.marcado = marcar;
-      if (!marcar) {
-        this.limpiarFila(fila);
+      // Los que ya estaban marcados conservan lo que tengan.
+      if (marcar && !fila.marcado) {
+        fila.marcado = true;
+        this.completarFilaAlMarcar(fila);
+        return;
       }
+
+      // Desmarcar no borra nada: la fila conserva hora, colaborador y
+      // observación por si se vuelve a marcar. Solo se registran los marcados.
+      fila.marcado = marcar;
     });
 
     // Las filas que se acaban de marcar también reciben la observación general.
@@ -354,19 +367,38 @@ export class AsistenciaMasivaComponent implements OnInit {
   }
 
   /**
-   * Quitar el check deja la fila como estaba al abrir la pantalla: sin hora y
-   * sin cobros. Si no, quedaba una hora escrita que ya no se iba a usar y
-   * confundía.
+   * Marcar completa la fila con lo de arriba. Quitar el check NO borra lo que
+   * tenga la fila: si se vuelve a marcar, ahí sigue. Solo se registran los
+   * marcados. Marcar tampoco va al back: los cobros se calculan únicamente
+   * con el botón "Calcular cobros extra".
    */
   onMarcadoCambiado(fila: any) {
-    if (fila.marcado) {
-      if (this.observacionGeneral.trim() !== '') {
-        this.aplicarObservacionGeneral();
-      }
+    if (!fila.marcado) {
       return;
     }
 
-    this.limpiarFila(fila);
+    this.completarFilaAlMarcar(fila);
+    if (this.observacionGeneral.trim() !== '') {
+      this.aplicarObservacionGeneral();
+    }
+  }
+
+  /**
+   * Al marcar un niño se le copia lo que haya en la parte de arriba: la hora
+   * general si la fila no tiene hora, y el colaborador general si la fila no
+   * tiene colaborador. Así da igual si se puso primero la hora o primero los
+   * checks. Lo que la usuaria ya escribió en la fila no se pisa.
+   */
+  private completarFilaAlMarcar(fila: any) {
+    if (this.horaGeneral && !fila.hora) {
+      fila.hora = this.horaGeneral;
+      fila.horaEvaluada = null;
+      this.limpiarCobrosFila(fila);
+    }
+
+    if (fila.id_colaborador === null || fila.id_colaborador === undefined) {
+      fila.id_colaborador = this.colaboradorGeneral;
+    }
   }
 
   private limpiarFila(fila: any) {
@@ -399,26 +431,22 @@ export class AsistenciaMasivaComponent implements OnInit {
   }
 
   /**
-   * La hora general se copia a los marcados. La fila que ya tenga una hora
-   * escrita a mano también se sobreescribe: si la usuaria puso la hora arriba
-   * es porque quiere esa para todos.
+   * La hora general se copia a todas las filas visibles que estén sin hora,
+   * marcadas o no. No las marca: solo se registran las que la usuaria marque.
+   * La fila que ya tenga una hora propia se respeta.
    */
   aplicarHoraGeneral() {
     if (!this.horaGeneral) {
       return;
     }
 
-    // Sin nadie marcado no hay a quién aplicarle la hora. Se avisa, porque el
-    // campo se queda escrito y parecería que sí hizo algo.
-    if (this.totalMarcados === 0) {
-      Swal.fire('Atención', 'Marca primero a los estudiantes para aplicarles la hora.', 'warning');
-      return;
-    }
-    this.marcados.forEach((fila: any) => {
-      fila.hora = this.horaGeneral;
-      fila.horaEvaluada = null;
+    this.candidatosVisibles.forEach((fila: any) => {
+      if (!fila.hora) {
+        fila.hora = this.horaGeneral;
+        fila.horaEvaluada = null;
+        this.limpiarCobrosFila(fila);
+      }
     });
-    this.limpiarCobros();
   }
 
   /**
@@ -430,53 +458,25 @@ export class AsistenciaMasivaComponent implements OnInit {
   }
 
   /**
-   * Recalcula los cobros de una sola fila al salir del campo de la hora.
+   * Cambio manual de la hora de una fila.
    *
-   * Va con (blur) y no con (change): el input type="time" dispara change
-   * apenas se escribe la primera parte de la hora y se ponía a calcular a
-   * medias.
+   * Poner una hora es la señal de que ese niño va en el lote, así que se
+   * marca. No va al back: si la hora cambió, los cobros que tuviera calculados
+   * dejan de servir y quedan en "Sin calcular" hasta que se use el botón
+   * "Calcular cobros extra".
    */
   recalcularFila(fila: any) {
-    if (!fila.hora) {
+    if (fila.horaEvaluada !== fila.hora) {
       this.limpiarCobrosFila(fila);
       fila.horaEvaluada = null;
+    }
+
+    if (!fila.hora || fila.marcado) {
       return;
     }
 
-    // Poner una hora es la señal de que ese niño va en el lote. Marcarlo solo
-    // evita el caso de escribir la hora, darle procesar y que no pase nada
-    // porque el check estaba apagado.
     fila.marcado = true;
-
-    if (this.observacionGeneral.trim() !== '') {
-      this.aplicarObservacionGeneral();
-    }
-
-    // Si la hora no se movió no hay nada que volver a pedir.
-    if (fila.horaEvaluada === fila.hora) {
-      return;
-    }
-
-    this.limpiarCobrosFila(fila);
-    fila.evaluando = true;
-
-    this.asistenciaMasivaService.evaluarCobros(this.fecha, this.tipo, [
-      { id_estudiante: fila.id_estudiante, hora: fila.hora }
-    ]).subscribe({
-      next: (respuesta: any) => {
-        const evaluacion = ((respuesta.evaluaciones as any[]) || [])[0];
-        const cobros = evaluacion ? (evaluacion.cobros || []) : [];
-
-        fila.cobros = cobros.map((cobro: any) => ({ ...cobro, aceptado: true }));
-        fila.cobrosEvaluados = true;
-        fila.horaEvaluada = fila.hora;
-        fila.evaluando = false;
-      },
-      error: () => {
-        fila.cobrosEvaluados = true;
-        fila.evaluando = false;
-      }
-    });
+    this.onMarcadoCambiado(fila);
   }
 
   private limpiarCobros() {
@@ -579,9 +579,19 @@ export class AsistenciaMasivaComponent implements OnInit {
       return;
     }
 
-    const sinHora = filas.filter((fila: any) => !fila.hora);
-    if (sinHora.length > 0) {
-      Swal.fire('Atención', `Hay ${sinHora.length} estudiante(s) marcados sin hora.`, 'warning');
+    const incompletas = filas.filter((fila: any) => this.faltantesFila(fila).length > 0);
+    if (incompletas.length > 0) {
+      this.mostrarFaltantes = true;
+
+      const lista = incompletas
+        .map((fila: any) => `• <b>${this.escaparHtml(this.nombreCompleto(fila))}</b>: falta ${this.faltantesFila(fila).join(', ').toLowerCase()}`)
+        .join('<br>');
+
+      Swal.fire({
+        title: 'Faltan datos',
+        html: `Completa estos estudiante(s) antes de registrar. Quedaron marcados en rojo:<br><br><div class="text-start">${lista}</div>`,
+        icon: 'warning'
+      }).then(() => this.irAPrimeraIncompleta(incompletas[0]));
       return;
     }
 
@@ -603,8 +613,52 @@ export class AsistenciaMasivaComponent implements OnInit {
     });
   }
 
+  /**
+   * Lo que le falta a una fila marcada para poder registrarse: la hora y el
+   * colaborador que recibe (ingreso) o entrega (salida). Quién lo trae o lo
+   * recoge es opcional.
+   */
+  faltantesFila(fila: any): string[] {
+    const faltantes: string[] = [];
+    const esSalida = this.tipo === 'salida';
+
+    if (!fila.hora) {
+      faltantes.push('Hora');
+    }
+    if (!fila.id_colaborador) {
+      faltantes.push(esSalida ? 'Colaborador que entrega' : 'Colaborador que recibe');
+    }
+
+    return faltantes;
+  }
+
+  /** true si la fila se debe pintar como incompleta. */
+  filaIncompleta(fila: any): boolean {
+    return this.mostrarFaltantes && fila.marcado && this.faltantesFila(fila).length > 0;
+  }
+
+  /** Lleva la pantalla a la primera fila incompleta para ubicarla rápido. */
+  private irAPrimeraIncompleta(fila: any) {
+    const elemento = document.getElementById('fila-masiva-' + fila.id_estudiante);
+    if (elemento) {
+      elemento.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }
+
+  private escaparHtml(texto: string): string {
+    return String(texto || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+
   private enviarLote(filas: any[]) {
     this.procesando = true;
+
+    // Nombre de cada niño del lote, para que el resultado diga a quién no se
+    // le pudo registrar y no solo el motivo.
+    const nombres = new Map<string, string>();
+    filas.forEach((fila: any) => nombres.set(String(fila.id_estudiante), this.nombreCompleto(fila)));
 
     const idUsuario = this.utilService.obtenerIdUsuarioActual();
 
@@ -636,7 +690,7 @@ export class AsistenciaMasivaComponent implements OnInit {
       payload
     ).subscribe({
       next: (respuesta: any) => {
-        this.terminar(respuesta, respuesta.cobros_generados || 0);
+        this.terminar(respuesta, respuesta.cobros_generados || 0, nombres);
       },
       error: () => {
         this.procesando = false;
@@ -645,8 +699,9 @@ export class AsistenciaMasivaComponent implements OnInit {
     });
   }
 
-  private terminar(respuestaLote: any, cobrosGenerados: number) {
+  private terminar(respuestaLote: any, cobrosGenerados: number, nombres: Map<string, string> = new Map()) {
     this.procesando = false;
+    this.mostrarFaltantes = false;
 
     const procesados = respuestaLote.procesados || 0;
     const total = respuestaLote.total || 0;
@@ -658,7 +713,10 @@ export class AsistenciaMasivaComponent implements OnInit {
     }
     if (fallidos.length > 0) {
       detalle += '<br><br><b>No se pudieron procesar:</b><br>'
-        + fallidos.map((r: any) => `• ${r.motivo}`).join('<br>');
+        + fallidos.map((r: any) => {
+          const nombre = nombres.get(String(r.id_estudiante));
+          return nombre ? `• <b>${this.escaparHtml(nombre)}</b>: ${r.motivo}` : `• ${r.motivo}`;
+        }).join('<br>');
     }
 
     Swal.fire({

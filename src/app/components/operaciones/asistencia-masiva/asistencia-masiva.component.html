@@ -45,7 +45,7 @@
           <label for="horaGeneral" class="form-label">
             Hora de {{ tipo === 'salida' ? 'salida' : 'ingreso' }} para todos
           </label>
-          <!-- Sin botón: la hora se aplica a los marcados al salir del campo. -->
+          <!-- Sin botón: al salir del campo la hora se pone en todas las filas que estén sin hora. -->
           <input class="form-control" type="time" id="horaGeneral"
             [(ngModel)]="horaGeneral" (blur)="aplicarHoraGeneral()">
         </div>
@@ -129,7 +129,8 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let fila of candidatosVisibles" [class.fila-marcada]="fila.marcado">
+          <tr *ngFor="let fila of candidatosVisibles" [id]="'fila-masiva-' + fila.id_estudiante"
+            [class.fila-marcada]="fila.marcado" [class.fila-incompleta]="filaIncompleta(fila)">
             <td class="columna-check">
               <input class="form-check-input" type="checkbox" [(ngModel)]="fila.marcado"
                 (ngModelChange)="onMarcadoCambiado(fila)">
@@ -149,14 +150,20 @@
                   <span class="reingreso" *ngIf="tipo === 'salida' && fila.fecha_ingreso">
                     Entró {{ fila.fecha_ingreso | date : "shortTime" }}
                   </span>
+                  <!-- Lo que le falta para poder registrarse. Solo aparece después
+                       de intentar registrar, y se va apenas se corrige. -->
+                  <span class="etiqueta-faltante" *ngIf="filaIncompleta(fila)">
+                    <i class="fas fa-exclamation-circle me-1"></i>Falta: {{ faltantesFila(fila).join(', ') }}
+                  </span>
                 </span>
               </div>
             </td>
 
             <td class="columna-hora">
-              <!-- Al salir del campo se marca la fila y se recalculan sus cobros. -->
+              <!-- Escribir la hora marca la fila. Los cobros solo se calculan con el botón. -->
               <input class="form-control" type="time" [(ngModel)]="fila.hora"
-                (blur)="recalcularFila(fila)"
+                [class.is-invalid]="filaIncompleta(fila) && !fila.hora"
+                (ngModelChange)="recalcularFila(fila)"
                 [title]="fila.horaSugerida ? 'Horario del estudiante: ' + fila.horaSugerida : 'Sin horario configurado'">
             </td>
 
@@ -164,15 +171,16 @@
               <!-- Colaborador que recibe o entrega, y quien trae o recoge.
                    La persona viene con la última elección del niño. -->
               <select class="form-select form-select-sm" [(ngModel)]="fila.id_colaborador"
+                [class.is-invalid]="filaIncompleta(fila) && !fila.id_colaborador"
                 [title]="tipo === 'salida' ? 'Colaborador que lo entrega' : 'Colaborador que lo recibe'">
-                <option [ngValue]="null">Colaborador sin especificar</option>
+                <option [ngValue]="null">{{ tipo === 'salida' ? 'Colaborador que entrega: seleccionar' : 'Colaborador que recibe: seleccionar' }}</option>
                 <option *ngFor="let colaborador of colaboradores" [ngValue]="colaborador.id">
                   {{ colaborador.nombre_completo }}
                 </option>
               </select>
               <select class="form-select form-select-sm mt-1" [(ngModel)]="fila.id_persona"
                 [title]="tipo === 'salida' ? 'Quién lo recoge' : 'Quién lo trae'">
-                <option [ngValue]="null">{{ tipo === 'salida' ? 'Quién recoge: sin especificar' : 'Quién trae: sin especificar' }}</option>
+                <option [ngValue]="null">{{ fila.personas.length === 0 ? 'Sin personas registradas' : (tipo === 'salida' ? 'Quién recoge (opcional)' : 'Quién trae (opcional)') }}</option>
                 <option *ngFor="let persona of fila.personas" [ngValue]="persona.id_persona">
                   {{ persona.nombre }} ({{ persona.parentesco }})
                 </option>
@@ -215,6 +223,20 @@
           </tr>
         </tbody>
       </table>
+    </div>
+
+    <!-- Mismo botón de registrar al final de la lista, para no tener que
+         devolverse hasta arriba cuando el lote es largo. -->
+    <div class="barra-acciones barra-inferior">
+      <div class="conteo">
+        <b>{{ totalMarcados }}</b> de {{ candidatosVisibles.length }} marcados
+      </div>
+      <div class="botones">
+        <button type="button" class="btn btn-warning"
+          [disabled]="totalMarcados === 0 || procesando" (click)="procesar()">
+          {{ procesando ? 'Registrando...' : (tipo === 'salida' ? 'Registrar Salidas' : 'Registrar Ingresos') }}
+        </button>
+      </div>
     </div>
   </div>
 </div>

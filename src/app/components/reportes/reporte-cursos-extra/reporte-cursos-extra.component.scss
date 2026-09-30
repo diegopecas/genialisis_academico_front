@@ -21,6 +21,41 @@
 }
 
 
+// Boton de exportar del reporte. Replica el estilo del boton de exportar de
+// app-tablas, que sobrescribe .btn-success con el verde Material #4CAF50 en
+// su propio scss: como ese estilo va encapsulado en aquel componente, aqui no
+// se hereda y el boton saldria con el verde de Bootstrap.
+.btn-exportar-excel {
+  padding: 0.4rem 0.9rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background-color: #4CAF50;
+  color: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s;
+
+  &:hover:not(:disabled) {
+    background-color: #388E3C;
+    color: #ffffff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  &:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+  }
+}
+
 // Pie de totales del cobro. Se alinea a la derecha como el boton de exportar,
 // y en movil pasa a columna para que los valores no se aprieten.
 .totales-pie {
