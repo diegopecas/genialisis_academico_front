@@ -335,6 +335,29 @@ export class TareasXSprintsService {
       );
   }
 
+  /**
+   * Últimas actividades ejecutadas del jardín, de la más reciente a la más
+   * antigua. Las usa la creación de galerías, que filtra sobre esta lista.
+   */
+  obtenerUltimasEjecutadas(limite: number) {
+    const params = new HttpParams().set('limite', String(limite));
+    return this.http
+      .get<HttpResponse<Object>>(`${this.servicio}/ultimas-ejecutadas`, {
+        params,
+        observe: 'response',
+      })
+      .pipe(
+        tap((response: HttpResponse<Object>) => {
+          let respuesta: any = response.body;
+          if (respuesta && respuesta.error) {
+            throw respuesta.error;
+          }
+          return response;
+        }),
+        catchError(this.handleError)
+      );
+  }
+
   actualizarOrden(ordenes: any[]): Observable<any> {
     const body = JSON.stringify({ ordenes: ordenes });
     return this.http.put<any>(`${this.servicio}/actualizar-orden`, body, httpOptions).pipe(

@@ -1,0 +1,380 @@
+<div class="galeria-container">
+  <!-- Fondo con imagen difuminada (dinámico por tenant con fallback) -->
+  <div class="background-image" [style.background-image]="'url(' + fondoUrl + ')'"></div>
+  <div class="background-overlay"></div>
+
+  <!-- Header del portal institucional -->
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="false"
+    [accion]="'ConsultarGaleria'"
+    [raiz]="'/operaciones/galeria'"
+    [regresar]="'/operaciones'"
+    [iconoTitulo]="'/assets/images/galeria-consulta.png'"
+  ></app-header>
+
+  <!-- Mobile Gallery Menu (Horizontal Scroll) -->
+  <div class="mobile-gallery-bar" *ngIf="isMobile && !isLoadingGalerias">
+    <div class="mobile-bar-header">
+      <span class="bar-icon">📷</span>
+      <span class="bar-title">Galerías</span>
+    </div>
+
+    <!-- Filtros Mobile -->
+    <div class="mobile-filters">
+      <input
+        type="text"
+        class="filter-input"
+        placeholder="Buscar galería..."
+        [(ngModel)]="filtroTexto"
+        (ngModelChange)="aplicarFiltros()"
+      />
+      <input
+        type="month"
+        class="filter-month"
+        [(ngModel)]="filtroFecha"
+        (ngModelChange)="aplicarFiltros()"
+      />
+      <button
+        class="filter-clear"
+        *ngIf="filtroTexto || filtroFecha"
+        (click)="limpiarFiltros()"
+        title="Limpiar filtros"
+      >
+        ✕
+      </button>
+    </div>
+
+    <div class="mobile-gallery-scroll">
+      <div
+        *ngFor="let galeria of galeriasFiltradas; trackBy: trackByGaleriaId"
+        class="mobile-gallery-card"
+        [class.active]="selectedGaleria?.id === galeria.id"
+        (click)="selectGaleria(galeria)"
+      >
+        <div class="card-image">
+          <img
+            [src]="getThumbnailUrl(galeria)"
+            [alt]="galeria.nombre"
+            loading="lazy"
+          />
+        </div>
+        <div class="card-info">
+          <h4>{{ galeria.nombre }}</h4>
+        </div>
+      </div>
+
+      <!-- Sin resultados mobile -->
+      <div class="no-results-inline" *ngIf="galeriasFiltradas.length === 0 && galerias.length > 0">
+        <span>Sin resultados</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content Wrapper -->
+  <div class="main-wrapper">
+    <!-- Sidebar (Desktop) -->
+    <aside class="gallery-sidebar" *ngIf="!isMobile && !isLoadingGalerias">
+      <div class="sidebar-header">
+        <h3>Galerías</h3>
+      </div>
+
+      <!-- Filtros Desktop -->
+      <div class="sidebar-filters">
+        <input
+          type="text"
+          class="filter-input"
+          placeholder="Buscar..."
+          [(ngModel)]="filtroTexto"
+          (ngModelChange)="aplicarFiltros()"
+        />
+        <input
+          type="month"
+          class="filter-month"
+          [(ngModel)]="filtroFecha"
+          (ngModelChange)="aplicarFiltros()"
+        />
+        <button
+          class="filter-clear"
+          *ngIf="filtroTexto || filtroFecha"
+          (click)="limpiarFiltros()"
+          title="Limpiar filtros"
+        >
+          ✕
+        </button>
+      </div>
+
+      <div class="sidebar-content">
+        <div
+          *ngFor="let galeria of galeriasFiltradas; trackBy: trackByGaleriaId"
+          class="sidebar-card"
+          [class.active]="selectedGaleria?.id === galeria.id"
+          (click)="selectGaleria(galeria)"
+        >
+          <div class="card-thumbnail">
+            <img
+              [src]="getThumbnailUrl(galeria)"
+              [alt]="galeria.nombre"
+              loading="lazy"
+            />
+          </div>
+
+          <div class="card-content">
+            <h4 class="card-title">{{ galeria.nombre }}</h4>
+            <!-- La descripción viene del CKEditor con HTML -->
+            <div class="card-description descripcion-html" [innerHTML]="galeria.descripcion"></div>
+            <span class="card-date">{{ formatDate(galeria.fecha) }}</span>
+          </div>
+
+          <div class="card-indicator"></div>
+        </div>
+
+        <!-- Sin resultados desktop -->
+        <div class="no-results" *ngIf="galeriasFiltradas.length === 0 && galerias.length > 0">
+          <span class="no-results-icon">🔍</span>
+          <p>Sin resultados</p>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Gallery Content -->
+    <main class="gallery-main">
+      <!-- Hero Section -->
+      <section class="hero-section" *ngIf="selectedGaleria">
+        <div class="container">
+          <div class="hero-content" data-aos="fade-up">
+            <h2 class="hero-title">
+              {{ selectedGaleria.nombre }}
+            </h2>
+            <!-- La descripción viene del CKEditor con HTML -->
+            <div class="hero-description descripcion-html" [innerHTML]="selectedGaleria.descripcion"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Tabs de Subgalerías -->
+      <section
+        class="subgallery-tabs"
+        *ngIf="hasSubgalerias && selectedGaleria"
+      >
+        <div class="container">
+          <div class="tabs-wrapper">
+            <div class="tabs-scroll">
+              <button
+                *ngFor="let tab of tabs; trackBy: trackByTabId"
+                class="tab-btn"
+                [class.active]="selectedTab?.id === tab.id"
+                (click)="selectTab(tab)"
+              >
+                <span class="tab-name">{{ tab.nombre }}</span>
+                <span class="tab-count" *ngIf="getTabImageCount(tab) > 0">
+                  {{ getTabImageCount(tab) }}
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Loading Galerías -->
+      <div class="loading-galerias" *ngIf="isLoadingGalerias">
+        <div class="spinner"></div>
+        <p>Cargando galerías...</p>
+      </div>
+
+      <!-- Error Message -->
+      <div class="error-message" *ngIf="errorMessage && !isLoadingGalerias">
+        <div class="error-content">
+          <span class="error-icon">⚠️</span>
+          <h3>{{ errorMessage }}</h3>
+          <p>Intenta recargar la página</p>
+        </div>
+      </div>
+
+      <!-- Empty Gallery Message -->
+      <div
+        class="empty-gallery"
+        *ngIf="
+          selectedGaleria &&
+          allImages.length === 0 &&
+          !isLoading &&
+          !hasSubgalerias &&
+          !isLoadingGalerias
+        "
+      >
+        <div class="empty-content" data-aos="fade-up">
+          <span class="empty-icon">📷</span>
+          <h3>Próximamente</h3>
+          <p>
+            Las fotos de {{ selectedGaleria.nombre }} estarán disponibles
+            pronto.
+          </p>
+        </div>
+      </div>
+
+      <!-- No Galleries Message -->
+      <div
+        class="empty-gallery"
+        *ngIf="galerias.length === 0 && !isLoadingGalerias && !errorMessage"
+      >
+        <div class="empty-content" data-aos="fade-up">
+          <span class="empty-icon">📷</span>
+          <h3>Sin galerías disponibles</h3>
+          <p>No tienes galerías asignadas en este momento.</p>
+        </div>
+      </div>
+
+      <!-- Galería con sistema de modos rotativos (30 modos visuales) -->
+      <section
+        class="gallery-section"
+        *ngIf="selectedGaleria && displayedImages.length > 0"
+      >
+        <div class="container">
+          <!-- Barra de acciones de la galería -->
+          <div class="gallery-actions">
+            <button
+              class="btn-rotar-todas"
+              (click)="girarTodas()"
+              title="Girar todas las fotos"
+            >
+              <span class="rotar-icon">↻</span>
+              <span class="rotar-text">Girar todas</span>
+            </button>
+          </div>
+
+          <app-galeria-modo-renderer
+            [displayedImages]="displayedImages"
+            [allImages]="allImages"
+            [galeriaNombre]="selectedGaleria.nombre"
+            [galeriaDescripcion]="selectedGaleria.descripcion"
+            [galeriaFecha]="formatDate(selectedGaleria.fecha)"
+            [iniciales]="iniciales"
+            [isMobile]="isMobile"
+            [modoForzado]="modoForzado"
+            [rotaciones]="rotaciones"
+            (imageClick)="onImageClickFromMode($event)"
+            (imageDownload)="onImageDownloadFromMode($event)"
+            (imageGirar)="onImageGirarFromMode($event)"
+            (modoCambiado)="onModoCambiado($event)"
+          ></app-galeria-modo-renderer>
+
+          <!-- Loading Spinner (solo aplica si el modo usa scroll infinito) -->
+          <div class="loading-more" *ngIf="isLoading && scrollInfinitoActivo">
+            <div class="spinner"></div>
+            <p>Cargando más imágenes...</p>
+          </div>
+
+          <!-- Fin de la galería. En el institucional no va la promoción del
+               Instagram del jardín: esa invitación es para los papás. -->
+          <div
+            class="end-message"
+            *ngIf="
+              currentIndex >= allImages.length &&
+              !isLoading &&
+              displayedImages.length > 0
+            "
+          >
+            <div class="cta-content" data-aos="fade-up">
+              <div class="cta-icon">✨</div>
+              <h3>Has visto todas las fotos de {{ selectedGaleria.nombre }}</h3>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Lightbox -->
+  <div class="lightbox" *ngIf="selectedImage" (click)="closeLightbox()">
+    <div class="lightbox-overlay"></div>
+
+    <div class="lightbox-content" (click)="$event.stopPropagation()">
+      <button class="lightbox-close" (click)="closeLightbox()">
+        ✕
+      </button>
+
+      <button
+        class="lightbox-nav lightbox-prev"
+        (click)="previousImage()"
+        *ngIf="displayedImages.indexOf(selectedImage) > 0"
+      >
+        ‹
+      </button>
+
+      <div class="lightbox-image-container">
+        <!-- Spinner mientras carga -->
+        <div class="lightbox-loader" *ngIf="!lightboxMediumLoaded">
+          <div class="spinner"></div>
+          <span>Cargando imagen...</span>
+        </div>
+
+        <img
+          [src]="getLightboxImageUrl()"
+          [alt]="selectedImage.alt"
+          [class.loading]="!lightboxMediumLoaded"
+          [ngStyle]="estiloRotacionLightbox"
+          class="lightbox-image"
+        />
+      </div>
+
+      <div class="lightbox-actions">
+        <button
+          class="lightbox-action-btn"
+          (click)="girarImagenLightbox()"
+          title="Girar imagen"
+        >
+          <span class="action-icon">↻</span>
+          <span class="action-text">Girar</span>
+        </button>
+
+        <button
+          class="lightbox-action-btn"
+          *ngIf="puedeDescargar()"
+          (click)="downloadImage(selectedImage, $event)"
+          title="Descargar"
+        >
+          <span class="action-icon">⬇</span>
+          <span class="action-text">Descargar</span>
+        </button>
+      </div>
+
+      <button
+        class="lightbox-nav lightbox-next"
+        (click)="nextImage()"
+        *ngIf="
+          displayedImages.indexOf(selectedImage) < displayedImages.length - 1
+        "
+      >
+        ›
+      </button>
+    </div>
+  </div>
+</div>
+<!-- ========================================= -->
+<!-- Selector de modos (solo desarrollo)        -->
+<!-- ========================================= -->
+<div class="debug-modos-selector" *ngIf="debugModosVisible">
+  <div class="debug-modos-header">
+    <span class="debug-modos-icon">🎨</span>
+    <span class="debug-modos-label">Modo:</span>
+    <span class="debug-modos-current" *ngIf="modoActivo">
+      #{{ modoActivo.id }} {{ modoActivo.nombreInterno }}
+    </span>
+  </div>
+
+  <select
+    class="debug-modos-select"
+    [value]="modoForzado === null ? '' : modoForzado"
+    (change)="cambiarModoForzado($any($event.target).value)"
+  >
+    <option value="">📅 Modo del día (auto)</option>
+    <option *ngFor="let modo of catalogoModos" [value]="modo.id">
+      #{{ modo.id }} — {{ modo.nombreInterno }}
+      <ng-container *ngIf="modo.requiereTodasLasImagenes"> ★</ng-container>
+    </option>
+  </select>
+
+  <div class="debug-modos-hint">
+    ★ = requiere todas las fotos (sin scroll infinito)
+  </div>
+</div>

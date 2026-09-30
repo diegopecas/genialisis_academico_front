@@ -1,0 +1,1450 @@
+// ========================================
+// Variables
+// ========================================
+$transition-smooth: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+$sidebar-width: 200px;
+
+// Colores fijos (sin temas)
+$primary-color: #4a90a4;
+$secondary-color: #6bb3c9;
+$accent-color: #f5a623;
+$bg-dark: rgba(20, 35, 45, 0.95);
+$card-bg: rgba(255, 255, 255, 0.08);
+$text-primary: #ffffff;
+$text-secondary: rgba(255, 255, 255, 0.7);
+$glow-primary: rgba(74, 144, 164, 0.5);
+
+// ========================================
+// Container Principal con fondo difuminado
+// ========================================
+.galeria-container {
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+}
+
+// Fondo con imagen difuminada
+// La plantilla siempre trajo el div, pero sus reglas nunca se escribieron:
+// por eso la galeria salia sin el fondo del jardin.
+//
+// Va fijo al viewport y no absoluto al contenedor, que es la diferencia
+// con el menu: alli el contenedor mide una pantalla justa, pero la galeria
+// mide varias, y con position:absolute el "cover" estiraba la imagen a ese
+// alto completo y se veia ampliada al triple.
+//
+// El div .background-overlay se queda sin reglas, tal como estaba: el velo
+// oscuro que oscurecia toda la galeria salia de ahi.
+.background-image {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  filter: blur(3px);
+  transform: scale(1.05);
+  z-index: 0;
+}
+
+// El header es el unico hijo del contenedor sin posicion propia: sin esto
+// el fondo, que si esta posicionado, se le monta encima.
+.galeria-container > app-header {
+  position: relative;
+  z-index: 10;
+}
+
+// ========================================
+// Estilos compartidos de filtros
+// ========================================
+%filter-input-base {
+  width: 100%;
+  padding: 7px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(8px);
+  color: #333333;
+  font-size: 0.75rem;
+  outline: none;
+  transition: $transition-smooth;
+
+  &::placeholder {
+    color: #888888;
+    font-size: 0.7rem;
+  }
+
+  &:focus {
+    border-color: $primary-color;
+    background: rgba(255, 255, 255, 0.6);
+    box-shadow: 0 0 0 2px rgba($primary-color, 0.2);
+  }
+}
+
+%filter-clear-base {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  min-width: 26px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.1);
+  color: #666666;
+  font-size: 0.7rem;
+  cursor: pointer;
+  transition: $transition-smooth;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.2);
+    color: #333333;
+  }
+}
+
+// ========================================
+// Main Wrapper (Sidebar + Content)
+// ========================================
+.main-wrapper {
+  display: flex;
+  min-height: calc(100vh - 120px);
+  position: relative;
+  z-index: 10;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+  }
+}
+
+// ========================================
+// Sidebar (Desktop) - Transparente
+// ========================================
+.gallery-sidebar {
+  width: $sidebar-width;
+  min-width: $sidebar-width;
+  background: transparent;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  z-index: 10;
+  padding: 15px 10px;
+
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 2px;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.4);
+    }
+  }
+
+  .sidebar-header {
+    padding: 12px 10px;
+    margin-bottom: 12px;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+
+    h3 {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 700;
+      color: #333333;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-shadow: 0 1px 3px rgba(255, 255, 255, 0.5);
+
+      &::before {
+        content: "📷";
+        font-size: 1.1rem;
+      }
+    }
+  }
+
+  .sidebar-content {
+    padding: 0;
+  }
+}
+
+// ========================================
+// Sidebar Filters (Desktop)
+// ========================================
+.sidebar-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+  position: relative;
+
+  .filter-input {
+    @extend %filter-input-base;
+  }
+
+  .filter-month {
+    @extend %filter-input-base;
+  }
+
+  .filter-clear {
+    @extend %filter-clear-base;
+    position: absolute;
+    right: 4px;
+    bottom: 4px;
+  }
+}
+
+// ========================================
+// Sidebar Cards - Estilo Polaroid/Marco de Foto
+// ========================================
+.sidebar-card {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 15px;
+  cursor: pointer;
+  transition: $transition-smooth;
+  position: relative;
+  
+  // Marco de foto estilo polaroid
+  background: #ffffff;
+  border-radius: 3px;
+  padding: 5px 5px 42px 5px;
+  box-shadow: 
+    0 3px 10px rgba(0, 0, 0, 0.15),
+    0 1px 4px rgba(0, 0, 0, 0.1);
+  
+  // Efecto de foto ligeramente rotada
+  transform: rotate(-1deg);
+  
+  &:nth-child(even) {
+    transform: rotate(1deg);
+  }
+  
+  &:nth-child(3n) {
+    transform: rotate(-1.5deg);
+  }
+
+  &:hover {
+    transform: rotate(0deg) scale(1.05) translateY(-3px);
+    box-shadow: 
+      0 10px 30px rgba(0, 0, 0, 0.2),
+      0 4px 10px rgba(0, 0, 0, 0.15);
+    z-index: 5;
+  }
+
+  &.active {
+    transform: rotate(0deg) scale(1.08);
+    box-shadow: 
+      0 10px 30px rgba(255, 193, 7, 0.3),
+      0 4px 10px rgba(0, 0, 0, 0.15),
+      0 0 0 2px #FFC107;
+    z-index: 10;
+  }
+
+  .card-thumbnail {
+    width: 100%;
+    aspect-ratio: 4/3;
+    border-radius: 2px;
+    overflow: hidden;
+    position: relative;
+    background: #f5f5f5;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.4s ease;
+      display: block;
+    }
+  }
+
+  .card-content {
+    position: absolute;
+    bottom: 2px;
+    left: 5px;
+    right: 5px;
+    text-align: center;
+
+    .card-title {
+      margin: 0;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: #444444;
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .card-description {
+      display: none;
+    }
+
+    .card-date {
+      font-size: 0.6rem;
+      color: #999999;
+      font-weight: 500;
+      display: block;
+      margin-top: 2px;
+    }
+  }
+
+  .card-indicator {
+    display: none;
+  }
+}
+
+// ========================================
+// Mobile Gallery Bar - Transparente
+// ========================================
+.mobile-gallery-bar {
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+  position: sticky;
+  top: 60px;
+  z-index: 20;
+
+  .mobile-bar-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 15px 6px;
+
+    .bar-icon {
+      font-size: 1.1rem;
+    }
+
+    .bar-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #333333;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+  }
+
+  .mobile-gallery-scroll {
+    display: flex;
+    gap: 12px;
+    padding: 0 15px 12px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+}
+
+// ========================================
+// Mobile Filters
+// ========================================
+.mobile-filters {
+  display: flex;
+  gap: 8px;
+  padding: 0 15px 8px;
+  align-items: center;
+
+  .filter-input {
+    @extend %filter-input-base;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .filter-month {
+    @extend %filter-input-base;
+    width: auto;
+    flex-shrink: 0;
+  }
+
+  .filter-clear {
+    @extend %filter-clear-base;
+    flex-shrink: 0;
+  }
+}
+
+// Mobile cards estilo polaroid mini
+.mobile-gallery-card {
+  flex-shrink: 0;
+  width: 75px;
+  scroll-snap-align: start;
+  cursor: pointer;
+  transition: $transition-smooth;
+  position: relative;
+  
+  // Marco polaroid
+  background: #ffffff;
+  border-radius: 2px;
+  padding: 4px 4px 24px 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transform: rotate(-1deg);
+  
+  &:nth-child(even) {
+    transform: rotate(1deg);
+  }
+
+  &:active {
+    transform: rotate(0deg) scale(0.95);
+  }
+
+  &.active {
+    transform: rotate(0deg) scale(1.05);
+    box-shadow: 
+      0 5px 15px rgba(255, 193, 7, 0.3),
+      0 0 0 2px #FFC107;
+  }
+
+  .card-image {
+    width: 100%;
+    aspect-ratio: 1;
+    overflow: hidden;
+    border-radius: 1px;
+    background: #f5f5f5;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  .card-info {
+    position: absolute;
+    bottom: 2px;
+    left: 4px;
+    right: 4px;
+    text-align: center;
+
+    h4 {
+      margin: 0;
+      font-size: 0.55rem;
+      font-weight: 600;
+      color: #444444;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+}
+
+// ========================================
+// No Results
+// ========================================
+.no-results {
+  text-align: center;
+  padding: 20px 10px;
+
+  .no-results-icon {
+    font-size: 1.5rem;
+    display: block;
+    margin-bottom: 8px;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.75rem;
+    color: #888888;
+  }
+}
+
+.no-results-inline {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+
+  span {
+    font-size: 0.7rem;
+    color: #888888;
+    white-space: nowrap;
+  }
+}
+
+// ========================================
+// Gallery Main Content
+// ========================================
+.gallery-main {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+  z-index: 5;
+}
+
+// ========================================
+// Hero Section
+// ========================================
+.hero-section {
+  padding: 40px 0 30px;
+  text-align: center;
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  .hero-content {
+    max-width: 800px;
+    margin: 0 auto;
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 25px 35px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  }
+
+  .hero-title {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 10px;
+    text-shadow: 0 2px 8px rgba(255, 255, 255, 0.5);
+
+    @media (max-width: 768px) {
+      font-size: 1.6rem;
+    }
+  }
+
+  .hero-description {
+    font-size: 1rem;
+    color: #555555;
+    line-height: 1.6;
+
+    @media (max-width: 768px) {
+      font-size: 0.9rem;
+    }
+  }
+}
+
+// ========================================
+// Subgallery Tabs
+// ========================================
+.subgallery-tabs {
+  margin-bottom: 20px;
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  .tabs-wrapper {
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    padding: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+  }
+
+  .tabs-scroll {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding: 4px;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  .tab-btn {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: rgba(255, 255, 255, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    color: #444444;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: $transition-smooth;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.5);
+      transform: translateY(-2px);
+    }
+
+    &.active {
+      background: linear-gradient(135deg, #FFC107 0%, #ff9800 100%);
+      color: #000;
+      border-color: transparent;
+      box-shadow: 0 4px 15px rgba(255, 193, 7, 0.4);
+    }
+
+    .tab-count {
+      background: rgba(0, 0, 0, 0.15);
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 0.75rem;
+    }
+
+    &.active .tab-count {
+      background: rgba(0, 0, 0, 0.2);
+    }
+  }
+}
+
+// ========================================
+// Loading States
+// ========================================
+.loading-galerias,
+.error-message,
+.empty-gallery {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.loading-galerias {
+  .spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(74, 144, 164, 0.2);
+    border-top-color: $primary-color;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 20px;
+  }
+
+  p {
+    color: #555555;
+    font-size: 1rem;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.error-message {
+  .error-content {
+    background: rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 40px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+  }
+
+  .error-icon {
+    font-size: 3rem;
+    margin-bottom: 15px;
+    display: block;
+  }
+
+  h3 {
+    color: #2c3e50;
+    margin-bottom: 10px;
+  }
+
+  p {
+    color: #555555;
+  }
+}
+
+.empty-gallery {
+  .empty-content {
+    background: rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 50px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+  }
+
+  .empty-icon {
+    font-size: 4rem;
+    margin-bottom: 20px;
+    display: block;
+  }
+
+  h3 {
+    color: #2c3e50;
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+  }
+
+  p {
+    color: #555555;
+    font-size: 1rem;
+  }
+}
+
+// ========================================
+// Gallery Section (Masonry Grid)
+// ========================================
+.gallery-section {
+  padding: 20px 0 60px;
+
+  .container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+}
+
+.masonry-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px;
+  }
+}
+
+.gallery-item {
+  position: relative;
+  border-radius: 15px;
+  overflow: hidden;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.1);
+
+  .image-wrapper {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1;
+    overflow: hidden;
+    background: #f0f0f0;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.5s ease, opacity 0.3s ease;
+      opacity: 0;
+    }
+
+    &.loaded img {
+      opacity: 1;
+      animation: imageLoad 0.4s ease;
+    }
+
+    &:hover img {
+      transform: scale(1.1);
+    }
+  }
+
+  .image-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to top,
+      rgba(0, 0, 0, 0.6) 0%,
+      transparent 50%
+    );
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    .overlay-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      color: white;
+      transform: translateY(20px);
+      transition: transform 0.3s ease;
+    }
+
+    .view-icon {
+      font-size: 2rem;
+    }
+
+    .view-text {
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+  }
+
+  &:hover .image-overlay {
+    opacity: 1;
+
+    .overlay-content {
+      transform: translateY(0);
+    }
+
+    .download-btn-grid {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .download-btn-grid {
+    position: absolute;
+    bottom: 15px;
+    right: 15px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    color: #333;
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    z-index: 5;
+
+    &:hover {
+      background: $primary-color;
+      color: white;
+      transform: translateY(0) scale(1.1);
+      box-shadow: 0 6px 20px $glow-primary;
+    }
+  }
+}
+
+@keyframes imageLoad {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+// ========================================
+// Loading More
+// ========================================
+.loading-more {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 0;
+
+  .spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(255, 255, 255, 0.1);
+    border-top-color: $primary-color;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 15px;
+  }
+
+  p {
+    color: $text-secondary;
+    font-size: 0.9rem;
+  }
+}
+
+// ========================================
+// Lightbox
+// ========================================
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease;
+
+  .lightbox-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.95);
+    backdrop-filter: blur(10px);
+  }
+
+  .lightbox-content {
+    position: relative;
+    max-width: 90vw;
+    max-height: 85vh;
+    z-index: 1;
+  }
+
+  .lightbox-image-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    img {
+      max-width: 90vw;
+      max-height: 80vh;
+      object-fit: contain;
+      border-radius: 10px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      transition: filter 0.4s ease, transform 0.4s ease;
+
+      &.loading {
+        filter: blur(8px);
+        transform: scale(1.02);
+      }
+    }
+    
+    .lightbox-loader {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
+      color: white;
+      font-size: 0.9rem;
+      opacity: 0.9;
+
+      .spinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid rgba(255, 255, 255, 0.2);
+        border-top-color: $primary-color;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+    }
+  }
+
+  .lightbox-close,
+  .lightbox-nav {
+    position: absolute;
+    background: rgba(255, 255, 255, 0.15);
+    border: none;
+    color: white;
+    cursor: pointer;
+    transition: $transition-smooth;
+    backdrop-filter: blur(10px);
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: scale(1.1);
+    }
+  }
+
+  .lightbox-close {
+    top: -50px;
+    right: 0;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .lightbox-nav {
+    top: 50%;
+    transform: translateY(-50%);
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    font-size: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &.lightbox-prev {
+      left: -80px;
+    }
+
+    &.lightbox-next {
+      right: -80px;
+    }
+
+    &:hover {
+      transform: translateY(-50%) scale(1.1);
+    }
+  }
+
+  .lightbox-download {
+    position: absolute;
+    bottom: -60px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 28px;
+    background: linear-gradient(
+      135deg,
+      $primary-color 0%,
+      $secondary-color 100%
+    );
+    border: none;
+    border-radius: 30px;
+    color: white;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: $transition-smooth;
+    box-shadow: 0 6px 20px $glow-primary;
+
+    &:hover {
+      transform: translateX(-50%) translateY(-3px);
+      box-shadow: 0 10px 30px $glow-primary;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .lightbox-close {
+      top: 15px;
+      right: 15px;
+      width: 40px;
+      height: 40px;
+    }
+
+    .lightbox-nav {
+      width: 40px;
+      height: 40px;
+      font-size: 1.5rem;
+
+      &.lightbox-prev {
+        left: 10px;
+      }
+
+      &.lightbox-next {
+        right: 10px;
+      }
+    }
+
+    .lightbox-download {
+      bottom: -55px;
+      padding: 10px 24px;
+      font-size: 0.9rem;
+    }
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+// ========================================
+// Fin de la galería
+// En el institucional no va la promoción del Instagram del jardín, solo el
+// aviso de que ya se vieron todas las fotos.
+// ========================================
+.end-message {
+  padding: 60px 20px;
+  background: rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(15px);
+  border-radius: 20px;
+  margin: 40px 0;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+
+  .cta-content {
+    max-width: 600px;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .cta-icon {
+    font-size: 4rem;
+    margin-bottom: 20px;
+    animation: float 3s ease-in-out infinite;
+  }
+
+  h3 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 0;
+  }
+
+  @media (max-width: 768px) {
+    padding: 40px 15px;
+
+    .cta-icon {
+      font-size: 3rem;
+    }
+
+    h3 {
+      font-size: 1.3rem;
+    }
+  }
+}
+
+// ========================================
+// Descripción con HTML del CKEditor
+// ========================================
+.descripcion-html {
+  ::ng-deep p {
+    margin: 0 0 0.4rem;
+  }
+
+  ::ng-deep p:last-child {
+    margin-bottom: 0;
+  }
+
+  ::ng-deep ul,
+  ::ng-deep ol {
+    margin: 0 0 0.4rem;
+    padding-left: 1.2rem;
+  }
+
+  ::ng-deep img {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-15px);
+  }
+}
+// =========================================
+// Selector de modos para desarrollo
+// Pegar este bloque al final del galeria.component.scss actual.
+// Solo se ve en localhost (controlado por *ngIf="debugModosVisible").
+// =========================================
+
+.debug-modos-selector {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 9999;
+  background: rgba(20, 25, 35, 0.95);
+  color: #fff;
+  padding: 12px 14px;
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  min-width: 280px;
+  max-width: 320px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 0.85rem;
+
+  .debug-modos-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .debug-modos-icon {
+    font-size: 1.1rem;
+  }
+
+  .debug-modos-label {
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .debug-modos-current {
+    flex: 1;
+    color: #4fc3f7;
+    font-weight: 500;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .debug-modos-select {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+    padding: 8px 10px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    outline: none;
+    transition: background 0.2s, border-color 0.2s;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.35);
+    }
+
+    &:focus {
+      border-color: #4fc3f7;
+    }
+
+    option {
+      background: #1a1f2e;
+      color: #fff;
+      padding: 6px;
+    }
+  }
+
+  .debug-modos-hint {
+    margin-top: 8px;
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.5);
+    font-style: italic;
+  }
+}
+
+@media (max-width: 768px) {
+  .debug-modos-selector {
+    bottom: 10px;
+    right: 10px;
+    left: 10px;
+    min-width: 0;
+    max-width: none;
+  }
+}
+
+// -----------------------------------------
+// Barra de acciones de la galería ("Girar todas")
+// -----------------------------------------
+.gallery-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  padding: 0 0.5rem;
+}
+
+.btn-rotar-todas {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, #4a90a4 0%, #5fa5b8 100%);
+  color: #fff;
+  border: none;
+  padding: 0.55rem 1.1rem;
+  border-radius: 24px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 3px 10px rgba(74, 144, 164, 0.35);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(74, 144, 164, 0.45);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  .rotar-icon {
+    font-size: 1.2rem;
+    display: inline-block;
+    transition: transform 0.4s ease;
+  }
+
+  &:hover .rotar-icon {
+    transform: rotate(90deg);
+  }
+}
+
+@media (max-width: 768px) {
+  .btn-rotar-todas {
+    padding: 0.5rem 0.9rem;
+    font-size: 0.85rem;
+
+    .rotar-text {
+      display: none; // En mobile solo se ve el icono
+    }
+  }
+}
+
+// -----------------------------------------
+// Acciones del lightbox (girar + descargar)
+// -----------------------------------------
+.lightbox-actions {
+  position: absolute;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 0.75rem;
+  z-index: 10;
+}
+
+.lightbox-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.95);
+  color: #2a2a2a;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 24px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s ease, background 0.2s ease;
+
+  &:hover {
+    background: #fff;
+    transform: translateY(-2px);
+  }
+
+  .action-icon {
+    font-size: 1.1rem;
+  }
+}
+
+// La imagen del lightbox debe poder rotar sin que el contenedor la recorte
+.lightbox-image-container {
+  overflow: visible;
+}
+
+@media (max-width: 768px) {
+  .lightbox-actions {
+    bottom: 1rem;
+    gap: 0.5rem;
+  }
+
+  .lightbox-action-btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+
+    .action-text {
+      display: none; // En mobile solo el icono
+    }
+  }
+}
+
+// -----------------------------------------
+// Selector de modos para desarrollo
+// Solo se ve en localhost o con flag localStorage 'lumen_dev'
+// (controlado por *ngIf="debugModosVisible").
+// -----------------------------------------
+
+.debug-modos-selector {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 9999;
+  background: rgba(20, 25, 35, 0.95);
+  color: #fff;
+  padding: 12px 14px;
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  min-width: 280px;
+  max-width: 320px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 0.85rem;
+
+  .debug-modos-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .debug-modos-icon {
+    font-size: 1.1rem;
+  }
+
+  .debug-modos-label {
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .debug-modos-current {
+    flex: 1;
+    color: #4fc3f7;
+    font-weight: 500;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .debug-modos-select {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+    padding: 8px 10px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    outline: none;
+    transition: background 0.2s, border-color 0.2s;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.35);
+    }
+
+    &:focus {
+      border-color: #4fc3f7;
+    }
+
+    option {
+      background: #1a1f2e;
+      color: #fff;
+      padding: 6px;
+    }
+  }
+
+  .debug-modos-hint {
+    margin-top: 8px;
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.5);
+    font-style: italic;
+  }
+}
+
+@media (max-width: 768px) {
+  .debug-modos-selector {
+    bottom: 10px;
+    right: 10px;
+    left: 10px;
+    min-width: 0;
+    max-width: none;
+  }
+}

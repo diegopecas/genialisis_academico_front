@@ -1,5 +1,6 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 
 import { PermisosService } from '../../../../../../services/permisos.service';
 import { PagosRecibidosService } from '../../../../../../services/pagos-recibidos.service';
@@ -13,12 +14,14 @@ import {
 import { AgendaCalificacionesComponent } from '../agenda-calificaciones/agenda-calificaciones.component';
 import {
   EventoAgenda,
+  GaleriaActividad,
   ItemAgenda,
   NotaAgenda,
   PERMISO_FINANZAS_AGENDA,
   calificacionesDe,
   esActividadExtensa,
   estaRestringido,
+  galeriaDe,
   itemsDe,
   notasDe,
 } from '../../mi-agenda.types';
@@ -34,7 +37,9 @@ import {
  *
  * En el institucional la agenda solo se consulta: no hay "Ver más" hacia
  * otras pantallas. El único "Ver más" es el de la actividad plegada, que
- * abre el detalle sin salir de la agenda.
+ * abre el detalle sin salir de la agenda. La excepción es "Ver galería":
+ * cuando la actividad tiene galería asociada lleva a la galería de
+ * consulta del institucional, abierta en esa galería.
  */
 @Component({
   selector: 'app-agenda-tarjeta-extras',
@@ -62,12 +67,16 @@ export class AgendaTarjetaExtrasComponent {
   /** Mientras se arma el PDF, para no dejar disparar dos veces. */
   public generandoRecibo = false;
 
+  /** Permiso de la galería de consulta del institucional. */
+  private readonly PERMISO_GALERIA = 'operaciones.galeria.ver';
+
   constructor(
     private pagosRecibidosService: PagosRecibidosService,
     private documentosPersonasService: DocumentosPersonasService,
     private institucionConfigService: InstitucionConfigService,
     private exportarPdfComprobanteService: ExportarPdfComprobanteService,
-    public permisosService: PermisosService
+    public permisosService: PermisosService,
+    private router: Router
   ) { }
 
   items(): ItemAgenda[] {
@@ -95,6 +104,28 @@ export class AgendaTarjetaExtrasComponent {
 
   calificaciones() {
     return calificacionesDe(this.evento);
+  }
+
+  // -----------------------------------------------------------------
+  // Galería de la actividad
+  // -----------------------------------------------------------------
+
+  /**
+   * Galería asociada a la actividad, solo si el usuario puede entrar a la
+   * galería de consulta. Sin el permiso el enlace no se ofrece, porque la
+   * guarda de la ruta lo devolvería.
+   */
+  galeria(): GaleriaActividad | null {
+    const galeria = galeriaDe(this.evento);
+    if (!galeria) return null;
+    return this.permisosService.tienePermiso(this.PERMISO_GALERIA) ? galeria : null;
+  }
+
+  verGaleria(event: Event): void {
+    event.stopPropagation();
+    const galeria = this.galeria();
+    if (!galeria) return;
+    this.router.navigate(['/operaciones/galeria'], { queryParams: { id: galeria.id } });
   }
 
   // -----------------------------------------------------------------
@@ -128,7 +159,7 @@ export class AgendaTarjetaExtrasComponent {
   }
 
   hayAcciones(): boolean {
-    if (this.plegado) {
+    if (this.plegado || this.galeria()) {
       return true;
     }
 

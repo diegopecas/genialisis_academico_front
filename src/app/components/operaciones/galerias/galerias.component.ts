@@ -19,9 +19,11 @@ export class GaleriasComponent implements OnInit {
   titulo = "Gestión de Galerías";
   // Grupos va como tipoFiltro 'lista': la celda trae varios grupos en un solo
   // texto y el filtro debe ofrecerlos por separado.
+  // Descripción ya no va como filtro: ahora es HTML del editor y el filtro
+  // listaría las etiquetas. Se sigue encontrando con el buscador general.
   public columnasFiltro: (string | { columna: string, tipoFiltro?: 'fecha' | 'normal' | 'rango' | 'lista' })[] = [
     'Nombre',
-    'Descripción',
+    'Actividad',
     'Fecha',
     'Tipo',
     { columna: 'Grupos', tipoFiltro: 'lista' },
@@ -55,7 +57,8 @@ export class GaleriasComponent implements OnInit {
           estado_texto: g.activo === 1 ? 'Activo' : 'Inactivo',
           color: g.activo === 0 ? "#e2e9f3" : "",
           fecha_formateada: this.formatearFecha(g.fecha),
-          grupos_texto: this.armarTextoGrupos(g)
+          grupos_texto: this.armarTextoGrupos(g),
+          actividad_texto: g.titulo_actividad ? g.titulo_actividad : 'Sin actividad'
         }));
       },
       error: (error) => {
@@ -81,7 +84,9 @@ export class GaleriasComponent implements OnInit {
     this.titulos = [
       { clave: 'id', alias: 'ID', alinear: 'centrado' },
       { clave: 'nombre', alias: 'Nombre', alinear: 'izquierda' },
-      { clave: 'descripcion', alias: 'Descripción', alinear: 'izquierda' },
+      // La descripción sale del CKEditor, por eso se pinta como HTML
+      { clave: 'descripcion', alias: 'Descripción', alinear: 'izquierda', tipo: 'html' },
+      { clave: 'actividad_texto', alias: 'Actividad', alinear: 'izquierda' },
       { clave: 'fecha_formateada', alias: 'Fecha', alinear: 'centrado' },
       { clave: 'tipo_texto', alias: 'Tipo', alinear: 'centrado' },
       { clave: 'grupos_texto', alias: 'Grupos', alinear: 'izquierda' },

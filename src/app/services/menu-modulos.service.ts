@@ -395,11 +395,12 @@ export class MenuModulosService {
             iconoArbol: '🎨',
             alt: 'Actividades',
             imagen: 'assets/images/actividades.png',
-            permisos: ['operaciones.galerias', 'operaciones.registro_medidas', 'operaciones.utiles_diarios'],
+            permisos: ['operaciones.galeria.ver', 'operaciones.galerias', 'operaciones.registro_medidas', 'operaciones.utiles_diarios'],
             keywords: ['fotos', 'talla', 'peso', 'maleta'],
             opciones: [
               { id: 'registro-medidas', label: 'Registro de Medidas', alt: 'Registro de Medidas', imagen: 'assets/images/medidas.png', iconoArbol: '📏', ruta: '/operaciones/registro-medidas', permiso: 'operaciones.registro_medidas', keywords: ['talla', 'peso', 'estatura', 'antropometria'] },
               { id: 'galerias', label: 'Gestión de Galerías', alt: 'Gestión de Galerías', imagen: 'assets/images/galeria.png', iconoArbol: '🖼️', ruta: '/operaciones/galerias', permiso: 'operaciones.galerias', keywords: ['fotos', 'imagenes', 'album', 'videos'] },
+              { id: 'galeria-consulta', label: 'Galería', alt: 'Galería', imagen: 'assets/images/galeria-consulta.png', iconoArbol: '📸', ruta: '/operaciones/galeria', permiso: 'operaciones.galeria.ver', keywords: ['fotos', 'imagenes', 'album', 'ver fotos', 'galeria de padres', 'lo que ve el papa'] },
               { id: 'utiles-diarios', label: 'Útiles y Accesorios Diarios', alt: 'Útiles y Accesorios Diarios', imagen: 'assets/images/utiles-diarios.png', iconoArbol: '🎒', ruta: '/operaciones/utiles-diarios', permiso: 'operaciones.utiles_diarios', keywords: ['utiles', 'accesorios', 'inventario diario', 'maleta', 'morral', 'que trajo', 'que se llevo', 'chaqueta', 'lonchera', 'termo'] }
             ]
           },

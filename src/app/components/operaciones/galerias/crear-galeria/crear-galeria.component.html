@@ -9,113 +9,293 @@
   ></app-header>
 
   <div class="container mt-5">
-    <!-- Información básica -->
-    <div class="row">
-      <div class="col-sm-12 col-md-8">
-        <label for="nombre" class="form-label">Nombre <span class="text-danger">*</span></label>
-        <input
-          class="form-control form-control-lg"
-          type="text"
-          id="nombre"
-          [(ngModel)]="model.nombre"
-          placeholder="Ej: Día de la Familia 2024"
-          [ngClass]="{'is-invalid': !model.nombre && submitted}"
-          [disabled]="!editable"
-        />
-      </div>
-      <div class="col-sm-12 col-md-4">
-        <label for="fecha" class="form-label">Fecha <span class="text-danger">*</span></label>
-        <input
-          class="form-control form-control-lg"
-          type="date"
-          id="fecha"
-          [(ngModel)]="model.fecha"
-          [ngClass]="{'is-invalid': !model.fecha && submitted}"
-          [disabled]="!editable"
-        />
-      </div>
-    </div>
 
-    <div class="row">
-      <div class="col-12">
-        <label for="descripcion" class="form-label">Descripción</label>
-        <textarea
-          class="form-control form-control-lg"
-          id="descripcion"
-          rows="3"
-          [(ngModel)]="model.descripcion"
-          placeholder="Descripción de la galería"
-          [disabled]="!editable"
-        ></textarea>
-      </div>
-    </div>
+    <!-- Tomar los datos de una actividad ejecutada (opcional, solo al crear).
+         La lista se pide al back cuando se abre el panel, una sola vez, y los
+         filtros trabajan sobre ella. -->
+    <ng-container *ngIf="mostrarBusquedaActividad && editable">
 
-    <!-- Tipo de galería -->
-    <div class="row">
-      <div class="col-sm-12 col-md-4">
-        <label for="tipoGaleria" class="form-label">Tipo <span class="text-danger">*</span></label>
-        <select
-          class="form-select form-select-lg"
-          id="tipoGaleria"
-          [(ngModel)]="model.es_publica"
-          [disabled]="!editable"
-        >
-          <option [ngValue]="1">Pública (visible para todos)</option>
-          <option [ngValue]="0">Privada (solo grupos seleccionados)</option>
-        </select>
-      </div>
-      <div class="col-sm-12 col-md-4">
-        <label for="orden" class="form-label">Orden</label>
-        <input
-          class="form-control form-control-lg"
-          type="number"
-          id="orden"
-          [(ngModel)]="model.orden"
-          min="0"
-          [disabled]="!editable"
-        />
-        <small class="form-text text-muted">Menor número aparece primero</small>
-      </div>
-      <div class="col-sm-12 col-md-4">
-        <label for="activo" class="form-label">Estado</label>
-        <select
-          class="form-select form-select-lg"
-          id="activo"
-          [(ngModel)]="model.activo"
-          [disabled]="!editable"
-        >
-          <option [ngValue]="1">Activo</option>
-          <option [ngValue]="0">Inactivo</option>
-        </select>
-      </div>
-    </div>
+      <!-- Botón para abrir el panel -->
+      <button
+        type="button"
+        class="btn-tomar-actividad"
+        *ngIf="!panelActividadesAbierto && !actividadSeleccionada"
+        (click)="abrirPanelActividades()"
+      >
+        <span class="btn-tomar-icono"><i class="fas fa-chalkboard-teacher"></i></span>
+        <span class="btn-tomar-texto">
+          <strong>Tomar datos de una actividad</strong>
+          <small>Opcional. Llena el nombre, la descripción, la fecha y el grupo desde una actividad ejecutada</small>
+        </span>
+        <i class="fas fa-chevron-right btn-tomar-flecha"></i>
+      </button>
 
-    <!-- Asignación de grupos (solo si es privada) -->
-    <div class="row" *ngIf="model.es_publica === 0">
-      <div class="col-12">
-        <hr />
-        <h5 class="mb-3">Grupos con acceso <span class="text-danger">*</span></h5>
-        <div class="alert alert-info">
-          <i class="fas fa-info-circle me-2"></i>
-          Selecciona los grupos que podrán ver esta galería
+      <!-- Panel con las últimas actividades ejecutadas -->
+      <div class="panel-actividades" *ngIf="panelActividadesAbierto">
+        <div class="panel-actividades-cabecera">
+          <span class="panel-actividades-titulo">
+            <i class="fas fa-chalkboard-teacher me-2"></i>Últimas actividades ejecutadas
+          </span>
+          <button type="button" class="btn-cerrar-panel" (click)="cerrarPanelActividades()">
+            <i class="fas fa-times me-1"></i>Cerrar
+          </button>
         </div>
-        
-        <div class="grupos-grid">
-          <div
-            *ngFor="let grupo of grupos"
-            class="grupo-checkbox"
-            [class.selected]="isGrupoSeleccionado(grupo.id)"
+
+        <div class="panel-actividades-cuerpo">
+          <div class="row filtros-actividades" *ngIf="actividades.length > 0">
+            <div class="col-sm-12 col-md-4">
+              <label for="filtroGrupoActividad" class="form-label">Grupo</label>
+              <select
+                class="form-select"
+                id="filtroGrupoActividad"
+                [(ngModel)]="filtroGrupoActividad"
+                (ngModelChange)="onFiltroGrupoActividadChange()"
+              >
+                <option value="">Todos los grupos</option>
+                <option *ngFor="let grupo of gruposActividades; trackBy: trackById" [value]="grupo.id">{{ grupo.nombre }}</option>
+              </select>
+            </div>
+            <div class="col-sm-12 col-md-4">
+              <label for="filtroAreaActividad" class="form-label">Área</label>
+              <select
+                class="form-select"
+                id="filtroAreaActividad"
+                [(ngModel)]="filtroAreaActividad"
+                (ngModelChange)="aplicarFiltrosActividades()"
+              >
+                <option value="">Todas las áreas</option>
+                <option *ngFor="let area of areasActividades; trackBy: trackById" [value]="area.id">{{ area.nombre }}</option>
+              </select>
+            </div>
+            <div class="col-sm-12 col-md-4">
+              <label for="buscarActividad" class="form-label">Buscar</label>
+              <div class="input-group">
+                <input
+                  class="form-control"
+                  type="text"
+                  id="buscarActividad"
+                  [(ngModel)]="filtroTextoActividad"
+                  (ngModelChange)="aplicarFiltrosActividades()"
+                  placeholder="Título, grupo, área o docente"
+                />
+                <button
+                  type="button"
+                  class="btn btn-outline-secondary"
+                  *ngIf="hayFiltrosActividades"
+                  (click)="limpiarFiltrosActividades()"
+                  title="Limpiar filtros"
+                >
+                  <i class="fas fa-eraser"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="text-muted" *ngIf="cargandoActividades">
+            <i class="fas fa-spinner fa-spin me-2"></i>Cargando actividades...
+          </div>
+
+          <div class="alert alert-info mb-0" *ngIf="!cargandoActividades && actividadesFiltradas.length === 0">
+            <i class="fas fa-info-circle me-2"></i>
+            <ng-container *ngIf="actividades.length === 0">No hay actividades ejecutadas</ng-container>
+            <ng-container *ngIf="actividades.length > 0">Ninguna actividad coincide con los filtros</ng-container>
+          </div>
+
+          <div class="actividades-grid" *ngIf="!cargandoActividades && actividadesFiltradas.length > 0">
+            <button
+              type="button"
+              *ngFor="let actividad of actividadesFiltradas; trackBy: trackById"
+              class="actividad-card"
+              [class.selected]="esActividadSeleccionada(actividad)"
+              [style.--tono-area]="actividad.vista_color"
+              (click)="seleccionarActividad(actividad)"
+            >
+              <span class="actividad-cabecera">
+                <span class="actividad-fecha-chip" *ngIf="actividad.vista_dia">
+                  <strong>{{ actividad.vista_dia }}</strong>
+                  <small>{{ actividad.vista_mes }}</small>
+                </span>
+                <span class="actividad-cabecera-texto">
+                  <span class="actividad-titulo">{{ actividad.titulo_actividad }}</span>
+                  <span class="actividad-grupo">
+                    <i class="fas fa-users me-1"></i>{{ actividad.nombre_grupo }}
+                    <ng-container *ngIf="actividad.vista_hora"> · {{ actividad.vista_hora }}</ng-container>
+                  </span>
+                </span>
+                <span class="actividad-check" *ngIf="esActividadSeleccionada(actividad)">
+                  <i class="fas fa-check"></i>
+                </span>
+              </span>
+
+              <span class="actividad-resumen" *ngIf="actividad.vista_resumen">{{ actividad.vista_resumen }}</span>
+
+              <!-- El área va discreta: solo un punto de su color y el nombre -->
+              <span class="actividad-area" *ngIf="actividad.vista_area">
+                <span class="actividad-area-punto"></span>{{ actividad.vista_area }}
+              </span>
+
+              <span class="actividad-pie">
+                <span class="actividad-docente" *ngIf="actividad.nombre_docente">
+                  <span class="actividad-avatar">{{ actividad.vista_iniciales }}</span>
+                  {{ actividad.nombre_docente }}
+                </span>
+                <span class="actividad-con-galeria" *ngIf="actividad.tiene_galeria == 1">
+                  <i class="fas fa-images me-1"></i>Ya tiene galería
+                </span>
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actividad seleccionada: queda al inicio del formulario -->
+      <div class="actividad-asociada" *ngIf="actividadSeleccionada">
+        <div class="actividad-asociada-cabecera">
+          <span class="actividad-asociada-rotulo">
+            <i class="fas fa-link me-1"></i>Actividad asociada
+          </span>
+          <span class="actividad-asociada-acciones">
+            <button type="button" class="btn btn-sm btn-outline-secondary" (click)="abrirPanelActividades()" *ngIf="!panelActividadesAbierto">
+              <i class="fas fa-exchange-alt me-1"></i>Cambiar
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" (click)="quitarActividad()">
+              <i class="fas fa-times me-1"></i>Quitar
+            </button>
+          </span>
+        </div>
+        <span class="actividad-asociada-titulo">{{ actividadSeleccionada.titulo_actividad }}</span>
+        <span class="actividad-asociada-detalle">
+          {{ actividadSeleccionada.nombre_grupo }}
+          <ng-container *ngIf="actividadSeleccionada.nombre_area"> · {{ actividadSeleccionada.nombre_area }}</ng-container>
+          <ng-container *ngIf="actividadSeleccionada.fecha_ejecucion"> · {{ formatearFechaHora(actividadSeleccionada.fecha_ejecucion) }}</ng-container>
+        </span>
+      </div>
+    </ng-container>
+
+    <!-- Actividad asociada (solo lectura al editar o consultar) -->
+    <div class="row" *ngIf="accion !== 'crear' && actividadAsociada">
+      <div class="col-12">
+        <div class="actividad-asociada">
+          <span class="actividad-asociada-rotulo">
+            <i class="fas fa-link me-1"></i>Actividad asociada
+          </span>
+          <span class="actividad-asociada-titulo">{{ actividadAsociada.titulo }}</span>
+          <span class="actividad-asociada-detalle">
+            {{ actividadAsociada.nombre_grupo }}
+            <ng-container *ngIf="actividadAsociada.nombre_area"> · {{ actividadAsociada.nombre_area }}</ng-container>
+            <ng-container *ngIf="actividadAsociada.fecha_ejecucion"> · {{ formatearFechaHora(actividadAsociada.fecha_ejecucion) }}</ng-container>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Formulario -->
+    <div>
+      <!-- Información básica -->
+      <div class="row">
+        <div class="col-sm-12 col-md-8">
+          <label for="nombre" class="form-label">Nombre <span class="text-danger">*</span></label>
+          <input
+            class="form-control form-control-lg"
+            type="text"
+            id="nombre"
+            [(ngModel)]="model.nombre"
+            [maxlength]="MAX_NOMBRE"
+            placeholder="Ej: Día de la Familia 2024"
+            [ngClass]="{'is-invalid': !model.nombre && submitted}"
+            [disabled]="!editable"
+          />
+        </div>
+        <div class="col-sm-12 col-md-4">
+          <label for="fecha" class="form-label">Fecha <span class="text-danger">*</span></label>
+          <input
+            class="form-control form-control-lg"
+            type="date"
+            id="fecha"
+            [(ngModel)]="model.fecha"
+            [ngClass]="{'is-invalid': !model.fecha && submitted}"
+            [disabled]="!editable"
+          />
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-12">
+          <label for="editor-descripcion-galeria" class="form-label">Descripción</label>
+          <!-- Editor CKEditor 5 -->
+          <div class="editor-wrapper">
+            <div id="editor-descripcion-galeria" class="editor-container"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tipo de galería -->
+      <div class="row">
+        <div class="col-sm-12 col-md-4">
+          <label for="tipoGaleria" class="form-label">Tipo <span class="text-danger">*</span></label>
+          <select
+            class="form-select form-select-lg"
+            id="tipoGaleria"
+            [(ngModel)]="model.es_publica"
+            [disabled]="!editable"
           >
-            <label class="form-check-label">
-              <input
-                type="checkbox"
-                class="form-check-input"
-                [checked]="isGrupoSeleccionado(grupo.id)"
-                (change)="toggleGrupo(grupo.id)"
-                [disabled]="!editable"
-              />
-              <span class="grupo-nombre">{{ grupo.nombre }}</span>
-            </label>
+            <option [ngValue]="1">Pública (visible para todos)</option>
+            <option [ngValue]="0">Privada (solo grupos seleccionados)</option>
+          </select>
+        </div>
+        <div class="col-sm-12 col-md-4">
+          <label for="orden" class="form-label">Orden</label>
+          <input
+            class="form-control form-control-lg"
+            type="number"
+            id="orden"
+            [(ngModel)]="model.orden"
+            min="0"
+            [disabled]="!editable"
+          />
+          <small class="form-text text-muted">Menor número aparece primero</small>
+        </div>
+        <div class="col-sm-12 col-md-4">
+          <label for="activo" class="form-label">Estado</label>
+          <select
+            class="form-select form-select-lg"
+            id="activo"
+            [(ngModel)]="model.activo"
+            [disabled]="!editable"
+          >
+            <option [ngValue]="1">Activo</option>
+            <option [ngValue]="0">Inactivo</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Asignación de grupos (solo si es privada) -->
+      <div class="row" *ngIf="model.es_publica === 0">
+        <div class="col-12">
+          <hr />
+          <h5 class="mb-3">Grupos con acceso <span class="text-danger">*</span></h5>
+          <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>
+            Selecciona los grupos que podrán ver esta galería
+          </div>
+
+          <div class="grupos-grid">
+            <div
+              *ngFor="let grupo of grupos"
+              class="grupo-checkbox"
+              [class.selected]="isGrupoSeleccionado(grupo.id)"
+            >
+              <label class="form-check-label">
+                <input
+                  type="checkbox"
+                  class="form-check-input"
+                  [checked]="isGrupoSeleccionado(grupo.id)"
+                  (change)="toggleGrupo(grupo.id)"
+                  [disabled]="!editable"
+                />
+                <span class="grupo-nombre">{{ grupo.nombre }}</span>
+              </label>
+            </div>
           </div>
         </div>
       </div>

@@ -42,19 +42,19 @@
     },
     {
       "nombre": "Día de la familia",
-      "ruta": "assets/images/evento-dia-familia.png"
+      "ruta": "assets/images/familia.png"
     },
     {
       "nombre": "Día del niño",
-      "ruta": "assets/images/evento-dia-nino.png"
+      "ruta": "assets/images/recursos_compartidos/talents.png"
     },
     {
       "nombre": "Día de la madre",
-      "ruta": "assets/images/evento-dia-madre.png"
+      "ruta": "assets/images/recursos_compartidos/inteligencia_emocional.png"
     },
     {
       "nombre": "Día del padre",
-      "ruta": "assets/images/evento-dia-padre.png"
+      "ruta": "assets/images/apoyo.png"
     },
     {
       "nombre": "Disfraces",
@@ -62,39 +62,139 @@
     },
     {
       "nombre": "Navidad",
-      "ruta": "assets/images/evento-navidad.png"
+      "ruta": "assets/images/notificaciones.png"
     },
     {
       "nombre": "Jornada deportiva",
-      "ruta": "assets/images/evento-deportes.png"
+      "ruta": "assets/images/recursos_compartidos/deportes.png"
     },
     {
       "nombre": "Muestra artística",
-      "ruta": "assets/images/evento-arte.png"
+      "ruta": "assets/images/recursos_compartidos/arte_clasico.png"
     },
     {
       "nombre": "Presentación musical",
-      "ruta": "assets/images/evento-musica.png"
+      "ruta": "assets/images/recursos_compartidos/musica.png"
     },
     {
       "nombre": "Feria de la ciencia",
-      "ruta": "assets/images/evento-ciencia.png"
+      "ruta": "assets/images/recursos_compartidos/experimentales.png"
     },
     {
       "nombre": "Jornada de salud",
-      "ruta": "assets/images/evento-salud.png"
+      "ruta": "assets/images/medidas.png"
     },
     {
       "nombre": "Simulacro de evacuación",
-      "ruta": "assets/images/evento-simulacro.png"
+      "ruta": "assets/images/seguridad.png"
     },
     {
       "nombre": "Clausura",
-      "ruta": "assets/images/evento-clausura.png"
+      "ruta": "assets/images/finalizar.png"
+    },
+    {
+      "nombre": "Semana de adaptación",
+      "ruta": "assets/images/recursos_compartidos/explorers.png"
+    },
+    {
+      "nombre": "Jornada recreativa",
+      "ruta": "assets/images/recursos_compartidos/genius.png"
+    },
+    {
+      "nombre": "Día de pijamas",
+      "ruta": "assets/images/recursos_compartidos/vida_practica.png"
+    },
+    {
+      "nombre": "Día del amor y la amistad",
+      "ruta": "assets/images/recursos_compartidos/historia.png"
+    },
+    {
+      "nombre": "Día del idioma",
+      "ruta": "assets/images/recursos_compartidos/lenguaje.png"
+    },
+    {
+      "nombre": "English Day",
+      "ruta": "assets/images/recursos_compartidos/ingles.png"
+    },
+    {
+      "nombre": "Día de las matemáticas",
+      "ruta": "assets/images/recursos_compartidos/matematicas.png"
+    },
+    {
+      "nombre": "Día de la tecnología",
+      "ruta": "assets/images/recursos_compartidos/tecnologia.png"
+    },
+    {
+      "nombre": "Día de la Tierra",
+      "ruta": "assets/images/recursos_compartidos/geografia.png"
+    },
+    {
+      "nombre": "Celebración religiosa",
+      "ruta": "assets/images/recursos_compartidos/religion.png"
+    },
+    {
+      "nombre": "Feria de emprendimiento",
+      "ruta": "assets/images/recursos_compartidos/emprendimiento.png"
+    },
+    {
+      "nombre": "Desfile o izada de bandera",
+      "ruta": "assets/images/recursos_compartidos/creators.png"
+    },
+    {
+      "nombre": "Olimpiadas o intercursos",
+      "ruta": "assets/images/recursos_compartidos/deportes_3.png"
+    },
+    {
+      "nombre": "Clase de natación",
+      "ruta": "assets/images/recursos_compartidos/deportes_4.png"
+    },
+    {
+      "nombre": "Alimentación saludable",
+      "ruta": "assets/images/alimentacion.png"
+    },
+    {
+      "nombre": "Compartir o fiesta de onces",
+      "ruta": "assets/images/onces.png"
+    },
+    {
+      "nombre": "Día de fotos",
+      "ruta": "assets/images/galeria.png"
+    },
+    {
+      "nombre": "Clase abierta o visita de padres",
+      "ruta": "assets/images/visitas.png"
+    },
+    {
+      "nombre": "Taller para padres",
+      "ruta": "assets/images/programar.png"
+    },
+    {
+      "nombre": "Valoración psicológica",
+      "ruta": "assets/images/tamizajes.png"
+    },
+    {
+      "nombre": "Evaluaciones",
+      "ruta": "assets/images/evaluar.png"
+    },
+    {
+      "nombre": "Cierre de periodo",
+      "ruta": "assets/images/cortes-academicos.png"
+    },
+    {
+      "nombre": "Entrega de certificados",
+      "ruta": "assets/images/certificados.png"
+    },
+    {
+      "nombre": "Firma de contratos",
+      "ruta": "assets/images/contratos.png"
+    },
+    {
+      "nombre": "Fecha límite de pago",
+      "ruta": "assets/images/recordatorio-pagos.png"
     },
     {
       "nombre": "Evento general",
-      "ruta": "assets/images/evento-general.png"
+      "ruta": "assets/images/calendario_actividades.png"
     }
   ]
 }

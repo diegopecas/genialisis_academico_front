@@ -441,8 +441,9 @@ export class GestionarImagenesComponent implements OnInit {
       return;
     }
 
+    // La descripción viene del CKEditor con HTML; Instagram solo acepta texto.
     const captionDefecto = (this.galeria && this.galeria.descripcion)
-      ? this.galeria.descripcion
+      ? this.descripcionComoTexto(this.galeria.descripcion)
       : (this.galeria && this.galeria.nombre ? this.galeria.nombre : '');
 
     const result = await Swal.fire({
@@ -555,8 +556,9 @@ export class GestionarImagenesComponent implements OnInit {
 
     const video = seleccionadas[0];
 
+    // La descripción viene del CKEditor con HTML; Instagram solo acepta texto.
     const captionDefecto = (this.galeria && this.galeria.descripcion)
-      ? this.galeria.descripcion
+      ? this.descripcionComoTexto(this.galeria.descripcion)
       : (this.galeria && this.galeria.nombre ? this.galeria.nombre : '');
 
     const result = await Swal.fire({
@@ -968,6 +970,26 @@ export class GestionarImagenesComponent implements OnInit {
         }
       });
     }
+  }
+
+  /**
+   * Convierte la descripción HTML de la galería en texto plano para el post
+   * de Instagram: respeta párrafos, saltos de línea y viñetas.
+   */
+  private descripcionComoTexto(html: string): string {
+    if (!html) return '';
+    let texto = html
+      .replace(/<\s*br\s*\/?\s*>/gi, '\n')
+      .replace(/<\s*li[^>]*>/gi, '\n• ')
+      .replace(/<\s*\/\s*(p|div|h[1-6]|ul|ol)\s*>/gi, '\n');
+    const tmp = document.createElement('div');
+    tmp.innerHTML = texto;
+    texto = (tmp.textContent || tmp.innerText || '')
+      .replace(/\u00A0/g, ' ')
+      .replace(/[ \t]+/g, ' ')
+      .replace(/ *\n */g, '\n')
+      .replace(/\n{3,}/g, '\n\n');
+    return texto.trim();
   }
 
   volver() {

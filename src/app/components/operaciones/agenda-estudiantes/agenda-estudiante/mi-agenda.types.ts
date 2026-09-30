@@ -140,15 +140,32 @@ export function esActividadExtensa(evento: EventoAgenda | null): boolean {
 }
 
 /**
- * Descripción de una actividad con el HTML del editor (párrafos, negrillas,
- * listas). El backend solo la manda cuando de verdad trae etiquetas; en
- * evento.detalle va siempre la versión en texto plano, que es la que usan
- * el buscador y las demás reglas. Angular sanea el HTML al pintarlo.
+ * Descripción de una actividad o de una galería con el HTML del editor
+ * (párrafos, negrillas, listas). El backend solo la manda cuando de verdad
+ * trae etiquetas; en evento.detalle va siempre la versión en texto plano,
+ * que es la que usan el buscador y las demás reglas. Angular sanea el HTML
+ * al pintarlo.
  */
 export function descripcionHtml(evento: EventoAgenda | null): string | null {
-  if (evento?.clave !== 'actividades') return null;
+  if (evento?.clave !== 'actividades' && evento?.clave !== 'galerias') return null;
   const html = evento?.meta?.descripcion_html;
   return typeof html === 'string' && html.trim() !== '' ? html : null;
+}
+
+/** Galería creada desde una actividad ejecutada. */
+export interface GaleriaActividad {
+  id: string;
+  nombre: string;
+}
+
+/**
+ * Galería asociada a la actividad. El backend solo la manda cuando el
+ * estudiante la puede ver (activa, con fotos y pública o de su grupo).
+ */
+export function galeriaDe(evento: EventoAgenda | null): GaleriaActividad | null {
+  if (evento?.clave !== 'actividades') return null;
+  const galeria = evento?.meta?.galeria;
+  return galeria && galeria.id ? { id: galeria.id, nombre: galeria.nombre || '' } : null;
 }
 
 /** El evento tiene algo más que mostrar al abrir el detalle. */

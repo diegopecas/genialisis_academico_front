@@ -1,0 +1,318 @@
+<!--
+  Renderer de modos. Usa @switch para delegar a uno de los 30 componentes.
+  Todas las props comunes se pasan a cada modo; los eventos se propagan al padre.
+-->
+
+<ng-container *ngIf="modoActivo">
+  @switch (modoActivo.nombreInterno) {
+    @case ('masonry-clasico') {
+      <app-masonry-clasico-modo
+        [images]="imagenesParaModo"
+        [isMobile]="isMobile"
+        [rotaciones]="rotaciones"
+        (imageClick)="onImageClick($event)"
+        (imageDownload)="onImageDownload($event)"
+        (imageGirar)="onImageGirar($event)"
+      ></app-masonry-clasico-modo>
+    }
+    @case ('polaroid') {
+      <app-polaroid-modo
+        [images]="imagenesParaModo"
+        [isMobile]="isMobile"
+        [rotaciones]="rotaciones"
+        (imageClick)="onImageClick($event)"
+        (imageDownload)="onImageDownload($event)"
+        (imageGirar)="onImageGirar($event)"
+      ></app-polaroid-modo>
+    }
+    @case ('mosaico-pinterest') {
+      <app-mosaico-pinterest-modo
+        [images]="imagenesParaModo"
+        [isMobile]="isMobile"
+        [rotaciones]="rotaciones"
+        (imageClick)="onImageClick($event)"
+        (imageDownload)="onImageDownload($event)"
+        (imageGirar)="onImageGirar($event)"
+      ></app-mosaico-pinterest-modo>
+    }
+    @case ('tira-pelicula') {
+      <app-tira-pelicula-modo
+        [images]="imagenesParaModo"
+        [isMobile]="isMobile"
+        [rotaciones]="rotaciones"
+        (imageClick)="onImageClick($event)"
+        (imageDownload)="onImageDownload($event)"
+        (imageGirar)="onImageGirar($event)"
+      ></app-tira-pelicula-modo>
+    }
+    @case ('cards-3d-flip') {
+      <app-cards-3d-flip-modo
+        [images]="imagenesParaModo"
+        [isMobile]="isMobile"
+        [rotaciones]="rotaciones"
+        (imageClick)="onImageClick($event)"
+        (imageDownload)="onImageDownload($event)"
+        (imageGirar)="onImageGirar($event)"
+      ></app-cards-3d-flip-modo>
+    }
+    @case ('postal-viaje') {
+      <app-postal-viaje-modo
+        [images]="imagenesParaModo"
+        [isMobile]="isMobile"
+        [iniciales]="iniciales"
+        [rotaciones]="rotaciones"
+        (imageClick)="onImageClick($event)"
+        (imageDownload)="onImageDownload($event)"
+        (imageGirar)="onImageGirar($event)"
+      ></app-postal-viaje-modo>
+    }
+    @case ('storybook') {
+      <app-storybook-modo
+        [images]="imagenesParaModo"
+        [galeriaNombre]="galeriaNombre"
+        [galeriaDescripcion]="galeriaDescripcion"
+        [isMobile]="isMobile"
+        [rotaciones]="rotaciones"
+        (imageClick)="onImageClick($event)"
+        (imageDownload)="onImageDownload($event)"
+        (imageGirar)="onImageGirar($event)"
+      ></app-storybook-modo>
+    }
+    @case ('scrapbook') {
+      <app-scrapbook-modo
+        [images]="imagenesParaModo"
+        [isMobile]="isMobile"
+        [rotaciones]="rotaciones"
+        (imageClick)="onImageClick($event)"
+        (imageDownload)="onImageDownload($event)"
+        (imageGirar)="onImageGirar($event)"
+      ></app-scrapbook-modo>
+    }
+    @case ('periodico-vintage') {
+      <app-periodico-vintage-modo
+        [images]="imagenesParaModo"
+        [galeriaNombre]="galeriaNombre"
+        [galeriaFecha]="galeriaFecha"
+        [isMobile]="isMobile"
+        [rotaciones]="rotaciones"
+        (imageClick)="onImageClick($event)"
+        (imageDownload)="onImageDownload($event)"
+        (imageGirar)="onImageGirar($event)"
+      ></app-periodico-vintage-modo>
+    }
+    @case ('cuaderno-escolar') {
+      <app-cuaderno-escolar-modo
+        [images]="imagenesParaModo"
+        [isMobile]="isMobile"
+        [rotaciones]="rotaciones"
+        (imageClick)="onImageClick($event)"
+        (imageDownload)="onImageDownload($event)"
+        (imageGirar)="onImageGirar($event)"
+      ></app-cuaderno-escolar-modo>
+    }
+    @case ('burbujas') {
+      <app-burbujas-modo
+        [images]="imagenesParaModo"
+        [isMobile]="isMobile"
+        [rotaciones]="rotaciones"
+        (imageClick)="onImageClick($event)"
+        (imageDownload)="onImageDownload($event)"
+        (imageGirar)="onImageGirar($event)"
+      ></app-burbujas-modo>
+    }
+    @case ('confetti') {
+      <app-confetti-modo
+        [images]="imagenesParaModo"
+        [isMobile]="isMobile"
+        [rotaciones]="rotaciones"
+        (imageClick)="onImageClick($event)"
+        (imageDownload)="onImageDownload($event)"
+        (imageGirar)="onImageGirar($event)"
+      ></app-confetti-modo>
+    }
+    @case ('origami') {
+      <app-origami-modo
+        [images]="imagenesParaModo"
+        [isMobile]="isMobile"
+        [rotaciones]="rotaciones"
+        (imageClick)="onImageClick($event)"
+        (imageDownload)="onImageDownload($event)"
+        (imageGirar)="onImageGirar($event)"
+      ></app-origami-modo>
+    }
+    @case ('lluvia-petalos') {
+      <app-lluvia-petalos-modo
+        [images]="imagenesParaModo"
+        [isMobile]="isMobile"
+        [rotaciones]="rotaciones"
+        (imageClick)="onImageClick($event)"
+        (imageDownload)="onImageDownload($event)"
+        (imageGirar)="onImageGirar($event)"
+      ></app-lluvia-petalos-modo>
+    }
+    @case ('globos') {
+      <app-globos-modo
+        [images]="imagenesParaModo"
+        [isMobile]="isMobile"
+        [rotaciones]="rotaciones"
+        (imageClick)="onImageClick($event)"
+        (imageDownload)="onImageDownload($event)"
+        (imageGirar)="onImageGirar($event)"
+      ></app-globos-modo>
+    }
+    @case ('galeria-submarina') {
+      <app-galeria-submarina-modo
+        [images]="imagenesParaModo"
+        [isMobile]="isMobile"
+        [rotaciones]="rotaciones"
+        (imageClick)="onImageClick($event)"
+        (imageDownload)="onImageDownload($event)"
+        (imageGirar)="onImageGirar($event)"
+      ></app-galeria-submarina-modo>
+    }
+    @case ('cielo-estrellado') {
+      <app-cielo-estrellado-modo
+        [images]="imagenesParaModo"
+        [isMobile]="isMobile"
+        [rotaciones]="rotaciones"
+        (imageClick)="onImageClick($event)"
+        (imageDownload)="onImageDownload($event)"
+        (imageGirar)="onImageGirar($event)"
+      ></app-cielo-estrellado-modo>
+    }
+    @case ('caleidoscopio') {
+      <app-caleidoscopio-modo
+        [images]="imagenesParaModo"
+        [isMobile]="isMobile"
+        [rotaciones]="rotaciones"
+        (imageClick)="onImageClick($event)"
+        (imageDownload)="onImageDownload($event)"
+        (imageGirar)="onImageGirar($event)"
+      ></app-caleidoscopio-modo>
+    }
+    @case ('linterna-magica') {
+      <app-linterna-magica-modo
+        [images]="imagenesParaModo"
+        [isMobile]="isMobile"
+        [rotaciones]="rotaciones"
+        (imageClick)="onImageClick($event)"
+        (imageDownload)="onImageDownload($event)"
+        (imageGirar)="onImageGirar($event)"
+      ></app-linterna-magica-modo>
+    }
+    @case ('piano-fotos') {
+      <app-piano-fotos-modo
+        [images]="imagenesParaModo"
+        [isMobile]="isMobile"
+        [rotaciones]="rotaciones"
+        (imageClick)="onImageClick($event)"
+        (imageDownload)="onImageDownload($event)"
+        (imageGirar)="onImageGirar($event)"
+      ></app-piano-fotos-modo>
+    }
+    @case ('vitral-geometrico') {
+      <app-vitral-geometrico-modo
+        [images]="imagenesParaModo"
+        [isMobile]="isMobile"
+        [rotaciones]="rotaciones"
+        (imageClick)="onImageClick($event)"
+        (imageDownload)="onImageDownload($event)"
+        (imageGirar)="onImageGirar($event)"
+      ></app-vitral-geometrico-modo>
+    }
+    @case ('tablon-corcho') {
+      <app-tablon-corcho-modo
+        [images]="imagenesParaModo"
+        [isMobile]="isMobile"
+        [rotaciones]="rotaciones"
+        (imageClick)="onImageClick($event)"
+        (imageDownload)="onImageDownload($event)"
+        (imageGirar)="onImageGirar($event)"
+      ></app-tablon-corcho-modo>
+    }
+    @case ('comic-clasico') {
+      <app-comic-clasico-modo
+        [images]="imagenesParaModo"
+        [isMobile]="isMobile"
+        [rotaciones]="rotaciones"
+        (imageClick)="onImageClick($event)"
+        (imageDownload)="onImageDownload($event)"
+        (imageGirar)="onImageGirar($event)"
+      ></app-comic-clasico-modo>
+    }
+    @case ('galeria-museo') {
+      <app-galeria-museo-modo
+        [images]="imagenesParaModo"
+        [galeriaNombre]="galeriaNombre"
+        [isMobile]="isMobile"
+        [rotaciones]="rotaciones"
+        (imageClick)="onImageClick($event)"
+        (imageDownload)="onImageDownload($event)"
+        (imageGirar)="onImageGirar($event)"
+      ></app-galeria-museo-modo>
+    }
+    @case ('reloj-dia') {
+      <app-reloj-dia-modo
+        [images]="imagenesParaModo"
+        [isMobile]="isMobile"
+        [rotaciones]="rotaciones"
+        (imageClick)="onImageClick($event)"
+        (imageDownload)="onImageDownload($event)"
+        (imageGirar)="onImageGirar($event)"
+      ></app-reloj-dia-modo>
+    }
+    @case ('pizarra-tiza') {
+      <app-pizarra-tiza-modo
+        [images]="imagenesParaModo"
+        [isMobile]="isMobile"
+        [rotaciones]="rotaciones"
+        (imageClick)="onImageClick($event)"
+        (imageDownload)="onImageDownload($event)"
+        (imageGirar)="onImageGirar($event)"
+      ></app-pizarra-tiza-modo>
+    }
+    @case ('cards-instagram') {
+      <app-cards-instagram-modo
+        [images]="imagenesParaModo"
+        [isMobile]="isMobile"
+        [rotaciones]="rotaciones"
+        (imageClick)="onImageClick($event)"
+        (imageDownload)="onImageDownload($event)"
+        (imageGirar)="onImageGirar($event)"
+      ></app-cards-instagram-modo>
+    }
+    @case ('mapa-tesoro') {
+      <app-mapa-tesoro-modo
+        [images]="imagenesParaModo"
+        [isMobile]="isMobile"
+        [rotaciones]="rotaciones"
+        (imageClick)="onImageClick($event)"
+        (imageDownload)="onImageDownload($event)"
+        (imageGirar)="onImageGirar($event)"
+      ></app-mapa-tesoro-modo>
+    }
+    @case ('rompecabezas') {
+      <app-rompecabezas-modo
+        [images]="imagenesParaModo"
+        [isMobile]="isMobile"
+        [rotaciones]="rotaciones"
+        (imageClick)="onImageClick($event)"
+        (imageDownload)="onImageDownload($event)"
+        (imageGirar)="onImageGirar($event)"
+      ></app-rompecabezas-modo>
+    }
+    @case ('historieta-gemini') {
+      <app-historieta-gemini-modo
+        [images]="imagenesParaModo"
+        [galeriaNombre]="galeriaNombre"
+        [galeriaDescripcion]="galeriaDescripcion"
+        [galeriaFecha]="galeriaFecha"
+        [isMobile]="isMobile"
+        [rotaciones]="rotaciones"
+        (imageClick)="onImageClick($event)"
+        (imageDownload)="onImageDownload($event)"
+        (imageGirar)="onImageGirar($event)"
+      ></app-historieta-gemini-modo>
+    }
+  }
+</ng-container>
