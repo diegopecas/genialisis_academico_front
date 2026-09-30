@@ -25,7 +25,7 @@
         (click)="seleccionarPestana('inscritos')">
         <i class="fas fa-user-check"></i>
         Inscritos
-        <span class="tab-contador" *ngIf="inscritos.length > 0">{{ inscritos.length }}</span>
+        <span class="tab-contador" *ngIf="contarInscritosActivos() > 0">{{ contarInscritosActivos() }}</span>
       </button>
     </div>
   </div>
@@ -194,7 +194,15 @@
       </div>
 
       <div class="card-panel" *ngIf="cursoSeleccionado">
-        <div class="panel-subtitulo">Inscritos al curso ({{inscritosFiltrados.length}})</div>
+        <!-- El contador habla de los que estan hoy en el curso. Las filas de
+             los retirados siguen en la tabla, pero se cuentan aparte para que
+             el numero no mienta cuando un nino salio y volvio a entrar. -->
+        <div class="panel-subtitulo">
+          Inscritos al curso ({{inscritosActivosFiltrados().length}})
+          <small class="text-muted fw-normal ms-2" *ngIf="contarRetiradosFiltrados() > 0">
+            + {{contarRetiradosFiltrados()}} retirado(s)
+          </small>
+        </div>
 
         <div class="row g-2 mb-3">
           <div class="col-md-6 col-12">
@@ -228,6 +236,7 @@
                 <th>Grupo</th>
                 <th>Nivel</th>
                 <th class="text-center">Inscripción</th>
+                <th class="text-center">Retiro</th>
                 <th class="text-center">Cuentas</th>
                 <th class="text-center">Estado</th>
               </tr>
@@ -242,6 +251,7 @@
                 <td>{{e.nombre_grupo || '-'}}</td>
                 <td>{{e.nombre_nivel || '-'}}</td>
                 <td class="text-center">{{e.fecha_inscripcion}}</td>
+                <td class="text-center">{{e.fecha_retiro || '-'}}</td>
                 <td class="text-center">{{e.total_cuentas || 0}}</td>
                 <td class="text-center">
                   <span class="badge" [ngClass]="e.activo == 1 ? 'bg-success' : 'bg-secondary'">

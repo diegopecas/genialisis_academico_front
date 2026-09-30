@@ -73,9 +73,18 @@ export class CursosExtraEstudianteComponent {
     this.titulos = [
       { clave: 'nombre_curso', alias: 'Curso', alinear: 'izquierda' },
       { clave: 'fecha_inscripcion', alias: 'Fecha Inscripción', alinear: 'centrado' },
+      { clave: 'fecha_retiro', alias: 'Fecha Retiro', alinear: 'centrado' },
       { clave: 'anio', alias: 'Año', alinear: 'centrado' },
       { clave: 'estado', alias: 'Estado', alinear: 'centrado' },
     ];
+  }
+
+  /** Fecha de hoy en formato Y-m-d, que es el que espera el input date. */
+  private hoyISO(): string {
+    const hoy = new Date();
+    const mes = String(hoy.getMonth() + 1).padStart(2, '0');
+    const dia = String(hoy.getDate()).padStart(2, '0');
+    return `${hoy.getFullYear()}-${mes}-${dia}`;
   }
 
   seleccionar(event: any) {
@@ -99,12 +108,26 @@ export class CursosExtraEstudianteComponent {
         const cuentas = (response.body as any[]) || [];
         const htmlCuentas = this.construirHtmlCuentas(cuentas);
 
+        // La fecha de retiro viene cargada con la de hoy, que es el caso
+        // normal, pero se puede cambiar para registrar un retiro que ya
+        // habia pasado. De ella depende hasta que dia el acudiente sigue
+        // viendo en la agenda las clases de este curso.
+        const hoy = this.hoyISO();
+
         const result = await Swal.fire({
           title: '¿Retirar del curso?',
           html: `
             <div style="text-align:center;margin-bottom:12px;">
               ¿Desea retirar a <strong>${this.nombre_estudiante}</strong> del curso
               <strong>${registro.nombre_curso}</strong>?
+            </div>
+            <div style="margin-bottom:12px;text-align:left;">
+              <label for="swal-fecha-retiro" style="display:block;font-size:13px;color:#222;margin-bottom:4px;font-weight:500;">
+                Fecha de retiro
+              </label>
+              <input id="swal-fecha-retiro" type="date" class="swal2-input"
+                     style="margin:0;width:100%;"
+                     value="${hoy}" max="${hoy}">
             </div>
             ${htmlCuentas}
           `,
@@ -114,11 +137,26 @@ export class CursosExtraEstudianteComponent {
           cancelButtonText: 'Cancelar',
           confirmButtonColor: '#d4af37',
           cancelButtonColor: '#222',
-          width: cuentas.length > 0 ? 700 : 500
+          width: cuentas.length > 0 ? 700 : 500,
+          preConfirm: () => {
+            const input = document.getElementById('swal-fecha-retiro') as HTMLInputElement | null;
+            const valor = input && input.value ? input.value : '';
+
+            if (!valor) {
+              Swal.showValidationMessage('Indica la fecha de retiro');
+              return false;
+            }
+            if (registro.fecha_inscripcion && valor < registro.fecha_inscripcion) {
+              Swal.showValidationMessage('La fecha de retiro no puede ser anterior a la de inscripción');
+              return false;
+            }
+
+            return valor;
+          }
         });
 
         if (result.isConfirmed) {
-          this.ejecutarRetiro(registro);
+          this.ejecutarRetiro(registro, result.value);
         }
       },
       error: (error: any) => {
@@ -192,8 +230,8 @@ export class CursosExtraEstudianteComponent {
   }
 
   // Una sola llamada al backend que en una transaccion anula cuentas sin pagos y la inscripcion
-  private ejecutarRetiro(registro: any) {
-    this.estudiantesXCursosExtraService.anular(registro.id).subscribe({
+  private ejecutarRetiro(registro: any, fechaRetiro?: string) {
+    this.estudiantesXCursosExtraService.anular(registro.id, fechaRetiro).subscribe({
       next: (response: any) => {
         let mensaje = 'Estudiante retirado del curso.';
         if (response.anuladas > 0) {

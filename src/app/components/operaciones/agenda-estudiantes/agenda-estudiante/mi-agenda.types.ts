@@ -122,6 +122,18 @@ export function tieneFotos(evento: EventoAgenda | null): boolean {
 }
 
 /**
+ * Fuentes que traen una actividad ejecutada: las del salón y las clases de
+ * los cursos extracurriculares. Son dos fuentes distintas en la agenda, pero
+ * el evento tiene la misma forma y la tarjeta lo pinta igual.
+ */
+const CLAVES_DE_ACTIVIDAD = ['actividades', 'extracurriculares'];
+
+/** El evento es una actividad ejecutada, del salón o de un curso. */
+export function esEventoDeActividad(evento: EventoAgenda | null): boolean {
+  return !!evento && CLAVES_DE_ACTIVIDAD.includes(evento.clave);
+}
+
+/**
  * La actividad trae texto largo: la descripción de lo que se hizo y las
  * observaciones de la docente.
  *
@@ -132,11 +144,11 @@ export function tieneFotos(evento: EventoAgenda | null): boolean {
  * está hecha para eso.
  */
 export function esActividadExtensa(evento: EventoAgenda | null): boolean {
-  if (evento?.clave !== 'actividades') {
+  if (!esEventoDeActividad(evento)) {
     return false;
   }
 
-  return !!(evento.detalle && evento.detalle.trim()) || notasDe(evento).length > 0;
+  return !!(evento!.detalle && evento!.detalle.trim()) || notasDe(evento).length > 0;
 }
 
 /**
@@ -147,7 +159,7 @@ export function esActividadExtensa(evento: EventoAgenda | null): boolean {
  * al pintarlo.
  */
 export function descripcionHtml(evento: EventoAgenda | null): string | null {
-  if (evento?.clave !== 'actividades' && evento?.clave !== 'galerias') return null;
+  if (!esEventoDeActividad(evento) && evento?.clave !== 'galerias') return null;
   const html = evento?.meta?.descripcion_html;
   return typeof html === 'string' && html.trim() !== '' ? html : null;
 }
@@ -163,7 +175,7 @@ export interface GaleriaActividad {
  * estudiante la puede ver (activa, con fotos y pública o de su grupo).
  */
 export function galeriaDe(evento: EventoAgenda | null): GaleriaActividad | null {
-  if (evento?.clave !== 'actividades') return null;
+  if (!esEventoDeActividad(evento)) return null;
   const galeria = evento?.meta?.galeria;
   return galeria && galeria.id ? { id: galeria.id, nombre: galeria.nombre || '' } : null;
 }

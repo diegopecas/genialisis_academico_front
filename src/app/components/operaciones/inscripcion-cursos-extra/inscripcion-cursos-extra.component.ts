@@ -246,8 +246,11 @@ export class InscripcionCursosExtraComponent implements OnInit {
     }
   }
 
+  // Las filas de estudiantes ya retirados quedan por fuera: su checkbox esta
+  // deshabilitado en la tabla y volver a anularlas le pisaria la fecha de
+  // retiro que ya tienen, que es la que sostiene su historico en la agenda.
   seleccionarTodosInscritos() {
-    const visibles = this.inscritosFiltrados.map((e: any) => e.id);
+    const visibles = this.inscritosActivosFiltrados().map((e: any) => e.id);
     const todosMarcados = visibles.length > 0 && visibles.every((id: string) => this.seleccionadosInscritos.has(id));
 
     if (todosMarcados) {
@@ -263,12 +266,38 @@ export class InscripcionCursosExtraComponent implements OnInit {
   }
 
   todosInscritosMarcados(): boolean {
-    return this.inscritosFiltrados.length > 0 &&
-      this.inscritosFiltrados.every((e: any) => this.seleccionadosInscritos.has(e.id));
+    const activos = this.inscritosActivosFiltrados();
+    return activos.length > 0 &&
+      activos.every((e: any) => this.seleccionadosInscritos.has(e.id));
   }
 
   contarInscritosActivos(): number {
     return this.inscritos.filter((e: any) => e.activo == 1).length;
+  }
+
+  /**
+   * Filas visibles que corresponden a inscripciones vigentes.
+   *
+   * La tabla muestra tambien a los retirados, porque un estudiante puede
+   * haber estado en el curso, salir y volver a entrar, y cada paso deja su
+   * fila. Pero los contadores y la seleccion tienen que hablar de los que
+   * estan hoy en el curso, no de cuantas filas hay.
+   */
+  inscritosActivosFiltrados(): any[] {
+    return this.inscritosFiltrados.filter((e: any) => e.activo == 1);
+  }
+
+  /** Retirados dentro de lo que muestran los filtros actuales. */
+  contarRetiradosFiltrados(): number {
+    return this.inscritosFiltrados.filter((e: any) => e.activo != 1).length;
+  }
+
+  /** Fecha de hoy en formato Y-m-d, que es el que espera el input date. */
+  private hoyISO(): string {
+    const hoy = new Date();
+    const mes = String(hoy.getMonth() + 1).padStart(2, '0');
+    const dia = String(hoy.getDate()).padStart(2, '0');
+    return `${hoy.getFullYear()}-${mes}-${dia}`;
   }
 
   // ==================== INSCRIBIR ====================
@@ -649,18 +678,68 @@ export class InscripcionCursosExtraComponent implements OnInit {
       return;
     }
 
+    // Se retiran solo las inscripciones vigentes: si en la seleccion quedo
+    // alguna ya retirada, volver a anularla le pisaria su fecha de retiro.
+    const aRetirar = this.inscritos.filter((e: any) =>
+      this.seleccionadosInscritos.has(e.id) && e.activo == 1
+    );
+
+    if (aRetirar.length === 0) {
+      Swal.fire('Advertencia', 'Los estudiantes seleccionados ya están retirados del curso', 'warning');
+      return;
+    }
+
+    // La fecha de retiro es una sola para todo el lote, cargada con la de hoy.
+    // De ella depende hasta que dia el acudiente sigue viendo en la agenda las
+    // clases de este curso.
+    const hoy = this.hoyISO();
+
+    // Ningun retiro puede quedar antes de su propia inscripcion, asi que el
+    // piso del lote es la inscripcion mas reciente de los seleccionados.
+    const inscripcionMasReciente = aRetirar
+      .map((e: any) => e.fecha_inscripcion)
+      .filter((f: any) => !!f)
+      .sort()
+      .pop();
+
     const result = await Swal.fire({
       title: '¿Retirar estudiantes?',
-      html: `Se van a retirar <strong>${this.seleccionadosInscritos.size}</strong> estudiante(s) del curso.<br><br>
+      html: `Se van a retirar <strong>${aRetirar.length}</strong> estudiante(s) del curso.<br><br>
+             <div style="text-align:left;margin-bottom:12px;">
+               <label for="swal-fecha-retiro-lote" style="display:block;font-size:13px;color:#222;margin-bottom:4px;font-weight:500;">
+                 Fecha de retiro
+               </label>
+               <input id="swal-fecha-retiro-lote" type="date" class="swal2-input"
+                      style="margin:0;width:100%;" value="${hoy}" max="${hoy}">
+             </div>
              Las cuentas por cobrar sin pagos aplicados se anulan; las que ya tengan pagos se conservan.`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Sí, retirar',
       cancelButtonText: 'Cancelar',
-      width: 600
+      width: 600,
+      preConfirm: () => {
+        const input = document.getElementById('swal-fecha-retiro-lote') as HTMLInputElement | null;
+        const valor = input && input.value ? input.value : '';
+
+        if (!valor) {
+          Swal.showValidationMessage('Indica la fecha de retiro');
+          return false;
+        }
+        if (inscripcionMasReciente && valor < inscripcionMasReciente) {
+          Swal.showValidationMessage(
+            `La fecha de retiro no puede ser anterior al ${inscripcionMasReciente}, que es la inscripción más reciente de los seleccionados`
+          );
+          return false;
+        }
+
+        return valor;
+      }
     });
 
     if (!result.isConfirmed) return;
+
+    const fechaRetiro = result.value;
 
     this.procesando = true;
     Swal.fire({
@@ -673,9 +752,9 @@ export class InscripcionCursosExtraComponent implements OnInit {
     const promesas: any[] = [];
     const idsInscripcion: string[] = [];
 
-    this.seleccionadosInscritos.forEach((idInscripcion: string) => {
-      idsInscripcion.push(idInscripcion);
-      promesas.push(this.estudiantesXCursosExtraService.anular(idInscripcion).toPromise());
+    aRetirar.forEach((inscrito: any) => {
+      idsInscripcion.push(inscrito.id);
+      promesas.push(this.estudiantesXCursosExtraService.anular(inscrito.id, fechaRetiro).toPromise());
     });
 
     Promise.all(promesas).then((respuestas: any[]) => {

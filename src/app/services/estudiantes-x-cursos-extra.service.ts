@@ -107,8 +107,12 @@ export class EstudiantesXCursosExtraService {
 
   // Anula la inscripcion del estudiante al curso extracurricular y, en la misma transaccion,
   // anula las cuentas por cobrar asociadas que no tengan pagos aplicados.
-  anular(id: any): Observable<any> {
-    var body = JSON.stringify({ id: id });
+  //
+  // fechaRetiro marca hasta que dia estuvo el nino en el curso y de ella depende
+  // que la agenda le siga mostrando las clases que alcanzo a ver. Es opcional:
+  // si no se manda, el backend usa la fecha de hoy.
+  anular(id: any, fechaRetiro?: any): Observable<any> {
+    var body = JSON.stringify({ id: id, fecha_retiro: fechaRetiro || null });
     return this.http.put<any>(this.servicio + '/anular', body, httpOptions).pipe(
       tap((respuesta: any) => {
         if (respuesta && respuesta.error) {
