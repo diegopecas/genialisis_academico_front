@@ -1,0 +1,88 @@
+<div class="modulo">
+    <app-header
+        [tituloModulo]="titulo"
+        [mostrarCrear]="false"
+        [accion]="accion"
+        [raiz]="'/academico/ambientes'"
+        [regresar]="regresar"
+        [iconoTitulo]="'/assets/images/ambientes.png'">
+    </app-header>
+
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-md-8 col-12">
+                <label for="nombre" class="form-label">Nombre del ambiente <span class="text-danger">*</span></label>
+                <input
+                    class="form-control form-control-lg"
+                    type="text"
+                    id="nombre"
+                    [(ngModel)]="model.nombre"
+                    [maxlength]="MAX_NOMBRE"
+                    placeholder="Ej: Aula, Piscina, Zona verde..."
+                    required
+                    [ngClass]="{'is-invalid': !model.nombre && submitted}"
+                    [disabled]="!editable">
+                <small class="form-text text-muted">Lugar donde se realizan las actividades</small>
+            </div>
+
+            <!-- Estado: al crear el ambiente queda activo; se puede inactivar al editar -->
+            <div class="col-md-4 col-12" *ngIf="accion !== 'crear'">
+                <label for="activo" class="form-label">Estado</label>
+                <select
+                    class="form-select form-select-lg"
+                    id="activo"
+                    [(ngModel)]="model.activo"
+                    [disabled]="!editable">
+                    <option [ngValue]="1">Activo</option>
+                    <option [ngValue]="0">Inactivo</option>
+                </select>
+                <small class="form-text text-muted">Inactivo no sale para escoger en las actividades</small>
+            </div>
+        </div>
+
+        <div class="row mt-3">
+            <div class="col-md-4 col-12">
+                <label for="icono" class="form-label">Ícono</label>
+                <div class="icono-campo">
+                    <span class="icono-vista">{{ model.icono || '❔' }}</span>
+                    <input
+                        class="form-control form-control-lg"
+                        type="text"
+                        id="icono"
+                        [(ngModel)]="model.icono"
+                        [maxlength]="MAX_ICONO"
+                        placeholder="Escribe o escoge un emoji"
+                        [disabled]="!editable">
+                </div>
+            </div>
+            <div class="col-md-8 col-12" *ngIf="editable">
+                <label class="form-label">Sugeridos</label>
+                <div class="iconos-sugeridos">
+                    <button
+                        type="button"
+                        *ngFor="let icono of ICONOS_SUGERIDOS"
+                        class="icono-opcion"
+                        [class.seleccionado]="model.icono === icono"
+                        (click)="seleccionarIcono(icono)">
+                        {{ icono }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-sm-6" *ngIf="editable">
+                <button class="btn btn-lg btn-warning w-100" (click)="guardar()">
+                    Grabar
+                </button>
+            </div>
+            <div class="col-sm-6">
+                <button class="btn btn-lg btn-secondary w-100" (click)="volver()">
+                    Volver
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

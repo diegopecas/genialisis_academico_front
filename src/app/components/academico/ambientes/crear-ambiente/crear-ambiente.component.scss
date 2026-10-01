@@ -1,0 +1,60 @@
+.modulo {
+  padding: 20px;
+}
+
+.icono-campo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  .icono-vista {
+    flex-shrink: 0;
+    width: 52px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    background: #fffaf0;
+  }
+}
+
+.iconos-sugeridos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.icono-opcion {
+  width: 44px;
+  height: 44px;
+  font-size: 1.4rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  background: #fff;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    border-color: #F5A623;
+    background: #fff7e6;
+  }
+
+  &.seleccionado {
+    border-color: #F5A623;
+    background: #ffeecb;
+    box-shadow: 0 0 0 2px rgba(245, 166, 35, 0.35);
+  }
+}
+
+@media (max-width: 768px) {
+  .modulo {
+    padding: 12px;
+  }
+
+  .row > [class*='col-'] + [class*='col-'] {
+    margin-top: 12px;
+  }
+}
