@@ -259,16 +259,45 @@ export class CrearActividadesManualComponent implements OnInit {
     return !!(this.formActividad.titulo.trim());
   }
 
+  /** Texto sin etiquetas: el editor enriquecido deja "<p></p>" cuando está vacío. */
+  private textoPlano(html: string): string {
+    return (html || '').replace(/<[^>]*>/g, ' ').replace(/&nbsp;/gi, ' ').replace(/\s+/g, ' ').trim();
+  }
+
+  /** La IA necesita al menos el título o la descripción como idea base. */
+  tieneIdeaBase(): boolean {
+    return !!(this.formActividad.titulo.trim() || this.textoPlano(this.formActividad.descripcion));
+  }
+
   // Sugerir con IA
-  sugerirConIA() {
-    if (!this.formActividad.titulo.trim()) {
-      Swal.fire('Título requerido', 'Escribe al menos el título de la actividad para que la IA pueda sugerir.', 'info');
+  async sugerirConIA() {
+    if (!this.tieneIdeaBase()) {
+      Swal.fire('Escribe la idea', 'Escribe el título o la descripción de la actividad para que la IA pueda sugerir.', 'info');
       return;
     }
+
+    // Reescribir: la IA redacta título y descripción a partir de lo escrito.
+    // Conservar: se respeta lo escrito y solo se llena lo vacío.
+    const eleccion = await Swal.fire({
+      title: '🪄 Sugerir con IA',
+      text: '¿La IA reescribe el título y la descripción a partir de lo que escribiste, o conservas tu texto y solo completa lo vacío?',
+      icon: 'question',
+      showDenyButton: true,
+      showCancelButton: true,
+      confirmButtonColor: '#F5A623',
+      denyButtonColor: '#6c757d',
+      cancelButtonColor: '#2C2C2C',
+      confirmButtonText: 'Reescribir',
+      denyButtonText: 'Conservar lo que escribí',
+      cancelButtonText: 'Cancelar'
+    });
+    if (eleccion.isDismissed) return;
+    const reescribir = eleccion.isConfirmed;
 
     this.sugiriendoIA = true;
 
     const datos = {
+      modo: reescribir ? 'reescribir' : 'completar',
       titulo: this.formActividad.titulo,
       descripcion: this.formActividad.descripcion,
       id_grupo: this.idGrupo,
@@ -286,10 +315,12 @@ export class CrearActividadesManualComponent implements OnInit {
         this.sugiriendoIA = false;
         if (resp.success && resp.sugerencia) {
           const s = resp.sugerencia;
-          // Solo llenar campos vacíos
+          // Título y descripción: al reescribir se reemplazan; al conservar solo se llenan si están vacíos
+          if (s.titulo && (reescribir || !this.formActividad.titulo.trim())) this.formActividad.titulo = s.titulo;
+          if (s.descripcion && (reescribir || !this.textoPlano(this.formActividad.descripcion))) this.formActividad.descripcion = s.descripcion;
+          // El resto solo llena campos vacíos
           if (!this.formActividad.nivel_uno && s.nivel_uno) this.formActividad.nivel_uno = s.nivel_uno;
           if (!this.formActividad.nivel_dos && s.nivel_dos) this.formActividad.nivel_dos = s.nivel_dos;
-          if (!this.formActividad.descripcion && s.descripcion) this.formActividad.descripcion = s.descripcion;
           if (s.minutos_duracion && this.formActividad.minutos_duracion === 45) this.formActividad.minutos_duracion = s.minutos_duracion;
           if (s.id_ambiente && !this.formActividad.id_ambiente) this.formActividad.id_ambiente = s.id_ambiente;
           if (s.materiales_sugeridos && this.formActividad.materiales_sugeridos.length === 0) {
@@ -299,7 +330,11 @@ export class CrearActividadesManualComponent implements OnInit {
             this.formActividad.indicadores_ids = s.indicadores_ids;
             this.formActividad.indicadores = s.indicadores || [];
           }
-          Swal.fire({ title: '🪄 Sugerencias aplicadas', text: `Campos completados por IA (${resp.proveedor} · ${resp.tiempo_ms}ms)`, icon: 'success', timer: 2000, showConfirmButton: false });
+          Swal.fire({
+            title: reescribir ? '🪄 Actividad redactada' : '🪄 Sugerencias aplicadas',
+            text: `${reescribir ? 'Título y descripción redactados' : 'Campos completados'} por IA (${resp.proveedor} · ${resp.tiempo_ms}ms)`,
+            icon: 'success', timer: 2000, showConfirmButton: false
+          });
         }
       },
       error: (err: any) => {
@@ -519,4 +554,4 @@ export class CrearActividadesManualComponent implements OnInit {
   }
 
   volver() { this.router.navigate(['academico/actividades']); }
-}
+}

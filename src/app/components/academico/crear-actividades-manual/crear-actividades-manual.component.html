@@ -193,7 +193,7 @@
 
       <!-- Botones del formulario -->
       <div class="form-botones">
-        <button class="btn-ia-sugerir" (click)="sugerirConIA()" [disabled]="!formActividad.titulo.trim() || sugiriendoIA">
+        <button class="btn-ia-sugerir" (click)="sugerirConIA()" [disabled]="!tieneIdeaBase() || sugiriendoIA">
           <span *ngIf="!sugiriendoIA">🪄 Sugerir con IA</span>
           <span *ngIf="sugiriendoIA">⏳ Sugiriendo...</span>
         </button>
@@ -272,4 +272,4 @@
       <p *ngIf="productoModal.descripcion" class="producto-descripcion">{{ productoModal.descripcion }}</p>
     </div>
   </div>
-</div>
+</div>
