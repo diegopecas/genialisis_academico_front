@@ -28,11 +28,11 @@
 
                     <div class="col-6 col-md-3">
                         <label class="form-label"><i class="fas fa-play"></i> Hora inicio *</label>
-                        <input type="time" class="form-control" [(ngModel)]="horaInicio" [disabled]="guardando">
+                        <app-hora-input [(ngModel)]="horaInicio" [disabled]="guardando"></app-hora-input>
                     </div>
                     <div class="col-6 col-md-3">
                         <label class="form-label"><i class="fas fa-flag-checkered"></i> Hora fin *</label>
-                        <input type="time" class="form-control" [(ngModel)]="horaFin" [disabled]="guardando">
+                        <app-hora-input [(ngModel)]="horaFin" [disabled]="guardando"></app-hora-input>
                     </div>
                     <div class="col-12 col-md-3">
                         <label class="form-label"><i class="fas fa-user"></i> Ejecutó *</label>

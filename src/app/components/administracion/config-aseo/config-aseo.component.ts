@@ -7,6 +7,7 @@ import { HeaderComponent } from '../../../common/header/header.component';
 import { AreasFisicasXProcesosLimpiezaConfigService } from '../../../services/areas-fisicas-x-procesos-limpieza-config.service';
 import { PeriodicidadService } from '../../../services/periodicidad.service';
 import { TiposProcesosLimpiezaService } from '../../../services/tipos-procesos-limpieza.service';
+import { HoraInputComponent } from '../../../common/hora-input/hora-input.component';
 
 
 @Component({
@@ -14,7 +15,7 @@ import { TiposProcesosLimpiezaService } from '../../../services/tipos-procesos-l
   templateUrl: './config-aseo.component.html',
   styleUrls: ['./config-aseo.component.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, HeaderComponent]
+  imports: [CommonModule, FormsModule, HeaderComponent, HoraInputComponent]
 })
 export class ConfigAseoComponent implements OnInit {
 

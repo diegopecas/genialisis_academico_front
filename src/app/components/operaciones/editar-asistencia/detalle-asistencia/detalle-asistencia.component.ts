@@ -8,6 +8,7 @@ import { MotorCobrosAutomaticosService } from '../../../../services/motor-cobros
 import { UtilService } from '../../../../common/constantes/util.service';
 import { ColaboradoresService } from '../../../../services/colaboradores.service';
 import Swal from 'sweetalert2';
+import { HoraInputComponent } from '../../../../common/hora-input/hora-input.component';
 
 /**
  * Corrección de un movimiento de asistencia.
@@ -28,7 +29,7 @@ import Swal from 'sweetalert2';
   templateUrl: './detalle-asistencia.component.html',
   styleUrl: './detalle-asistencia.component.scss',
   standalone: true,
-  imports: [CommonModule, FormsModule, HeaderComponent]
+  imports: [CommonModule, FormsModule, HeaderComponent, HoraInputComponent]
 })
 export class DetalleAsistenciaComponent implements OnInit {
 

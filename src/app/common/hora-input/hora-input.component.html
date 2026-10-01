@@ -1,0 +1,33 @@
+<!-- Texto con teclado numérico + botones AM/PM. El mousedown de los botones
+     se cancela para que el campo no pierda el foco antes del clic y la hora
+     se confirme una sola vez. -->
+<div class="input-group hora-input"
+  [class.input-group-sm]="tamano === 'sm'"
+  [class.input-group-lg]="tamano === 'lg'">
+  <input #campo
+    type="text"
+    class="form-control campo-hora"
+    inputmode="numeric"
+    autocomplete="off"
+    maxlength="10"
+    [attr.id]="inputId || null"
+    [attr.title]="titulo || null"
+    [placeholder]="placeholder"
+    [value]="texto"
+    [disabled]="disabled"
+    [readOnly]="readonly"
+    [class.is-invalid]="error || invalido"
+    (input)="alEscribir(campo)"
+    (blur)="alSalir()"
+    (keydown.enter)="alPresionarEnter($event)">
+  <button type="button" class="btn btn-periodo"
+    [class.activo]="periodo === 'AM'"
+    [disabled]="disabled || readonly"
+    (mousedown)="$event.preventDefault()"
+    (click)="cambiarPeriodo('AM')">AM</button>
+  <button type="button" class="btn btn-periodo"
+    [class.activo]="periodo === 'PM'"
+    [disabled]="disabled || readonly"
+    (mousedown)="$event.preventDefault()"
+    (click)="cambiarPeriodo('PM')">PM</button>
+</div>

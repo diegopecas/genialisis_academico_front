@@ -45,9 +45,11 @@
           <label for="horaGeneral" class="form-label">
             Hora de {{ tipo === 'salida' ? 'salida' : 'ingreso' }} para todos
           </label>
-          <!-- Sin botón: al salir del campo la hora se pone en todas las filas que estén sin hora. -->
-          <input class="form-control" type="time" id="horaGeneral"
-            [(ngModel)]="horaGeneral" (blur)="aplicarHoraGeneral()">
+          <!-- Sin botón: al confirmar la hora (salir del campo o tocar AM/PM)
+               se pone en todas las filas que estén sin hora. -->
+          <app-hora-input inputId="horaGeneral"
+            [periodoPorDefecto]="tipo === 'salida' ? 'PM' : 'AM'"
+            [(ngModel)]="horaGeneral" (ngModelChange)="aplicarHoraGeneral()"></app-hora-input>
         </div>
 
         <div class="col-6 col-md-3">
@@ -161,10 +163,11 @@
 
             <td class="columna-hora">
               <!-- Escribir la hora marca la fila. Los cobros solo se calculan con el botón. -->
-              <input class="form-control" type="time" [(ngModel)]="fila.hora"
-                [class.is-invalid]="filaIncompleta(fila) && !fila.hora"
+              <app-hora-input [(ngModel)]="fila.hora"
+                [periodoPorDefecto]="tipo === 'salida' ? 'PM' : 'AM'"
+                [invalido]="filaIncompleta(fila) && !fila.hora"
                 (ngModelChange)="recalcularFila(fila)"
-                [title]="fila.horaSugerida ? 'Horario del estudiante: ' + fila.horaSugerida : 'Sin horario configurado'">
+                [titulo]="fila.horaSugerida ? 'Horario del estudiante: ' + fila.horaSugerida : 'Sin horario configurado'"></app-hora-input>
             </td>
 
             <td class="columna-personas">

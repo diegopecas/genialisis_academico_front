@@ -287,12 +287,12 @@
                 <tr *ngFor="let horario of horarios">
                   <td class="align-middle fw-bold">{{ horario.nombre_dia }}</td>
                   <td>
-                    <input type="time" class="form-control" [(ngModel)]="horario.hora_entrada"
-                      (change)="onHorarioChange()">
+                    <app-hora-input [(ngModel)]="horario.hora_entrada"
+                      (ngModelChange)="onHorarioChange()"></app-hora-input>
                   </td>
                   <td>
-                    <input type="time" class="form-control" [(ngModel)]="horario.hora_salida"
-                      (change)="onHorarioChange()">
+                    <app-hora-input [(ngModel)]="horario.hora_salida" periodoPorDefecto="PM"
+                      (ngModelChange)="onHorarioChange()"></app-hora-input>
                   </td>
                 </tr>
               </tbody>
@@ -551,12 +551,12 @@
                 <tr *ngFor="let horario of horarios">
                   <td class="align-middle fw-bold">{{ horario.nombre_dia }}</td>
                   <td>
-                    <input type="time" class="form-control" [(ngModel)]="horario.hora_entrada"
-                      (change)="onHorarioChange()" [disabled]="accion === 'consultar'">
+                    <app-hora-input [(ngModel)]="horario.hora_entrada"
+                      (ngModelChange)="onHorarioChange()" [disabled]="accion === 'consultar'"></app-hora-input>
                   </td>
                   <td>
-                    <input type="time" class="form-control" [(ngModel)]="horario.hora_salida"
-                      (change)="onHorarioChange()" [disabled]="accion === 'consultar'">
+                    <app-hora-input [(ngModel)]="horario.hora_salida" periodoPorDefecto="PM"
+                      (ngModelChange)="onHorarioChange()" [disabled]="accion === 'consultar'"></app-hora-input>
                   </td>
                 </tr>
               </tbody>

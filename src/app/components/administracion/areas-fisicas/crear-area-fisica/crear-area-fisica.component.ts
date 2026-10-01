@@ -4,6 +4,7 @@ import Swal from 'sweetalert2';
 import { HeaderComponent } from '../../../../common/header/header.component';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { PeriodoHora, horaA12, interpretarHora } from '../../../../common/hora-input/hora.utils';
 
 import { ProductosMobiliarioService } from '../../../../services/productos-mobiliario.service';
 import { MovimientosProductosService } from '../../../../services/movimientos-productos.service';
@@ -951,7 +952,15 @@ export class CrearAreaFisicaComponent implements OnInit {
 
                     <div class="form-group">
                         <label>Hora Sugerida</label>
-                        <input id="hora_sugerida" type="time" class="swal2-input">
+                        <!-- Hora digitada + AM/PM, en vez del reloj nativo -->
+                        <div style="display: flex; gap: 6px; align-items: center;">
+                            <input id="hora_sugerida" type="text" inputmode="numeric" maxlength="10"
+                                placeholder="hh:mm" autocomplete="off" class="swal2-input">
+                            <select id="hora_sugerida_periodo" class="swal2-select" style="width: auto;">
+                                <option value="AM" selected>AM</option>
+                                <option value="PM">PM</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 
@@ -1018,9 +1027,18 @@ export class CrearAreaFisicaComponent implements OnInit {
                 const tipo_proceso = (document.getElementById('tipo_proceso') as HTMLSelectElement).value;
                 const periodicidad = (document.getElementById('periodicidad') as HTMLSelectElement).value;
                 const tiempo_estimado = (document.getElementById('tiempo_estimado') as HTMLInputElement).value;
-                const hora_sugerida = (document.getElementById('hora_sugerida') as HTMLInputElement).value;
+                const horaSugerida = interpretarHora(
+                    (document.getElementById('hora_sugerida') as HTMLInputElement).value,
+                    (document.getElementById('hora_sugerida_periodo') as HTMLSelectElement).value as PeriodoHora
+                );
                 const prioridad = (document.getElementById('prioridad') as HTMLSelectElement).value;
                 const veces_dia = (document.getElementById('veces_dia') as HTMLInputElement).value;
+
+                if (!horaSugerida) {
+                    Swal.showValidationMessage('La hora sugerida no es válida (ejemplo: 7:30)');
+                    return false;
+                }
+                const hora_sugerida = horaSugerida.valor;
 
                 if (!tipo_proceso) {
                     Swal.showValidationMessage('Debe seleccionar un tipo de proceso');
@@ -1167,6 +1185,8 @@ export class CrearAreaFisicaComponent implements OnInit {
         return this.procesosLimpieza.filter(p => p.prioridad === 3).length;
     }
     editarProcesoLimpieza(proceso: any) {
+        // La base guarda "HH:mm:ss"; el formulario la muestra en 12 horas con AM/PM
+        const horaSugeridaActual = horaA12(proceso.hora_sugerida);
         Swal.fire({
             title: 'Editar Proceso de Limpieza',
             width: '900px',
@@ -1330,8 +1350,16 @@ export class CrearAreaFisicaComponent implements OnInit {
 
                 <div class="form-group">
                     <label>Hora Sugerida</label>
-                    <input id="hora_sugerida" type="time" class="swal2-input" 
-                        value="${proceso.hora_sugerida || ''}">
+                    <!-- Hora digitada + AM/PM, en vez del reloj nativo -->
+                    <div style="display: flex; gap: 6px; align-items: center;">
+                        <input id="hora_sugerida" type="text" inputmode="numeric" maxlength="10"
+                            placeholder="hh:mm" autocomplete="off" class="swal2-input"
+                            value="${horaSugeridaActual ? horaSugeridaActual.texto : ''}">
+                        <select id="hora_sugerida_periodo" class="swal2-select" style="width: auto;">
+                            <option value="AM" ${horaSugeridaActual?.periodo !== 'PM' ? 'selected' : ''}>AM</option>
+                            <option value="PM" ${horaSugeridaActual?.periodo === 'PM' ? 'selected' : ''}>PM</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
@@ -1389,9 +1417,18 @@ export class CrearAreaFisicaComponent implements OnInit {
             preConfirm: () => {
                 const periodicidad = (document.getElementById('periodicidad') as HTMLSelectElement).value;
                 const tiempo_estimado = (document.getElementById('tiempo_estimado') as HTMLInputElement).value;
-                const hora_sugerida = (document.getElementById('hora_sugerida') as HTMLInputElement).value;
+                const horaSugerida = interpretarHora(
+                    (document.getElementById('hora_sugerida') as HTMLInputElement).value,
+                    (document.getElementById('hora_sugerida_periodo') as HTMLSelectElement).value as PeriodoHora
+                );
                 const prioridad = (document.getElementById('prioridad') as HTMLSelectElement).value;
                 const veces_dia = (document.getElementById('veces_dia') as HTMLInputElement).value;
+
+                if (!horaSugerida) {
+                    Swal.showValidationMessage('La hora sugerida no es válida (ejemplo: 7:30)');
+                    return false;
+                }
+                const hora_sugerida = horaSugerida.valor;
 
                 if (!periodicidad) {
                     Swal.showValidationMessage('Debe seleccionar una periodicidad');

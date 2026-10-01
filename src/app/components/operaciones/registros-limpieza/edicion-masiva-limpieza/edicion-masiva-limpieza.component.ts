@@ -10,13 +10,14 @@ import { AreasFisicasService } from '../../../../services/areas-fisicas.service'
 import { EstadosRegistroLimpiezaService } from '../../../../services/estados-registro-limpieza.service';
 import { UsuariosService } from '../../../../services/usuarios.service';
 import { UtilService } from '../../../../common/constantes/util.service';
+import { HoraInputComponent } from '../../../../common/hora-input/hora-input.component';
 
 @Component({
   selector: 'app-edicion-masiva-limpieza',
   templateUrl: './edicion-masiva-limpieza.component.html',
   styleUrls: ['./edicion-masiva-limpieza.component.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, HeaderComponent]
+  imports: [CommonModule, FormsModule, HeaderComponent, HoraInputComponent]
 })
 export class EdicionMasivaLimpiezaComponent implements OnInit {
 

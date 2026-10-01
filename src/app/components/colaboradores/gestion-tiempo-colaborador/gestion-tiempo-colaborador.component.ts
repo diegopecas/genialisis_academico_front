@@ -16,13 +16,14 @@ import { TiposTareasColaboradoresService } from '../../../services/tipos-tareas-
 import { EstudiantesService } from '../../../services/estudiantes.service';
 import { GoogleCalendarService } from '../../../services/google-calendar.service';
 import { ClasesTareasService } from '../../../services/clases-tareas.service';
+import { HoraInputComponent } from '../../../common/hora-input/hora-input.component';
 
 @Component({
   selector: 'app-gestion-tiempo-colaborador',
   templateUrl: './gestion-tiempo-colaborador.component.html',
   styleUrl: './gestion-tiempo-colaborador.component.scss',
   standalone: true,
-  imports: [CommonModule, FormsModule, HeaderComponent, TablasComponent, RouterModule]
+  imports: [CommonModule, FormsModule, HeaderComponent, TablasComponent, RouterModule, HoraInputComponent]
 })
 export class GestionTiempoColaboradorComponent implements OnInit {
 

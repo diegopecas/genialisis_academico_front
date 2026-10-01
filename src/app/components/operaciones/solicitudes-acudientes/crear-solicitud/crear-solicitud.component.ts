@@ -9,13 +9,14 @@ import { EstudiantesService } from '../../../../services/estudiantes.service';
 import { AcudientesService } from '../../../../services/acudientes.service';
 import { ColaboradoresService } from '../../../../services/colaboradores.service';
 import Swal from 'sweetalert2';
+import { HoraInputComponent } from '../../../../common/hora-input/hora-input.component';
 
 @Component({
   selector: 'app-crear-solicitud-jardin',
   templateUrl: './crear-solicitud.component.html',
   styleUrl: './crear-solicitud.component.scss',
   standalone: true,
-  imports: [CommonModule, FormsModule, HeaderComponent]
+  imports: [CommonModule, FormsModule, HeaderComponent, HoraInputComponent]
 })
 export class CrearSolicitudJardinComponent implements OnInit {
 

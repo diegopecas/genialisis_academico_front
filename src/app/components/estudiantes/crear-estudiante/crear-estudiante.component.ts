@@ -23,6 +23,7 @@ import { DatosAdicionalesXEstudianteService } from '../../../services/datos-adic
 import { UtilService } from '../../../common/constantes/util.service';
 import { DiasSemanaService } from '../../../services/dias-semana.service';
 import { GradosXGrupoService } from '../../../services/grados-x-grupo.service';
+import { HoraInputComponent } from '../../../common/hora-input/hora-input.component';
 
 interface EstudianteModel {
   idPersona: string;
@@ -111,6 +112,7 @@ interface GrupoDatosDinamicos {
     FormsModule,
     DocumentosPersonaComponent,
     FotoPersonaComponent,
+    HoraInputComponent
   ],
   templateUrl: './crear-estudiante.component.html',
   styleUrl: './crear-estudiante.component.scss',

@@ -28,13 +28,13 @@
         <div class="row">
             <div class="col-sm-6 col-md-3 mb-3">
                 <label class="form-label">Hora de inicio</label>
-                <input type="time" class="form-control form-control-lg" [(ngModel)]="model.hora_inicio"
-                    [ngClass]="{'is-invalid': errorHoras && submitted}">
+                <app-hora-input tamano="lg" [(ngModel)]="model.hora_inicio"
+                    [invalido]="!!(errorHoras && submitted)"></app-hora-input>
             </div>
             <div class="col-sm-6 col-md-3 mb-3">
                 <label class="form-label">Hora de fin</label>
-                <input type="time" class="form-control form-control-lg" [(ngModel)]="model.hora_fin"
-                    [ngClass]="{'is-invalid': errorHoras && submitted}">
+                <app-hora-input tamano="lg" [(ngModel)]="model.hora_fin" periodoPorDefecto="PM"
+                    [invalido]="!!(errorHoras && submitted)"></app-hora-input>
             </div>
             <div class="col-md-6 mb-3 d-flex align-items-end">
                 <small *ngIf="!(errorHoras && submitted)" class="text-muted pb-2">

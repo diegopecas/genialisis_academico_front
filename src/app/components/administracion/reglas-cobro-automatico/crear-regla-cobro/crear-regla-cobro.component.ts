@@ -11,12 +11,13 @@ import { GruposService } from '../../../../services/grupos.service';
 import { ProductosServiciosService } from '../../../../services/productos-servicios.service';
 import { ReglasCobroAutomaticoService } from '../../../../services/reglas-cobro-automatico.service';
 import { TiposEventoCobroService } from '../../../../services/tipos-evento-cobro.service';
+import { HoraInputComponent } from '../../../../common/hora-input/hora-input.component';
 
 
 @Component({
   selector: 'app-crear-regla-cobro',
   standalone: true,
-  imports: [CommonModule, FormsModule, HeaderComponent],
+  imports: [CommonModule, FormsModule, HeaderComponent, HoraInputComponent],
   templateUrl: './crear-regla-cobro.component.html',
   styleUrl: './crear-regla-cobro.component.scss'
 })

@@ -8,6 +8,7 @@ import { GruposService } from '../../../services/grupos.service';
 import { ColaboradoresService } from '../../../services/colaboradores.service';
 import { UtilService } from '../../../common/constantes/util.service';
 import Swal from 'sweetalert2';
+import { HoraInputComponent } from '../../../common/hora-input/hora-input.component';
 
 /**
  * Registro masivo de asistencia.
@@ -27,7 +28,7 @@ import Swal from 'sweetalert2';
   templateUrl: './asistencia-masiva.component.html',
   styleUrl: './asistencia-masiva.component.scss',
   standalone: true,
-  imports: [CommonModule, FormsModule, HeaderComponent, BuscarComponent]
+  imports: [CommonModule, FormsModule, HeaderComponent, BuscarComponent, HoraInputComponent]
 })
 export class AsistenciaMasivaComponent implements OnInit {
 

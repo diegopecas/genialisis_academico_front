@@ -8,13 +8,14 @@ import { RegistrosLimpiezaService } from '../../../../services/registros-limpiez
 import { TiposProcesosLimpiezaService } from '../../../../services/tipos-procesos-limpieza.service';
 import { UsuariosService } from '../../../../services/usuarios.service';
 import { UtilService } from '../../../../common/constantes/util.service';
+import { HoraInputComponent } from '../../../../common/hora-input/hora-input.component';
 
 @Component({
   selector: 'app-registro-masivo-limpieza',
   templateUrl: './registro-masivo-limpieza.component.html',
   styleUrls: ['./registro-masivo-limpieza.component.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, HeaderComponent]
+  imports: [CommonModule, FormsModule, HeaderComponent, HoraInputComponent]
 })
 export class RegistroMasivoLimpiezaComponent implements OnInit {
 

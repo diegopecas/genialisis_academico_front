@@ -35,16 +35,16 @@
                         <label class="form-label">
                             <i class="fas fa-play"></i> Inicio *
                         </label>
-                        <input type="time" class="form-control form-control-lg" [(ngModel)]="horaInicio"
-                            (change)="onHoraInicioChange()" [disabled]="guardando">
+                        <app-hora-input tamano="lg" [(ngModel)]="horaInicio"
+                            (ngModelChange)="onHoraInicioChange()" [disabled]="guardando"></app-hora-input>
                     </div>
 
                     <div class="col-6 col-md-2">
                         <label class="form-label">
                             <i class="fas fa-flag-checkered"></i> Fin *
                         </label>
-                        <input type="time" class="form-control form-control-lg" [(ngModel)]="horaFin"
-                            (change)="onHoraFinChange()" [disabled]="guardando">
+                        <app-hora-input tamano="lg" [(ngModel)]="horaFin"
+                            (ngModelChange)="onHoraFinChange()" [disabled]="guardando"></app-hora-input>
                     </div>
 
                     <div class="col-12 col-md-6">

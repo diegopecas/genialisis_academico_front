@@ -67,7 +67,7 @@
         <div class="col-md-6 mb-3" *ngIf="manejaHoras">
           <label>{{ admiteVariasHoras ? 'Horas' : 'Hora' }}</label>
           <div class="fila-hora">
-            <input type="time" class="form-control" [(ngModel)]="nuevaHora" />
+            <app-hora-input [(ngModel)]="nuevaHora"></app-hora-input>
             <button class="btn btn-outline-primary" (click)="agregarHora()">Agregar</button>
           </div>
           <div class="chips">

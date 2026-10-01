@@ -1,0 +1,33 @@
+:host {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+.hora-input {
+  flex-wrap: nowrap;
+}
+
+.campo-hora {
+  min-width: 4.2rem;
+  text-align: center;
+}
+
+.btn-periodo {
+  border: 1px solid var(--mo-border-color, #dee2e6);
+  background: #fff;
+  color: #6c757d;
+  font-weight: 600;
+  padding-left: 0.55rem;
+  padding-right: 0.55rem;
+
+  &.activo {
+    background: var(--mo-primary, #D4A03C);
+    border-color: var(--mo-primary, #D4A03C);
+    color: #fff;
+  }
+
+  &:disabled {
+    opacity: 0.65;
+  }
+}

@@ -6,11 +6,12 @@ import Swal from 'sweetalert2';
 import { HeaderComponent } from '../../../../../common/header/header.component';
 import { CalendariosEventosService } from '../../../../../services/calendarios-eventos.service';
 import { TiposEventoCalendarioService } from '../../../../../services/tipos-evento-calendario.service';
+import { HoraInputComponent } from '../../../../../common/hora-input/hora-input.component';
 
 @Component({
   selector: 'app-crear-evento-calendario',
   standalone: true,
-  imports: [CommonModule, FormsModule, HeaderComponent],
+  imports: [CommonModule, FormsModule, HeaderComponent, HoraInputComponent],
   templateUrl: './crear-evento-calendario.component.html',
   styleUrl: './crear-evento-calendario.component.scss'
 })

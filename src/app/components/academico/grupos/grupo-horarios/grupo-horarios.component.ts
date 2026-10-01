@@ -5,13 +5,14 @@ import { HorariosService } from '../../../../services/horarios.service';
 import { DiasSemanaService } from '../../../../services/dias-semana.service';
 import { colorVivo, colorFondoBloque } from '../../../../common/constantes/color-horario';
 import Swal from 'sweetalert2';
+import { HoraInputComponent } from '../../../../common/hora-input/hora-input.component';
 
 @Component({
   selector: 'app-grupo-horarios',
   templateUrl: './grupo-horarios.component.html',
   styleUrl: './grupo-horarios.component.scss',
   standalone: true,
-  imports: [CommonModule, FormsModule]
+  imports: [CommonModule, FormsModule, HoraInputComponent]
 })
 export class GrupoHorariosComponent implements OnInit, OnChanges {
 

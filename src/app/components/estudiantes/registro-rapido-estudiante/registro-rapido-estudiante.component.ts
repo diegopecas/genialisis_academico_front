@@ -21,6 +21,7 @@ import { TiposIdentificacionService } from '../../../services/tipos-identificaci
 import { GenerosService } from '../../../services/generos.service';
 import { TiposAcudienteService } from '../../../services/tipos-acudiente.service';
 import { UtilService } from '../../../common/constantes/util.service';
+import { HoraInputComponent } from '../../../common/hora-input/hora-input.component';
 
 // Datos de una persona dentro del asistente (niño o acudiente).
 interface PersonaForm {
@@ -57,7 +58,7 @@ interface DiaHorario {
 @Component({
   selector: 'app-registro-rapido-estudiante',
   standalone: true,
-  imports: [CommonModule, FormsModule, HeaderComponent],
+  imports: [CommonModule, FormsModule, HeaderComponent, HoraInputComponent],
   templateUrl: './registro-rapido-estudiante.component.html',
   styleUrl: './registro-rapido-estudiante.component.scss',
 })

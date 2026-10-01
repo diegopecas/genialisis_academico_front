@@ -21,13 +21,14 @@ import { InstitucionConfigService } from '../../../../services/institucion-confi
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../../environments/environment';
 import Swal from 'sweetalert2';
+import { HoraInputComponent } from '../../../../common/hora-input/hora-input.component';
 
 @Component({
   selector: 'app-crear-curso-extra',
   templateUrl: './crear-curso-extra.component.html',
   styleUrl: './crear-curso-extra.component.scss',
   standalone: true,
-  imports: [CommonModule, FormsModule, HeaderComponent]
+  imports: [CommonModule, FormsModule, HeaderComponent, HoraInputComponent]
 })
 export class CrearCursoExtraComponent implements OnInit {
 

@@ -18,6 +18,7 @@ import { SearchPipeGeneral } from '../../common/pipes/search';
 import { RegistroUtilesDiariosService } from '../../services/utiles-diarios-registro.service';
 import { SolicitudesService } from '../../services/solicitudes.service';
 import { ColaboradoresService } from '../../services/colaboradores.service';
+import { HoraInputComponent } from '../../common/hora-input/hora-input.component';
 
 @Component({
   selector: 'app-asistencia',
@@ -25,7 +26,7 @@ import { ColaboradoresService } from '../../services/colaboradores.service';
   styleUrl: './asistencia.component.scss',
   standalone: true,
   providers: [SearchPipeGeneral],
-  imports: [CommonModule, FormsModule, HeaderComponent, BuscarComponent]
+  imports: [CommonModule, FormsModule, HeaderComponent, BuscarComponent, HoraInputComponent]
 })
 export class AsistenciaComponent implements OnInit {
 

@@ -48,11 +48,11 @@
     <div class="row mt-3">
       <div class="col-sm-12 col-md-3">
         <label class="form-label">Hora desde <small class="text-muted">(opcional)</small></label>
-        <input type="time" class="form-control form-control-lg" [(ngModel)]="model.hora_desde" [disabled]="!editable">
+        <app-hora-input tamano="lg" [(ngModel)]="model.hora_desde" [disabled]="!editable"></app-hora-input>
       </div>
       <div class="col-sm-12 col-md-3">
         <label class="form-label">Hora hasta <small class="text-muted">(opcional)</small></label>
-        <input type="time" class="form-control form-control-lg" [(ngModel)]="model.hora_hasta" [disabled]="!editable">
+        <app-hora-input tamano="lg" [(ngModel)]="model.hora_hasta" [disabled]="!editable"></app-hora-input>
       </div>
       <div class="col-sm-12 col-md-3">
         <label class="form-label">Día específico <small class="text-muted">(opcional)</small></label>

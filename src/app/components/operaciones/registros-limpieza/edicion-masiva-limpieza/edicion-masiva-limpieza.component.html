@@ -84,8 +84,8 @@
                                 <input type="checkbox" [(ngModel)]="aplicar.hora_inicio">
                                 <span>Hora inicio</span>
                             </label>
-                            <input type="time" class="form-control form-control-sm"
-                                [(ngModel)]="nuevos.hora_inicio" [disabled]="!aplicar.hora_inicio">
+                            <app-hora-input tamano="sm"
+                                [(ngModel)]="nuevos.hora_inicio" [disabled]="!aplicar.hora_inicio"></app-hora-input>
                         </div>
 
                         <div class="campo-cambio">
@@ -93,8 +93,8 @@
                                 <input type="checkbox" [(ngModel)]="aplicar.hora_fin">
                                 <span>Hora fin</span>
                             </label>
-                            <input type="time" class="form-control form-control-sm"
-                                [(ngModel)]="nuevos.hora_fin" [disabled]="!aplicar.hora_fin">
+                            <app-hora-input tamano="sm"
+                                [(ngModel)]="nuevos.hora_fin" [disabled]="!aplicar.hora_fin"></app-hora-input>
                         </div>
 
                         <div class="campo-cambio">

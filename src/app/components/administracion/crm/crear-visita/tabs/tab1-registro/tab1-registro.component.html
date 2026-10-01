@@ -64,7 +64,7 @@
 
             <div class="col-md-3">
               <label class="form-label required-field">Hora</label>
-              <input type="time" class="form-control" formControlName="hora">
+              <app-hora-input formControlName="hora"></app-hora-input>
             </div>
 
             <div class="col-md-3">
@@ -1012,8 +1012,8 @@
 
                 <div class="col-md-2">
                   <label class="form-label small">🕐 Hora</label>
-                  <input type="time" class="form-control form-control-sm" [(ngModel)]="comp.hora_compromiso"
-                    [ngModelOptions]="{standalone: true}" (ngModelChange)="emitirCambios()" [readonly]="soloLectura">
+                  <app-hora-input tamano="sm" [(ngModel)]="comp.hora_compromiso"
+                    [ngModelOptions]="{standalone: true}" (ngModelChange)="emitirCambios()" [readonly]="soloLectura"></app-hora-input>
                 </div>
 
                 <div class="col-md-7">

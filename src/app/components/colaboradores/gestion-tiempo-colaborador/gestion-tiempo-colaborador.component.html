@@ -314,11 +314,11 @@
             </div>
             <div class="col-md-4">
               <label class="form-label">Hora inicio</label>
-              <input type="time" class="form-control" [(ngModel)]="modelTarea.hora_inicio">
+              <app-hora-input [(ngModel)]="modelTarea.hora_inicio"></app-hora-input>
             </div>
             <div class="col-md-4">
               <label class="form-label">Hora fin</label>
-              <input type="time" class="form-control" [(ngModel)]="modelTarea.hora_fin">
+              <app-hora-input [(ngModel)]="modelTarea.hora_fin"></app-hora-input>
             </div>
           </div>
           <div *ngIf="modelTarea.esRecurrente">
@@ -351,8 +351,8 @@
               </div>
             </div>
             <div class="row mb-3">
-              <div class="col-md-4"><label class="form-label">Hora inicio</label><input type="time" class="form-control" [(ngModel)]="modelTarea.hora_inicio"></div>
-              <div class="col-md-4"><label class="form-label">Hora fin</label><input type="time" class="form-control" [(ngModel)]="modelTarea.hora_fin"></div>
+              <div class="col-md-4"><label class="form-label">Hora inicio</label><app-hora-input [(ngModel)]="modelTarea.hora_inicio"></app-hora-input></div>
+              <div class="col-md-4"><label class="form-label">Hora fin</label><app-hora-input [(ngModel)]="modelTarea.hora_fin"></app-hora-input></div>
               <div class="col-md-4 d-flex align-items-end">
                 <div class="alert alert-info mb-0 w-100 py-2 text-center" *ngIf="getCantidadTareasPreview() > 0"><strong>{{ getCantidadTareasPreview() }}</strong> tareas se crearán</div>
               </div>
@@ -472,11 +472,11 @@
             </div>
             <div class="col-md-4">
               <label class="form-label">Hora inicio</label>
-              <input type="time" class="form-control" [(ngModel)]="tareaEditando.hora_inicio">
+              <app-hora-input [(ngModel)]="tareaEditando.hora_inicio"></app-hora-input>
             </div>
             <div class="col-md-4">
               <label class="form-label">Hora fin</label>
-              <input type="time" class="form-control" [(ngModel)]="tareaEditando.hora_fin">
+              <app-hora-input [(ngModel)]="tareaEditando.hora_fin"></app-hora-input>
             </div>
           </div>
           <div class="row mb-3">

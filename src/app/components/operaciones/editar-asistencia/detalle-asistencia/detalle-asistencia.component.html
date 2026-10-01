@@ -28,24 +28,23 @@
     </div>
 
     <div class="tarjeta mt-3">
-      <!-- Los cobros se evaluan al salir del campo, no con (change): el
-           input type="time" dispara change apenas se escribe la primera
-           parte de la hora y se ponia a calcular a medias. -->
+      <!-- Los cobros se evaluan cuando la hora queda confirmada (al salir del
+           campo o al tocar AM/PM), nunca con la hora a medio escribir. -->
       <div class="titulo-tarjeta">Movimiento</div>
 
       <div class="row g-3">
         <div class="col-sm-12 col-md-3">
           <label for="horaIngreso" class="form-label">Hora de ingreso</label>
-          <input class="form-control form-control-lg" type="time" id="horaIngreso"
+          <app-hora-input inputId="horaIngreso" tamano="lg"
             [(ngModel)]="movimiento.hora_ingreso" [disabled]="bloqueado"
-            (blur)="onHoraIngresoChange()">
+            (ngModelChange)="onHoraIngresoChange()"></app-hora-input>
         </div>
 
         <div class="col-sm-12 col-md-3">
           <label for="horaSalida" class="form-label">Hora de salida</label>
-          <input class="form-control form-control-lg" type="time" id="horaSalida"
+          <app-hora-input inputId="horaSalida" tamano="lg" periodoPorDefecto="PM"
             [(ngModel)]="movimiento.hora_salida" [disabled]="bloqueado"
-            (blur)="onHoraSalidaChange()">
+            (ngModelChange)="onHoraSalidaChange()"></app-hora-input>
           <small class="ayuda">Déjala vacía si el movimiento sigue abierto.</small>
         </div>
 

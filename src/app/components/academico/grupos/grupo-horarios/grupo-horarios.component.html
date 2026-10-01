@@ -109,19 +109,19 @@
                     <span class="pendiente-area">{{ obtenerNombreArea(franja.id_area_academica) }}</span>
                     <span class="pendiente-dia">{{ nombreDia(franja.id_dia_semana) }}</span>
                     <span class="pendiente-hora">
-                        <input type="time"
+                        <app-hora-input
                                class="input-hora-pendiente"
-                               step="300"
+                               tamano="sm"
+                               titulo="Hora inicial"
                                [ngModel]="franja.hora_inicial"
-                               (ngModelChange)="ajustarHoraFranja(i, 'hora_inicial', $event)"
-                               title="Hora inicial">
+                               (ngModelChange)="ajustarHoraFranja(i, 'hora_inicial', $event)"></app-hora-input>
                         <span class="separador-hora">-</span>
-                        <input type="time"
+                        <app-hora-input
                                class="input-hora-pendiente"
-                               step="300"
+                               tamano="sm"
+                               titulo="Hora final"
                                [ngModel]="franja.hora_final"
-                               (ngModelChange)="ajustarHoraFranja(i, 'hora_final', $event)"
-                               title="Hora final">
+                               (ngModelChange)="ajustarHoraFranja(i, 'hora_final', $event)"></app-hora-input>
                     </span>
                     <span class="pendiente-min">{{ franja.total_minutos }} min</span>
                     <label class="pendiente-nombre">
@@ -341,14 +341,14 @@
 
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Hora Inicial <span class="text-danger">*</span></label>
-                    <input type="time" class="form-control" [(ngModel)]="horarioModal.hora_inicial" (change)="calcularMinutos()">
+                    <app-hora-input [(ngModel)]="horarioModal.hora_inicial" (ngModelChange)="calcularMinutos()"></app-hora-input>
                 </div>
 
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Hora Final <span class="text-danger">*</span></label>
-                    <input type="time" class="form-control" [(ngModel)]="horarioModal.hora_final" (change)="calcularMinutos()"
-                      [ngClass]="{'is-invalid': horarioModal.hora_inicial && horarioModal.hora_final && horarioModal.hora_final <= horarioModal.hora_inicial}">
-                    <div class="invalid-feedback" *ngIf="horarioModal.hora_inicial && horarioModal.hora_final && horarioModal.hora_final <= horarioModal.hora_inicial">
+                    <app-hora-input [(ngModel)]="horarioModal.hora_final" (ngModelChange)="calcularMinutos()" periodoPorDefecto="PM"
+                      [invalido]="!!(horarioModal.hora_inicial && horarioModal.hora_final && horarioModal.hora_final <= horarioModal.hora_inicial)"></app-hora-input>
+                    <div class="invalid-feedback d-block" *ngIf="horarioModal.hora_inicial && horarioModal.hora_final && horarioModal.hora_final <= horarioModal.hora_inicial">
                       La hora final debe ser mayor que la hora inicial
                     </div>
                 </div>

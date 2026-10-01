@@ -26,11 +26,12 @@ import Swal from 'sweetalert2';
 import { CargosService } from '../../../services/cargos.service';
 import { MotivosRetiroService } from '../../../services/motivos-retiro.service';
 import { TiposContratoService } from '../../../services/tipos-contrato.service';
+import { HoraInputComponent } from '../../../common/hora-input/hora-input.component';
 
 @Component({
   selector: 'app-crear-colaboradores',
   standalone: true,
-  imports: [CommonModule, FormsModule, HeaderComponent, RouterModule, DocumentosPersonaComponent, FotoPersonaComponent],
+  imports: [CommonModule, FormsModule, HeaderComponent, RouterModule, DocumentosPersonaComponent, FotoPersonaComponent, HoraInputComponent],
   templateUrl: './crear-colaboradores.component.html',
   styleUrl: './crear-colaboradores.component.scss',
 })

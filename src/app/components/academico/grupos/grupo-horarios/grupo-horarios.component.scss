@@ -690,21 +690,12 @@ $light-gold: rgba(212, 175, 55, 0.1);
 }
 
 // Las horas de una franja sin guardar se pueden corregir a mano, para no
-// depender de atinarle con el arrastre
+// depender de atinarle con el arrastre. Es un app-hora-input (texto + AM/PM),
+// por eso necesita más ancho que el input de reloj que había antes.
 .input-hora-pendiente {
-  border: 1px solid #dcdcdc;
-  border-radius: 6px;
-  padding: 2px 6px;
+  display: inline-block;
+  width: 150px;
   font-size: 0.78rem;
-  color: #495057;
-  background: #fff;
-  width: 92px;
-
-  &:focus {
-    outline: none;
-    border-color: #F5A623;
-    box-shadow: 0 0 0 2px rgba(245, 166, 35, 0.15);
-  }
 }
 
 .separador-hora {

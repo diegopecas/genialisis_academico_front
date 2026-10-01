@@ -4,13 +4,14 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { trigger, state, style, transition, animate } from '@angular/animations';
 import Swal from 'sweetalert2';
 import { VisitantesService } from '../../../../../../services/visitantes.service';
+import { HoraInputComponent } from '../../../../../../common/hora-input/hora-input.component';
 
 @Component({
   selector: 'app-tab1-registro',
   templateUrl: './tab1-registro.component.html',
   styleUrl: './tab1-registro.component.scss',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, HoraInputComponent],
   animations: [
     trigger('slideDown', [
       state('collapsed', style({

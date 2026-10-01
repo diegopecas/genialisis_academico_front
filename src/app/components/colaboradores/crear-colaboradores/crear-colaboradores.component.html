@@ -235,13 +235,13 @@
       <div class="row">
         <div class="col-md-6 mb-3">
           <label class="form-label">Hora Inicio <span class="text-danger">*</span></label>
-          <input type="time" class="form-control form-control-lg" [(ngModel)]="horarioModal.hora_inicio" (change)="validarSolapamientoModal()">
+          <app-hora-input tamano="lg" [(ngModel)]="horarioModal.hora_inicio" (ngModelChange)="validarSolapamientoModal()"></app-hora-input>
         </div>
         <div class="col-md-6 mb-3">
           <label class="form-label">Hora Fin <span class="text-danger">*</span></label>
-          <input type="time" class="form-control form-control-lg" [(ngModel)]="horarioModal.hora_fin" (change)="validarSolapamientoModal()"
-            [ngClass]="{'is-invalid': horarioModal.hora_inicio && horarioModal.hora_fin && horarioModal.hora_fin <= horarioModal.hora_inicio}">
-          <div class="invalid-feedback" *ngIf="horarioModal.hora_inicio && horarioModal.hora_fin && horarioModal.hora_fin <= horarioModal.hora_inicio">
+          <app-hora-input tamano="lg" [(ngModel)]="horarioModal.hora_fin" (ngModelChange)="validarSolapamientoModal()" periodoPorDefecto="PM"
+            [invalido]="!!(horarioModal.hora_inicio && horarioModal.hora_fin && horarioModal.hora_fin <= horarioModal.hora_inicio)"></app-hora-input>
+          <div class="invalid-feedback d-block" *ngIf="horarioModal.hora_inicio && horarioModal.hora_fin && horarioModal.hora_fin <= horarioModal.hora_inicio">
             La hora fin debe ser mayor que la hora inicio
           </div>
         </div>

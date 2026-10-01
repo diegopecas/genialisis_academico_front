@@ -69,20 +69,19 @@
                   <label class="form-label fw-bold">
                     {{ tipoEventoActual === 'ingreso' ? 'Hora de ingreso' : 'Hora de salida' }}
                   </label>
-                  <input
+                  <app-hora-input
                     *ngIf="tipoEventoActual === 'ingreso'"
-                    type="time"
-                    class="form-control form-control-lg"
+                    tamano="lg"
                     [(ngModel)]="horaIngresoEditable"
-                    (blur)="onHoraChange()"
-                  />
-                  <input
+                    (ngModelChange)="onHoraChange()"
+                  ></app-hora-input>
+                  <app-hora-input
                     *ngIf="tipoEventoActual === 'salida'"
-                    type="time"
-                    class="form-control form-control-lg"
+                    tamano="lg"
+                    periodoPorDefecto="PM"
                     [(ngModel)]="horaSalidaEditable"
-                    (blur)="onHoraChange()"
-                  />
+                    (ngModelChange)="onHoraChange()"
+                  ></app-hora-input>
                   <small class="text-muted">Modifique si la hora no es correcta. Los cobros se recalculan automáticamente.</small>
                 </div>
                 <!-- Quien recibe o entrega al nino. Es distinto de quien hace el
