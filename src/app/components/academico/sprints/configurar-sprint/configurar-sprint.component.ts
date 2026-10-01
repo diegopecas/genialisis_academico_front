@@ -639,14 +639,32 @@ export class ConfigurarSprintComponent implements OnInit {
     this.hayCambios = true;
   }
 
+  /**
+   * Sube o baja la tarea respecto a su vecina visible. Con un filtro o una
+   * búsqueda activa, la vecina en la lista completa puede estar oculta y el
+   * cambio no se notaría; por eso se intercambia con la anterior o siguiente
+   * que sí se ve. Sin filtros es la misma vecina de siempre.
+   */
   moverArriba(index: number) {
-    if (index <= 0) return;
-    this.intercambiarOrden(index, index - 1);
+    const indiceVecina = this.indiceVecinaVisible(index, -1);
+    if (indiceVecina === null) return;
+    this.intercambiarOrden(index, indiceVecina);
   }
 
   moverAbajo(index: number) {
-    if (index >= this.tareasAsignadas.length - 1) return;
-    this.intercambiarOrden(index, index + 1);
+    const indiceVecina = this.indiceVecinaVisible(index, 1);
+    if (indiceVecina === null) return;
+    this.intercambiarOrden(index, indiceVecina);
+  }
+
+  /** Índice real (en tareasAsignadas) de la tarea visible anterior (-1) o siguiente (1). */
+  private indiceVecinaVisible(index: number, direccion: -1 | 1): number | null {
+    const visibles = this.tareasFiltradas;
+    const posicion = visibles.indexOf(this.tareasAsignadas[index]);
+    if (posicion === -1) return null;
+
+    const vecina = visibles[posicion + direccion];
+    return vecina ? this.getIndexReal(vecina) : null;
   }
 
   private intercambiarOrden(indexA: number, indexB: number) {

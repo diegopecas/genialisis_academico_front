@@ -69,19 +69,20 @@
                   <label class="form-label fw-bold">
                     {{ tipoEventoActual === 'ingreso' ? 'Hora de ingreso' : 'Hora de salida' }}
                   </label>
-                  <app-hora-input
+                  <input
                     *ngIf="tipoEventoActual === 'ingreso'"
-                    tamano="lg"
+                    type="time"
+                    class="form-control form-control-lg"
                     [(ngModel)]="horaIngresoEditable"
-                    (ngModelChange)="onHoraChange()"
-                  ></app-hora-input>
-                  <app-hora-input
+                    (blur)="onHoraChange()"
+                  />
+                  <input
                     *ngIf="tipoEventoActual === 'salida'"
-                    tamano="lg"
-                    periodoPorDefecto="PM"
+                    type="time"
+                    class="form-control form-control-lg"
                     [(ngModel)]="horaSalidaEditable"
-                    (ngModelChange)="onHoraChange()"
-                  ></app-hora-input>
+                    (blur)="onHoraChange()"
+                  />
                   <small class="text-muted">Modifique si la hora no es correcta. Los cobros se recalculan automáticamente.</small>
                 </div>
                 <!-- Quien recibe o entrega al nino. Es distinto de quien hace el
@@ -478,6 +479,32 @@
           <app-buscar (buscar)="buscar($event)"></app-buscar>
           <button class="btn btn-sm btn-warning ms-2" (click)="abrirRegistroRapido()">⚡ Crear estudiante</button>
         </div>
+
+        <!-- Filtro por grupo: se combina con el buscador. El número es cuántos
+             niños del grupo faltan por ingresar. -->
+        <div class="filtro-grupos-ingreso" *ngIf="gruposIngreso.length > 1">
+          <button
+            type="button"
+            class="chip-grupo"
+            [class.activo]="grupoFiltroIngreso === ''"
+            (click)="filtrarGrupoIngreso('')"
+          >
+            Todos
+          </button>
+          <button
+            type="button"
+            class="chip-grupo"
+            *ngFor="let grupo of gruposIngreso; trackBy: trackByGrupo"
+            [class.activo]="grupoFiltroIngreso === grupo.nombre"
+            [style.--color-grupo]="grupo.color"
+            (click)="filtrarGrupoIngreso(grupo.nombre)"
+          >
+            <span class="chip-punto"></span>
+            {{ grupo.nombre }}
+            <span class="chip-total">{{ grupo.total }}</span>
+          </button>
+        </div>
+
         <ul class="lista-asistencia">
           <ng-container *ngFor="let estudiante of listas.noIngresos; trackBy: trackByEstudiante">
             <li
@@ -485,7 +512,19 @@
               [style.border-left-color]="estudiante.color"
               (click)="seleccionarEstudiante(estudiante)"
             >
-              <img class="avatar-asistencia" [src]="estudiante.icono" />
+              <!-- Foto del niño si la tiene; si no, el ícono del grupo. La
+                   carga diferida baja solo las fotos que se ven en pantalla. -->
+              <img
+                *ngIf="fotosIngreso[estudiante.id]; else iconoGrupoIngreso"
+                class="avatar-asistencia con-foto"
+                [src]="fotosIngreso[estudiante.id]"
+                loading="lazy"
+                [alt]="estudiante.primer_nombre"
+                (error)="onErrorFotoIngreso(estudiante)"
+              />
+              <ng-template #iconoGrupoIngreso>
+                <img class="avatar-asistencia" [src]="estudiante.icono" />
+              </ng-template>
               <span class="datos-asistencia">
                 <span class="nombre-asistencia">
                   {{ estudiante.primer_nombre }} {{ estudiante.segundo_nombre }}
@@ -503,7 +542,8 @@
         <!-- Estado vacio: antes la lista quedaba en blanco sin explicar nada. -->
         <div class="estado-vacio" *ngIf="listas.noIngresos.length === 0">
           <i class="fas fa-check-circle"></i>
-          <span>Ya ingresaron todos los niños.</span>
+          <span *ngIf="!grupoFiltroIngreso">Ya ingresaron todos los niños.</span>
+          <span *ngIf="grupoFiltroIngreso">No hay niños de {{ grupoFiltroIngreso }} por ingresar con ese filtro.</span>
         </div>
       </div>
       <div class="col-md-12" *ngIf="model.opcion == 'salidas'">

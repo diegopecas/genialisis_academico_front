@@ -573,10 +573,14 @@ $warning-color: #ffc107;
     border-color: $corporate-yellow;
   }
 
+  // Número de orden y, a su lado, las flechas para subir y bajar.
+  // Las flechas son la forma de ordenar en el celular, donde el arrastre
+  // nativo no funciona con el dedo.
   .tarea-orden {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
+    gap: 0.3rem;
     min-width: 30px;
 
     .orden-numero {
@@ -595,19 +599,33 @@ $warning-color: #ffc107;
     .orden-controles {
       display: flex;
       flex-direction: column;
-      margin-top: 0.1rem;
+      gap: 0.15rem;
 
       .btn-orden {
-        background: none;
-        border: none;
+        width: 26px;
+        height: 22px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: $white;
+        border: 1px solid #ddd;
+        border-radius: 0.3rem;
         padding: 0;
         cursor: pointer;
-        color: #bbb;
-        font-size: 0.55rem;
+        color: $corporate-black;
+        font-size: 0.7rem;
         line-height: 1;
+        transition: all 0.15s ease;
 
-        &:hover:not(:disabled) { color: $corporate-yellow; }
-        &:disabled { opacity: 0.3; }
+        &:hover:not(:disabled) {
+          background: $corporate-yellow;
+          border-color: $corporate-yellow;
+        }
+
+        &:disabled {
+          opacity: 0.3;
+          cursor: not-allowed;
+        }
       }
     }
   }
@@ -880,6 +898,13 @@ $warning-color: #ffc107;
   }
 
   .tarea-item .drag-handle { display: none; }
+
+  // En el celular las flechas son la única forma de ordenar: más grandes para el dedo
+  .tarea-item .tarea-orden .orden-controles .btn-orden {
+    width: 34px;
+    height: 28px;
+    font-size: 0.85rem;
+  }
 
   .cambios-bar {
     flex-direction: column;

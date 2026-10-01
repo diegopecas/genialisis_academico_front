@@ -755,6 +755,15 @@
     height: 38px;
     object-fit: contain;
     flex: 0 0 auto;
+
+    // La foto del niño va redonda y recortada; el ícono del grupo se deja igual
+    &.con-foto {
+      object-fit: cover;
+      border-radius: 50%;
+      border: 2px solid #fff;
+      box-shadow: 0 0 0 1px #e9ecef;
+      background: #f8f9fa;
+    }
   }
 
   .datos-asistencia {
@@ -791,6 +800,61 @@
     font-size: 0.8rem;
     color: #ced4da;
     flex: 0 0 auto;
+  }
+}
+
+// ============================================================
+// FILTRO POR GRUPO (pestana Ingresos)
+// ============================================================
+.filtro-grupos-ingreso {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 4px 0 10px;
+
+  .chip-grupo {
+    --color-grupo: #ced4da;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    font-size: 0.82rem;
+    color: #495057;
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.12s ease;
+
+    &:hover {
+      border-color: #F5A623;
+      background: #fff8e8;
+    }
+
+    &.activo {
+      border-color: #F5A623;
+      background: #ffefcc;
+      color: #343a40;
+      font-weight: 600;
+    }
+  }
+
+  .chip-punto {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--color-grupo);
+  }
+
+  .chip-total {
+    min-width: 20px;
+    padding: 0 6px;
+    font-size: 0.72rem;
+    line-height: 18px;
+    text-align: center;
+    color: #6c757d;
+    background: #f1f3f5;
+    border-radius: 999px;
   }
 }
 

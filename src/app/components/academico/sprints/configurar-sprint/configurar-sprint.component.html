@@ -213,7 +213,7 @@
               <p>Sin resultados.</p>
             </div>
             <div class="tarea-list" *ngIf="!cargandoTareas && tareasFiltradas.length > 0">
-              <div class="tarea-item" *ngFor="let tarea of tareasFiltradas"
+              <div class="tarea-item" *ngFor="let tarea of tareasFiltradas; let primera = first; let ultima = last"
                 draggable="true"
                 (dragstart)="onDragStart(getIndexReal(tarea))"
                 (dragover)="onDragOver($event, getIndexReal(tarea))"
@@ -222,11 +222,15 @@
                 [class.dragging]="dragIndex === getIndexReal(tarea)">
                 <div class="tarea-orden">
                   <span class="orden-numero">{{ tarea.orden_ejecucion }}</span>
+                  <!-- Las flechas mueven la tarea respecto a la anterior o siguiente
+                       que se ve en la lista, aunque haya un filtro o búsqueda activa. -->
                   <div class="orden-controles">
-                    <button class="btn-orden" (click)="moverArriba(getIndexReal(tarea))" [disabled]="getIndexReal(tarea) === 0">
+                    <button type="button" class="btn-orden" title="Subir"
+                      (click)="moverArriba(getIndexReal(tarea))" [disabled]="primera">
                       <i class="fas fa-chevron-up"></i>
                     </button>
-                    <button class="btn-orden" (click)="moverAbajo(getIndexReal(tarea))" [disabled]="getIndexReal(tarea) === tareasAsignadas.length - 1">
+                    <button type="button" class="btn-orden" title="Bajar"
+                      (click)="moverAbajo(getIndexReal(tarea))" [disabled]="ultima">
                       <i class="fas fa-chevron-down"></i>
                     </button>
                   </div>

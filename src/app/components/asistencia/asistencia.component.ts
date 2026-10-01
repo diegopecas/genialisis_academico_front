@@ -18,7 +18,6 @@ import { SearchPipeGeneral } from '../../common/pipes/search';
 import { RegistroUtilesDiariosService } from '../../services/utiles-diarios-registro.service';
 import { SolicitudesService } from '../../services/solicitudes.service';
 import { ColaboradoresService } from '../../services/colaboradores.service';
-import { HoraInputComponent } from '../../common/hora-input/hora-input.component';
 
 @Component({
   selector: 'app-asistencia',
@@ -26,7 +25,7 @@ import { HoraInputComponent } from '../../common/hora-input/hora-input.component
   styleUrl: './asistencia.component.scss',
   standalone: true,
   providers: [SearchPipeGeneral],
-  imports: [CommonModule, FormsModule, HeaderComponent, BuscarComponent, HoraInputComponent]
+  imports: [CommonModule, FormsModule, HeaderComponent, BuscarComponent]
 })
 export class AsistenciaComponent implements OnInit {
 
@@ -76,6 +75,14 @@ export class AsistenciaComponent implements OnInit {
   private estudiantesCompletos: any[] = [];
   public buscarTexto: string = '';
   private salidasCompletas: any[] = [];
+
+  // Filtro por grupo de la pestaña de ingresos. Se combina con el buscador y
+  // trabaja sobre la lista que ya llegó del back, sin volver a consultar.
+  public grupoFiltroIngreso: string = '';
+  public gruposIngreso: { nombre: string, color: string, total: number }[] = [];
+  // URL de la foto de cada niño por id, armada una sola vez al cargar la
+  // lista y no con una función en la plantilla, que correría en cada ciclo.
+  public fotosIngreso: { [id: string]: string } = {};
 
   // Propiedades para el panel de cobros automáticos
   public mostrarPanelCobros = false;
@@ -313,7 +320,7 @@ export class AsistenciaComponent implements OnInit {
       const body = response.body as any[];
       console.log("consumo servicio docentes", body);
       this.estudiantesCompletos = [...body];
-      this.listas.noIngresos = body;
+      this.prepararListaIngresos();
       this.actualizarContadoresGrupos();
     });
   }
@@ -351,7 +358,9 @@ export class AsistenciaComponent implements OnInit {
   private actualizarContadoresGrupos() {
     this.listas.grupos.forEach((grupo: any) => {
       grupo.asistentes = this.listas.noSalidas.filter(f => f.nombre_grupo == grupo.nombre).length;
-      const sinIngresar = this.listas.noIngresos.filter(f => f.nombre_grupo == grupo.nombre).length;
+      // Sobre la lista completa: el buscador y el filtro de grupo no deben
+      // cambiar el total de cada grupo.
+      const sinIngresar = this.estudiantesCompletos.filter(f => f.nombre_grupo == grupo.nombre).length;
       grupo.totalGrupo = grupo.asistentes + sinIngresar;
     });
   }
@@ -373,14 +382,67 @@ export class AsistenciaComponent implements OnInit {
     return grupo.id || grupo.nombre || index;
   }
 
+  /**
+   * Con la lista de ingresos recién llegada arma los grupos del filtro (con
+   * cuántos niños faltan por ingresar en cada uno) y las URL de las fotos, y
+   * vuelve a aplicar el grupo y el texto que estaban escogidos.
+   */
+  private prepararListaIngresos() {
+    const grupos = new Map<string, { nombre: string, color: string, total: number }>();
+    this.fotosIngreso = {};
+
+    this.estudiantesCompletos.forEach((estudiante: any) => {
+      if (estudiante.nombre_grupo) {
+        const grupo = grupos.get(estudiante.nombre_grupo)
+          || { nombre: estudiante.nombre_grupo, color: estudiante.color, total: 0 };
+        grupo.total++;
+        grupos.set(estudiante.nombre_grupo, grupo);
+      }
+      if (estudiante.foto) {
+        this.fotosIngreso[estudiante.id] = this.personasService.obtenerUrlFoto(estudiante.foto);
+      }
+    });
+
+    // Mismo orden de los grupos del jardín; los que no estén, al final.
+    const orden = (nombre: string) => {
+      const indice = this.listas.grupos.findIndex((g: any) => g.nombre == nombre);
+      return indice === -1 ? 9999 : indice;
+    };
+    this.gruposIngreso = Array.from(grupos.values())
+      .sort((a, b) => orden(a.nombre) - orden(b.nombre) || a.nombre.localeCompare(b.nombre));
+
+    // Si el grupo escogido ya no tiene niños por ingresar, se vuelve a Todos
+    if (this.grupoFiltroIngreso && !grupos.has(this.grupoFiltroIngreso)) {
+      this.grupoFiltroIngreso = '';
+    }
+
+    this.aplicarFiltrosIngresos();
+  }
+
+  /** Escoge el grupo del filtro de ingresos ('' es Todos). */
+  filtrarGrupoIngreso(nombreGrupo: string) {
+    this.grupoFiltroIngreso = nombreGrupo;
+    this.aplicarFiltrosIngresos();
+  }
+
+  /** Lista de ingresos = completa, filtrada por grupo y por el texto del buscador. */
+  private aplicarFiltrosIngresos() {
+    const base = this.grupoFiltroIngreso
+      ? this.estudiantesCompletos.filter((e: any) => e.nombre_grupo == this.grupoFiltroIngreso)
+      : this.estudiantesCompletos;
+    this.listas.noIngresos = this.searchPipeGeneral.transform(base, this.buscarTexto) || [];
+  }
+
+  /** Si la foto no carga, la fila vuelve al ícono del grupo. */
+  onErrorFotoIngreso(estudiante: any) {
+    delete this.fotosIngreso[estudiante.id];
+  }
+
   buscar(event: any) {
     console.log("buscar", event);
     this.buscarTexto = event;
     if (this.model.opcion === 'ingresos') {
-      this.listas.noIngresos = this.searchPipeGeneral.transform(
-        this.estudiantesCompletos,
-        this.buscarTexto
-      );
+      this.aplicarFiltrosIngresos();
     } else if (this.model.opcion === 'salidas') {
       this.listas.noSalidas = this.searchPipeGeneral.transform(
         this.salidasCompletas,
@@ -1199,7 +1261,7 @@ export class AsistenciaComponent implements OnInit {
     this.asistenciaEstudiantesService.obtenerNoIngresos().subscribe((response: any) => {
       const body = response.body as any[];
       this.estudiantesCompletos = [...body];
-      this.listas.noIngresos = body;
+      this.prepararListaIngresos();
 
       const estudianteEncontrado = body.find(
         (e: any) => e.id === idEstudiante
