@@ -29,23 +29,29 @@ export class InstagramService {
 
   /**
    * Publica un carrusel (o imagen única) en el FEED.
+   * @param logo Logo del jardín en base64 (data URI) para la marca de agua.
+   *             Vacío = se publica sin marca.
    */
-  publicar(idGaleria: string, ids: string[], caption: string): Observable<HttpResponse<any>> {
+  publicar(idGaleria: string, ids: string[], caption: string, logo: string = ''): Observable<HttpResponse<any>> {
     const body = {
       id_galeria: idGaleria,
       ids: ids,
-      caption: caption
+      caption: caption,
+      logo: logo
     };
     return this.http.post(`${this.base}/publicar`, body, { observe: 'response' });
   }
 
   /**
    * Publica HISTORIAS: una historia por cada imagen seleccionada (sin tope).
+   * @param logo Logo del jardín en base64 (data URI) para la marca de agua.
+   *             Vacío = se publica sin marca.
    */
-  publicarHistoria(idGaleria: string, ids: string[]): Observable<HttpResponse<any>> {
+  publicarHistoria(idGaleria: string, ids: string[], logo: string = ''): Observable<HttpResponse<any>> {
     const body = {
       id_galeria: idGaleria,
-      ids: ids
+      ids: ids,
+      logo: logo
     };
     return this.http.post(`${this.base}/publicar-historia`, body, { observe: 'response' });
   }
@@ -63,5 +69,21 @@ export class InstagramService {
       caption: caption
     };
     return this.http.post(`${this.base}/publicar-reel`, body, { observe: 'response' });
+  }
+
+  /**
+   * Vista previa de cómo saldría una imagen en Instagram (encuadre y marca de
+   * agua), sin publicar nada.
+   * Respuesta body: { imagen: "data:image/jpeg;base64,...", con_marca: boolean }
+   * @param logo Logo del jardín en base64 (data URI). Vacío = sin marca.
+   */
+  vistaPrevia(idGaleria: string, idImagen: string, tipo: 'feed' | 'historia', logo: string = ''): Observable<HttpResponse<any>> {
+    const body = {
+      id_galeria: idGaleria,
+      id_imagen: idImagen,
+      tipo: tipo,
+      logo: logo
+    };
+    return this.http.post(`${this.base}/vista-previa`, body, { observe: 'response' });
   }
 }

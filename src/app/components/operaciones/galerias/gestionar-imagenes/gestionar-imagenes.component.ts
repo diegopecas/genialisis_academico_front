@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
+import { forkJoin } from 'rxjs';
 import Swal from 'sweetalert2';
 import { environment } from '../../../../../environments/environment';
 import { HeaderComponent } from '../../../../common/header/header.component';
@@ -10,6 +11,7 @@ import { GaleriaImagenesService } from '../../../../services/galeria-imagenes.se
 import { GaleriasService } from '../../../../services/galerias.service';
 import { InstagramService } from '../../../../services/instagram.service';
 import { ImagenCompresionService } from '../../../../services/imagen-compresion.service';
+import { InstitucionConfigService } from '../../../../services/institucion-config.service';
 
 
 interface ImagenPreview {
@@ -85,6 +87,10 @@ export class GestionarImagenesComponent implements OnInit {
 
   // Publicación en Instagram
   publicandoInstagram = false;
+  generandoVistaPrevia = false;
+  // Logo del jardín para la marca de agua, en base64. null = aún no se ha
+  // cargado; '' = no se encontró (se publica sin marca).
+  private logoMarca: string | null = null;
   readonly maxImagenesFeed = 10;          // tope real de Instagram para carrusel
   // Las historias NO tienen tope. Los Reels son de 1 video.
 
@@ -113,6 +119,7 @@ export class GestionarImagenesComponent implements OnInit {
     private galeriaImagenesService: GaleriaImagenesService,
     private instagramService: InstagramService,
     private imagenCompresionService: ImagenCompresionService,
+    private institucionConfigService: InstitucionConfigService,
     private http: HttpClient
   ) { }
 
@@ -484,8 +491,9 @@ export class GestionarImagenesComponent implements OnInit {
 
     this.publicandoInstagram = true;
     this.mostrarCargando('Publicando en el feed...');
+    const logo = await this.obtenerLogoMarca();
 
-    this.instagramService.publicar(this.idGaleria, ids, caption).subscribe({
+    this.instagramService.publicar(this.idGaleria, ids, caption, logo).subscribe({
       next: (response: any) => {
         this.publicandoInstagram = false;
         const permalink = response.body && response.body.permalink ? response.body.permalink : null;
@@ -536,8 +544,9 @@ export class GestionarImagenesComponent implements OnInit {
 
     this.publicandoInstagram = true;
     this.mostrarCargando('Publicando historias...');
+    const logo = await this.obtenerLogoMarca();
 
-    this.instagramService.publicarHistoria(this.idGaleria, ids).subscribe({
+    this.instagramService.publicarHistoria(this.idGaleria, ids, logo).subscribe({
       next: (response: any) => {
         this.publicandoInstagram = false;
         const body = response.body || {};
@@ -617,6 +626,108 @@ export class GestionarImagenesComponent implements OnInit {
         Swal.fire('Error', this.extraerError(error), 'error');
       }
     });
+  }
+
+  /** Vista previa: necesita al menos una imagen y ningún video en la selección. */
+  get puedeVerVistaPrevia(): boolean {
+    return this.cantidadSeleccionadas >= 1 && this.videosSeleccionados === 0;
+  }
+
+  /**
+   * Muestra cómo saldría en Instagram la primera imagen seleccionada, en feed
+   * y en historia, con el fondo y la marca de agua del jardín. No publica nada:
+   * el backend arma la misma imagen que enviaría a Meta y la devuelve.
+   */
+  async verVistaPrevia(): Promise<void> {
+    const seleccionadas = this.seleccionadas;
+    if (seleccionadas.length === 0 || this.videosSeleccionados > 0) {
+      Swal.fire('Aviso', 'Selecciona al menos una imagen (no video) para ver la vista previa.', 'info');
+      return;
+    }
+
+    const imagen = seleccionadas[0];
+    this.generandoVistaPrevia = true;
+    this.mostrarCargando('Generando vista previa...');
+    const logo = await this.obtenerLogoMarca();
+
+    forkJoin({
+      feed: this.instagramService.vistaPrevia(this.idGaleria, imagen.id, 'feed', logo),
+      historia: this.instagramService.vistaPrevia(this.idGaleria, imagen.id, 'historia', logo)
+    }).subscribe({
+      next: (respuestas: any) => {
+        this.generandoVistaPrevia = false;
+        const feed = respuestas.feed.body || {};
+        const historia = respuestas.historia.body || {};
+
+        const avisoVarias = seleccionadas.length > 1
+          ? `<p style="font-size:0.85rem; color:#666;">Se muestra la primera de las ${seleccionadas.length} imágenes seleccionadas.</p>`
+          : '';
+        const avisoMarca = feed.con_marca
+          ? ''
+          : `<p style="font-size:0.85rem; color:#856404; background:#fff3cd; padding:0.5rem; border-radius:0.375rem;">
+               No se encontró el logo del jardín (el mismo de los contratos), por eso sale sin marca de agua.
+             </p>`;
+
+        Swal.fire({
+          title: 'Vista previa en Instagram',
+          width: '900px',
+          html: `
+            ${avisoVarias}
+            ${avisoMarca}
+            <div style="display:flex; flex-wrap:wrap; gap:1rem; justify-content:center; align-items:flex-start;">
+              <div style="flex:1 1 280px; max-width:420px;">
+                <div style="font-weight:600; margin-bottom:0.4rem;">Feed</div>
+                <img src="${feed.imagen}" alt="Vista previa feed"
+                  style="width:100%; border-radius:0.375rem; box-shadow:0 1px 4px rgba(0,0,0,0.2);">
+              </div>
+              <div style="flex:0 1 240px; max-width:240px;">
+                <div style="font-weight:600; margin-bottom:0.4rem;">Historia</div>
+                <img src="${historia.imagen}" alt="Vista previa historia"
+                  style="width:100%; border-radius:0.375rem; box-shadow:0 1px 4px rgba(0,0,0,0.2);">
+              </div>
+            </div>`,
+          confirmButtonText: 'Cerrar',
+          confirmButtonColor: '#6c757d'
+        });
+      },
+      error: (error) => {
+        this.generandoVistaPrevia = false;
+        Swal.fire('Error', this.extraerError(error), 'error');
+      }
+    });
+  }
+
+  /**
+   * Logo del jardín para la marca de agua: el mismo de los contratos
+   * (assets/images/instituciones/{codigo}/logo.png), en base64.
+   * Se descarga una sola vez. Si el archivo no existe, el servidor del front
+   * puede responder con la página del sistema en vez de un 404; por eso solo
+   * se acepta si lo descargado es una imagen. Si no, devuelve '' y la
+   * publicación sale sin marca.
+   */
+  private async obtenerLogoMarca(): Promise<string> {
+    if (this.logoMarca !== null) {
+      return this.logoMarca;
+    }
+
+    this.logoMarca = '';
+    const logoUrl = this.institucionConfigService.getLogoUrl();
+    if (!logoUrl) {
+      return this.logoMarca;
+    }
+
+    try {
+      const response = await fetch(logoUrl);
+      const blob = await response.blob();
+      if (!response.ok || !blob.type.startsWith('image/')) {
+        console.warn('No se encontró el logo del jardín en', logoUrl);
+        return this.logoMarca;
+      }
+      this.logoMarca = await this.leerComoDataUrl(new File([blob], 'logo', { type: blob.type }));
+    } catch (error) {
+      console.error('Error al cargar el logo del jardín:', error);
+    }
+    return this.logoMarca;
   }
 
   private mostrarCargando(titulo: string): void {

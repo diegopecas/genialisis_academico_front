@@ -200,6 +200,18 @@
             <!-- Separador: arriba acciones sobre las imágenes, abajo publicación -->
             <span class="vr mx-2"></span>
 
+            <!-- Ver cómo saldría en Instagram (feed e historia) sin publicar -->
+            <button
+              class="btn btn-sm btn-outline-secondary me-2"
+              (click)="verVistaPrevia()"
+              [disabled]="!puedeVerVistaPrevia || generandoVistaPrevia || publicandoInstagram"
+              title="Ver cómo saldría la primera imagen seleccionada en Instagram, con la marca de agua del jardín"
+            >
+              <i class="fas fa-eye me-1"></i>
+              Vista previa
+              <span *ngIf="generandoVistaPrevia" class="spinner-border spinner-border-sm ms-1"></span>
+            </button>
+
             <!-- Publicar en el feed (máx. 10, solo imágenes) -->
             <button
               class="btn btn-sm btn-warning me-2"
