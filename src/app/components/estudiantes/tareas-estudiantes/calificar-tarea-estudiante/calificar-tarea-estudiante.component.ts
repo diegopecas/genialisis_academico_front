@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
@@ -13,8 +13,11 @@ import { TareasEstudiantesPreguntasService } from '../../../../services/tareas-e
 /**
  * Calificar una tarea y atender su foro.
  *
- * Calificar: cada niño es una tarjeta con su estado; la valoración se elige
- * con un toque sobre la escala del jardín y la observación es opcional.
+ * Calificar: una fila por niño. Todo se trabaja en memoria y nada va al
+ * backend hasta pulsar Guardar, que envía en un solo arreglo las filas que
+ * cambiaron (igual que la calificación de informes). La barra "Calificar a
+ * todos" pone la misma valoración a todo el grupo; después se ajustan los
+ * niños que se quiera.
  * Preguntas: hilos del foro; cualquiera con el permiso puede responder.
  */
 @Component({
@@ -30,6 +33,7 @@ export class CalificarTareaEstudianteComponent implements OnInit {
   regresar = '/estudiantes/tareas';
   idTarea: any = null;
   cargando = true;
+  guardando = false;
 
   public tarea: any = null;
   public estudiantes: any[] = [];
@@ -40,15 +44,23 @@ export class CalificarTareaEstudianteComponent implements OnInit {
   public filtroEstado = 'todos';
   public filtroTexto = '';
 
-  /** Borradores de observación y respuesta, por fila / por hilo. */
-  public observaciones: { [idFila: string]: string } = {};
+  /** Borradores de respuesta del foro, por hilo. */
   public respuestas: { [idPregunta: string]: string } = {};
-  public guardandoFila: { [idFila: string]: boolean } = {};
+
+  /**
+   * Calificar a todos. Apagado solo llena a los que no tienen calificación
+   * ni "no entregada"; prendido pisa a todos.
+   */
+  public sobrescribir = false;
+
+  /** Copia del estado de trabajo antes de la última acción masiva. */
+  private respaldo: any[] | null = null;
+  public respaldoDescripcion = '';
 
   // Admite undefined para que el template maneje un estado desconocido sin romperse
   readonly ESTADOS: { [clave: string]: { texto: string, clase: string } | undefined } = {
     pendiente: { texto: 'Pendiente', clase: 'estado-pendiente' },
-    enviada: { texto: 'Enviada por el acudiente', clase: 'estado-enviada' },
+    enviada: { texto: 'Enviada', clase: 'estado-enviada' },
     no_entregada: { texto: 'No entregada', clase: 'estado-no-entregada' },
     calificada: { texto: 'Calificada', clase: 'estado-calificada' },
   };
@@ -87,10 +99,21 @@ export class CalificarTareaEstudianteComponent implements OnInit {
     });
   }
 
+  /**
+   * Cada fila guarda lo que vino del backend y aparte su estado de trabajo
+   * (trabajo_*), que es lo que se edita en pantalla. Comparar los dos dice
+   * qué cambió.
+   */
   asignarEstudiantes(filas: any[]) {
-    this.estudiantes = filas;
-    this.observaciones = {};
-    filas.forEach(f => this.observaciones[f.id] = f.observacion || '');
+    this.estudiantes = filas.map(f => ({
+      ...f,
+      trabajo_estado: f.estado,
+      trabajo_id_valor: f.id_valor_parametro_calificacion || null,
+      trabajo_observacion: f.observacion || '',
+      observacion_abierta: false,
+    }));
+    this.respaldo = null;
+    this.respaldoDescripcion = '';
   }
 
   recargarEstudiantes() {
@@ -108,55 +131,192 @@ export class CalificarTareaEstudianteComponent implements OnInit {
   get estudiantesVisibles(): any[] {
     const filtro = this.filtroTexto.trim().toLowerCase();
     return this.estudiantes.filter(e =>
-      (this.filtroEstado === 'todos' || e.estado === this.filtroEstado) &&
+      (this.filtroEstado === 'todos' || e.trabajo_estado === this.filtroEstado) &&
       (!filtro || (e.nombre_estudiante || '').toLowerCase().includes(filtro))
     );
   }
 
   contar(estado: string): number {
-    return this.estudiantes.filter(e => e.estado === estado).length;
+    return this.estudiantes.filter(e => e.trabajo_estado === estado).length;
   }
 
+  /**
+   * Estado al que vuelve una fila al quitarle la calificación: enviada si el
+   * acudiente la marcó, si no pendiente.
+   */
+  estadoBase(fila: any): string {
+    return fila.fecha_envio_acudiente ? 'enviada' : 'pendiente';
+  }
+
+  /** Tocar la valoración elegida la quita; tocar otra la cambia. */
   calificar(fila: any, valor: any) {
-    this.enviarCalificacion(fila, 'calificada', valor.id);
+    if (fila.trabajo_estado === 'calificada' && fila.trabajo_id_valor === valor.id) {
+      this.devolverPendiente(fila);
+      return;
+    }
+    fila.trabajo_estado = 'calificada';
+    fila.trabajo_id_valor = valor.id;
   }
 
+  /** Alterna "no entregada" en la fila. */
   marcarNoEntregada(fila: any) {
-    this.enviarCalificacion(fila, 'no_entregada', null);
+    if (fila.trabajo_estado === 'no_entregada') {
+      this.devolverPendiente(fila);
+      return;
+    }
+    fila.trabajo_estado = 'no_entregada';
+    fila.trabajo_id_valor = null;
   }
 
-  async devolverPendiente(fila: any) {
-    const result = await Swal.fire({
-      title: '¿Quitar la calificación?',
-      text: `${fila.nombre_estudiante} vuelve a quedar pendiente.`,
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonText: 'Sí, quitar',
-      cancelButtonText: 'Cancelar'
+  devolverPendiente(fila: any) {
+    fila.trabajo_estado = this.estadoBase(fila);
+    fila.trabajo_id_valor = null;
+  }
+
+  valorElegido(fila: any, valor: any): boolean {
+    return fila.trabajo_estado === 'calificada' && fila.trabajo_id_valor === valor.id;
+  }
+
+  alternarObservacion(fila: any) {
+    fila.observacion_abierta = !fila.observacion_abierta;
+  }
+
+  // ---- Calificar a todos ----
+
+  /** Pone la misma valoración a todos los niños de la tarea. */
+  calificarTodos(valor: any) {
+    this.guardarRespaldo('Calificar a todos: ' + valor.valor_cualitativo);
+    this.estudiantes
+      .filter(f => this.sobrescribir || !this.yaResuelta(f))
+      .forEach(f => {
+        f.trabajo_estado = 'calificada';
+        f.trabajo_id_valor = valor.id;
+      });
+  }
+
+  /** Marca a todos como no entregada. */
+  noEntregadaTodos() {
+    this.guardarRespaldo('Todos no entregada');
+    this.estudiantes
+      .filter(f => this.sobrescribir || !this.yaResuelta(f))
+      .forEach(f => {
+        f.trabajo_estado = 'no_entregada';
+        f.trabajo_id_valor = null;
+      });
+  }
+
+  /** Quita la calificación a todos (no toca las observaciones). */
+  limpiarTodos() {
+    this.guardarRespaldo('Limpiar todos');
+    this.estudiantes.forEach(f => this.devolverPendiente(f));
+  }
+
+  /** Ya tiene calificación o "no entregada": sin sobrescribir no se toca. */
+  private yaResuelta(fila: any): boolean {
+    return fila.trabajo_estado === 'calificada' || fila.trabajo_estado === 'no_entregada';
+  }
+
+  private guardarRespaldo(descripcion: string) {
+    this.respaldo = this.estudiantes.map(f => ({
+      id: f.id,
+      estado: f.trabajo_estado,
+      id_valor: f.trabajo_id_valor,
+    }));
+    this.respaldoDescripcion = descripcion;
+  }
+
+  get hayDeshacer(): boolean {
+    return this.respaldo !== null;
+  }
+
+  deshacer() {
+    if (!this.respaldo) {
+      return;
+    }
+    const porId = new Map<any, any>(this.respaldo.map(r => [r.id, r] as [any, any]));
+    this.estudiantes.forEach(f => {
+      const anterior = porId.get(f.id);
+      if (anterior) {
+        f.trabajo_estado = anterior.estado;
+        f.trabajo_id_valor = anterior.id_valor;
+      }
     });
-    if (result.isConfirmed) {
-      this.enviarCalificacion(fila, 'pendiente', null);
+    this.respaldo = null;
+    this.respaldoDescripcion = '';
+  }
+
+  // ---- Cambios y guardado ----
+
+  cambiada(fila: any): boolean {
+    return fila.trabajo_estado !== fila.estado
+      || (fila.trabajo_id_valor || null) !== (fila.id_valor_parametro_calificacion || null)
+      || (fila.trabajo_observacion || '').trim() !== (fila.observacion || '').trim();
+  }
+
+  get totalCambios(): number {
+    return this.estudiantes.filter(f => this.cambiada(f)).length;
+  }
+
+  /**
+   * Recargar o cerrar la pestaña con cambios sin guardar: el navegador
+   * muestra su propio aviso (el texto no se puede personalizar).
+   */
+  @HostListener('window:beforeunload', ['$event'])
+  avisarAntesDeCerrar(evento: BeforeUnloadEvent) {
+    if (!this.guardando && this.totalCambios > 0) {
+      evento.preventDefault();
+      evento.returnValue = '';
     }
   }
 
-  guardarObservacion(fila: any) {
-    // La observación se guarda sin cambiar el estado que tenga la fila
-    this.enviarCalificacion(fila, fila.estado, fila.id_valor_parametro_calificacion);
+  async descartarCambios() {
+    const result = await Swal.fire({
+      title: '¿Descartar los cambios?',
+      text: `Se pierden ${this.totalCambios} cambio(s) sin guardar.`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, descartar',
+      cancelButtonText: 'Cancelar'
+    });
+    if (result.isConfirmed) {
+      // Volver a armar desde los datos originales deja el trabajo igual a lo guardado
+      this.asignarEstudiantes(this.estudiantes);
+    }
   }
 
-  private enviarCalificacion(fila: any, estado: string, idValor: any) {
-    this.guardandoFila[fila.id] = true;
-    this.xEstudianteService.calificar({
-      id: fila.id,
-      estado: estado,
-      id_valor_parametro_calificacion: idValor,
-      observacion: this.observaciones[fila.id] || null,
+  /** Envía en un solo arreglo las filas que cambiaron. */
+  guardar() {
+    const calificaciones = this.estudiantes
+      .filter(f => this.cambiada(f))
+      .map(f => ({
+        id: f.id,
+        estado: f.trabajo_estado,
+        id_valor_parametro_calificacion: f.trabajo_estado === 'calificada' ? f.trabajo_id_valor : null,
+        observacion: (f.trabajo_observacion || '').trim() || null,
+      }));
+
+    if (calificaciones.length === 0) {
+      return;
+    }
+
+    this.guardando = true;
+    this.xEstudianteService.calificarLote({
+      id_tarea_estudiante: this.idTarea,
+      calificaciones: calificaciones,
     }).subscribe({
       next: () => {
-        this.guardandoFila[fila.id] = false;
+        this.guardando = false;
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'success',
+          title: calificaciones.length === 1 ? 'Se guardó 1 calificación' : `Se guardaron ${calificaciones.length} calificaciones`,
+          showConfirmButton: false,
+          timer: 2500
+        });
         this.recargarEstudiantes();
       },
-      error: () => { this.guardandoFila[fila.id] = false; }
+      error: () => { this.guardando = false; }
     });
   }
 

@@ -149,105 +149,121 @@
 
     <!-- Elementos subidos -->
     <div class="uploaded-section mt-5">
-      <div class="d-flex justify-content-between align-items-center mb-3">
+      <!-- Encabezado: título a lo ancho y el botón para entrar o salir de la selección -->
+      <div class="galeria-encabezado">
         <h5 class="mb-0">
           <i class="fas fa-image me-2"></i>
           Galería ({{ imagenesSubidas.length }})
         </h5>
 
-        <!-- Botones de selección múltiple -->
-        <div class="selection-controls" *ngIf="imagenesSubidas.length > 0">
-          <button
-            class="btn btn-sm me-2"
-            [class.btn-outline-primary]="!modoSeleccion"
-            [class.btn-primary]="modoSeleccion"
-            (click)="toggleModoSeleccion()"
-          >
-            <i class="fas fa-check-square me-1"></i>
-            {{ modoSeleccion ? 'Cancelar Selección' : 'Seleccionar' }}
+        <button
+          *ngIf="imagenesSubidas.length > 0"
+          type="button"
+          class="btn-seleccionar"
+          [class.activo]="modoSeleccion"
+          (click)="toggleModoSeleccion()"
+        >
+          <i class="fas" [class.fa-check-square]="!modoSeleccion" [class.fa-times]="modoSeleccion"></i>
+          {{ modoSeleccion ? 'Cancelar' : 'Seleccionar' }}
+        </button>
+      </div>
+
+      <!-- Acciones sobre lo seleccionado, en dos grupos, encima de las fotos. -->
+      <div class="barra-seleccion" *ngIf="modoSeleccion && imagenesSubidas.length > 0">
+        <div class="barra-conteo">
+          <span><b>{{ cantidadSeleccionadas }}</b> {{ cantidadSeleccionadas === 1 ? 'seleccionada' : 'seleccionadas' }}</span>
+          <button type="button" class="btn-enlace" (click)="toggleSeleccionarTodas()">
+            {{ todasSeleccionadas ? 'Quitar todas' : 'Marcar todas' }}
           </button>
+        </div>
 
-          <ng-container *ngIf="modoSeleccion">
-            <button
-              class="btn btn-sm btn-outline-secondary me-2"
-              (click)="toggleSeleccionarTodas()"
-            >
-              <i class="fas" [class.fa-check-double]="!todasSeleccionadas" [class.fa-times]="todasSeleccionadas"></i>
-              {{ todasSeleccionadas ? 'Deseleccionar Todas' : 'Seleccionar Todas' }}
-            </button>
+        <div class="grupos-acciones">
+          <!-- Acciones sobre los archivos -->
+          <div class="grupo-acciones">
+            <span class="grupo-titulo">Imágenes</span>
+            <div class="grupo-botones grupo-dos">
+              <button
+                type="button"
+                class="btn-accion"
+                (click)="rotarSeleccionadas()"
+                [disabled]="!puedeRotar || rotando"
+                title="Girar 90° las imágenes seleccionadas. Se aplica sobre el archivo."
+              >
+                <i *ngIf="!rotando" class="fas fa-redo"></i>
+                <span *ngIf="rotando" class="spinner-border spinner-border-sm"></span>
+                <span class="texto">Girar 90°</span>
+              </button>
 
-            <button
-              class="btn btn-sm btn-danger me-2"
-              (click)="eliminarSeleccionadas()"
-              [disabled]="cantidadSeleccionadas === 0 || eliminandoMultiple"
-            >
-              <i class="fas fa-trash me-1"></i>
-              Eliminar ({{ cantidadSeleccionadas }})
-              <span *ngIf="eliminandoMultiple" class="spinner-border spinner-border-sm ms-1"></span>
-            </button>
+              <button
+                type="button"
+                class="btn-accion peligro"
+                (click)="eliminarSeleccionadas()"
+                [disabled]="cantidadSeleccionadas === 0 || eliminandoMultiple"
+                title="Eliminar los elementos seleccionados"
+              >
+                <i *ngIf="!eliminandoMultiple" class="fas fa-trash"></i>
+                <span *ngIf="eliminandoMultiple" class="spinner-border spinner-border-sm"></span>
+                <span class="texto">Eliminar</span>
+              </button>
+            </div>
+          </div>
 
-            <button
-              class="btn btn-sm btn-outline-secondary me-2"
-              (click)="rotarSeleccionadas()"
-              [disabled]="!puedeRotar || rotando"
-              title="Girar 90° las imágenes seleccionadas. Se aplica sobre el archivo."
-            >
-              <i class="fas fa-redo me-1"></i>
-              Girar 90° ({{ cantidadSeleccionadas }})
-              <span *ngIf="rotando" class="spinner-border spinner-border-sm ms-1"></span>
-            </button>
+          <!-- Publicación en Instagram -->
+          <div class="grupo-acciones">
+            <span class="grupo-titulo"><i class="fab fa-instagram me-1"></i>Instagram</span>
+            <div class="grupo-botones grupo-cuatro">
+              <button
+                type="button"
+                class="btn-accion"
+                (click)="verVistaPrevia()"
+                [disabled]="!puedeVerVistaPrevia || generandoVistaPrevia || publicandoInstagram"
+                title="Ver cómo saldría la primera imagen seleccionada en Instagram, con el logo del jardín"
+              >
+                <i *ngIf="!generandoVistaPrevia" class="fas fa-eye"></i>
+                <span *ngIf="generandoVistaPrevia" class="spinner-border spinner-border-sm"></span>
+                <span class="texto">Vista previa</span>
+              </button>
 
-            <!-- Separador: arriba acciones sobre las imágenes, abajo publicación -->
-            <span class="vr mx-2"></span>
+              <!-- Feed: máx. 10, solo imágenes -->
+              <button
+                type="button"
+                class="btn-accion destacado"
+                (click)="publicarEnInstagram()"
+                [disabled]="!puedePublicarFeed || publicandoInstagram"
+                title="Publicar las imágenes seleccionadas como carrusel en el feed (máx. 10)"
+              >
+                <i *ngIf="!publicandoInstagram" class="fas fa-th"></i>
+                <span *ngIf="publicandoInstagram" class="spinner-border spinner-border-sm"></span>
+                <span class="texto">Feed</span>
+              </button>
 
-            <!-- Ver cómo saldría en Instagram (feed e historia) sin publicar -->
-            <button
-              class="btn btn-sm btn-outline-secondary me-2"
-              (click)="verVistaPrevia()"
-              [disabled]="!puedeVerVistaPrevia || generandoVistaPrevia || publicandoInstagram"
-              title="Ver cómo saldría la primera imagen seleccionada en Instagram, con la marca de agua del jardín"
-            >
-              <i class="fas fa-eye me-1"></i>
-              Vista previa
-              <span *ngIf="generandoVistaPrevia" class="spinner-border spinner-border-sm ms-1"></span>
-            </button>
+              <!-- Historias: sin tope, solo imágenes -->
+              <button
+                type="button"
+                class="btn-accion"
+                (click)="publicarEnHistoria()"
+                [disabled]="!puedePublicarHistoria || publicandoInstagram"
+                title="Publicar las imágenes seleccionadas como historias, una por imagen"
+              >
+                <i *ngIf="!publicandoInstagram" class="far fa-clock"></i>
+                <span *ngIf="publicandoInstagram" class="spinner-border spinner-border-sm"></span>
+                <span class="texto">Historias</span>
+              </button>
 
-            <!-- Publicar en el feed (máx. 10, solo imágenes) -->
-            <button
-              class="btn btn-sm btn-warning me-2"
-              (click)="publicarEnInstagram()"
-              [disabled]="!puedePublicarFeed || publicandoInstagram"
-              title="Publicar las imágenes seleccionadas como carrusel en el feed (máx. 10)"
-            >
-              <i class="fab fa-instagram me-1"></i>
-              Publicar en feed ({{ imagenesSeleccionadasCount }})
-              <span *ngIf="publicandoInstagram" class="spinner-border spinner-border-sm ms-1"></span>
-            </button>
-
-            <!-- Publicar en historias (sin tope, solo imágenes) -->
-            <button
-              class="btn btn-sm btn-outline-warning me-2"
-              (click)="publicarEnHistoria()"
-              [disabled]="!puedePublicarHistoria || publicandoInstagram"
-              title="Publicar las imágenes seleccionadas como historias, una por imagen"
-            >
-              <i class="far fa-clock me-1"></i>
-              Publicar en historias ({{ imagenesSeleccionadasCount }})
-              <span *ngIf="publicandoInstagram" class="spinner-border spinner-border-sm ms-1"></span>
-            </button>
-
-            <!-- Publicar como Reel (1 video) -->
-            <button
-              class="btn btn-sm btn-outline-warning"
-              (click)="publicarComoReel()"
-              [disabled]="!puedePublicarReel || publicandoInstagram"
-              title="Publicar el video seleccionado como Reel (sale en Reels y en el feed)"
-            >
-              <i class="fas fa-film me-1"></i>
-              Publicar como Reel
-              <span *ngIf="publicandoInstagram" class="spinner-border spinner-border-sm ms-1"></span>
-            </button>
-          </ng-container>
+              <!-- Reel: un solo video -->
+              <button
+                type="button"
+                class="btn-accion"
+                (click)="publicarComoReel()"
+                [disabled]="!puedePublicarReel || publicandoInstagram"
+                title="Publicar el video seleccionado como Reel (sale en Reels y en el feed)"
+              >
+                <i *ngIf="!publicandoInstagram" class="fas fa-film"></i>
+                <span *ngIf="publicandoInstagram" class="spinner-border spinner-border-sm"></span>
+                <span class="texto">Reel</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 

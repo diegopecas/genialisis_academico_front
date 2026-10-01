@@ -664,8 +664,9 @@ export class GestionarImagenesComponent implements OnInit {
           : '';
         const avisoMarca = feed.con_marca
           ? ''
-          : `<p style="font-size:0.85rem; color:#856404; background:#fff3cd; padding:0.5rem; border-radius:0.375rem;">
-               No se encontró el logo del jardín (el mismo de los contratos), por eso sale sin marca de agua.
+          : `<p style="font-size:0.85rem; color:#8a6d1f; background:#fdf6e3; border:1px solid #ecd9a0; padding:0.6rem 0.8rem; border-radius:0.5rem;">
+               <i class="fas fa-info-circle me-1" style="color:#c9a961;"></i>
+               Esta vez la imagen se verá sin el logo del jardín, porque no pudimos cargarlo.
              </p>`;
 
         Swal.fire({

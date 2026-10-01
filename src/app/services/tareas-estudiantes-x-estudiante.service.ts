@@ -46,6 +46,23 @@ export class TareasEstudiantesXEstudianteService {
     );
   }
 
+  /**
+   * Guarda en un solo envío las calificaciones que cambiaron:
+   * { id_tarea_estudiante, calificaciones: [{ id, estado, id_valor_parametro_calificacion, observacion }] }
+   */
+  calificarLote(elemento: any) {
+    const body = JSON.stringify(elemento);
+    return this.http.put<any>(this.servicio + '/calificar-lote', body, httpOptions).pipe(
+      tap((respuesta: any) => {
+        if (respuesta.error) {
+          throw respuesta.error;
+        }
+        return respuesta;
+      }),
+      catchError(this.handleError)
+    );
+  }
+
   private handleError(error: HttpErrorResponse) {
     return throwError(() => error);
   }

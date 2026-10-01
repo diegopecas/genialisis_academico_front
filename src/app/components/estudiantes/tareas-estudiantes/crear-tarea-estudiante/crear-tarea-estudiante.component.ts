@@ -218,6 +218,18 @@ export class CrearTareaEstudianteComponent implements OnInit {
     return this.estudiantes.filter(e => e.seleccionado).length;
   }
 
+  /**
+   * Marca o desmarca a todos los niños; si hay un grupo escogido, solo a los
+   * de ese grupo. El buscador de nombre no cuenta: "marcar lo que veo"
+   * confundía cuando habia texto escrito.
+   */
+  marcarTodos(valor: boolean) {
+    this.estudiantes
+      .filter(e => !this.filtroGrupo || String(e.id_grupo) === String(this.filtroGrupo))
+      .forEach(e => e.seleccionado = valor);
+    this.sugerirCriterio();
+  }
+
   marcarVisibles(valor: boolean) {
     this.estudiantesVisibles.forEach(e => e.seleccionado = valor);
     this.sugerirCriterio();

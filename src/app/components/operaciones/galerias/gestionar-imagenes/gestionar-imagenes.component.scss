@@ -244,12 +244,171 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-// NUEVO: Controles de selección
-.selection-controls {
+// Encabezado de la galería: título y botón Seleccionar/Cancelar
+.galeria-encabezado {
   display: flex;
+  justify-content: space-between;
   align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.btn-seleccionar {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 1.1rem;
+  border: 1.5px solid #c9a227;
+  border-radius: 999px;
+  background: white;
+  color: #8a6d1d;
+  font-weight: 600;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  i {
+    color: #c9a227;
+  }
+
+  &:hover {
+    background: #fbf6e6;
+  }
+
+  &.activo {
+    background: #fbf6e6;
+    border-color: #eadfbf;
+  }
+}
+
+// Barra de acciones sobre lo seleccionado (glaseada, paleta pastel y dorada)
+.barra-seleccion {
+  background: rgba(255, 252, 244, 0.85);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid #eadfbf;
+  border-radius: 14px;
+  box-shadow: 0 4px 16px rgba(201, 162, 39, 0.12);
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.barra-conteo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9rem;
+  color: #6b5a2a;
+  margin-bottom: 0.6rem;
+
+  b {
+    color: #8a6d1d;
+  }
+}
+
+.btn-enlace {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #b08a1e;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.grupos-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 1.5rem;
+}
+
+.grupo-acciones {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.grupo-titulo {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #a08a4a;
+}
+
+.grupo-botones {
+  display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
+}
+
+// Botón de acción: píldora con el ícono en dorado
+.btn-accion {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-height: 38px;
+  padding: 0.4rem 1rem;
+  border: 1px solid #eadfbf;
+  border-radius: 999px;
+  background: white;
+  color: #5c4d22;
+  font-size: 0.88rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  i {
+    color: #c9a227;
+    font-size: 0.95rem;
+  }
+
+  &:hover:not(:disabled) {
+    background: #fbf6e6;
+    border-color: #d9c27a;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(201, 162, 39, 0.15);
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  // Publicar en el feed: la acción principal
+  &.destacado {
+    background: linear-gradient(135deg, #d9b44a, #c9a227);
+    border-color: #c9a227;
+    color: white;
+
+    i {
+      color: white;
+    }
+
+    &:hover:not(:disabled) {
+      background: linear-gradient(135deg, #cfa83c, #b8931f);
+    }
+  }
+
+  // Eliminar: rojo suave, que se distinga sin gritar
+  &.peligro {
+    background: #fdf0ef;
+    border-color: #f2c9c5;
+    color: #b0413e;
+
+    i {
+      color: #c0504d;
+    }
+
+    &:hover:not(:disabled) {
+      background: #fbe3e1;
+      border-color: #e8aaa5;
+    }
+  }
 }
 
 .images-grid {
@@ -536,17 +695,48 @@
     font-size: 1rem;
   }
 
-  // Responsive para controles de selección
-  .selection-controls {
-    flex-direction: column;
-    align-items: stretch;
-    width: 100%;
-    margin-top: 1rem;
+  // En el celular la barra de selección va encima de las fotos, igual que en
+  // escritorio: abajo se perdía cuando la galería tiene muchas.
+  .uploaded-section {
+    padding: 1rem;
+  }
 
-    button {
-      width: 100%;
-      margin: 0 !important;
-      margin-bottom: 0.5rem !important;
+  .barra-seleccion {
+    margin-bottom: 1rem;
+    padding: 0.6rem 0.7rem;
+  }
+
+  .grupos-acciones {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  // Cuadrícula: todos del mismo tamaño, ícono arriba y texto corto abajo
+  .grupo-botones {
+    display: grid;
+    gap: 0.4rem;
+
+    &.grupo-dos {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    &.grupo-cuatro {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+
+  .btn-accion {
+    flex-direction: column;
+    gap: 0.2rem;
+    min-height: 54px;
+    padding: 0.4rem 0.2rem;
+    border-radius: 12px;
+    font-size: 0.72rem;
+    white-space: normal;
+    line-height: 1.1;
+
+    i {
+      font-size: 1.1rem;
     }
   }
 

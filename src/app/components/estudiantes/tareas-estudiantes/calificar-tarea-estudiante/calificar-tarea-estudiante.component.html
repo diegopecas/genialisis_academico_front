@@ -14,7 +14,7 @@
   <div class="contenedor" *ngIf="!cargando && tarea">
 
     <!-- Resumen de la tarea -->
-    <div class="resumen">
+    <div class="resumen vidrio">
       <div class="resumen-texto">
         <div class="resumen-chips">
           <span class="chip" [class.chip-publicada]="tarea.publicada == 1" [class.chip-borrador]="tarea.publicada != 1">
@@ -29,14 +29,14 @@
         </p>
       </div>
       <div class="metricas">
-        <div class="metrica"><strong>{{ contar('enviada') }}</strong><span>Enviadas</span></div>
-        <div class="metrica"><strong>{{ contar('calificada') }}</strong><span>Calificadas</span></div>
-        <div class="metrica"><strong>{{ contar('no_entregada') }}</strong><span>No entregadas</span></div>
         <div class="metrica"><strong>{{ estudiantes.length }}</strong><span>Niños</span></div>
+        <div class="metrica m-enviada"><strong>{{ contar('enviada') }}</strong><span>Enviadas</span></div>
+        <div class="metrica m-calificada"><strong>{{ contar('calificada') }}</strong><span>Calificadas</span></div>
+        <div class="metrica m-no-entregada"><strong>{{ contar('no_entregada') }}</strong><span>No entregadas</span></div>
       </div>
     </div>
 
-    <nav class="pestanas">
+    <nav class="pestanas vidrio">
       <button type="button" [class.activa]="pestana === 'estudiantes'" (click)="pestana = 'estudiantes'">
         <i class="fas fa-star"></i> Calificar
       </button>
@@ -48,8 +48,44 @@
 
     <!-- ===================== CALIFICAR ===================== -->
     <div *ngIf="pestana === 'estudiantes'">
+
+      <p class="aviso-escala" *ngIf="escala.length === 0">
+        <i class="fas fa-circle-info"></i>
+        El jardín no tiene configurado el parámetro de valoración de los informes: sin él no se puede calificar.
+      </p>
+
+      <!-- Calificar a todos: la misma valoración para todo el grupo -->
+      <div class="barra-todos vidrio" *ngIf="escala.length > 0 && estudiantes.length > 0">
+        <div class="barra-todos-titulo">
+          <span><i class="fas fa-wand-magic-sparkles"></i> Calificar a todos</span>
+          <label class="interruptor" title="Apagado: solo llena a los que no tienen calificación">
+            <input type="checkbox" [(ngModel)]="sobrescribir">
+            <span class="riel"><span class="perilla"></span></span>
+            <span class="interruptor-texto">Sobrescribir</span>
+          </label>
+        </div>
+        <div class="barra-todos-chips">
+          <button type="button" class="chip-valor" *ngFor="let valor of escala"
+            [style.--color-valor]="valor.color || '#d4af37'" (click)="calificarTodos(valor)">
+            {{ valor.valor_cualitativo }}
+          </button>
+          <button type="button" class="chip-accion no-entregada" (click)="noEntregadaTodos()">
+            <i class="fas fa-ban"></i> No entregada
+          </button>
+          <button type="button" class="chip-accion" (click)="limpiarTodos()">
+            <i class="fas fa-eraser"></i> Limpiar
+          </button>
+          <button type="button" class="chip-accion" *ngIf="hayDeshacer" [title]="'Deshacer: ' + respaldoDescripcion" (click)="deshacer()">
+            <i class="fas fa-rotate-left"></i> Deshacer
+          </button>
+        </div>
+      </div>
+
       <div class="filtros">
-        <input type="text" class="form-control" [(ngModel)]="filtroTexto" placeholder="Buscar niño...">
+        <div class="campo-buscar">
+          <i class="fas fa-magnifying-glass"></i>
+          <input type="text" class="form-control" [(ngModel)]="filtroTexto" placeholder="Buscar niño...">
+        </div>
         <select class="form-select" [(ngModel)]="filtroEstado">
           <option value="todos">Todos ({{ estudiantes.length }})</option>
           <option value="enviada">Enviadas ({{ contar('enviada') }})</option>
@@ -59,62 +95,74 @@
         </select>
       </div>
 
-      <p class="text-warning small" *ngIf="escala.length === 0">
-        El jardín no tiene configurado el parámetro de valoración de los informes: sin él no se puede calificar.
-      </p>
-
-      <div class="tarjetas-estudiantes">
-        <div class="tarjeta-estudiante" *ngFor="let fila of estudiantesVisibles" [ngClass]="ESTADOS[fila.estado]?.clase">
-          <div class="cabecera">
-            <span class="avatar">{{ iniciales(fila.nombre_estudiante) }}</span>
-            <div class="nombre">
-              <strong>{{ fila.nombre_estudiante }}</strong>
-              <small *ngIf="fila.nombre_grupo">{{ fila.nombre_grupo }}</small>
+      <!-- Una fila por niño -->
+      <div class="lista vidrio">
+        <div class="fila" *ngFor="let fila of estudiantesVisibles" [class.modificada]="cambiada(fila)">
+          <div class="fila-principal">
+            <div class="fila-nino">
+              <span class="avatar">{{ iniciales(fila.nombre_estudiante) }}</span>
+              <div class="nombre">
+                <strong>{{ fila.nombre_estudiante }}</strong>
+                <small>
+                  <span *ngIf="fila.nombre_grupo">{{ fila.nombre_grupo }}</span>
+                  <span class="enviada-acudiente" *ngIf="fila.fecha_envio_acudiente"
+                    [title]="(fila.nombre_acudiente_envio || 'El acudiente') + ' la marcó como enviada el ' + (fila.fecha_envio_acudiente | date:'d MMM, h:mm a')">
+                    <i class="fas fa-house-circle-check"></i> Enviada {{ fila.fecha_envio_acudiente | date:'d MMM' }}
+                  </span>
+                </small>
+              </div>
+              <span class="estado" [ngClass]="ESTADOS[fila.trabajo_estado]?.clase">{{ ESTADOS[fila.trabajo_estado]?.texto }}</span>
             </div>
-            <span class="estado">{{ ESTADOS[fila.estado]?.texto }}</span>
+
+            <div class="fila-acciones">
+              <button type="button" class="chip-valor pequeno" *ngFor="let valor of escala"
+                [class.elegido]="valorElegido(fila, valor)"
+                [style.--color-valor]="valor.color || '#d4af37'"
+                (click)="calificar(fila, valor)">
+                {{ valor.valor_cualitativo }}
+              </button>
+              <button type="button" class="btn-icono no-entregada" [class.activo]="fila.trabajo_estado === 'no_entregada'"
+                title="No entregada" (click)="marcarNoEntregada(fila)">
+                <i class="fas fa-ban"></i>
+              </button>
+              <button type="button" class="btn-icono" [class.activo]="fila.observacion_abierta"
+                [class.con-texto]="!!(fila.trabajo_observacion || '').trim()"
+                title="Observación" (click)="alternarObservacion(fila)">
+                <i class="fas fa-comment-dots"></i>
+              </button>
+            </div>
           </div>
 
-          <p class="envio" *ngIf="fila.fecha_envio_acudiente">
-            <i class="fas fa-house-circle-check"></i>
-            {{ fila.nombre_acudiente_envio || 'El acudiente' }} la marcó como enviada el {{ fila.fecha_envio_acudiente | date:'d MMM, h:mm a' }}
-          </p>
-
-          <div class="escala">
-            <button type="button" class="valor" *ngFor="let valor of escala"
-              [class.elegido]="fila.estado === 'calificada' && fila.id_valor_parametro_calificacion === valor.id"
-              [style.--color-valor]="valor.color || '#6610f2'"
-              [disabled]="guardandoFila[fila.id]"
-              (click)="calificar(fila, valor)">
-              {{ valor.valor_cualitativo }}
-            </button>
-          </div>
-
-          <div class="observacion">
-            <textarea class="form-control" rows="2" [(ngModel)]="observaciones[fila.id]" placeholder="Observación (opcional)"></textarea>
-          </div>
-
-          <div class="acciones-fila">
-            <button type="button" class="btn btn-sm btn-link text-danger" *ngIf="fila.estado !== 'no_entregada'"
-              (click)="marcarNoEntregada(fila)" [disabled]="guardandoFila[fila.id]">No entregada</button>
-            <button type="button" class="btn btn-sm btn-link text-secondary" *ngIf="fila.estado === 'calificada' || fila.estado === 'no_entregada'"
-              (click)="devolverPendiente(fila)" [disabled]="guardandoFila[fila.id]">Quitar calificación</button>
-            <button type="button" class="btn btn-sm btn-outline-primary ms-auto"
-              (click)="guardarObservacion(fila)" [disabled]="guardandoFila[fila.id]">Guardar observación</button>
+          <div class="fila-observacion" *ngIf="fila.observacion_abierta">
+            <textarea class="form-control" rows="2" [(ngModel)]="fila.trabajo_observacion" placeholder="Observación para el acudiente (opcional)"></textarea>
           </div>
         </div>
+
+        <p class="vacio-lista" *ngIf="estudiantesVisibles.length === 0">No hay niños con ese filtro.</p>
       </div>
 
-      <p class="text-muted text-center py-4" *ngIf="estudiantesVisibles.length === 0">No hay niños con ese filtro.</p>
+      <!-- Guardar: nada va al servidor hasta aquí -->
+      <div class="barra-guardar vidrio" [class.con-cambios]="totalCambios > 0">
+        <span class="cambios">
+          <i class="fas" [ngClass]="totalCambios > 0 ? 'fa-pen-to-square' : 'fa-circle-check'"></i>
+          {{ totalCambios > 0 ? (totalCambios + (totalCambios === 1 ? ' cambio sin guardar' : ' cambios sin guardar')) : 'Todo guardado' }}
+        </span>
+        <button type="button" class="btn btn-claro" *ngIf="totalCambios > 0" (click)="descartarCambios()" [disabled]="guardando">Descartar</button>
+        <button type="button" class="btn btn-dorado" (click)="guardar()" [disabled]="guardando || totalCambios === 0">
+          <span class="spinner-border spinner-border-sm me-1" *ngIf="guardando"></span>
+          <i class="fas fa-floppy-disk me-1" *ngIf="!guardando"></i> Guardar
+        </button>
+      </div>
     </div>
 
     <!-- ===================== PREGUNTAS ===================== -->
     <div *ngIf="pestana === 'preguntas'">
-      <p class="text-muted small">
+      <p class="nota-foro">
         Las preguntas privadas solo las ve el jardín.
         <span *ngIf="tarea.permite_respuestas_acudientes == 1">En las públicas también pueden responder los acudientes.</span>
       </p>
 
-      <div class="hilo" *ngFor="let hilo of hilos">
+      <div class="hilo vidrio" *ngFor="let hilo of hilos">
         <div class="mensaje pregunta">
           <span class="avatar">{{ iniciales(hilo.nombre_autor) }}</span>
           <div class="burbuja">
@@ -129,7 +177,7 @@
             <p>{{ hilo.texto }}</p>
             <div class="pie">
               <small>{{ hilo.fecha | date:'d MMM, h:mm a' }}</small>
-              <button type="button" class="btn btn-sm btn-link text-danger p-0" (click)="eliminarMensaje(hilo, true)">Eliminar</button>
+              <button type="button" class="btn-borrar" (click)="eliminarMensaje(hilo, true)">Eliminar</button>
             </div>
           </div>
         </div>
@@ -144,20 +192,20 @@
             <p>{{ respuesta.texto }}</p>
             <div class="pie">
               <small>{{ respuesta.fecha | date:'d MMM, h:mm a' }}</small>
-              <button type="button" class="btn btn-sm btn-link text-danger p-0" (click)="eliminarMensaje(respuesta, false)">Eliminar</button>
+              <button type="button" class="btn-borrar" (click)="eliminarMensaje(respuesta, false)">Eliminar</button>
             </div>
           </div>
         </div>
 
         <div class="responder">
           <textarea class="form-control" rows="1" [(ngModel)]="respuestas[hilo.id]" placeholder="Escribe una respuesta..."></textarea>
-          <button type="button" class="btn btn-primary" (click)="responder(hilo)" [disabled]="!(respuestas[hilo.id] || '').trim()">
+          <button type="button" class="btn-enviar" (click)="responder(hilo)" [disabled]="!(respuestas[hilo.id] || '').trim()">
             <i class="fas fa-paper-plane"></i>
           </button>
         </div>
       </div>
 
-      <div class="vacio" *ngIf="hilos.length === 0">
+      <div class="vacio vidrio" *ngIf="hilos.length === 0">
         <i class="fas fa-comments"></i>
         <p>Todavía no hay preguntas en esta tarea.</p>
       </div>
