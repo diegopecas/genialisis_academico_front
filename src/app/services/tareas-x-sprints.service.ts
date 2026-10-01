@@ -292,6 +292,31 @@ export class TareasXSprintsService {
       );
   }
 
+  /**
+   * Actividades del corte del sprint para importar al calificar: mismo grupo y
+   * área, o mismo curso extracurricular. Una por actividad, la más reciente.
+   */
+  obtenerParaImportarCorte(idSprint: any, idGrupo?: any, idArea?: any, idCursoExtra?: any) {
+    let params = new HttpParams();
+    if (idCursoExtra) {
+      params = params.set('id_curso_extra', idCursoExtra.toString());
+    } else {
+      if (idGrupo) { params = params.set('id_grupo', idGrupo.toString()); }
+      if (idArea) { params = params.set('id_area_academica', idArea.toString()); }
+    }
+
+    return this.http
+      .get<HttpResponse<Object>>(`${this.servicio}/importar-corte/${idSprint}`, { params, observe: 'response' })
+      .pipe(
+        tap((response: HttpResponse<Object>) => {
+          let respuesta: any = response.body;
+          if (respuesta && respuesta.error) { throw respuesta.error; }
+          return response;
+        }),
+        catchError(this.handleError)
+      );
+  }
+
   importarMasivo(idSprintDestino: any, tareas: any[]): Observable<any> {
     const body = JSON.stringify({
       id_sprint_destino: idSprintDestino,

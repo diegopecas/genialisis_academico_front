@@ -66,6 +66,16 @@ export class ListaActividadesComponent implements OnInit {
   public busquedaIndicadorForm: string = '';
   public intentoCrear: boolean = false;
 
+  // Tab del panel: crear una actividad nueva o importar una del corte
+  public tabCrear: 'crear' | 'importar' = 'crear';
+  public actividadesImportables: any[] = [];
+  public importablesCargados: boolean = false;
+  public cargandoImportables: boolean = false;
+  public buscarImportar: string = '';
+  public importableSeleccionada: any = null;
+  public importableExpandida: any = null;
+  public importando: boolean = false;
+
   public formActividad = {
     titulo: '',
     descripcion: '',
@@ -462,6 +472,8 @@ export class ListaActividadesComponent implements OnInit {
       return;
     }
     this.limpiarFormActividad();
+    this.limpiarImportar();
+    this.tabCrear = 'crear';
     this.mostrarFormCrear = true;
     this.cargarLogrosParaCrear();
   }
@@ -720,6 +732,115 @@ export class ListaActividadesComponent implements OnInit {
     });
   }
 
+  // ========================================================================
+  // IMPORTAR ACTIVIDAD DEL CORTE
+  // ========================================================================
+
+  cambiarTabCrear(tab: 'crear' | 'importar'): void {
+    this.tabCrear = tab;
+    if (tab === 'importar' && !this.importablesCargados) {
+      this.cargarImportables();
+    }
+  }
+
+  private limpiarImportar(): void {
+    this.actividadesImportables = [];
+    this.importablesCargados = false;
+    this.buscarImportar = '';
+    this.importableSeleccionada = null;
+    this.importableExpandida = null;
+  }
+
+  /**
+   * Actividades del mismo grupo y área (o curso) en los sprints del corte del
+   * sprint actual, menos las que ya están pendientes en el sprint actual.
+   */
+  private cargarImportables(): void {
+    if (!this.sprintActual || !this.grupo || !this.area) return;
+    this.cargandoImportables = true;
+
+    this.tareasXSprintsService.obtenerParaImportarCorte(
+      this.sprintActual.id,
+      this.idCursoExtra ? null : this.grupo.id,
+      this.idCursoExtra ? null : this.area.id_area_academica,
+      this.idCursoExtra || null
+    ).subscribe({
+      next: (resp: any) => {
+        this.actividadesImportables = (resp.body || []).map((act: any) => ({
+          ...act,
+          titulo_actividad: this.limpiarHTML(act.titulo_actividad),
+          descripcion_actividad: this.limpiarHTML(act.descripcion_actividad)
+        }));
+        this.importablesCargados = true;
+        this.cargandoImportables = false;
+      },
+      error: () => {
+        this.actividadesImportables = [];
+        this.importablesCargados = true;
+        this.cargandoImportables = false;
+      }
+    });
+  }
+
+  get importablesVisibles(): any[] {
+    const busqueda = normalizarTexto(this.buscarImportar).trim();
+    if (!busqueda) return this.actividadesImportables;
+    return this.actividadesImportables.filter((act: any) =>
+      normalizarTexto(act.titulo_actividad).includes(busqueda) ||
+      normalizarTexto((act.descripcion_actividad || '').replace(/<[^>]*>/g, ' ')).includes(busqueda)
+    );
+  }
+
+  seleccionarImportable(act: any): void {
+    this.importableSeleccionada = this.importableSeleccionada === act ? null : act;
+  }
+
+  toggleDescripcionImportable(act: any, event: Event): void {
+    event.stopPropagation();
+    this.importableExpandida = this.importableExpandida === act ? null : act;
+  }
+
+  /**
+   * Crea la tarea en el sprint actual con la misma actividad (conserva sus
+   * indicadores), marcada como adicional, y abre la calificación.
+   */
+  importarYCalificar(): void {
+    if (!this.importableSeleccionada || this.importando) return;
+    this.importando = true;
+
+    Swal.fire({
+      title: 'Importando actividad...',
+      allowOutsideClick: false,
+      didOpen: () => { Swal.showLoading(); }
+    });
+
+    this.tareasXSprintsService.crearLote({
+      id_sprint: this.sprintActual.id,
+      actividades: [this.importableSeleccionada.id_actividad_academica],
+      id_grupo: this.idCursoExtra ? null : this.grupo.id,
+      id_area_academica: this.area.id_area_academica,
+      id_curso_extra: this.idCursoExtra || null,
+      es_tarea_adicional: 1
+    }).subscribe({
+      next: (resp: any) => {
+        this.importando = false;
+        const idTarea = resp?.tareas?.length > 0 ? resp.tareas[0].id : null;
+        if (!idTarea) {
+          Swal.fire('Error', resp?.omitidas?.[0]?.motivo || resp?.error || 'No se pudo importar la actividad.', 'error');
+          return;
+        }
+        Swal.close();
+        this.mostrarFormCrear = false;
+        this.router.navigate(this.rutaCalificar(idTarea));
+      },
+      error: (err: any) => {
+        this.importando = false;
+        const mensaje = err?.error?.error || 'No se pudo importar la actividad.';
+        Swal.fire('Error', mensaje, 'error');
+      }
+    });
+  }
+
   getNombreAmbiente(id: any): string {
     const amb = this.ambientes.find((a: any) => a.id == id);
     return amb?.nombre || '';
@@ -729,4 +850,4 @@ export class ListaActividadesComponent implements OnInit {
     const amb = this.ambientes.find((a: any) => a.id == id);
     return amb?.icono || '📍';
   }
-}
+}

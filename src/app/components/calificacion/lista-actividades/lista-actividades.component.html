@@ -46,10 +46,58 @@
     <div class="col-12 mb-3" *ngIf="mostrarFormCrear">
       <div class="form-crear-rapida">
         <div class="form-crear-header">
-          <span>✍️ Crear actividad rápida</span>
+          <span>✍️ Agregar actividad</span>
           <span class="form-crear-cerrar" (click)="cerrarFormCrear()">✕</span>
         </div>
-        <div class="form-crear-body">
+
+        <!-- Tabs: crear una nueva o importar una del corte -->
+        <nav class="tabs-crear">
+          <button type="button" [class.activo]="tabCrear === 'crear'" (click)="cambiarTabCrear('crear')">✍️ Crear nueva</button>
+          <button type="button" [class.activo]="tabCrear === 'importar'" (click)="cambiarTabCrear('importar')">📥 Importar del corte</button>
+        </nav>
+
+        <!-- ===== IMPORTAR ===== -->
+        <div class="form-crear-body" *ngIf="tabCrear === 'importar'">
+          <input type="text" class="input-buscar" [(ngModel)]="buscarImportar" placeholder="🔍 Buscar actividad...">
+
+          <div class="cargando-importar" *ngIf="cargandoImportables">⏳ Cargando actividades del corte...</div>
+
+          <div class="lista-importar" *ngIf="!cargandoImportables">
+            <div *ngFor="let act of importablesVisibles" class="item-importar"
+                 [class.seleccionado]="importableSeleccionada === act"
+                 (click)="seleccionarImportable(act)">
+              <div class="item-importar-cabecera">
+                <span class="item-importar-check">{{ importableSeleccionada === act ? '🔘' : '⚪' }}</span>
+                <span class="item-importar-titulo" [innerHTML]="act.titulo_actividad"></span>
+              </div>
+              <div class="item-importar-meta">
+                <span>🏃 {{ act.nombre_sprint }}</span>
+                <span class="estado-importar" [ngClass]="'estado-' + act.id_estado_tarea">{{ act.nombre_estado }}</span>
+                <span *ngIf="act.nombre_tipo_actividad">{{ act.icono_tipo_actividad || '📌' }} {{ act.nombre_tipo_actividad }}</span>
+                <span *ngIf="act.minutos_duracion">⏱️ {{ act.minutos_duracion }} min</span>
+                <span>📋 {{ act.total_indicadores }} indicador{{ act.total_indicadores != 1 ? 'es' : '' }}</span>
+              </div>
+              <button type="button" class="btn-ver-descripcion" *ngIf="act.descripcion_actividad"
+                      (click)="toggleDescripcionImportable(act, $event)">
+                {{ importableExpandida === act ? 'Ocultar descripción' : 'Ver descripción' }}
+              </button>
+              <div class="item-importar-descripcion texto-contenido" *ngIf="importableExpandida === act" [innerHTML]="act.descripcion_actividad"></div>
+            </div>
+
+            <div class="aviso-vacio" *ngIf="importablesCargados && importablesVisibles.length === 0">
+              {{ buscarImportar ? 'No hay actividades con esa búsqueda' : 'No hay actividades para importar en este corte académico' }}
+            </div>
+          </div>
+
+          <div class="form-crear-botones">
+            <button class="btn-crear-cal" (click)="importarYCalificar()" [disabled]="!importableSeleccionada || importando">
+              📥 Importar y Calificar
+            </button>
+          </div>
+        </div>
+
+        <!-- ===== CREAR ===== -->
+        <div class="form-crear-body" [hidden]="tabCrear !== 'crear'">
           <div class="form-crear-campo">
             <label>Título *</label>
             <input type="text" [(ngModel)]="formActividad.titulo" placeholder="Ej: El Tesoro Escondido..."
@@ -274,4 +322,4 @@
     </div>
 
   </div>
-</div>
+</div>
