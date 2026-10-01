@@ -3,6 +3,13 @@ import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
+/**
+ * Cómo se encaja la foto en el tamaño de Instagram:
+ * difuminado (foto completa sobre la misma foto difuminada), recortar (llena
+ * el cuadro y se pierden los bordes) o blanco (foto completa sobre blanco).
+ */
+export type EncuadreInstagram = 'difuminado' | 'recortar' | 'blanco';
+
 @Injectable({
   providedIn: 'root'
 })
@@ -29,29 +36,35 @@ export class InstagramService {
 
   /**
    * Publica un carrusel (o imagen única) en el FEED.
-   * @param logo Logo del jardín en base64 (data URI) para la marca de agua.
-   *             Vacío = se publica sin marca.
+   * @param logo     Logo del jardín en base64 (data URI) para la marca de agua.
+   *                 Vacío = se publica sin marca.
+   * @param encuadre Cómo se encaja la foto (por defecto difuminado).
    */
-  publicar(idGaleria: string, ids: string[], caption: string, logo: string = ''): Observable<HttpResponse<any>> {
+  publicar(idGaleria: string, ids: string[], caption: string, logo: string = '',
+           encuadre: EncuadreInstagram = 'difuminado'): Observable<HttpResponse<any>> {
     const body = {
       id_galeria: idGaleria,
       ids: ids,
       caption: caption,
-      logo: logo
+      logo: logo,
+      encuadre: encuadre
     };
     return this.http.post(`${this.base}/publicar`, body, { observe: 'response' });
   }
 
   /**
    * Publica HISTORIAS: una historia por cada imagen seleccionada (sin tope).
-   * @param logo Logo del jardín en base64 (data URI) para la marca de agua.
-   *             Vacío = se publica sin marca.
+   * @param logo     Logo del jardín en base64 (data URI) para la marca de agua.
+   *                 Vacío = se publica sin marca.
+   * @param encuadre Cómo se encaja la foto (por defecto difuminado).
    */
-  publicarHistoria(idGaleria: string, ids: string[], logo: string = ''): Observable<HttpResponse<any>> {
+  publicarHistoria(idGaleria: string, ids: string[], logo: string = '',
+                   encuadre: EncuadreInstagram = 'difuminado'): Observable<HttpResponse<any>> {
     const body = {
       id_galeria: idGaleria,
       ids: ids,
-      logo: logo
+      logo: logo,
+      encuadre: encuadre
     };
     return this.http.post(`${this.base}/publicar-historia`, body, { observe: 'response' });
   }
@@ -75,14 +88,17 @@ export class InstagramService {
    * Vista previa de cómo saldría una imagen en Instagram (encuadre y marca de
    * agua), sin publicar nada.
    * Respuesta body: { imagen: "data:image/jpeg;base64,...", con_marca: boolean }
-   * @param logo Logo del jardín en base64 (data URI). Vacío = sin marca.
+   * @param logo     Logo del jardín en base64 (data URI). Vacío = sin marca.
+   * @param encuadre Cómo se encaja la foto (por defecto difuminado).
    */
-  vistaPrevia(idGaleria: string, idImagen: string, tipo: 'feed' | 'historia', logo: string = ''): Observable<HttpResponse<any>> {
+  vistaPrevia(idGaleria: string, idImagen: string, tipo: 'feed' | 'historia', logo: string = '',
+              encuadre: EncuadreInstagram = 'difuminado'): Observable<HttpResponse<any>> {
     const body = {
       id_galeria: idGaleria,
       id_imagen: idImagen,
       tipo: tipo,
-      logo: logo
+      logo: logo,
+      encuadre: encuadre
     };
     return this.http.post(`${this.base}/vista-previa`, body, { observe: 'response' });
   }

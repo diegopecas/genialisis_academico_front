@@ -3,13 +3,13 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
-import { forkJoin } from 'rxjs';
+import { firstValueFrom, forkJoin } from 'rxjs';
 import Swal from 'sweetalert2';
 import { environment } from '../../../../../environments/environment';
 import { HeaderComponent } from '../../../../common/header/header.component';
 import { GaleriaImagenesService } from '../../../../services/galeria-imagenes.service';
 import { GaleriasService } from '../../../../services/galerias.service';
-import { InstagramService } from '../../../../services/instagram.service';
+import { InstagramService, EncuadreInstagram } from '../../../../services/instagram.service';
 import { ImagenCompresionService } from '../../../../services/imagen-compresion.service';
 import { InstitucionConfigService } from '../../../../services/institucion-config.service';
 
@@ -91,6 +91,22 @@ export class GestionarImagenesComponent implements OnInit {
   // Logo del jardín para la marca de agua, en base64. null = aún no se ha
   // cargado; '' = no se encontró (se publica sin marca).
   private logoMarca: string | null = null;
+
+  // Opciones de Instagram que se escogen en la vista previa. Se recuerdan
+  // mientras se está en la pantalla y se usan al publicar en feed e historias.
+  encuadreInstagram: EncuadreInstagram = 'difuminado';
+  conLogoInstagram = true;
+  readonly opcionesEncuadre: { valor: EncuadreInstagram; etiqueta: string }[] = [
+    { valor: 'difuminado', etiqueta: 'Fondo difuminado' },
+    { valor: 'recortar', etiqueta: 'Recortar' },
+    { valor: 'blanco', etiqueta: 'Fondo blanco' }
+  ];
+
+  // Vistas previas ya generadas, para no volver al backend al alternar
+  // opciones. Clave: id imagen | encuadre | con/sin logo.
+  private cacheVistaPrevia = new Map<string, { feed: string; historia: string; conMarca: boolean }>();
+  // Evita pintar una respuesta vieja si el usuario cambió de opción mientras cargaba.
+  private solicitudVistaPrevia = 0;
   readonly maxImagenesFeed = 10;          // tope real de Instagram para carrusel
   // Las historias NO tienen tope. Los Reels son de 1 video.
 
@@ -331,6 +347,11 @@ export class GestionarImagenesComponent implements OnInit {
         const rotadas: string[] = response.rotadas || [];
         const version = Date.now();
 
+        // El archivo cambió: sus vistas previas guardadas ya no sirven.
+        Array.from(this.cacheVistaPrevia.keys())
+          .filter(clave => rotadas.includes(clave.split('|')[0]))
+          .forEach(clave => this.cacheVistaPrevia.delete(clave));
+
         // Solo se toca el src de las que rotaron. El ngFor no usa trackBy, asi
         // que reemplazar los objetos recargaria todas las miniaturas.
         this.imagenesSubidas.forEach((img: ImagenSubida) => {
@@ -481,7 +502,9 @@ export class GestionarImagenesComponent implements OnInit {
       confirmButtonColor: '#f39c12',
       cancelButtonColor: '#6c757d',
       confirmButtonText: 'Publicar',
-      cancelButtonText: 'Cancelar'
+      cancelButtonText: 'Cancelar',
+      // Lo escogido en la vista previa (encuadre y logo)
+      footer: this.resumenOpcionesInstagram
     });
 
     if (!result.isConfirmed) return;
@@ -491,9 +514,9 @@ export class GestionarImagenesComponent implements OnInit {
 
     this.publicandoInstagram = true;
     this.mostrarCargando('Publicando en el feed...');
-    const logo = await this.obtenerLogoMarca();
+    const logo = this.conLogoInstagram ? await this.obtenerLogoMarca() : '';
 
-    this.instagramService.publicar(this.idGaleria, ids, caption, logo).subscribe({
+    this.instagramService.publicar(this.idGaleria, ids, caption, logo, this.encuadreInstagram).subscribe({
       next: (response: any) => {
         this.publicandoInstagram = false;
         const permalink = response.body && response.body.permalink ? response.body.permalink : null;
@@ -529,7 +552,8 @@ export class GestionarImagenesComponent implements OnInit {
 
     const result = await Swal.fire({
       title: 'Publicar en historias',
-      html: `Se publicarán <strong>${seleccionadas.length}</strong> historia(s), una por cada imagen.<br>Las historias desaparecen a las 24 horas.`,
+      html: `Se publicarán <strong>${seleccionadas.length}</strong> historia(s), una por cada imagen.<br>Las historias desaparecen a las 24 horas.` +
+            `<br><small style="color:#8a6d1d;">${this.resumenOpcionesInstagram}</small>`,
       icon: 'question',
       showCancelButton: true,
       confirmButtonColor: '#f39c12',
@@ -544,9 +568,9 @@ export class GestionarImagenesComponent implements OnInit {
 
     this.publicandoInstagram = true;
     this.mostrarCargando('Publicando historias...');
-    const logo = await this.obtenerLogoMarca();
+    const logo = this.conLogoInstagram ? await this.obtenerLogoMarca() : '';
 
-    this.instagramService.publicarHistoria(this.idGaleria, ids, logo).subscribe({
+    this.instagramService.publicarHistoria(this.idGaleria, ids, logo, this.encuadreInstagram).subscribe({
       next: (response: any) => {
         this.publicandoInstagram = false;
         const body = response.body || {};
@@ -635,10 +659,12 @@ export class GestionarImagenesComponent implements OnInit {
 
   /**
    * Muestra cómo saldría en Instagram la primera imagen seleccionada, en feed
-   * y en historia, con el fondo y la marca de agua del jardín. No publica nada:
-   * el backend arma la misma imagen que enviaría a Meta y la devuelve.
+   * y en historia. Dentro de la ventana se escoge el encuadre y si lleva el
+   * logo; lo escogido se usa después al publicar. No publica nada: el backend
+   * arma la misma imagen que enviaría a Meta y la devuelve. Cada combinación
+   * se pide una sola vez y queda guardada (cacheVistaPrevia).
    */
-  async verVistaPrevia(): Promise<void> {
+  verVistaPrevia(): void {
     const seleccionadas = this.seleccionadas;
     if (seleccionadas.length === 0 || this.videosSeleccionados > 0) {
       Swal.fire('Aviso', 'Selecciona al menos una imagen (no video) para ver la vista previa.', 'info');
@@ -646,56 +672,137 @@ export class GestionarImagenesComponent implements OnInit {
     }
 
     const imagen = seleccionadas[0];
-    this.generandoVistaPrevia = true;
-    this.mostrarCargando('Generando vista previa...');
-    const logo = await this.obtenerLogoMarca();
+    const avisoVarias = seleccionadas.length > 1
+      ? `<p class="vp-nota">Se muestra la primera de las ${seleccionadas.length} imágenes seleccionadas.</p>`
+      : '';
+    const botonesEncuadre = this.opcionesEncuadre
+      .map(op => `<button type="button" class="vp-pill" data-encuadre="${op.valor}">${op.etiqueta}</button>`)
+      .join('');
 
-    forkJoin({
-      feed: this.instagramService.vistaPrevia(this.idGaleria, imagen.id, 'feed', logo),
-      historia: this.instagramService.vistaPrevia(this.idGaleria, imagen.id, 'historia', logo)
-    }).subscribe({
-      next: (respuestas: any) => {
-        this.generandoVistaPrevia = false;
-        const feed = respuestas.feed.body || {};
-        const historia = respuestas.historia.body || {};
-
-        const avisoVarias = seleccionadas.length > 1
-          ? `<p style="font-size:0.85rem; color:#666;">Se muestra la primera de las ${seleccionadas.length} imágenes seleccionadas.</p>`
-          : '';
-        const avisoMarca = feed.con_marca
-          ? ''
-          : `<p style="font-size:0.85rem; color:#8a6d1f; background:#fdf6e3; border:1px solid #ecd9a0; padding:0.6rem 0.8rem; border-radius:0.5rem;">
-               <i class="fas fa-info-circle me-1" style="color:#c9a961;"></i>
-               Esta vez la imagen se verá sin el logo del jardín, porque no pudimos cargarlo.
-             </p>`;
-
-        Swal.fire({
-          title: 'Vista previa en Instagram',
-          width: '900px',
-          html: `
-            ${avisoVarias}
-            ${avisoMarca}
-            <div style="display:flex; flex-wrap:wrap; gap:1rem; justify-content:center; align-items:flex-start;">
-              <div style="flex:1 1 280px; max-width:420px;">
-                <div style="font-weight:600; margin-bottom:0.4rem;">Feed</div>
-                <img src="${feed.imagen}" alt="Vista previa feed"
-                  style="width:100%; border-radius:0.375rem; box-shadow:0 1px 4px rgba(0,0,0,0.2);">
-              </div>
-              <div style="flex:0 1 240px; max-width:240px;">
-                <div style="font-weight:600; margin-bottom:0.4rem;">Historia</div>
-                <img src="${historia.imagen}" alt="Vista previa historia"
-                  style="width:100%; border-radius:0.375rem; box-shadow:0 1px 4px rgba(0,0,0,0.2);">
-              </div>
-            </div>`,
-          confirmButtonText: 'Cerrar',
-          confirmButtonColor: '#6c757d'
+    Swal.fire({
+      title: 'Vista previa en Instagram',
+      width: '900px',
+      html: `
+        <style>
+          .vp-nota { font-size:0.85rem; color:#666; margin-bottom:0.6rem; }
+          .vp-opciones { display:flex; flex-wrap:wrap; gap:0.5rem; justify-content:center; margin-bottom:0.9rem; }
+          .vp-pill { border:1px solid #eadfbf; background:#fff; color:#5c4d22; border-radius:999px;
+                     padding:0.35rem 0.9rem; font-size:0.85rem; font-weight:600; cursor:pointer; }
+          .vp-pill.activo { background:linear-gradient(135deg,#d9b44a,#c9a227); border-color:#c9a227; color:#fff; }
+          .vp-separador { width:1px; background:#eadfbf; margin:0 0.25rem; }
+          .vp-aviso { font-size:0.85rem; color:#8a6d1f; background:#fdf6e3; border:1px solid #ecd9a0;
+                      padding:0.6rem 0.8rem; border-radius:0.5rem; margin-bottom:0.8rem; }
+          .vp-imagenes { display:flex; flex-wrap:wrap; gap:1rem; justify-content:center; align-items:flex-start; min-height:200px; }
+          .vp-imagenes img { width:100%; border-radius:0.375rem; box-shadow:0 1px 4px rgba(0,0,0,0.2); }
+          .vp-cargando { color:#a08a4a; padding:3rem 0; }
+        </style>
+        ${avisoVarias}
+        <div class="vp-opciones">
+          ${botonesEncuadre}
+          <span class="vp-separador"></span>
+          <button type="button" class="vp-pill" id="vp-logo"></button>
+        </div>
+        <div id="vp-aviso"></div>
+        <div class="vp-imagenes" id="vp-imagenes"></div>`,
+      confirmButtonText: 'Cerrar',
+      confirmButtonColor: '#6c757d',
+      didOpen: (popup: HTMLElement) => {
+        popup.querySelectorAll<HTMLButtonElement>('[data-encuadre]').forEach(boton => {
+          boton.addEventListener('click', () => {
+            this.encuadreInstagram = boton.dataset['encuadre'] as EncuadreInstagram;
+            this.pintarVistaPrevia(popup, imagen.id);
+          });
         });
-      },
-      error: (error) => {
-        this.generandoVistaPrevia = false;
-        Swal.fire('Error', this.extraerError(error), 'error');
+        popup.querySelector<HTMLButtonElement>('#vp-logo')?.addEventListener('click', () => {
+          this.conLogoInstagram = !this.conLogoInstagram;
+          this.pintarVistaPrevia(popup, imagen.id);
+        });
+        this.pintarVistaPrevia(popup, imagen.id);
       }
     });
+  }
+
+  /**
+   * Pinta la vista previa con las opciones actuales. Si esa combinación ya se
+   * había generado la toma de cacheVistaPrevia; si no, la pide al backend.
+   */
+  private async pintarVistaPrevia(popup: HTMLElement, idImagen: string): Promise<void> {
+    // Estado de los botones
+    popup.querySelectorAll<HTMLButtonElement>('[data-encuadre]').forEach(boton => {
+      boton.classList.toggle('activo', boton.dataset['encuadre'] === this.encuadreInstagram);
+    });
+    const botonLogo = popup.querySelector<HTMLButtonElement>('#vp-logo');
+    if (botonLogo) {
+      botonLogo.classList.toggle('activo', this.conLogoInstagram);
+      botonLogo.textContent = this.conLogoInstagram ? 'Con logo' : 'Sin logo';
+    }
+
+    const contenedor = popup.querySelector<HTMLElement>('#vp-imagenes');
+    const aviso = popup.querySelector<HTMLElement>('#vp-aviso');
+    if (!contenedor || !aviso) {
+      return;
+    }
+
+    const clave = `${idImagen}|${this.encuadreInstagram}|${this.conLogoInstagram ? 1 : 0}`;
+    const solicitud = ++this.solicitudVistaPrevia;
+    let vista = this.cacheVistaPrevia.get(clave);
+
+    if (!vista) {
+      contenedor.innerHTML = '<div class="vp-cargando"><span class="spinner-border spinner-border-sm me-2"></span>Generando vista previa...</div>';
+      aviso.innerHTML = '';
+      this.generandoVistaPrevia = true;
+
+      try {
+        const logo = this.conLogoInstagram ? await this.obtenerLogoMarca() : '';
+        const respuestas: any = await firstValueFrom(forkJoin({
+          feed: this.instagramService.vistaPrevia(this.idGaleria, idImagen, 'feed', logo, this.encuadreInstagram),
+          historia: this.instagramService.vistaPrevia(this.idGaleria, idImagen, 'historia', logo, this.encuadreInstagram)
+        }));
+        const feed = respuestas.feed.body || {};
+        const historia = respuestas.historia.body || {};
+        vista = { feed: feed.imagen, historia: historia.imagen, conMarca: !!feed.con_marca };
+        this.cacheVistaPrevia.set(clave, vista);
+      } catch (error) {
+        this.generandoVistaPrevia = false;
+        if (solicitud === this.solicitudVistaPrevia) {
+          contenedor.innerHTML = `<div class="vp-cargando">${this.escaparHtml(this.extraerError(error))}</div>`;
+        }
+        return;
+      }
+      this.generandoVistaPrevia = false;
+    }
+
+    // Si mientras cargaba el usuario escogió otra opción, se pinta la última.
+    if (solicitud !== this.solicitudVistaPrevia) {
+      return;
+    }
+
+    aviso.innerHTML = this.conLogoInstagram && !vista.conMarca
+      ? `<div class="vp-aviso"><i class="fas fa-info-circle me-1" style="color:#c9a961;"></i>
+           Esta vez la imagen se verá sin el logo del jardín, porque no pudimos cargarlo.</div>`
+      : '';
+
+    contenedor.innerHTML = `
+      <div style="flex:1 1 280px; max-width:420px;">
+        <div style="font-weight:600; margin-bottom:0.4rem;">Feed</div>
+        <img src="${vista.feed}" alt="Vista previa feed">
+      </div>
+      <div style="flex:0 1 240px; max-width:240px;">
+        <div style="font-weight:600; margin-bottom:0.4rem;">Historia</div>
+        <img src="${vista.historia}" alt="Vista previa historia">
+      </div>`;
+  }
+
+  /** Texto de las opciones de Instagram para las ventanas de confirmación. */
+  private get resumenOpcionesInstagram(): string {
+    const encuadre = this.opcionesEncuadre.find(op => op.valor === this.encuadreInstagram);
+    return `Encuadre: ${encuadre ? encuadre.etiqueta : ''} · ${this.conLogoInstagram ? 'Con logo' : 'Sin logo'}`;
+  }
+
+  private escaparHtml(texto: string): string {
+    const div = document.createElement('div');
+    div.textContent = texto;
+    return div.innerHTML;
   }
 
   /**
