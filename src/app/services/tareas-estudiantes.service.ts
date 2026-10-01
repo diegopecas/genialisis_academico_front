@@ -1,4 +1,4 @@
-import { HttpClient, HttpErrorResponse, HttpResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpParams, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from '../../environments/environment';
 import { throwError } from 'rxjs';
@@ -51,6 +51,29 @@ export class TareasEstudiantesService {
   obtenerEstudiantes(id: any) {
     return this.http
       .get<HttpResponse<Object>>(this.servicio + `/${id}/estudiantes`, { observe: 'response' })
+      .pipe(
+        tap((response: HttpResponse<Object>) => {
+          let respuesta: any = response.body;
+          if (respuesta.error) {
+            throw respuesta.error;
+          }
+          return response;
+        }),
+        catchError(this.handleError)
+      );
+  }
+
+  /**
+   * Reporte de tareas por estudiante: tareas publicadas con fecha de entrega
+   * entre las dos fechas (formato AAAA-MM-DD, ambas incluidas).
+   */
+  obtenerReporte(desde: string, hasta: string) {
+    const params = new HttpParams()
+      .set('desde', desde)
+      .set('hasta', hasta);
+
+    return this.http
+      .get<HttpResponse<Object>>(this.servicio + '/reporte', { observe: 'response', params })
       .pipe(
         tap((response: HttpResponse<Object>) => {
           let respuesta: any = response.body;

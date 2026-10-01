@@ -98,6 +98,9 @@ export class ReportesComponent implements OnInit {
       case 'utiles-diarios':
         this.router.navigate(['/reportes/utiles-diarios']);
         break;
+      case 'tareas-estudiantes':
+        this.router.navigate(['/reportes/tareas-estudiantes']);
+        break;
       // Financiero
       case 'cartera':
         this.router.navigate(['/reportes/cartera']);

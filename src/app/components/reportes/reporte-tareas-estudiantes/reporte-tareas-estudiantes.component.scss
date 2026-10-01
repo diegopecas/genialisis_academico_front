@@ -1,0 +1,373 @@
+$primary-color: #ffbd31;
+$secondary-color: #ff9800;
+
+// Colores por estado de la tarea
+$pendiente: #c07a2c;
+$enviada: #2f6fb1;
+$calificada: #4f7a3f;
+$no-entregada: #b1442f;
+
+// Contenedor de filtros, mismo patrón del reporte de útiles diarios
+.filters-container {
+  background: white;
+  padding: 1.25rem;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1.25rem;
+
+  .form-label {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.4rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+
+    i {
+      color: $primary-color;
+      font-size: 0.85rem;
+    }
+  }
+}
+
+// Totales
+.totales {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+  margin-bottom: 1.25rem;
+}
+
+.total {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  padding: 12px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+
+  .total-valor {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #2c3e50;
+    line-height: 1.1;
+  }
+
+  .total-etiqueta {
+    font-size: 0.75rem;
+    color: #6c757d;
+    margin-top: 4px;
+  }
+
+  &.estado-pendiente .total-valor { color: $pendiente; }
+  &.estado-enviada .total-valor { color: $enviada; }
+  &.estado-calificada .total-valor { color: $calificada; }
+  &.estado-no_entregada .total-valor { color: $no-entregada; }
+}
+
+// Pestañas, mismo patrón del reporte de asistencia
+.tabs-container {
+  margin-bottom: 1.25rem;
+
+  .custom-tabs {
+    border-bottom: 3px solid #dee2e6;
+    background: white;
+    border-radius: 10px 10px 0 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    flex-wrap: nowrap;
+
+    .tab-button {
+      border: none;
+      border-radius: 10px 10px 0 0;
+      padding: 1rem 2rem;
+      font-weight: 500;
+      background: transparent;
+      color: #6c757d;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+
+      &:hover {
+        background-color: rgba($primary-color, 0.1);
+        color: $primary-color;
+      }
+
+      &.active {
+        background-color: $primary-color;
+        color: white;
+        border-bottom: 3px solid $secondary-color;
+
+        &:hover {
+          background-color: $secondary-color;
+        }
+      }
+    }
+  }
+}
+
+.cargando {
+  display: flex;
+  justify-content: center;
+  padding: 30px 0;
+}
+
+.sin-datos {
+  color: #888;
+  font-size: 0.9rem;
+  text-align: center;
+  padding: 26px 0;
+}
+
+// Chips de estado
+.chip {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+
+  &.estado-pendiente { background: rgba($pendiente, 0.12); color: $pendiente; }
+  &.estado-enviada { background: rgba($enviada, 0.12); color: $enviada; }
+  &.estado-calificada { background: rgba($calificada, 0.14); color: $calificada; }
+  &.estado-no_entregada { background: rgba($no-entregada, 0.12); color: $no-entregada; }
+}
+
+// Resumen: una tarjeta por estudiante
+.resumen-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+  padding-bottom: 1.5rem;
+}
+
+.tarjeta-estudiante {
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+  padding: 14px 16px;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.tarjeta-cabecera {
+  display: flex;
+  flex-direction: column;
+
+  .tarjeta-nombre {
+    font-weight: 700;
+    color: #2c3e50;
+  }
+
+  .tarjeta-grupo {
+    font-size: 0.8rem;
+    color: #8a6d1f;
+  }
+}
+
+.tarjeta-conteos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+
+  .conteo {
+    font-size: 0.85rem;
+    color: #555;
+    margin-right: 4px;
+  }
+}
+
+.cumplimiento {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  .barra {
+    flex: 1;
+    height: 8px;
+    background: #f1f1f1;
+    border-radius: 999px;
+    overflow: hidden;
+  }
+
+  .barra-relleno {
+    height: 100%;
+    border-radius: 999px;
+  }
+
+  .cumplimiento-valor {
+    font-weight: 700;
+    font-size: 0.85rem;
+    min-width: 40px;
+    text-align: right;
+  }
+}
+
+.cumplimiento-alto { color: $calificada; }
+.cumplimiento-medio { color: $pendiente; }
+.cumplimiento-bajo { color: $no-entregada; }
+
+.cumplimiento-fondo-alto { background: $calificada; }
+.cumplimiento-fondo-medio { background: $pendiente; }
+.cumplimiento-fondo-bajo { background: $no-entregada; }
+
+// Detalle del estudiante
+.detalle-fondo {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  z-index: 1050;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.detalle-panel {
+  background: #fff;
+  border-radius: 14px;
+  width: 100%;
+  max-width: 620px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.detalle-cabecera {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 18px;
+  border-bottom: 1px solid #f0f0f0;
+
+  .detalle-nombre {
+    display: block;
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: #2c3e50;
+  }
+
+  .detalle-grupo {
+    display: block;
+    font-size: 0.8rem;
+    color: #6c757d;
+    margin-top: 2px;
+  }
+
+  .btn-cerrar {
+    border: none;
+    background: transparent;
+    font-size: 1.1rem;
+    color: #888;
+    cursor: pointer;
+  }
+}
+
+.detalle-cuerpo {
+  overflow-y: auto;
+  padding: 8px 18px 16px;
+}
+
+.detalle-tarea {
+  padding: 12px 0;
+  border-bottom: 1px solid #f3f3f3;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.detalle-tarea-fila {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+
+  .detalle-tarea-titulo {
+    font-weight: 600;
+    color: #2c3e50;
+  }
+}
+
+.detalle-tarea-datos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 6px;
+  font-size: 0.8rem;
+  color: #6c757d;
+
+  i {
+    color: $primary-color;
+    margin-right: 3px;
+  }
+
+  .area {
+    border-left: 3px solid #ccc;
+    padding-left: 6px;
+    color: #555;
+  }
+}
+
+.detalle-valoracion {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 0.8rem;
+  color: #6c757d;
+
+  .valoracion {
+    padding: 2px 10px;
+    border-radius: 6px;
+    background: #eee;
+    color: #2c3e50;
+    font-weight: 600;
+  }
+}
+
+.detalle-observacion {
+  margin: 6px 0 0;
+  font-size: 0.85rem;
+  color: #555;
+  white-space: pre-line;
+}
+
+// Celular
+@media (max-width: 576px) {
+  .tabs-container .custom-tabs .tab-button {
+    padding: 0.75rem 0.9rem;
+    font-size: 0.85rem;
+    flex: 1;
+    justify-content: center;
+  }
+
+  .resumen-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .total .total-valor {
+    font-size: 1.25rem;
+  }
+
+  .detalle-panel {
+    max-height: 92vh;
+  }
+}

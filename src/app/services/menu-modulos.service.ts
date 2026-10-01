@@ -298,17 +298,18 @@ export class MenuModulosService {
           {
             id: 'estudiantes',
             titulo: 'Estudiantes',
-            descripcion: 'Información general, asistencia y útiles diarios',
+            descripcion: 'Información general, asistencia, útiles diarios y tareas',
             claseIcono: 'estudiantes',
             iconoArbol: '🎓',
             alt: 'Estudiantes',
             imagen: 'assets/images/estudiantes.png',
-            permisos: ['reportes.asistencia', 'reportes.estudiantes_general', 'reportes.utiles_diarios'],
+            permisos: ['reportes.asistencia', 'reportes.estudiantes_general', 'reportes.tareas_estudiantes', 'reportes.utiles_diarios'],
             keywords: ['alumnos', 'niños', 'ninos'],
             opciones: [
               { id: 'estudiantes-general', label: 'Reporte General', alt: 'Reporte General', imagen: 'assets/images/reporte-estudiantes.png', iconoArbol: '📋', ruta: '/reportes/estudiantes-general', permiso: 'reportes.estudiantes_general', keywords: ['listado estudiantes', 'alumnos', 'general'] },
               { id: 'asistencia', label: 'Reporte Asistencia', alt: 'Reporte Asistencia', imagen: 'assets/images/asistencia.png', iconoArbol: '✋', ruta: '/reportes/asistencia', permiso: 'reportes.asistencia', keywords: ['inasistencia', 'faltas', 'llegadas'] },
-              { id: 'utiles-diarios', label: 'Útiles y Accesorios Diarios', alt: 'Útiles y Accesorios Diarios', imagen: 'assets/images/utiles-diarios.png', iconoArbol: '🎒', ruta: '/reportes/utiles-diarios', permiso: 'reportes.utiles_diarios', keywords: ['utiles', 'accesorios', 'inventario diario', 'maleta', 'morral', 'que trajo', 'que se llevo', 'chaqueta', 'lonchera', 'termo'] }
+              { id: 'utiles-diarios', label: 'Útiles y Accesorios Diarios', alt: 'Útiles y Accesorios Diarios', imagen: 'assets/images/utiles-diarios.png', iconoArbol: '🎒', ruta: '/reportes/utiles-diarios', permiso: 'reportes.utiles_diarios', keywords: ['utiles', 'accesorios', 'inventario diario', 'maleta', 'morral', 'que trajo', 'que se llevo', 'chaqueta', 'lonchera', 'termo'] },
+              { id: 'tareas-estudiantes', label: 'Tareas por Estudiante', alt: 'Tareas por Estudiante', imagen: 'assets/images/reporte-tareas-estudiantes.png', iconoArbol: '📚', ruta: '/reportes/tareas-estudiantes', permiso: 'reportes.tareas_estudiantes', keywords: ['tareas', 'tarea para la casa', 'deberes', 'entregas', 'calificaciones de tareas', 'no entregadas', 'cumplimiento'] }
             ]
           },
           {

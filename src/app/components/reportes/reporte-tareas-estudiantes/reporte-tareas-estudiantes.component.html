@@ -1,0 +1,190 @@
+<div class="modulo">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="false"
+    [raiz]="'/reportes/tareas-estudiantes'"
+    [regresar]="'/reportes'"
+    [iconoTitulo]="'/assets/images/reporte-tareas-estudiantes.png'"
+  ></app-header>
+
+  <div class="container-fluid mt-4">
+
+    <!-- Filtros: las fechas consultan, el resto filtra en memoria -->
+    <div class="filters-container">
+      <div class="row g-3 align-items-end">
+        <div class="col-6 col-md-2">
+          <label for="desde" class="form-label"><i class="fas fa-calendar"></i> Entrega desde</label>
+          <input type="date" id="desde" class="form-control" [(ngModel)]="fechas.desde" (change)="consultar()">
+        </div>
+        <div class="col-6 col-md-2">
+          <label for="hasta" class="form-label"><i class="fas fa-calendar-days"></i> Entrega hasta</label>
+          <input type="date" id="hasta" class="form-control" [(ngModel)]="fechas.hasta" (change)="consultar()">
+        </div>
+        <div class="col-6 col-md-2">
+          <label for="grupo" class="form-label"><i class="fas fa-users"></i> Grupo</label>
+          <select id="grupo" class="form-select" [(ngModel)]="filtros.id_grupo" (ngModelChange)="aplicarFiltros()">
+            <option value="">Todos</option>
+            <option *ngFor="let grupo of grupos" [value]="grupo.id">{{ grupo.nombre }}</option>
+          </select>
+        </div>
+        <div class="col-6 col-md-2">
+          <label for="area" class="form-label"><i class="fas fa-book"></i> Área</label>
+          <select id="area" class="form-select" [(ngModel)]="filtros.id_area" (ngModelChange)="aplicarFiltros()">
+            <option value="">Todas</option>
+            <option *ngFor="let area of areas" [value]="area.id">{{ area.nombre }}</option>
+          </select>
+        </div>
+        <div class="col-6 col-md-2">
+          <label for="estado" class="form-label"><i class="fas fa-circle-check"></i> Estado</label>
+          <select id="estado" class="form-select" [(ngModel)]="filtros.estado" (ngModelChange)="aplicarFiltros()">
+            <option value="">Todos</option>
+            <option *ngFor="let estado of ESTADOS" [value]="estado.valor">{{ estado.nombre }}</option>
+          </select>
+        </div>
+        <div class="col-6 col-md-2">
+          <label for="buscarEstudiante" class="form-label"><i class="fas fa-magnifying-glass"></i> Estudiante</label>
+          <input type="text" id="buscarEstudiante" class="form-control" placeholder="Nombre..."
+            [(ngModel)]="filtros.estudiante" (ngModelChange)="aplicarFiltros()">
+        </div>
+        <div class="col-12 col-md-3" *ngIf="hayFiltros">
+          <button type="button" class="btn btn-outline-secondary w-100" (click)="limpiarFiltros()">
+            <i class="fas fa-eraser me-1"></i> Limpiar filtros
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Totales del rango con los filtros aplicados -->
+    <div class="totales" *ngIf="consultado && !cargando && filas.length > 0">
+      <div class="total">
+        <span class="total-valor">{{ resumen.length }}</span>
+        <span class="total-etiqueta">Estudiantes</span>
+      </div>
+      <div class="total">
+        <span class="total-valor">{{ totales.tareas }}</span>
+        <span class="total-etiqueta">Tareas asignadas</span>
+      </div>
+      <div class="total estado-pendiente">
+        <span class="total-valor">{{ totales.pendiente }}</span>
+        <span class="total-etiqueta">Pendientes</span>
+      </div>
+      <div class="total estado-enviada">
+        <span class="total-valor">{{ totales.enviada }}</span>
+        <span class="total-etiqueta">Enviadas</span>
+      </div>
+      <div class="total estado-calificada">
+        <span class="total-valor">{{ totales.calificada }}</span>
+        <span class="total-etiqueta">Calificadas</span>
+      </div>
+      <div class="total estado-no_entregada">
+        <span class="total-valor">{{ totales.no_entregada }}</span>
+        <span class="total-etiqueta">No entregadas</span>
+      </div>
+      <div class="total">
+        <span class="total-valor" [ngClass]="'cumplimiento-' + claseCumplimiento(cumplimientoGeneral)">{{ cumplimientoGeneral }}%</span>
+        <span class="total-etiqueta">Cumplimiento</span>
+      </div>
+    </div>
+
+    <!-- Pestañas -->
+    <div class="tabs-container">
+      <div class="nav nav-tabs custom-tabs" role="tablist">
+        <button class="nav-link tab-button" [class.active]="vista === 'resumen'" (click)="cambiarVista('resumen')" type="button">
+          <i class="fas fa-user-graduate"></i>
+          Resumen por Estudiante
+        </button>
+        <button class="nav-link tab-button" [class.active]="vista === 'lista'" (click)="cambiarVista('lista')" type="button">
+          <i class="fas fa-list"></i>
+          Listado Detallado
+        </button>
+      </div>
+    </div>
+
+    <div class="cargando" *ngIf="cargando">
+      <div class="spinner-border text-warning" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+    </div>
+
+    <p class="sin-datos" *ngIf="consultado && !cargando && filas.length === 0">
+      No hay tareas publicadas con entrega en ese rango para los filtros seleccionados.
+    </p>
+
+    <!-- ====== RESUMEN ====== -->
+    <div class="resumen-grid" *ngIf="vista === 'resumen' && !cargando && resumen.length > 0">
+      <button type="button" class="tarjeta-estudiante" *ngFor="let item of resumen; trackBy: trackByEstudiante" (click)="abrirDetalle(item)">
+        <div class="tarjeta-cabecera">
+          <span class="tarjeta-nombre">{{ item.nombre }}</span>
+          <span class="tarjeta-grupo">{{ item.grupo }}</span>
+        </div>
+
+        <div class="tarjeta-conteos">
+          <span class="conteo">
+            <strong>{{ item.total }}</strong> asignadas
+          </span>
+          <span class="chip estado-pendiente" *ngIf="item.pendiente > 0">{{ item.pendiente }} pendiente{{ item.pendiente === 1 ? '' : 's' }}</span>
+          <span class="chip estado-enviada" *ngIf="item.enviada > 0">{{ item.enviada }} enviada{{ item.enviada === 1 ? '' : 's' }}</span>
+          <span class="chip estado-calificada" *ngIf="item.calificada > 0">{{ item.calificada }} calificada{{ item.calificada === 1 ? '' : 's' }}</span>
+          <span class="chip estado-no_entregada" *ngIf="item.no_entregada > 0">{{ item.no_entregada }} no entregada{{ item.no_entregada === 1 ? '' : 's' }}</span>
+        </div>
+
+        <div class="cumplimiento">
+          <div class="barra">
+            <div class="barra-relleno" [ngClass]="'cumplimiento-fondo-' + claseCumplimiento(item.cumplimiento)" [style.width.%]="item.cumplimiento"></div>
+          </div>
+          <span class="cumplimiento-valor" [ngClass]="'cumplimiento-' + claseCumplimiento(item.cumplimiento)">{{ item.cumplimiento }}%</span>
+        </div>
+      </button>
+    </div>
+    <!-- ====== FIN RESUMEN ====== -->
+  </div>
+
+  <!-- ====== LISTADO ====== -->
+  <div class="mt-2" *ngIf="vista === 'lista' && !cargando && filas.length > 0">
+    <app-tablas
+      [titulos]="titulos"
+      [datos]="filas"
+      [raiz]="'/reportes/tareas-estudiantes'"
+      [acciones]="[]"
+      [accionEditar]="false"
+      [accionEliminar]="false"
+      [mostrarBuscar]="true"
+      [columnasFiltro]="columnasFiltro"
+    ></app-tablas>
+  </div>
+
+  <!-- Detalle del estudiante -->
+  <div class="detalle-fondo" *ngIf="detalle" (click)="cerrarDetalle()">
+    <div class="detalle-panel" (click)="$event.stopPropagation()">
+      <div class="detalle-cabecera">
+        <div>
+          <span class="detalle-nombre">{{ detalle.nombre }}</span>
+          <span class="detalle-grupo">{{ detalle.grupo }} · {{ detalle.total }} tarea{{ detalle.total === 1 ? '' : 's' }} · {{ detalle.cumplimiento }}% de cumplimiento</span>
+        </div>
+        <button type="button" class="btn-cerrar" (click)="cerrarDetalle()">✕</button>
+      </div>
+
+      <div class="detalle-cuerpo">
+        <div class="detalle-tarea" *ngFor="let tarea of detalle.tareas; trackBy: trackByFila">
+          <div class="detalle-tarea-fila">
+            <span class="detalle-tarea-titulo">{{ tarea.titulo }}</span>
+            <span class="chip" [ngClass]="'estado-' + tarea.estado">{{ tarea.estado_texto }}</span>
+          </div>
+
+          <div class="detalle-tarea-datos">
+            <span class="area" *ngIf="tarea.area_nombre" [style.border-color]="tarea.area_color || null">{{ tarea.area_nombre }}</span>
+            <span><i class="fas fa-calendar-plus"></i> {{ tarea.fecha_asignacion_texto }}</span>
+            <span><i class="fas fa-flag-checkered"></i> Entrega {{ tarea.fecha_entrega_texto }}</span>
+          </div>
+
+          <div class="detalle-valoracion" *ngIf="tarea.valoracion_texto">
+            <span class="valoracion" [style.background-color]="tarea.valoracion_color || null">{{ tarea.valoracion_texto }}</span>
+            <span class="detalle-fecha-calificacion" *ngIf="tarea.fecha_calificacion_texto">el {{ tarea.fecha_calificacion_texto }}</span>
+          </div>
+
+          <p class="detalle-observacion" *ngIf="tarea.observacion">{{ tarea.observacion }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
