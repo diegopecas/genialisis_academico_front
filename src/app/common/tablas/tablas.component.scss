@@ -600,3 +600,28 @@ select {
     transform: scale(0.95);
   }
 }
+// Boton de exportar en movil: solo el icono y la caja mas apretada.
+// El contenedor .form-tablas trae padding y margenes pensados para
+// escritorio, y en el celular una franja de ese tamano para un solo boton
+// se come la pantalla antes de llegar a los datos.
+@media (max-width: 575.98px) {
+  .form-tablas-exportar {
+    padding: 0.35rem 0.5rem;
+    margin-left: 0.5rem;
+    margin-right: 0.5rem;
+    box-shadow: none;
+  }
+
+  .btn-exportar {
+    padding: 0.3rem 0.55rem;
+    font-size: 0.8rem;
+    line-height: 1;
+    letter-spacing: normal;
+    box-shadow: none;
+
+    &:hover {
+      transform: none;
+      box-shadow: none;
+    }
+  }
+}

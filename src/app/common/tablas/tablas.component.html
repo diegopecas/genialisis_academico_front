@@ -19,14 +19,22 @@
   </div>
 
   <!-- Botón Exportar Excel -->
-  <div class="form-tablas mt-3 mb-1 d-none d-sm-block" *ngIf="exportarExcel">
+  <!-- Se muestra también en móvil: antes iba con d-none d-sm-block y
+       desaparecía en pantalla chica, dejando sin exportación a quien entra
+       desde el celular. -->
+  <div class="form-tablas form-tablas-exportar mt-3 mb-1" *ngIf="exportarExcel">
     <div class="d-flex justify-content-end w-100">
       <button
-        class="btn btn-sm btn-success"
+        class="btn btn-sm btn-success btn-exportar"
         (click)="exportarAExcel()"
         [disabled]="!tabla.datosFiltrados || tabla.datosFiltrados.length === 0"
+        title="Exportar Excel"
+        aria-label="Exportar Excel"
       >
-        <i class="fas fa-file-excel me-1"></i> Exportar Excel
+        <!-- En móvil queda solo el icono: el texto ocupa casi todo el ancho
+             de la pantalla para una acción que se reconoce por el icono. -->
+        <i class="fas fa-file-excel"></i>
+        <span class="d-none d-sm-inline ms-1">Exportar Excel</span>
       </button>
     </div>
   </div>

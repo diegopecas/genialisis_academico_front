@@ -5,6 +5,7 @@ import { HeaderComponent } from '../../../common/header/header.component';
 import { GruposService } from '../../../services/grupos.service';
 import { CursosExtraService } from '../../../services/cursos-extra.service';
 import { UtilService } from '../../../common/constantes/util.service';
+import { normalizarTexto } from '../../../common/pipes/search';
 import collect from 'collect.js';
 
 @Component({
@@ -50,6 +51,20 @@ export class SelectorGruposComponent implements OnInit {
         console.error("Error al cargar cursos extracurriculares", error);
       }
     });
+  }
+
+  /**
+   * El area academica va de subtitulo en la tarjeta del curso para distinguir
+   * cursos hermanos (ej. "Natacion Manana" y "Natacion Tarde" sobre el area
+   * Natacion). Cuando el curso se llama igual que su area el subtitulo no
+   * aporta nada y se lee como un nombre repetido, asi que no se muestra.
+   * La comparacion ignora tildes y mayusculas: "Natación" y "NATACIÓN" son
+   * el mismo texto para el que lo lee.
+   */
+  mostrarAreaCurso(curso: any): boolean {
+    if (!curso?.nombre_area_academica) return false;
+    return normalizarTexto(curso.nombre_area_academica).trim()
+        !== normalizarTexto(curso.nombre).trim();
   }
 
   seleccionarCursoExtra(curso: any): void {

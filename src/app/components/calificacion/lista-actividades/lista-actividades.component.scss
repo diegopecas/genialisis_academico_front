@@ -600,7 +600,7 @@ $color-star-checked: rgb(101, 245, 209);
 .btn-ver-descripcion {
   border: none;
   background: transparent;
-  color: #7C3AED;
+  color: darken($color-primary, 22%);
   font-size: 0.75em;
   font-weight: 600;
   padding: 4px 0 0 26px;

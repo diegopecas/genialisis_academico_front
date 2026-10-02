@@ -42,7 +42,7 @@
             </div>
             <p class="nombre-item">
               {{ curso.nombre }}
-              <span class="sub-nombre" *ngIf="curso.nombre_area_academica">{{ curso.nombre_area_academica }}</span>
+              <span class="sub-nombre" *ngIf="mostrarAreaCurso(curso)">{{ curso.nombre_area_academica }}</span>
             </p>
           </div>
         </div>
