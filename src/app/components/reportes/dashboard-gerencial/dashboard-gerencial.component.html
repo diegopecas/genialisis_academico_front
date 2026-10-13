@@ -49,9 +49,21 @@
         [esFechaHoy]="esFechaHoy()"
       ></app-dashboard-operativo>
 
-      <div *ngIf="tabActivo === 'academico'" class="placeholder-tab">
-        📚 Sección Académica próximamente
-      </div>
+      <!-- Académico: ejecución según horario de los grupos -->
+      <app-dashboard-academico
+        [hidden]="tabActivo !== 'academico'"
+        [fecha]="fecha"
+        [esFechaHoy]="esFechaHoy()"
+        [modo]="'grupos'"
+      ></app-dashboard-academico>
+
+      <!-- Extracurricular: ejecución según horario de los cursos extra -->
+      <app-dashboard-academico
+        [hidden]="tabActivo !== 'extracurricular'"
+        [fecha]="fecha"
+        [esFechaHoy]="esFechaHoy()"
+        [modo]="'cursos'"
+      ></app-dashboard-academico>
 
       <app-dashboard-financiero
         [hidden]="tabActivo !== 'financiero'"

@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { HeaderComponent } from '../../../common/header/header.component';
 import { DashboardOperativoComponent } from './secciones/operativo/dashboard-operativo.component';
 import { DashboardFinancieroComponent } from './secciones/financiero/dashboard-financiero.component';
+import { DashboardAcademicoComponent } from './secciones/academico/dashboard-academico.component';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -11,7 +12,7 @@ import Swal from 'sweetalert2';
   templateUrl: './dashboard-gerencial.component.html',
   styleUrl: './dashboard-gerencial.component.scss',
   standalone: true,
-  imports: [CommonModule, FormsModule, HeaderComponent, DashboardOperativoComponent, DashboardFinancieroComponent]
+  imports: [CommonModule, FormsModule, HeaderComponent, DashboardOperativoComponent, DashboardAcademicoComponent, DashboardFinancieroComponent]
 })
 export class DashboardGerencialComponent implements OnInit {
 
@@ -21,7 +22,8 @@ export class DashboardGerencialComponent implements OnInit {
 
   public tabs = [
     { id: 'operativo', label: 'Operativo', disponible: true, icono: '🏫' },
-    { id: 'academico', label: 'Académico', disponible: false, icono: '📚' },
+    { id: 'academico', label: 'Académico', disponible: true, icono: '📚' },
+    { id: 'extracurricular', label: 'Extracurricular', disponible: true, icono: '🎨' },
     { id: 'financiero', label: 'Financiero', disponible: true, icono: '💰' }
   ];
   public tabActivo: string = 'operativo';

@@ -190,6 +190,52 @@ export class DashboardGerencialService {
       );
   }
 
+  // =========================================
+  // ACADÉMICO (ejecución según horario)
+  // modo: 'grupos' (tab Académico) | 'cursos' (tab Extracurricular)
+  // =========================================
+  obtenerAcademicoResumen(fecha?: string, modo: 'grupos' | 'cursos' = 'grupos', silencioso: boolean = false) {
+    let headers = new HttpHeaders();
+    if (silencioso) {
+      headers = headers.set('X-Silent', 'true');
+    }
+    const params = new HttpParams()
+      .set('fecha', fecha || '')
+      .set('modo', modo);
+
+    return this.http
+      .get<HttpResponse<Object>>(`${this.servicio}/academico-resumen`, { params, headers, observe: 'response' })
+      .pipe(
+        tap((response: HttpResponse<Object>) => {
+          let respuesta: any = response.body;
+          if (respuesta.error) {
+            throw respuesta.error;
+          }
+          return response;
+        }),
+        catchError(this.handleError)
+      );
+  }
+
+  obtenerAcademicoDetalle(fecha?: string, modo: 'grupos' | 'cursos' = 'grupos') {
+    const params = new HttpParams()
+      .set('fecha', fecha || '')
+      .set('modo', modo);
+
+    return this.http
+      .get<HttpResponse<Object>>(`${this.servicio}/academico-detalle`, { params, observe: 'response' })
+      .pipe(
+        tap((response: HttpResponse<Object>) => {
+          let respuesta: any = response.body;
+          if (respuesta.error) {
+            throw respuesta.error;
+          }
+          return response;
+        }),
+        catchError(this.handleError)
+      );
+  }
+
   private handleError(error: HttpErrorResponse) {
     return throwError(() => error);
   }

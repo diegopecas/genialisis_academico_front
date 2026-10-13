@@ -1,0 +1,532 @@
+<div class="seccion-academico">
+
+  <!-- ============================================ -->
+  <!-- VISTA: KPIs -->
+  <!-- ============================================ -->
+  <ng-container *ngIf="vista === 'kpis'">
+
+    <!-- Barra de acciones KPIs -->
+    <div class="barra-kpis">
+      <div class="auto-refresh-info" *ngIf="esFechaHoy">
+        <label class="auto-refresh-toggle" [title]="autoRefreshActivo ? 'Auto-refresh activo (cada 2 min)' : 'Auto-refresh pausado'">
+          <input type="checkbox" [checked]="autoRefreshActivo" (change)="toggleAutoRefresh()" />
+          <span class="auto-refresh-label">
+            <span class="pulso" *ngIf="autoRefreshActivo"></span>
+            Auto-refresh
+          </span>
+        </label>
+        <span class="ultima-actualizacion" *ngIf="ultimaActualizacion">
+          Actualizado {{ ultimaActualizacion | date:'HH:mm:ss' }}
+        </span>
+      </div>
+
+      <button class="btn btn-sm btn-warning" (click)="refrescarKpis()" [disabled]="cargandoResumen">
+        <span *ngIf="!cargandoResumen">🔄 Refrescar</span>
+        <span *ngIf="cargandoResumen">
+          <span class="spinner-border spinner-border-sm" role="status"></span>
+          Cargando...
+        </span>
+      </button>
+    </div>
+
+    <!-- Aviso de día no hábil -->
+    <div class="aviso-dia" *ngIf="!resumen.dia_habil">
+      <span class="aviso-icono">🗓️</span>
+      <span>
+        {{ resumen.nombre_dia }} {{ resumen.fecha }} no es día hábil: no hay {{ textoFranjas | lowercase }} que cumplir.
+        Si se ejecutaron actividades, aparecen en <strong>Por fuera del horario</strong>.
+      </span>
+    </div>
+
+    <div class="kpis-contenedor">
+
+      <!-- KPI EJECUCIÓN SEGÚN HORARIO -->
+      <div class="bloque-indicador" (click)="abrirDetalleHorario()">
+        <div class="bloque-header">
+          <div class="bloque-titulo">
+            <span class="bloque-icono">🕘</span>
+            <h4>Ejecución según horario</h4>
+          </div>
+          <span class="bloque-accion">Ver detalle <i class="fas fa-arrow-right"></i></span>
+        </div>
+
+        <div class="kpi-principal">
+          <div class="kpi-valor">
+            <span class="kpi-numero">{{ resumen.kpis.ejecutadas }}</span>
+            <span class="kpi-separador">/</span>
+            <span class="kpi-total">{{ resumen.kpis.franjas_evaluables }}</span>
+          </div>
+          <div class="kpi-porcentaje">{{ resumen.kpis.porcentaje_cumplimiento }}%</div>
+          <div class="kpi-label">
+            {{ textoFranjas }} ejecutadas en horario
+            <span *ngIf="resumen.kpis.por_venir > 0"> · {{ resumen.kpis.total_franjas }} programadas</span>
+          </div>
+        </div>
+
+        <div class="barra-progreso-contenedor">
+          <div class="barra-progreso" [style.width.%]="resumen.kpis.porcentaje_cumplimiento"></div>
+        </div>
+
+        <div class="sub-indicadores">
+          <div class="sub-indicador sub-en-curso" *ngIf="resumen.kpis.en_curso > 0">
+            <div class="sub-icono">▶️</div>
+            <div class="sub-contenido">
+              <div class="sub-valor">{{ resumen.kpis.en_curso }}</div>
+              <div class="sub-label">En curso</div>
+            </div>
+          </div>
+
+          <div class="sub-indicador sub-fuera-hora">
+            <div class="sub-icono">⏰</div>
+            <div class="sub-contenido">
+              <div class="sub-valor">{{ resumen.kpis.fuera_hora }}</div>
+              <div class="sub-label">Ejecutadas fuera de hora</div>
+            </div>
+          </div>
+
+          <div class="sub-indicador sub-sin-ejecutar">
+            <div class="sub-icono">⚠️</div>
+            <div class="sub-contenido">
+              <div class="sub-valor">{{ resumen.kpis.sin_ejecutar }}</div>
+              <div class="sub-label">Sin ejecutar</div>
+            </div>
+          </div>
+
+          <div class="sub-indicador sub-por-venir" *ngIf="resumen.kpis.por_venir > 0">
+            <div class="sub-icono">⏳</div>
+            <div class="sub-contenido">
+              <div class="sub-valor">{{ resumen.kpis.por_venir }}</div>
+              <div class="sub-label">Por venir</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grupos-grid mt-3" *ngIf="resumen.por_destino?.length > 0">
+          <div
+            class="grupo-card"
+            *ngFor="let d of resumen.por_destino"
+            [style.border-left-color]="d.color_destino"
+          >
+            <div class="grupo-card-header">
+              <img *ngIf="d.icono_destino" [src]="d.icono_destino" class="grupo-icono" />
+              <span class="grupo-nombre">{{ d.nombre_destino }}</span>
+            </div>
+            <ng-container *ngIf="d.total_franjas > 0; else sinFranjasDestino">
+              <div class="grupo-card-valores">
+                <span class="grupo-numero">{{ d.ejecutadas }}</span>
+                <span class="grupo-separador">/</span>
+                <span class="grupo-total">{{ d.franjas_evaluables }}</span>
+              </div>
+              <div class="grupo-porcentaje">
+                {{ d.porcentaje_cumplimiento }}%
+                <span class="grupo-por-venir" *ngIf="d.por_venir > 0">· {{ d.por_venir }} por venir</span>
+              </div>
+              <div class="grupo-barra-contenedor">
+                <div
+                  class="grupo-barra"
+                  [style.width.%]="d.porcentaje_cumplimiento"
+                  [style.background-color]="d.color_destino || '#d4af37'"
+                ></div>
+              </div>
+            </ng-container>
+            <ng-template #sinFranjasDestino>
+              <div class="grupo-sin-franjas">Sin {{ textoFranjas | lowercase }} hoy</div>
+            </ng-template>
+            <div class="grupo-fuera" *ngIf="d.actividades_fuera_horario > 0">
+              ⏰ {{ d.actividades_fuera_horario }} fuera del horario
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="resumen.dia_habil && resumen.kpis.total_franjas === 0 && !cargandoResumen" class="sin-datos">
+          <em>No hay {{ textoFranjas | lowercase }} programadas de {{ textoDestinos }} para {{ resumen.nombre_dia | lowercase }}.</em>
+        </div>
+      </div>
+
+      <!-- KPI POR FUERA DEL HORARIO -->
+      <div class="bloque-indicador bloque-fuera" (click)="abrirDetalleFuera()">
+        <div class="bloque-header">
+          <div class="bloque-titulo">
+            <span class="bloque-icono">📌</span>
+            <h4>Por fuera del horario</h4>
+          </div>
+          <span class="bloque-accion">Ver detalle <i class="fas fa-arrow-right"></i></span>
+        </div>
+
+        <div class="kpi-principal">
+          <div class="kpi-valor kpi-valor-simple">
+            <span class="kpi-numero">{{ resumen.kpis.actividades_fuera_horario }}</span>
+          </div>
+          <div class="kpi-label">
+            de {{ resumen.kpis.total_actividades }} actividad(es) iniciadas el día
+          </div>
+        </div>
+
+        <div class="desglose-motivos" *ngIf="resumen.kpis.fuera_por_motivo?.length > 0">
+          <div class="motivo-item" *ngFor="let m of resumen.kpis.fuera_por_motivo"
+               [ngClass]="'motivo-' + m.motivo">
+            <span class="motivo-texto">{{ m.texto_motivo }}</span>
+            <span class="motivo-cantidad">{{ m.cantidad }}</span>
+          </div>
+        </div>
+
+        <div class="sub-indicadores mt-3">
+          <div class="sub-indicador sub-en-horario">
+            <div class="sub-icono">✅</div>
+            <div class="sub-contenido">
+              <div class="sub-valor">{{ resumen.kpis.actividades_en_horario }}</div>
+              <div class="sub-label">Actividades en horario</div>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="resumen.kpis.total_actividades === 0 && !cargandoResumen" class="sin-datos">
+          <em>No se iniciaron actividades de {{ textoDestinos }} en esta fecha.</em>
+        </div>
+      </div>
+
+    </div>
+
+  </ng-container>
+
+  <!-- ============================================ -->
+  <!-- VISTA: DETALLE EJECUCIÓN SEGÚN HORARIO (grilla) -->
+  <!-- ============================================ -->
+  <div *ngIf="vista === 'horario'" class="detalle-contenedor">
+    <div class="detalle-header">
+      <button class="btn-volver" (click)="volverAKpis()">
+        <i class="fas fa-arrow-left"></i> Volver
+      </button>
+      <div class="detalle-titulo">
+        <h4 class="mb-0">
+          <span class="me-2">🕘</span>Ejecución según horario
+        </h4>
+        <small class="text-muted">
+          {{ totalFranjasDetalle }} {{ textoFranjas | lowercase }} · {{ detalle.nombre_dia }} {{ detalle.fecha }}
+        </small>
+      </div>
+      <div class="detalle-spacer"></div>
+    </div>
+
+    <div *ngIf="cargandoDetalle" class="text-center p-4">
+      <div class="spinner-border text-warning" role="status"></div>
+      <div class="mt-2">Cargando...</div>
+    </div>
+
+    <ng-container *ngIf="!cargandoDetalle && destinosHorario.length > 0">
+      <div class="barra-busqueda">
+        <div class="busqueda-grupo">
+          <div class="input-limpiable">
+            <input type="text" class="form-control form-control-sm" placeholder="Buscar por área, actividad, docente o estado..."
+                   [(ngModel)]="busquedaHorario" />
+            <button type="button" class="btn-limpiar" *ngIf="busquedaHorario" (click)="busquedaHorario = ''" title="Limpiar">&times;</button>
+          </div>
+        </div>
+        <small class="text-muted" *ngIf="busquedaHorario || destinoFiltradoHorario">
+          {{ totalCoincidenciasHorario }} de {{ totalFranjasDetalle }} {{ textoFranjas | lowercase }}
+        </small>
+      </div>
+
+      <div class="filtros-grupo filtros-escritorio" *ngIf="destinosHorario.length > 1">
+        <button type="button" class="btn btn-sm"
+          [ngClass]="!destinoFiltradoHorario ? 'btn-warning' : 'btn-outline-secondary'"
+          (click)="filtrarDestinoHorario(null)">Todos</button>
+        <button type="button" class="btn btn-sm"
+          *ngFor="let d of destinosHorario"
+          [ngClass]="destinoFiltradoHorario === d.id_destino ? 'btn-warning' : 'btn-outline-secondary'"
+          (click)="filtrarDestinoHorario(d.id_destino)">
+          <img *ngIf="d.icono_destino" [src]="d.icono_destino" class="icono-boton-grupo" />{{ d.nombre_destino }}
+        </button>
+      </div>
+
+      <!-- Leyenda de estados -->
+      <div class="leyenda-estados">
+        <span class="leyenda-item" *ngFor="let e of estadosLeyenda" [ngClass]="'leyenda-' + e">
+          <span class="leyenda-marca"></span>{{ iconoEstadoFranja[e] }} {{ textoEstadoFranja[e] }}
+        </span>
+      </div>
+
+      <!-- VISTA ESCRITORIO: grilla con una columna por grupo/curso -->
+      <div class="horario-desktop">
+        <div class="horario-scroll-container">
+          <div class="horario-grid" [style.min-width.px]="anchoMinimoGrilla">
+            <div class="horario-header-dias">
+              <div class="horario-cell horario-time-header">Hora</div>
+              <div class="horario-cell horario-day-header encabezado-destino"
+                   *ngFor="let d of destinosVisiblesHorario()"
+                   [title]="textoResumenDestino(d)">
+                <span class="encabezado-nombre">
+                  <img *ngIf="d.icono_destino" [src]="d.icono_destino" class="encabezado-icono" />{{ d.nombre_destino }}
+                </span>
+                <span class="encabezado-resumen">✅ {{ d.resumen.ejecutada }}/{{ d.franjas.length }}</span>
+              </div>
+            </div>
+
+            <div class="horario-row"
+                 *ngFor="let hora of horasDelDia"
+                 [class.fila-etiqueta]="esFilaEtiqueta(hora)"
+                 [class.fila-hora-punto]="esFilaHoraEnPunto(hora)">
+              <div class="horario-cell horario-time-cell">{{ etiquetaHora(hora) }}</div>
+              <div class="horario-cell horario-content-cell"
+                   *ngFor="let d of destinosVisiblesHorario()">
+
+                <div class="horario-block"
+                     *ngIf="getCelda(d.id_destino, hora) as celda"
+                     [style.background-color]="colorFondoArea(celda.franja.color_area)"
+                     [style.border-left-color]="colorVivoArea(celda.franja.color_area)"
+                     [style.--color-area]="colorVivoArea(celda.franja.color_area)"
+                     [ngClass]="['estado-' + celda.franja.estado,
+                               celda.esInicio ? 'es-inicio' : '',
+                               celda.esFin ? 'es-fin' : '',
+                               celda.esIntermedio ? 'es-intermedio' : '',
+                               franjaCoincide(celda.franja) ? '' : 'bloque-atenuado']"
+                     [title]="celda.franja.nombre_area + ' · ' + celda.franja.hora_inicial + ' - ' + celda.franja.hora_final + ' · ' + textoEstadoFranja[celda.franja.estado]"
+                     (click)="abrirFranja(celda.franja)">
+
+                  <ng-container *ngIf="celda.esInicio">
+                    <span class="bloque-icono-estado">{{ iconoEstadoFranja[celda.franja.estado] }}</span>
+                    <div class="horario-block-titulo">{{ celda.franja.nombre_area }}</div>
+                    <div class="horario-block-hora">{{ celda.franja.hora_inicial }} - {{ celda.franja.hora_final }}</div>
+                    <div class="horario-block-detalle bloque-estado-texto">{{ textoEstadoFranja[celda.franja.estado] }}</div>
+                  </ng-container>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VISTA MÓVIL: un grupo/curso a la vez -->
+      <div class="horario-mobile">
+        <div class="dia-selector">
+          <button class="dia-nav-btn" (click)="destinoMovilAnterior()" [disabled]="indiceDestinoMovil === 0">‹</button>
+          <div class="dia-tabs">
+            <button *ngFor="let d of destinosHorario; let i = index"
+                    class="dia-tab"
+                    [class.dia-tab-activo]="indiceDestinoMovil === i"
+                    (click)="indiceDestinoMovil = i">
+              {{ d.nombre_destino }}
+            </button>
+          </div>
+          <button class="dia-nav-btn" (click)="destinoMovilSiguiente()" [disabled]="indiceDestinoMovil === destinosHorario.length - 1">›</button>
+        </div>
+
+        <div class="dia-nombre-movil" *ngIf="destinoMovil">
+          {{ destinoMovil.nombre_destino }}
+          <span class="tag-hoy">✅ {{ destinoMovil.resumen.ejecutada }}/{{ destinoMovil.franjas.length }}</span>
+        </div>
+
+        <div class="bloques-dia" *ngIf="destinoMovil">
+          <div class="bloque-horario-movil"
+               *ngFor="let f of destinoMovil.franjas"
+               [ngClass]="['estado-' + f.estado, franjaCoincide(f) ? '' : 'bloque-atenuado']"
+               (click)="abrirFranja(f)">
+            <div class="bloque-color-bar" [style.background-color]="colorVivoArea(f.color_area)"></div>
+            <div class="bloque-info">
+              <span class="bloque-area-movil">{{ f.nombre_area | titlecase }}</span>
+              <span class="bloque-hora-movil">{{ f.hora_inicial }} - {{ f.hora_final }} · {{ f.docente_asignado }}</span>
+            </div>
+            <span class="badge-estado" [ngClass]="'badge-' + f.estado">
+              {{ iconoEstadoFranja[f.estado] }} {{ textoEstadoFranja[f.estado] }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+
+    <div *ngIf="!cargandoDetalle && destinosHorario.length === 0" class="sin-datos">
+      <em *ngIf="detalle.dia_habil !== false">No hay {{ textoFranjas | lowercase }} programadas de {{ textoDestinos }} para esta fecha.</em>
+      <em *ngIf="detalle.dia_habil === false">La fecha no es día hábil: no hay {{ textoFranjas | lowercase }} que cumplir.</em>
+    </div>
+  </div>
+
+  <!-- Modal con el detalle de una franja (solo lectura) -->
+  <div class="modal-overlay" *ngIf="franjaSeleccionada" (click)="cerrarFranja()">
+    <div class="modal-content-franja" (click)="$event.stopPropagation()">
+      <div class="modal-header-custom" [style.border-left-color]="colorVivoArea(franjaSeleccionada.color_area)">
+        <div>
+          <h3>{{ franjaSeleccionada.nombre_area || 'Sin área' }}</h3>
+          <small class="text-muted">
+            {{ franjaSeleccionada.nombre_destino }} · {{ franjaSeleccionada.hora_inicial }} - {{ franjaSeleccionada.hora_final }}
+          </small>
+        </div>
+        <button type="button" class="btn-close-custom" (click)="cerrarFranja()">✕</button>
+      </div>
+
+      <div class="modal-body-custom">
+        <div class="franja-datos">
+          <div class="franja-dato">
+            <span class="franja-etiqueta">Estado</span>
+            <span class="badge-estado" [ngClass]="'badge-' + franjaSeleccionada.estado">
+              {{ iconoEstadoFranja[franjaSeleccionada.estado] }} {{ textoEstadoFranja[franjaSeleccionada.estado] }}
+            </span>
+          </div>
+          <div class="franja-dato">
+            <span class="franja-etiqueta">Docente asignado</span>
+            <span>{{ franjaSeleccionada.docente_asignado }}</span>
+          </div>
+          <div class="franja-dato" *ngIf="franjaSeleccionada.nombre_franja && franjaSeleccionada.nombre_franja !== franjaSeleccionada.nombre_area">
+            <span class="franja-etiqueta">Franja</span>
+            <span>{{ franjaSeleccionada.nombre_franja }}</span>
+          </div>
+          <div class="franja-dato" *ngIf="franjaSeleccionada.lugar">
+            <span class="franja-etiqueta">Lugar</span>
+            <span>📍 {{ franjaSeleccionada.lugar }}</span>
+          </div>
+        </div>
+
+        <div class="franja-subtitulo">Actividades</div>
+
+        <div *ngIf="franjaSeleccionada.actividades.length === 0" class="sin-datos sin-datos-compacto">
+          <em>No se registró ninguna actividad en esta {{ esCursos ? 'sesión' : 'franja' }}.</em>
+        </div>
+
+        <div class="actividad-modal" *ngFor="let a of franjaSeleccionada.actividades">
+          <div class="actividad-titulo">
+            {{ a.titulo_actividad }}
+            <span class="tag-adicional" *ngIf="a.es_tarea_adicional === 1" title="Actividad agregada al momento de calificar">Adicional</span>
+          </div>
+          <div class="actividad-meta">
+            <span>👤 {{ a.docente }}</span>
+            <span class="hora">🕘 {{ a.hora_inicio || '—' }}<ng-container *ngIf="a.hora_fin"> a {{ a.hora_fin }}</ng-container></span>
+            <span class="badge-estado" [class.badge-ejecutada]="a.id_estado_tarea === 2" [class.badge-en_curso]="a.id_estado_tarea !== 2">
+              {{ a.id_estado_tarea === 2 ? a.nombre_estado : 'En curso' }}
+            </span>
+            <span class="tag-tarde" *ngIf="!a.en_horario && a.minutos_diferencia !== null">
+              {{ textoDiferencia(a.minutos_diferencia) }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- VISTA: DETALLE POR FUERA DEL HORARIO -->
+  <!-- ============================================ -->
+  <div *ngIf="vista === 'fuera'" class="detalle-contenedor">
+    <div class="detalle-header">
+      <button class="btn-volver" (click)="volverAKpis()">
+        <i class="fas fa-arrow-left"></i> Volver
+      </button>
+      <div class="detalle-titulo">
+        <h4 class="mb-0">
+          <span class="me-2">📌</span>Actividades por fuera del horario
+        </h4>
+        <small class="text-muted">
+          {{ (detalle.fuera_horario || []).length }} actividad(es) · {{ detalle.nombre_dia }} {{ detalle.fecha }}
+        </small>
+      </div>
+      <div class="detalle-spacer"></div>
+    </div>
+
+    <div *ngIf="cargandoDetalle" class="text-center p-4">
+      <div class="spinner-border text-warning" role="status"></div>
+      <div class="mt-2">Cargando...</div>
+    </div>
+
+    <ng-container *ngIf="!cargandoDetalle && (detalle.fuera_horario || []).length > 0">
+      <div class="barra-busqueda">
+        <div class="busqueda-grupo">
+          <div class="input-limpiable">
+            <input type="text" class="form-control form-control-sm" placeholder="Buscar por {{ textoDestino | lowercase }}, área, actividad o docente..."
+                   [(ngModel)]="busquedaFuera" (input)="buscarFuera()" />
+            <button type="button" class="btn-limpiar" *ngIf="busquedaFuera" (click)="busquedaFuera = ''; buscarFuera()" title="Limpiar">&times;</button>
+          </div>
+        </div>
+        <select class="form-select form-select-sm select-motivo" [(ngModel)]="motivoFiltrado" (change)="cambiarMotivo()">
+          <option value="">Todos los motivos</option>
+          <option *ngFor="let m of motivosFuera" [value]="m.motivo">{{ m.texto_motivo }} ({{ m.cantidad }})</option>
+        </select>
+        <small class="text-muted" *ngIf="hayFiltrosFuera">
+          {{ fueraFiltrados.length }} de {{ (detalle.fuera_horario || []).length }} actividad(es)
+        </small>
+      </div>
+
+      <div class="filtros-grupo" *ngIf="destinosFuera.length > 1">
+        <button type="button" class="btn btn-sm"
+          [ngClass]="!destinoFiltradoFuera ? 'btn-warning' : 'btn-outline-secondary'"
+          (click)="filtrarDestinoFuera(null)">Todos</button>
+        <button type="button" class="btn btn-sm"
+          *ngFor="let d of destinosFuera"
+          [ngClass]="destinoFiltradoFuera === d.id_destino ? 'btn-warning' : 'btn-outline-secondary'"
+          (click)="filtrarDestinoFuera(d.id_destino)">
+          <img *ngIf="d.icono_destino" [src]="d.icono_destino" class="icono-boton-grupo" />{{ d.nombre_destino }}
+        </button>
+      </div>
+    </ng-container>
+
+    <div *ngIf="!cargandoDetalle && (detalle.fuera_horario || []).length === 0" class="sin-datos">
+      <em>Todas las actividades del día se ejecutaron dentro de su horario.</em>
+    </div>
+
+    <div *ngIf="!cargandoDetalle && (detalle.fuera_horario || []).length > 0 && fueraFiltrados.length === 0" class="sin-datos">
+      <em>Ninguna actividad coincide con los filtros.</em>
+    </div>
+
+    <div *ngIf="!cargandoDetalle && fueraFiltrados.length > 0" class="tabla-wrap mt-2">
+      <table class="tabla-estudiantes tabla-fuera">
+        <thead>
+          <tr>
+            <th class="text-center th-ordenable" (click)="ordenarFuera('hora_inicio')">
+              Inicio <i class="fas ms-1" [ngClass]="iconoOrdenFuera('hora_inicio')"></i>
+            </th>
+            <th class="text-center">Fin</th>
+            <th class="th-ordenable" (click)="ordenarFuera('nombre_destino')">
+              {{ textoDestino }} <i class="fas ms-1" [ngClass]="iconoOrdenFuera('nombre_destino')"></i>
+            </th>
+            <th class="th-ordenable" (click)="ordenarFuera('nombre_area')">
+              Área <i class="fas ms-1" [ngClass]="iconoOrdenFuera('nombre_area')"></i>
+            </th>
+            <th class="th-ordenable" (click)="ordenarFuera('titulo_actividad')">
+              Actividad <i class="fas ms-1" [ngClass]="iconoOrdenFuera('titulo_actividad')"></i>
+            </th>
+            <th class="th-ordenable" (click)="ordenarFuera('docente')">
+              Docente <i class="fas ms-1" [ngClass]="iconoOrdenFuera('docente')"></i>
+            </th>
+            <th class="text-center">{{ esCursos ? 'Sesión' : 'Franja' }}</th>
+            <th class="th-ordenable" (click)="ordenarFuera('motivo')">
+              Motivo <i class="fas ms-1" [ngClass]="iconoOrdenFuera('motivo')"></i>
+            </th>
+            <th class="text-center th-ordenable" (click)="ordenarFuera('minutos_diferencia')">
+              Diferencia <i class="fas ms-1" [ngClass]="iconoOrdenFuera('minutos_diferencia')"></i>
+            </th>
+            <th class="text-center">Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let a of fueraFiltrados">
+            <td class="text-center hora">{{ a.hora_inicio || '—' }}</td>
+            <td class="text-center hora">{{ a.hora_fin || '—' }}</td>
+            <td>
+              <span class="punto-area" [style.background-color]="a.color_destino"></span>
+              {{ a.nombre_destino }}
+            </td>
+            <td>{{ a.nombre_area || 'Sin área' }}</td>
+            <td class="celda-titulo">
+              {{ a.titulo_actividad }}
+              <span class="tag-adicional" *ngIf="a.es_tarea_adicional === 1" title="Actividad agregada al momento de calificar">Adicional</span>
+            </td>
+            <td>{{ a.docente }}</td>
+            <td class="text-center hora">{{ a.franja_texto || '—' }}</td>
+            <td>
+              <span class="tag-motivo" [ngClass]="'motivo-' + a.motivo">{{ a.texto_motivo }}</span>
+            </td>
+            <td class="text-center">
+              <span class="texto-diferencia" *ngIf="a.minutos_diferencia !== null">{{ textoDiferencia(a.minutos_diferencia) }}</span>
+              <span class="text-muted" *ngIf="a.minutos_diferencia === null">—</span>
+            </td>
+            <td class="text-center">
+              <span class="badge-estado"
+                [class.badge-ejecutada]="a.id_estado_tarea === 2"
+                [class.badge-en_curso]="a.id_estado_tarea !== 2">
+                {{ a.id_estado_tarea === 2 ? a.nombre_estado : 'En curso' }}
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
