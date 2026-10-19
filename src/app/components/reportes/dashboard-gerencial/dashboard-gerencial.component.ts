@@ -23,10 +23,17 @@ export class DashboardGerencialComponent implements OnInit {
   public tabs = [
     { id: 'operativo', label: 'Operativo', disponible: true, icono: '🏫' },
     { id: 'academico', label: 'Académico', disponible: true, icono: '📚' },
-    { id: 'extracurricular', label: 'Extracurricular', disponible: true, icono: '🎨' },
     { id: 'financiero', label: 'Financiero', disponible: true, icono: '💰' }
   ];
   public tabActivo: string = 'operativo';
+
+  // Sub-pestañas del tab Académico: el mismo componente en modo grupos
+  // (horario de los grupos) o cursos (horario de los cursos extracurriculares)
+  public subTabsAcademico = [
+    { id: 'grupos', label: 'Grupos', icono: '📚' },
+    { id: 'cursos', label: 'Extracurricular', icono: '🎨' }
+  ];
+  public subTabAcademico: string = 'grupos';
 
   constructor() { }
 
@@ -85,5 +92,9 @@ export class DashboardGerencialComponent implements OnInit {
       return;
     }
     this.tabActivo = tab.id;
+  }
+
+  seleccionarSubTabAcademico(subTab: any) {
+    this.subTabAcademico = subTab.id;
   }
 }

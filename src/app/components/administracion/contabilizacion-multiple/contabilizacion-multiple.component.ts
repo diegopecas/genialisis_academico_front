@@ -21,7 +21,17 @@ export class ContabilizacionMultipleComponent implements OnInit {
   public titulo = "Contabilización de Pagos";
   public titulos = [] as any[];
   public datos = [] as any[];
-  public columnasFiltro = ['Fecha', 'Tipo', 'Persona', 'Tipo de Pago', 'Observaciones'];
+  // Fechas y valores con filtro 'rango' (desde/hasta, inclusivo)
+  public columnasFiltro = [
+    { columna: 'Fecha', tipoFiltro: 'rango' as 'rango' },
+    'Tipo',
+    'Persona',
+    'Tipo de Pago',
+    { columna: 'Valor Recibido', tipoFiltro: 'rango' as 'rango' },
+    { columna: 'Saldo', tipoFiltro: 'rango' as 'rango' },
+    { columna: 'Fecha Registro', tipoFiltro: 'rango' as 'rango' },
+    'Registrado por'
+  ];
 
   // Variables para totales
   public totalSeleccionado = 0;
@@ -107,6 +117,11 @@ export class ContabilizacionMultipleComponent implements OnInit {
         alinear: 'centrado',
         tipo: 'date',
         formato: { pattern: 'dd/MM/yyyy HH:mm' }
+      },
+      {
+        clave: 'nombre_registro_display',
+        alias: 'Registrado por',
+        alinear: 'izquierda',
       }
     ];
   }
@@ -118,7 +133,10 @@ export class ContabilizacionMultipleComponent implements OnInit {
 
         this.datos = datos.map(item => ({
           ...item,
-          nombre_persona_display: item.nombre_estudiante || item.nombre_colaborador || 'Sin nombre'
+          nombre_persona_display: item.nombre_estudiante || item.nombre_colaborador || 'Sin nombre',
+          // Nombre completo de quien registró el pago; si no hay, el login del usuario
+          nombre_registro_display: this.normalizarNombre(item.nombre_completo_usuario_registro)
+            || item.nombre_usuario_registro || 'Sin registro'
         }));
 
         console.log("Pagos pendientes cargados:", this.datos.length);
@@ -133,6 +151,14 @@ export class ContabilizacionMultipleComponent implements OnInit {
         });
       }
     );
+  }
+
+  /**
+   * El SQL arma el nombre con CONCAT y deja dobles espacios cuando falta
+   * el segundo nombre o el segundo apellido.
+   */
+  private normalizarNombre(nombre: string | null | undefined): string {
+    return (nombre || '').replace(/\s+/g, ' ').trim();
   }
 
   onSeleccionCambiada(seleccionados: any[]) {

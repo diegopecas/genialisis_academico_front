@@ -49,21 +49,37 @@
         [esFechaHoy]="esFechaHoy()"
       ></app-dashboard-operativo>
 
-      <!-- Académico: ejecución según horario de los grupos -->
-      <app-dashboard-academico
-        [hidden]="tabActivo !== 'academico'"
-        [fecha]="fecha"
-        [esFechaHoy]="esFechaHoy()"
-        [modo]="'grupos'"
-      ></app-dashboard-academico>
+      <!-- Académico: sub-pestañas Grupos y Extracurricular. Las dos
+           quedan vivas con [hidden] para no recargar al cambiar. -->
+      <div [hidden]="tabActivo !== 'academico'">
+        <div class="subtabs-contenedor">
+          <div
+            class="subtab-item"
+            *ngFor="let sub of subTabsAcademico"
+            [class.subtab-activo]="subTabAcademico === sub.id"
+            (click)="seleccionarSubTabAcademico(sub)"
+          >
+            <span class="subtab-icono">{{ sub.icono }}</span>
+            <span class="subtab-label">{{ sub.label }}</span>
+          </div>
+        </div>
 
-      <!-- Extracurricular: ejecución según horario de los cursos extra -->
-      <app-dashboard-academico
-        [hidden]="tabActivo !== 'extracurricular'"
-        [fecha]="fecha"
-        [esFechaHoy]="esFechaHoy()"
-        [modo]="'cursos'"
-      ></app-dashboard-academico>
+        <!-- Ejecución según horario de los grupos -->
+        <app-dashboard-academico
+          [hidden]="subTabAcademico !== 'grupos'"
+          [fecha]="fecha"
+          [esFechaHoy]="esFechaHoy()"
+          [modo]="'grupos'"
+        ></app-dashboard-academico>
+
+        <!-- Ejecución según horario de los cursos extracurriculares -->
+        <app-dashboard-academico
+          [hidden]="subTabAcademico !== 'cursos'"
+          [fecha]="fecha"
+          [esFechaHoy]="esFechaHoy()"
+          [modo]="'cursos'"
+        ></app-dashboard-academico>
+      </div>
 
       <app-dashboard-financiero
         [hidden]="tabActivo !== 'financiero'"

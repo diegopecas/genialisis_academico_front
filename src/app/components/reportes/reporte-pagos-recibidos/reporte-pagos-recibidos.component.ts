@@ -21,13 +21,19 @@ export class ReportePagosRecibidosComponent implements OnInit {
   public titulo = "Reporte de Pagos Recibidos";
   public titulos = [] as any[];
   public datos = [] as any[];
+  // Fechas y valores con filtro 'rango' (desde/hasta, inclusivo)
   public columnasFiltro = [
-    { columna: 'Fecha', tipoFiltro: 'fecha' as 'fecha' | 'normal' },
+    { columna: 'Fecha', tipoFiltro: 'rango' as 'rango' },
     'Tipo Persona',
     'Persona',
     'Tipo de Pago',
+    { columna: 'Valor Recibido', tipoFiltro: 'rango' as 'rango' },
+    { columna: 'Valor Aplicado', tipoFiltro: 'rango' as 'rango' },
+    { columna: 'Saldo', tipoFiltro: 'rango' as 'rango' },
     'Estado',
-    { columna: 'Fecha Estado', tipoFiltro: 'fecha' as 'fecha' | 'normal' }
+    { columna: 'Fecha Estado', tipoFiltro: 'rango' as 'rango' },
+    'Registrado por',
+    { columna: 'Fecha Registro', tipoFiltro: 'rango' as 'rango' }
   ];
 
   public resumen = {
@@ -136,6 +142,18 @@ export class ReportePagosRecibidosComponent implements OnInit {
         clave: 'usuario_estado',
         alias: 'Usuario',
         alinear: 'izquierda',
+      },
+      {
+        clave: 'nombre_registro_display',
+        alias: 'Registrado por',
+        alinear: 'izquierda',
+      },
+      {
+        clave: 'fecha_registro',
+        alias: 'Fecha Registro',
+        alinear: 'centrado',
+        tipo: 'date',
+        formato: { pattern: 'dd/MM/yyyy HH:mm' }
       }
     ];
   }
@@ -202,6 +220,9 @@ export class ReportePagosRecibidosComponent implements OnInit {
             estado: estado,
             fecha_estado: fechaEstado,
             usuario_estado: usuarioEstado,
+            // Quien registró el pago, sin importar el estado actual
+            nombre_registro_display: this.normalizarNombre(item.nombre_completo_usuario_registro)
+              || item.nombre_usuario_registro || 'Sin registro',
             color: color
           };
         });
@@ -220,6 +241,14 @@ export class ReportePagosRecibidosComponent implements OnInit {
         });
       }
     );
+  }
+
+  /**
+   * El SQL arma el nombre con CONCAT y deja dobles espacios cuando falta
+   * el segundo nombre o el segundo apellido.
+   */
+  private normalizarNombre(nombre: string | null | undefined): string {
+    return (nombre || '').replace(/\s+/g, ' ').trim();
   }
 
   calcularResumen(datos: any[]) {
