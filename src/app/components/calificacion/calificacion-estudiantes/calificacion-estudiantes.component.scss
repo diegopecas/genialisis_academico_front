@@ -192,6 +192,23 @@ $color-sin-calificar: #b0b4ba;
   gap: 6px;
 }
 
+// Aviso de franja ya terminada (interruptor calificacion_horario_vencido_activo)
+.aviso-franja-vencida {
+  margin-top: 10px;
+  padding: 8px 10px;
+  background: #FFF3D6;
+  border: 1px solid rgba(224, 168, 46, 0.45);
+  border-radius: 8px;
+  color: #8B6914;
+  font-size: 0.78em;
+  line-height: 1.35;
+  text-align: left;
+
+  i {
+    margin-right: 4px;
+  }
+}
+
 .bloque-radio {
   display: flex;
   align-items: center;

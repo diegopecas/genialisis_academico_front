@@ -13,6 +13,7 @@ import { CalificacionContextService } from '../../../services/calificacion-conte
 import { GruposService } from '../../../services/grupos.service';
 import { CursosExtraService } from '../../../services/cursos-extra.service';
 import { AreasAcademicasService } from '../../../services/areas-academicas.service';
+import { ConfiguracionGlobalService } from '../../../services/configuracion-global.service';
 import { UtilService } from '../../../common/constantes/util.service';
 import collect from 'collect.js';
 import Swal from 'sweetalert2';
@@ -51,6 +52,10 @@ export class CalificacionEstudiantesComponent implements OnInit {
   public bloquesHorario: any[] = [];
   public horarioSeleccionado: any = null;
 
+  // Interruptor calificacion_horario_vencido_activo del jardín: si la franja ya
+  // terminó, la clase queda con las horas de la franja (lo resuelve el back)
+  public horarioVencidoActivo: boolean = false;
+
   // Huella del dispositivo (silenciosa)
   private huellaDispositivo: string = '';
   private userAgent: string = '';
@@ -75,12 +80,14 @@ export class CalificacionEstudiantesComponent implements OnInit {
     private tareasXSprintsService: TareasXSprintsService,
     private tareasXSprintsXEstudianteService: TareasXSprintsXEstudianteService,
     private calificacionContext: CalificacionContextService,
+    private configuracionGlobalService: ConfiguracionGlobalService,
     private utilService: UtilService
   ) {}
 
   ngOnInit(): void {
     this.usuario = this.utilService.obtenerUsuarioActual();
     this.generarHuellaDispositivo();
+    this.cargarInterruptorHorarioVencido();
 
     this.route.params.subscribe(params => {
       this.idGrupo = params['idGrupo'];
@@ -166,6 +173,33 @@ export class CalificacionEstudiantesComponent implements OnInit {
     const diaSemana = jsDay === 0 ? 7 : jsDay;
     this.bloquesHorario = this.calificacionContext.getHorariosAreaDia(this.idGrupo, this.idArea, diaSemana);
     this.horarioSeleccionado = this.calificacionContext.getBloqueActual(this.idGrupo, this.idArea);
+  }
+
+  private cargarInterruptorHorarioVencido(): void {
+    this.configuracionGlobalService.obtenerByClave('calificacion_horario_vencido_activo').subscribe({
+      next: (resp: any) => {
+        const config = resp.body;
+        const texto = String(config?.valor_texto ?? '').trim().toLowerCase();
+        this.horarioVencidoActivo = texto === 'true' || texto === '1' || Number(config?.valor_numero) === 1;
+      },
+      error: () => {
+        this.horarioVencidoActivo = false;
+      }
+    });
+  }
+
+  /**
+   * La franja escogida ya terminó y el jardín tiene prendido el interruptor:
+   * se avisa con qué horas va a quedar la clase. El back es el que decide con
+   * la hora del servidor; esto es solo el aviso.
+   */
+  public get franjaSeleccionadaVencida(): boolean {
+    if (!this.horarioVencidoActivo || !this.horarioSeleccionado?.hora_final) return false;
+    const ahora = new Date();
+    const horaActual = String(ahora.getHours()).padStart(2, '0') + ':' +
+      String(ahora.getMinutes()).padStart(2, '0') + ':' + String(ahora.getSeconds()).padStart(2, '0');
+    const horaFinal = String(this.horarioSeleccionado.hora_final);
+    return (horaFinal.length === 5 ? horaFinal + ':00' : horaFinal) < horaActual;
   }
 
   private cargarParametrosCalificaciones(): void {
@@ -551,6 +585,9 @@ export class CalificacionEstudiantesComponent implements OnInit {
       { userAgent: this.userAgent, huella: this.huellaDispositivo }
     ).subscribe((response: any) => {
       this.actividadAcademica.id_docente_inicia = this.usuario.id_docente;
+      // Se recargan los estudiantes: si la franja ya terminó y el jardín tiene
+      // el interruptor prendido, salen también los que ya se fueron
+      this.cargarVistaTarea();
     });
   }
 

@@ -257,6 +257,13 @@
                   <span class="bloque-radio-texto">Sin asociar</span>
                 </label>
               </div>
+              <!-- Franja ya terminada con el interruptor del jardín prendido -->
+              <div class="aviso-franja-vencida" *ngIf="franjaSeleccionadaVencida">
+                <i class="fa fa-clock-o"></i>
+                Esta franja ya terminó. La clase quedará registrada de
+                {{ horarioSeleccionado.hora_inicial?.substring(0, 5) }} a {{ horarioSeleccionado.hora_final?.substring(0, 5) }}
+                y salen todos los niños que tuvieron asistencia hoy, aunque ya se hayan ido.
+              </div>
             </div>
           </div>
         </div>
