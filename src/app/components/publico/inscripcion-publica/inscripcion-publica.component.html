@@ -104,6 +104,9 @@
                 <span *ngIf="c.valor_unico > 0">
                   Pago único {{ formatearMoneda(c.valor_unico) }}
                 </span>
+                <span *ngFor="let p of c.paquetes">
+                  {{ textoPaquete(p) }}: {{ formatearMoneda(p.valor) }}
+                </span>
               </div>
               <div class="tarjeta-precio" *ngIf="!tieneValores(c)">
                 <span>Consulta el valor con nosotros</span>
@@ -142,6 +145,9 @@
             </span>
             <span *ngIf="cursoSeleccionado.valor_unico > 0">
               pago único {{ formatearMoneda(cursoSeleccionado.valor_unico) }}.
+            </span>
+            <span *ngFor="let p of cursoSeleccionado.paquetes">
+              {{ textoPaquete(p) }}: {{ formatearMoneda(p.valor) }}.
             </span>
           </div>
         </div>

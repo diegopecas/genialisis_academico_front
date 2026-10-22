@@ -506,7 +506,9 @@ export class InscripcionCursosExtraComponent implements OnInit {
     this.tarifasCursosExtraService.obtenerByCurso(this.idCursoSeleccionado).subscribe({
       next: async (response: any) => {
         const tarifas = response.body || [];
-        const tarifa = tarifas.find((t: any) => t.anio == anio) || null;
+        // El lote se cobra con la tarifa interna del jardín: las de convenio
+        // tienen institución cliente y no aplican aquí.
+        const tarifa = tarifas.find((t: any) => t.anio == anio && !t.id_institucion_cliente) || null;
 
         if (!tarifa) {
           this.procesando = false;
@@ -516,7 +518,39 @@ export class InscripcionCursosExtraComponent implements OnInit {
           return;
         }
 
-        const valores = this.construirValores(tarifa);
+        // Si la tarifa tiene paquetes de sesiones, todo el lote compra el mismo.
+        const paquetes = (tarifa.detalle || []).filter((l: any) => l.tipo === 'paquete' && l.activo == 1);
+        let paquete: any = null;
+        if (paquetes.length === 1) {
+          paquete = paquetes[0];
+        } else if (paquetes.length > 1) {
+          Swal.close();
+          const opciones: any = {};
+          paquetes.forEach((p: any) => {
+            const vigencia = p.vigencia_dias ? ` · ${p.vigencia_dias} días` : '';
+            opciones[p.id] = `${p.numero_sesiones} sesiones${vigencia} — ${this.formatearMoneda(parseFloat(p.valor) || 0)}`;
+          });
+          const eleccion = await Swal.fire({
+            title: 'Paquete de sesiones',
+            text: 'Seleccione el paquete que compran los estudiantes del lote',
+            input: 'select',
+            inputOptions: opciones,
+            inputPlaceholder: 'Seleccione...',
+            showCancelButton: true,
+            confirmButtonText: 'Continuar',
+            cancelButtonText: 'No generar',
+            confirmButtonColor: '#26a69a',
+            inputValidator: (valor: string) => valor ? null : 'Seleccione un paquete'
+          });
+          if (!eleccion.isConfirmed) {
+            this.procesando = false;
+            Swal.fire('Listo', `${inscripciones.length} estudiante(s) inscrito(s). No se generaron cobros.`, 'success');
+            return;
+          }
+          paquete = paquetes.find((p: any) => p.id == eleccion.value) || null;
+        }
+
+        const valores = this.construirValores(tarifa, paquete);
 
         if (valores.length === 0) {
           this.procesando = false;
@@ -569,8 +603,9 @@ export class InscripcionCursosExtraComponent implements OnInit {
    * matricula y cobro unico diferidos por cuotas, pension mes a mes.
    * El punto de partida es la fecha de inscripcion, no la de inicio del curso, para
    * que quien entra tarde solo pague desde que entra.
+   * El paquete de sesiones, si lo hay, es un solo cobro en la fecha de inscripcion.
    */
-  private construirValores(tarifa: any): ValorGenerado[] {
+  private construirValores(tarifa: any, paquete: any = null): ValorGenerado[] {
     const valores: ValorGenerado[] = [];
     const nombreCurso = this.cursoSeleccionado?.nombre || 'Curso';
     const fechaInicio = new Date(this.fechaInscripcion + 'T00:00:00');
@@ -578,60 +613,61 @@ export class InscripcionCursosExtraComponent implements OnInit {
       ? new Date(this.cursoSeleccionado.fecha_fin + 'T00:00:00')
       : fechaInicio;
 
-    const valorMatricula = parseFloat(tarifa.valor_matricula) || 0;
-    const cuotasMatricula = tarifa.cuotas_matricula || 1;
-    const valorPension = parseFloat(tarifa.valor_pension) || 0;
-    const valorUnico = parseFloat(tarifa.valor_unico) || 0;
-    const cuotasUnico = tarifa.cuotas_unico || 1;
+    const lineasFijas = (tarifa.detalle || []).filter((l: any) => l.tipo !== 'paquete' && l.activo == 1);
 
-    if (tarifa.id_producto_matricula && valorMatricula > 0) {
-      const valorCuota = Math.round((valorMatricula / cuotasMatricula) * 100) / 100;
-      for (let i = 0; i < cuotasMatricula; i++) {
+    lineasFijas.forEach((linea: any) => {
+      const valor = parseFloat(linea.valor) || 0;
+      if (valor <= 0) return;
+
+      if (linea.tipo === 'pension') {
+        const current = new Date(fechaInicio);
+        while (current <= fechaFin) {
+          valores.push({
+            id_producto_servicio: linea.id_producto_servicio,
+            nombre_producto: linea.nombre_producto || 'Pensión',
+            fecha: this.formatearFechaISO(current),
+            valor: valor,
+            tipo: 'pension',
+            detalle: `Pensión ${nombreCurso} - ${this.formatearMesAnio(current)}`
+          });
+
+          const siguiente = new Date(current);
+          siguiente.setMonth(siguiente.getMonth() + 1);
+          current.setTime(siguiente.getTime());
+        }
+        return;
+      }
+
+      const cuotas = parseInt(linea.cuotas) || 1;
+      const valorCuota = Math.round((valor / cuotas) * 100) / 100;
+      const esMatricula = linea.tipo === 'matricula';
+      for (let i = 0; i < cuotas; i++) {
         const fechaCuota = new Date(fechaInicio);
         fechaCuota.setMonth(fechaCuota.getMonth() + i);
         valores.push({
-          id_producto_servicio: tarifa.id_producto_matricula,
-          nombre_producto: tarifa.nombre_producto_matricula || 'Matrícula',
+          id_producto_servicio: linea.id_producto_servicio,
+          nombre_producto: linea.nombre_producto || (esMatricula ? 'Matrícula' : 'Cobro Único'),
           fecha: this.formatearFechaISO(fechaCuota),
           valor: valorCuota,
-          tipo: 'matricula',
-          detalle: `Matrícula ${nombreCurso} - Cuota ${i + 1}/${cuotasMatricula}`
+          tipo: esMatricula ? 'matricula' : 'unico',
+          detalle: esMatricula
+            ? `Matrícula ${nombreCurso} - Cuota ${i + 1}/${cuotas}`
+            : `${nombreCurso} - Cuota ${i + 1}/${cuotas}`
         });
       }
-    }
+    });
 
-    if (tarifa.id_producto_pension && valorPension > 0) {
-      const current = new Date(fechaInicio);
-      while (current <= fechaFin) {
-        valores.push({
-          id_producto_servicio: tarifa.id_producto_pension,
-          nombre_producto: tarifa.nombre_producto_pension || 'Pensión',
-          fecha: this.formatearFechaISO(current),
-          valor: valorPension,
-          tipo: 'pension',
-          detalle: `Pensión ${nombreCurso} - ${this.formatearMesAnio(current)}`
-        });
-
-        const siguiente = new Date(current);
-        siguiente.setMonth(siguiente.getMonth() + 1);
-        current.setTime(siguiente.getTime());
-      }
-    }
-
-    if (tarifa.id_producto_unico && valorUnico > 0) {
-      const valorCuota = Math.round((valorUnico / cuotasUnico) * 100) / 100;
-      for (let i = 0; i < cuotasUnico; i++) {
-        const fechaCuota = new Date(fechaInicio);
-        fechaCuota.setMonth(fechaCuota.getMonth() + i);
-        valores.push({
-          id_producto_servicio: tarifa.id_producto_unico,
-          nombre_producto: tarifa.nombre_producto_unico || 'Cobro Único',
-          fecha: this.formatearFechaISO(fechaCuota),
-          valor: valorCuota,
-          tipo: 'unico',
-          detalle: `${nombreCurso} - Cuota ${i + 1}/${cuotasUnico}`
-        });
-      }
+    const valorPaquete = paquete ? (parseFloat(paquete.valor) || 0) : 0;
+    if (paquete && valorPaquete > 0) {
+      const vigencia = paquete.vigencia_dias ? ` (vigencia ${paquete.vigencia_dias} días)` : '';
+      valores.push({
+        id_producto_servicio: paquete.id_producto_servicio,
+        nombre_producto: paquete.nombre_producto || 'Paquete de sesiones',
+        fecha: this.formatearFechaISO(fechaInicio),
+        valor: valorPaquete,
+        tipo: 'paquete',
+        detalle: `${nombreCurso} - ${paquete.numero_sesiones} sesiones${vigencia}`
+      });
     }
 
     valores.sort((a, b) => a.fecha.localeCompare(b.fecha));

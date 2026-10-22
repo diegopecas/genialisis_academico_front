@@ -81,30 +81,38 @@
           </div>
         </div>
 
-        <!-- Valores editables de tarifa -->
-        <div class="row g-3 mt-2" *ngIf="tarifa">
-          <div class="col-md-3" *ngIf="tarifa.id_producto_matricula">
-            <label class="form-label">Valor Matrícula</label>
-            <input type="text" class="form-control" [value]="valorMatriculaFormateado"
-              (input)="onValorMatriculaInput($event)" placeholder="$0">
+        <!-- Valores editables de tarifa: una fila por cada cobro fijo del detalle -->
+        <div class="row g-3 mt-2" *ngFor="let linea of lineasFijas">
+          <div [ngClass]="linea.tipo === 'pension' ? 'col-md-8' : 'col-md-6'">
+            <label class="form-label">{{getNombreTipoLinea(linea.tipo)}}</label>
+            <input type="text" class="form-control" [value]="linea.nombre_producto" disabled>
           </div>
-          <div class="col-md-2" *ngIf="tarifa.id_producto_matricula">
+          <div [ngClass]="linea.tipo === 'pension' ? 'col-md-4' : 'col-8 col-md-4'">
+            <label class="form-label">Valor{{linea.tipo === 'pension' ? ' mensual' : ''}}</label>
+            <input type="text" inputmode="numeric" class="form-control" [value]="formatearNumero(linea.valor)"
+              (input)="onValorLineaInput($event, linea)" placeholder="$0" [disabled]="!editable">
+          </div>
+          <div class="col-4 col-md-2" *ngIf="linea.tipo !== 'pension'">
             <label class="form-label">Cuotas</label>
-            <input type="number" class="form-control" [(ngModel)]="cuotasMatricula" min="1" max="12">
+            <input type="number" class="form-control" [(ngModel)]="linea.cuotas" min="1" max="12" [disabled]="!editable">
           </div>
-          <div class="col-md-3" *ngIf="tarifa.id_producto_pension">
-            <label class="form-label">Valor Pensión mensual</label>
-            <input type="text" class="form-control" [value]="valorPensionFormateado"
-              (input)="onValorPensionInput($event)" placeholder="$0">
+        </div>
+
+        <!-- Paquete de sesiones: se compra uno -->
+        <div class="row g-3 mt-2" *ngIf="paquetes.length > 0">
+          <div class="col-md-8">
+            <label class="form-label">Paquete de sesiones *</label>
+            <select class="form-select" [(ngModel)]="idPaqueteSeleccionado" (change)="onPaqueteChange()" [disabled]="!editable">
+              <option [ngValue]="null">Seleccione...</option>
+              <option *ngFor="let p of paquetes" [ngValue]="p.id">
+                {{p.numero_sesiones}} sesiones{{p.vigencia_dias ? ' · ' + p.vigencia_dias + ' días' : ''}} — {{formatearMoneda(p.valor)}}
+              </option>
+            </select>
           </div>
-          <div class="col-md-3" *ngIf="tarifa.id_producto_unico">
-            <label class="form-label">Valor Cobro Único</label>
-            <input type="text" class="form-control" [value]="valorUnicoFormateado"
-              (input)="onValorUnicoInput($event)" placeholder="$0">
-          </div>
-          <div class="col-md-1" *ngIf="tarifa.id_producto_unico">
-            <label class="form-label">Cuotas</label>
-            <input type="number" class="form-control" [(ngModel)]="cuotasUnico" min="1" max="12">
+          <div class="col-md-4" *ngIf="idPaqueteSeleccionado">
+            <label class="form-label">Valor del paquete</label>
+            <input type="text" inputmode="numeric" class="form-control" [value]="formatearNumero(valorPaquete)"
+              (input)="onValorPaqueteInput($event)" placeholder="$0" [disabled]="!editable">
           </div>
         </div>
 
@@ -191,6 +199,10 @@
               <div class="col-md-3" *ngIf="resumen.total_unico > 0">
                 <small class="text-muted d-block">Cobro Único</small>
                 <strong class="text-primary">{{formatearMoneda(resumen.total_unico)}}</strong>
+              </div>
+              <div class="col-md-3" *ngIf="resumen.total_paquete > 0">
+                <small class="text-muted d-block">Paquete</small>
+                <strong class="text-primary">{{formatearMoneda(resumen.total_paquete)}}</strong>
               </div>
               <div class="col-md-3">
                 <small class="text-muted d-block">Total</small>

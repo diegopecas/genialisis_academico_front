@@ -1,0 +1,138 @@
+import {
+  HttpClient,
+  HttpErrorResponse,
+  HttpResponse,
+} from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { environment } from '../../environments/environment';
+import { Observable, throwError } from 'rxjs';
+import { catchError, tap } from 'rxjs/operators';
+import { httpOptions } from './http';
+
+/**
+ * Modalidad de un curso extracurricular (GRUPAL, PERSONALIZADO): dice cómo
+ * funciona el curso. Catálogo global; se compara siempre por código.
+ */
+export interface ModalidadCursoExtra {
+  id: string;
+  codigo: string;
+  nombre: string;
+  descripcion?: string;
+  orden?: number;
+  activo?: number;
+}
+
+@Injectable({
+  providedIn: 'root'
+})
+export class ModalidadesCursosExtraService {
+
+  private servicio = environment.api + 'modalidades-cursos-extra';
+
+  constructor(private http: HttpClient) { }
+
+  obtenerTodos() {
+    return this.http
+      .get<HttpResponse<Object>>(this.servicio, { observe: 'response' })
+      .pipe(
+        tap((response: HttpResponse<Object>) => {
+          let respuesta: any = response.body;
+          if (respuesta.error) {
+            throw respuesta.error;
+          }
+          return response;
+        }),
+        catchError(this.handleError)
+      );
+  }
+
+  obtenerActivos() {
+    return this.http
+      .get<HttpResponse<Object>>(this.servicio + '/activos', {
+        observe: 'response',
+      })
+      .pipe(
+        tap((response: HttpResponse<Object>) => {
+          let respuesta: any = response.body;
+          if (respuesta.error) {
+            throw respuesta.error;
+          }
+          return response;
+        }),
+        catchError(this.handleError)
+      );
+  }
+
+  obtenerById(id: any) {
+    return this.http
+      .get<HttpResponse<Object>>(this.servicio + `/${id}`, {
+        observe: 'response',
+      })
+      .pipe(
+        tap((response: HttpResponse<Object>) => {
+          let respuesta: any = response.body;
+          if (respuesta.error) {
+            throw respuesta.error;
+          }
+          return response;
+        }),
+        catchError(this.handleError)
+      );
+  }
+
+  obtenerByCodigo(codigo: string) {
+    return this.http
+      .get<HttpResponse<Object>>(this.servicio + `/codigo/${codigo}`, {
+        observe: 'response',
+      })
+      .pipe(
+        tap((response: HttpResponse<Object>) => {
+          let respuesta: any = response.body;
+          if (respuesta.error) {
+            throw respuesta.error;
+          }
+          return response;
+        }),
+        catchError(this.handleError)
+      );
+  }
+
+  crear(modalidad: any) {
+    const body = JSON.stringify(modalidad);
+    return this.http.post<any>(this.servicio, body, httpOptions).pipe(
+      tap((respuesta: any) => {
+        if (respuesta.error) {
+          throw respuesta.error;
+        }
+        return respuesta;
+      }),
+      catchError(this.handleError)
+    );
+  }
+
+  actualizar(modalidad: any) {
+    const body = JSON.stringify(modalidad);
+    return this.http.put<any>(this.servicio, body, httpOptions).pipe(
+      tap((respuesta: any) => {
+        if (respuesta.error) throw respuesta.error;
+        return respuesta;
+      }),
+      catchError(this.handleError)
+    );
+  }
+
+  eliminar(id: any) {
+    const body = JSON.stringify({ id });
+    return this.http.request<any>('delete', this.servicio, { body, ...httpOptions }).pipe(
+      tap((respuesta: any) => {
+        if (respuesta.error) throw respuesta.error;
+        return respuesta;
+      }),
+      catchError(this.handleError)
+    );
+  }
+
+  private handleError(error: HttpErrorResponse) {
+    return throwError(() => error);
+  }
+}

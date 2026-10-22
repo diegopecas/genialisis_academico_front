@@ -8,6 +8,7 @@ import { ProductosServiciosService } from '../../../../services/productos-servic
 import { ClasificacionProductosServiciosService } from '../../../../services/clasificacion-productos-servicios.service';
 import { TiposCobroProductoService } from '../../../../services/tipos-cobro-producto.service';
 import { TiposCursosExtracurricularesService } from '../../../../services/tipos-cursos-extracurriculares.service';
+import { ModalidadesCursosExtraService } from '../../../../services/modalidades-cursos-extra.service';
 import { LugaresCursosExtraService } from '../../../../services/lugares-cursos-extra.service';
 import { AreasAcademicasService } from '../../../../services/areas-academicas.service';
 import { DiasSemanaService } from '../../../../services/dias-semana.service';
@@ -53,6 +54,7 @@ export class CrearCursoExtraComponent implements OnInit {
     anio: new Date().getFullYear(),
     activo: 1,
     id_tipo_curso_extracurricular: null,
+    id_modalidad_curso_extra: null,
     id_lugar_curso_extra: null,
     id_area_academica: null,
     permite_sobrecupo: 0,
@@ -71,6 +73,9 @@ export class CrearCursoExtraComponent implements OnInit {
 
   // Catalogos del tab de Datos Basicos
   tiposCursoExtra: any[] = [];
+  /* Modalidad: como funciona el curso (grupal o personalizado). Es distinta
+     del tipo, que es la categoria (Deportes, Artes...). Catalogo global. */
+  modalidadesCursoExtra: any[] = [];
   lugaresCursoExtra: any[] = [];
   areasExtracurriculares: any[] = [];
 
@@ -120,24 +125,34 @@ export class CrearCursoExtraComponent implements OnInit {
   productosMatricula: any[] = [];
   productosPension: any[] = [];
   productosUnico: any[] = [];
+  productosPaquete: any[] = [];
   aniosEscolares: number[] = [];
   anioTarifa: number = new Date().getFullYear();
   valorMatriculaFormateado: string = '';
   valorPensionFormateado: string = '';
   valorUnicoFormateado: string = '';
+  /* La tarifa es la cabecera (curso, año y convenio) y lo que se cobra va en
+     su detalle: una fila por concepto. Un mismo curso puede tener varias
+     filas del mismo tipo, por ejemplo paquetes de 4, 8, 12 y 16 sesiones. */
   tarifaActual: any = {
     id: null,
     id_curso_extra: null,
-    id_producto_matricula: null,
-    valor_matricula: 0,
-    cuotas_matricula: 1,
-    id_producto_pension: null,
-    valor_pension: 0,
-    id_producto_unico: null,
-    valor_unico: 0,
-    cuotas_unico: 1,
-    anio: new Date().getFullYear()
+    id_institucion_cliente: null,
+    anio: new Date().getFullYear(),
+    detalle: []
   };
+
+  // Tipos de fila del detalle, en el orden en que se muestran.
+  tiposLineaTarifa: any[] = [
+    { codigo: 'matricula', nombre: 'Matrícula', icono: 'fas fa-file-invoice-dollar' },
+    { codigo: 'pension', nombre: 'Pensión mensual', icono: 'fas fa-calendar-alt' },
+    { codigo: 'unico', nombre: 'Cobro único', icono: 'fas fa-money-bill-wave' },
+    { codigo: 'paquete', nombre: 'Paquetes de sesiones', icono: 'fas fa-layer-group' }
+  ];
+
+  // Fila del detalle para la que se abrió el modal de producto nuevo.
+  // null = el modal se abrió sin fila (no pasa desde esta pantalla).
+  lineaProductoModal: any = null;
 
   /* Creación rápida de producto desde el tab de Tarifas.
      El producto nace siempre con clasificación Extra académico; la periodicidad
@@ -154,20 +169,25 @@ export class CrearCursoExtraComponent implements OnInit {
     valor_sugerido: 0
   } as any;
 
-  /* Periodicidades con las que se filtra cada select de producto en este tab:
-     1 Anual (matrícula), 2 Mensual (pensión), 4 Único (cobro único). */
+  /* Periodicidad con la que nace un producto creado desde este tab:
+     1 Anual (matrícula), 2 Mensual (pensión), 4 Único (cobro único y
+     paquetes de sesiones, que se pagan una vez). Los selects ya no filtran
+     por periodicidad sino por el tipo de cobro del producto. */
   private readonly periodicidadPorTipo: any = {
     matricula: 1,
     pension: 2,
-    unico: 4
+    unico: 4,
+    paquete: 4
   };
 
-  /* Tipo de cobro del producto según la sección. El cobro único no tiene
-     equivalente propio en tipos_cobro_producto, por eso va como OTRO. */
+  /* Tipo de cobro del producto según la sección. Es lo que define el tipo de
+     la fila: el cobro único no tiene tipo propio en tipos_cobro_producto y va
+     como OTRO. */
   private readonly codigoTipoCobroPorTipo: any = {
     matricula: 'MATRICULA',
     pension: 'PENSION',
-    unico: 'OTRO'
+    unico: 'OTRO',
+    paquete: 'PAQUETE'
   };
 
   constructor(
@@ -176,6 +196,7 @@ export class CrearCursoExtraComponent implements OnInit {
     private clasificacionProductosServiciosService: ClasificacionProductosServiciosService,
     private tiposCobroProductoService: TiposCobroProductoService,
     private tiposCursosExtracurricularesService: TiposCursosExtracurricularesService,
+    private modalidadesCursosExtraService: ModalidadesCursosExtraService,
     private lugaresCursosExtraService: LugaresCursosExtraService,
     private areasAcademicasService: AreasAcademicasService,
     private diasSemanaService: DiasSemanaService,
@@ -229,6 +250,7 @@ export class CrearCursoExtraComponent implements OnInit {
     this.cargarDocentesDisponibles();
     this.cargarProveedoresDisponibles();
     this.cargarTiposCursoExtra();
+    this.cargarModalidadesCursoExtra();
     this.cargarLugaresCursoExtra();
     this.cargarAreasExtracurriculares();
   }
@@ -267,6 +289,23 @@ export class CrearCursoExtraComponent implements OnInit {
       },
       error: (error: any) => {
         console.error("Error al cargar tipos de curso extracurricular", error);
+      }
+    });
+  }
+
+  /* Al crear, el curso arranca como grupal, que es la modalidad de casi todos.
+     Se busca por codigo porque el id no se compara nunca. */
+  cargarModalidadesCursoExtra() {
+    this.modalidadesCursosExtraService.obtenerActivos().subscribe({
+      next: (response: any) => {
+        this.modalidadesCursoExtra = response.body || [];
+        if (this.accion === 'crear' && !this.model.id_modalidad_curso_extra) {
+          const grupal = this.modalidadesCursoExtra.find((m: any) => m.codigo === 'GRUPAL');
+          this.model.id_modalidad_curso_extra = grupal ? grupal.id : null;
+        }
+      },
+      error: (error: any) => {
+        console.error("Error al cargar modalidades de curso extracurricular", error);
       }
     });
   }
@@ -423,6 +462,7 @@ export class CrearCursoExtraComponent implements OnInit {
       anio: parseInt(this.model.anio),
       activo: this.model.activo,
       id_tipo_curso_extracurricular: this.model.id_tipo_curso_extracurricular ? this.model.id_tipo_curso_extracurricular : null,
+      id_modalidad_curso_extra: this.model.id_modalidad_curso_extra ? this.model.id_modalidad_curso_extra : null,
       id_lugar_curso_extra: this.model.id_lugar_curso_extra ? this.model.id_lugar_curso_extra : null,
       id_area_academica: this.model.id_area_academica ? this.model.id_area_academica : null,
       permite_sobrecupo: this.model.permite_sobrecupo ? 1 : 0,
@@ -788,15 +828,15 @@ export class CrearCursoExtraComponent implements OnInit {
   cargarProductosTarifas(alTerminar?: () => void) {
     this.productosServiciosService.obtenerTodos().subscribe({
       next: (response: any) => {
-        const productos = response.body || [];
-        this.productosMatricula = productos.filter((p: any) =>
-          p.clasificacion_codigo === 'EXTRA_ACADEMICO' && p.id_periodicidad_cobro == 1
-        );
-        this.productosPension = productos.filter((p: any) =>
-          p.clasificacion_codigo === 'EXTRA_ACADEMICO' && p.id_periodicidad_cobro == 2
-        );
+        // Cada select muestra los productos extracurriculares de su tipo de
+        // cobro, que es el mismo criterio con el que el back resuelve el tipo
+        // de la fila. Lo que no es matrícula, pensión ni paquete es cobro único.
+        const productos = (response.body || []).filter((p: any) => p.clasificacion_codigo === 'EXTRA_ACADEMICO');
+        this.productosMatricula = productos.filter((p: any) => p.codigo_tipo_cobro === 'MATRICULA');
+        this.productosPension = productos.filter((p: any) => p.codigo_tipo_cobro === 'PENSION');
+        this.productosPaquete = productos.filter((p: any) => p.codigo_tipo_cobro === 'PAQUETE');
         this.productosUnico = productos.filter((p: any) =>
-          p.clasificacion_codigo === 'EXTRA_ACADEMICO' && p.id_periodicidad_cobro == 4
+          !['MATRICULA', 'PENSION', 'PAQUETE'].includes(p.codigo_tipo_cobro)
         );
         if (alTerminar) {
           alTerminar();
@@ -951,26 +991,117 @@ export class CrearCursoExtraComponent implements OnInit {
       (t.id_institucion_cliente || null) === (this.idInstitucionTarifa || null)
     );
     if (tarifaExistente) {
-      this.tarifaActual = { ...tarifaExistente };
+      // Copia de las filas para que editar no toque la lista cargada.
+      this.tarifaActual = {
+        ...tarifaExistente,
+        detalle: (tarifaExistente.detalle || []).map((l: any) => ({
+          ...l,
+          valor: parseFloat(l.valor) || 0,
+          activo: l.activo == 1 ? 1 : 0
+        }))
+      };
     } else {
       this.tarifaActual = {
         id: null,
         id_curso_extra: this.model.id,
         id_institucion_cliente: this.idInstitucionTarifa,
-        id_producto_matricula: null,
-        valor_matricula: 0,
-        cuotas_matricula: 1,
-        id_producto_pension: null,
-        valor_pension: 0,
-        id_producto_unico: null,
-        valor_unico: 0,
-        cuotas_unico: 1,
-        anio: this.anioTarifa
+        anio: this.anioTarifa,
+        detalle: []
       };
     }
-    this.valorMatriculaFormateado = this.formatearNumero(this.tarifaActual.valor_matricula);
-    this.valorPensionFormateado = this.formatearNumero(this.tarifaActual.valor_pension);
-    this.valorUnicoFormateado = this.formatearNumero(this.tarifaActual.valor_unico);
+  }
+
+  // ==================== DETALLE DE LA TARIFA ====================
+
+  /** Productos que se ofrecen en el select de una fila según su tipo. */
+  productosPorTipo(tipo: string): any[] {
+    if (tipo === 'matricula') return this.productosMatricula;
+    if (tipo === 'pension') return this.productosPension;
+    if (tipo === 'paquete') return this.productosPaquete;
+    return this.productosUnico;
+  }
+
+  /** Filas del detalle de un tipo, en el orden en que se muestran. */
+  lineasDeTipo(tipo: string): any[] {
+    return (this.tarifaActual.detalle || []).filter((l: any) => l.tipo === tipo);
+  }
+
+  agregarLinea(tipo: string) {
+    const detalle = this.tarifaActual.detalle || [];
+    // Un paquete nuevo propone las sesiones siguientes a las del último, que
+    // es como suelen venderse (4, 8, 12, 16), y la vigencia de 30 días.
+    const paquetes = detalle.filter((l: any) => l.tipo === 'paquete');
+    const ultimoPaquete = paquetes.length > 0 ? paquetes[paquetes.length - 1] : null;
+
+    detalle.push({
+      id: null,
+      tipo: tipo,
+      id_producto_servicio: null,
+      valor: 0,
+      cuotas: 1,
+      numero_sesiones: tipo === 'paquete' ? (ultimoPaquete ? (parseInt(ultimoPaquete.numero_sesiones) || 0) + 4 : 4) : null,
+      vigencia_dias: tipo === 'paquete' ? (ultimoPaquete?.vigencia_dias || 30) : null,
+      orden: detalle.length + 1,
+      activo: 1
+    });
+    this.tarifaActual.detalle = detalle;
+  }
+
+  quitarLinea(linea: any) {
+    this.tarifaActual.detalle = (this.tarifaActual.detalle || []).filter((l: any) => l !== linea);
+  }
+
+  // Al escoger el producto se propone su valor sugerido, que se puede cambiar.
+  onProductoLineaChange(linea: any) {
+    const producto = this.productosPorTipo(linea.tipo).find((p: any) => p.id == linea.id_producto_servicio);
+    if (producto && producto.valor_sugerido) {
+      linea.valor = producto.valor_sugerido;
+    }
+  }
+
+  onValorLineaInput(event: any, linea: any) {
+    const valor = event.target.value.replace(/\./g, '').replace(/\D/g, '');
+    linea.valor = valor ? parseInt(valor) : 0;
+    event.target.value = linea.valor > 0 ? linea.valor.toLocaleString('es-CO') : '';
+  }
+
+  /** Abre el modal de producto nuevo para una fila; al crearlo queda escogido en ella. */
+  abrirModalProductoLinea(linea: any) {
+    this.lineaProductoModal = linea;
+    this.abrirModalProducto(linea.tipo);
+  }
+
+  /** Revisa el detalle antes de guardar. Devuelve el mensaje de error o null. */
+  private validarDetalleTarifa(): string | null {
+    const detalle = this.tarifaActual.detalle || [];
+    const productos: any[] = [];
+
+    for (let i = 0; i < detalle.length; i++) {
+      const l = detalle[i];
+      const nombreTipo = this.tiposLineaTarifa.find((t: any) => t.codigo === l.tipo)?.nombre || '';
+
+      if (!l.id_producto_servicio) {
+        return `Falta el producto en una fila de ${nombreTipo}.`;
+      }
+      if (productos.includes(l.id_producto_servicio)) {
+        return 'Hay un producto repetido en la tarifa. Cada fila debe tener su propio producto.';
+      }
+      productos.push(l.id_producto_servicio);
+
+      if (l.tipo === 'paquete' && (!l.numero_sesiones || parseInt(l.numero_sesiones) < 1)) {
+        return 'Cada paquete debe tener el número de sesiones.';
+      }
+      // En la pensión las sesiones del mes son opcionales, pero si se ponen
+      // tienen que ser al menos una.
+      if (l.tipo === 'pension' && l.numero_sesiones !== null && l.numero_sesiones !== '' &&
+          l.numero_sesiones !== undefined && parseInt(l.numero_sesiones) < 1) {
+        return 'Las sesiones del mes de la pensión deben ser al menos 1.';
+      }
+      if ((l.tipo === 'matricula' || l.tipo === 'unico') && (!l.cuotas || parseInt(l.cuotas) < 1)) {
+        return `Las cuotas de ${nombreTipo} deben ser al menos 1.`;
+      }
+    }
+    return null;
   }
 
   onAnioTarifaChange() {
@@ -1069,18 +1200,30 @@ export class CrearCursoExtraComponent implements OnInit {
   }
 
   guardarTarifa() {
+    const error = this.validarDetalleTarifa();
+    if (error) {
+      Swal.fire('Advertencia', error, 'warning');
+      return;
+    }
+
+    // El tipo de cada fila no viaja: lo define el tipo de cobro del producto.
+    // Las sesiones van en el paquete (las que se compran) y en la pensión
+    // (las que incluye el mes).
     const data = {
       id_curso_extra: this.model.id,
-      id_producto_matricula: this.tarifaActual.id_producto_matricula ? this.tarifaActual.id_producto_matricula : null,
-      valor_matricula: this.tarifaActual.valor_matricula || 0,
-      cuotas_matricula: this.tarifaActual.cuotas_matricula ? parseInt(this.tarifaActual.cuotas_matricula) : 1,
-      id_producto_pension: this.tarifaActual.id_producto_pension ? this.tarifaActual.id_producto_pension : null,
-      valor_pension: this.tarifaActual.valor_pension || 0,
-      id_producto_unico: this.tarifaActual.id_producto_unico ? this.tarifaActual.id_producto_unico : null,
-      valor_unico: this.tarifaActual.valor_unico || 0,
-      cuotas_unico: this.tarifaActual.cuotas_unico ? parseInt(this.tarifaActual.cuotas_unico) : 1,
       anio: parseInt(this.tarifaActual.anio),
-      id_institucion_cliente: this.idInstitucionTarifa ? this.idInstitucionTarifa : null
+      id_institucion_cliente: this.idInstitucionTarifa ? this.idInstitucionTarifa : null,
+      detalle: (this.tarifaActual.detalle || []).map((l: any, i: number) => ({
+        id: l.id || null,
+        id_producto_servicio: l.id_producto_servicio,
+        valor: l.valor || 0,
+        cuotas: (l.tipo === 'matricula' || l.tipo === 'unico') ? (parseInt(l.cuotas) || 1) : 1,
+        numero_sesiones: (l.tipo === 'paquete' || l.tipo === 'pension') && l.numero_sesiones
+          ? parseInt(l.numero_sesiones) : null,
+        vigencia_dias: l.tipo === 'paquete' && l.vigencia_dias ? parseInt(l.vigencia_dias) : null,
+        orden: i + 1,
+        activo: l.activo ? 1 : 0
+      }))
     } as any;
 
     if (this.tarifaActual.id) {
@@ -1092,7 +1235,7 @@ export class CrearCursoExtraComponent implements OnInit {
         },
         error: (error: any) => {
           console.error("Error al actualizar tarifa", error);
-          Swal.fire('Error', 'No se pudo actualizar la tarifa', 'error');
+          Swal.fire('Error', error?.error?.error || 'No se pudo actualizar la tarifa', 'error');
         }
       });
     } else {
@@ -1151,18 +1294,19 @@ export class CrearCursoExtraComponent implements OnInit {
 
     this.tipoProductoModal = tipo;
 
-    // El valor que ya esté escrito en la sección se propone como valor sugerido.
-    let valorPrecargado = 0;
-    if (tipo === 'matricula') {
-      valorPrecargado = this.tarifaActual.valor_matricula || 0;
-    } else if (tipo === 'pension') {
-      valorPrecargado = this.tarifaActual.valor_pension || 0;
-    } else if (tipo === 'unico') {
-      valorPrecargado = this.tarifaActual.valor_unico || 0;
+    // El valor que ya esté escrito en la fila se propone como valor sugerido.
+    const linea = this.lineaProductoModal;
+    const valorPrecargado = linea ? (linea.valor || 0) : 0;
+
+    // El paquete se nombra por sus sesiones, que es como lo reconoce el
+    // cliente ("Bola naranja - 8 sesiones").
+    let sufijo = this.getNombreTipoProducto();
+    if (tipo === 'paquete' && linea && linea.numero_sesiones) {
+      sufijo = `${linea.numero_sesiones} sesiones`;
     }
 
     this.productoModal = {
-      nombre: this.model.nombre ? `${this.model.nombre} - ${this.getNombreTipoProducto()}` : '',
+      nombre: this.model.nombre ? `${this.model.nombre} - ${sufijo}` : '',
       detalles: '',
       valor_sugerido: valorPrecargado
     };
@@ -1172,13 +1316,15 @@ export class CrearCursoExtraComponent implements OnInit {
 
   cerrarModalProducto() {
     this.mostrarModalProducto = false;
+    this.lineaProductoModal = null;
   }
 
   getNombreTipoProducto(): string {
     const nombres: any = {
       'matricula': 'Matrícula',
       'pension': 'Pensión',
-      'unico': 'Cobro único'
+      'unico': 'Cobro único',
+      'paquete': 'Paquete de sesiones'
     };
     return nombres[this.tipoProductoModal] || '';
   }
@@ -1187,7 +1333,8 @@ export class CrearCursoExtraComponent implements OnInit {
     const nombres: any = {
       'matricula': 'Anual',
       'pension': 'Mensual',
-      'unico': 'Único'
+      'unico': 'Único',
+      'paquete': 'Único'
     };
     return nombres[this.tipoProductoModal] || '';
   }
@@ -1236,22 +1383,17 @@ export class CrearCursoExtraComponent implements OnInit {
         }
 
         const idNuevo = response ? response.id : null;
-        const tipoCreado = this.tipoProductoModal;
+        const lineaDestino = this.lineaProductoModal;
         this.cerrarModalProducto();
 
-        // Se refrescan las tres listas y se deja seleccionado el producto nuevo.
+        // Se refrescan las listas y se deja el producto nuevo escogido en la
+        // fila desde la que se abrió el modal.
         this.cargarProductosTarifas(() => {
           if (!idNuevo) return;
 
-          if (tipoCreado === 'matricula') {
-            this.tarifaActual.id_producto_matricula = idNuevo;
-            this.onProductoMatriculaChange();
-          } else if (tipoCreado === 'pension') {
-            this.tarifaActual.id_producto_pension = idNuevo;
-            this.onProductoPensionChange();
-          } else if (tipoCreado === 'unico') {
-            this.tarifaActual.id_producto_unico = idNuevo;
-            this.onProductoUnicoChange();
+          if (lineaDestino) {
+            lineaDestino.id_producto_servicio = idNuevo;
+            this.onProductoLineaChange(lineaDestino);
           }
 
           Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Producto creado', showConfirmButton: false, timer: 2000 });

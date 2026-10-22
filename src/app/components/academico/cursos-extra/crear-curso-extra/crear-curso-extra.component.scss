@@ -280,6 +280,37 @@ $light-gold: rgba(212, 175, 55, 0.1);
   padding: 20px;
 }
 
+// Encabezado de la tarjeta de un tipo de fila de la tarifa: el título a la
+// izquierda y el botón de agregar a la derecha.
+.panel-header-acciones {
+  justify-content: space-between;
+  flex-wrap: wrap;
+
+  span {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+}
+
+// Una fila del detalle de la tarifa
+.linea-tarifa {
+  padding: 12px 0;
+  border-bottom: 1px dashed rgba($gold, 0.3);
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &.linea-inactiva {
+    opacity: 0.55;
+  }
+
+  .linea-acciones {
+    padding-bottom: 6px;
+  }
+}
+
 // Botón "+" al lado de los selects de producto en el tab de Tarifas
 .btn-nuevo-producto {
   border-color: rgba($gold, 0.6);

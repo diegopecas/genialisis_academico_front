@@ -63,6 +63,17 @@ export class CrearCursoExtraEstudianteComponent implements OnInit {
     fecha_inscripcion: '',
   } as any;
 
+  /* Filas del detalle de la tarifa que se cobran siempre (matrícula, pensión
+     y cobro único), copiadas para que el valor y las cuotas se puedan ajustar
+     en esta inscripción sin tocar la tarifa. */
+  public lineasFijas: any[] = [];
+
+  /* Paquetes de sesiones de la tarifa. Se compra uno solo por inscripción:
+     el que escoja el acudiente. */
+  public paquetes: any[] = [];
+  public idPaqueteSeleccionado: any = null;
+  public valorPaquete: number = 0;
+
   // Valores editables de tarifa
   public valorMatricula: number = 0;
   public valorMatriculaFormateado: string = '';
@@ -80,6 +91,7 @@ export class CrearCursoExtraEstudianteComponent implements OnInit {
     total_matricula: 0,
     total_pension: 0,
     total_unico: 0,
+    total_paquete: 0,
     total_general: 0,
     cuentas: 0
   };
@@ -152,6 +164,9 @@ export class CrearCursoExtraEstudianteComponent implements OnInit {
     this.valoresGenerados = false;
     this.valores = [];
     this.tarifa = null;
+    this.lineasFijas = [];
+    this.paquetes = [];
+    this.idPaqueteSeleccionado = null;
     this.model.id_institucion_cliente = null;
     this.conveniosCurso = [];
 
@@ -202,15 +217,22 @@ export class CrearCursoExtraEstudianteComponent implements OnInit {
         const tarifas = response.body || [];
         this.tarifa = tarifas.length > 0 ? tarifas[0] : null;
         if (this.tarifa) {
-          this.valorMatricula = parseFloat(this.tarifa.valor_matricula) || 0;
-          this.valorMatriculaFormateado = this.formatearNumero(this.valorMatricula);
-          this.cuotasMatricula = this.tarifa.cuotas_matricula || 1;
-          this.valorPension = parseFloat(this.tarifa.valor_pension) || 0;
-          this.valorPensionFormateado = this.formatearNumero(this.valorPension);
-          this.valorUnico = parseFloat(this.tarifa.valor_unico) || 0;
-          this.valorUnicoFormateado = this.formatearNumero(this.valorUnico);
-          this.cuotasUnico = this.tarifa.cuotas_unico || 1;
+          // El back ya devuelve solo las filas activas del detalle.
+          const detalle = this.tarifa.detalle || [];
+          this.lineasFijas = detalle
+            .filter((l: any) => l.tipo !== 'paquete')
+            .map((l: any) => ({ ...l, valor: parseFloat(l.valor) || 0, cuotas: parseInt(l.cuotas) || 1 }));
+          this.paquetes = detalle
+            .filter((l: any) => l.tipo === 'paquete')
+            .map((l: any) => ({ ...l, valor: parseFloat(l.valor) || 0 }));
+          // Con un solo paquete no hay nada que escoger.
+          this.idPaqueteSeleccionado = this.paquetes.length === 1 ? this.paquetes[0].id : null;
+          this.valorPaquete = this.paquetes.length === 1 ? this.paquetes[0].valor : 0;
         } else {
+          this.lineasFijas = [];
+          this.paquetes = [];
+          this.idPaqueteSeleccionado = null;
+          this.valorPaquete = 0;
           Swal.fire('Advertencia', `No hay tarifa configurada para el curso en el año ${anio}`, 'warning');
         }
       },
@@ -240,6 +262,38 @@ export class CrearCursoExtraEstudianteComponent implements OnInit {
     event.target.value = this.valorUnico > 0 ? this.valorUnico.toLocaleString('es-CO') : '';
   }
 
+  onValorLineaInput(event: any, linea: any) {
+    const valorStr = event.target.value.replace(/\./g, '').replace(/\D/g, '');
+    linea.valor = valorStr ? parseInt(valorStr) : 0;
+    event.target.value = linea.valor > 0 ? linea.valor.toLocaleString('es-CO') : '';
+  }
+
+  // Al cambiar de paquete se propone su valor, que se puede ajustar.
+  onPaqueteChange() {
+    const paquete = this.paqueteSeleccionado();
+    this.valorPaquete = paquete ? paquete.valor : 0;
+    this.valoresGenerados = false;
+    this.valores = [];
+  }
+
+  onValorPaqueteInput(event: any) {
+    const valorStr = event.target.value.replace(/\./g, '').replace(/\D/g, '');
+    this.valorPaquete = valorStr ? parseInt(valorStr) : 0;
+    event.target.value = this.valorPaquete > 0 ? this.valorPaquete.toLocaleString('es-CO') : '';
+  }
+
+  paqueteSeleccionado(): any {
+    return this.paquetes.find((p: any) => p.id == this.idPaqueteSeleccionado) || null;
+  }
+
+  getNombreTipoLinea(tipo: string): string {
+    switch (tipo) {
+      case 'matricula': return 'Matrícula';
+      case 'pension': return 'Pensión mensual';
+      default: return 'Cobro único';
+    }
+  }
+
   // ==================== GENERACIÓN DE VALORES ====================
 
   generarValores() {
@@ -255,8 +309,13 @@ export class CrearCursoExtraEstudianteComponent implements OnInit {
       Swal.fire('Advertencia', 'Debe indicar fecha de inicio y fin', 'warning');
       return;
     }
-    if (this.valorMatricula === 0 && this.valorPension === 0 && this.valorUnico === 0) {
-      Swal.fire('Advertencia', 'Debe configurar al menos un valor (matrícula, pensión o cobro único)', 'warning');
+    if (this.paquetes.length > 0 && !this.idPaqueteSeleccionado) {
+      Swal.fire('Advertencia', 'Seleccione el paquete de sesiones que compró', 'warning');
+      return;
+    }
+    const hayFijos = this.lineasFijas.some((l: any) => l.valor > 0);
+    if (!hayFijos && !(this.idPaqueteSeleccionado && this.valorPaquete > 0)) {
+      Swal.fire('Advertencia', 'Debe haber al menos un valor para cobrar (matrícula, pensión, cobro único o paquete)', 'warning');
       return;
     }
 
@@ -286,67 +345,62 @@ export class CrearCursoExtraEstudianteComponent implements OnInit {
     const fechaFin = new Date(this.model.fecha_fin + 'T00:00:00');
     const nombreCurso = this.cursoSeleccionado?.nombre || 'Curso';
 
-    // Matrícula (diferida desde fecha inicio)
-    if (this.tarifa?.id_producto_matricula && this.valorMatricula > 0) {
-      const cuotas = this.cuotasMatricula || 1;
-      const valorCuota = Math.round((this.valorMatricula / cuotas) * 100) / 100;
+    this.lineasFijas.forEach((linea: any) => {
+      if (!linea.valor || linea.valor <= 0) return;
 
+      // Pensión mensual (desde la fecha de inscripción, no día 1)
+      if (linea.tipo === 'pension') {
+        const current = new Date(fechaInicio);
+        while (current <= fechaFin) {
+          this.valores.push({
+            id_producto_servicio: linea.id_producto_servicio,
+            nombre_producto: linea.nombre_producto || 'Pensión',
+            fecha: this.formatearFechaISO(current),
+            valor: linea.valor,
+            tipo: 'pension',
+            detalle: `Pensión ${nombreCurso} - ${this.formatearMesAnio(current)}`
+          });
+
+          const siguiente = new Date(current);
+          siguiente.setMonth(siguiente.getMonth() + 1);
+          current.setTime(siguiente.getTime());
+        }
+        return;
+      }
+
+      // Matrícula y cobro único (diferidos por cuotas desde la fecha de inscripción)
+      const cuotas = linea.cuotas || 1;
+      const valorCuota = Math.round((linea.valor / cuotas) * 100) / 100;
       for (let i = 0; i < cuotas; i++) {
         const fechaCuota = new Date(fechaInicio);
         fechaCuota.setMonth(fechaCuota.getMonth() + i);
-        const fechaStr = this.formatearFechaISO(fechaCuota);
 
         this.valores.push({
-          id_producto_servicio: this.tarifa.id_producto_matricula,
-          nombre_producto: this.tarifa.nombre_producto_matricula || 'Matrícula',
-          fecha: fechaStr,
+          id_producto_servicio: linea.id_producto_servicio,
+          nombre_producto: linea.nombre_producto || this.getNombreTipoLinea(linea.tipo),
+          fecha: this.formatearFechaISO(fechaCuota),
           valor: valorCuota,
-          tipo: 'matricula',
-          detalle: `Matrícula ${nombreCurso} - Cuota ${i + 1}/${cuotas}`
+          tipo: linea.tipo === 'matricula' ? 'matricula' : 'unico',
+          detalle: linea.tipo === 'matricula'
+            ? `Matrícula ${nombreCurso} - Cuota ${i + 1}/${cuotas}`
+            : `${nombreCurso} - Cuota ${i + 1}/${cuotas}`
         });
       }
-    }
+    });
 
-    // Pensión mensual (desde fecha inicio, no día 1)
-    if (this.tarifa?.id_producto_pension && this.valorPension > 0) {
-      const current = new Date(fechaInicio);
-      while (current <= fechaFin) {
-        const fechaStr = this.formatearFechaISO(current);
-
-        this.valores.push({
-          id_producto_servicio: this.tarifa.id_producto_pension,
-          nombre_producto: this.tarifa.nombre_producto_pension || 'Pensión',
-          fecha: fechaStr,
-          valor: this.valorPension,
-          tipo: 'pension',
-          detalle: `Pensión ${nombreCurso} - ${this.formatearMesAnio(current)}`
-        });
-
-        const siguiente = new Date(current);
-        siguiente.setMonth(siguiente.getMonth() + 1);
-        current.setTime(siguiente.getTime());
-      }
-    }
-
-    // Cobro único (diferido desde fecha inicio)
-    if (this.tarifa?.id_producto_unico && this.valorUnico > 0) {
-      const cuotas = this.cuotasUnico || 1;
-      const valorCuota = Math.round((this.valorUnico / cuotas) * 100) / 100;
-
-      for (let i = 0; i < cuotas; i++) {
-        const fechaCuota = new Date(fechaInicio);
-        fechaCuota.setMonth(fechaCuota.getMonth() + i);
-        const fechaStr = this.formatearFechaISO(fechaCuota);
-
-        this.valores.push({
-          id_producto_servicio: this.tarifa.id_producto_unico,
-          nombre_producto: this.tarifa.nombre_producto_unico || 'Cobro Único',
-          fecha: fechaStr,
-          valor: valorCuota,
-          tipo: 'unico',
-          detalle: `${nombreCurso} - Cuota ${i + 1}/${cuotas}`
-        });
-      }
+    // Paquete de sesiones: un solo cobro en la fecha de inscripción, porque
+    // el paquete se paga antes de empezar.
+    const paquete = this.paqueteSeleccionado();
+    if (paquete && this.valorPaquete > 0) {
+      const vigencia = paquete.vigencia_dias ? ` (vigencia ${paquete.vigencia_dias} días)` : '';
+      this.valores.push({
+        id_producto_servicio: paquete.id_producto_servicio,
+        nombre_producto: paquete.nombre_producto || 'Paquete de sesiones',
+        fecha: this.formatearFechaISO(fechaInicio),
+        valor: this.valorPaquete,
+        tipo: 'paquete',
+        detalle: `${nombreCurso} - ${paquete.numero_sesiones} sesiones${vigencia}`
+      });
     }
 
     this.valores.sort((a, b) => a.fecha.localeCompare(b.fecha));
@@ -355,13 +409,15 @@ export class CrearCursoExtraEstudianteComponent implements OnInit {
   }
 
   calcularResumen() {
-    this.resumen = { total_matricula: 0, total_pension: 0, total_unico: 0, total_general: 0, cuentas: this.valores.length };
+    this.resumen = { total_matricula: 0, total_pension: 0, total_unico: 0, total_paquete: 0, total_general: 0, cuentas: this.valores.length };
     this.valores.forEach(v => {
       if (v.tipo === 'matricula') this.resumen.total_matricula += v.valor;
       else if (v.tipo === 'pension') this.resumen.total_pension += v.valor;
+      else if (v.tipo === 'paquete') this.resumen.total_paquete += v.valor;
       else this.resumen.total_unico += v.valor;
     });
-    this.resumen.total_general = this.resumen.total_matricula + this.resumen.total_pension + this.resumen.total_unico;
+    this.resumen.total_general = this.resumen.total_matricula + this.resumen.total_pension +
+      this.resumen.total_unico + this.resumen.total_paquete;
   }
 
   // ==================== EDICIÓN DE VALORES EN TABLA ====================
@@ -393,28 +449,20 @@ export class CrearCursoExtraEstudianteComponent implements OnInit {
   // ==================== VALIDACIONES ====================
 
   validarSumas(): boolean {
-    // Validar matrícula
-    if (this.valorMatricula > 0) {
-      const sumaMatricula = this.valores.filter(v => v.tipo === 'matricula').reduce((s, v) => s + v.valor, 0);
-      const diffMatricula = Math.abs(sumaMatricula - this.valorMatricula);
-      if (diffMatricula > 1) {
-        Swal.fire({
-          title: 'Error en valores de matrícula',
-          html: `La suma de cuotas de matrícula (<strong>${this.formatearMoneda(sumaMatricula)}</strong>) no coincide con el valor configurado (<strong>${this.formatearMoneda(this.valorMatricula)}</strong>).<br>Diferencia: ${this.formatearMoneda(diffMatricula)}`,
-          icon: 'error'
-        });
-        return false;
-      }
-    }
+    // Matrícula y cobro único se reparten en cuotas: la suma de las cuotas de
+    // cada fila tiene que dar el valor configurado. La pensión no se valida
+    // porque es un valor por mes.
+    for (const linea of this.lineasFijas) {
+      if (linea.tipo === 'pension' || !linea.valor || linea.valor <= 0) continue;
 
-    // Validar cobro único
-    if (this.valorUnico > 0) {
-      const sumaUnico = this.valores.filter(v => v.tipo === 'unico').reduce((s, v) => s + v.valor, 0);
-      const diffUnico = Math.abs(sumaUnico - this.valorUnico);
-      if (diffUnico > 1) {
+      const suma = this.valores
+        .filter(v => v.id_producto_servicio === linea.id_producto_servicio)
+        .reduce((s, v) => s + v.valor, 0);
+      const diferencia = Math.abs(suma - linea.valor);
+      if (diferencia > 1) {
         Swal.fire({
-          title: 'Error en valores de cobro único',
-          html: `La suma de cuotas (<strong>${this.formatearMoneda(sumaUnico)}</strong>) no coincide con el valor configurado (<strong>${this.formatearMoneda(this.valorUnico)}</strong>).<br>Diferencia: ${this.formatearMoneda(diffUnico)}`,
+          title: `Error en valores de ${this.getNombreTipoLinea(linea.tipo).toLowerCase()}`,
+          html: `La suma de cuotas de <strong>${linea.nombre_producto}</strong> (<strong>${this.formatearMoneda(suma)}</strong>) no coincide con el valor configurado (<strong>${this.formatearMoneda(linea.valor)}</strong>).<br>Diferencia: ${this.formatearMoneda(diferencia)}`,
           icon: 'error'
         });
         return false;
@@ -589,7 +637,7 @@ export class CrearCursoExtraEstudianteComponent implements OnInit {
           html: `Se crearon <strong>${response.cuentas_creadas}</strong> cuentas por cobrar:<br><br>
                  ${response.total_matricula > 0 ? 'Matrícula: <strong>' + this.formatearMoneda(response.total_matricula) + '</strong><br>' : ''}
                  ${response.total_pension > 0 ? 'Pensiones: <strong>' + this.formatearMoneda(response.total_pension) + '</strong><br>' : ''}
-                 ${response.total_unico > 0 ? 'Cobro único: <strong>' + this.formatearMoneda(response.total_unico) + '</strong><br>' : ''}
+                 ${response.total_unico > 0 ? 'Cobro único y paquetes: <strong>' + this.formatearMoneda(response.total_unico) + '</strong><br>' : ''}
                  <hr>
                  <strong>Total: ${this.formatearMoneda(response.total_general)}</strong>`,
           icon: 'success',
@@ -635,6 +683,7 @@ export class CrearCursoExtraEstudianteComponent implements OnInit {
       case 'matricula': return 'Matrícula';
       case 'pension': return 'Pensión';
       case 'unico': return 'Cobro Único';
+      case 'paquete': return 'Paquete';
       default: return tipo;
     }
   }
@@ -644,6 +693,7 @@ export class CrearCursoExtraEstudianteComponent implements OnInit {
       case 'matricula': return 'bg-primary';
       case 'pension': return 'bg-success';
       case 'unico': return 'bg-info';
+      case 'paquete': return 'bg-warning text-dark';
       default: return 'bg-secondary';
     }
   }

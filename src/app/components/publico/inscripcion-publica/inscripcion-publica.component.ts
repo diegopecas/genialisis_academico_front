@@ -434,6 +434,13 @@ export class InscripcionPublicaComponent implements OnInit {
   // Resumen de los valores para mostrar en la tarjeta y en el formulario
   tieneValores(curso: any): boolean {
     if (!curso) return false;
-    return (curso.valor_matricula > 0 || curso.valor_pension > 0 || curso.valor_unico > 0);
+    return (curso.valor_matricula > 0 || curso.valor_pension > 0 || curso.valor_unico > 0 ||
+      (curso.paquetes || []).length > 0);
+  }
+
+  // Texto de un paquete de sesiones: "8 sesiones · 30 días"
+  textoPaquete(paquete: any): string {
+    const vigencia = paquete.vigencia_dias ? ` · ${paquete.vigencia_dias} días` : '';
+    return `${paquete.numero_sesiones} sesiones${vigencia}`;
   }
 }
