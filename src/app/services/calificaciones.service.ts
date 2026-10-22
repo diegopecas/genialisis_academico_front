@@ -281,6 +281,32 @@ export class CalificacionesService {
       );
   }
 
+  /**
+   * Calificación rápida: estudiantes con asistencia en la fecha, franjas del
+   * horario del día, tareas del sprint actual y lo ya calificado ese día.
+   */
+  obtenerVistaCalificacionRapida(id_grupo: any, fecha: string) {
+    const params = new HttpParams().set('fecha', fecha);
+    return this.http
+      .get<HttpResponse<Object>>(environment.api + `calificaciones-rapida/${id_grupo}`, { params, observe: 'response' })
+      .pipe(
+        catchError(this.handleError)
+      );
+  }
+
+  /** Guarda en bloque la calificación rápida (actividades, calificaciones y ejecución). */
+  guardarCalificacionRapida(datos: any) {
+    return this.http.post<any>(environment.api + 'calificaciones-rapida', JSON.stringify(datos), httpOptions).pipe(
+      tap((respuesta: any) => {
+        if (respuesta && respuesta.error) {
+          throw respuesta.error;
+        }
+        return respuesta;
+      }),
+      catchError(this.handleError)
+    );
+  }
+
   private handleError(error: HttpErrorResponse) {
     return throwError(() => error);
   }

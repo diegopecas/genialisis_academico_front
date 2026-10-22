@@ -393,18 +393,19 @@ export class MenuModulosService {
           {
             id: 'actividades',
             titulo: 'Actividades',
-            descripcion: 'Medidas, galerías y útiles diarios',
+            descripcion: 'Medidas, galerías, útiles diarios y calificación rápida',
             claseIcono: 'actividades',
             iconoArbol: '🎨',
             alt: 'Actividades',
             imagen: 'assets/images/actividades.png',
-            permisos: ['operaciones.galeria.ver', 'operaciones.galerias', 'operaciones.registro_medidas', 'operaciones.utiles_diarios'],
-            keywords: ['fotos', 'talla', 'peso', 'maleta'],
+            permisos: ['operaciones.calificacion_rapida', 'operaciones.galeria.ver', 'operaciones.galerias', 'operaciones.registro_medidas', 'operaciones.utiles_diarios'],
+            keywords: ['fotos', 'talla', 'peso', 'maleta', 'calificar'],
             opciones: [
               { id: 'registro-medidas', label: 'Registro de Medidas', alt: 'Registro de Medidas', imagen: 'assets/images/medidas.png', iconoArbol: '📏', ruta: '/operaciones/registro-medidas', permiso: 'operaciones.registro_medidas', keywords: ['talla', 'peso', 'estatura', 'antropometria'] },
               { id: 'galerias', label: 'Gestión de Galerías', alt: 'Gestión de Galerías', imagen: 'assets/images/galeria.png', iconoArbol: '🖼️', ruta: '/operaciones/galerias', permiso: 'operaciones.galerias', keywords: ['fotos', 'imagenes', 'album', 'videos'] },
               { id: 'galeria-consulta', label: 'Galería', alt: 'Galería', imagen: 'assets/images/galeria-consulta.png', iconoArbol: '📸', ruta: '/operaciones/galeria', permiso: 'operaciones.galeria.ver', keywords: ['fotos', 'imagenes', 'album', 'ver fotos', 'galeria de padres', 'lo que ve el papa'] },
-              { id: 'utiles-diarios', label: 'Útiles y Accesorios Diarios', alt: 'Útiles y Accesorios Diarios', imagen: 'assets/images/utiles-diarios.png', iconoArbol: '🎒', ruta: '/operaciones/utiles-diarios', permiso: 'operaciones.utiles_diarios', keywords: ['utiles', 'accesorios', 'inventario diario', 'maleta', 'morral', 'que trajo', 'que se llevo', 'chaqueta', 'lonchera', 'termo'] }
+              { id: 'utiles-diarios', label: 'Útiles y Accesorios Diarios', alt: 'Útiles y Accesorios Diarios', imagen: 'assets/images/utiles-diarios.png', iconoArbol: '🎒', ruta: '/operaciones/utiles-diarios', permiso: 'operaciones.utiles_diarios', keywords: ['utiles', 'accesorios', 'inventario diario', 'maleta', 'morral', 'que trajo', 'que se llevo', 'chaqueta', 'lonchera', 'termo'] },
+              { id: 'calificacion-rapida', label: 'Calificación Rápida', alt: 'Calificación Rápida', imagen: 'assets/images/calificacion-rapida.png', iconoArbol: '⭐', ruta: '/operaciones/calificacion-rapida', permiso: 'operaciones.calificacion_rapida', keywords: ['calificar', 'calificaciones', 'notas', 'estrellas', 'asistencia', 'franjas', 'horario', 'masivo', 'calificar por fecha', 'calificar despues', 'ya salio', 'docente'] }
             ]
           },
           {

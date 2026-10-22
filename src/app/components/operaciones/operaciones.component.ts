@@ -65,6 +65,9 @@ export class OperacionesComponent implements OnInit {
       case 'utiles-diarios':
         this.router.navigate(['/operaciones/utiles-diarios']);
         break;
+      case 'calificacion-rapida':
+        this.router.navigate(['/operaciones/calificacion-rapida']);
+        break;
       case 'movimientos-inventario':
         this.router.navigate(['/operaciones/movimientos-productos']);
         break;

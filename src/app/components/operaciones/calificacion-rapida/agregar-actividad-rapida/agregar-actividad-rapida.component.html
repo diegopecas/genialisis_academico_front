@@ -1,0 +1,139 @@
+<div class="panel-fondo" (click)="cerrarPanel()">
+  <div class="panel-agregar" (click)="$event.stopPropagation()">
+    <div class="panel-header">
+      <div>
+        <span class="panel-titulo">✍️ Agregar actividad</span>
+        <small class="panel-subtitulo">{{ nombreArea }} · {{ nombreGrupo }}</small>
+      </div>
+      <button type="button" class="panel-cerrar" (click)="cerrarPanel()" title="Cerrar">✕</button>
+    </div>
+
+    <!-- Tabs: crear una nueva o importar una del corte -->
+    <nav class="tabs-agregar">
+      <button type="button" [class.activo]="tab === 'crear'" (click)="cambiarTab('crear')">✍️ Crear nueva</button>
+      <button type="button" [class.activo]="tab === 'importar'" (click)="cambiarTab('importar')">📥 Importar del corte</button>
+    </nav>
+
+    <!-- ===== IMPORTAR ===== -->
+    <div class="panel-body" *ngIf="tab === 'importar'">
+      <input type="text" class="input-buscar" [(ngModel)]="buscarImportar" placeholder="🔍 Buscar actividad...">
+
+      <div class="cargando" *ngIf="cargandoImportables">⏳ Cargando actividades del corte...</div>
+
+      <div class="lista-importar" *ngIf="!cargandoImportables">
+        <div *ngFor="let act of importablesVisibles" class="item-importar"
+             [class.seleccionado]="importableSeleccionada === act"
+             (click)="seleccionarImportable(act)">
+          <div class="item-importar-cabecera">
+            <span class="item-importar-check">{{ importableSeleccionada === act ? '🔘' : '⚪' }}</span>
+            <span class="item-importar-titulo" [innerHTML]="act.titulo_actividad"></span>
+          </div>
+          <div class="item-importar-meta">
+            <span>🏃 {{ act.nombre_sprint }}</span>
+            <span class="estado-importar" [ngClass]="'estado-' + act.id_estado_tarea">{{ act.nombre_estado }}</span>
+            <span *ngIf="act.nombre_tipo_actividad">{{ act.icono_tipo_actividad || '📌' }} {{ act.nombre_tipo_actividad }}</span>
+            <span *ngIf="act.minutos_duracion">⏱️ {{ act.minutos_duracion }} min</span>
+            <span>📋 {{ act.total_indicadores }} indicador{{ act.total_indicadores != 1 ? 'es' : '' }}</span>
+          </div>
+          <button type="button" class="btn-ver-descripcion" *ngIf="act.descripcion_actividad"
+                  (click)="toggleDescripcion(act, $event)">
+            {{ importableExpandida === act ? 'Ocultar descripción' : 'Ver descripción' }}
+          </button>
+          <div class="item-importar-descripcion" *ngIf="importableExpandida === act" [innerHTML]="act.descripcion_actividad"></div>
+        </div>
+
+        <div class="aviso-vacio" *ngIf="importablesCargados && importablesVisibles.length === 0">
+          {{ buscarImportar ? 'No hay actividades con esa búsqueda' : 'No hay actividades para importar en este corte académico' }}
+        </div>
+      </div>
+
+      <div class="panel-botones">
+        <button type="button" class="btn-principal" (click)="importar()" [disabled]="!importableSeleccionada || guardando">
+          📥 Importar a la franja
+        </button>
+      </div>
+    </div>
+
+    <!-- ===== CREAR ===== -->
+    <div class="panel-body" [hidden]="tab !== 'crear'">
+      <div class="campo">
+        <label>Título *</label>
+        <input type="text" [(ngModel)]="formActividad.titulo" placeholder="Ej: El Tesoro Escondido..."
+               [class.campo-invalido]="intentoCrear && !formActividad.titulo.trim()">
+        <small class="campo-error" *ngIf="intentoCrear && !formActividad.titulo.trim()">El título es obligatorio</small>
+      </div>
+
+      <div class="campo">
+        <label>Descripción</label>
+        <app-editor-texto-enriquecido
+          [(valor)]="formActividad.descripcion"
+          placeholder="Describe brevemente..."
+        ></app-editor-texto-enriquecido>
+      </div>
+
+      <div class="fila-campos">
+        <div class="campo">
+          <label>Tipo *</label>
+          <select [(ngModel)]="formActividad.id_tipo_actividad_academica"
+                  [class.campo-invalido]="intentoCrear && !formActividad.id_tipo_actividad_academica">
+            <option value="">Seleccione...</option>
+            <option *ngFor="let t of tiposActividad" [value]="t.id">{{ t.icono || '📌' }} {{ t.nombre }}</option>
+          </select>
+          <small class="campo-error" *ngIf="intentoCrear && !formActividad.id_tipo_actividad_academica">Selecciona un tipo</small>
+        </div>
+        <div class="campo">
+          <label>Duración (min)</label>
+          <input type="number" inputmode="numeric" [(ngModel)]="formActividad.minutos_duracion" min="5" max="180">
+        </div>
+        <div class="campo">
+          <label>Ambiente</label>
+          <select [(ngModel)]="formActividad.id_ambiente">
+            <option [ngValue]="null">Sin ambiente</option>
+            <option *ngFor="let a of ambientes" [value]="a.id">{{ a.icono }} {{ a.nombre }}</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Indicadores -->
+      <div class="campo">
+        <label>📋 Indicadores de Logro <span *ngIf="logrosDisponibles.length > 0" class="text-danger">*</span></label>
+        <small class="campo-error" *ngIf="intentoCrear && formRequiereIndicador()">Debes asociar al menos un indicador de logro</small>
+        <small class="campo-aviso" *ngIf="areaSinLogros()">Esta área no tiene logros cargados, la actividad se creará sin indicadores.</small>
+        <div class="indicadores-elegidos" *ngIf="formActividad.indicadores.length > 0">
+          <div *ngFor="let ind of formActividad.indicadores" class="indicador-chip">
+            <span class="indicador-logro">{{ ind.logro_nombre }}</span>
+            <span class="indicador-nombre">{{ ind.nombre }}</span>
+            <span class="indicador-quitar" (click)="quitarIndicador(ind.id)">✕</span>
+          </div>
+        </div>
+        <details class="agregar-indicador" *ngIf="logrosDisponibles.length > 0">
+          <summary>➕ Agregar indicador</summary>
+          <input type="text" [(ngModel)]="busquedaIndicador" placeholder="🔍 Buscar indicador..." class="buscador-indicador">
+          <div class="indicadores-disponibles">
+            <ng-container *ngFor="let logro of logrosDisponibles">
+              <div class="logro-grupo" *ngIf="tieneIndicadoresFiltrados(logro)">
+                <strong>{{ logro.nombre }}</strong>
+                <div *ngFor="let ind of logro.indicadores" class="indicador-opcion"
+                     [class.ya-agregado]="formActividad.indicadores_ids.includes(ind.id)"
+                     [hidden]="!indicadorCoincideBusqueda(ind)"
+                     (click)="toggleIndicador(ind.id)">
+                  <span>{{ formActividad.indicadores_ids.includes(ind.id) ? '☑️' : '⬜' }}</span> {{ ind.nombre }}
+                </div>
+              </div>
+            </ng-container>
+          </div>
+        </details>
+      </div>
+
+      <div class="panel-botones">
+        <button type="button" class="btn-ia" (click)="sugerirConIA()" [disabled]="!tieneIdeaBase() || sugiriendoIA">
+          <span *ngIf="!sugiriendoIA">🪄 Sugerir con IA</span>
+          <span *ngIf="sugiriendoIA">⏳ Sugiriendo...</span>
+        </button>
+        <button type="button" class="btn-principal" (click)="crear()" [disabled]="guardando">
+          ✅ Crear y usar en la franja
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

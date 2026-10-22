@@ -1,0 +1,386 @@
+<div class="modulo calificacion-rapida">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="false"
+    [raiz]="'/operaciones/calificacion-rapida'"
+    [regresar]="'/operaciones'"
+    [iconoTitulo]="'/assets/images/calificacion-rapida.png'"
+  ></app-header>
+
+  <div class="container-fluid contenido">
+
+    <div class="cargando" *ngIf="cargandoInicial">⏳ Cargando...</div>
+
+    <div class="aviso-vacio" *ngIf="!cargandoInicial && sinSprint">
+      No hay un sprint actual en curso. La calificación rápida solo trabaja con fechas del sprint actual.
+    </div>
+
+    <ng-container *ngIf="!cargandoInicial && !sinSprint">
+
+      <!-- ============================== -->
+      <!-- FILTROS                        -->
+      <!-- ============================== -->
+      <div class="tarjeta-glaseada filtros">
+        <div class="row g-2 align-items-end">
+          <div class="col-12 col-md-5 col-lg-4">
+            <label class="etiqueta" for="fechaRapida">Fecha <small>({{ nombreDiaFecha }})</small></label>
+            <div class="campo-fecha">
+              <button type="button" class="btn-dia" (click)="moverDia(-1)" [disabled]="!puedeRetroceder" title="Día anterior">‹</button>
+              <input id="fechaRapida"
+                     type="text"
+                     class="form-control"
+                     inputmode="numeric"
+                     autocomplete="off"
+                     placeholder="dd/mm/aaaa"
+                     [class.is-invalid]="fechaInvalida"
+                     [(ngModel)]="fechaTexto"
+                     (blur)="confirmarFechaTexto()"
+                     (keydown.enter)="confirmarFechaTexto()">
+              <button type="button" class="btn-calendario" (click)="abrirCalendario(selectorFecha)" title="Abrir calendario">
+                <i class="fa fa-calendar"></i>
+              </button>
+              <input #selectorFecha
+                     type="date"
+                     class="selector-nativo"
+                     tabindex="-1"
+                     aria-hidden="true"
+                     [min]="fechaMinima"
+                     [max]="fechaMaxima"
+                     [value]="fecha"
+                     (change)="alEscogerFechaCalendario(selectorFecha.value)">
+              <button type="button" class="btn-dia" (click)="moverDia(1)" [disabled]="!puedeAvanzar" title="Día siguiente">›</button>
+            </div>
+            <small class="texto-error" *ngIf="fechaInvalida">
+              Escribe una fecha del sprint actual ({{ fechaMinima | date:'dd/MM/yyyy' }} a {{ fechaMaxima | date:'dd/MM/yyyy' }}).
+            </small>
+          </div>
+
+          <div class="col-12 col-md-7 col-lg-5">
+            <label class="etiqueta">Grupo</label>
+            <app-searchable-dropdown
+              [items]="gruposItems"
+              [ngModel]="idGrupo"
+              (ngModelChange)="alCambiarGrupo($event)"
+              [clearable]="false"
+              placeholder="Selecciona el grupo"
+              searchPlaceholder="Buscar grupo..."
+              emptyMessage="No hay grupos">
+            </app-searchable-dropdown>
+          </div>
+
+          <div class="col-12 col-lg-3 info-sprint" *ngIf="sprint">
+            <span>🏃 {{ sprint.nombre_sprint }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="aviso-vacio" *ngIf="!idGrupo">
+        Selecciona la fecha y el grupo para listar a los estudiantes que tuvieron asistencia ese día.
+      </div>
+
+      <ng-container *ngIf="idGrupo && vistaCargada">
+
+        <div class="aviso-vacio" *ngIf="estudiantes.length === 0">
+          Ningún estudiante del grupo tiene asistencia registrada el {{ fecha | date:'dd/MM/yyyy' }}.
+        </div>
+
+        <ng-container *ngIf="estudiantes.length > 0">
+
+          <!-- Barra de franjas: en móvil son chips, en escritorio solo el resumen y el botón -->
+          <div class="barra-franjas">
+            <div class="chips-franjas" *ngIf="esMovil">
+              <button type="button"
+                      *ngFor="let franja of franjas; let i = index; trackBy: trackByFranja"
+                      class="chip-franja"
+                      [class.activa]="i === indiceFranjaActiva && !mostrarAgregarArea"
+                      [class.fuera-horario]="franja.fuera_horario"
+                      (click)="seleccionarFranja(i)">
+                <span class="chip-hora">{{ hora12(franja.hora_inicial) }}</span>
+                <span class="chip-area">{{ franja.nombre_area }}</span>
+                <span class="chip-conteo" *ngIf="conActividad(franja) > 0">{{ conActividad(franja) }}/{{ estudiantes.length }}</span>
+              </button>
+              <button type="button" class="chip-franja chip-agregar" [class.activa]="mostrarAgregarArea" (click)="abrirAgregarArea()">
+                ➕ Área
+              </button>
+            </div>
+
+            <div class="resumen-escritorio" *ngIf="!esMovil">
+              <span><strong>{{ estudiantes.length }}</strong> estudiante(s) con asistencia</span>
+              <span class="separador">·</span>
+              <span><strong>{{ franjas.length }}</strong> franja(s)</span>
+              <span class="aviso-sin-horario" *ngIf="franjas.length === 0">El grupo no tiene horario este día: agrega las áreas con sus horas.</span>
+              <button type="button" class="btn-secundario ms-auto" (click)="abrirAgregarArea()" *ngIf="!mostrarAgregarArea">
+                ➕ Agregar área fuera del horario
+              </button>
+            </div>
+          </div>
+
+          <!-- Agregar un área fuera del horario -->
+          <div class="tarjeta-glaseada agregar-area" *ngIf="mostrarAgregarArea">
+            <div class="agregar-area-titulo">
+              <span>➕ Área fuera del horario</span>
+              <button type="button" class="btn-cerrar" (click)="mostrarAgregarArea = false" title="Cerrar">✕</button>
+            </div>
+            <div class="row g-2 align-items-end">
+              <div class="col-12 col-md-4">
+                <label class="etiqueta" for="areaNueva">Área</label>
+                <select id="areaNueva" class="form-select" [(ngModel)]="nuevaArea.id_area_academica" (change)="alEscogerAreaNueva()"
+                        [class.is-invalid]="intentoAgregarArea && !nuevaArea.id_area_academica">
+                  <option value="">Selecciona...</option>
+                  <option *ngFor="let area of areasGrupo" [value]="area.id_area_academica">{{ area.nombre_area_academica }}</option>
+                </select>
+              </div>
+              <div class="col-6 col-md-2">
+                <label class="etiqueta">Hora inicial</label>
+                <app-hora-input [(ngModel)]="nuevaArea.hora_inicial" tamano="sm"
+                                [invalido]="intentoAgregarArea && !horasNuevaAreaValidas"></app-hora-input>
+              </div>
+              <div class="col-6 col-md-2">
+                <label class="etiqueta">Hora final</label>
+                <app-hora-input [(ngModel)]="nuevaArea.hora_final" tamano="sm" periodoPorDefecto="AM"
+                                [invalido]="intentoAgregarArea && !horasNuevaAreaValidas"></app-hora-input>
+              </div>
+              <div class="col-12 col-md-4">
+                <label class="etiqueta">Docente</label>
+                <app-searchable-dropdown
+                  [items]="docentesItems"
+                  [(ngModel)]="nuevaArea.id_docente"
+                  placeholder="Selecciona el docente"
+                  searchPlaceholder="Buscar docente...">
+                </app-searchable-dropdown>
+              </div>
+            </div>
+            <small class="texto-error" *ngIf="intentoAgregarArea && !horasNuevaAreaValidas">La hora final debe ser mayor que la inicial.</small>
+            <div class="botones-derecha">
+              <button type="button" class="btn-principal" (click)="agregarArea()">Agregar</button>
+            </div>
+          </div>
+
+          <!-- ======================================== -->
+          <!-- ESCRITORIO: tabla estudiantes x franjas  -->
+          <!-- ======================================== -->
+          <div class="tabla-scroll" *ngIf="!esMovil && franjas.length > 0">
+            <table class="tabla-rapida">
+              <thead>
+                <tr>
+                  <th class="col-estudiante">Estudiante</th>
+                  <th *ngFor="let franja of franjas; trackBy: trackByFranja" class="col-franja" [class.fuera-horario]="franja.fuera_horario">
+                    <div class="franja-cabecera">
+                      <div class="franja-titulo">
+                        <span class="franja-color" [style.background]="franja.color_area || '#e0a82e'"></span>
+                        <span class="franja-area">{{ franja.nombre_area }}</span>
+                        <button type="button" class="btn-quitar" *ngIf="puedeQuitarFranja(franja)" (click)="quitarFranja(franja)" title="Quitar área">✕</button>
+                      </div>
+
+                      <div class="franja-horas" *ngIf="!franja.fuera_horario">
+                        🕐 {{ hora12(franja.hora_inicial) }} - {{ hora12(franja.hora_final) }}
+                      </div>
+                      <div class="franja-horas-editables" *ngIf="franja.fuera_horario">
+                        <app-hora-input tamano="sm" [ngModel]="franja.hora_inicial" (ngModelChange)="cambiarHoraFranja(franja, 'hora_inicial', $event)"></app-hora-input>
+                        <app-hora-input tamano="sm" [ngModel]="franja.hora_final" (ngModelChange)="cambiarHoraFranja(franja, 'hora_final', $event)"></app-hora-input>
+                      </div>
+
+                      <app-searchable-dropdown
+                        class="dd-docente"
+                        [items]="docentesItems"
+                        [ngModel]="franja.id_docente"
+                        (ngModelChange)="cambiarDocente(franja, $event)"
+                        placeholder="Docente"
+                        searchPlaceholder="Buscar docente..."
+                        maxHeight="210px">
+                      </app-searchable-dropdown>
+
+                      <div class="franja-general">
+                        <span class="etiqueta-general">Para todos</span>
+                        <div class="actividad-general">
+                          <app-searchable-dropdown
+                            [items]="franja.opciones"
+                            [ngModel]="franja.actividadGeneral"
+                            (ngModelChange)="cambiarActividadGeneral(franja, $event)"
+                            placeholder="Actividad"
+                            searchPlaceholder="Buscar actividad..."
+                            emptyMessage="No hay actividades del área"
+                            maxHeight="210px">
+                          </app-searchable-dropdown>
+                          <button type="button" class="btn-mas" (click)="abrirAgregarActividad(franja)" title="Crear o importar actividad">+</button>
+                        </div>
+                        <div class="param-fila" *ngFor="let parametro of parametros; trackBy: trackById">
+                          <span class="param-nombre" [title]="parametro.nombre">{{ parametro.nombre }}</span>
+                          <span class="estrellas">
+                            <span *ngFor="let valor of parametro.valores; trackBy: trackById"
+                                  class="estrella fa"
+                                  [ngClass]="[valor.icono || 'fa-star', estrellaActiva(franja.valoresGenerales[parametro.id], valor) ? 'checked' : '']"
+                                  [title]="valor.valor_cualitativo + ' (' + valor.valor_cuantitativo + ')'"
+                                  (click)="calificarGeneral(franja, parametro, valor)"></span>
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let estudiante of estudiantes; trackBy: trackByEstudiante">
+                  <td class="col-estudiante">
+                    <span class="nombre-estudiante">{{ estudiante.nombre }}</span>
+                    <small class="asistencia">
+                      Entró {{ hora12(estudiante.hora_ingreso) }}
+                      <span *ngIf="estudiante.hora_salida"> · salió {{ hora12(estudiante.hora_salida) }}</span>
+                    </small>
+                  </td>
+                  <td *ngFor="let franja of franjas; trackBy: trackByFranja" class="celda" [class.fuera-horario]="franja.fuera_horario">
+                    <ng-container *ngIf="franja.celdas[estudiante.id_estudiante] as celda">
+                      <app-searchable-dropdown
+                        [items]="franja.opciones"
+                        [ngModel]="celda.id_tarea"
+                        (ngModelChange)="cambiarActividadCelda(franja, estudiante.id_estudiante, $event)"
+                        placeholder="Sin actividad"
+                        searchPlaceholder="Buscar actividad..."
+                        emptyMessage="No hay actividades del área"
+                        maxHeight="210px">
+                      </app-searchable-dropdown>
+                      <div class="parametros-celda" *ngIf="celda.id_tarea">
+                        <div class="param-fila" *ngFor="let parametro of parametros; trackBy: trackById">
+                          <span class="param-nombre" [title]="parametro.nombre">{{ parametro.nombre }}</span>
+                          <span class="estrellas">
+                            <span *ngFor="let valor of parametro.valores; trackBy: trackById"
+                                  class="estrella fa"
+                                  [ngClass]="[valor.icono || 'fa-star', estrellaActiva(celda.valores[parametro.id], valor) ? 'checked' : '']"
+                                  [title]="valor.valor_cualitativo + ' (' + valor.valor_cuantitativo + ')'"
+                                  (click)="calificarCelda(franja, estudiante.id_estudiante, parametro, valor)"></span>
+                          </span>
+                        </div>
+                      </div>
+                    </ng-container>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- ======================================== -->
+          <!-- MÓVIL: una franja a la vez               -->
+          <!-- ======================================== -->
+          <ng-container *ngIf="esMovil && !mostrarAgregarArea">
+            <div class="aviso-vacio" *ngIf="franjas.length === 0">
+              El grupo no tiene horario este día. Toca <strong>➕ Área</strong> para agregar las áreas con sus horas.
+            </div>
+
+            <ng-container *ngIf="franjaActiva as franja">
+              <div class="tarjeta-glaseada franja-movil" [class.fuera-horario]="franja.fuera_horario">
+                <div class="franja-titulo">
+                  <span class="franja-color" [style.background]="franja.color_area || '#e0a82e'"></span>
+                  <span class="franja-area">{{ franja.nombre_area }}</span>
+                  <span class="franja-horas" *ngIf="!franja.fuera_horario">🕐 {{ hora12(franja.hora_inicial) }} - {{ hora12(franja.hora_final) }}</span>
+                  <button type="button" class="btn-quitar" *ngIf="puedeQuitarFranja(franja)" (click)="quitarFranja(franja)" title="Quitar área">✕</button>
+                </div>
+
+                <div class="row g-2 mt-1" *ngIf="franja.fuera_horario">
+                  <div class="col-6">
+                    <label class="etiqueta">Hora inicial</label>
+                    <app-hora-input tamano="sm" [ngModel]="franja.hora_inicial" (ngModelChange)="cambiarHoraFranja(franja, 'hora_inicial', $event)"></app-hora-input>
+                  </div>
+                  <div class="col-6">
+                    <label class="etiqueta">Hora final</label>
+                    <app-hora-input tamano="sm" [ngModel]="franja.hora_final" (ngModelChange)="cambiarHoraFranja(franja, 'hora_final', $event)"></app-hora-input>
+                  </div>
+                </div>
+
+                <label class="etiqueta mt-2">Docente</label>
+                <app-searchable-dropdown
+                  [items]="docentesItems"
+                  [ngModel]="franja.id_docente"
+                  (ngModelChange)="cambiarDocente(franja, $event)"
+                  placeholder="Selecciona el docente"
+                  searchPlaceholder="Buscar docente...">
+                </app-searchable-dropdown>
+
+                <div class="franja-general">
+                  <span class="etiqueta-general">Para todos</span>
+                  <div class="actividad-general">
+                    <app-searchable-dropdown
+                      [items]="franja.opciones"
+                      [ngModel]="franja.actividadGeneral"
+                      (ngModelChange)="cambiarActividadGeneral(franja, $event)"
+                      placeholder="Actividad de la franja"
+                      searchPlaceholder="Buscar actividad..."
+                      emptyMessage="No hay actividades del área">
+                    </app-searchable-dropdown>
+                    <button type="button" class="btn-mas" (click)="abrirAgregarActividad(franja)" title="Crear o importar actividad">+</button>
+                  </div>
+                  <div class="param-fila" *ngFor="let parametro of parametros; trackBy: trackById">
+                    <span class="param-nombre">{{ parametro.nombre }}</span>
+                    <span class="estrellas">
+                      <span *ngFor="let valor of parametro.valores; trackBy: trackById"
+                            class="estrella fa"
+                            [ngClass]="[valor.icono || 'fa-star', estrellaActiva(franja.valoresGenerales[parametro.id], valor) ? 'checked' : '']"
+                            [title]="valor.valor_cualitativo + ' (' + valor.valor_cuantitativo + ')'"
+                            (click)="calificarGeneral(franja, parametro, valor)"></span>
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="tarjeta-estudiante" *ngFor="let estudiante of estudiantes; trackBy: trackByEstudiante">
+                <ng-container *ngIf="franja.celdas[estudiante.id_estudiante] as celda">
+                  <div class="estudiante-cabecera">
+                    <span class="nombre-estudiante">{{ estudiante.nombre }}</span>
+                    <small class="asistencia">
+                      {{ hora12(estudiante.hora_ingreso) }}<span *ngIf="estudiante.hora_salida"> - {{ hora12(estudiante.hora_salida) }}</span>
+                    </small>
+                  </div>
+                  <app-searchable-dropdown
+                    [items]="franja.opciones"
+                    [ngModel]="celda.id_tarea"
+                    (ngModelChange)="cambiarActividadCelda(franja, estudiante.id_estudiante, $event)"
+                    placeholder="Sin actividad"
+                    searchPlaceholder="Buscar actividad..."
+                    emptyMessage="No hay actividades del área">
+                  </app-searchable-dropdown>
+                  <div class="parametros-celda" *ngIf="celda.id_tarea">
+                    <div class="param-fila" *ngFor="let parametro of parametros; trackBy: trackById">
+                      <span class="param-nombre">{{ parametro.nombre }}</span>
+                      <span class="estrellas">
+                        <span *ngFor="let valor of parametro.valores; trackBy: trackById"
+                              class="estrella fa"
+                              [ngClass]="[valor.icono || 'fa-star', estrellaActiva(celda.valores[parametro.id], valor) ? 'checked' : '']"
+                              [title]="valor.valor_cualitativo + ' (' + valor.valor_cuantitativo + ')'"
+                              (click)="calificarCelda(franja, estudiante.id_estudiante, parametro, valor)"></span>
+                      </span>
+                    </div>
+                  </div>
+                </ng-container>
+              </div>
+            </ng-container>
+          </ng-container>
+
+          <!-- ============================== -->
+          <!-- GUARDAR                        -->
+          <!-- ============================== -->
+          <div class="barra-guardar">
+            <span class="resumen">
+              <strong>{{ totalCalificados }}</strong> registro(s) con calificación
+              <span class="sin-guardar" *ngIf="hayCambios">· sin guardar</span>
+            </span>
+            <button type="button" class="btn-principal" (click)="guardar()" [disabled]="guardando || !hayCambios">
+              <i class="fa" [ngClass]="guardando ? 'fa-spinner fa-spin' : 'fa-check'"></i>
+              {{ guardando ? 'Guardando...' : 'Guardar calificaciones' }}
+            </button>
+          </div>
+        </ng-container>
+      </ng-container>
+    </ng-container>
+  </div>
+
+  <app-agregar-actividad-rapida
+    *ngIf="franjaAgregarActividad && sprint"
+    [idGrupo]="idGrupo"
+    [nombreGrupo]="nombreGrupo"
+    [idArea]="franjaAgregarActividad.id_area_academica"
+    [nombreArea]="franjaAgregarActividad.nombre_area"
+    [idSprint]="sprint.id"
+    [minutosDefault]="minutosFranja(franjaAgregarActividad)"
+    (creada)="alAgregarActividad($event)"
+    (cerrar)="cerrarAgregarActividad()">
+  </app-agregar-actividad-rapida>
+</div>

@@ -1,0 +1,593 @@
+$dorado: #e0a82e;
+$dorado-claro: #ffbd31;
+$dorado-suave: #FFF3D6;
+$crema: #FFFBF2;
+$texto: #555555;
+$texto-suave: #8a8a8a;
+// Mismos colores de estrella que la pantalla de Calificaciones
+$color-star-checked: rgb(101, 245, 209);
+$color-sin-calificar: #b0b4ba;
+$fuera-horario: #F4F7FB;
+
+.modulo {
+  padding-bottom: 2rem;
+}
+
+.contenido {
+  margin-top: 1rem;
+}
+
+.cargando {
+  text-align: center;
+  color: $texto-suave;
+  padding: 2rem 0;
+}
+
+.aviso-vacio {
+  text-align: center;
+  padding: 22px 18px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px dashed rgba($dorado, 0.4);
+  border-radius: 12px;
+  color: $texto-suave;
+  font-size: 0.9em;
+  margin-bottom: 1rem;
+}
+
+// Efecto glaseado de la casa
+.tarjeta-glaseada {
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba($dorado, 0.28);
+  border-radius: 14px;
+  box-shadow: 0 4px 18px rgba(176, 132, 30, 0.10);
+  padding: 14px 16px;
+  margin-bottom: 1rem;
+  // backdrop-filter crea su propio contexto de apilamiento: sin z-index el
+  // dropdown que se abre adentro queda debajo de lo que sigue en la pantalla
+  position: relative;
+  z-index: 4;
+}
+
+.etiqueta {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #6b5a2e;
+  margin-bottom: 0.25rem;
+
+  small {
+    font-weight: 500;
+    color: $texto-suave;
+    text-transform: capitalize;
+  }
+}
+
+.texto-error {
+  display: block;
+  color: #d9534f;
+  font-size: 0.75rem;
+  margin-top: 4px;
+}
+
+// ===================== FILTROS =====================
+.filtros {
+  border-top: 3px solid $dorado-claro;
+  z-index: 8;
+}
+
+.campo-fecha {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+  position: relative;
+
+  .form-control {
+    flex: 1;
+    min-width: 0;
+    text-align: center;
+    font-weight: 600;
+  }
+}
+
+.btn-dia,
+.btn-calendario {
+  border: 1px solid rgba($dorado, 0.45);
+  background: $crema;
+  color: #8B6914;
+  border-radius: 8px;
+  min-width: 38px;
+  font-size: 1.1em;
+  font-weight: 700;
+  cursor: pointer;
+
+  &:hover:not(:disabled) { background: $dorado-suave; }
+  &:disabled { opacity: 0.4; cursor: not-allowed; }
+}
+
+.btn-calendario {
+  font-size: 0.95em;
+}
+
+// El selector nativo queda escondido: solo se abre con el botón del calendario
+.selector-nativo {
+  position: absolute;
+  right: 40px;
+  bottom: 0;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+  border: 0;
+  padding: 0;
+}
+
+.info-sprint {
+  font-size: 0.8rem;
+  color: #8B6914;
+  text-align: right;
+
+  span {
+    display: inline-block;
+    background: $dorado-suave;
+    border-radius: 12px;
+    padding: 4px 12px;
+  }
+}
+
+// ===================== BARRA DE FRANJAS =====================
+.barra-franjas {
+  margin-bottom: 0.75rem;
+}
+
+.resumen-escritorio {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: $texto;
+
+  .separador { color: #ccc; }
+}
+
+.aviso-sin-horario {
+  color: #8B6914;
+  background: $dorado-suave;
+  border-radius: 8px;
+  padding: 3px 10px;
+}
+
+.chips-franjas {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 2px 2px 8px;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+
+  &::-webkit-scrollbar { height: 4px; }
+  &::-webkit-scrollbar-thumb { background: rgba($dorado, 0.4); border-radius: 4px; }
+}
+
+.chip-franja {
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  min-width: 108px;
+  max-width: 160px;
+  padding: 8px 12px;
+  border: 1px solid rgba($dorado, 0.35);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.85);
+  color: $texto;
+  text-align: left;
+  cursor: pointer;
+
+  &.fuera-horario { background: $fuera-horario; border-style: dashed; }
+
+  &.activa {
+    background: linear-gradient(135deg, #FFF8E6, #FFE7AD);
+    border-color: $dorado;
+    box-shadow: 0 2px 10px rgba($dorado, 0.3);
+  }
+}
+
+.chip-hora {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #8B6914;
+}
+
+.chip-area {
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.chip-conteo {
+  font-size: 0.68rem;
+  color: #3c8f7c;
+  font-weight: 700;
+}
+
+.chip-agregar {
+  justify-content: center;
+  align-items: center;
+  font-weight: 700;
+  color: #8B6914;
+  border-style: dashed;
+}
+
+// ===================== AGREGAR ÁREA =====================
+.agregar-area {
+  border: 1px dashed $dorado;
+  z-index: 7;
+}
+
+.agregar-area-titulo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 700;
+  color: #6b5a2e;
+  margin-bottom: 8px;
+}
+
+.btn-cerrar {
+  border: none;
+  background: transparent;
+  font-size: 16px;
+  opacity: 0.6;
+  cursor: pointer;
+
+  &:hover { opacity: 1; }
+}
+
+.botones-derecha {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+// ===================== BOTONES =====================
+.btn-principal {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 18px;
+  background: linear-gradient(135deg, $dorado-claro, $dorado);
+  color: #3a2a00;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba($dorado, 0.35);
+
+  &:hover:not(:disabled) { filter: brightness(1.05); }
+  &:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
+}
+
+.btn-secundario {
+  padding: 7px 14px;
+  background: rgba(255, 255, 255, 0.85);
+  color: #8B6914;
+  border: 1px dashed $dorado;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover { background: $dorado-suave; }
+}
+
+.btn-mas {
+  flex: 0 0 auto;
+  width: 34px;
+  border: 1px solid $dorado;
+  background: $dorado-suave;
+  color: #8B6914;
+  border-radius: 8px;
+  font-size: 1.2em;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+
+  &:hover { background: #FFE7AD; }
+}
+
+.btn-quitar {
+  margin-left: auto;
+  border: none;
+  background: transparent;
+  color: #b9a26a;
+  font-size: 0.9em;
+  cursor: pointer;
+
+  &:hover { color: #d9534f; }
+}
+
+// ===================== FRANJA (cabecera) =====================
+.franja-titulo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.franja-color {
+  flex: 0 0 auto;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.franja-area {
+  font-weight: 700;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.franja-horas {
+  font-size: 0.75rem;
+  color: #8B6914;
+  font-weight: 600;
+}
+
+.franja-horas-editables {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.franja-general {
+  margin-top: 8px;
+  padding: 8px;
+  background: rgba(255, 243, 214, 0.55);
+  border-radius: 10px;
+}
+
+.etiqueta-general {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: #8B6914;
+  margin-bottom: 4px;
+}
+
+.actividad-general {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 4px;
+
+  app-searchable-dropdown {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+// ===================== ESTRELLAS =====================
+.parametros-celda {
+  margin-top: 6px;
+}
+
+.param-fila {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 1px 0;
+}
+
+.param-nombre {
+  font-size: 0.7rem;
+  color: $texto-suave;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.estrellas {
+  flex: 0 0 auto;
+  display: inline-flex;
+  gap: 3px;
+}
+
+.estrella {
+  font-size: 1.05em;
+  color: $color-sin-calificar;
+  cursor: pointer;
+  transition: transform 0.15s ease, color 0.15s ease;
+
+  &:hover { color: $color-star-checked; transform: scale(1.12); }
+  &.checked { color: $color-star-checked; }
+}
+
+// ===================== TABLA ESCRITORIO =====================
+// El scroll horizontal de la tabla corta lo que se sale por debajo, así que
+// en las últimas filas el dropdown de actividad se abre hacia arriba.
+.tabla-scroll {
+  overflow-x: auto;
+  padding-bottom: 6px;
+}
+
+.tabla-rapida tbody tr:nth-last-child(-n+3) ::ng-deep .searchable-dropdown-options {
+  top: auto;
+  bottom: 100%;
+  margin-top: 0;
+  margin-bottom: 0.25rem;
+}
+
+.tabla-rapida {
+  border-collapse: separate;
+  border-spacing: 0;
+  min-width: 100%;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba($dorado, 0.25);
+  border-radius: 12px;
+
+  th, td {
+    border-bottom: 1px solid #f0e8d5;
+    border-right: 1px solid #f5efe2;
+    padding: 8px;
+    vertical-align: top;
+  }
+
+  thead th {
+    background: linear-gradient(to bottom, #FFFBF2, #FFF3D6);
+    font-weight: 600;
+    font-size: 0.85rem;
+  }
+
+  .col-estudiante {
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    min-width: 170px;
+    max-width: 210px;
+    background: #FFFDF8;
+  }
+
+  thead .col-estudiante {
+    z-index: 3;
+    vertical-align: bottom;
+    background: #FFF6E0;
+  }
+
+  .col-franja {
+    min-width: 215px;
+    width: 215px;
+  }
+
+  .celda {
+    min-width: 215px;
+  }
+
+  .fuera-horario {
+    background: $fuera-horario;
+  }
+
+  thead .fuera-horario {
+    background: linear-gradient(to bottom, #F8FAFD, #EEF3F9);
+  }
+}
+
+.franja-cabecera {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.nombre-estudiante {
+  display: block;
+  font-weight: 600;
+  color: #333;
+  font-size: 0.88rem;
+}
+
+.asistencia {
+  display: block;
+  font-size: 0.7rem;
+  color: $texto-suave;
+}
+
+// ===================== MÓVIL =====================
+.franja-movil {
+  border-top: 3px solid $dorado-claro;
+  z-index: 6;
+
+  &.fuera-horario { border-top-style: dashed; }
+
+  .franja-titulo { flex-wrap: wrap; }
+}
+
+.tarjeta-estudiante {
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba($dorado, 0.2);
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.04);
+
+  .estrella { font-size: 1.45em; }
+  .estrellas { gap: 6px; }
+  .param-nombre { font-size: 0.78rem; }
+}
+
+.estudiante-cabecera {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+// ===================== GUARDAR =====================
+// El contenedor .modulo global tiene overflow hidden, así que sticky no
+// funciona: en escritorio la barra va al final y en móvil queda fija abajo.
+.barra-guardar {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+  padding: 10px 14px;
+  background: rgba(255, 251, 242, 0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba($dorado, 0.35);
+  border-radius: 14px;
+  box-shadow: 0 -2px 14px rgba(176, 132, 30, 0.12);
+
+  .resumen { font-size: 0.85rem; color: $texto; }
+  .btn-principal { white-space: nowrap; }
+  .sin-guardar { color: #c47f00; font-weight: 600; }
+}
+
+@media (max-width: 768px) {
+  .contenido { margin-top: 0.5rem; padding-left: 8px; padding-right: 8px; }
+
+  .tarjeta-glaseada { padding: 12px; }
+
+  .info-sprint { text-align: left; }
+
+  .franja-general .estrella { font-size: 1.45em; }
+  .franja-general .estrellas { gap: 6px; }
+  .franja-general .param-nombre { font-size: 0.78rem; }
+
+  // Espacio para que la barra fija no tape la última tarjeta
+  .contenido { padding-bottom: 84px; }
+
+  .barra-guardar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1040;
+    margin: 0;
+    border-radius: 14px 14px 0 0;
+    padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+
+    .btn-principal {
+      flex: 1;
+      justify-content: center;
+      padding: 12px;
+    }
+  }
+}
