@@ -60,6 +60,22 @@ export class CuentasPorCobrarService {
       );
   }
 
+  /** Lo aplicado a cada cuenta de la persona, con el detalle del pago (Vista por mes del estado de cuenta). */
+  obtenerAplicacionesXPersona(id_persona: any) {
+    return this.http
+      .get<HttpResponse<Object>>(this.servicio + `/persona/${id_persona}/aplicaciones`, {
+        observe: 'response',
+      })
+      .pipe(
+        tap((response: HttpResponse<Object>) => {
+          let respuesta: any = response.body;
+          if (respuesta && respuesta.error) throw respuesta.error;
+          return response;
+        }),
+        catchError(this.handleError)
+      );
+  }
+
   crear(elemento: any) {
     const body = JSON.stringify(elemento);
     return this.http.post<any>(this.servicio, body, httpOptions).pipe(

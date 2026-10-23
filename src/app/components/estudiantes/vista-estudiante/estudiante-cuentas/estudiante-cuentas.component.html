@@ -3,7 +3,8 @@
         <h5 class="mb-0">
             <i class="fas fa-file-invoice-dollar me-2"></i> Estado de Cuenta
         </h5>
-        <div class="actions-buttons">
+        <!-- Exportar y compartir trabajan con Movimientos o Pagos: no aplican a la Vista por mes -->
+        <div class="actions-buttons" *ngIf="tabActiva !== 'mes'">
             <button class="btn-whatsapp me-2" (click)="compartirPorWhatsApp()">
                 <i class="fab fa-whatsapp me-1"></i> <span class="btn-text">Compartir por WhatsApp</span>
             </button>
@@ -37,11 +38,11 @@
                         <div class="tarjeta-doble-valor">
                             <div class="valor-principal">
                                 <span class="valor-label-inline">Año {{ anioAcademico }}:</span>
-                                <span class="valor-monto-inline destacado">{{ totalValorCobradoAnio | currency:'COP':'symbol':'1.0-0' }}</span>
+                                <span class="valor-monto-inline destacado">{{ totalValorCobradoAnio | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
                             </div>
                             <div class="valor-secundario">
                                 <span class="valor-label-inline">Histórico:</span>
-                                <span class="valor-monto-inline">{{ totalValorCobrado | currency:'COP':'symbol':'1.0-0' }}</span>
+                                <span class="valor-monto-inline">{{ totalValorCobrado | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
                             </div>
                         </div>
                     </div>
@@ -59,7 +60,7 @@
                     </div>
                     <div class="tarjeta-info">
                         <h3 class="tarjeta-titulo">Saldo Pendiente</h3>
-                        <p class="tarjeta-valor">{{ totalSaldo | currency:'COP':'symbol':'1.0-0' }}</p>
+                        <p class="tarjeta-valor">{{ totalSaldo | currency:'COP':'symbol-narrow':'1.0-0' }}</p>
                     </div>
                 </div>
                 <div class="tarjeta-footer" *ngIf="totalSaldo > 0">
@@ -73,7 +74,7 @@
                     </div>
                     <div class="tarjeta-info">
                         <h3 class="tarjeta-titulo">Valor Pagado Total</h3>
-                        <p class="tarjeta-valor">{{ totalValorPagado | currency:'COP':'symbol':'1.0-0' }}</p>
+                        <p class="tarjeta-valor">{{ totalValorPagado | currency:'COP':'symbol-narrow':'1.0-0' }}</p>
                     </div>
                 </div>
                 <div class="tarjeta-footer">
@@ -89,7 +90,7 @@
                     </div>
                     <div class="tarjeta-info">
                         <h3 class="tarjeta-titulo">Saldo Vencido</h3>
-                        <p class="tarjeta-valor">{{ totalSaldoVencido | currency:'COP':'symbol':'1.0-0' }}</p>
+                        <p class="tarjeta-valor">{{ totalSaldoVencido | currency:'COP':'symbol-narrow':'1.0-0' }}</p>
                     </div>
                 </div>
                 <div class="tarjeta-footer" *ngIf="totalSaldoVencido > 0">
@@ -103,7 +104,7 @@
                     </div>
                     <div class="tarjeta-info">
                         <h3 class="tarjeta-titulo">Sin por Aplicar</h3>
-                        <p class="tarjeta-valor">{{ obtenerPendientePorAplicar() | currency:'COP':'symbol':'1.0-0' }}</p>
+                        <p class="tarjeta-valor">{{ obtenerPendientePorAplicar() | currency:'COP':'symbol-narrow':'1.0-0' }}</p>
                     </div>
                 </div>
                 <div class="tarjeta-footer">
@@ -117,7 +118,7 @@
                     </div>
                     <div class="tarjeta-info">
                         <h3 class="tarjeta-titulo">Último Pago</h3>
-                        <p class="tarjeta-valor">{{ obtenerUltimoPago() | currency:'COP':'symbol':'1.0-0' }}</p>
+                        <p class="tarjeta-valor">{{ obtenerUltimoPago() | currency:'COP':'symbol-narrow':'1.0-0' }}</p>
                     </div>
                 </div>
                 <div class="tarjeta-footer">
@@ -278,11 +279,11 @@
             <span>{{ registrosSeleccionados.size }} registro(s) seleccionado(s)</span>
         </div>
         <div class="seleccion-totales">
-            <span>Valor: {{ calcularTotalesSeleccionados().totalValor | currency:'COP':'symbol':'1.0-0' }}</span>
+            <span>Valor: {{ calcularTotalesSeleccionados().totalValor | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
             <span class="separador">|</span>
-            <span>Pagado: {{ calcularTotalesSeleccionados().totalPagado | currency:'COP':'symbol':'1.0-0' }}</span>
+            <span>Pagado: {{ calcularTotalesSeleccionados().totalPagado | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
             <span class="separador">|</span>
-            <span class="saldo-seleccion">Saldo: {{ calcularTotalesSeleccionados().totalSaldo | currency:'COP':'symbol':'1.0-0' }}</span>
+            <span class="saldo-seleccion">Saldo: {{ calcularTotalesSeleccionados().totalSaldo | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
         </div>
         <button class="btn-limpiar-seleccion" (click)="limpiarSeleccion()">
             <i class="fas fa-times me-1"></i> Limpiar
@@ -294,6 +295,9 @@
         </div>
         <div class="tab" [class.active]="tabActiva === 'pagos'" (click)="cambiarTab('pagos')">
             <i class="fas fa-money-bill-wave me-2"></i> <span class="tab-text">Historial de pagos</span>
+        </div>
+        <div class="tab" [class.active]="tabActiva === 'mes'" (click)="cambiarTab('mes')">
+            <i class="fas fa-table me-2"></i> <span class="tab-text">Vista por mes</span>
         </div>
     </div>
     <div class="sub-tabs-container" *ngIf="tabActiva === 'movimientos'">
@@ -364,12 +368,12 @@
                             </div>
                         </td>
                         <td>{{ item.detalle || 'N/A' }}</td>
-                        <td class="text-end">{{ item.valor | currency:'COP':'symbol':'1.0-0' }}</td>
-                        <td class="text-end">{{ item.valor_pagado | currency:'COP':'symbol':'1.0-0' }}</td>
-                        <td class="text-end">{{ item.saldo | currency:'COP':'symbol':'1.0-0' }}</td>
+                        <td class="text-end">{{ item.valor | currency:'COP':'symbol-narrow':'1.0-0' }}</td>
+                        <td class="text-end">{{ item.valor_pagado | currency:'COP':'symbol-narrow':'1.0-0' }}</td>
+                        <td class="text-end">{{ item.saldo | currency:'COP':'symbol-narrow':'1.0-0' }}</td>
                         <td class="text-end">
                             <span *ngIf="item.saldo_mora > 0" class="text-danger fw-bold">
-                                {{ item.saldo_mora | currency:'COP':'symbol':'1.0-0' }}
+                                {{ item.saldo_mora | currency:'COP':'symbol-narrow':'1.0-0' }}
                             </span>
                             <span *ngIf="!item.saldo_mora || item.saldo_mora <= 0">-</span>
                         </td>
@@ -384,10 +388,10 @@
                     <tr class="totales-row">
                         <td></td>
                         <td colspan="4" class="text-end fw-bold">Total:</td>
-                        <td class="text-end fw-bold">{{ calcularTotalesFiltrados().totalValor | currency:'COP':'symbol':'1.0-0' }}</td>
-                        <td class="text-end fw-bold">{{ calcularTotalesFiltrados().totalPagado | currency:'COP':'symbol':'1.0-0' }}</td>
-                        <td class="text-end fw-bold">{{ calcularTotalesFiltrados().totalSaldo | currency:'COP':'symbol':'1.0-0' }}</td>
-                        <td class="text-end fw-bold text-danger">{{ calcularTotalesFiltrados().totalMora | currency:'COP':'symbol':'1.0-0' }}</td>
+                        <td class="text-end fw-bold">{{ calcularTotalesFiltrados().totalValor | currency:'COP':'symbol-narrow':'1.0-0' }}</td>
+                        <td class="text-end fw-bold">{{ calcularTotalesFiltrados().totalPagado | currency:'COP':'symbol-narrow':'1.0-0' }}</td>
+                        <td class="text-end fw-bold">{{ calcularTotalesFiltrados().totalSaldo | currency:'COP':'symbol-narrow':'1.0-0' }}</td>
+                        <td class="text-end fw-bold text-danger">{{ calcularTotalesFiltrados().totalMora | currency:'COP':'symbol-narrow':'1.0-0' }}</td>
                         <td></td>
                     </tr>
                 </tfoot>
@@ -446,22 +450,22 @@
                 <div class="valores-grid">
                     <div class="valor-item">
                         <span class="valor-label">Valor</span>
-                        <span class="valor-monto">{{ item.valor | currency:'COP':'symbol':'1.0-0' }}</span>
+                        <span class="valor-monto">{{ item.valor | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
                     </div>
                     <div class="valor-item">
                         <span class="valor-label">Pagado</span>
-                        <span class="valor-monto">{{ item.valor_pagado | currency:'COP':'symbol':'1.0-0' }}</span>
+                        <span class="valor-monto">{{ item.valor_pagado | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
                     </div>
                     <div class="valor-item saldo">
                         <span class="valor-label">Saldo</span>
                         <span class="valor-monto" [class.text-danger]="item.saldo > 0" [class.text-success]="item.saldo <= 0">
-                            {{ item.saldo | currency:'COP':'symbol':'1.0-0' }}
+                            {{ item.saldo | currency:'COP':'symbol-narrow':'1.0-0' }}
                         </span>
                     </div>
                     <div class="valor-item" *ngIf="item.saldo_mora > 0">
                         <span class="valor-label">Mora</span>
                         <span class="valor-monto text-danger">
-                            {{ item.saldo_mora | currency:'COP':'symbol':'1.0-0' }}
+                            {{ item.saldo_mora | currency:'COP':'symbol-narrow':'1.0-0' }}
                         </span>
                     </div>
                 </div>
@@ -471,15 +475,15 @@
             <h6>Totales</h6>
             <div class="total-item">
                 <span>Valor Total:</span>
-                <span>{{ calcularTotalesFiltrados().totalValor | currency:'COP':'symbol':'1.0-0' }}</span>
+                <span>{{ calcularTotalesFiltrados().totalValor | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
             </div>
             <div class="total-item">
                 <span>Total Pagado:</span>
-                <span>{{ calcularTotalesFiltrados().totalPagado | currency:'COP':'symbol':'1.0-0' }}</span>
+                <span>{{ calcularTotalesFiltrados().totalPagado | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
             </div>
             <div class="total-item saldo-total">
                 <span>Saldo Total:</span>
-                <span>{{ calcularTotalesFiltrados().totalSaldo | currency:'COP':'symbol':'1.0-0' }}</span>
+                <span>{{ calcularTotalesFiltrados().totalSaldo | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
             </div>
         </div>
         <div class="paginacion" *ngIf="datosFiltrados.length > 0">
@@ -529,9 +533,9 @@
                         <td>{{ pago.nombre_acudiente }}</td>
                         <td>{{ pago.tipo_pago }}</td>
                         <td>{{ pago.referencia_bancaria || 'N/A' }}</td>
-                        <td class="text-end">{{ pago.valor_recibido | currency:'COP':'symbol':'1.0-0' }}</td>
-                        <td class="text-end">{{ pago.valor_aplicado_cuentas | currency:'COP':'symbol':'1.0-0' }}</td>
-                        <td class="text-end">{{ pago.saldo | currency:'COP':'symbol':'1.0-0' }}</td>
+                        <td class="text-end">{{ pago.valor_recibido | currency:'COP':'symbol-narrow':'1.0-0' }}</td>
+                        <td class="text-end">{{ pago.valor_aplicado_cuentas | currency:'COP':'symbol-narrow':'1.0-0' }}</td>
+                        <td class="text-end">{{ pago.saldo | currency:'COP':'symbol-narrow':'1.0-0' }}</td>
                         <td>
                             <span class="estado-badge" [class.anulado]="pago.estado === 'Anulado'" [class.contabilizado]="pago.estado === 'Contabilizado'" [class.registrado]="pago.estado === 'Registrado'">
                                 {{ pago.estado }}
@@ -542,9 +546,9 @@
                 <tfoot>
                     <tr class="totales-row">
                         <td colspan="5" class="text-end fw-bold">Total:</td>
-                        <td class="text-end fw-bold">{{ calcularTotalesFiltrados().totalRecibido | currency:'COP':'symbol':'1.0-0' }}</td>
-                        <td class="text-end fw-bold">{{ calcularTotalesFiltrados().totalAplicado | currency:'COP':'symbol':'1.0-0' }}</td>
-                        <td class="text-end fw-bold">{{ calcularTotalesFiltrados().totalSaldo | currency:'COP':'symbol':'1.0-0' }}</td>
+                        <td class="text-end fw-bold">{{ calcularTotalesFiltrados().totalRecibido | currency:'COP':'symbol-narrow':'1.0-0' }}</td>
+                        <td class="text-end fw-bold">{{ calcularTotalesFiltrados().totalAplicado | currency:'COP':'symbol-narrow':'1.0-0' }}</td>
+                        <td class="text-end fw-bold">{{ calcularTotalesFiltrados().totalSaldo | currency:'COP':'symbol-narrow':'1.0-0' }}</td>
                         <td></td>
                     </tr>
                 </tfoot>
@@ -605,15 +609,15 @@
                 <div class="valores-grid">
                     <div class="valor-item">
                         <span class="valor-label">Recibido</span>
-                        <span class="valor-monto">{{ pago.valor_recibido | currency:'COP':'symbol':'1.0-0' }}</span>
+                        <span class="valor-monto">{{ pago.valor_recibido | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
                     </div>
                     <div class="valor-item">
                         <span class="valor-label">Aplicado</span>
-                        <span class="valor-monto">{{ pago.valor_aplicado_cuentas | currency:'COP':'symbol':'1.0-0' }}</span>
+                        <span class="valor-monto">{{ pago.valor_aplicado_cuentas | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
                     </div>
                     <div class="valor-item saldo">
                         <span class="valor-label">Saldo</span>
-                        <span class="valor-monto">{{ pago.saldo | currency:'COP':'symbol':'1.0-0' }}</span>
+                        <span class="valor-monto">{{ pago.saldo | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
                     </div>
                 </div>
             </div>
@@ -622,15 +626,15 @@
             <h6>Totales</h6>
             <div class="total-item">
                 <span>Total Recibido:</span>
-                <span>{{ calcularTotalesFiltrados().totalRecibido | currency:'COP':'symbol':'1.0-0' }}</span>
+                <span>{{ calcularTotalesFiltrados().totalRecibido | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
             </div>
             <div class="total-item">
                 <span>Total Aplicado:</span>
-                <span>{{ calcularTotalesFiltrados().totalAplicado | currency:'COP':'symbol':'1.0-0' }}</span>
+                <span>{{ calcularTotalesFiltrados().totalAplicado | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
             </div>
             <div class="total-item saldo-total">
                 <span>Saldo Total:</span>
-                <span>{{ calcularTotalesFiltrados().totalSaldo | currency:'COP':'symbol':'1.0-0' }}</span>
+                <span>{{ calcularTotalesFiltrados().totalSaldo | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
             </div>
         </div>
         <div class="paginacion" *ngIf="pagosFiltrados.length > 0">
@@ -653,6 +657,148 @@
             </div>
         </div>
     </div>
+    <!-- Vista por mes: una columna por mes del año académico, tarjetas por concepto -->
+    <div class="vista-mes" *ngIf="tabActiva === 'mes' && !cargandoProductos">
+        <div class="vista-mes-leyenda">
+            <span class="sub-tab-contador">Año {{ anioAcademico }}</span>
+            <span><span class="chip-pago dinero">$</span> Pagado con dinero</span>
+            <span><span class="chip-pago descuento">Dto</span> Descuentos y castigos</span>
+            <span *ngIf="cargandoAplicaciones" class="text-muted"><i class="fas fa-spinner fa-spin me-1"></i> Cargando pagos aplicados...</span>
+        </div>
+
+        <div *ngIf="!vistaMensualConDatos" class="no-data-message">
+            <i class="fas fa-info-circle"></i>
+            <p>No hay cobros en el año {{ anioAcademico }} con los filtros actuales.</p>
+        </div>
+
+        <div class="vista-mes-scroll" *ngIf="vistaMensualConDatos">
+            <div class="vista-mes-columnas">
+                <div class="mes-columna" *ngFor="let mes of vistaMensual; trackBy: trackByMes" [class.mes-vacio]="mes.tarjetas.length === 0">
+                    <div class="mes-encabezado">
+                        <span class="mes-nombre">{{ mes.nombre }}</span>
+                        <span class="mes-saldo" *ngIf="mes.tarjetas.length > 0" [class.debe]="mes.saldo > 0">
+                            {{ mes.saldo > 0 ? 'Debe ' + (mes.saldo | currency:'COP':'symbol-narrow':'1.0-0') : 'Al día' }}
+                        </span>
+                    </div>
+
+                    <div class="mes-cuerpo">
+                        <div class="mes-sin-cobros" *ngIf="mes.tarjetas.length === 0">Sin cobros</div>
+
+                        <div class="concepto-card" *ngFor="let tarjeta of mes.tarjetas"
+                             [class.agrupada]="tarjeta.agrupada"
+                             [class.con-saldo]="tarjeta.saldo > 0"
+                             (click)="abrirCobrosTarjeta(tarjeta, mes)">
+                            <div class="concepto-cabecera">
+                                <span class="categoria-dot" [style.background-color]="obtenerColorCategoria(tarjeta.categoria)"></span>
+                                <span class="concepto-nombre">{{ tarjeta.titulo }}</span>
+                                <i class="fas fa-layer-group concepto-icono-grupo" *ngIf="tarjeta.agrupada" title="Ver productos"></i>
+                            </div>
+                            <div class="concepto-sub">
+                                {{ tarjeta.agrupada ? tarjeta.cantidadProductos + ' productos' : tarjeta.categoria }}
+                            </div>
+                            <div class="concepto-valor">{{ tarjeta.cobrado | currency:'COP':'symbol-narrow':'1.0-0' }}</div>
+                            <div class="concepto-estado" [class.debe]="tarjeta.saldo > 0">
+                                {{ tarjeta.saldo > 0 ? 'Debe ' + (tarjeta.saldo | currency:'COP':'symbol-narrow':'1.0-0') : 'Al día' }}
+                            </div>
+                            <div class="concepto-pagos">
+                                <button type="button" class="chip-pago dinero" *ngIf="tarjeta.dinero > 0"
+                                        (click)="abrirAplicaciones(tarjeta, mes, 'dinero', $event)" title="Ver detalle">
+                                    {{ tarjeta.dinero | currency:'COP':'symbol-narrow':'1.0-0' }}
+                                </button>
+                                <button type="button" class="chip-pago descuento" *ngFor="let otro of tarjeta.otros"
+                                        (click)="abrirAplicaciones(tarjeta, mes, otro.tipo, $event)" title="Ver detalle">
+                                    {{ otro.tipo }} {{ otro.valor | currency:'COP':'symbol-narrow':'1.0-0' }}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mes-total" *ngIf="mes.tarjetas.length > 0">
+                        <div class="mes-total-fila">
+                            <span>Cobrado</span>
+                            <strong>{{ mes.cobrado | currency:'COP':'symbol-narrow':'1.0-0' }}</strong>
+                        </div>
+                        <div class="mes-total-fila" *ngIf="mes.dinero > 0">
+                            <span>Pagado $</span>
+                            <span>{{ mes.dinero | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
+                        </div>
+                        <div class="mes-total-fila" *ngFor="let otro of mes.otros">
+                            <span>{{ otro.tipo }}</span>
+                            <span>{{ otro.valor | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
+                        </div>
+                        <div class="mes-total-fila" [class.debe]="mes.saldo > 0">
+                            <span>Saldo</span>
+                            <strong>{{ mes.saldo | currency:'COP':'symbol-narrow':'1.0-0' }}</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: cobros de una tarjeta agrupada por categoría -->
+    <div class="modal-vista-mes-fondo" *ngIf="modalCobros" (click)="cerrarModalesVistaMes()">
+        <div class="modal-vista-mes" (click)="$event.stopPropagation()">
+            <div class="modal-vista-mes-header">
+                <div>
+                    <h6>{{ modalCobros.titulo }}</h6>
+                    <small>{{ modalCobros.subtitulo }}</small>
+                </div>
+                <button type="button" class="btn-cerrar-modal" (click)="cerrarModalesVistaMes()" title="Cerrar">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-vista-mes-body">
+                <div class="detalle-item" *ngFor="let cuenta of modalCobros.filas">
+                    <div class="detalle-linea">
+                        <strong>{{ cuenta.nombre_producto_servicio }}</strong>
+                        <span>{{ cuenta.valor | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
+                    </div>
+                    <div class="detalle-linea detalle-sub">
+                        <span>{{ formatearFecha(cuenta.fecha) }}<span *ngIf="cuenta.detalle"> · {{ cuenta.detalle }}</span></span>
+                        <span [class.debe]="cuenta.saldo > 0">
+                            {{ cuenta.saldo > 0 ? 'Debe ' + (cuenta.saldo | currency:'COP':'symbol-narrow':'1.0-0') : 'Pagado' }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: detalle de lo aplicado (dinero, descuento, castigo...) -->
+    <div class="modal-vista-mes-fondo" *ngIf="modalAplicaciones" (click)="cerrarModalesVistaMes()">
+        <div class="modal-vista-mes" (click)="$event.stopPropagation()">
+            <div class="modal-vista-mes-header">
+                <div>
+                    <h6>{{ modalAplicaciones.titulo }}</h6>
+                    <small>{{ modalAplicaciones.subtitulo }} · Total {{ modalAplicaciones.total | currency:'COP':'symbol-narrow':'1.0-0' }}</small>
+                </div>
+                <button type="button" class="btn-cerrar-modal" (click)="cerrarModalesVistaMes()" title="Cerrar">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-vista-mes-body">
+                <div class="detalle-item" *ngFor="let aplicacion of modalAplicaciones.filas">
+                    <div class="detalle-linea">
+                        <strong>{{ aplicacion.numero_comprobante || 'Sin número' }} · {{ aplicacion.tipo_pago }}</strong>
+                        <span>{{ aplicacion.valor_aplicado | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
+                    </div>
+                    <div class="detalle-linea detalle-sub">
+                        <span>Pago del {{ formatearFecha(aplicacion.fecha_pago) }} · {{ aplicacion.nombre_producto_servicio }} ({{ formatearFecha(aplicacion.fecha_cobro) }})</span>
+                    </div>
+                    <div class="detalle-linea detalle-sub">
+                        <span><i class="fas fa-user-edit me-1"></i> Registró {{ aplicacion.usuario_registro || 'N/A' }}</span>
+                        <span *ngIf="aplicacion.nombre_acudiente">Acudiente {{ aplicacion.nombre_acudiente }}</span>
+                    </div>
+                    <div class="detalle-linea detalle-sub" *ngIf="aplicacion.referencia_bancaria">
+                        <span><i class="fas fa-hashtag me-1"></i> {{ aplicacion.referencia_bancaria }}</span>
+                    </div>
+                    <div class="detalle-observacion" *ngIf="aplicacion.observaciones">{{ aplicacion.observaciones }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div *ngIf="cargandoProductos || cargandoPagos" class="loading-container">
         <div class="spinner"></div>
         <p>Cargando información financiera...</p>

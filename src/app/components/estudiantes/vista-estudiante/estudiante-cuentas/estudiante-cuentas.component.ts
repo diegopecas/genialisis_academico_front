@@ -123,6 +123,18 @@ export class EstudianteCuentasComponent implements OnInit {
     // Array completo de datos filtrados SIN paginación (para selección y exportación)
     private datosFiltradosCompletos: any[] = [];
 
+    // ===== Vista por mes =====
+    // Lo aplicado a cada cuenta (pagos, descuentos, castigos) con su detalle
+    private aplicacionesPorCuenta: { [idCuenta: string]: any[] } = {};
+    public cargandoAplicaciones: boolean = false;
+    public vistaMensual: any[] = [];
+    public readonly nombresMeses: string[] = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+        'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+    // Modal con los cobros de una tarjeta agrupada por categoría
+    public modalCobros: { titulo: string, subtitulo: string, filas: any[] } | null = null;
+    // Modal con el detalle de lo aplicado (dinero, descuento, castigo...)
+    public modalAplicaciones: { titulo: string, subtitulo: string, filas: any[], total: number } | null = null;
+
     constructor(
         private estudiantesService: EstudiantesService,
         private cuentasPorCobrarService: CuentasPorCobrarService,
@@ -150,6 +162,7 @@ export class EstudianteCuentasComponent implements OnInit {
                 this.nombreCompleto = this.estudiante.nombre_completo
                 console.log("obtenerEstudiante", this.estudiante)
                 this.obtenerCuentasPorCobrar(this.estudiante?.id_persona);
+                this.obtenerAplicaciones(this.estudiante?.id_persona);
                 this.obtenerPagosRecibidos(this.idEstudiante);
             },
             error: (error: any) => {
@@ -456,6 +469,9 @@ export class EstudianteCuentasComponent implements OnInit {
         }
 
         this.aplicarPaginacion();
+
+        // La Vista por mes usa los mismos filtros
+        this.armarVistaMensual();
     }
 
     filtrarPagos(): void {
@@ -1041,6 +1057,183 @@ export class EstudianteCuentasComponent implements OnInit {
         }
 
         return descripciones;
+    }
+
+    // ========================================================================
+    // VISTA POR MES
+    // ========================================================================
+
+    obtenerAplicaciones(id_persona: any): void {
+        if (!id_persona) return;
+        this.cargandoAplicaciones = true;
+        this.cuentasPorCobrarService.obtenerAplicacionesXPersona(id_persona).subscribe({
+            next: (response: any) => {
+                const filas = (response.body || []) as any[];
+                this.aplicacionesPorCuenta = {};
+                filas.forEach(fila => {
+                    const id = fila.id_cuenta_por_cobrar;
+                    if (!this.aplicacionesPorCuenta[id]) {
+                        this.aplicacionesPorCuenta[id] = [];
+                    }
+                    this.aplicacionesPorCuenta[id].push(fila);
+                });
+                this.cargandoAplicaciones = false;
+                this.armarVistaMensual();
+            },
+            error: (error: any) => {
+                console.error('Error al obtener el detalle de pagos aplicados:', error);
+                this.cargandoAplicaciones = false;
+            }
+        });
+    }
+
+    /**
+     * Arma los 12 meses del año académico. En cada mes los cobros se agrupan
+     * por categoría; si la categoría tiene 2 productos distintos o menos en
+     * ese mes, sale una tarjeta por producto (la pensión), y si tiene más,
+     * una sola tarjeta con la categoría (las onces, que son muchas).
+     * Respeta el buscador y los filtros de arriba.
+     */
+    private armarVistaMensual(): void {
+        const cuentas = this.aplicarFiltrosMovimientos(this.datosAnioActual);
+
+        const meses: any[] = this.nombresMeses.map((nombre, indice) => ({
+            indice,
+            nombre,
+            tarjetas: [] as any[],
+            cobrado: 0,
+            saldo: 0,
+            dinero: 0,
+            otros: [] as { tipo: string, valor: number }[]
+        }));
+
+        // mes -> categoría -> producto -> cuentas
+        const agrupado: { [mes: number]: { [categoria: string]: { [producto: string]: any[] } } } = {};
+        cuentas.forEach(cuenta => {
+            const fecha = this.fechaLocal(cuenta.fecha);
+            if (!fecha) return;
+            const mes = fecha.getMonth();
+            const categoria = cuenta.nombre_clasificacion || 'Sin categoría';
+            const producto = cuenta.nombre_producto_servicio || 'Sin producto';
+            agrupado[mes] = agrupado[mes] || {};
+            agrupado[mes][categoria] = agrupado[mes][categoria] || {};
+            agrupado[mes][categoria][producto] = agrupado[mes][categoria][producto] || [];
+            agrupado[mes][categoria][producto].push(cuenta);
+        });
+
+        Object.keys(agrupado).forEach(claveMes => {
+            const mes = meses[Number(claveMes)];
+            const categorias = agrupado[Number(claveMes)];
+
+            Object.keys(categorias).sort().forEach(categoria => {
+                const productos = categorias[categoria];
+                const nombresProductos = Object.keys(productos).sort();
+
+                if (nombresProductos.length <= 2) {
+                    nombresProductos.forEach(producto => {
+                        mes.tarjetas.push(this.armarTarjeta(producto, categoria, false, productos[producto], 1));
+                    });
+                } else {
+                    const todas = nombresProductos.reduce((acc: any[], producto) => acc.concat(productos[producto]), []);
+                    mes.tarjetas.push(this.armarTarjeta(categoria, categoria, true, todas, nombresProductos.length));
+                }
+            });
+
+            // Totales del mes
+            const otros: { [tipo: string]: number } = {};
+            mes.tarjetas.forEach((tarjeta: any) => {
+                mes.cobrado += tarjeta.cobrado;
+                mes.saldo += tarjeta.saldo;
+                mes.dinero += tarjeta.dinero;
+                tarjeta.otros.forEach((o: any) => { otros[o.tipo] = (otros[o.tipo] || 0) + o.valor; });
+            });
+            mes.otros = Object.keys(otros).sort().map(tipo => ({ tipo, valor: otros[tipo] }));
+        });
+
+        this.vistaMensual = meses;
+    }
+
+    /**
+     * Una tarjeta del mes: suma lo cobrado y el saldo de sus cuentas, y separa
+     * lo aplicado entre dinero (tipos de pago que son ingreso) y cada tipo que
+     * no es ingreso (Descuento, Castigo Cartera...) por su nombre.
+     */
+    private armarTarjeta(titulo: string, categoria: string, agrupada: boolean, cuentas: any[], cantidadProductos: number): any {
+        let cobrado = 0;
+        let saldo = 0;
+        let dinero = 0;
+        const otros: { [tipo: string]: number } = {};
+        const aplicaciones: any[] = [];
+
+        cuentas.forEach(cuenta => {
+            cobrado += Number(cuenta.valor) || 0;
+            saldo += Number(cuenta.saldo) || 0;
+            const id = cuenta.id_cuenta_cobrar || cuenta.id;
+            (this.aplicacionesPorCuenta[id] || []).forEach(aplicacion => {
+                const valor = Number(aplicacion.valor_aplicado) || 0;
+                aplicaciones.push({ ...aplicacion, nombre_producto_servicio: cuenta.nombre_producto_servicio, fecha_cobro: cuenta.fecha });
+                if (Number(aplicacion.es_ingreso) === 1) {
+                    dinero += valor;
+                } else {
+                    const tipo = aplicacion.tipo_pago || 'Descuento';
+                    otros[tipo] = (otros[tipo] || 0) + valor;
+                }
+            });
+        });
+
+        return {
+            titulo,
+            categoria,
+            agrupada,
+            cantidadProductos,
+            cuentas: [...cuentas].sort((a, b) => String(a.fecha).localeCompare(String(b.fecha))),
+            aplicaciones,
+            cobrado,
+            saldo,
+            dinero,
+            otros: Object.keys(otros).sort().map(tipo => ({ tipo, valor: otros[tipo] }))
+        };
+    }
+
+    /** Hay algo que mostrar en la vista por mes. */
+    get vistaMensualConDatos(): boolean {
+        return this.vistaMensual.some(mes => mes.tarjetas.length > 0);
+    }
+
+    abrirCobrosTarjeta(tarjeta: any, mes: any): void {
+        if (!tarjeta.agrupada) return;
+        this.modalCobros = {
+            titulo: tarjeta.titulo,
+            subtitulo: `${mes.nombre} ${this.anioAcademico} · ${tarjeta.cantidadProductos} productos`,
+            filas: tarjeta.cuentas
+        };
+    }
+
+    /**
+     * Detalle de lo aplicado en una tarjeta. tipo = 'dinero' para lo pagado
+     * con tipos que son ingreso; si no, el nombre del tipo de pago
+     * (Descuento, Castigo Cartera...).
+     */
+    abrirAplicaciones(tarjeta: any, mes: any, tipo: string, evento?: Event): void {
+        if (evento) evento.stopPropagation();
+        const filas = tarjeta.aplicaciones.filter((a: any) =>
+            tipo === 'dinero' ? Number(a.es_ingreso) === 1 : (Number(a.es_ingreso) !== 1 && (a.tipo_pago || 'Descuento') === tipo)
+        );
+        this.modalAplicaciones = {
+            titulo: `${tipo === 'dinero' ? 'Pagado con dinero' : tipo} · ${tarjeta.titulo}`,
+            subtitulo: `${mes.nombre} ${this.anioAcademico}`,
+            filas,
+            total: filas.reduce((suma: number, a: any) => suma + (Number(a.valor_aplicado) || 0), 0)
+        };
+    }
+
+    cerrarModalesVistaMes(): void {
+        this.modalCobros = null;
+        this.modalAplicaciones = null;
+    }
+
+    trackByMes(index: number, mes: any): number {
+        return mes.indice;
     }
 
     // Exportar PDF

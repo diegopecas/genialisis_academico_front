@@ -568,9 +568,10 @@ $tablet-breakpoint: 992px;
   }
 
   th {
-    background-color: $black;
-    color: white;
-    font-weight: 500;
+    background-color: #fff6df;
+    color: #6b5a2e;
+    font-weight: 600;
+    border-bottom: 2px solid rgba($gold, 0.35);
     position: sticky;
     top: 0;
     z-index: 10;
@@ -1178,6 +1179,297 @@ $tablet-breakpoint: 992px;
 
   &:hover {
     background-color: rgba($gold, 0.1);
+  }
+}
+
+// ===================== VISTA POR MES =====================
+.vista-mes-leyenda {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  font-size: 0.8rem;
+  color: $secondary-color;
+  margin-bottom: 10px;
+}
+
+// Un solo contenedor con scroll en los dos sentidos: así el encabezado de
+// cada mes queda fijo arriba mientras se recorren las tarjetas.
+.vista-mes-scroll {
+  overflow: auto;
+  max-height: 75vh;
+  border-radius: 12px;
+  border: 1px solid rgba($gold, 0.25);
+  background: rgba(255, 255, 255, 0.6);
+  -webkit-overflow-scrolling: touch;
+}
+
+.vista-mes-columnas {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 0 10px 10px;
+  min-width: max-content;
+}
+
+.mes-columna {
+  width: 235px;
+  flex: 0 0 235px;
+  background: rgba(255, 251, 240, 0.85);
+  border-radius: 12px;
+  border: 1px solid rgba($gold, 0.18);
+
+  &.mes-vacio {
+    width: 140px;
+    flex-basis: 140px;
+    opacity: 0.7;
+  }
+}
+
+.mes-encabezado {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 6px;
+  padding: 10px 10px 8px;
+  background: #fff6df;
+  border-bottom: 2px solid rgba($gold, 0.45);
+  border-radius: 12px 12px 0 0;
+
+  .mes-nombre {
+    font-weight: 700;
+    color: #6b5216;
+  }
+
+  .mes-saldo {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: $success-color;
+
+    &.debe { color: $danger-color; }
+  }
+}
+
+.mes-cuerpo {
+  padding: 8px;
+}
+
+.mes-sin-cobros {
+  font-size: 0.75rem;
+  color: $secondary-color;
+  text-align: center;
+  padding: 8px 0;
+}
+
+.concepto-card {
+  background: #fff;
+  border: 1px solid #eee3c8;
+  border-left: 4px solid $success-color;
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin-bottom: 8px;
+  font-size: 0.8rem;
+
+  &.con-saldo { border-left-color: $danger-color; }
+
+  &.agrupada {
+    cursor: pointer;
+
+    &:hover { box-shadow: 0 2px 8px rgba($gold, 0.25); }
+  }
+}
+
+.concepto-cabecera {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  .categoria-dot {
+    flex: 0 0 auto;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+  }
+
+  .concepto-nombre {
+    flex: 1;
+    min-width: 0;
+    font-weight: 600;
+    color: $dark-color;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .concepto-icono-grupo { color: $gold; }
+}
+
+.concepto-sub {
+  font-size: 0.7rem;
+  color: $secondary-color;
+  margin-left: 15px;
+}
+
+.concepto-valor {
+  font-weight: 600;
+  color: $dark-color;
+  margin-top: 4px;
+}
+
+.concepto-estado {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: $success-color;
+
+  &.debe { color: $danger-color; }
+}
+
+.concepto-pagos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.chip-pago {
+  display: inline-block;
+  border: none;
+  border-radius: 6px;
+  padding: 1px 6px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  line-height: 1.5;
+  cursor: pointer;
+
+  &.dinero { background: #e3f5e7; color: #1f7a35; }
+  &.descuento { background: #fff1cc; color: #8a6100; }
+}
+
+.vista-mes-leyenda .chip-pago { cursor: default; }
+
+.mes-total {
+  margin: 0 8px 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba($gold, 0.1);
+  font-size: 0.75rem;
+}
+
+.mes-total-fila {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  color: $dark-color;
+
+  &.debe { color: $danger-color; }
+}
+
+// Modales de la vista por mes
+.modal-vista-mes-fondo {
+  position: fixed;
+  inset: 0;
+  z-index: 1060;
+  background: rgba(40, 32, 15, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.modal-vista-mes {
+  width: 100%;
+  max-width: 560px;
+  max-height: calc(100vh - 32px);
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid rgba($gold, 0.4);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+  overflow: hidden;
+}
+
+.modal-vista-mes-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 16px;
+  background: #fff6df;
+  border-bottom: 1px solid rgba($gold, 0.3);
+
+  h6 { margin: 0; font-weight: 700; color: #6b5216; }
+  small { color: $secondary-color; }
+}
+
+.btn-cerrar-modal {
+  border: none;
+  background: transparent;
+  color: $secondary-color;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.modal-vista-mes-body {
+  padding: 10px 16px 14px;
+  overflow-y: auto;
+}
+
+.detalle-item {
+  padding: 8px 0;
+  border-bottom: 1px solid #f1ead8;
+  font-size: 0.82rem;
+
+  &:last-child { border-bottom: none; }
+}
+
+.detalle-linea {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+
+  .debe { color: $danger-color; font-weight: 600; }
+}
+
+.detalle-sub {
+  font-size: 0.74rem;
+  color: $secondary-color;
+}
+
+.detalle-observacion {
+  margin-top: 4px;
+  font-size: 0.74rem;
+  color: $dark-color;
+  background: $light-color;
+  border-radius: 6px;
+  padding: 4px 8px;
+}
+
+@media (max-width: $mobile-breakpoint) {
+  .vista-mes-scroll { max-height: 70vh; }
+
+  .mes-columna {
+    width: 78vw;
+    flex-basis: 78vw;
+
+    &.mes-vacio {
+      width: 40vw;
+      flex-basis: 40vw;
+    }
+  }
+
+  .modal-vista-mes-fondo {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .modal-vista-mes {
+    max-width: none;
+    max-height: 85vh;
+    border-radius: 14px 14px 0 0;
   }
 }
 
