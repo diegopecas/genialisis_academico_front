@@ -1202,6 +1202,21 @@ $tablet-breakpoint: 992px;
   border: 1px solid rgba($gold, 0.25);
   background: rgba(255, 255, 255, 0.6);
   -webkit-overflow-scrolling: touch;
+
+  // Manito para arrastrar solo en escritorio (mouse)
+  @media (hover: hover) and (pointer: fine) {
+    cursor: grab;
+
+    &.arrastrando {
+      cursor: grabbing;
+      user-select: none;
+
+      .concepto-card,
+      .chip-pago {
+        cursor: grabbing;
+      }
+    }
+  }
 }
 
 .vista-mes-columnas {

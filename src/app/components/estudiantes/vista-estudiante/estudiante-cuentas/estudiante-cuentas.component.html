@@ -671,7 +671,12 @@
             <p>No hay cobros en el año {{ anioAcademico }} con los filtros actuales.</p>
         </div>
 
-        <div class="vista-mes-scroll" *ngIf="vistaMensualConDatos">
+        <div class="vista-mes-scroll" *ngIf="vistaMensualConDatos" #scrollMes
+             [class.arrastrando]="arrastrandoMes"
+             (mousedown)="iniciarArrastreMes($event, scrollMes)"
+             (mousemove)="moverArrastreMes($event, scrollMes)"
+             (mouseup)="terminarArrastreMes()"
+             (mouseleave)="terminarArrastreMes()">
             <div class="vista-mes-columnas">
                 <div class="mes-columna" *ngFor="let mes of vistaMensual; trackBy: trackByMes" [class.mes-vacio]="mes.tarjetas.length === 0">
                     <div class="mes-encabezado">

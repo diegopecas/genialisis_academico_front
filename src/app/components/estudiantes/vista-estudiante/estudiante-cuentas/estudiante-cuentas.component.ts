@@ -134,6 +134,9 @@ export class EstudianteCuentasComponent implements OnInit {
     public modalCobros: { titulo: string, subtitulo: string, filas: any[] } | null = null;
     // Modal con el detalle de lo aplicado (dinero, descuento, castigo...)
     public modalAplicaciones: { titulo: string, subtitulo: string, filas: any[], total: number } | null = null;
+    // Arrastre con la manito (solo mouse) para recorrer la vista por mes
+    public arrastrandoMes = false;
+    private arrastreMes = { x: 0, y: 0, left: 0, top: 0, movido: false };
 
     constructor(
         private estudiantesService: EstudiantesService,
@@ -1201,7 +1204,7 @@ export class EstudianteCuentasComponent implements OnInit {
     }
 
     abrirCobrosTarjeta(tarjeta: any, mes: any): void {
-        if (!tarjeta.agrupada) return;
+        if (!tarjeta.agrupada || this.arrastreMes.movido) return;
         this.modalCobros = {
             titulo: tarjeta.titulo,
             subtitulo: `${mes.nombre} ${this.anioAcademico} · ${tarjeta.cantidadProductos} productos`,
@@ -1216,6 +1219,7 @@ export class EstudianteCuentasComponent implements OnInit {
      */
     abrirAplicaciones(tarjeta: any, mes: any, tipo: string, evento?: Event): void {
         if (evento) evento.stopPropagation();
+        if (this.arrastreMes.movido) return;
         const filas = tarjeta.aplicaciones.filter((a: any) =>
             tipo === 'dinero' ? Number(a.es_ingreso) === 1 : (Number(a.es_ingreso) !== 1 && (a.tipo_pago || 'Descuento') === tipo)
         );
@@ -1234,6 +1238,38 @@ export class EstudianteCuentasComponent implements OnInit {
 
     trackByMes(index: number, mes: any): number {
         return mes.indice;
+    }
+
+    /** Inicia el arrastre de la vista por mes con el mouse (en touch el scroll es nativo). */
+    iniciarArrastreMes(evento: MouseEvent, contenedor: HTMLElement): void {
+        if (evento.button !== 0) return;
+        this.arrastrandoMes = true;
+        this.arrastreMes = {
+            x: evento.clientX,
+            y: evento.clientY,
+            left: contenedor.scrollLeft,
+            top: contenedor.scrollTop,
+            movido: false
+        };
+    }
+
+    moverArrastreMes(evento: MouseEvent, contenedor: HTMLElement): void {
+        if (!this.arrastrandoMes) return;
+        const dx = evento.clientX - this.arrastreMes.x;
+        const dy = evento.clientY - this.arrastreMes.y;
+        // Un pequeño margen para que un clic normal no cuente como arrastre
+        if (!this.arrastreMes.movido && Math.abs(dx) < 5 && Math.abs(dy) < 5) return;
+        this.arrastreMes.movido = true;
+        evento.preventDefault();
+        contenedor.scrollLeft = this.arrastreMes.left - dx;
+        contenedor.scrollTop = this.arrastreMes.top - dy;
+    }
+
+    terminarArrastreMes(): void {
+        if (!this.arrastrandoMes) return;
+        this.arrastrandoMes = false;
+        // El clic que llega justo al soltar no debe abrir modales
+        setTimeout(() => this.arrastreMes.movido = false);
     }
 
     // Exportar PDF
