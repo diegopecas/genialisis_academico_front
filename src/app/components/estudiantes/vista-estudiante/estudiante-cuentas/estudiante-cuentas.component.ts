@@ -131,7 +131,7 @@ export class EstudianteCuentasComponent implements OnInit {
     public readonly nombresMeses: string[] = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
         'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
     // Modal con los cobros de una tarjeta agrupada por categoría
-    public modalCobros: { titulo: string, subtitulo: string, filas: any[] } | null = null;
+    public modalCobros: { titulo: string, periodo: string, filas: any[], productos: string[], filtroProducto: string } | null = null;
     // Modal con el detalle de lo aplicado (dinero, descuento, castigo...)
     public modalAplicaciones: { titulo: string, subtitulo: string, filas: any[], total: number } | null = null;
     // Arrastre con la manito (solo mouse) para recorrer la vista por mes
@@ -1205,11 +1205,55 @@ export class EstudianteCuentasComponent implements OnInit {
 
     abrirCobrosTarjeta(tarjeta: any, mes: any): void {
         if (!tarjeta.agrupada || this.arrastreMes.movido) return;
+        // Cada cobro lleva lo que se le aplicó (efectivo, Nequi, descuento, castigo...)
+        const filas = tarjeta.cuentas.map((cuenta: any) => {
+            const id = cuenta.id_cuenta_cobrar || cuenta.id;
+            return {
+                ...cuenta,
+                aplicaciones: tarjeta.aplicaciones
+                    .filter((a: any) => a.id_cuenta_por_cobrar === id)
+                    .sort((a: any, b: any) => String(a.fecha_pago).localeCompare(String(b.fecha_pago)))
+            };
+        });
+        const productos = Array.from(new Set<string>(filas.map((f: any) => f.nombre_producto_servicio || '')))
+            .filter(nombre => nombre)
+            .sort((a, b) => a.localeCompare(b));
         this.modalCobros = {
             titulo: tarjeta.titulo,
-            subtitulo: `${mes.nombre} ${this.anioAcademico} · ${tarjeta.cantidadProductos} productos`,
-            filas: tarjeta.cuentas
+            periodo: `${mes.nombre} ${this.anioAcademico}`,
+            filas,
+            productos,
+            filtroProducto: ''
         };
+    }
+
+    /** Cobros del modal según el filtro por producto. */
+    get cobrosModalFiltrados(): any[] {
+        if (!this.modalCobros) return [];
+        const filtro = this.modalCobros.filtroProducto;
+        return filtro
+            ? this.modalCobros.filas.filter(f => f.nombre_producto_servicio === filtro)
+            : this.modalCobros.filas;
+    }
+
+    get totalCobrosModalFiltrados(): number {
+        return this.cobrosModalFiltrados.reduce((suma, f) => suma + (Number(f.valor) || 0), 0);
+    }
+
+    /** Detalle de una sola aplicación, desde el modal de cobros. */
+    abrirAplicacionCobro(aplicacion: any, cuenta: any): void {
+        const tipo = aplicacion.tipo_pago || (Number(aplicacion.es_ingreso) === 1 ? 'Pago' : 'Descuento');
+        this.modalAplicaciones = {
+            titulo: `${tipo} · ${cuenta.nombre_producto_servicio}`,
+            subtitulo: this.modalCobros?.periodo || '',
+            filas: [aplicacion],
+            total: Number(aplicacion.valor_aplicado) || 0
+        };
+    }
+
+    /** Cierra solo el detalle de pagos; si venía del modal de cobros, ese queda abierto. */
+    cerrarModalAplicaciones(): void {
+        this.modalAplicaciones = null;
     }
 
     /**

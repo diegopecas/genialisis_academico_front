@@ -1428,6 +1428,19 @@ $tablet-breakpoint: 992px;
   cursor: pointer;
 }
 
+.modal-vista-mes-filtro {
+  padding: 10px 16px 0;
+
+  .form-select {
+    border-color: rgba($gold, 0.4);
+
+    &:focus {
+      border-color: $gold;
+      box-shadow: 0 0 0 0.15rem rgba($gold, 0.2);
+    }
+  }
+}
+
 .modal-vista-mes-body {
   padding: 10px 16px 14px;
   overflow-y: auto;

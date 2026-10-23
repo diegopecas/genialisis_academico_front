@@ -747,14 +747,20 @@
             <div class="modal-vista-mes-header">
                 <div>
                     <h6>{{ modalCobros.titulo }}</h6>
-                    <small>{{ modalCobros.subtitulo }}</small>
+                    <small>{{ modalCobros.periodo }} · {{ cobrosModalFiltrados.length }} {{ cobrosModalFiltrados.length === 1 ? 'cobro' : 'cobros' }} · Total {{ totalCobrosModalFiltrados | currency:'COP':'symbol-narrow':'1.0-0' }}</small>
                 </div>
                 <button type="button" class="btn-cerrar-modal" (click)="cerrarModalesVistaMes()" title="Cerrar">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
+            <div class="modal-vista-mes-filtro" *ngIf="modalCobros.productos.length > 1">
+                <select class="form-select form-select-sm" [(ngModel)]="modalCobros.filtroProducto">
+                    <option value="">Todos los productos ({{ modalCobros.productos.length }})</option>
+                    <option *ngFor="let producto of modalCobros.productos" [value]="producto">{{ producto }}</option>
+                </select>
+            </div>
             <div class="modal-vista-mes-body">
-                <div class="detalle-item" *ngFor="let cuenta of modalCobros.filas">
+                <div class="detalle-item" *ngFor="let cuenta of cobrosModalFiltrados">
                     <div class="detalle-linea">
                         <strong>{{ cuenta.nombre_producto_servicio }}</strong>
                         <span>{{ cuenta.valor | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
@@ -765,20 +771,27 @@
                             {{ cuenta.saldo > 0 ? 'Debe ' + (cuenta.saldo | currency:'COP':'symbol-narrow':'1.0-0') : 'Pagado' }}
                         </span>
                     </div>
+                    <div class="concepto-pagos" *ngIf="cuenta.aplicaciones.length > 0">
+                        <button type="button" class="chip-pago" *ngFor="let aplicacion of cuenta.aplicaciones"
+                                [class.dinero]="+aplicacion.es_ingreso === 1" [class.descuento]="+aplicacion.es_ingreso !== 1"
+                                (click)="abrirAplicacionCobro(aplicacion, cuenta)" title="Ver detalle">
+                            {{ aplicacion.tipo_pago || 'Pago' }} {{ aplicacion.valor_aplicado | currency:'COP':'symbol-narrow':'1.0-0' }} · {{ formatearFecha(aplicacion.fecha_pago) }}
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Modal: detalle de lo aplicado (dinero, descuento, castigo...) -->
-    <div class="modal-vista-mes-fondo" *ngIf="modalAplicaciones" (click)="cerrarModalesVistaMes()">
+    <div class="modal-vista-mes-fondo" *ngIf="modalAplicaciones" (click)="cerrarModalAplicaciones()">
         <div class="modal-vista-mes" (click)="$event.stopPropagation()">
             <div class="modal-vista-mes-header">
                 <div>
                     <h6>{{ modalAplicaciones.titulo }}</h6>
                     <small>{{ modalAplicaciones.subtitulo }} · Total {{ modalAplicaciones.total | currency:'COP':'symbol-narrow':'1.0-0' }}</small>
                 </div>
-                <button type="button" class="btn-cerrar-modal" (click)="cerrarModalesVistaMes()" title="Cerrar">
+                <button type="button" class="btn-cerrar-modal" (click)="cerrarModalAplicaciones()" title="Cerrar">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
