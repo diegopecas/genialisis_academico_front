@@ -26,6 +26,8 @@ import Swal from 'sweetalert2';
 import { CargosService } from '../../../services/cargos.service';
 import { MotivosRetiroService } from '../../../services/motivos-retiro.service';
 import { TiposContratoService } from '../../../services/tipos-contrato.service';
+import { EntidadesSeguridadSocialService } from '../../../services/entidades-seguridad-social.service';
+import { TiposAfiliacionSeguridadSocialService } from '../../../services/tipos-afiliacion-seguridad-social.service';
 import { HoraInputComponent } from '../../../common/hora-input/hora-input.component';
 
 @Component({
@@ -63,6 +65,8 @@ export class CrearColaboradoresComponent implements OnInit {
     tiposIdentificacion: [] as any[], generos: [] as any[], roles: [] as any[], nivelesEscolaridad: [] as any[],
     casas: [] as any[], colaboradoresJefes: [] as any[], ciudades: [] as any[], grupos: [] as any[],
     areasAcademicas: [] as any[], cargos: [] as any[], motivosRetiro: [] as any[], tiposContrato: [] as any[],
+    // Seguridad social: entidades por tipo y tipos de afiliacion
+    afps: [] as any[], epss: [] as any[], arls: [] as any[], cajasCompensacion: [] as any[], tiposAfiliacionSs: [] as any[],
   };
 
   public model = {
@@ -75,6 +79,7 @@ export class CrearColaboradoresComponent implements OnInit {
     sobrenombre: '' as any, fechaIngreso: '' as any, fechaRetiro: '' as any, idMotivoRetiro: '' as any,
     idCargo: '' as any, salarioMensual: '' as any, tipoContrato: '' as any,
     validaIngresoJornada: 1 as any, validaIngresoDescanso: 0 as any,
+    tipoAfiliacionSs: '' as any, idAfp: '' as any, idEps: '' as any, idArl: '' as any, idCajaCompensacion: '' as any,
   };
 
   public gruposAsignados: any[] = [];
@@ -123,7 +128,9 @@ export class CrearColaboradoresComponent implements OnInit {
     private tiposContratoService: TiposContratoService, private usuariosService: UsuariosService,
     private rolesSistemaService: RolesService, private configuracionGlobalService: ConfiguracionGlobalService,
     private rolesXUsuarioService: RolesXUsuarioService,
-    private horariosService: HorariosColaboradoresService
+    private horariosService: HorariosColaboradoresService,
+    private entidadesSeguridadSocialService: EntidadesSeguridadSocialService,
+    private tiposAfiliacionSeguridadSocialService: TiposAfiliacionSeguridadSocialService
   ) {
     this.generarHorasGrilla();
   }
@@ -240,6 +247,18 @@ export class CrearColaboradoresComponent implements OnInit {
     this.motivosRetiroService.obtenerTodos().subscribe({ next: (r: any) => (this.listas.motivosRetiro = r.body || []), error: (e: any) => console.error('Error', e) });
     this.tiposContratoService.obtenerTodos().subscribe({ next: (r: any) => (this.listas.tiposContrato = r.body || []), error: (e: any) => console.error('Error', e) });
     this.colaboradoresService.obtenerTodos().subscribe({ next: (r: any) => (this.listas.colaboradoresJefes = r.body || []), error: (e: any) => console.error('Error', e) });
+    this.tiposAfiliacionSeguridadSocialService.obtenerTodos().subscribe({ next: (r: any) => (this.listas.tiposAfiliacionSs = r.body || []), error: (e: any) => console.error('Error', e) });
+    // Una sola consulta de entidades, repartida por tipo (AFP, EPS, ARL, CCF)
+    this.entidadesSeguridadSocialService.obtenerTodos().subscribe({
+      next: (r: any) => {
+        const entidades = (r.body || []) as any[];
+        this.listas.afps = entidades.filter((e) => e.codigo_tipo_entidad === 'AFP');
+        this.listas.epss = entidades.filter((e) => e.codigo_tipo_entidad === 'EPS');
+        this.listas.arls = entidades.filter((e) => e.codigo_tipo_entidad === 'ARL');
+        this.listas.cajasCompensacion = entidades.filter((e) => e.codigo_tipo_entidad === 'CCF');
+      },
+      error: (e: any) => console.error('Error', e),
+    });
   }
 
   consultarColaborador() {
@@ -269,6 +288,8 @@ export class CrearColaboradoresComponent implements OnInit {
     this.model.salarioMensual = c.salario_mensual || ''; this.model.tipoContrato = c.id_tipo_contrato || '';
     this.model.validaIngresoJornada = c.valida_ingreso_jornada != null ? c.valida_ingreso_jornada : 1;
     this.model.validaIngresoDescanso = c.valida_ingreso_descanso != null ? c.valida_ingreso_descanso : 0;
+    this.model.tipoAfiliacionSs = c.id_tipo_afiliacion_ss || ''; this.model.idAfp = c.id_afp || ''; this.model.idEps = c.id_eps || '';
+    this.model.idArl = c.id_arl || ''; this.model.idCajaCompensacion = c.id_caja_compensacion || '';
     this.nombreColaborador = [c.primer_nombre, c.segundo_nombre, c.primer_apellido, c.segundo_apellido].filter(Boolean).join(' ');
     this.registrarDocumentoOriginal();
     this.titulo = `${this.accion === 'editar' ? 'Editar' : 'Ver'} Colaborador: ${this.nombreColaborador}`;
@@ -318,7 +339,7 @@ export class CrearColaboradoresComponent implements OnInit {
   }
 
   crearActualizarColaborador() {
-    const d = { id: this.model.idColaborador || 0, id_persona: this.model.idPersona, id_rol_colaborador: this.model.rolColaborador, id_nivel_escolaridad: this.model.nivelEscolaridad, id_casa_colaborador: this.model.casaColaborador || null, correo_electronico: this.model.correoInstitucional || null, sobrenombre: this.model.sobrenombre || null, fecha_ingreso: this.model.fechaIngreso || null, fecha_retiro: this.model.fechaRetiro || null, id_motivo_retiro: this.model.idMotivoRetiro || null, id_cargo: this.model.idCargo || null, salario_mensual: this.model.salarioMensual || null, id_tipo_contrato: this.model.tipoContrato || null, id_jefe_directo: this.model.jefeDirecto || null, activo: this.model.activo, valida_ingreso_jornada: this.model.validaIngresoJornada, valida_ingreso_descanso: this.model.validaIngresoDescanso };
+    const d = { id: this.model.idColaborador || 0, id_persona: this.model.idPersona, id_rol_colaborador: this.model.rolColaborador, id_nivel_escolaridad: this.model.nivelEscolaridad, id_casa_colaborador: this.model.casaColaborador || null, correo_electronico: this.model.correoInstitucional || null, sobrenombre: this.model.sobrenombre || null, fecha_ingreso: this.model.fechaIngreso || null, fecha_retiro: this.model.fechaRetiro || null, id_motivo_retiro: this.model.idMotivoRetiro || null, id_cargo: this.model.idCargo || null, salario_mensual: this.model.salarioMensual || null, id_tipo_contrato: this.model.tipoContrato || null, id_jefe_directo: this.model.jefeDirecto || null, activo: this.model.activo, valida_ingreso_jornada: this.model.validaIngresoJornada, valida_ingreso_descanso: this.model.validaIngresoDescanso, id_tipo_afiliacion_ss: this.model.tipoAfiliacionSs || null, id_afp: this.model.idAfp || null, id_eps: this.model.idEps || null, id_arl: this.model.idArl || null, id_caja_compensacion: this.model.idCajaCompensacion || null };
     const svc = !!this.model.idColaborador ? this.colaboradoresService.actualizar(d) : this.colaboradoresService.crear(d);
     svc.subscribe({
       next: (r: any) => { if (!this.model.idColaborador && r.id) { this.model.idColaborador = r.id; this.id = r.id.toString(); } Swal.fire({ icon: 'success', title: this.accion === 'crear' ? 'Colaborador creado' : 'Colaborador actualizado', text: 'Los datos se han guardado correctamente', confirmButtonText: 'Aceptar' }).then(() => { this.esDocente() ? this.consultarColaborador() : this.router.navigate(['/colaboradores']); }); },
