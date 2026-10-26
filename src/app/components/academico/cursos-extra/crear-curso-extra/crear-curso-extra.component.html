@@ -27,6 +27,9 @@
                 <li class="tab-item" [class.active]="pestanaActiva === 'tarifas'" (click)="cambiarPestana('tarifas')">
                     <i class="fas fa-dollar-sign"></i> Tarifas
                 </li>
+                <li class="tab-item" [class.active]="pestanaActiva === 'reservas'" (click)="cambiarPestana('reservas')">
+                    <i class="fas fa-calendar-check"></i> Reservas
+                </li>
             </ul>
         </div>
 
@@ -54,6 +57,9 @@
                 </button>
                 <button class="tabs-movil-item" [class.active]="pestanaActiva === 'tarifas'" (click)="cambiarPestana('tarifas')">
                     <i class="fas fa-dollar-sign"></i> Tarifas
+                </button>
+                <button class="tabs-movil-item" [class.active]="pestanaActiva === 'reservas'" (click)="cambiarPestana('reservas')">
+                    <i class="fas fa-calendar-check"></i> Reservas
                 </button>
             </div>
         </div>
@@ -175,7 +181,7 @@
                     <div class="col-md-3 col-12">
                         <label for="lugar_curso" class="form-label">Lugar donde se dicta</label>
                         <select class="form-select" id="lugar_curso"
-                            [(ngModel)]="model.id_lugar_curso_extra" [disabled]="!editable">
+                            [(ngModel)]="model.id_lugar_curso_extra" (ngModelChange)="cargarEspaciosLugar($event)" [disabled]="!editable">
                             <option [ngValue]="null">-- Sin lugar --</option>
                             <option *ngFor="let l of lugaresCursoExtra" [ngValue]="l.id">{{l.nombre}}</option>
                         </select>
@@ -323,6 +329,9 @@
                         <th class="text-center">Hora inicio</th>
                         <th class="text-center">Hora fin</th>
                         <th class="text-center">Minutos</th>
+                        <th>Espacio</th>
+                        <th>Profesor</th>
+                        <th class="text-center">Cupo</th>
                         <th class="text-center" *ngIf="editable">Acciones</th>
                     </tr>
                 </thead>
@@ -332,6 +341,9 @@
                         <td class="text-center">{{h.hora_inicial}}</td>
                         <td class="text-center">{{h.hora_final}}</td>
                         <td class="text-center">{{h.total_minutos}}</td>
+                        <td>{{h.nombre_espacio || '-'}}</td>
+                        <td>{{h.nombre_docente || '-'}}</td>
+                        <td class="text-center">{{h.cupo || 'Del curso'}}</td>
                         <td class="text-center" *ngIf="editable">
                             <button class="btn btn-sm btn-outline-primary me-1" (click)="editarHorario(h)">
                                 <i class="fas fa-edit"></i>
@@ -666,6 +678,98 @@
         </div>
     </div>
 
+    <!-- ==================== TAB: RESERVAS ==================== -->
+    <!-- Reglas de reserva del curso. Los botones Fijo y Flexible marcan las
+         reglas de una vez y despues se pueden ajustar una por una. -->
+    <div class="container mt-4" *ngIf="pestanaActiva === 'reservas'">
+        <div class="panel-card mb-4">
+            <div class="panel-header">
+                <i class="fas fa-calendar-check"></i>
+                <span>Reglas de reserva</span>
+            </div>
+            <div class="panel-body">
+                <p class="text-muted mb-3">
+                    Definen cómo toman puesto los estudiantes en las sesiones del curso.
+                    <span *ngIf="!configuracionReservas.configurado">Este curso todavía no está configurado: funciona como fijo.</span>
+                </p>
+                <div class="d-flex gap-2 flex-wrap mb-3" *ngIf="editable">
+                    <button class="btn btn-sm" [ngClass]="esPlantillaReservas('fijo') ? 'btn-warning' : 'btn-outline-secondary'"
+                        (click)="aplicarPlantillaReservas('fijo')">
+                        <i class="fas fa-lock me-1"></i> Fijo
+                    </button>
+                    <button class="btn btn-sm" [ngClass]="esPlantillaReservas('flexible') ? 'btn-warning' : 'btn-outline-secondary'"
+                        (click)="aplicarPlantillaReservas('flexible')">
+                        <i class="fas fa-random me-1"></i> Flexible
+                    </button>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-6 col-12">
+                        <div class="switch-card" [class.active]="configuracionReservas.reserva_automatica">
+                            <div class="switch-texto">
+                                <span class="switch-label">Reserva automática</span>
+                                <small>Los inscritos quedan en todas las sesiones del curso</small>
+                            </div>
+                            <div class="form-check form-switch m-0">
+                                <input class="form-check-input" type="checkbox" [(ngModel)]="configuracionReservas.reserva_automatica" [disabled]="!editable">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-12">
+                        <div class="switch-card" [class.active]="configuracionReservas.permite_reserva_suelta">
+                            <div class="switch-texto">
+                                <span class="switch-label">Permite reserva suelta</span>
+                                <small>Reservar una sesión puntual, sin reserva fija</small>
+                            </div>
+                            <div class="form-check form-switch m-0">
+                                <input class="form-check-input" type="checkbox" [(ngModel)]="configuracionReservas.permite_reserva_suelta" [disabled]="!editable">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-12">
+                        <div class="switch-card" [class.active]="configuracionReservas.permite_cancelar">
+                            <div class="switch-texto">
+                                <span class="switch-label">Permite cancelar</span>
+                                <small>El puesto se libera para otro</small>
+                            </div>
+                            <div class="form-check form-switch m-0">
+                                <input class="form-check-input" type="checkbox" [(ngModel)]="configuracionReservas.permite_cancelar" [disabled]="!editable">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-12">
+                        <div class="switch-card" [class.active]="configuracionReservas.permite_reagendar">
+                            <div class="switch-texto">
+                                <span class="switch-label">Permite reagendar</span>
+                                <small>Mover la reserva a otra sesión del curso</small>
+                            </div>
+                            <div class="form-check form-switch m-0">
+                                <input class="form-check-input" type="checkbox" [(ngModel)]="configuracionReservas.permite_reagendar" [disabled]="!editable">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-12">
+                        <div class="switch-card" [class.active]="configuracionReservas.descuenta_inasistencia">
+                            <div class="switch-texto">
+                                <span class="switch-label">Descuenta inasistencia</span>
+                                <small>Si reservó y no vino sin cancelar, pierde la sesión del paquete</small>
+                            </div>
+                            <div class="form-check form-switch m-0">
+                                <input class="form-check-input" type="checkbox" [(ngModel)]="configuracionReservas.descuenta_inasistencia" [disabled]="!editable">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row mb-5" *ngIf="editable">
+            <div class="col-md-4 col-12">
+                <button class="btn btn-warning w-100" (click)="guardarConfiguracionReservas()">
+                    <i class="fas fa-save me-1"></i> Guardar reglas
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- ==================== MODAL IMAGENES ==================== -->
     <div class="modal-overlay" *ngIf="mostrarModalImagenes" (click)="cerrarModalImagenes()">
         <div class="modal-content-custom" (click)="$event.stopPropagation()">
@@ -718,6 +822,31 @@
                 </div>
                 <div class="mt-2 text-muted" *ngIf="horarioModal.total_minutos > 0">
                     <small>Duración: {{horarioModal.total_minutos}} minutos</small>
+                </div>
+                <!-- Espacio, profesor habitual y cupo: se copian a cada sesión
+                     que se genere de este horario. -->
+                <div class="mt-3">
+                    <label class="form-label">Espacio</label>
+                    <select class="form-select" [(ngModel)]="horarioModal.id_espacio_lugar_curso_extra">
+                        <option [ngValue]="null">-- Sin espacio --</option>
+                        <option *ngFor="let e of espaciosLugar" [ngValue]="e.id">{{e.nombre}}</option>
+                    </select>
+                    <small class="form-text text-muted" *ngIf="espaciosLugar.length === 0">
+                        El lugar del curso no tiene espacios. Se crean al editar el lugar.
+                    </small>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-8">
+                        <label class="form-label">Profesor</label>
+                        <select class="form-select" [(ngModel)]="horarioModal.id_docente">
+                            <option [ngValue]="null">-- El titular del curso --</option>
+                            <option *ngFor="let d of docentesCurso" [ngValue]="d.id_docente">{{d.nombre_completo}}</option>
+                        </select>
+                    </div>
+                    <div class="col-4">
+                        <label class="form-label">Cupo</label>
+                        <input class="form-control" type="number" min="1" [(ngModel)]="horarioModal.cupo" placeholder="Del curso">
+                    </div>
                 </div>
                 <div class="modal-footer-custom">
                     <button class="btn btn-secondary" (click)="cerrarModalHorario()">Cancelar</button>

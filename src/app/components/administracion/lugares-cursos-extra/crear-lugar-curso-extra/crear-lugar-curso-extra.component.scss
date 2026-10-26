@@ -336,3 +336,135 @@ $info-color: #3498db;
     width: auto;
   }
 }
+
+// ==================== ESPACIOS ====================
+.espacio-fila {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 0.75rem 1rem;
+  border: 1px solid $border-color;
+  border-radius: 12px;
+  margin-bottom: 0.6rem;
+  background: #fff;
+
+  &.inactivo {
+    opacity: 0.55;
+  }
+
+  .espacio-datos {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+
+    .espacio-nombre {
+      font-weight: 600;
+      color: $text-dark;
+    }
+
+    small {
+      color: $text-light;
+    }
+
+    .espacio-horario i {
+      color: $primary-color;
+    }
+  }
+
+  .espacio-acciones {
+    display: flex;
+    gap: 6px;
+    flex: 0 0 auto;
+  }
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(40, 36, 28, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050;
+  padding: 16px;
+}
+
+.modal-espacio {
+  background: #fff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 620px;
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+}
+
+.modal-espacio-cabecera {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid $border-color;
+
+  h3 {
+    font-size: 1.1rem;
+    margin: 0;
+    font-weight: 600;
+    color: $text-dark;
+  }
+
+  .btn-cerrar {
+    border: none;
+    background: transparent;
+    color: $text-light;
+    font-size: 1.1rem;
+  }
+}
+
+.modal-espacio-cuerpo {
+  padding: 1rem 1.25rem;
+  overflow-y: auto;
+}
+
+.modal-espacio-pie {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 0.85rem 1.25rem;
+  border-top: 1px solid $border-color;
+}
+
+.fila-horario {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1fr auto;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+@media (max-width: 576px) {
+  .espacio-fila {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .fila-horario {
+    grid-template-columns: 1fr 1fr;
+
+    select {
+      grid-column: 1 / -1;
+    }
+  }
+
+  .modal-overlay {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .modal-espacio {
+    border-radius: 16px 16px 0 0;
+    max-height: 96vh;
+  }
+}

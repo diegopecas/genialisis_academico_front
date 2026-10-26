@@ -3,10 +3,13 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HeaderComponent } from '../../../../common/header/header.component';
+import { HoraInputComponent } from '../../../../common/hora-input/hora-input.component';
 import {
   LugaresCursosExtraService,
   LugarCursoExtra,
 } from '../../../../services/lugares-cursos-extra.service';
+import { EspaciosLugaresCursosExtraService } from '../../../../services/espacios-lugares-cursos-extra.service';
+import { DiasSemanaService } from '../../../../services/dias-semana.service';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -14,7 +17,7 @@ import Swal from 'sweetalert2';
   templateUrl: './crear-lugar-curso-extra.component.html',
   styleUrl: './crear-lugar-curso-extra.component.scss',
   standalone: true,
-  imports: [CommonModule, FormsModule, HeaderComponent],
+  imports: [CommonModule, FormsModule, HeaderComponent, HoraInputComponent],
 })
 export class CrearLugarCursoExtraComponent implements OnInit {
   titulo = 'Crear Lugar';
@@ -33,10 +36,19 @@ export class CrearLugarCursoExtraComponent implements OnInit {
     activo: true,
   } as any;
 
+  /* Espacios del lugar (canchas, piscinas, salones), cada uno con su horario
+     fijo contratado. Se manejan cuando el lugar ya existe (editar). */
+  espacios: any[] = [];
+  diasSemana: any[] = [];
+  mostrarModalEspacio: boolean = false;
+  espacioModal: any = {};
+
   constructor(
     private lugaresCursosExtraService: LugaresCursosExtraService,
     private route: ActivatedRoute,
     private router: Router,
+    private espaciosLugaresCursosExtraService: EspaciosLugaresCursosExtraService,
+    private diasSemanaService: DiasSemanaService,
   ) {}
 
   ngOnInit(): void {
@@ -51,10 +63,13 @@ export class CrearLugarCursoExtraComponent implements OnInit {
         this.titulo = 'Editar Lugar';
         this.editable = true;
         this.cargarLugar(id);
+        this.cargarEspacios(id);
+        this.cargarDiasSemana();
       } else if (this.accion === 'consultar') {
         this.titulo = 'Consultar Lugar';
         this.editable = false;
         this.cargarLugar(id);
+        this.cargarEspacios(id);
       }
     });
   }
@@ -133,5 +148,124 @@ export class CrearLugarCursoExtraComponent implements OnInit {
 
   volver() {
     this.router.navigate([this.regresar]);
+  }
+
+  // ==================== ESPACIOS ====================
+
+  cargarEspacios(idLugar: any) {
+    this.espaciosLugaresCursosExtraService.obtenerByLugar(idLugar).subscribe({
+      next: (response: any) => {
+        this.espacios = response.body || [];
+      },
+      error: (error: any) => {
+        console.error('Error al cargar los espacios', error);
+      },
+    });
+  }
+
+  cargarDiasSemana() {
+    this.diasSemanaService.obtenerTodos().subscribe({
+      next: (response: any) => {
+        this.diasSemana = response.body || [];
+      },
+      error: (error: any) => {
+        console.error('Error al cargar los días de la semana', error);
+      },
+    });
+  }
+
+  abrirModalEspacio(espacio?: any) {
+    if (espacio) {
+      this.espacioModal = {
+        id: espacio.id,
+        nombre: espacio.nombre,
+        descripcion: espacio.descripcion || '',
+        activo: !!espacio.activo,
+        horarios: (espacio.horarios || []).map((h: any) => ({
+          id_dia_semana: h.id_dia_semana,
+          hora_inicial: (h.hora_inicial || '').substring(0, 5),
+          hora_final: (h.hora_final || '').substring(0, 5),
+        })),
+      };
+    } else {
+      this.espacioModal = { id: null, nombre: '', descripcion: '', activo: true, horarios: [] };
+    }
+    this.mostrarModalEspacio = true;
+  }
+
+  agregarHorarioEspacio() {
+    this.espacioModal.horarios.push({ id_dia_semana: null, hora_inicial: '', hora_final: '' });
+  }
+
+  quitarHorarioEspacio(indice: number) {
+    this.espacioModal.horarios.splice(indice, 1);
+  }
+
+  guardarEspacio() {
+    if (!this.espacioModal.nombre || this.espacioModal.nombre.trim() === '') {
+      Swal.fire('Advertencia', 'El nombre del espacio es obligatorio', 'warning');
+      return;
+    }
+    const incompleto = this.espacioModal.horarios.some((h: any) => !h.id_dia_semana || !h.hora_inicial || !h.hora_final);
+    if (incompleto) {
+      Swal.fire('Advertencia', 'Cada fila del horario fijo necesita día, hora de inicio y hora de fin', 'warning');
+      return;
+    }
+    const data: any = {
+      id: this.espacioModal.id,
+      id_lugar_curso_extra: this.model.id,
+      nombre: this.espacioModal.nombre.trim(),
+      descripcion: this.espacioModal.descripcion ? this.espacioModal.descripcion.trim() : '',
+      activo: this.espacioModal.activo ? 1 : 0,
+      horarios: this.espacioModal.horarios.map((h: any) => ({
+        id_dia_semana: parseInt(h.id_dia_semana, 10),
+        hora_inicial: h.hora_inicial,
+        hora_final: h.hora_final,
+      })),
+    };
+    const peticion = this.espacioModal.id
+      ? this.espaciosLugaresCursosExtraService.actualizar(data)
+      : this.espaciosLugaresCursosExtraService.crear(data);
+    peticion.subscribe({
+      next: () => {
+        Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Espacio guardado', showConfirmButton: false, timer: 2000 });
+        this.mostrarModalEspacio = false;
+        this.cargarEspacios(this.model.id);
+      },
+      error: (error: any) => {
+        console.error('Error al guardar el espacio', error);
+      },
+    });
+  }
+
+  async eliminarEspacio(espacio: any) {
+    const resultado = await Swal.fire({
+      title: '¿Eliminar el espacio?',
+      text: espacio.nombre,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+    });
+    if (!resultado.isConfirmed) {
+      return;
+    }
+    this.espaciosLugaresCursosExtraService.eliminar({ id: espacio.id }).subscribe({
+      next: () => {
+        this.cargarEspacios(this.model.id);
+      },
+      error: (error: any) => {
+        console.error('Error al eliminar el espacio', error);
+      },
+    });
+  }
+
+  textoHorarios(espacio: any): string {
+    if (!espacio.horarios || espacio.horarios.length === 0) {
+      return 'Sin horario fijo';
+    }
+    return espacio.horarios
+      .map((h: any) => `${h.nombre_dia} ${(h.hora_inicial || '').substring(0, 5)}-${(h.hora_final || '').substring(0, 5)}`)
+      .join(' · ');
   }
 }

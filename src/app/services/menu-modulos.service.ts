@@ -208,7 +208,7 @@ export class MenuModulosService {
             iconoArbol: '🏫',
             alt: 'Estructura Académica',
             imagen: '/assets/images/estructura-academica.png',
-            permisos: ['academico.ambientes', 'academico.areas_academicas', 'academico.cursos_extra', 'academico.grados', 'academico.grupos', 'academico.parametros_calificaciones', 'academico.pde_items', 'academico.pde_rangos_edad'],
+            permisos: ['academico.ambientes', 'academico.areas_academicas', 'academico.cursos_extra', 'academico.agenda_cursos_extra', 'academico.clases_dia_cursos_extra', 'academico.grados', 'academico.grupos', 'academico.parametros_calificaciones', 'academico.pde_items', 'academico.pde_rangos_edad'],
             keywords: ['configuracion', 'salones', 'niveles'],
             opciones: [
               { id: 'parametros-calificaciones', label: 'Parámetros Calificaciones', alt: 'Parámetros', imagen: '/assets/images/parametros-calificaciones.png', iconoArbol: '⚙️', ruta: '/academico/parametros-calificaciones', permiso: 'academico.parametros_calificaciones', keywords: ['escala de notas', 'escala', 'notas'] },
@@ -217,6 +217,8 @@ export class MenuModulosService {
               { id: 'ambientes', label: 'Ambientes', alt: 'Ambientes', imagen: '/assets/images/ambientes.png', iconoArbol: '🏫', ruta: '/academico/ambientes', permiso: 'academico.ambientes', keywords: ['lugares', 'espacios', 'aulas', 'salones', 'piscina', 'donde se hace la actividad'] },
               { id: 'grupos', label: 'Grupos', alt: 'Grupos', imagen: '/assets/images/grupos.png', iconoArbol: '👨‍👩‍👧‍👦', ruta: '/academico/grupos', permiso: 'academico.grupos', keywords: ['salones', 'aulas', 'cursos'] },
               { id: 'cursos-extra', label: 'Cursos Extracurriculares', alt: 'Cursos Extracurriculares', imagen: '/assets/images/cursos-extra.png', iconoArbol: '🎭', ruta: '/academico/cursos-extra', permiso: 'academico.cursos_extra', keywords: ['extracurriculares', 'talleres'] },
+              { id: 'agenda-cursos-extra', label: 'Agenda de Cursos Extra', alt: 'Agenda de Cursos Extra', imagen: '/assets/images/agenda-cursos-extra.png', iconoArbol: '🗓️', ruta: '/academico/agenda-cursos-extra', permiso: 'academico.agenda_cursos_extra', keywords: ['sesiones', 'reservas', 'reservar', 'cupos', 'reagendar', 'paquetes', 'reserva fija', 'generar sesiones', 'clases', 'canchas', 'extracurriculares'] },
+              { id: 'clases-dia-cursos-extra', label: 'Clases del Día', alt: 'Clases del Día', imagen: '/assets/images/clases-dia-cursos-extra.png', iconoArbol: '✅', ruta: '/academico/clases-dia-cursos-extra', permiso: 'academico.clases_dia_cursos_extra', keywords: ['asistencia', 'tomar asistencia', 'lista', 'llamar lista', 'dictar clase', 'profesor', 'extracurriculares', 'lluvia'] },
               { id: 'pde-rangos-edad', label: 'Rangos de Edad PDE', alt: 'Rangos de Edad', imagen: '/assets/images/pde-rangos-edad.png', iconoArbol: '📏', ruta: '/academico/pde-rangos-edad', permiso: 'academico.pde_rangos_edad', keywords: ['perfil desarrollo', 'rangos', 'edades', 'pde'] },
               { id: 'pde-items', label: 'Ítems Perfil Desarrollo', alt: 'Items PDE', imagen: '/assets/images/pde-items.png', iconoArbol: '🧩', ruta: '/academico/pde-items', permiso: 'academico.pde_items', keywords: ['perfil desarrollo', 'items', 'pruebas', 'pde', 'esferas'] }
             ]

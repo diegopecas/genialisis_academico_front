@@ -1,0 +1,514 @@
+<div class="modulo">
+    <app-header
+        [tituloModulo]="titulo"
+        [mostrarCrear]="false"
+        [raiz]="'/academico/agenda-cursos-extra'"
+        [regresar]="'/academico'"
+        [iconoTitulo]="'/assets/images/agenda-cursos-extra.png'">
+    </app-header>
+
+    <div class="container-fluid mt-3 agenda">
+
+        <!-- Filtros: aplican a las tres pestañas -->
+        <div class="panel-filtros">
+            <div class="row g-3 align-items-end">
+                <div class="col-12 col-md-4">
+                    <label for="filtroCurso" class="form-label">Curso</label>
+                    <select class="form-select" id="filtroCurso" [(ngModel)]="idCurso" (ngModelChange)="onFiltroChange()">
+                        <option [ngValue]="null">Todos los cursos</option>
+                        <option *ngFor="let c of cursos" [ngValue]="c.id">{{ c.nombre }}</option>
+                    </select>
+                </div>
+                <div class="col-12 col-md-3">
+                    <label for="filtroDocente" class="form-label">Profesor</label>
+                    <select class="form-select" id="filtroDocente" [(ngModel)]="idDocente" (ngModelChange)="onFiltroChange()">
+                        <option [ngValue]="null">Todos los profesores</option>
+                        <option *ngFor="let d of docentes" [ngValue]="d.id">{{ d.nombre_completo }}</option>
+                    </select>
+                </div>
+                <div class="col-12 col-md-5 d-flex gap-2 justify-content-md-end flex-wrap">
+                    <button class="btn btn-secundario" (click)="abrirModalSuelta()">
+                        <i class="fas fa-plus me-1"></i> Sesión suelta
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <ul class="nav nav-tabs pestanas mt-3">
+            <li class="nav-item">
+                <button type="button" class="nav-link" [class.active]="pestana === 'agenda'" (click)="cambiarPestana('agenda')">
+                    <i class="fas fa-calendar-week me-1"></i> Agenda
+                </button>
+            </li>
+            <li class="nav-item">
+                <button type="button" class="nav-link" [class.active]="pestana === 'fijas'" (click)="cambiarPestana('fijas')">
+                    <i class="fas fa-thumbtack me-1"></i> Reservas fijas
+                </button>
+            </li>
+            <li class="nav-item">
+                <button type="button" class="nav-link" [class.active]="pestana === 'paquetes'" (click)="cambiarPestana('paquetes')">
+                    <i class="fas fa-layer-group me-1"></i> Paquetes
+                </button>
+            </li>
+        </ul>
+
+        <!-- ==================== AGENDA ==================== -->
+        <div *ngIf="pestana === 'agenda'">
+            <div class="barra-semana">
+                <div class="botones">
+                    <button class="btn btn-sm btn-secundario" (click)="cambiarSemana(-1)" title="Semana anterior">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button class="btn btn-sm btn-secundario" (click)="irAHoy()">Hoy</button>
+                    <button class="btn btn-sm btn-secundario" (click)="cambiarSemana(1)" title="Semana siguiente">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+                <span class="titulo-semana">Semana del {{ tituloSemana() }}</span>
+                <div class="ir-fecha">
+                    <app-fecha-input tamano="sm" [ngModel]="inicioSemana" (ngModelChange)="irAFecha($event)"></app-fecha-input>
+                </div>
+            </div>
+
+            <div class="semana">
+                <div class="dia" *ngFor="let d of dias" [class.hoy]="esHoy(d.fecha)">
+                    <div class="dia-titulo">
+                        <span class="nombre">{{ d.nombre }}</span>
+                        <span class="fecha">{{ fechaCorta(d.fecha) }}</span>
+                    </div>
+
+                    <div class="sesion" *ngFor="let s of d.sesiones" (click)="abrirSesion(s)"
+                        [class.cancelada]="s.codigo_estado === 'CANCELADA'"
+                        [class.dictada]="s.codigo_estado === 'DICTADA'"
+                        [style.border-left-color]="s.color_curso || '#d4af37'">
+                        <div class="sesion-hora">{{ hora(s.hora_inicial) }} - {{ hora(s.hora_final) }}</div>
+                        <div class="sesion-curso">{{ s.nombre_curso }}</div>
+                        <div class="sesion-detalle" *ngIf="s.nombre_espacio">
+                            <i class="fas fa-map-marker-alt"></i> {{ s.nombre_espacio }}
+                        </div>
+                        <div class="sesion-detalle" *ngIf="s.nombres_docentes">
+                            <i class="fas fa-chalkboard-teacher"></i> {{ s.nombres_docentes }}
+                        </div>
+                        <div class="sesion-pie">
+                            <span class="cupo" [class.lleno]="sinCupo(s)">
+                                <i class="fas fa-users"></i> {{ cupoTexto(s) }}
+                            </span>
+                            <span class="estado" *ngIf="s.codigo_estado !== 'PROGRAMADA'">{{ s.nombre_estado }}</span>
+                        </div>
+                    </div>
+
+                    <div class="dia-vacio" *ngIf="d.sesiones.length === 0 && !cargando">Sin sesiones</div>
+                    <button class="btn btn-link btn-sm agregar-dia" (click)="abrirModalSuelta(d.fecha)">
+                        <i class="fas fa-plus"></i> Sesión
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== RESERVAS FIJAS ==================== -->
+        <div *ngIf="pestana === 'fijas'" class="mt-3">
+            <div class="aviso" *ngIf="!idCurso">
+                <i class="fas fa-info-circle"></i> Escoge un curso en el filtro para ver y crear sus reservas fijas.
+            </div>
+            <ng-container *ngIf="idCurso">
+                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                    <span class="texto-ayuda">Quién va siempre a un horario. Queda reservado en cada sesión de ese horario.</span>
+                    <button class="btn btn-warning btn-sm" (click)="abrirModalFija()">
+                        <i class="fas fa-plus me-1"></i> Reserva fija
+                    </button>
+                </div>
+                <div class="lista-tarjetas">
+                    <div class="tarjeta-fila" *ngFor="let f of reservasFijas" [class.inactiva]="!vigenteFija(f)">
+                        <div class="principal">
+                            <span class="nombre">{{ f.nombre_estudiante }}</span>
+                            <span class="detalle">{{ f.nombre_dia }} {{ hora(f.hora_inicial) }} - {{ hora(f.hora_final) }}</span>
+                            <span class="detalle">Desde {{ fechaCorta(f.fecha_desde) }}<span *ngIf="f.fecha_hasta"> hasta {{ fechaCorta(f.fecha_hasta) }}</span></span>
+                        </div>
+                        <div class="acciones">
+                            <button class="btn btn-sm btn-secundario" *ngIf="vigenteFija(f)" (click)="terminarFija(f)" title="Terminar">
+                                <i class="fas fa-flag-checkered"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" (click)="eliminarFija(f)" title="Eliminar">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="dia-vacio" *ngIf="reservasFijas.length === 0">Este curso no tiene reservas fijas.</div>
+                </div>
+            </ng-container>
+        </div>
+
+        <!-- ==================== PAQUETES ==================== -->
+        <div *ngIf="pestana === 'paquetes'" class="mt-3">
+            <div class="aviso" *ngIf="!idCurso">
+                <i class="fas fa-info-circle"></i> Escoge un curso en el filtro para ver y crear los paquetes de sus estudiantes.
+            </div>
+            <ng-container *ngIf="idCurso">
+                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                    <span class="texto-ayuda">La bolsa de sesiones que compró cada estudiante. Cada clase registrada descuenta una.</span>
+                    <button class="btn btn-warning btn-sm" (click)="abrirModalPaquete()">
+                        <i class="fas fa-plus me-1"></i> Paquete
+                    </button>
+                </div>
+                <div class="lista-tarjetas">
+                    <div class="tarjeta-fila" *ngFor="let p of paquetes" [class.inactiva]="p.estado !== 'VIGENTE'">
+                        <div class="principal">
+                            <span class="nombre">{{ p.nombre_estudiante }}</span>
+                            <span class="detalle">{{ p.usadas }} de {{ p.numero_sesiones }} usadas · {{ p.disponibles }} disponibles</span>
+                            <span class="detalle">
+                                Desde {{ fechaCorta(p.fecha_inicio) }}
+                                <span *ngIf="p.fecha_vencimiento"> · vence {{ fechaCorta(p.fecha_vencimiento) }}</span>
+                                <span *ngIf="!p.fecha_vencimiento"> · sin vencimiento</span>
+                            </span>
+                            <span class="detalle" *ngIf="p.observaciones">{{ p.observaciones }}</span>
+                        </div>
+                        <div class="acciones">
+                            <span class="chip" [ngClass]="claseEstadoPaquete(p.estado)">{{ p.estado | titlecase }}</span>
+                            <button class="btn btn-sm btn-secundario" (click)="abrirModalPaquete(p)" title="Editar">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" *ngIf="p.usadas == 0" (click)="eliminarPaquete(p)" title="Eliminar">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="dia-vacio" *ngIf="paquetes.length === 0">Ningún estudiante de este curso tiene paquetes.</div>
+                </div>
+            </ng-container>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL DETALLE DE LA SESION ==================== -->
+    <div class="modal-overlay" *ngIf="sesion" (click)="cerrarSesion()">
+        <div class="modal-caja modal-grande" (click)="$event.stopPropagation()">
+            <div class="modal-cabecera">
+                <div>
+                    <h3>{{ sesion.nombre_curso }}</h3>
+                    <small>{{ fechaCorta(sesion.fecha) }} · {{ hora(sesion.hora_inicial) }} - {{ hora(sesion.hora_final) }}
+                        <span *ngIf="sesion.nombre_espacio"> · {{ sesion.nombre_espacio }}</span></small>
+                </div>
+                <button class="btn-cerrar" (click)="cerrarSesion()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-cuerpo">
+                <div class="resumen">
+                    <span class="chip" [ngClass]="sesion.codigo_estado === 'DICTADA' ? 'chip-ok' : sesion.codigo_estado === 'CANCELADA' ? 'chip-gris' : 'chip-info'">{{ sesion.nombre_estado }}</span>
+                    <span class="chip chip-gris"><i class="fas fa-users me-1"></i>{{ cupoTexto(sesion) }}</span>
+                    <span class="chip chip-gris" *ngIf="sesion.nombres_docentes"><i class="fas fa-chalkboard-teacher me-1"></i>{{ sesion.nombres_docentes }}</span>
+                    <span class="chip chip-gris" *ngIf="!sesion.id_horario_curso_extra">Sesión suelta</span>
+                </div>
+                <div class="aviso" *ngIf="sesion.codigo_estado === 'CANCELADA'">
+                    <i class="fas fa-cloud-rain"></i> Cancelada: {{ sesion.motivo_cancelacion }}
+                </div>
+                <div class="texto-ayuda" *ngIf="sesion.observaciones">{{ sesion.observaciones }}</div>
+
+                <!-- Edicion de la sesion -->
+                <div class="caja-edicion" *ngIf="editandoSesion">
+                    <div class="row g-2">
+                        <div class="col-12 col-md-4">
+                            <label class="form-label">Fecha</label>
+                            <app-fecha-input [(ngModel)]="sesionEdicion.fecha"></app-fecha-input>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <label class="form-label">Hora inicio</label>
+                            <app-hora-input [(ngModel)]="sesionEdicion.hora_inicial"></app-hora-input>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <label class="form-label">Hora fin</label>
+                            <app-hora-input [(ngModel)]="sesionEdicion.hora_final" periodoPorDefecto="PM"></app-hora-input>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label">Espacio</label>
+                            <select class="form-select" [(ngModel)]="sesionEdicion.id_espacio_lugar_curso_extra">
+                                <option [ngValue]="null">Sin espacio</option>
+                                <option *ngFor="let e of espacios" [ngValue]="e.id">{{ e.nombre_lugar }} - {{ e.nombre }}</option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label">Cupo</label>
+                            <input class="form-control" type="number" min="1" [(ngModel)]="sesionEdicion.cupo" placeholder="Sin límite">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Profesores</label>
+                            <div class="fila-docente" *ngFor="let d of sesionEdicion.docentes; let i = index">
+                                <select class="form-select" [(ngModel)]="d.id_docente">
+                                    <option [ngValue]="null">-- Profesor --</option>
+                                    <option *ngFor="let doc of docentes" [ngValue]="doc.id">{{ doc.nombre_completo }}</option>
+                                </select>
+                                <input class="form-control minutos" type="number" min="0" [(ngModel)]="d.minutos" placeholder="Min">
+                                <button class="btn btn-sm btn-outline-danger" (click)="quitarDocenteEdicion(i)"><i class="fas fa-times"></i></button>
+                            </div>
+                            <button class="btn btn-link btn-sm p-0" (click)="agregarDocenteEdicion()"><i class="fas fa-plus"></i> Agregar profesor</button>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Observaciones</label>
+                            <textarea class="form-control" rows="2" [(ngModel)]="sesionEdicion.observaciones"></textarea>
+                        </div>
+                    </div>
+                    <div class="acciones-pie">
+                        <button class="btn btn-secondary btn-sm" (click)="editandoSesion = false">Cancelar</button>
+                        <button class="btn btn-warning btn-sm" (click)="guardarSesion()">Guardar</button>
+                    </div>
+                </div>
+
+                <!-- Reservas -->
+                <h6 class="subtitulo">Reservas</h6>
+                <div class="lista-tarjetas">
+                    <div class="tarjeta-fila" *ngFor="let r of sesion.reservas"
+                        [class.inactiva]="r.codigo_estado === 'CANCELADA' || r.codigo_estado === 'REAGENDADA'">
+                        <div class="principal">
+                            <span class="nombre">{{ r.nombre_estudiante }}</span>
+                            <span class="detalle">
+                                {{ r.id_reserva_fija_curso_extra ? 'Reserva fija' : 'Reserva suelta' }} · {{ textoPaquete(r) }}
+                            </span>
+                            <span class="detalle" *ngIf="r.observacion">{{ r.observacion }}</span>
+                        </div>
+                        <div class="acciones">
+                            <span class="chip" [ngClass]="claseEstadoReserva(r.codigo_estado)">{{ r.nombre_estado }}</span>
+                            <ng-container *ngIf="r.codigo_estado === 'RESERVADA' && sesion.codigo_estado === 'PROGRAMADA'">
+                                <button class="btn btn-sm btn-secundario" *ngIf="sesion.reglas?.permite_reagendar == 1"
+                                    (click)="iniciarReagendar(r)" title="Reagendar">
+                                    <i class="fas fa-exchange-alt"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" *ngIf="sesion.reglas?.permite_cancelar == 1"
+                                    (click)="cancelarReserva(r)" title="Cancelar reserva">
+                                    <i class="fas fa-user-times"></i>
+                                </button>
+                            </ng-container>
+                        </div>
+                        <!-- Reagendar esta reserva -->
+                        <div class="reagendar" *ngIf="reservaReagendar?.id === r.id">
+                            <select class="form-select form-select-sm" [(ngModel)]="sesionDestino">
+                                <option [ngValue]="null">-- Sesión de destino --</option>
+                                <option *ngFor="let s of sesionesDestino" [ngValue]="s">
+                                    {{ fechaCorta(s.fecha) }} {{ hora(s.hora_inicial) }} ({{ cupoTexto(s) }})
+                                </option>
+                            </select>
+                            <button class="btn btn-sm btn-secondary" (click)="reservaReagendar = null">Volver</button>
+                            <button class="btn btn-sm btn-warning" (click)="confirmarReagendar()">Mover</button>
+                        </div>
+                    </div>
+                    <div class="dia-vacio" *ngIf="!sesion.reservas || sesion.reservas.length === 0">Nadie ha reservado esta sesión.</div>
+                </div>
+
+                <div class="reservar" *ngIf="puedeReservar()">
+                    <select class="form-select" [(ngModel)]="idInscripcionReservar">
+                        <option [ngValue]="null">-- Reservar a un inscrito --</option>
+                        <option *ngFor="let i of inscritosSinPuesto()" [ngValue]="i.id">{{ i.nombre_completo }}</option>
+                    </select>
+                    <button class="btn btn-warning" (click)="reservar()"><i class="fas fa-user-plus me-1"></i> Reservar</button>
+                </div>
+                <div class="texto-ayuda" *ngIf="sesion.codigo_estado === 'PROGRAMADA' && !puedeReservar()">
+                    Este curso no permite reservas sueltas: se reserva con una reserva fija.
+                </div>
+            </div>
+            <div class="modal-pie">
+                <button class="btn btn-outline-danger btn-sm" *ngIf="sesion.codigo_estado !== 'DICTADA' && sesion.asistieron == 0" (click)="eliminarSesion()">
+                    <i class="fas fa-trash me-1"></i> Eliminar
+                </button>
+                <button class="btn btn-secundario btn-sm" *ngIf="sesion.codigo_estado === 'PROGRAMADA'" (click)="cancelarSesion()">
+                    <i class="fas fa-ban me-1"></i> Cancelar sesión
+                </button>
+                <button class="btn btn-secundario btn-sm" *ngIf="sesion.codigo_estado === 'CANCELADA'" (click)="reabrirSesion()">
+                    <i class="fas fa-undo me-1"></i> Reabrir
+                </button>
+                <button class="btn btn-warning btn-sm" *ngIf="!editandoSesion && sesion.codigo_estado !== 'CANCELADA'" (click)="iniciarEdicionSesion()">
+                    <i class="fas fa-edit me-1"></i> Editar sesión
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL SESION SUELTA ==================== -->
+    <div class="modal-overlay" *ngIf="mostrarModalSuelta" (click)="mostrarModalSuelta = false">
+        <div class="modal-caja" (click)="$event.stopPropagation()">
+            <div class="modal-cabecera">
+                <h3>Sesión suelta</h3>
+                <button class="btn-cerrar" (click)="mostrarModalSuelta = false"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-cuerpo">
+                <p class="texto-ayuda">Una clase que no sale de ningún horario, por ejemplo una individual.</p>
+                <div class="row g-2">
+                    <div class="col-12">
+                        <label class="form-label">Curso <span class="text-danger">*</span></label>
+                        <select class="form-select" [(ngModel)]="suelta.id_curso_extra" (ngModelChange)="onCursoSueltaChange()">
+                            <option [ngValue]="null">-- Seleccione --</option>
+                            <option *ngFor="let c of cursos" [ngValue]="c.id">{{ c.nombre }}</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <label class="form-label">Fecha <span class="text-danger">*</span></label>
+                        <app-fecha-input [(ngModel)]="suelta.fecha"></app-fecha-input>
+                    </div>
+                    <div class="col-6 col-md-4">
+                        <label class="form-label">Hora inicio <span class="text-danger">*</span></label>
+                        <app-hora-input [(ngModel)]="suelta.hora_inicial"></app-hora-input>
+                    </div>
+                    <div class="col-6 col-md-4">
+                        <label class="form-label">Hora fin <span class="text-danger">*</span></label>
+                        <app-hora-input [(ngModel)]="suelta.hora_final"></app-hora-input>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label class="form-label">Espacio</label>
+                        <select class="form-select" [(ngModel)]="suelta.id_espacio_lugar_curso_extra">
+                            <option [ngValue]="null">Sin espacio</option>
+                            <option *ngFor="let e of espacios" [ngValue]="e.id">{{ e.nombre_lugar }} - {{ e.nombre }}</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label class="form-label">Cupo</label>
+                        <input class="form-control" type="number" min="1" [(ngModel)]="suelta.cupo" placeholder="El del curso">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Profesor</label>
+                        <select class="form-select" [(ngModel)]="suelta.id_docente">
+                            <option [ngValue]="null">Sin profesor</option>
+                            <option *ngFor="let d of docentes" [ngValue]="d.id">{{ d.nombre_completo }}</option>
+                        </select>
+                    </div>
+                    <div class="col-12" *ngIf="suelta.id_curso_extra">
+                        <label class="form-label">Estudiantes</label>
+                        <div class="lista-chequeo">
+                            <label class="opcion" *ngFor="let i of inscritosSuelta">
+                                <input type="checkbox" class="form-check-input"
+                                    [checked]="suelta.estudiantes.includes(i.id)" (change)="alternarEstudianteSuelta(i.id)">
+                                {{ i.nombre_completo }}
+                            </label>
+                            <div class="dia-vacio" *ngIf="inscritosSuelta.length === 0">El curso no tiene inscritos activos.</div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Observaciones</label>
+                        <textarea class="form-control" rows="2" [(ngModel)]="suelta.observaciones"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-pie">
+                <button class="btn btn-secondary" (click)="mostrarModalSuelta = false">Cancelar</button>
+                <button class="btn btn-warning" (click)="crearSuelta()">Crear</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL RESERVA FIJA ==================== -->
+    <div class="modal-overlay" *ngIf="mostrarModalFija" (click)="mostrarModalFija = false">
+        <div class="modal-caja" (click)="$event.stopPropagation()">
+            <div class="modal-cabecera">
+                <h3>Reserva fija · {{ nombreCurso(idCurso) }}</h3>
+                <button class="btn-cerrar" (click)="mostrarModalFija = false"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-cuerpo">
+                <div class="row g-2">
+                    <div class="col-12">
+                        <label class="form-label">Estudiante <span class="text-danger">*</span></label>
+                        <select class="form-select" [(ngModel)]="fija.id_estudiante_x_curso_extra">
+                            <option [ngValue]="null">-- Seleccione --</option>
+                            <option *ngFor="let i of inscritosCurso" [ngValue]="i.id">{{ i.nombre_completo }}</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Horario <span class="text-danger">*</span></label>
+                        <select class="form-select" [(ngModel)]="fija.id_horario_curso_extra">
+                            <option [ngValue]="null">-- Seleccione --</option>
+                            <option *ngFor="let h of horariosCurso" [ngValue]="h.id">{{ h.nombre_dia }} {{ hora(h.hora_inicial) }} - {{ hora(h.hora_final) }}</option>
+                        </select>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">Desde <span class="text-danger">*</span></label>
+                        <app-fecha-input [(ngModel)]="fija.fecha_desde"></app-fecha-input>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">Hasta</label>
+                        <app-fecha-input [(ngModel)]="fija.fecha_hasta" placeholder="Sin fin"></app-fecha-input>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-pie">
+                <button class="btn btn-secondary" (click)="mostrarModalFija = false">Cancelar</button>
+                <button class="btn btn-warning" (click)="crearFija()">Crear</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL TERMINAR RESERVA FIJA ==================== -->
+    <div class="modal-overlay" *ngIf="fijaTerminar" (click)="fijaTerminar = null">
+        <div class="modal-caja modal-pequeno" (click)="$event.stopPropagation()">
+            <div class="modal-cabecera">
+                <h3>Terminar reserva fija</h3>
+                <button class="btn-cerrar" (click)="fijaTerminar = null"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-cuerpo">
+                <p class="texto-ayuda">
+                    {{ fijaTerminar.nombre_estudiante }} · {{ fijaTerminar.nombre_dia }}. Desde el día siguiente se liberan sus
+                    puestos en las sesiones que todavía no se han dictado.
+                </p>
+                <label class="form-label">Último día</label>
+                <app-fecha-input [(ngModel)]="fechaTerminar"></app-fecha-input>
+            </div>
+            <div class="modal-pie">
+                <button class="btn btn-secondary" (click)="fijaTerminar = null">Cancelar</button>
+                <button class="btn btn-warning" (click)="confirmarTerminarFija()">Terminar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL PAQUETE ==================== -->
+    <div class="modal-overlay" *ngIf="mostrarModalPaquete" (click)="mostrarModalPaquete = false">
+        <div class="modal-caja" (click)="$event.stopPropagation()">
+            <div class="modal-cabecera">
+                <h3>{{ paquete.id ? 'Editar' : 'Nuevo' }} paquete · {{ nombreCurso(idCurso) }}</h3>
+                <button class="btn-cerrar" (click)="mostrarModalPaquete = false"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-cuerpo">
+                <div class="row g-2">
+                    <div class="col-12" *ngIf="!paquete.id">
+                        <label class="form-label">Estudiante <span class="text-danger">*</span></label>
+                        <select class="form-select" [(ngModel)]="paquete.id_estudiante_x_curso_extra">
+                            <option [ngValue]="null">-- Seleccione --</option>
+                            <option *ngFor="let i of inscritosCurso" [ngValue]="i.id">{{ i.nombre_completo }}</option>
+                        </select>
+                    </div>
+                    <div class="col-12" *ngIf="paquete.id">
+                        <label class="form-label">Estudiante</label>
+                        <input class="form-control" [value]="paquete.nombre_estudiante" disabled>
+                    </div>
+                    <div class="col-12" *ngIf="!paquete.id && productosPaquete.length > 0">
+                        <label class="form-label">Paquete de la tarifa</label>
+                        <select class="form-select" [(ngModel)]="paquete.id_producto" (ngModelChange)="onProductoPaqueteChange()">
+                            <option [ngValue]="null">-- Escribir a mano --</option>
+                            <option *ngFor="let l of productosPaquete" [ngValue]="l.id">
+                                {{ l.nombre_producto }} ({{ l.numero_sesiones }} sesiones<span *ngIf="l.vigencia_dias">, {{ l.vigencia_dias }} días</span>)
+                            </option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <label class="form-label">Sesiones <span class="text-danger">*</span></label>
+                        <input class="form-control" type="number" [min]="paquete.usadas || 1" [(ngModel)]="paquete.numero_sesiones">
+                        <small class="text-muted" *ngIf="paquete.usadas > 0">Ya tiene {{ paquete.usadas }} usadas</small>
+                    </div>
+                    <div class="col-6 col-md-4">
+                        <label class="form-label">Inicio <span class="text-danger">*</span></label>
+                        <app-fecha-input [(ngModel)]="paquete.fecha_inicio" (ngModelChange)="onFechaInicioPaqueteChange()"></app-fecha-input>
+                    </div>
+                    <div class="col-6 col-md-4">
+                        <label class="form-label">Vence</label>
+                        <app-fecha-input [(ngModel)]="paquete.fecha_vencimiento" placeholder="Sin vencimiento"></app-fecha-input>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Observaciones</label>
+                        <input class="form-control" type="text" maxlength="300" [(ngModel)]="paquete.observaciones">
+                    </div>
+                    <div class="col-12" *ngIf="paquete.id">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="paqueteActivo" [(ngModel)]="paquete.activo">
+                            <label class="form-check-label" for="paqueteActivo">Activo</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-pie">
+                <button class="btn btn-secondary" (click)="mostrarModalPaquete = false">Cancelar</button>
+                <button class="btn btn-warning" (click)="guardarPaquete()">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>

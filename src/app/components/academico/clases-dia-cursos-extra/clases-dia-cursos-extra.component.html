@@ -1,0 +1,222 @@
+<div class="modulo">
+    <app-header
+        [tituloModulo]="titulo"
+        [mostrarCrear]="false"
+        [raiz]="'/academico/clases-dia-cursos-extra'"
+        [regresar]="'/academico'"
+        [iconoTitulo]="'/assets/images/clases-dia-cursos-extra.png'">
+    </app-header>
+
+    <div class="container mt-3 clases">
+
+        <div class="panel-filtros">
+            <div class="row g-3 align-items-end">
+                <div class="col-12 col-md-4">
+                    <label class="form-label">Fecha</label>
+                    <div class="selector-dia">
+                        <button class="btn btn-secundario" (click)="cambiarDia(-1)" title="Día anterior"><i class="fas fa-chevron-left"></i></button>
+                        <app-fecha-input [(ngModel)]="fecha" (ngModelChange)="cargarSesiones()"></app-fecha-input>
+                        <button class="btn btn-secundario" (click)="cambiarDia(1)" title="Día siguiente"><i class="fas fa-chevron-right"></i></button>
+                    </div>
+                </div>
+                <div class="col-12 col-md-4">
+                    <label for="filtroCurso" class="form-label">Curso</label>
+                    <select class="form-select" id="filtroCurso" [(ngModel)]="idCurso" (ngModelChange)="cargarSesiones()">
+                        <option [ngValue]="null">Todos los cursos</option>
+                        <option *ngFor="let c of cursos" [ngValue]="c.id">{{ c.nombre }}</option>
+                    </select>
+                </div>
+                <div class="col-12 col-md-4 d-flex align-items-center justify-content-between gap-2 flex-wrap">
+                    <div class="form-check form-switch m-0" *ngIf="idMiDocente">
+                        <input class="form-check-input" type="checkbox" id="soloMias" [(ngModel)]="soloMias" (ngModelChange)="cargarSesiones()">
+                        <label class="form-check-label" for="soloMias">Solo mis clases</label>
+                    </div>
+                    <button class="btn btn-warning" (click)="abrirModalNueva()">
+                        <i class="fas fa-plus me-1"></i> Clase nueva
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <h5 class="titulo-dia">{{ fechaLarga(fecha) | titlecase }}</h5>
+
+        <div class="lista-clases">
+            <div class="clase" *ngFor="let s of sesiones" (click)="abrirSesion(s)"
+                [class.cancelada]="s.codigo_estado === 'CANCELADA'"
+                [class.dictada]="s.codigo_estado === 'DICTADA'"
+                [style.border-left-color]="s.color_curso || '#d4af37'">
+                <div class="clase-hora">
+                    <span>{{ hora(s.hora_inicial) }}</span>
+                    <small>{{ hora(s.hora_final) }}</small>
+                </div>
+                <div class="clase-datos">
+                    <span class="curso">{{ s.nombre_curso }}</span>
+                    <span class="detalle">
+                        <span *ngIf="s.nombre_espacio"><i class="fas fa-map-marker-alt"></i> {{ s.nombre_espacio }}</span>
+                        <span *ngIf="s.nombres_docentes"><i class="fas fa-chalkboard-teacher"></i> {{ s.nombres_docentes }}</span>
+                    </span>
+                </div>
+                <div class="clase-estado">
+                    <span class="chip" [ngClass]="s.codigo_estado === 'DICTADA' ? 'chip-ok' : s.codigo_estado === 'CANCELADA' ? 'chip-gris' : 'chip-info'">
+                        {{ s.nombre_estado }}
+                    </span>
+                    <small *ngIf="s.codigo_estado === 'DICTADA'">{{ s.asistieron }} asistieron</small>
+                    <small *ngIf="s.codigo_estado !== 'DICTADA'">{{ cupoTexto(s) }}</small>
+                </div>
+            </div>
+            <div class="vacio" *ngIf="sesiones.length === 0 && !cargando">
+                <i class="fas fa-calendar-day fa-2x mb-2"></i>
+                <p>No hay clases este día.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== TOMA DE ASISTENCIA ==================== -->
+    <div class="modal-overlay" *ngIf="sesion" (click)="cerrarSesion()">
+        <div class="modal-caja" (click)="$event.stopPropagation()">
+            <div class="modal-cabecera">
+                <div>
+                    <h3>{{ sesion.nombre_curso }}</h3>
+                    <small>{{ hora(sesion.hora_inicial) }} - {{ hora(sesion.hora_final) }}
+                        <span *ngIf="sesion.nombre_espacio"> · {{ sesion.nombre_espacio }}</span></small>
+                </div>
+                <button class="btn-cerrar" (click)="cerrarSesion()"><i class="fas fa-times"></i></button>
+            </div>
+
+            <div class="modal-cuerpo">
+                <div class="aviso" *ngIf="sesion.codigo_estado === 'CANCELADA'">
+                    <i class="fas fa-cloud-rain"></i> Clase cancelada: {{ sesion.motivo_cancelacion }}
+                </div>
+                <div class="aviso" *ngIf="sesion.codigo_estado === 'DICTADA'">
+                    <i class="fas fa-check-circle"></i> Ya está registrada. Puedes corregirla y volver a guardar.
+                </div>
+
+                <ng-container *ngIf="sesion.codigo_estado !== 'CANCELADA'">
+                    <div class="barra-marcar">
+                        <span>{{ reservasConPuesto().length }} estudiante(s)</span>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-sm btn-secundario" (click)="marcarTodos('ASISTIO')">Todos asistieron</button>
+                            <button class="btn btn-sm btn-secundario" (click)="marcarTodos('NO_ASISTIO')">Nadie vino</button>
+                        </div>
+                    </div>
+
+                    <div class="estudiante" *ngFor="let r of reservasConPuesto()">
+                        <div class="datos">
+                            <span class="nombre">{{ r.nombre_estudiante }}</span>
+                            <span class="paquete" [class.alerta]="alertaPaquete(r)">{{ textoPaquete(r) }}</span>
+                        </div>
+                        <div class="botones-marca">
+                            <button class="btn btn-marca si" [class.activo]="marcas[r.id] === 'ASISTIO'" (click)="marcar(r, 'ASISTIO')">
+                                <i class="fas fa-check"></i> Vino
+                            </button>
+                            <button class="btn btn-marca no" [class.activo]="marcas[r.id] === 'NO_ASISTIO'" (click)="marcar(r, 'NO_ASISTIO')">
+                                <i class="fas fa-times"></i> No vino
+                            </button>
+                        </div>
+                    </div>
+                    <div class="vacio-pequeno" *ngIf="reservasConPuesto().length === 0">Nadie tiene puesto en esta clase.</div>
+
+                    <div class="agregar">
+                        <select class="form-select" [(ngModel)]="idInscripcionAgregar">
+                            <option [ngValue]="null">-- Llegó sin reserva --</option>
+                            <option *ngFor="let i of inscritosSinPuesto()" [ngValue]="i.id">{{ i.nombre_completo }}</option>
+                        </select>
+                        <button class="btn btn-secundario" (click)="agregarEstudiante()"><i class="fas fa-user-plus"></i> Agregar</button>
+                    </div>
+
+                    <div class="liberadas" *ngIf="reservasLiberadas().length > 0">
+                        <small>Cancelaron o reagendaron:</small>
+                        <span class="chip chip-gris" *ngFor="let r of reservasLiberadas()">{{ r.nombre_estudiante }}</span>
+                    </div>
+
+                    <h6 class="subtitulo">Profesores</h6>
+                    <div class="fila-docente" *ngFor="let d of docentesSesion; let i = index">
+                        <select class="form-select" [(ngModel)]="d.id_docente">
+                            <option [ngValue]="null">-- Profesor --</option>
+                            <option *ngFor="let doc of docentes" [ngValue]="doc.id">{{ doc.nombre_completo }}</option>
+                        </select>
+                        <input class="form-control minutos" type="number" min="0" [(ngModel)]="d.minutos" placeholder="Min">
+                        <button class="btn btn-sm btn-outline-danger" (click)="quitarDocente(i)"><i class="fas fa-times"></i></button>
+                    </div>
+                    <button class="btn btn-link btn-sm p-0" (click)="agregarDocente()"><i class="fas fa-plus"></i> Agregar profesor</button>
+
+                    <h6 class="subtitulo">Observaciones</h6>
+                    <textarea class="form-control" rows="2" [(ngModel)]="observaciones" placeholder="Qué se trabajó, novedades..."></textarea>
+                </ng-container>
+            </div>
+
+            <div class="modal-pie">
+                <button class="btn btn-secundario" *ngIf="sesion.codigo_estado === 'PROGRAMADA'" (click)="cancelarClase()">
+                    <i class="fas fa-ban me-1"></i> Cancelar clase
+                </button>
+                <button class="btn btn-secundario" *ngIf="sesion.codigo_estado === 'CANCELADA'" (click)="reabrirClase()">
+                    <i class="fas fa-undo me-1"></i> Reabrir
+                </button>
+                <button class="btn btn-warning" *ngIf="sesion.codigo_estado !== 'CANCELADA'" (click)="darPorDictada()">
+                    <i class="fas fa-check-double me-1"></i> {{ sesion.codigo_estado === 'DICTADA' ? 'Guardar corrección' : 'Dar por dictada' }}
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== CLASE NUEVA ==================== -->
+    <div class="modal-overlay" *ngIf="mostrarModalNueva" (click)="mostrarModalNueva = false">
+        <div class="modal-caja" (click)="$event.stopPropagation()">
+            <div class="modal-cabecera">
+                <div>
+                    <h3>Clase nueva</h3>
+                    <small>{{ fechaLarga(fecha) }} · una clase que no estaba en ningún horario</small>
+                </div>
+                <button class="btn-cerrar" (click)="mostrarModalNueva = false"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-cuerpo">
+                <div class="row g-2">
+                    <div class="col-12">
+                        <label class="form-label">Curso <span class="text-danger">*</span></label>
+                        <select class="form-select" [(ngModel)]="nueva.id_curso_extra" (ngModelChange)="onCursoNuevaChange()">
+                            <option [ngValue]="null">-- Seleccione --</option>
+                            <option *ngFor="let c of cursos" [ngValue]="c.id">{{ c.nombre }}</option>
+                        </select>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">Hora inicio <span class="text-danger">*</span></label>
+                        <app-hora-input [(ngModel)]="nueva.hora_inicial"></app-hora-input>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">Hora fin <span class="text-danger">*</span></label>
+                        <app-hora-input [(ngModel)]="nueva.hora_final"></app-hora-input>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label class="form-label">Espacio</label>
+                        <select class="form-select" [(ngModel)]="nueva.id_espacio_lugar_curso_extra">
+                            <option [ngValue]="null">Sin espacio</option>
+                            <option *ngFor="let e of espacios" [ngValue]="e.id">{{ e.nombre_lugar }} - {{ e.nombre }}</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label class="form-label">Profesor</label>
+                        <select class="form-select" [(ngModel)]="nueva.id_docente">
+                            <option [ngValue]="null">Sin profesor</option>
+                            <option *ngFor="let d of docentes" [ngValue]="d.id">{{ d.nombre_completo }}</option>
+                        </select>
+                    </div>
+                    <div class="col-12" *ngIf="nueva.id_curso_extra">
+                        <label class="form-label">Estudiantes</label>
+                        <div class="lista-chequeo">
+                            <label class="opcion" *ngFor="let i of inscritosNueva">
+                                <input type="checkbox" class="form-check-input"
+                                    [checked]="nueva.estudiantes.includes(i.id)" (change)="alternarEstudianteNueva(i.id)">
+                                {{ i.nombre_completo }}
+                            </label>
+                            <div class="vacio-pequeno" *ngIf="inscritosNueva.length === 0">El curso no tiene inscritos activos.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-pie">
+                <button class="btn btn-secondary" (click)="mostrarModalNueva = false">Cancelar</button>
+                <button class="btn btn-warning" (click)="crearNueva()">Crear y tomar asistencia</button>
+            </div>
+        </div>
+    </div>
+</div>

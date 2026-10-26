@@ -1,0 +1,381 @@
+// Clases del Día. Pensada primero para el celular del profesor: botones
+// grandes para marcar y la toma de asistencia a pantalla completa.
+$dorado: #d4af37;
+$dorado-suave: #fbf5e3;
+$dorado-texto: #7d6619;
+$borde: #e7e2d6;
+$texto: #3d3a33;
+$gris: #8a857a;
+
+.clases {
+  color: $texto;
+}
+
+.panel-filtros {
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(6px);
+  border: 1px solid $borde;
+  border-radius: 12px;
+}
+
+.selector-dia {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+
+  app-fecha-input {
+    flex: 1 1 auto;
+  }
+}
+
+.btn-secundario {
+  background: #fff;
+  border: 1px solid $borde;
+  color: $texto;
+
+  &:hover {
+    border-color: $dorado;
+    color: $dorado-texto;
+  }
+}
+
+.titulo-dia {
+  margin: 16px 0 10px;
+  font-weight: 600;
+}
+
+.lista-clases {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.clase {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid $borde;
+  border-left: 5px solid $dorado;
+  border-radius: 12px;
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: box-shadow 0.15s;
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+
+  &.cancelada {
+    opacity: 0.55;
+  }
+
+  &.dictada {
+    background: #f6faf3;
+  }
+
+  .clase-hora {
+    display: flex;
+    flex-direction: column;
+    min-width: 72px;
+    font-weight: 600;
+
+    small {
+      color: $gris;
+      font-weight: 400;
+    }
+  }
+
+  .clase-datos {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+
+    .curso {
+      font-weight: 600;
+    }
+
+    .detalle {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      color: $gris;
+      font-size: 0.82rem;
+
+      i {
+        color: $dorado;
+      }
+    }
+  }
+
+  .clase-estado {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+
+    small {
+      color: $gris;
+    }
+  }
+}
+
+.vacio {
+  text-align: center;
+  color: $gris;
+  padding: 30px 10px;
+
+  i {
+    color: $dorado;
+  }
+}
+
+.vacio-pequeno {
+  color: $gris;
+  font-size: 0.85rem;
+  padding: 6px 0;
+}
+
+.chip {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.chip-ok { background: #e7f4e4; color: #3f7a35; }
+.chip-info { background: $dorado-suave; color: $dorado-texto; }
+.chip-gris { background: #f1efea; color: $gris; }
+
+.aviso {
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: $dorado-suave;
+  border: 1px solid rgba($dorado, 0.35);
+  font-size: 0.9rem;
+  margin-bottom: 10px;
+
+  i {
+    color: $dorado;
+    margin-right: 6px;
+  }
+}
+
+.barra-marcar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+  color: $gris;
+}
+
+.estudiante {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid $borde;
+
+  .datos {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+
+    .nombre {
+      font-weight: 600;
+    }
+
+    .paquete {
+      font-size: 0.78rem;
+      color: $gris;
+
+      &.alerta {
+        color: #b0413e;
+      }
+    }
+  }
+
+  .botones-marca {
+    display: flex;
+    gap: 6px;
+    flex: 0 0 auto;
+  }
+}
+
+.btn-marca {
+  border: 1px solid $borde;
+  background: #fff;
+  color: $gris;
+  min-width: 86px;
+  padding: 6px 10px;
+
+  &.si.activo {
+    background: #e7f4e4;
+    border-color: #8fc283;
+    color: #3f7a35;
+    font-weight: 600;
+  }
+
+  &.no.activo {
+    background: #fdecea;
+    border-color: #e3a19e;
+    color: #b0413e;
+    font-weight: 600;
+  }
+}
+
+.agregar {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.liberadas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  color: $gris;
+}
+
+.subtitulo {
+  margin: 16px 0 8px;
+  font-weight: 600;
+}
+
+.fila-docente {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 6px;
+
+  .minutos {
+    width: 90px;
+    flex: 0 0 auto;
+  }
+}
+
+.lista-chequeo {
+  max-height: 220px;
+  overflow-y: auto;
+  border: 1px solid $borde;
+  border-radius: 8px;
+  padding: 6px 10px;
+
+  .opcion {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 3px 0;
+    cursor: pointer;
+  }
+}
+
+// ==================== MODALES ====================
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(40, 36, 28, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050;
+  padding: 16px;
+}
+
+.modal-caja {
+  background: #fff;
+  border-radius: 14px;
+  width: 100%;
+  max-width: 620px;
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+}
+
+.modal-cabecera {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 14px 18px;
+  border-bottom: 1px solid $borde;
+
+  h3 {
+    font-size: 1.1rem;
+    margin: 0;
+    font-weight: 600;
+  }
+
+  small {
+    color: $gris;
+  }
+
+  .btn-cerrar {
+    border: none;
+    background: transparent;
+    color: $gris;
+    font-size: 1.1rem;
+  }
+}
+
+.modal-cuerpo {
+  padding: 14px 18px;
+  overflow-y: auto;
+}
+
+.modal-pie {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px 18px;
+  border-top: 1px solid $borde;
+}
+
+// ==================== MOVIL ====================
+@media (max-width: 576px) {
+  .clase {
+    flex-wrap: wrap;
+
+    .clase-estado {
+      flex-direction: row;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+    }
+  }
+
+  .estudiante {
+    flex-direction: column;
+    align-items: stretch;
+
+    .botones-marca {
+      .btn-marca {
+        flex: 1 1 0;
+      }
+    }
+  }
+
+  .agregar {
+    flex-direction: column;
+  }
+
+  .modal-overlay {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .modal-caja {
+    max-height: 100vh;
+    height: 100vh;
+    border-radius: 0;
+  }
+}

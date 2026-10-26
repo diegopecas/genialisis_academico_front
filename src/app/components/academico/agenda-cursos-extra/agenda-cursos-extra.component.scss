@@ -1,0 +1,442 @@
+// Agenda de Cursos Extra. Paleta neutra con el dorado solo para acentos y
+// tarjetas blancas con efecto glaseado, como el resto del módulo.
+$dorado: #d4af37;
+$dorado-suave: #fbf5e3;
+$dorado-oscuro: #a88924;
+$dorado-texto: #7d6619;
+$borde: #e7e2d6;
+$texto: #3d3a33;
+$gris: #8a857a;
+
+.agenda {
+  color: $texto;
+}
+
+.panel-filtros {
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(6px);
+  border: 1px solid $borde;
+  border-radius: 12px;
+}
+
+.btn-secundario {
+  background: #fff;
+  border: 1px solid $borde;
+  color: $texto;
+
+  &:hover {
+    border-color: $dorado;
+    color: $dorado-oscuro;
+  }
+}
+
+.pestanas {
+  border-bottom-color: $borde;
+
+  .nav-link {
+    color: $gris;
+    border: none;
+    border-bottom: 3px solid transparent;
+    background: transparent;
+
+    &.active {
+      color: $texto;
+      font-weight: 600;
+      border-bottom-color: $dorado;
+    }
+  }
+}
+
+.barra-semana {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 14px 0;
+
+  .botones {
+    display: flex;
+    gap: 6px;
+  }
+
+  .titulo-semana {
+    font-weight: 600;
+  }
+
+  .ir-fecha {
+    width: 190px;
+  }
+}
+
+// Siete columnas en escritorio; en el celular los dias van uno debajo del otro.
+.semana {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.dia {
+  background: rgba(255, 255, 255, 0.75);
+  border: 1px solid $borde;
+  border-radius: 12px;
+  padding: 8px;
+  min-height: 160px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  &.hoy {
+    border-color: $dorado;
+    box-shadow: 0 0 0 2px rgba($dorado, 0.18);
+  }
+
+  .dia-titulo {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    border-bottom: 1px solid $borde;
+    padding-bottom: 4px;
+
+    .nombre {
+      font-weight: 600;
+    }
+
+    .fecha {
+      font-size: 0.78rem;
+      color: $gris;
+    }
+  }
+
+  .agregar-dia {
+    margin-top: auto;
+    color: $gris;
+    text-decoration: none;
+    font-size: 0.8rem;
+
+    &:hover {
+      color: $dorado-oscuro;
+    }
+  }
+}
+
+.sesion {
+  background: #fff;
+  border: 1px solid $borde;
+  border-left: 4px solid $dorado;
+  border-radius: 8px;
+  padding: 6px 8px;
+  cursor: pointer;
+  font-size: 0.82rem;
+  transition: box-shadow 0.15s;
+
+  &:hover {
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+  }
+
+  &.cancelada {
+    opacity: 0.55;
+    text-decoration: line-through;
+  }
+
+  &.dictada {
+    background: #f6faf3;
+  }
+
+  .sesion-hora {
+    font-weight: 600;
+  }
+
+  .sesion-curso {
+    font-weight: 500;
+    line-height: 1.2;
+    margin-bottom: 2px;
+  }
+
+  .sesion-detalle {
+    color: $gris;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    i {
+      width: 12px;
+      color: $dorado;
+    }
+  }
+
+  .sesion-pie {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 4px;
+    font-size: 0.75rem;
+
+    .cupo.lleno {
+      color: #b0413e;
+      font-weight: 600;
+    }
+
+    .estado {
+      color: $gris;
+    }
+  }
+}
+
+.dia-vacio {
+  color: $gris;
+  font-size: 0.8rem;
+  text-align: center;
+  padding: 8px 0;
+}
+
+.texto-ayuda {
+  color: $gris;
+  font-size: 0.85rem;
+}
+
+.aviso {
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: $dorado-suave;
+  border: 1px solid rgba($dorado, 0.35);
+  font-size: 0.9rem;
+  margin-bottom: 10px;
+
+  i {
+    color: $dorado;
+    margin-right: 6px;
+  }
+}
+
+.lista-tarjetas {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tarjeta-fila {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: #fff;
+  border: 1px solid $borde;
+  border-radius: 10px;
+  padding: 8px 12px;
+
+  &.inactiva {
+    opacity: 0.6;
+  }
+
+  .principal {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+
+    .nombre {
+      font-weight: 600;
+    }
+
+    .detalle {
+      font-size: 0.8rem;
+      color: $gris;
+    }
+  }
+
+  .acciones {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .reagendar {
+    flex-basis: 100%;
+    display: flex;
+    gap: 6px;
+  }
+}
+
+.chip {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.chip-ok { background: #e7f4e4; color: #3f7a35; }
+.chip-alerta { background: #fdecea; color: #b0413e; }
+.chip-info { background: $dorado-suave; color: $dorado-texto; }
+.chip-gris { background: #f1efea; color: $gris; }
+
+.subtitulo {
+  margin: 16px 0 8px;
+  font-weight: 600;
+}
+
+.resumen {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.reservar {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.caja-edicion {
+  border: 1px dashed $borde;
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 10px;
+  background: #fdfcf9;
+
+  .acciones-pie {
+    display: flex;
+    justify-content: flex-end;
+    gap: 6px;
+    margin-top: 10px;
+  }
+}
+
+.fila-docente {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 6px;
+
+  .minutos {
+    width: 90px;
+    flex: 0 0 auto;
+  }
+}
+
+.lista-chequeo {
+  max-height: 220px;
+  overflow-y: auto;
+  border: 1px solid $borde;
+  border-radius: 8px;
+  padding: 6px 10px;
+
+  .opcion {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 3px 0;
+    cursor: pointer;
+  }
+}
+
+// ==================== MODALES ====================
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(40, 36, 28, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050;
+  padding: 16px;
+}
+
+.modal-caja {
+  background: #fff;
+  border-radius: 14px;
+  width: 100%;
+  max-width: 560px;
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+
+  &.modal-grande {
+    max-width: 760px;
+  }
+
+  &.modal-pequeno {
+    max-width: 420px;
+  }
+}
+
+.modal-cabecera {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 14px 18px;
+  border-bottom: 1px solid $borde;
+
+  h3 {
+    font-size: 1.1rem;
+    margin: 0;
+    font-weight: 600;
+  }
+
+  small {
+    color: $gris;
+  }
+
+  .btn-cerrar {
+    border: none;
+    background: transparent;
+    color: $gris;
+    font-size: 1.1rem;
+  }
+}
+
+.modal-cuerpo {
+  padding: 14px 18px;
+  overflow-y: auto;
+}
+
+.modal-pie {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px 18px;
+  border-top: 1px solid $borde;
+}
+
+// ==================== MOVIL ====================
+@media (max-width: 991px) {
+  .semana {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 576px) {
+  .semana {
+    grid-template-columns: 1fr;
+  }
+
+  .dia {
+    min-height: auto;
+  }
+
+  .barra-semana {
+    .ir-fecha {
+      width: 100%;
+    }
+  }
+
+  .reservar {
+    flex-direction: column;
+  }
+
+  .modal-overlay {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .modal-caja {
+    max-height: 96vh;
+    border-radius: 14px 14px 0 0;
+  }
+}

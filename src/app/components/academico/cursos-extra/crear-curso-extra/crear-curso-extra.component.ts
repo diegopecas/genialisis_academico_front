@@ -19,6 +19,8 @@ import { ProveedoresXCursosExtraService } from '../../../../services/proveedores
 import { ProveedoresService } from '../../../../services/proveedores.service';
 import { CursosExtraXInstitucionesClienteService } from '../../../../services/cursos-extra-x-instituciones-cliente.service';
 import { InstitucionConfigService } from '../../../../services/institucion-config.service';
+import { ConfiguracionReservasCursosExtraService } from '../../../../services/configuracion-reservas-cursos-extra.service';
+import { EspaciosLugaresCursosExtraService } from '../../../../services/espacios-lugares-cursos-extra.service';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../../environments/environment';
 import Swal from 'sweetalert2';
@@ -94,8 +96,25 @@ export class CrearCursoExtraComponent implements OnInit {
     id_dia_semana: null,
     hora_inicial: '',
     hora_final: '',
-    total_minutos: 0
+    total_minutos: 0,
+    id_espacio_lugar_curso_extra: null,
+    id_docente: null,
+    cupo: null
   } as any;
+  /* Espacios (canchas, salones) del lugar del curso: se ofrecen en el horario.
+     El profesor del horario se escoge entre los docentes del curso. */
+  espaciosLugar: any[] = [];
+
+  /* Reglas de reserva del curso (pestaña Reservas). Un curso sin configurar
+     llega con los valores de fijo, que es como funcionan todos hoy. */
+  configuracionReservas: any = {
+    reserva_automatica: 1,
+    permite_cancelar: 0,
+    permite_reagendar: 0,
+    permite_reserva_suelta: 0,
+    descuenta_inasistencia: 1,
+    configurado: 0
+  };
 
   // Docentes
   docentesCurso: any[] = [];
@@ -209,7 +228,9 @@ export class CrearCursoExtraComponent implements OnInit {
     private institucionConfigService: InstitucionConfigService,
     private http: HttpClient,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private configuracionReservasCursosExtraService: ConfiguracionReservasCursosExtraService,
+    private espaciosLugaresCursosExtraService: EspaciosLugaresCursosExtraService
   ) { }
 
   ngOnInit(): void {
@@ -233,6 +254,7 @@ export class CrearCursoExtraComponent implements OnInit {
         this.cargarProductosTarifas();
         this.cargarCatalogosProducto();
         this.cargarAniosEscolares();
+        this.cargarConfiguracionReservas(id);
       } else if (this.accion === 'consultar') {
         this.titulo = "Consultar Curso Extracurricular";
         this.editable = false;
@@ -242,6 +264,7 @@ export class CrearCursoExtraComponent implements OnInit {
         this.cargarProveedoresCurso(id);
         this.cargarConvenios(id);
         this.cargarTarifas(id);
+        this.cargarConfiguracionReservas(id);
       }
     });
 
@@ -267,6 +290,7 @@ export class CrearCursoExtraComponent implements OnInit {
           this.model.fecha_limite_inscripcion = this.model.fecha_limite_inscripcion || '';
           this.model.permite_sobrecupo = this.model.permite_sobrecupo ? 1 : 0;
           this.desglosarEdades();
+          this.cargarEspaciosLugar(this.model.id_lugar_curso_extra);
           if (this.accion === 'editar') {
             this.titulo = `Editar Curso: ${this.model.nombre}`;
           } else if (this.accion === 'consultar') {
@@ -525,7 +549,8 @@ export class CrearCursoExtraComponent implements OnInit {
       'horarios': 'Horarios',
       'responsables': 'Docentes y Proveedores',
       'clientes': 'Clientes Institucionales',
-      'tarifas': 'Tarifas'
+      'tarifas': 'Tarifas',
+      'reservas': 'Reservas'
     };
     return nombres[this.pestanaActiva] || '';
   }
@@ -536,7 +561,8 @@ export class CrearCursoExtraComponent implements OnInit {
       'horarios': 'fas fa-clock',
       'responsables': 'fas fa-chalkboard-teacher',
       'clientes': 'fas fa-school',
-      'tarifas': 'fas fa-dollar-sign'
+      'tarifas': 'fas fa-dollar-sign',
+      'reservas': 'fas fa-calendar-check'
     };
     return iconos[this.pestanaActiva] || '';
   }
@@ -571,7 +597,10 @@ export class CrearCursoExtraComponent implements OnInit {
       id_dia_semana: null,
       hora_inicial: '',
       hora_final: '',
-      total_minutos: 0
+      total_minutos: 0,
+      id_espacio_lugar_curso_extra: null,
+      id_docente: null,
+      cupo: null
     };
     this.mostrarModalHorario = true;
   }
@@ -609,7 +638,10 @@ export class CrearCursoExtraComponent implements OnInit {
       id_dia_semana: parseInt(this.horarioModal.id_dia_semana),
       hora_inicial: this.horarioModal.hora_inicial,
       hora_final: this.horarioModal.hora_final,
-      total_minutos: this.horarioModal.total_minutos
+      total_minutos: this.horarioModal.total_minutos,
+      id_espacio_lugar_curso_extra: this.horarioModal.id_espacio_lugar_curso_extra || null,
+      id_docente: this.horarioModal.id_docente || null,
+      cupo: this.horarioModal.cupo === '' || this.horarioModal.cupo === undefined ? null : this.horarioModal.cupo
     } as any;
 
     if (this.horarioModal.id) {
@@ -665,6 +697,82 @@ export class CrearCursoExtraComponent implements OnInit {
         }
       });
     }
+  }
+
+  /* Espacios activos del lugar del curso. Si el curso no tiene lugar, el
+     horario no ofrece espacio. */
+  cargarEspaciosLugar(idLugar: any) {
+    this.espaciosLugar = [];
+    if (!idLugar) {
+      return;
+    }
+    this.espaciosLugaresCursosExtraService.obtenerActivosByLugar(idLugar).subscribe({
+      next: (response: any) => {
+        this.espaciosLugar = response.body || [];
+      },
+      error: (error: any) => {
+        console.error("Error al cargar los espacios del lugar", error);
+      }
+    });
+  }
+
+  // ==================== RESERVAS ====================
+
+  cargarConfiguracionReservas(id: any) {
+    this.configuracionReservasCursosExtraService.obtenerByCurso(id).subscribe({
+      next: (response: any) => {
+        const body = response.body || [];
+        if (body.length > 0) {
+          this.configuracionReservas = body[0];
+        }
+      },
+      error: (error: any) => {
+        console.error("Error al cargar las reglas de reserva", error);
+      }
+    });
+  }
+
+  /* Fijo: los inscritos quedan en todas las sesiones y no cancelan ni
+     reagendan. Flexible: cada quien reserva (fija o suelta), puede cancelar y
+     reagendar. En los dos la inasistencia descuenta; despues se ajusta. */
+  aplicarPlantillaReservas(plantilla: 'fijo' | 'flexible') {
+    const fijo = plantilla === 'fijo';
+    this.configuracionReservas.reserva_automatica = fijo ? 1 : 0;
+    this.configuracionReservas.permite_cancelar = fijo ? 0 : 1;
+    this.configuracionReservas.permite_reagendar = fijo ? 0 : 1;
+    this.configuracionReservas.permite_reserva_suelta = fijo ? 0 : 1;
+    this.configuracionReservas.descuenta_inasistencia = 1;
+  }
+
+  esPlantillaReservas(plantilla: 'fijo' | 'flexible'): boolean {
+    const c = this.configuracionReservas;
+    if (plantilla === 'fijo') {
+      return c.reserva_automatica == 1 && c.permite_cancelar == 0 && c.permite_reagendar == 0 && c.permite_reserva_suelta == 0;
+    }
+    return c.reserva_automatica == 0 && c.permite_cancelar == 1 && c.permite_reagendar == 1 && c.permite_reserva_suelta == 1;
+  }
+
+  guardarConfiguracionReservas() {
+    const c = this.configuracionReservas;
+    const data = {
+      id_curso_extra: this.model.id,
+      reserva_automatica: c.reserva_automatica ? 1 : 0,
+      permite_cancelar: c.permite_cancelar ? 1 : 0,
+      permite_reagendar: c.permite_reagendar ? 1 : 0,
+      permite_reserva_suelta: c.permite_reserva_suelta ? 1 : 0,
+      descuenta_inasistencia: c.descuenta_inasistencia ? 1 : 0
+    };
+    this.configuracionReservasCursosExtraService.guardar(data).subscribe({
+      next: (response: any) => {
+        if (Array.isArray(response) && response.length > 0) {
+          this.configuracionReservas = response[0];
+        }
+        Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Reglas de reserva guardadas', showConfirmButton: false, timer: 2000 });
+      },
+      error: (error: any) => {
+        console.error("Error al guardar las reglas de reserva", error);
+      }
+    });
   }
 
   // ==================== DOCENTES ====================

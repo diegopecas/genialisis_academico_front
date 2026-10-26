@@ -88,6 +88,12 @@ export class AcademicoComponent implements OnInit {
       case 'cursos-extra':
         this.router.navigate(['/academico/cursos-extra']);
         break;
+      case 'agenda-cursos-extra':
+        this.router.navigate(['/academico/agenda-cursos-extra']);
+        break;
+      case 'clases-dia-cursos-extra':
+        this.router.navigate(['/academico/clases-dia-cursos-extra']);
+        break;
       case 'pde-rangos-edad':
         this.router.navigate(['/academico/pde-rangos-edad']);
         break;

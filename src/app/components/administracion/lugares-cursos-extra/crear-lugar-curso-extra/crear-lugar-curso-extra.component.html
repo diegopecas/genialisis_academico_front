@@ -105,6 +105,36 @@
             </div>
         </div>
 
+        <!-- Espacios del lugar: solo cuando el lugar ya existe -->
+        <div class="card card-formulario mb-4" *ngIf="accion !== 'crear'">
+            <div class="card-header-custom">
+                <i class="fas fa-th-large"></i>
+                <span>Espacios</span>
+            </div>
+            <div class="card-body-custom">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                    <small class="text-muted">Canchas, piscinas o salones del lugar, con el horario fijo contratado. Lo que se use por fuera es adicional.</small>
+                    <button class="btn btn-warning btn-sm" *ngIf="editable" (click)="abrirModalEspacio()">
+                        <i class="fas fa-plus me-1"></i> Agregar espacio
+                    </button>
+                </div>
+                <div class="espacio-fila" *ngFor="let e of espacios" [class.inactivo]="!e.activo">
+                    <div class="espacio-datos">
+                        <span class="espacio-nombre">{{ e.nombre }}</span>
+                        <small *ngIf="e.descripcion">{{ e.descripcion }}</small>
+                        <small class="espacio-horario"><i class="fas fa-clock"></i> {{ textoHorarios(e) }}</small>
+                    </div>
+                    <div class="espacio-acciones" *ngIf="editable">
+                        <button class="btn btn-sm btn-outline-primary" (click)="abrirModalEspacio(e)"><i class="fas fa-edit"></i></button>
+                        <button class="btn btn-sm btn-outline-danger" (click)="eliminarEspacio(e)"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>
+                <div class="text-center text-muted py-3" *ngIf="espacios.length === 0">
+                    Este lugar no tiene espacios registrados.
+                </div>
+            </div>
+        </div>
+
         <div class="row mb-5">
             <div class="col-sm-6" *ngIf="editable">
                 <button class="btn btn-lg btn-warning w-100" (click)="guardar()">
@@ -115,6 +145,51 @@
                 <button class="btn btn-lg btn-secondary w-100" (click)="volver()">
                     <i class="fas fa-arrow-left me-2"></i> Volver
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal del espacio con su horario fijo -->
+    <div class="modal-overlay" *ngIf="mostrarModalEspacio" (click)="mostrarModalEspacio = false">
+        <div class="modal-espacio" (click)="$event.stopPropagation()">
+            <div class="modal-espacio-cabecera">
+                <h3>{{ espacioModal.id ? 'Editar' : 'Agregar' }} espacio</h3>
+                <button class="btn-cerrar" (click)="mostrarModalEspacio = false"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-espacio-cuerpo">
+                <div class="row g-3">
+                    <div class="col-md-6 col-12">
+                        <label class="form-label">Nombre <span class="text-danger">*</span></label>
+                        <input class="form-control" type="text" maxlength="100" [(ngModel)]="espacioModal.nombre" placeholder="Ej: Cancha 9">
+                    </div>
+                    <div class="col-md-6 col-12 d-flex align-items-end">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="espacioActivo" [(ngModel)]="espacioModal.activo">
+                            <label class="form-check-label" for="espacioActivo">Activo</label>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Descripción</label>
+                        <input class="form-control" type="text" maxlength="300" [(ngModel)]="espacioModal.descripcion" placeholder="Ej: arcilla, techada">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Horario fijo contratado</label>
+                        <div class="fila-horario" *ngFor="let h of espacioModal.horarios; let i = index">
+                            <select class="form-select" [(ngModel)]="h.id_dia_semana">
+                                <option [ngValue]="null">-- Día --</option>
+                                <option *ngFor="let d of diasSemana" [ngValue]="d.id">{{ d.nombre }}</option>
+                            </select>
+                            <app-hora-input [(ngModel)]="h.hora_inicial"></app-hora-input>
+                            <app-hora-input [(ngModel)]="h.hora_final" periodoPorDefecto="PM"></app-hora-input>
+                            <button class="btn btn-sm btn-outline-danger" (click)="quitarHorarioEspacio(i)"><i class="fas fa-times"></i></button>
+                        </div>
+                        <button class="btn btn-link btn-sm p-0" (click)="agregarHorarioEspacio()"><i class="fas fa-plus"></i> Agregar franja</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-espacio-pie">
+                <button class="btn btn-secondary" (click)="mostrarModalEspacio = false">Cancelar</button>
+                <button class="btn btn-warning" (click)="guardarEspacio()">Guardar</button>
             </div>
         </div>
     </div>

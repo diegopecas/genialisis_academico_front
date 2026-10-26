@@ -1,0 +1,40 @@
+:host {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+.fecha-input {
+  flex-wrap: nowrap;
+  position: relative;
+}
+
+.campo-fecha {
+  min-width: 6.5rem;
+}
+
+.btn-calendario {
+  border: 1px solid var(--mo-border-color, #dee2e6);
+  background: #fff;
+  color: var(--mo-primary, #D4A03C);
+  padding-left: 0.65rem;
+  padding-right: 0.65rem;
+
+  &:disabled {
+    opacity: 0.65;
+  }
+}
+
+// El selector nativo queda debajo del botón, sin verse, para que el
+// calendario se abra en el sitio correcto.
+.selector-oculto {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+  border: 0;
+  padding: 0;
+}

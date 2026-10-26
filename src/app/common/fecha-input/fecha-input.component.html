@@ -1,0 +1,34 @@
+<!-- Texto con teclado numérico + botón de calendario. El input type="date"
+     queda oculto y solo se usa para abrir el calendario nativo. -->
+<div class="input-group fecha-input"
+  [class.input-group-sm]="tamano === 'sm'"
+  [class.input-group-lg]="tamano === 'lg'">
+  <input #campo
+    type="text"
+    class="form-control campo-fecha"
+    inputmode="numeric"
+    autocomplete="off"
+    maxlength="10"
+    [attr.id]="inputId || null"
+    [placeholder]="placeholder"
+    [value]="texto"
+    [disabled]="disabled"
+    [readOnly]="readonly"
+    [class.is-invalid]="error || invalido"
+    (input)="alEscribir(campo)"
+    (blur)="alSalir()"
+    (keydown.enter)="alPresionarEnter($event)">
+  <button type="button" class="btn btn-calendario"
+    [disabled]="disabled || readonly"
+    title="Abrir calendario"
+    (mousedown)="$event.preventDefault()"
+    (click)="abrirCalendario()">
+    <i class="fas fa-calendar-alt"></i>
+  </button>
+  <input #selector
+    type="date"
+    class="selector-oculto"
+    tabindex="-1"
+    aria-hidden="true"
+    (change)="alEscogerEnCalendario(selector)">
+</div>
