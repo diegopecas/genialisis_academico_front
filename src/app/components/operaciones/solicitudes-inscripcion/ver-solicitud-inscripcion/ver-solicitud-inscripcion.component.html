@@ -172,7 +172,7 @@
                             [showSearch]="true">
                         </app-searchable-dropdown>
                         <p class="texto-ayuda mt-2 mb-0" *ngIf="cursoElegido">
-                            Del {{ cursoElegido.fecha_inicio }} al {{ cursoElegido.fecha_fin }}{{ cursoElegido.id === solicitud.id_curso_extra ? ' · el que pidió' : '' }}
+                            {{ cursoElegido.fecha_inicio ? 'Del ' + cursoElegido.fecha_inicio + ' al ' + cursoElegido.fecha_fin : 'Curso permanente' }}{{ cursoElegido.id === solicitud.id_curso_extra ? ' · el que pidió' : '' }}
                         </p>
                     </ng-container>
                     <ng-template #cursoAsignado>

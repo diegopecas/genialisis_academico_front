@@ -363,8 +363,8 @@
                     <tr *ngFor="let c of cursosInstitucion">
                         <td>{{c.nombre_curso}}</td>
                         <td class="text-center">{{c.anio}}</td>
-                        <td class="text-center">{{c.fecha_inicio}}</td>
-                        <td class="text-center">{{c.fecha_fin}}</td>
+                        <td class="text-center">{{c.fecha_inicio || 'Permanente'}}</td>
+                        <td class="text-center">{{c.fecha_fin || '-'}}</td>
                         <td class="text-center">
                             <span class="badge" [ngClass]="c.paga_institucion == 1 ? 'bg-success' : 'bg-secondary'">
                                 {{c.paga_institucion == 1 ? 'Sí' : 'No'}}

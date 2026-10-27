@@ -90,7 +90,7 @@
 
               <ul class="tarjeta-datos">
                 <li *ngIf="c.nombre_lugar">{{ c.nombre_lugar }}</li>
-                <li>{{ c.fecha_inicio }} al {{ c.fecha_fin }}</li>
+                <li>{{ c.fecha_inicio ? c.fecha_inicio + ' al ' + c.fecha_fin : 'Todo el año' }}</li>
                 <li class="cupo" [class.sin-cupo]="c.cupos_disponibles === 0">{{ textoCupo(c) }}</li>
               </ul>
 

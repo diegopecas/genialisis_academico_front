@@ -24,6 +24,7 @@ import { EspaciosLugaresCursosExtraService } from '../../../../services/espacios
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../../environments/environment';
 import Swal from 'sweetalert2';
+import { FechaInputComponent } from '../../../../common/fecha-input/fecha-input.component';
 import { HoraInputComponent } from '../../../../common/hora-input/hora-input.component';
 
 @Component({
@@ -31,7 +32,7 @@ import { HoraInputComponent } from '../../../../common/hora-input/hora-input.com
   templateUrl: './crear-curso-extra.component.html',
   styleUrl: './crear-curso-extra.component.scss',
   standalone: true,
-  imports: [CommonModule, FormsModule, HeaderComponent, HoraInputComponent]
+  imports: [CommonModule, FormsModule, HeaderComponent, HoraInputComponent, FechaInputComponent]
 })
 export class CrearCursoExtraComponent implements OnInit {
 
@@ -446,17 +447,14 @@ export class CrearCursoExtraComponent implements OnInit {
       return;
     }
 
-    if (!this.model.fecha_inicio) {
-      Swal.fire('Advertencia', 'La fecha de inicio es obligatoria', 'warning');
+    // Las fechas son opcionales: sin fechas el curso es permanente. Si se
+    // pone una, va la otra, para que la temporada quede completa.
+    if (!!this.model.fecha_inicio !== !!this.model.fecha_fin) {
+      Swal.fire('Advertencia', 'Ponga la fecha de inicio y la de fin, o deje las dos vacías si el curso es permanente', 'warning');
       return;
     }
 
-    if (!this.model.fecha_fin) {
-      Swal.fire('Advertencia', 'La fecha de fin es obligatoria', 'warning');
-      return;
-    }
-
-    if (this.model.fecha_inicio > this.model.fecha_fin) {
+    if (this.model.fecha_inicio && this.model.fecha_fin && this.model.fecha_inicio > this.model.fecha_fin) {
       Swal.fire('Advertencia', 'La fecha de inicio no puede ser mayor a la fecha de fin', 'warning');
       return;
     }
@@ -481,8 +479,8 @@ export class CrearCursoExtraComponent implements OnInit {
       icono: this.model.icono || '',
       color: this.model.color || '#3498db',
       cupo_maximo: this.model.cupo_maximo ? parseInt(this.model.cupo_maximo) : null,
-      fecha_inicio: this.model.fecha_inicio,
-      fecha_fin: this.model.fecha_fin,
+      fecha_inicio: this.model.fecha_inicio || null,
+      fecha_fin: this.model.fecha_fin || null,
       anio: parseInt(this.model.anio),
       activo: this.model.activo,
       id_tipo_curso_extracurricular: this.model.id_tipo_curso_extracurricular ? this.model.id_tipo_curso_extracurricular : null,

@@ -609,9 +609,11 @@ export class InscripcionCursosExtraComponent implements OnInit {
     const valores: ValorGenerado[] = [];
     const nombreCurso = this.cursoSeleccionado?.nombre || 'Curso';
     const fechaInicio = new Date(this.fechaInscripcion + 'T00:00:00');
+    // Curso permanente (sin fecha fin): las cuotas van hasta el 31 de
+    // diciembre del año de la inscripción.
     const fechaFin = this.cursoSeleccionado?.fecha_fin
       ? new Date(this.cursoSeleccionado.fecha_fin + 'T00:00:00')
-      : fechaInicio;
+      : new Date(fechaInicio.getFullYear(), 11, 31);
 
     const lineasFijas = (tarifa.detalle || []).filter((l: any) => l.tipo !== 'paquete' && l.activo == 1);
 

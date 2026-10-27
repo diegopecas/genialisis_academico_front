@@ -44,8 +44,9 @@ export class CursosExtraComponent implements OnInit {
           nombre_tipo_curso: curso.nombre_tipo_curso || '-',
           nombre_area_academica: curso.nombre_area_academica || '-',
           nombre_lugar: curso.nombre_lugar || '-',
-          fecha_inicio: curso.fecha_inicio,
-          fecha_fin: curso.fecha_fin,
+          // Sin fechas el curso es permanente
+          fecha_inicio: curso.fecha_inicio || 'Permanente',
+          fecha_fin: curso.fecha_fin || '-',
           cupo_label: this.armarCupo(curso),
           activo: curso.activo,
           anio: curso.anio,

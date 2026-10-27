@@ -127,7 +127,7 @@ export class VerSolicitudInscripcionComponent implements OnInit {
           id: c.id,
           nombre: c.nombre,
           descripcion: (c.id === this.solicitud.id_curso_extra ? 'El que pidió · ' : '') +
-            `Del ${c.fecha_inicio} al ${c.fecha_fin}`
+            (c.fecha_inicio ? `Del ${c.fecha_inicio} al ${c.fecha_fin}` : 'Permanente')
         }));
         this.cargarTarifa();
       },

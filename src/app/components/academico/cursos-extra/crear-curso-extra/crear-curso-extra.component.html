@@ -239,19 +239,21 @@
             <div class="panel-body">
                 <div class="row g-3">
                     <div class="col-md-4 col-12">
-                        <label for="fecha_inicio" class="form-label">Fecha inicio <span class="text-danger">*</span></label>
-                        <input class="form-control" type="date" id="fecha_inicio" [(ngModel)]="model.fecha_inicio"
-                            [ngClass]="{'is-invalid': !model.fecha_inicio && submitted}" [disabled]="!editable">
+                        <label for="fecha_inicio" class="form-label">Fecha inicio</label>
+                        <app-fecha-input inputId="fecha_inicio" [(ngModel)]="model.fecha_inicio"
+                            [invalido]="submitted && !model.fecha_inicio && !!model.fecha_fin" [disabled]="!editable"></app-fecha-input>
+                        <small class="form-text text-muted">Vacía si el curso es permanente</small>
                     </div>
                     <div class="col-md-4 col-12">
-                        <label for="fecha_fin" class="form-label">Fecha fin <span class="text-danger">*</span></label>
-                        <input class="form-control" type="date" id="fecha_fin" [(ngModel)]="model.fecha_fin"
-                            [ngClass]="{'is-invalid': !model.fecha_fin && submitted}" [disabled]="!editable">
+                        <label for="fecha_fin" class="form-label">Fecha fin</label>
+                        <app-fecha-input inputId="fecha_fin" [(ngModel)]="model.fecha_fin"
+                            [invalido]="submitted && !model.fecha_fin && !!model.fecha_inicio" [disabled]="!editable"></app-fecha-input>
+                        <small class="form-text text-muted">Solo para cursos con temporada (vacacionales, viajes)</small>
                     </div>
                     <div class="col-md-4 col-12">
                         <label for="fecha_limite_inscripcion" class="form-label">Límite de inscripción</label>
-                        <input class="form-control" type="date" id="fecha_limite_inscripcion"
-                            [(ngModel)]="model.fecha_limite_inscripcion" [disabled]="!editable">
+                        <app-fecha-input inputId="fecha_limite_inscripcion"
+                            [(ngModel)]="model.fecha_limite_inscripcion" [disabled]="!editable"></app-fecha-input>
                     </div>
                     <div class="col-md-4 col-12">
                         <label class="form-label">Edad mínima</label>

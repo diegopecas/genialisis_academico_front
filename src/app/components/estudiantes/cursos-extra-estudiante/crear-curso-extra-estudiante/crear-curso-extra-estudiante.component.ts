@@ -178,8 +178,10 @@ export class CrearCursoExtraEstudianteComponent implements OnInit {
     this.cursoSeleccionado = this.cursosDisponibles.find((c: any) => c.id == this.model.id_curso_extra);
 
     if (this.cursoSeleccionado) {
-      this.model.fecha_inicio = this.cursoSeleccionado.fecha_inicio;
-      this.model.fecha_fin = this.cursoSeleccionado.fecha_fin;
+      this.model.fecha_inicio = this.cursoSeleccionado.fecha_inicio || '';
+      // Curso permanente: las cuotas se generan hasta fin del año de la
+      // inscripción, y se puede cambiar.
+      this.model.fecha_fin = this.cursoSeleccionado.fecha_fin || this.finDeAnioInscripcion();
       this.cargarConvenios();
       this.cargarTarifa();
     }
@@ -305,8 +307,10 @@ export class CrearCursoExtraEstudianteComponent implements OnInit {
       Swal.fire('Advertencia', 'Debe indicar la fecha de inscripción', 'warning');
       return;
     }
-    if (!this.model.fecha_inicio || !this.model.fecha_fin) {
-      Swal.fire('Advertencia', 'Debe indicar fecha de inicio y fin', 'warning');
+    // La fecha de inicio es informativa y un curso permanente no la tiene;
+    // la de fin es el tope de las cuotas.
+    if (!this.model.fecha_fin) {
+      Swal.fire('Advertencia', 'Debe indicar la fecha fin', 'warning');
       return;
     }
     if (this.paquetes.length > 0 && !this.idPaqueteSeleccionado) {
@@ -335,6 +339,14 @@ export class CrearCursoExtraEstudianteComponent implements OnInit {
     } else {
       this.ejecutarGeneracion();
     }
+  }
+
+  // 31 de diciembre del año de la fecha de inscripción (o del año actual)
+  private finDeAnioInscripcion(): string {
+    const anio = this.model.fecha_inscripcion
+      ? this.model.fecha_inscripcion.substring(0, 4)
+      : String(new Date().getFullYear());
+    return `${anio}-12-31`;
   }
 
   private ejecutarGeneracion() {
