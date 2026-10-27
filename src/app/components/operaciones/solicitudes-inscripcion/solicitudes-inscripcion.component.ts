@@ -42,8 +42,9 @@ export class SolicitudesInscripcionComponent implements OnInit {
           nombre_acudiente: (s.nombre_acudiente || '').replace(/\s+/g, ' ').trim(),
           institucion_mostrar: s.nombre_institucion || 'Particular',
           estado_mostrar: this.etiquetaEstado(s.estado),
-          // Las resueltas se pintan en gris para que resalten las pendientes
-          color: s.estado === 'pendiente' ? '' : '#e2e9f3'
+          // Las resueltas se pintan en pastel (verde aprobada, rosado
+          // rechazada) para que resalten las pendientes
+          color: s.estado === 'aprobada' ? '#eaf6e6' : s.estado === 'rechazada' ? '#fcebea' : ''
         }));
       },
       error: (error: any) => {

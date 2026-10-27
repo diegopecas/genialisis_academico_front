@@ -596,6 +596,25 @@ export class AgendaCursosExtraComponent implements OnInit {
     return f.activo == 1 && (!f.fecha_hasta || f.fecha_hasta >= this.hoy());
   }
 
+  /**
+   * Ocupación de cada horario del curso: cuántas reservas fijas vigentes
+   * tiene frente a su cupo (el del horario o, si no tiene, el del curso).
+   */
+  ocupacionHorarios(): any[] {
+    const curso = this.cursos.find((c: any) => c.id === this.idCurso);
+    const cupoCurso = curso && curso.cupo_maximo !== null && curso.cupo_maximo !== undefined ? Number(curso.cupo_maximo) : null;
+    return this.horariosCurso.map((h: any) => {
+      const ocupados = this.reservasFijas.filter((f: any) => f.id_horario_curso_extra === h.id && this.vigenteFija(f)).length;
+      const cupo = h.cupo !== null && h.cupo !== undefined && h.cupo !== '' ? Number(h.cupo) : cupoCurso;
+      return {
+        texto: `${h.nombre_dia} ${this.hora(h.hora_inicial)} - ${this.hora(h.hora_final)}`,
+        ocupados: ocupados,
+        cupo: cupo,
+        lleno: cupo !== null && ocupados >= cupo
+      };
+    });
+  }
+
   // ==================== PAQUETES ====================
 
   cargarPaquetes() {

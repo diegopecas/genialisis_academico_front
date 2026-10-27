@@ -18,129 +18,290 @@
             </span>
         </div>
 
-        <div class="alert alert-secondary mt-3" *ngIf="solicitud.motivo_rechazo">
-            <strong>Motivo del rechazo:</strong> {{ solicitud.motivo_rechazo }}
-        </div>
-
-        <!-- Curso -->
-        <div class="panel-card mb-4 mt-3">
-            <div class="panel-header">
-                <i class="fas fa-graduation-cap"></i>
-                <span>Curso solicitado</span>
-            </div>
-            <div class="panel-body">
-                <div class="dato"><span>Curso</span><strong>{{ solicitud.nombre_curso }}</strong></div>
-                <div class="dato"><span>Año</span><strong>{{ solicitud.anio }}</strong></div>
-                <div class="dato"><span>Fechas</span><strong>{{ solicitud.fecha_inicio }} al {{ solicitud.fecha_fin }}</strong></div>
-                <div class="dato">
-                    <span>Institución</span>
-                    <strong>{{ solicitud.nombre_institucion || 'Particular (sin convenio)' }}</strong>
-                </div>
+        <!-- Pestañas DESKTOP -->
+        <div class="tabs-desktop mt-3">
+            <div class="tabs-nav">
+                <button class="tab-item" *ngFor="let p of pestanas" [class.active]="pestanaActiva === p"
+                        (click)="seleccionarPestana(p)">
+                    <i class="fas" [ngClass]="iconoPestana(p)"></i>
+                    {{ etiquetaPestana(p) }}
+                </button>
             </div>
         </div>
 
-        <!-- Estudiante -->
-        <div class="panel-card mb-4">
-            <div class="panel-header">
-                <i class="fas fa-child"></i>
-                <span>Estudiante</span>
+        <!-- Pestañas MOVIL (hamburguesa) -->
+        <div class="tabs-movil mt-3">
+            <div class="tabs-movil-header">
+                <button class="tabs-movil-trigger" (click)="menuMovilAbierto = !menuMovilAbierto">
+                    <i class="fas" [ngClass]="menuMovilAbierto ? 'fa-times' : 'fa-bars'"></i>
+                    <span class="tabs-movil-label">
+                        <i class="fas" [ngClass]="iconoPestana(pestanaActiva)"></i> {{ etiquetaPestana(pestanaActiva) }}
+                    </span>
+                    <i class="fas fa-chevron-down tabs-movil-chevron" [class.rotado]="menuMovilAbierto"></i>
+                </button>
             </div>
+            <div class="tabs-movil-dropdown" *ngIf="menuMovilAbierto">
+                <button class="tabs-movil-item" *ngFor="let p of pestanas" [class.active]="pestanaActiva === p"
+                        (click)="seleccionarPestana(p)">
+                    <i class="fas" [ngClass]="iconoPestana(p)"></i>
+                    {{ etiquetaPestana(p) }}
+                </button>
+            </div>
+        </div>
+
+        <!-- ===== Solicitud: lo que pidió, una sola vez ===== -->
+        <div class="tab-content panel-card" *ngIf="pestanaActiva === 'solicitud'">
             <div class="panel-body">
-                <div class="dato"><span>Nombre</span><strong>{{ nombreEstudiante() }}</strong></div>
-                <div class="dato">
-                    <span>Documento</span>
-                    <strong>{{ solicitud.tipo_identificacion_estudiante }} {{ solicitud.est_numero_identificacion }}</strong>
+                <div class="alert alert-secondary mb-3" *ngIf="solicitud.motivo_rechazo">
+                    <strong>Motivo del rechazo:</strong> {{ solicitud.motivo_rechazo }}
                 </div>
-                <div class="dato" *ngIf="solicitud.est_fecha_nacimiento">
-                    <span>Nacimiento</span><strong>{{ solicitud.est_fecha_nacimiento }}</strong>
+                <div class="dato"><span>Curso que pidió</span><strong>{{ solicitud.nombre_curso }}</strong></div>
+                <div class="dato" *ngIf="solicitud.nombre_institucion">
+                    <span>Institución</span><strong>{{ solicitud.nombre_institucion }}</strong>
                 </div>
-                <div class="dato" *ngIf="solicitud.nombre_genero">
-                    <span>Género</span><strong>{{ solicitud.nombre_genero }}</strong>
-                </div>
-                <div class="dato" *ngIf="solicitud.est_telefono">
-                    <span>Teléfono</span><strong>{{ solicitud.est_telefono }}</strong>
-                </div>
-                <div class="dato" *ngIf="solicitud.est_correo">
-                    <span>Correo</span><strong>{{ solicitud.est_correo }}</strong>
-                </div>
-                <div class="dato" *ngIf="solicitud.est_direccion">
-                    <span>Dirección</span><strong>{{ solicitud.est_direccion }}</strong>
+                <ng-container *ngIf="datosPortal">
+                    <div class="dato" *ngIf="datosPortal.plan">
+                        <span>Plan</span>
+                        <strong>
+                            {{ datosPortal.plan.nombre }}
+                            <ng-container *ngIf="datosPortal.plan.valor !== null">
+                                &middot; {{ datosPortal.plan.valor | currency:'COP':'symbol-narrow':'1.0-0' }}
+                            </ng-container>
+                        </strong>
+                    </div>
+                    <div class="dato" *ngIf="datosPortal.adicionales?.length">
+                        <span>Servicios adicionales</span>
+                        <strong>
+                            <div *ngFor="let a of datosPortal.adicionales">
+                                {{ a.nombre }} &middot; {{ a.valor | currency:'COP':'symbol-narrow':'1.0-0' }}
+                            </div>
+                        </strong>
+                    </div>
+                    <div class="dato" *ngIf="datosPortal.horarios_preferidos?.length">
+                        <span>Horarios que le sirven</span>
+                        <strong>
+                            <div *ngFor="let h of datosPortal.horarios_preferidos">{{ h }}</div>
+                        </strong>
+                    </div>
+                    <div class="dato" *ngIf="datosPortal.fecha_inicio_deseada">
+                        <span>Quiere empezar</span><strong>{{ datosPortal.fecha_inicio_deseada }}</strong>
+                    </div>
+                    <div class="dato" *ngFor="let d of datosPortal.datos_adicionales || []">
+                        <span>{{ d.etiqueta }}</span><strong>{{ d.valor }}</strong>
+                    </div>
+                </ng-container>
+                <div class="dato" *ngIf="solicitud.observaciones">
+                    <span>Observaciones</span><strong>{{ solicitud.observaciones }}</strong>
                 </div>
             </div>
         </div>
 
-        <!-- Quien inscribe -->
-        <div class="panel-card mb-4">
-            <div class="panel-header">
-                <i class="fas fa-user"></i>
-                <span>Quien inscribe</span>
-            </div>
-            <div class="panel-body">
-                <div class="dato"><span>Nombre</span><strong>{{ nombreAcudiente() || 'No informado' }}</strong></div>
-                <div class="dato" *ngIf="solicitud.acu_numero_identificacion">
-                    <span>Documento</span>
-                    <strong>{{ solicitud.tipo_identificacion_acudiente }} {{ solicitud.acu_numero_identificacion }}</strong>
+        <!-- ===== Participante ===== -->
+        <div class="tab-content" *ngIf="pestanaActiva === 'participante'">
+            <div class="panel-card">
+                <div class="panel-header">
+                    <i class="fas fa-child"></i>
+                    <span>Estudiante</span>
                 </div>
-                <div class="dato"><span>Teléfono</span><strong>{{ solicitud.acu_telefono || 'No informado' }}</strong></div>
-                <div class="dato"><span>Correo</span><strong>{{ solicitud.acu_correo || 'No informado' }}</strong></div>
+                <div class="panel-body">
+                    <div class="dato"><span>Nombre</span><strong>{{ nombreEstudiante() }}</strong></div>
+                    <div class="dato">
+                        <span>Documento</span>
+                        <strong>{{ solicitud.tipo_identificacion_estudiante }} {{ solicitud.est_numero_identificacion }}</strong>
+                    </div>
+                    <div class="dato" *ngIf="solicitud.est_fecha_nacimiento">
+                        <span>Nacimiento</span><strong>{{ solicitud.est_fecha_nacimiento }}</strong>
+                    </div>
+                    <div class="dato" *ngIf="solicitud.nombre_genero">
+                        <span>Género</span><strong>{{ solicitud.nombre_genero }}</strong>
+                    </div>
+                    <div class="dato" *ngIf="solicitud.est_telefono">
+                        <span>Teléfono</span><strong>{{ solicitud.est_telefono }}</strong>
+                    </div>
+                    <div class="dato" *ngIf="solicitud.est_correo">
+                        <span>Correo</span><strong>{{ solicitud.est_correo }}</strong>
+                    </div>
+                    <div class="dato" *ngIf="solicitud.est_direccion">
+                        <span>Dirección</span><strong>{{ solicitud.est_direccion }}</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Solo cuando inscribe otra persona (participante menor de edad) -->
+            <div class="panel-card mt-3" *ngIf="tieneAcudiente()">
+                <div class="panel-header">
+                    <i class="fas fa-user"></i>
+                    <span>Acudiente</span>
+                </div>
+                <div class="panel-body">
+                    <div class="dato"><span>Nombre</span><strong>{{ nombreAcudiente() }}</strong></div>
+                    <div class="dato" *ngIf="solicitud.acu_numero_identificacion">
+                        <span>Documento</span>
+                        <strong>{{ solicitud.tipo_identificacion_acudiente }} {{ solicitud.acu_numero_identificacion }}</strong>
+                    </div>
+                    <div class="dato" *ngIf="solicitud.acu_telefono">
+                        <span>Teléfono</span><strong>{{ solicitud.acu_telefono }}</strong>
+                    </div>
+                    <div class="dato" *ngIf="solicitud.acu_correo">
+                        <span>Correo</span><strong>{{ solicitud.acu_correo }}</strong>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- Lo que escogio en el portal web: plan, adicionales, horarios y
-             los datos propios del formulario del portal -->
-        <div class="panel-card mb-4" *ngIf="datosPortal">
-            <div class="panel-header">
-                <i class="fas fa-globe"></i>
-                <span>Datos del portal web</span>
-            </div>
-            <div class="panel-body">
-                <div class="dato" *ngIf="datosPortal.programa">
-                    <span>Programa en el portal</span><strong>{{ datosPortal.programa }}</strong>
+        <!-- ===== Aprobación ===== -->
+        <div class="tab-content" *ngIf="pestanaActiva === 'aprobacion'">
+
+            <!-- Curso (panel-con-lista: deja salir la lista del buscador) -->
+            <div class="panel-card panel-con-lista">
+                <div class="panel-header">
+                    <i class="fas fa-graduation-cap"></i>
+                    <span>Curso</span>
                 </div>
-                <div class="dato" *ngIf="datosPortal.plan">
-                    <span>Plan</span>
-                    <strong>
-                        {{ datosPortal.plan.nombre }}
-                        <ng-container *ngIf="datosPortal.plan.valor !== null">
-                            &middot; {{ datosPortal.plan.valor | currency:'COP':'symbol-narrow':'1.0-0' }}
-                        </ng-container>
-                    </strong>
-                </div>
-                <div class="dato" *ngIf="datosPortal.adicionales?.length">
-                    <span>Servicios adicionales</span>
-                    <strong>
-                        <div *ngFor="let a of datosPortal.adicionales">
-                            {{ a.nombre }} &middot; {{ a.valor | currency:'COP':'symbol-narrow':'1.0-0' }}
+                <div class="panel-body">
+                    <ng-container *ngIf="esPendiente(); else cursoAsignado">
+                        <app-searchable-dropdown
+                            [items]="cursosItems"
+                            [ngModel]="idCursoElegido"
+                            (ngModelChange)="idCursoElegido = $event; cambiarCurso()"
+                            placeholder="Seleccionar curso"
+                            searchPlaceholder="Buscar curso..."
+                            emptyMessage="No hay cursos con ese nombre"
+                            maxHeight="350px"
+                            [clearable]="false"
+                            [showSearch]="true">
+                        </app-searchable-dropdown>
+                        <p class="texto-ayuda mt-2 mb-0" *ngIf="cursoElegido">
+                            Del {{ cursoElegido.fecha_inicio }} al {{ cursoElegido.fecha_fin }}{{ cursoElegido.id === solicitud.id_curso_extra ? ' · el que pidió' : '' }}
+                        </p>
+                    </ng-container>
+                    <ng-template #cursoAsignado>
+                        <div class="dato">
+                            <span>Quedó inscrito en</span>
+                            <strong>{{ solicitud.nombre_curso_asignado || solicitud.nombre_curso }}</strong>
                         </div>
-                    </strong>
+                    </ng-template>
                 </div>
-                <div class="dato" *ngIf="datosPortal.horarios_preferidos?.length">
-                    <span>Horarios que le sirven</span>
-                    <strong>
-                        <div *ngFor="let h of datosPortal.horarios_preferidos">{{ h }}</div>
-                    </strong>
+            </div>
+
+            <!-- Horarios: los marcados quedan como reservas fijas al aprobar -->
+            <div class="panel-card mt-3">
+                <div class="panel-header">
+                    <i class="fas fa-clock"></i>
+                    <span>Horarios</span>
                 </div>
-                <div class="dato" *ngIf="datosPortal.fecha_inicio_deseada">
-                    <span>Quiere empezar</span><strong>{{ datosPortal.fecha_inicio_deseada }}</strong>
+                <div class="panel-body">
+                    <p class="texto-ayuda mb-0" *ngIf="reservaAutomatica">
+                        Este curso tiene reserva automática, así que queda en todas las sesiones sin escoger horario.
+                    </p>
+                    <p class="texto-ayuda mb-0" *ngIf="!reservaAutomatica && horarios.length === 0">
+                        El curso no tiene horarios.
+                    </p>
+                    <ng-container *ngIf="!reservaAutomatica && horarios.length > 0">
+                        <p class="texto-ayuda" *ngIf="esPendiente()">
+                            Marca los horarios en los que va a quedar.
+                        </p>
+                        <div class="opcion" *ngFor="let h of horarios"
+                             [class.marcado]="horariosMarcados.has(h.id)"
+                             [class.lleno]="h.lleno && !horariosMarcados.has(h.id)"
+                             [class.solo-lectura]="!esPendiente()"
+                             (click)="alternarHorario(h)">
+                            <i class="far" [ngClass]="horariosMarcados.has(h.id) ? 'fa-check-square' : 'fa-square'"></i>
+                            <span class="opcion-texto">{{ textoHorario(h) }}</span>
+                            <span class="chip" [ngClass]="h.lleno ? 'chip-alerta' : 'chip-gris'">
+                                <i class="fas fa-users me-1"></i>{{ h.lleno ? 'Lleno · ' : '' }}{{ textoOcupacion(h) }}
+                            </span>
+                            <span class="chip chip-info" *ngIf="h.preferido && idCursoElegido === solicitud.id_curso_extra">Lo escogió</span>
+                        </div>
+                    </ng-container>
                 </div>
-                <div class="dato" *ngFor="let d of datosPortal.datos_adicionales || []">
-                    <span>{{ d.etiqueta }}</span><strong>{{ d.valor }}</strong>
+            </div>
+
+            <!-- Qué se cobra: cualquier línea de la tarifa del curso elegido -->
+            <div class="panel-card mt-3" *ngIf="esPendiente()">
+                <div class="panel-header">
+                    <i class="fas fa-file-invoice-dollar"></i>
+                    <span>Qué se cobra</span>
+                </div>
+                <div class="panel-body">
+                    <p class="texto-ayuda mb-0" *ngIf="cargandoTarifa">Cargando la tarifa...</p>
+                    <p class="texto-ayuda mb-0" *ngIf="!cargandoTarifa && lineasTarifa.length === 0">
+                        El curso no tiene tarifa para este año, así que no se crea cobro.
+                    </p>
+                    <ng-container *ngIf="!cargandoTarifa && lineasTarifa.length > 0">
+                        <p class="texto-ayuda">
+                            Marca el plan y los adicionales. Si no marcas nada, no se crean cuentas ni link de pago.
+                        </p>
+                        <div class="opcion" *ngFor="let l of lineasTarifa"
+                             [class.marcado]="lineasMarcadas.has(l.id)" (click)="alternarLinea(l)">
+                            <i class="far" [ngClass]="lineasMarcadas.has(l.id) ? 'fa-check-square' : 'fa-square'"></i>
+                            <span class="opcion-texto">
+                                {{ l.nombre_producto }}
+                                <small class="d-block">{{ textoTipoLinea(l) }}</small>
+                            </span>
+                            <strong>{{ l.valor | currency:'COP':'symbol-narrow':'1.0-0' }}</strong>
+                        </div>
+                        <div class="total">
+                            <span>Total a cobrar</span>
+                            <strong>{{ totalCobro | currency:'COP':'symbol-narrow':'1.0-0' }}</strong>
+                        </div>
+                        <p class="texto-ayuda mt-2 mb-0" *ngIf="lineasMarcadas.size > 0">
+                            El link de pago se envía a {{ correoDestino() || 'ningún correo (la solicitud no tiene)' }}.
+                        </p>
+                    </ng-container>
                 </div>
             </div>
         </div>
 
-        <div class="panel-card mb-4" *ngIf="solicitud.observaciones">
-            <div class="panel-header">
-                <i class="fas fa-comment"></i>
-                <span>Observaciones del solicitante</span>
-            </div>
+        <!-- ===== Pago: link de Bold ===== -->
+        <div class="tab-content panel-card" *ngIf="pestanaActiva === 'pago' && linkActual">
             <div class="panel-body">
-                <p class="mb-0">{{ solicitud.observaciones }}</p>
+                <div class="dato">
+                    <span>Estado</span>
+                    <strong>
+                        <span class="chip" [ngClass]="linkActual.estado === 'pagado' ? 'chip-ok' : linkActual.estado === 'error' ? 'chip-alerta' : 'chip-info'">
+                            {{ etiquetaEstadoLink(linkActual) }}
+                        </span>
+                    </strong>
+                </div>
+                <div class="dato"><span>Valor</span><strong>{{ linkActual.valor | currency:'COP':'symbol-narrow':'1.0-0' }}</strong></div>
+                <div class="dato" *ngIf="linkActual.url">
+                    <span>Link</span>
+                    <strong><a [href]="linkActual.url" target="_blank" rel="noopener">{{ linkActual.id_link_externo || 'Abrir' }}</a></strong>
+                </div>
+                <div class="dato" *ngIf="linkActual.fecha_pago"><span>Pagado el</span><strong>{{ linkActual.fecha_pago }}</strong></div>
+                <div class="dato" *ngIf="linkActual.correo_destino">
+                    <span>Correo</span>
+                    <strong>{{ linkActual.correo_destino }}<span *ngIf="linkActual.fecha_correo"> · enviado el {{ linkActual.fecha_correo }}</span></strong>
+                </div>
+                <div class="alert alert-warning mt-3 mb-0" *ngIf="linkActual.ultimo_error && linkActual.estado === 'error'">
+                    No se creó en Bold: {{ linkActual.ultimo_error }}
+                </div>
+                <div class="alert alert-warning mt-3 mb-0" *ngIf="linkActual.error_correo && linkActual.estado === 'activo'">
+                    No salió el correo: {{ linkActual.error_correo }}
+                </div>
+                <div class="acciones-link mt-3" *ngIf="linkActual.estado !== 'pagado'">
+                    <button class="btn btn-warning btn-sm" *ngIf="linkActual.estado === 'pendiente' || linkActual.estado === 'error'"
+                            (click)="generarLink()" [disabled]="procesando">
+                        <i class="fas fa-redo me-1"></i> Crear el link otra vez
+                    </button>
+                    <ng-container *ngIf="linkActual.estado === 'activo'">
+                        <button class="btn btn-warning btn-sm" (click)="verificarPago()" [disabled]="procesando">
+                            <i class="fas fa-search-dollar me-1"></i> Verificar el pago en Bold
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm" (click)="reenviarCorreo()" [disabled]="procesando">
+                            <i class="fas fa-paper-plane me-1"></i> Reenviar correo
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm" (click)="copiarLink()">
+                            <i class="fas fa-copy me-1"></i> Copiar link
+                        </button>
+                    </ng-container>
+                </div>
             </div>
         </div>
 
         <!-- Acciones -->
-        <div class="row mb-5" *ngIf="esPendiente()">
+        <div class="row mt-4 mb-5" *ngIf="esPendiente()">
             <div class="col-md-4 col-12 mb-2">
                 <button class="btn btn-lg btn-warning w-100" (click)="aprobar()" [disabled]="procesando">
                     {{ procesando ? 'Procesando...' : 'Aprobar e inscribir' }}
@@ -156,10 +317,10 @@
             </div>
         </div>
 
-        <div class="row mb-5" *ngIf="!esPendiente()">
+        <div class="row mt-4 mb-5" *ngIf="!esPendiente()">
             <div class="col-md-6 col-12 mb-2" *ngIf="solicitud.id_estudiante_creado">
                 <button class="btn btn-lg btn-warning w-100" (click)="irAInscripcion()">
-                    Ver estudiante y generar cuentas
+                    Ver estudiante
                 </button>
             </div>
             <div class="col-md-6 col-12 mb-2">

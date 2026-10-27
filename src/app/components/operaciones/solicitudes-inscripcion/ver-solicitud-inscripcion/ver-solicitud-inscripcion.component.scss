@@ -1,12 +1,13 @@
 $gold: #d4af37;
 $black: #222;
+$light-gold: rgba(212, 175, 55, 0.1);
 
 .modulo {
   padding: 20px;
 }
 
 .container {
-  max-width: 800px;
+  max-width: 900px;
 }
 
 /* Barra de estado: el color dice de una si hay que hacer algo */
@@ -42,15 +43,189 @@ $black: #222;
   opacity: 0.75;
 }
 
-.panel-card {
+/* Pestañas DESKTOP (mismo patrón de crear-sprints) */
+
+.tabs-desktop {
+  display: block;
+}
+
+.tabs-movil {
+  display: none;
+}
+
+.tabs-nav {
+  border-bottom: 1px solid $gold;
+  display: flex;
+  flex-wrap: nowrap;
+}
+
+.tab-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  color: $black;
+  font-weight: 500;
+  margin-right: 3px;
+  border: 1px solid transparent;
+  border-radius: 6px 6px 0 0;
+  white-space: nowrap;
+  cursor: pointer;
+  background: none;
+  transition: all 0.3s ease;
+
+  i {
+    color: $gold;
+    font-size: 1.1rem;
+  }
+
+  &:hover:not(.active) {
+    border-color: rgba($gold, 0.3);
+    background-color: $light-gold;
+  }
+
+  &.active {
+    border-color: $gold $gold #fff;
+    background-color: #fff;
+    font-weight: 600;
+  }
+}
+
+/* Pestañas MOVIL (hamburguesa) */
+
+.tabs-movil-header {
+  border-bottom: 2px solid $gold;
+}
+
+.tabs-movil-trigger {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 16px;
   background: #fff;
+  border: none;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: $black;
+
+  > i:first-child {
+    color: $gold;
+    font-size: 1.2rem;
+    width: 24px;
+    text-align: center;
+  }
+
+  .tabs-movil-label {
+    flex: 1;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    i {
+      color: $gold;
+      font-size: 0.95rem;
+    }
+  }
+
+  .tabs-movil-chevron {
+    color: #999;
+    font-size: 0.75rem;
+    transition: transform 0.3s ease;
+
+    &.rotado {
+      transform: rotate(180deg);
+    }
+  }
+}
+
+.tabs-movil-dropdown {
+  background: #fff;
+  border: 1px solid #e9ecef;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.tabs-movil-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 20px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #495057;
+  border-bottom: 1px solid #f1f3f5;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  i {
+    color: $gold;
+    width: 20px;
+    text-align: center;
+  }
+
+  &:hover {
+    background-color: $light-gold;
+  }
+
+  &.active {
+    background-color: $light-gold;
+    color: $black;
+    font-weight: 600;
+    border-left: 3px solid $gold;
+    padding-left: 17px;
+  }
+}
+
+.tab-content {
+  margin-top: 1rem;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Tarjetas con efecto glaseado */
+
+.panel-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(6px);
   border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 12px;
   overflow: hidden;
 }
 
+/* La tarjeta del curso no recorta su contenido, para que la lista del
+   buscador se abra encima de las tarjetas de abajo */
+.panel-card.panel-con-lista {
+  overflow: visible;
+  position: relative;
+  z-index: 5;
+
+  .panel-header {
+    border-radius: 12px 12px 0 0;
+  }
+}
+
 .panel-header {
-  background: rgba(212, 175, 55, 0.1);
+  background: $light-gold;
   border-bottom: 1px solid rgba(212, 175, 55, 0.3);
   padding: 12px 18px;
   display: flex;
@@ -85,8 +260,107 @@ $black: #222;
   font-size: 0.9rem;
 }
 
+/* Los valores van en peso normal: con todo en negrilla la pantalla se ve pesada */
 .dato strong {
   text-align: right;
+  font-weight: 500;
+  color: $black;
+}
+
+/* Opciones marcables (horarios y líneas de la tarifa): un clic marca */
+
+.texto-ayuda {
+  font-size: 0.88rem;
+  opacity: 0.75;
+}
+
+.opcion {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 9px 12px;
+  margin-bottom: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.opcion i {
+  color: $gold;
+  font-size: 1.1rem;
+}
+
+.opcion.marcado {
+  background: rgba(212, 175, 55, 0.12);
+  border-color: rgba(212, 175, 55, 0.5);
+}
+
+.opcion.lleno {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.opcion.solo-lectura {
+  cursor: default;
+}
+
+.opcion-texto {
+  font-weight: 500;
+  flex: 1 1 160px;
+}
+
+.opcion strong {
+  font-weight: 500;
+}
+
+.opcion-texto small {
+  font-weight: 400;
+  opacity: 0.7;
+}
+
+.total {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 12px 0;
+  margin-top: 6px;
+  border-top: 1px solid rgba(212, 175, 55, 0.4);
+  font-size: 1.05rem;
+
+  strong {
+    font-weight: 600;
+  }
+}
+
+.chip {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.chip-ok { background: #e7f4e4; color: #3f7a35; }
+.chip-alerta { background: #fdecea; color: #b0413e; }
+.chip-info { background: rgba(212, 175, 55, 0.18); color: #8a6d12; }
+.chip-gris { background: #f1efea; color: #6b6b6b; }
+
+.acciones-link {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+@media (max-width: 768px) {
+  .tabs-desktop {
+    display: none;
+  }
+
+  .tabs-movil {
+    display: block;
+  }
 }
 
 @media (max-width: 640px) {
