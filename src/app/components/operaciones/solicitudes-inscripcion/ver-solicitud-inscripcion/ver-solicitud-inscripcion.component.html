@@ -13,6 +13,9 @@
             <span class="estado-fecha" *ngIf="solicitud.fecha_resolucion">
                 &middot; Resuelta el {{ solicitud.fecha_resolucion }}
             </span>
+            <span class="estado-fecha" *ngIf="solicitud.origen === 'portal'">
+                &middot; Llegó por el portal web
+            </span>
         </div>
 
         <div class="alert alert-secondary mt-3" *ngIf="solicitud.motivo_rechazo">
@@ -54,6 +57,15 @@
                 <div class="dato" *ngIf="solicitud.nombre_genero">
                     <span>Género</span><strong>{{ solicitud.nombre_genero }}</strong>
                 </div>
+                <div class="dato" *ngIf="solicitud.est_telefono">
+                    <span>Teléfono</span><strong>{{ solicitud.est_telefono }}</strong>
+                </div>
+                <div class="dato" *ngIf="solicitud.est_correo">
+                    <span>Correo</span><strong>{{ solicitud.est_correo }}</strong>
+                </div>
+                <div class="dato" *ngIf="solicitud.est_direccion">
+                    <span>Dirección</span><strong>{{ solicitud.est_direccion }}</strong>
+                </div>
             </div>
         </div>
 
@@ -71,6 +83,49 @@
                 </div>
                 <div class="dato"><span>Teléfono</span><strong>{{ solicitud.acu_telefono || 'No informado' }}</strong></div>
                 <div class="dato"><span>Correo</span><strong>{{ solicitud.acu_correo || 'No informado' }}</strong></div>
+            </div>
+        </div>
+
+        <!-- Lo que escogio en el portal web: plan, adicionales, horarios y
+             los datos propios del formulario del portal -->
+        <div class="panel-card mb-4" *ngIf="datosPortal">
+            <div class="panel-header">
+                <i class="fas fa-globe"></i>
+                <span>Datos del portal web</span>
+            </div>
+            <div class="panel-body">
+                <div class="dato" *ngIf="datosPortal.programa">
+                    <span>Programa en el portal</span><strong>{{ datosPortal.programa }}</strong>
+                </div>
+                <div class="dato" *ngIf="datosPortal.plan">
+                    <span>Plan</span>
+                    <strong>
+                        {{ datosPortal.plan.nombre }}
+                        <ng-container *ngIf="datosPortal.plan.valor !== null">
+                            &middot; {{ datosPortal.plan.valor | currency:'COP':'symbol-narrow':'1.0-0' }}
+                        </ng-container>
+                    </strong>
+                </div>
+                <div class="dato" *ngIf="datosPortal.adicionales?.length">
+                    <span>Servicios adicionales</span>
+                    <strong>
+                        <div *ngFor="let a of datosPortal.adicionales">
+                            {{ a.nombre }} &middot; {{ a.valor | currency:'COP':'symbol-narrow':'1.0-0' }}
+                        </div>
+                    </strong>
+                </div>
+                <div class="dato" *ngIf="datosPortal.horarios_preferidos?.length">
+                    <span>Horarios que le sirven</span>
+                    <strong>
+                        <div *ngFor="let h of datosPortal.horarios_preferidos">{{ h }}</div>
+                    </strong>
+                </div>
+                <div class="dato" *ngIf="datosPortal.fecha_inicio_deseada">
+                    <span>Quiere empezar</span><strong>{{ datosPortal.fecha_inicio_deseada }}</strong>
+                </div>
+                <div class="dato" *ngFor="let d of datosPortal.datos_adicionales || []">
+                    <span>{{ d.etiqueta }}</span><strong>{{ d.valor }}</strong>
+                </div>
             </div>
         </div>
 

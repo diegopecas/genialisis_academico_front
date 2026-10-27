@@ -22,6 +22,8 @@ export class VerSolicitudInscripcionComponent implements OnInit {
   public cargando: boolean = true;
   public procesando: boolean = false;
   public solicitud: any = null;
+  // Lo que llego del portal web (datos_portal), ya convertido de JSON
+  public datosPortal: any = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -48,6 +50,7 @@ export class VerSolicitudInscripcionComponent implements OnInit {
         }
 
         this.solicitud = body[0];
+        this.datosPortal = this.leerDatosPortal(this.solicitud.datos_portal);
         this.titulo = 'Solicitud de ' + this.nombreEstudiante();
       },
       error: (error: any) => {
@@ -56,6 +59,17 @@ export class VerSolicitudInscripcionComponent implements OnInit {
         Swal.fire('Error', 'No se pudo cargar la solicitud.', 'error');
       }
     });
+  }
+
+  // datos_portal llega como texto JSON; si no es valido no se muestra el bloque
+  leerDatosPortal(valor: any): any {
+    if (!valor) return null;
+    if (typeof valor === 'object') return valor;
+    try {
+      return JSON.parse(valor);
+    } catch {
+      return null;
+    }
   }
 
   nombreEstudiante(): string {
