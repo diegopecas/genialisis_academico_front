@@ -52,6 +52,7 @@
           },
           "configurations": {
             "production": {
+              "outputPath": "dist/prod",
               "fileReplacements": [
                 {
                   "replace": "src/environments/environment.ts",
@@ -73,6 +74,7 @@
               "outputHashing": "all"
             },
             "qa": {
+              "outputPath": "dist/qa",
               "fileReplacements": [
                 {
                   "replace": "src/environments/environment.ts",
@@ -94,6 +96,7 @@
               "outputHashing": "all"
             },
             "genialisis": {
+              "outputPath": "dist/genialisis",
               "fileReplacements": [
                 {
                   "replace": "src/environments/environment.ts",
