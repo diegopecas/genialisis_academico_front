@@ -367,7 +367,22 @@
                 <div class="alert alert-warning mt-3 mb-0" *ngIf="linkActual.error_correo && linkActual.estado === 'activo'">
                     No salió el correo: {{ linkActual.error_correo }}
                 </div>
+                <!-- Cuentas por si prefiere pagar a mano -->
+                <ng-container *ngIf="linkActual.estado !== 'pagado' && datosPago?.cuentas?.length">
+                    <p class="texto-ayuda mt-3 mb-2">Si prefiere transferir</p>
+                    <div class="cuenta" *ngFor="let c of datosPago.cuentas">
+                        <strong>{{ c.nombre }}</strong>
+                        <span>Cuenta {{ c.numero_cuenta }}</span>
+                        <small *ngIf="c.descripcion">{{ c.descripcion }}</small>
+                    </div>
+                </ng-container>
                 <div class="acciones-link mt-3" *ngIf="linkActual.estado !== 'pagado'">
+                    <button class="btn btn-outline-secondary btn-sm" (click)="descargarPdfPago()" [disabled]="generandoPdf || !datosPago">
+                        <i class="fas fa-file-pdf me-1"></i> Descargar PDF
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm" *ngIf="puedeCompartir" (click)="compartirPdfPago()" [disabled]="generandoPdf || !datosPago">
+                        <i class="fas fa-share-alt me-1"></i> Compartir
+                    </button>
                     <button class="btn btn-warning btn-sm" *ngIf="linkActual.estado === 'pendiente' || linkActual.estado === 'error'"
                             (click)="generarLink()" [disabled]="procesando">
                         <i class="fas fa-redo me-1"></i> Crear el link otra vez

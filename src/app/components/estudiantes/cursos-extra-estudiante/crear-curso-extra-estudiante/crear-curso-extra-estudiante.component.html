@@ -191,7 +191,7 @@
                     <!-- Cuota por debajo de su tarifa: motivo obligatorio -->
                     <input type="text" class="form-control form-control-sm mt-1" *ngIf="cuotaConDescuento(v)"
                       [(ngModel)]="v.motivo_descuento" maxlength="500" placeholder="Motivo del descuento"
-                      [ngClass]="{'is-invalid': !v.motivo_descuento?.trim()}" [disabled]="!editable">
+                      [ngClass]="{'is-invalid': !v.motivo_descuento.trim()}" [disabled]="!editable">
                   </td>
                   <td class="text-center" *ngIf="editable">
                     <button class="btn btn-sm btn-outline-danger" (click)="eliminarValor(i)" title="Quitar">

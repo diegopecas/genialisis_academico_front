@@ -3,8 +3,9 @@ import { jsPDF } from 'jspdf';
 import { InstitucionConfigService } from './institucion-config.service';
 
 /**
- * Datos del PDF para pagar por transferencia (GET links-pago/datos-pago/:id).
- * Lleva lo mismo del correo de aprobación más las cuentas bancarias.
+ * Datos del PDF de pago (GET links-pago/datos-pago/:id). Lleva lo mismo del
+ * correo de aprobación, las cuentas bancarias y, con pasarela, el link para
+ * pagar en línea.
  */
 export interface DatosPagoPDF {
   institucion: string;
@@ -15,6 +16,8 @@ export interface DatosPagoPDF {
   lineas: { detalle: string, valor: any }[];
   valor: number;
   referencia: string;
+  // Link de la pasarela, si el cobro tiene uno sin pagar
+  url?: string | null;
   cuentas: { nombre: string, numero_cuenta: string, descripcion: string | null }[];
   logoBase64?: string;
 }
@@ -129,18 +132,29 @@ export class ExportarPdfDatosPagoService {
     doc.text(this.pesos(datos.valor), ancho - margen, y + 2, { align: 'right' });
     y += 12;
 
-    // ---------- Cuentas
+    // ---------- Como pagar: link de la pasarela (si hay) y cuentas
     espacio(30);
     this.titulo(doc, 'Cómo pagar', margen, y);
     y += 7;
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(10);
     doc.setTextColor(this.oscuro);
+    if (datos.url) {
+      doc.text('Paga en línea en este enlace:', margen, y);
+      y += 6;
+      doc.setTextColor('#1f8f3a');
+      const enlace = doc.splitTextToSize(datos.url, util);
+      doc.textWithLink(enlace[0], margen, y, { url: datos.url });
+      y += enlace.length * 5 + 4;
+      doc.setTextColor(this.oscuro);
+    }
     if (!datos.cuentas || datos.cuentas.length === 0) {
-      doc.text('Te enviamos los datos para el pago por WhatsApp.', margen, y);
-      y += 8;
+      if (!datos.url) {
+        doc.text('Te enviamos los datos para el pago por WhatsApp.', margen, y);
+        y += 8;
+      }
     } else {
-      doc.text('Haz la transferencia a cualquiera de estas cuentas:', margen, y);
+      doc.text(datos.url ? 'O, si prefieres, transfiere a cualquiera de estas cuentas:' : 'Haz la transferencia a cualquiera de estas cuentas:', margen, y);
       y += 7;
       datos.cuentas.forEach(c => {
         const descripcion = c.descripcion ? doc.splitTextToSize(c.descripcion, util - 10) : [];

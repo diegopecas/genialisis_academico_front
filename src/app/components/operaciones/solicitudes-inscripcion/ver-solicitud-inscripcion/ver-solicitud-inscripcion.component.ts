@@ -326,7 +326,8 @@ export class VerSolicitudInscripcionComponent implements OnInit {
       next: (response: any) => {
         this.links = response.body || [];
         this.datosPago = null;
-        if (this.esTransferencia) {
+        // Con o sin pasarela: el PDF y las cuentas sirven para pagar a mano
+        if (this.linkActual) {
           this.cargarDatosPago();
         }
       },
