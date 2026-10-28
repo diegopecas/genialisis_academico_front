@@ -21,6 +21,7 @@ export class CursosExtraComponent implements OnInit {
   public datos = [] as any[];
 
   public acciones = [] as any[];
+  public sincronizando: boolean = false;
 
   constructor(
     private cursosExtraService: CursosExtraService,
@@ -128,6 +129,59 @@ export class CursosExtraComponent implements OnInit {
         this.eliminarCurso($event.registro);
         break;
     }
+  }
+
+  // Manda al portal web los cursos activos con sus planes y horarios
+  async sincronizarPortal() {
+    const confirmacion = await Swal.fire({
+      title: 'Sincronizar con el portal web',
+      text: 'Se mandan al portal los cursos activos con los planes de su tarifa vigente y sus horarios. Las páginas del portal quedan con estos precios.',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#d4af37',
+      confirmButtonText: 'Sincronizar',
+      cancelButtonText: 'Cancelar'
+    });
+    if (!confirmacion.isConfirmed) {
+      return;
+    }
+
+    this.sincronizando = true;
+    this.cursosExtraService.sincronizarPortal().subscribe({
+      next: (resumen: any) => {
+        this.sincronizando = false;
+        Swal.fire({
+          title: 'Portal sincronizado',
+          html: this.armarResumen(resumen),
+          icon: 'success',
+          confirmButtonColor: '#d4af37'
+        });
+      },
+      error: (error: any) => {
+        this.sincronizando = false;
+        console.error('Error al sincronizar con el portal', error);
+        Swal.fire('No se sincronizó', error?.error?.error || 'No se pudo sincronizar con el portal web.', 'error');
+      }
+    });
+  }
+
+  private armarResumen(r: any): string {
+    const lista = (nombres: string[]) => nombres.map(n => this.escapar(n)).join(', ');
+    let html = `<div style="text-align:left">`
+      + `<p><b>Programas:</b> ${r.programas_actualizados || 0} actualizados, ${(r.programas_nuevos || []).length} nuevos, ${r.programas_desactivados || 0} desactivados</p>`
+      + `<p><b>Planes:</b> ${r.planes_actualizados || 0} actualizados, ${(r.planes_nuevos || []).length} nuevos, ${r.planes_desactivados || 0} desactivados</p>`
+      + `<p><b>Horarios:</b> ${r.horarios_actualizados || 0} actualizados, ${r.horarios_nuevos || 0} nuevos, ${r.horarios_desactivados || 0} desactivados</p>`;
+    if ((r.programas_nuevos || []).length > 0) {
+      html += `<p><b>Programas nuevos</b> (quedan sin publicar en el portal): ${lista(r.programas_nuevos)}</p>`;
+    }
+    if ((r.planes_nuevos || []).length > 0) {
+      html += `<p><b>Planes nuevos:</b> ${lista(r.planes_nuevos)}</p>`;
+    }
+    return html + `</div>`;
+  }
+
+  private escapar(texto: string): string {
+    return String(texto ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
 
   async eliminarCurso(curso: any) {

@@ -1,3 +1,19 @@
 .modulo {
   padding: 20px;
 }
+
+.barra-sincronizar {
+  display: flex;
+  justify-content: flex-end;
+  margin: 10px 0;
+
+  .btn {
+    border-radius: 10px;
+  }
+
+  @media (max-width: 576px) {
+    .btn {
+      width: 100%;
+    }
+  }
+}

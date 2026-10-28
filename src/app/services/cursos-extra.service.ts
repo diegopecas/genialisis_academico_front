@@ -150,6 +150,15 @@ export class CursosExtraService {
       );
   }
 
+  /**
+   * Manda ya mismo al portal web los cursos activos con sus planes y horarios.
+   * Devuelve el resumen del portal. Sin handleError: la pantalla muestra el
+   * mensaje que manda el back (error.error.error).
+   */
+  sincronizarPortal(): Observable<any> {
+    return this.http.post<any>(`${this.servicio}/sincronizar-portal`, '{}', httpOptions);
+  }
+
   private handleError(error: HttpErrorResponse): Observable<never> {
     console.error('Error en CursosExtraService:', error);
     return throwError(() => new Error(`Ocurrió un error; por favor intente más tarde. Status: ${error.status}`));

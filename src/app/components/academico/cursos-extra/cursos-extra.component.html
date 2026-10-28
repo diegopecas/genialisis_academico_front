@@ -7,6 +7,12 @@
     [regresar]="'/academico'"
     [iconoTitulo]="'/assets/images/cursos-extra.png'"
   ></app-header>
+
+  <div class="barra-sincronizar">
+    <button type="button" class="btn btn-outline-warning" (click)="sincronizarPortal()" [disabled]="sincronizando">
+      <i class="fas fa-globe"></i> {{ sincronizando ? 'Sincronizando...' : 'Sincronizar con el portal web' }}
+    </button>
+  </div>
   
   <app-tablas
     [titulos]="titulos"
