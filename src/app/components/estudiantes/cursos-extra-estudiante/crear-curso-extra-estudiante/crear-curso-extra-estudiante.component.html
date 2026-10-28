@@ -64,18 +64,18 @@
           </div>
           <div class="col-md-3">
             <label class="form-label">Fecha de Inscripción <span class="text-danger">*</span></label>
-            <input type="date" class="form-control" [(ngModel)]="model.fecha_inscripcion"
-              [ngClass]="{'is-invalid': !model.fecha_inscripcion && submitted}" [disabled]="idInscripcion">
+            <app-fecha-input [(ngModel)]="model.fecha_inscripcion"
+              [invalido]="!model.fecha_inscripcion && submitted" [disabled]="!!idInscripcion"></app-fecha-input>
             <small class="form-text text-muted">Las cuotas se generan desde esta fecha</small>
           </div>
           <div class="col-md-3">
             <label class="form-label">Fecha Fin <span class="text-danger">*</span></label>
-            <input type="date" class="form-control" [(ngModel)]="model.fecha_fin"
-              [ngClass]="{'is-invalid': !model.fecha_fin && submitted}">
+            <app-fecha-input [(ngModel)]="model.fecha_fin"
+              [invalido]="!model.fecha_fin && submitted"></app-fecha-input>
           </div>
           <div class="col-md-3">
             <label class="form-label">Fecha Inicio del Curso</label>
-            <input type="date" class="form-control" [(ngModel)]="model.fecha_inicio">
+            <app-fecha-input [(ngModel)]="model.fecha_inicio"></app-fecha-input>
             <small class="form-text text-muted">Informativa: viene del curso{{ cursoSeleccionado && !cursoSeleccionado.fecha_inicio ? ' (permanente)' : '' }}</small>
           </div>
         </div>
@@ -95,6 +95,14 @@
             <label class="form-label">Cuotas</label>
             <input type="number" class="form-control" [(ngModel)]="linea.cuotas" min="1" max="12" [disabled]="!editable">
           </div>
+          <!-- Se cobra menos que la tarifa: queda el motivo en cada cuota -->
+          <div class="col-12" *ngIf="lineaConDescuento(linea)">
+            <label class="form-label">Motivo del descuento <span class="text-danger">*</span>
+              <small class="text-muted">(tarifa {{formatearMoneda(linea.valor_tarifa)}}, descuento {{formatearMoneda(linea.valor_tarifa - linea.valor)}}{{linea.tipo === 'pension' ? ' por mes' : ''}})</small>
+            </label>
+            <input type="text" class="form-control" [(ngModel)]="linea.motivo_descuento" maxlength="500"
+              [ngClass]="{'is-invalid': !linea.motivo_descuento?.trim()}" placeholder="Por qué se le cobra menos" [disabled]="!editable">
+          </div>
         </div>
 
         <!-- Paquete de sesiones: se compra uno -->
@@ -112,6 +120,13 @@
             <label class="form-label">Valor del paquete</label>
             <input type="text" inputmode="numeric" class="form-control" [value]="formatearNumero(valorPaquete)"
               (input)="onValorPaqueteInput($event)" placeholder="$0" [disabled]="!editable">
+          </div>
+          <div class="col-12" *ngIf="paqueteConDescuento()">
+            <label class="form-label">Motivo del descuento <span class="text-danger">*</span>
+              <small class="text-muted">(tarifa {{formatearMoneda(paqueteSeleccionado()?.valor)}}, descuento {{formatearMoneda(paqueteSeleccionado()?.valor - valorPaquete)}})</small>
+            </label>
+            <input type="text" class="form-control" [(ngModel)]="motivoPaquete" maxlength="500"
+              [ngClass]="{'is-invalid': !motivoPaquete.trim()}" placeholder="Por qué se le cobra menos" [disabled]="!editable">
           </div>
         </div>
 
@@ -161,8 +176,8 @@
                   </td>
                   <td>{{v.nombre_producto}}</td>
                   <td class="text-center">
-                    <input type="date" class="form-control form-control-sm" [(ngModel)]="v.fecha"
-                      (change)="onFechaChange(v)" [disabled]="!editable">
+                    <app-fecha-input tamano="sm" [(ngModel)]="v.fecha"
+                      (ngModelChange)="onFechaChange(v)" [disabled]="!editable"></app-fecha-input>
                   </td>
                   <td>
                     <div class="input-group input-group-sm">
@@ -173,6 +188,10 @@
                         (blur)="onBlurValorTabla($event, v)"
                         [disabled]="!editable">
                     </div>
+                    <!-- Cuota por debajo de su tarifa: motivo obligatorio -->
+                    <input type="text" class="form-control form-control-sm mt-1" *ngIf="cuotaConDescuento(v)"
+                      [(ngModel)]="v.motivo_descuento" maxlength="500" placeholder="Motivo del descuento"
+                      [ngClass]="{'is-invalid': !v.motivo_descuento?.trim()}" [disabled]="!editable">
                   </td>
                   <td class="text-center" *ngIf="editable">
                     <button class="btn btn-sm btn-outline-danger" (click)="eliminarValor(i)" title="Quitar">

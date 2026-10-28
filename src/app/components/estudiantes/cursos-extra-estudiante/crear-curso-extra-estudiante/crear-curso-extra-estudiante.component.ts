@@ -3,6 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HeaderComponent } from '../../../../common/header/header.component';
+import { FechaInputComponent } from '../../../../common/fecha-input/fecha-input.component';
 import { UtilService } from '../../../../common/constantes/util.service';
 import { CursosExtraService } from '../../../../services/cursos-extra.service';
 import { EstudiantesXCursosExtraService } from '../../../../services/estudiantes-x-cursos-extra.service';
@@ -20,12 +21,16 @@ interface ValorGenerado {
   valor: number;
   tipo: string;
   detalle: string;
+  // Valor de la tarifa de esa cuota y por qué se cobra menos. Se guardan en
+  // la cuenta como foto del momento.
+  valor_base: number | null;
+  motivo_descuento: string;
 }
 
 @Component({
   selector: 'app-crear-curso-extra-estudiante',
   standalone: true,
-  imports: [HeaderComponent, CommonModule, FormsModule],
+  imports: [HeaderComponent, CommonModule, FormsModule, FechaInputComponent],
   templateUrl: './crear-curso-extra-estudiante.component.html',
   styleUrl: './crear-curso-extra-estudiante.component.scss'
 })
@@ -73,6 +78,8 @@ export class CrearCursoExtraEstudianteComponent implements OnInit {
   public paquetes: any[] = [];
   public idPaqueteSeleccionado: any = null;
   public valorPaquete: number = 0;
+  // Por qué se cobra el paquete por menos de lo que vale en la tarifa
+  public motivoPaquete: string = '';
 
   // Valores editables de tarifa
   public valorMatricula: number = 0;
@@ -221,15 +228,21 @@ export class CrearCursoExtraEstudianteComponent implements OnInit {
         if (this.tarifa) {
           // El back ya devuelve solo las filas activas del detalle.
           const detalle = this.tarifa.detalle || [];
+          // valor_tarifa guarda lo que vale en la tarifa; valor es lo que se
+          // va a cobrar y se puede bajar con un motivo
           this.lineasFijas = detalle
             .filter((l: any) => l.tipo !== 'paquete')
-            .map((l: any) => ({ ...l, valor: parseFloat(l.valor) || 0, cuotas: parseInt(l.cuotas) || 1 }));
+            .map((l: any) => ({
+              ...l, valor: parseFloat(l.valor) || 0, valor_tarifa: parseFloat(l.valor) || 0,
+              cuotas: parseInt(l.cuotas) || 1, motivo_descuento: ''
+            }));
           this.paquetes = detalle
             .filter((l: any) => l.tipo === 'paquete')
             .map((l: any) => ({ ...l, valor: parseFloat(l.valor) || 0 }));
           // Con un solo paquete no hay nada que escoger.
           this.idPaqueteSeleccionado = this.paquetes.length === 1 ? this.paquetes[0].id : null;
           this.valorPaquete = this.paquetes.length === 1 ? this.paquetes[0].valor : 0;
+          this.motivoPaquete = '';
         } else {
           this.lineasFijas = [];
           this.paquetes = [];
@@ -274,6 +287,7 @@ export class CrearCursoExtraEstudianteComponent implements OnInit {
   onPaqueteChange() {
     const paquete = this.paqueteSeleccionado();
     this.valorPaquete = paquete ? paquete.valor : 0;
+    this.motivoPaquete = '';
     this.valoresGenerados = false;
     this.valores = [];
   }
@@ -286,6 +300,20 @@ export class CrearCursoExtraEstudianteComponent implements OnInit {
 
   paqueteSeleccionado(): any {
     return this.paquetes.find((p: any) => p.id == this.idPaqueteSeleccionado) || null;
+  }
+
+  // Se cobra menos que la tarifa: el motivo es obligatorio
+  lineaConDescuento(linea: any): boolean {
+    return linea.valor > 0 && linea.valor < linea.valor_tarifa;
+  }
+
+  paqueteConDescuento(): boolean {
+    const paquete = this.paqueteSeleccionado();
+    return !!paquete && this.valorPaquete > 0 && this.valorPaquete < paquete.valor;
+  }
+
+  cuotaConDescuento(v: ValorGenerado): boolean {
+    return v.valor_base !== null && v.valor < v.valor_base;
   }
 
   getNombreTipoLinea(tipo: string): string {
@@ -315,6 +343,15 @@ export class CrearCursoExtraEstudianteComponent implements OnInit {
     }
     if (this.paquetes.length > 0 && !this.idPaqueteSeleccionado) {
       Swal.fire('Advertencia', 'Seleccione el paquete de sesiones que compró', 'warning');
+      return;
+    }
+    const sinMotivo = this.lineasFijas.find((l: any) => this.lineaConDescuento(l) && !(l.motivo_descuento || '').trim());
+    if (sinMotivo) {
+      Swal.fire('Advertencia', `Escriba el motivo del descuento de ${sinMotivo.nombre_producto}`, 'warning');
+      return;
+    }
+    if (this.paqueteConDescuento() && !this.motivoPaquete.trim()) {
+      Swal.fire('Advertencia', 'Escriba el motivo del descuento del paquete', 'warning');
       return;
     }
     const hayFijos = this.lineasFijas.some((l: any) => l.valor > 0);
@@ -370,7 +407,9 @@ export class CrearCursoExtraEstudianteComponent implements OnInit {
             fecha: this.formatearFechaISO(current),
             valor: linea.valor,
             tipo: 'pension',
-            detalle: `Pensión ${nombreCurso} - ${this.formatearMesAnio(current)}`
+            detalle: `Pensión ${nombreCurso} - ${this.formatearMesAnio(current)}`,
+            valor_base: linea.valor_tarifa,
+            motivo_descuento: this.lineaConDescuento(linea) ? linea.motivo_descuento.trim() : ''
           });
 
           const siguiente = new Date(current);
@@ -383,6 +422,7 @@ export class CrearCursoExtraEstudianteComponent implements OnInit {
       // Matrícula y cobro único (diferidos por cuotas desde la fecha de inscripción)
       const cuotas = linea.cuotas || 1;
       const valorCuota = Math.round((linea.valor / cuotas) * 100) / 100;
+      const baseCuota = Math.round((linea.valor_tarifa / cuotas) * 100) / 100;
       for (let i = 0; i < cuotas; i++) {
         const fechaCuota = new Date(fechaInicio);
         fechaCuota.setMonth(fechaCuota.getMonth() + i);
@@ -395,7 +435,9 @@ export class CrearCursoExtraEstudianteComponent implements OnInit {
           tipo: linea.tipo === 'matricula' ? 'matricula' : 'unico',
           detalle: linea.tipo === 'matricula'
             ? `Matrícula ${nombreCurso} - Cuota ${i + 1}/${cuotas}`
-            : `${nombreCurso} - Cuota ${i + 1}/${cuotas}`
+            : `${nombreCurso} - Cuota ${i + 1}/${cuotas}`,
+          valor_base: baseCuota,
+          motivo_descuento: this.lineaConDescuento(linea) ? linea.motivo_descuento.trim() : ''
         });
       }
     });
@@ -411,7 +453,9 @@ export class CrearCursoExtraEstudianteComponent implements OnInit {
         fecha: this.formatearFechaISO(fechaInicio),
         valor: this.valorPaquete,
         tipo: 'paquete',
-        detalle: `${nombreCurso} - ${paquete.numero_sesiones} sesiones${vigencia}`
+        detalle: `${nombreCurso} - ${paquete.numero_sesiones} sesiones${vigencia}`,
+        valor_base: paquete.valor,
+        motivo_descuento: this.paqueteConDescuento() ? this.motivoPaquete.trim() : ''
       });
     }
 
@@ -572,6 +616,13 @@ export class CrearCursoExtraEstudianteComponent implements OnInit {
 
     if (!this.validarSumas()) return;
 
+    // Una cuota que quedó por debajo de su tarifa necesita el motivo
+    const cuotaSinMotivo = this.valores.find(v => this.cuotaConDescuento(v) && !(v.motivo_descuento || '').trim());
+    if (cuotaSinMotivo) {
+      Swal.fire('Falta el motivo', `Escriba el motivo del descuento de ${cuotaSinMotivo.nombre_producto} (${cuotaSinMotivo.fecha}).`, 'warning');
+      return;
+    }
+
     const fechasOk = await this.validarFechas();
     if (!fechasOk) return;
 
@@ -613,7 +664,9 @@ export class CrearCursoExtraEstudianteComponent implements OnInit {
         fecha: v.fecha,
         valor: v.valor,
         tipo: v.tipo,
-        detalle: v.detalle
+        detalle: v.detalle,
+        valor_base: v.valor_base,
+        motivo_descuento: this.cuotaConDescuento(v) ? (v.motivo_descuento || '').trim() : null
       }))
     };
 

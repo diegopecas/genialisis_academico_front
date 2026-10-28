@@ -377,3 +377,51 @@ $light-gold: rgba(212, 175, 55, 0.1);
     text-align: left;
   }
 }
+
+/* Valor a cobrar y motivo del descuento de cada línea marcada */
+
+.opcion-valores {
+  flex: 1 1 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 8px 0 2px 28px;
+  cursor: default;
+}
+
+.opcion-valores label {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin: 0;
+  font-size: 0.8rem;
+}
+
+.opcion-valores label span {
+  opacity: 0.7;
+}
+
+.campo-valor {
+  flex: 0 0 160px;
+}
+
+.campo-motivo {
+  flex: 1 1 220px;
+}
+
+.campo-fecha {
+  max-width: 220px;
+}
+
+@media (max-width: 640px) {
+  .opcion-valores {
+    padding-left: 0;
+  }
+
+  .campo-valor,
+  .campo-motivo,
+  .campo-fecha {
+    flex: 1 1 100%;
+    max-width: none;
+  }
+}

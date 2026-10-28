@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HeaderComponent } from '../../../../common/header/header.component';
 import { SearchableDropdownComponent, DropdownItem } from '../../../../common/searchable-dropdown/searchable-dropdown.component';
+import { FechaInputComponent } from '../../../../common/fecha-input/fecha-input.component';
 import { SolicitudesInscripcionPublicaService } from '../../../../services/solicitudes-inscripcion-publica.service';
 import { LinksPagoService } from '../../../../services/links-pago.service';
 import { CursosExtraService } from '../../../../services/cursos-extra.service';
@@ -16,7 +17,7 @@ import Swal from 'sweetalert2';
   templateUrl: './ver-solicitud-inscripcion.component.html',
   styleUrl: './ver-solicitud-inscripcion.component.scss',
   standalone: true,
-  imports: [CommonModule, FormsModule, HeaderComponent, SearchableDropdownComponent]
+  imports: [CommonModule, FormsModule, HeaderComponent, SearchableDropdownComponent, FechaInputComponent]
 })
 export class VerSolicitudInscripcionComponent implements OnInit {
 
@@ -51,6 +52,14 @@ export class VerSolicitudInscripcionComponent implements OnInit {
   public lineasTarifa: any[] = [];
   public lineasMarcadas = new Set<string>();
   public cargandoTarifa: boolean = false;
+  // Valor a cobrar de cada línea (arranca en el de la tarifa) y el motivo
+  // cuando se cobra menos
+  public valoresLinea: { [id: string]: number } = {};
+  public motivosLinea: { [id: string]: string } = {};
+
+  // Desde cuándo empieza las clases: de ahí salen las reservas fijas y el
+  // inicio del paquete cuando llegue el pago
+  public fechaInicioClases: string = '';
 
   constructor(
     private route: ActivatedRoute,
@@ -123,6 +132,7 @@ export class VerSolicitudInscripcionComponent implements OnInit {
             fecha_inicio: this.solicitud.fecha_inicio, fecha_fin: this.solicitud.fecha_fin
           });
         }
+        this.fechaInicioClases = this.fechaInicioSugerida();
         this.cursosItems = this.cursos.map((c: any) => ({
           id: c.id,
           nombre: c.nombre,
@@ -142,8 +152,26 @@ export class VerSolicitudInscripcionComponent implements OnInit {
   // Al cambiar el curso se recargan sus horarios y su tarifa, sin nada marcado
   cambiarCurso() {
     this.horariosMarcados = new Set<string>();
+    this.fechaInicioClases = this.fechaInicioSugerida();
     this.cargarHorarios();
     this.cargarTarifa();
+  }
+
+  // La que pidió en el portal si todavía no ha pasado; si no, hoy o el
+  // inicio del curso, la que sea más tarde
+  fechaInicioSugerida(): string {
+    const hoy = this.hoyISO();
+    const pedida = this.datosPortal?.fecha_inicio_deseada;
+    if (typeof pedida === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(pedida) && pedida >= hoy) {
+      return pedida;
+    }
+    const inicioCurso = this.cursoElegido?.fecha_inicio;
+    return inicioCurso && inicioCurso > hoy ? inicioCurso : hoy;
+  }
+
+  private hoyISO(): string {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   }
 
   // Líneas de la tarifa vigente del curso elegido (la del convenio si la hay).
@@ -152,6 +180,8 @@ export class VerSolicitudInscripcionComponent implements OnInit {
     const curso = this.cursoElegido;
     this.lineasTarifa = [];
     this.lineasMarcadas = new Set<string>();
+    this.valoresLinea = {};
+    this.motivosLinea = {};
     if (!curso) return;
 
     this.cargandoTarifa = true;
@@ -160,6 +190,7 @@ export class VerSolicitudInscripcionComponent implements OnInit {
         this.cargandoTarifa = false;
         const tarifas = (response.body || []) as any[];
         this.lineasTarifa = tarifas.length > 0 ? (tarifas[0].detalle || []) : [];
+        this.lineasTarifa.forEach((l: any) => this.valoresLinea[l.id] = Number(l.valor || 0));
         if (curso.id === this.solicitud.id_curso_extra) {
           const pedidas = [this.solicitud.id_tarifa_curso_extra_detalle, ...this.leerIds(this.solicitud.ids_adicionales)];
           this.lineasMarcadas = new Set(
@@ -197,7 +228,27 @@ export class VerSolicitudInscripcionComponent implements OnInit {
   get totalCobro(): number {
     return this.lineasTarifa
       .filter((l: any) => this.lineasMarcadas.has(l.id))
-      .reduce((suma: number, l: any) => suma + Number(l.valor || 0), 0);
+      .reduce((suma: number, l: any) => suma + Number(this.valoresLinea[l.id] || 0), 0);
+  }
+
+  // Valor a cobrar: solo números, con separador de miles, nunca mayor que la tarifa
+  onValorLineaInput(event: any, linea: any) {
+    const tarifa = Number(linea.valor || 0);
+    const texto = String(event.target.value).replace(/\D/g, '');
+    let valor = texto ? parseInt(texto, 10) : 0;
+    if (valor > tarifa) {
+      valor = tarifa;
+    }
+    this.valoresLinea[linea.id] = valor;
+    event.target.value = valor.toLocaleString('es-CO');
+  }
+
+  textoValor(linea: any): string {
+    return Number(this.valoresLinea[linea.id] || 0).toLocaleString('es-CO');
+  }
+
+  tieneDescuento(linea: any): boolean {
+    return Number(this.valoresLinea[linea.id] || 0) < Number(linea.valor || 0);
   }
 
   textoTipoLinea(linea: any): string {
@@ -409,15 +460,35 @@ export class VerSolicitudInscripcionComponent implements OnInit {
       : marcados.length > 0
         ? `Queda con reserva fija en <b>${marcados.map((h: any) => this.textoHorario(h)).join(', ')}</b>.<br><br>`
         : `No marcaste ningún horario, así que queda inscrito sin reserva fija.<br><br>`;
+    if (!this.fechaInicioClases) {
+      Swal.fire('Falta la fecha', 'Escribe desde cuándo empieza las clases en la pestaña Aprobación.', 'warning');
+      this.seleccionarPestana('aprobacion');
+      return;
+    }
+    if (curso.fecha_fin && this.fechaInicioClases > curso.fecha_fin) {
+      Swal.fire('Fecha fuera del curso', `El curso termina el ${curso.fecha_fin}.`, 'warning');
+      this.seleccionarPestana('aprobacion');
+      return;
+    }
+    const marcadas = this.lineasTarifa.filter((l: any) => this.lineasMarcadas.has(l.id));
+    const sinMotivo = marcadas.find((l: any) => this.tieneDescuento(l) && !(this.motivosLinea[l.id] || '').trim());
+    if (sinMotivo) {
+      Swal.fire('Falta el motivo', `Escribe por qué se le cobra menos en ${sinMotivo.nombre_producto}.`, 'warning');
+      this.seleccionarPestana('aprobacion');
+      return;
+    }
     const valor = this.totalCobro.toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
-    const textoCobro = this.lineasMarcadas.size > 0
-      ? `Se crean las cuentas por cobrar por <b>${valor}</b> y se envía el link de pago de Bold` +
-        (this.correoDestino() ? ` a <b>${this.correoDestino()}</b>.` : `, pero la solicitud no tiene correo.`)
-      : `No marcaste nada para cobrar, así que no se crean cuentas por cobrar ni link de pago.`;
+    const conDescuento = marcadas.some((l: any) => this.tieneDescuento(l)) ? ' (con descuento)' : '';
+    const textoCobro = this.lineasMarcadas.size === 0
+      ? `No marcaste nada para cobrar, así que no se crean cuentas por cobrar ni link de pago.`
+      : this.totalCobro === 0
+        ? `Se crea la cuenta por cobrar en cero${conDescuento}, así que no se envía link de pago.`
+        : `Se crean las cuentas por cobrar por <b>${valor}</b>${conDescuento} y se envía el link de pago de Bold` +
+          (this.correoDestino() ? ` a <b>${this.correoDestino()}</b>.` : `, pero la solicitud no tiene correo.`);
     const result = await Swal.fire({
       title: '¿Aprobar la solicitud?',
       html: `Se va a crear el estudiante <b>${this.nombreEstudiante()}</b> y se inscribirá a ` +
-            `<b>${curso.nombre}</b>.<br><br>` + textoHorarios + textoCobro,
+            `<b>${curso.nombre}</b>, con clases desde el <b>${this.fechaInicioClases}</b>.<br><br>` + textoHorarios + textoCobro,
       icon: 'question',
       showCancelButton: true,
       confirmButtonColor: '#3085d6',
@@ -435,7 +506,13 @@ export class VerSolicitudInscripcionComponent implements OnInit {
     // Siempre se mandan las listas (aunque vayan vacías) para que el back use
     // lo escogido aquí y no lo que traía la solicitud
     const idsHorarios = this.reservaAutomatica ? [] : Array.from(this.horariosMarcados);
-    this.solicitudesService.aprobar(this.id, idsHorarios, this.idCursoElegido, Array.from(this.lineasMarcadas)).subscribe({
+    const lineasCobro = marcadas.map((l: any) => ({
+      id: l.id,
+      valor: Number(this.valoresLinea[l.id] || 0),
+      motivo_descuento: this.tieneDescuento(l) ? (this.motivosLinea[l.id] || '').trim() : null
+    }));
+    this.solicitudesService.aprobar(this.id, idsHorarios, this.idCursoElegido, Array.from(this.lineasMarcadas),
+      lineasCobro, this.fechaInicioClases).subscribe({
       next: (response: any) => {
         this.procesando = false;
         if (response.lineas_no_encontradas > 0) {

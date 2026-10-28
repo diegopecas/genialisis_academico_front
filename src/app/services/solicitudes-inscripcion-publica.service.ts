@@ -90,7 +90,10 @@ export class SolicitudesInscripcionPublicaService {
   // el back usa los que la persona escogió en el portal.
   // idCursoExtra e idsTarifaDetalle son lo escogido en la aprobación (otro
   // curso, otro plan); sin ellos el back usa lo que trajo la solicitud.
-  aprobar(id: any, idsHorarios?: string[], idCursoExtra?: string, idsTarifaDetalle?: string[]) {
+  // lineasCobro trae el valor a cobrar de cada línea y el motivo cuando es
+  // menor que la tarifa; fechaInicioClases, desde cuándo empieza las clases.
+  aprobar(id: any, idsHorarios?: string[], idCursoExtra?: string, idsTarifaDetalle?: string[],
+          lineasCobro?: { id: string, valor: number, motivo_descuento: string | null }[], fechaInicioClases?: string) {
     const datos: any = { id: id };
     if (idsHorarios) {
       datos.ids_horarios = idsHorarios;
@@ -100,6 +103,12 @@ export class SolicitudesInscripcionPublicaService {
     }
     if (idsTarifaDetalle) {
       datos.ids_tarifa_detalle = idsTarifaDetalle;
+    }
+    if (lineasCobro) {
+      datos.lineas_cobro = lineasCobro;
+    }
+    if (fechaInicioClases) {
+      datos.fecha_inicio_clases = fechaInicioClases;
     }
     const body = JSON.stringify(datos);
     return this.http.put<any>(this.servicio + '/aprobar', body, httpOptions).pipe(

@@ -184,6 +184,30 @@
                 </div>
             </div>
 
+            <!-- Inicio de clases: desde ahí quedan las reservas fijas y arranca el paquete al pagar -->
+            <div class="panel-card mt-3" *ngIf="esPendiente() || solicitud.fecha_inicio_clases">
+                <div class="panel-header">
+                    <i class="fas fa-calendar-day"></i>
+                    <span>Inicio de clases</span>
+                </div>
+                <div class="panel-body">
+                    <ng-container *ngIf="esPendiente(); else inicioAsignado">
+                        <div class="campo-fecha">
+                            <app-fecha-input inputId="fecha_inicio_clases" [(ngModel)]="fechaInicioClases"
+                                [invalido]="!fechaInicioClases"></app-fecha-input>
+                        </div>
+                        <p class="texto-ayuda mt-2 mb-0">
+                            Las reservas fijas quedan desde esta fecha y el paquete de sesiones arranca aquí cuando llegue el pago
+                            (si paga después, arranca el día del pago).
+                            <span *ngIf="datosPortal?.fecha_inicio_deseada">En el portal pidió empezar el {{ datosPortal.fecha_inicio_deseada }}.</span>
+                        </p>
+                    </ng-container>
+                    <ng-template #inicioAsignado>
+                        <div class="dato"><span>Empieza el</span><strong>{{ solicitud.fecha_inicio_clases }}</strong></div>
+                    </ng-template>
+                </div>
+            </div>
+
             <!-- Horarios: los marcados quedan como reservas fijas al aprobar -->
             <div class="panel-card mt-3">
                 <div class="panel-header">
@@ -240,6 +264,21 @@
                                 <small class="d-block">{{ textoTipoLinea(l) }}</small>
                             </span>
                             <strong>{{ l.valor | currency:'COP':'symbol-narrow':'1.0-0' }}</strong>
+
+                            <!-- Valor a cobrar y motivo del descuento: solo en las marcadas -->
+                            <div class="opcion-valores" *ngIf="lineasMarcadas.has(l.id)" (click)="$event.stopPropagation()">
+                                <label class="campo-valor">
+                                    <span>Valor a cobrar</span>
+                                    <input type="text" inputmode="numeric" class="form-control form-control-sm"
+                                           [value]="textoValor(l)" (input)="onValorLineaInput($event, l)">
+                                </label>
+                                <label class="campo-motivo" *ngIf="tieneDescuento(l)">
+                                    <span>Motivo del descuento ({{ (l.valor - valoresLinea[l.id]) | currency:'COP':'symbol-narrow':'1.0-0' }})</span>
+                                    <input type="text" class="form-control form-control-sm" maxlength="500"
+                                           [class.is-invalid]="!(motivosLinea[l.id] || '').trim()"
+                                           [(ngModel)]="motivosLinea[l.id]" placeholder="Por qué se le cobra menos">
+                                </label>
+                            </div>
                         </div>
                         <div class="total">
                             <span>Total a cobrar</span>

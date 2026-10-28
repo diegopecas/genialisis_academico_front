@@ -19,6 +19,9 @@ interface ValorGenerado {
   valor: number;
   tipo: string;
   detalle: string;
+  // Valor de la tarifa de la cuota y motivo del descuento del lote
+  valor_base: number;
+  motivo_descuento: string | null;
 }
 
 @Component({
@@ -561,22 +564,58 @@ export class InscripcionCursosExtraComponent implements OnInit {
         }
 
         const totalPorEstudiante = valores.reduce((s, v) => s + v.valor, 0);
-        const totalGeneral = totalPorEstudiante * inscripciones.length;
+        const cantidad = inscripciones.length;
 
+        // Confirmación con descuento opcional para todo el lote: un porcentaje
+        // sobre cada cuota y el motivo, que es obligatorio si hay descuento.
+        // Los totales se recalculan mientras se escribe el porcentaje.
         Swal.close();
         const confirma = await Swal.fire({
           title: 'Generar cuentas por cobrar',
-          html: `Se van a crear <strong>${valores.length * inscripciones.length}</strong> cuentas por cobrar
-                 para <strong>${inscripciones.length}</strong> estudiante(s).<br><br>
-                 Por estudiante: <strong>${this.formatearMoneda(totalPorEstudiante)}</strong><br>
-                 Total: <strong>${this.formatearMoneda(totalGeneral)}</strong><br><br>
+          html: `Se van a crear <strong>${valores.length * cantidad}</strong> cuentas por cobrar
+                 para <strong>${cantidad}</strong> estudiante(s).<br><br>
+                 <div style="display:flex;gap:10px;flex-wrap:wrap;text-align:left">
+                   <label style="flex:0 0 120px;font-size:0.85rem">Descuento (%)
+                     <input id="lote-descuento" type="number" min="0" max="100" step="1" value="0" class="swal2-input" style="margin:4px 0 0;width:100%">
+                   </label>
+                   <label style="flex:1 1 220px;font-size:0.85rem">Motivo del descuento
+                     <input id="lote-motivo" type="text" maxlength="500" class="swal2-input" placeholder="Por qué se les cobra menos" style="margin:4px 0 0;width:100%">
+                   </label>
+                 </div><br>
+                 Por estudiante: <strong id="lote-por-estudiante">${this.formatearMoneda(totalPorEstudiante)}</strong><br>
+                 Total: <strong id="lote-total">${this.formatearMoneda(totalPorEstudiante * cantidad)}</strong><br><br>
                  ¿Desea continuar?`,
           icon: 'question',
           showCancelButton: true,
           confirmButtonText: 'Sí, generar',
           cancelButtonText: 'No generar',
           confirmButtonColor: '#26a69a',
-          width: 600
+          width: 600,
+          didOpen: () => {
+            const campo = document.getElementById('lote-descuento') as HTMLInputElement;
+            campo?.addEventListener('input', () => {
+              const porEstudiante = this.aplicarDescuento(valores, this.leerPorcentaje(campo.value), null)
+                .reduce((s, v) => s + v.valor, 0);
+              const etiqueta = document.getElementById('lote-por-estudiante');
+              const total = document.getElementById('lote-total');
+              if (etiqueta) etiqueta.textContent = this.formatearMoneda(porEstudiante);
+              if (total) total.textContent = this.formatearMoneda(porEstudiante * cantidad);
+            });
+          },
+          preConfirm: () => {
+            const texto = (document.getElementById('lote-descuento') as HTMLInputElement)?.value || '0';
+            const porcentaje = Number(texto);
+            const motivo = ((document.getElementById('lote-motivo') as HTMLInputElement)?.value || '').trim();
+            if (isNaN(porcentaje) || porcentaje < 0 || porcentaje > 100) {
+              Swal.showValidationMessage('El descuento debe estar entre 0 y 100');
+              return false;
+            }
+            if (porcentaje > 0 && !motivo) {
+              Swal.showValidationMessage('Escriba el motivo del descuento');
+              return false;
+            }
+            return { porcentaje: porcentaje, motivo: motivo };
+          }
         });
 
         if (!confirma.isConfirmed) {
@@ -585,7 +624,8 @@ export class InscripcionCursosExtraComponent implements OnInit {
           return;
         }
 
-        this.enviarCobros(inscripciones, valores);
+        const { porcentaje, motivo } = confirma.value as { porcentaje: number, motivo: string };
+        this.enviarCobros(inscripciones, this.aplicarDescuento(valores, porcentaje, motivo));
       },
       error: (error: any) => {
         this.procesando = false;
@@ -630,7 +670,9 @@ export class InscripcionCursosExtraComponent implements OnInit {
             fecha: this.formatearFechaISO(current),
             valor: valor,
             tipo: 'pension',
-            detalle: `Pensión ${nombreCurso} - ${this.formatearMesAnio(current)}`
+            detalle: `Pensión ${nombreCurso} - ${this.formatearMesAnio(current)}`,
+            valor_base: valor,
+            motivo_descuento: null
           });
 
           const siguiente = new Date(current);
@@ -654,7 +696,9 @@ export class InscripcionCursosExtraComponent implements OnInit {
           tipo: esMatricula ? 'matricula' : 'unico',
           detalle: esMatricula
             ? `Matrícula ${nombreCurso} - Cuota ${i + 1}/${cuotas}`
-            : `${nombreCurso} - Cuota ${i + 1}/${cuotas}`
+            : `${nombreCurso} - Cuota ${i + 1}/${cuotas}`,
+          valor_base: valorCuota,
+          motivo_descuento: null
         });
       }
     });
@@ -668,12 +712,35 @@ export class InscripcionCursosExtraComponent implements OnInit {
         fecha: this.formatearFechaISO(fechaInicio),
         valor: valorPaquete,
         tipo: 'paquete',
-        detalle: `${nombreCurso} - ${paquete.numero_sesiones} sesiones${vigencia}`
+        detalle: `${nombreCurso} - ${paquete.numero_sesiones} sesiones${vigencia}`,
+        valor_base: valorPaquete,
+        motivo_descuento: null
       });
     }
 
     valores.sort((a, b) => a.fecha.localeCompare(b.fecha));
     return valores;
+  }
+
+  private leerPorcentaje(texto: string): number {
+    const porcentaje = Number(texto);
+    return isNaN(porcentaje) ? 0 : Math.min(100, Math.max(0, porcentaje));
+  }
+
+  /**
+   * Cuotas con el descuento del lote: el porcentaje sobre el valor de la
+   * tarifa de cada cuota, redondeado al peso. valor_base queda con la tarifa
+   * para que la cuenta guarde cuánto se descontó.
+   */
+  private aplicarDescuento(valores: ValorGenerado[], porcentaje: number, motivo: string | null): ValorGenerado[] {
+    if (!porcentaje) {
+      return valores.map(v => ({ ...v, motivo_descuento: null }));
+    }
+    return valores.map(v => ({
+      ...v,
+      valor: Math.round(v.valor_base * (100 - porcentaje) / 100),
+      motivo_descuento: motivo
+    }));
   }
 
   private enviarCobros(inscripciones: any[], valores: ValorGenerado[]) {
