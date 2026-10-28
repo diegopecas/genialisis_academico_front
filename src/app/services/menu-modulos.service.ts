@@ -801,7 +801,7 @@ export class MenuModulosService {
             iconoArbol: '⚙️',
             alt: 'Configuración',
             imagen: 'assets/images/configuracion.png',
-            permisos: ['admin.cargos', 'admin.categorias_documentos', 'admin.conectar_whatsapp', 'admin.configuracion_geofence', 'admin.configuracion_global', 'admin.configuracion_google', 'admin.configuracion_ia', 'admin.datos_estudiantes', 'admin.institucion', 'admin.jornada_laboral', 'admin.tipos_documentos'],
+            permisos: ['admin.cargos', 'admin.categorias_documentos', 'admin.conectar_whatsapp', 'admin.configuracion_correo', 'admin.configuracion_geofence', 'admin.configuracion_global', 'admin.configuracion_google', 'admin.configuracion_ia', 'admin.configuracion_pasarela_pago', 'admin.datos_estudiantes', 'admin.institucion', 'admin.jornada_laboral', 'admin.tipos_documentos'],
             keywords: ['parametros', 'ajustes', 'setup'],
             opciones: [
               { id: 'configuracion-global', label: 'Configuración Global', alt: 'Configuración Global', imagen: 'assets/images/configuracion.png', iconoArbol: '⚙️', ruta: '/administracion/datos-maestros/configuracion-global', permiso: 'admin.configuracion_global', keywords: ['parametros', 'ajustes'] },
@@ -814,7 +814,9 @@ export class MenuModulosService {
               { id: 'configuracion-geofence', label: 'Zona de asistencia', alt: 'Polígono de la Institución', imagen: 'assets/images/geofence.png', iconoArbol: '📍', ruta: '/administracion/datos-maestros/configuracion-geofence', permiso: 'admin.configuracion_geofence', keywords: ['ubicacion', 'zonas', 'gps', 'geofence', 'geocerca', 'mapa', 'poligono', 'perimetro', 'linderos', 'marcacion', 'coordenadas'] },
               { id: 'datos-estudiantes', label: 'Datos Estudiantes', alt: 'Datos Estudiantes', imagen: 'assets/images/estudiantes.png', iconoArbol: '🎓', ruta: '/administracion/datos-maestros/datos-estudiantes', permiso: 'admin.datos_estudiantes', keywords: ['medicos', 'adicionales', 'campos', 'ficha'] },
               { id: 'institucion', label: 'Institución', alt: 'Institución', imagen: 'assets/images/institucion.png', iconoArbol: '🏫', ruta: '/administracion/datos-maestros/institucion', permiso: 'admin.institucion', keywords: ['jardin', 'colegio', 'datos basicos', 'logo', 'documentos institucionales', 'plan de emergencia'] },
-              { id: 'conectar-whatsapp', label: 'Conexión WhatsApp', alt: 'Conexión WhatsApp', imagen: 'assets/images/whatsapp.png', iconoArbol: '🔌', ruta: '/administracion/datos-maestros/conectar-whatsapp', permiso: 'admin.conectar_whatsapp', keywords: ['whatsapp', 'wa', 'conectar', 'qr'] }
+              { id: 'conectar-whatsapp', label: 'Conexión WhatsApp', alt: 'Conexión WhatsApp', imagen: 'assets/images/whatsapp.png', iconoArbol: '🔌', ruta: '/administracion/datos-maestros/conectar-whatsapp', permiso: 'admin.conectar_whatsapp', keywords: ['whatsapp', 'wa', 'conectar', 'qr'] },
+              { id: 'configuracion-pasarela-pago', label: 'Pasarela de Pagos', alt: 'Pasarela de Pagos', imagen: 'assets/images/configuracion-pasarela-pago.png', iconoArbol: '💳', ruta: '/administracion/datos-maestros/configuracion-pasarela-pago', permiso: 'admin.configuracion_pasarela_pago', keywords: ['pasarela', 'pagos', 'bold', 'link de pago', 'llaves', 'transferencia', 'cuentas bancarias'] },
+              { id: 'configuracion-correo', label: 'Servicio de Correo', alt: 'Servicio de Correo', imagen: 'assets/images/configuracion-correo.png', iconoArbol: '✉️', ruta: '/administracion/datos-maestros/configuracion-correo', permiso: 'admin.configuracion_correo', keywords: ['correo', 'email', 'api key', 'notificaciones', 'responder'] }
             ]
           },
           {

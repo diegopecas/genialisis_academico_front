@@ -1,0 +1,118 @@
+<div class="modulo">
+    <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [accion]="'editar'"
+        [raiz]="'/administracion/datos-maestros/configuracion-pasarela-pago'" [regresar]="regresar"
+        [iconoTitulo]="'/assets/images/configuracion-pasarela-pago.png'">
+    </app-header>
+
+    <div class="container mt-4" *ngIf="!cargando">
+
+        <!-- Proveedor -->
+        <div class="panel-card mb-4">
+            <div class="panel-header">
+                <i class="fas fa-credit-card"></i>
+                <span>Cómo pagan</span>
+            </div>
+            <div class="panel-body">
+                <label class="form-label">Proveedor</label>
+                <select class="form-select" [(ngModel)]="model.proveedor">
+                    <option value="ninguno">Sin pasarela: datos para transferir</option>
+                    <option value="bold">Bold: link de pago</option>
+                </select>
+                <small class="form-text text-muted d-block mt-2" *ngIf="model.proveedor === 'ninguno'">
+                    Al aprobar una solicitud se manda por correo lo que va a pagar y las cuentas bancarias (los medios
+                    de pago financieros que tengan número de cuenta). Desde la solicitud también se puede descargar o
+                    compartir un PDF con esos datos.
+                </small>
+                <small class="form-text text-muted d-block mt-2" *ngIf="model.proveedor === 'bold'">
+                    Al aprobar una solicitud se crea un link de pago en Bold y se manda por correo con el botón de pago.
+                </small>
+            </div>
+        </div>
+
+        <!-- Bold -->
+        <div class="panel-card mb-4" *ngIf="model.proveedor === 'bold'">
+            <div class="panel-header">
+                <i class="fas fa-key"></i>
+                <span>Bold</span>
+            </div>
+            <div class="panel-body">
+                <p class="texto-ayuda">
+                    Las llaves están en el panel de Bold, en Integraciones &gt; Llaves de integración &gt; Botón de pagos.
+                    Se guardan cifradas y no se vuelven a mostrar. Para cambiar una, escríbela de nuevo; si dejas el campo
+                    vacío, se conserva la que está guardada.
+                </p>
+
+                <div class="row">
+                    <div class="col-md-6 col-12 mb-3">
+                        <label class="form-label">Llave de identidad</label>
+                        <input class="form-control" type="password" autocomplete="new-password" [(ngModel)]="model.llave_publica"
+                            [placeholder]="guardado?.tiene_llave_publica ? 'Guardada, termina en ' + guardado.llave_publica_final : 'Sin guardar'">
+                    </div>
+                    <div class="col-md-6 col-12 mb-3">
+                        <label class="form-label">Llave secreta</label>
+                        <input class="form-control" type="password" autocomplete="new-password" [(ngModel)]="model.llave_secreta"
+                            [placeholder]="guardado?.tiene_llave_secreta ? 'Guardada, termina en ' + guardado.llave_secreta_final : 'Sin guardar'">
+                        <small class="form-text text-muted">Valida que los avisos de pago vengan de Bold</small>
+                    </div>
+                </div>
+
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" id="modoPruebas" [(ngModel)]="model.modo_pruebas">
+                    <label class="form-check-label" for="modoPruebas">
+                        <strong>{{ model.modo_pruebas ? 'Modo pruebas' : 'Producción' }}</strong>
+                    </label>
+                    <small class="d-block mt-1 text-muted">
+                        En pruebas usa las llaves de pruebas de Bold y no se cobra plata real.
+                    </small>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 col-12 mb-3">
+                        <label class="form-label">URL del API</label>
+                        <input class="form-control" type="url" [(ngModel)]="model.url_api" placeholder="https://integrations.api.bold.co">
+                    </div>
+                    <div class="col-md-6 col-12 mb-3">
+                        <label class="form-label">Días que dura el link</label>
+                        <input class="form-control" type="number" min="1" [(ngModel)]="model.link_vigencia_dias" placeholder="Vacío = no vence">
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 col-12 mb-3">
+                        <label class="form-label">Tipo de pago</label>
+                        <select class="form-select" [(ngModel)]="model.id_tipo_pago">
+                            <option [ngValue]="null">Sin tipo</option>
+                            <option *ngFor="let t of tiposPago" [ngValue]="t.id">{{ t.nombre }}</option>
+                        </select>
+                        <small class="form-text text-muted">Con este tipo se registran los pagos que llegan de Bold</small>
+                    </div>
+                    <div class="col-md-6 col-12 mb-3">
+                        <label class="form-label">URL de retorno</label>
+                        <input class="form-control" type="url" [(ngModel)]="model.url_retorno" placeholder="https://...">
+                        <small class="form-text text-muted">A dónde vuelve la persona después de pagar (opcional)</small>
+                    </div>
+                </div>
+
+                <label class="form-label">URL de avisos de pago para el panel de Bold</label>
+                <div class="input-group">
+                    <input class="form-control" type="text" [value]="getUrlAvisos()" readonly>
+                    <button class="btn btn-outline-warning" type="button" (click)="copiarUrlAvisos()">
+                        <i class="fas fa-copy"></i> Copiar
+                    </button>
+                </div>
+                <small class="form-text text-muted">Se pone en Bold para que avise cuando alguien paga</small>
+            </div>
+        </div>
+
+        <div class="row mb-5">
+            <div class="col-sm-6 mb-2">
+                <button class="btn btn-lg btn-warning w-100" (click)="guardar()" [disabled]="guardando">
+                    {{ guardando ? 'Guardando...' : 'Grabar' }}
+                </button>
+            </div>
+            <div class="col-sm-6 mb-2">
+                <button class="btn btn-lg btn-secondary w-100" (click)="volver()">Volver</button>
+            </div>
+        </div>
+    </div>
+</div>

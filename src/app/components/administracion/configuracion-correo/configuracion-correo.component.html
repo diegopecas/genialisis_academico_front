@@ -1,0 +1,76 @@
+<div class="modulo">
+    <app-header [tituloModulo]="titulo" [mostrarCrear]="false" [accion]="'editar'"
+        [raiz]="'/administracion/datos-maestros/configuracion-correo'" [regresar]="regresar"
+        [iconoTitulo]="'/assets/images/configuracion-correo.png'">
+    </app-header>
+
+    <div class="container mt-4" *ngIf="!cargando">
+
+        <div class="panel-card mb-4">
+            <div class="panel-header">
+                <i class="fas fa-envelope"></i>
+                <span>Servicio de correo</span>
+            </div>
+            <div class="panel-body">
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" id="correoActivo" [(ngModel)]="model.activo">
+                    <label class="form-check-label" for="correoActivo">
+                        <strong>{{ model.activo ? 'Activo' : 'Apagado' }}</strong>
+                    </label>
+                    <small class="d-block mt-1 text-muted">
+                        Apagado, no sale ningún correo de la institución (por ejemplo, el de la aprobación de las solicitudes).
+                    </small>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 col-12 mb-3">
+                        <label class="form-label">URL del servicio</label>
+                        <input class="form-control" type="url" [(ngModel)]="model.url_api" placeholder="https://...">
+                    </div>
+                    <div class="col-md-6 col-12 mb-3">
+                        <label class="form-label">API key</label>
+                        <input class="form-control" type="password" autocomplete="new-password" [(ngModel)]="model.api_key"
+                            [placeholder]="guardado?.tiene_api_key ? 'Guardada, termina en ' + guardado.api_key_final : 'Sin guardar'">
+                        <small class="form-text text-muted">Se guarda cifrada. Vacía, se conserva la guardada</small>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 col-12 mb-3">
+                        <label class="form-label">Las respuestas llegan a</label>
+                        <input class="form-control" type="email" [(ngModel)]="model.responder_a" placeholder="correo@institucion.com">
+                        <small class="form-text text-muted">Cuando la persona responde un correo de la institución</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Prueba con la configuración guardada -->
+        <div class="panel-card mb-4" *ngIf="guardado">
+            <div class="panel-header">
+                <i class="fas fa-paper-plane"></i>
+                <span>Probar</span>
+            </div>
+            <div class="panel-body">
+                <p class="texto-ayuda">Manda un correo de prueba con la configuración guardada.</p>
+                <div class="input-group">
+                    <input class="form-control" type="email" [(ngModel)]="correoPrueba" placeholder="A qué correo mandar la prueba">
+                    <button class="btn btn-outline-warning" type="button" (click)="enviarPrueba()" [disabled]="probando">
+                        <i class="fas fa-paper-plane"></i> {{ probando ? 'Enviando...' : 'Enviar correo de prueba' }}
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-5">
+            <div class="col-sm-6 mb-2">
+                <button class="btn btn-lg btn-warning w-100" (click)="guardar()" [disabled]="guardando">
+                    {{ guardando ? 'Guardando...' : 'Grabar' }}
+                </button>
+            </div>
+            <div class="col-sm-6 mb-2">
+                <button class="btn btn-lg btn-secondary w-100" (click)="volver()">Volver</button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -292,9 +292,57 @@
             </div>
         </div>
 
-        <!-- ===== Pago: link de Bold ===== -->
+        <!-- ===== Pago: link de Bold o datos para transferir ===== -->
         <div class="tab-content panel-card" *ngIf="pestanaActiva === 'pago' && linkActual">
-            <div class="panel-body">
+            <!-- Sin pasarela: transferencia -->
+            <div class="panel-body" *ngIf="esTransferencia">
+                <div class="dato">
+                    <span>Estado</span>
+                    <strong>
+                        <span class="chip" [ngClass]="transferenciaPagada ? 'chip-ok' : 'chip-info'">{{ etiquetaEstadoLink(linkActual) }}</span>
+                    </strong>
+                </div>
+                <div class="dato"><span>Valor</span><strong>{{ linkActual.valor | currency:'COP':'symbol-narrow':'1.0-0' }}</strong></div>
+                <div class="dato" *ngIf="!transferenciaPagada && linkActual.saldo_pendiente !== null">
+                    <span>Falta por pagar</span><strong>{{ linkActual.saldo_pendiente | currency:'COP':'symbol-narrow':'1.0-0' }}</strong>
+                </div>
+                <div class="dato" *ngIf="linkActual.correo_destino">
+                    <span>Correo</span>
+                    <strong>{{ linkActual.correo_destino }}<span *ngIf="linkActual.fecha_correo"> · enviado el {{ linkActual.fecha_correo }}</span></strong>
+                </div>
+                <div class="alert alert-warning mt-3 mb-0" *ngIf="linkActual.error_correo">
+                    No salió el correo: {{ linkActual.error_correo }}
+                </div>
+
+                <p class="texto-ayuda mt-3 mb-2">Cuentas para transferir</p>
+                <p class="texto-ayuda mb-0" *ngIf="datosPago && datosPago.cuentas.length === 0">
+                    No hay medios de pago con número de cuenta. Agrégalos en los medios de pago financieros.
+                </p>
+                <div class="cuenta" *ngFor="let c of datosPago?.cuentas || []">
+                    <strong>{{ c.nombre }}</strong>
+                    <span>Cuenta {{ c.numero_cuenta }}</span>
+                    <small *ngIf="c.descripcion">{{ c.descripcion }}</small>
+                </div>
+
+                <p class="texto-ayuda mt-3 mb-0">
+                    El pago se registra desde los pagos del estudiante. Cuando las cuentas queden pagadas, aquí sale como pagado.
+                </p>
+
+                <div class="acciones-link mt-3">
+                    <button class="btn btn-warning btn-sm" (click)="descargarPdfPago()" [disabled]="generandoPdf || !datosPago">
+                        <i class="fas fa-file-pdf me-1"></i> Descargar PDF
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm" *ngIf="puedeCompartir" (click)="compartirPdfPago()" [disabled]="generandoPdf || !datosPago">
+                        <i class="fas fa-share-alt me-1"></i> Compartir
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm" *ngIf="!transferenciaPagada" (click)="reenviarCorreo()" [disabled]="procesando">
+                        <i class="fas fa-paper-plane me-1"></i> Reenviar correo
+                    </button>
+                </div>
+            </div>
+
+            <!-- Con pasarela: link de pago -->
+            <div class="panel-body" *ngIf="!esTransferencia">
                 <div class="dato">
                     <span>Estado</span>
                     <strong>

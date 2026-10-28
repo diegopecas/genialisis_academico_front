@@ -1,0 +1,59 @@
+$gold: #d4af37;
+$black: #222;
+
+.modulo {
+  padding: 20px;
+}
+
+.container {
+  max-width: 900px;
+}
+
+/* Tarjetas con efecto glaseado, igual que las demás configuraciones */
+
+.panel-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.panel-header {
+  background: rgba(212, 175, 55, 0.1);
+  border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+  padding: 12px 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  color: $black;
+}
+
+.panel-header i {
+  color: $gold;
+}
+
+.panel-body {
+  padding: 18px;
+}
+
+.form-label {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.texto-ayuda {
+  font-size: 0.88rem;
+  opacity: 0.75;
+}
+
+@media (max-width: 640px) {
+  .modulo {
+    padding: 12px;
+  }
+
+  .panel-body {
+    padding: 14px;
+  }
+}

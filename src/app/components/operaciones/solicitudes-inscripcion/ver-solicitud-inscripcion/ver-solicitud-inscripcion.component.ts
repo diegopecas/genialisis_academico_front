@@ -10,6 +10,8 @@ import { SolicitudesInscripcionPublicaService } from '../../../../services/solic
 import { LinksPagoService } from '../../../../services/links-pago.service';
 import { CursosExtraService } from '../../../../services/cursos-extra.service';
 import { TarifasCursosExtraService } from '../../../../services/tarifas-cursos-extra.service';
+import { ExportarPdfDatosPagoService, DatosPagoPDF } from '../../../../services/exportar-pdf-datos-pago.service';
+import { InstitucionConfigService } from '../../../../services/institucion-config.service';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -39,6 +41,11 @@ export class VerSolicitudInscripcionComponent implements OnInit {
   // Links de pago de la solicitud (el más reciente primero)
   public links: any[] = [];
 
+  // Cobro por transferencia (sin pasarela): datos del correo y del PDF
+  public datosPago: any = null;
+  public generandoPdf: boolean = false;
+  public puedeCompartir: boolean = typeof navigator !== 'undefined' && !!(navigator as any).share;
+
   // Pestañas (en móvil van en el menú de hamburguesa)
   public pestanaActiva: string = 'solicitud';
   public menuMovilAbierto: boolean = false;
@@ -67,7 +74,9 @@ export class VerSolicitudInscripcionComponent implements OnInit {
     private solicitudesService: SolicitudesInscripcionPublicaService,
     private linksPagoService: LinksPagoService,
     private cursosExtraService: CursosExtraService,
-    private tarifasService: TarifasCursosExtraService
+    private tarifasService: TarifasCursosExtraService,
+    private exportarPdfDatosPagoService: ExportarPdfDatosPagoService,
+    private institucionConfigService: InstitucionConfigService
   ) { }
 
   ngOnInit(): void {
@@ -314,9 +323,86 @@ export class VerSolicitudInscripcionComponent implements OnInit {
 
   cargarLinks() {
     this.linksPagoService.obtenerPorSolicitud(this.id).subscribe({
-      next: (response: any) => this.links = response.body || [],
+      next: (response: any) => {
+        this.links = response.body || [];
+        this.datosPago = null;
+        if (this.esTransferencia) {
+          this.cargarDatosPago();
+        }
+      },
       error: (error: any) => console.error('Error al cargar el link de pago', error)
     });
+  }
+
+  // Sin pasarela el cobro es por transferencia: no hay link, se mandan las cuentas
+  get esTransferencia(): boolean {
+    return this.linkActual?.proveedor === 'transferencia';
+  }
+
+  // Por transferencia se sabe si pagaron por el saldo de sus cuentas
+  get transferenciaPagada(): boolean {
+    return this.esTransferencia && Number(this.linkActual?.saldo_pendiente) <= 0;
+  }
+
+  cargarDatosPago() {
+    if (!this.linkActual) return;
+    this.linksPagoService.obtenerDatosPago(this.linkActual.id).subscribe({
+      next: (response: any) => this.datosPago = response.body || null,
+      error: (error: any) => console.error('Error al cargar los datos para transferir', error)
+    });
+  }
+
+  async descargarPdfPago() {
+    const datos = await this.armarDatosPdf();
+    if (datos) {
+      this.exportarPdfDatosPagoService.generarPDF(datos);
+    }
+  }
+
+  // Comparte el PDF por el menú nativo; si el dispositivo no deja compartir
+  // archivos, lo descarga
+  async compartirPdfPago() {
+    const datos = await this.armarDatosPdf();
+    if (!datos) return;
+    const archivo = new File([this.exportarPdfDatosPagoService.generarBlob(datos)],
+      this.exportarPdfDatosPagoService.nombreArchivo(datos), { type: 'application/pdf' });
+    const nav: any = navigator;
+    if (nav.canShare && nav.canShare({ files: [archivo] })) {
+      try {
+        await nav.share({ files: [archivo], title: 'Datos para el pago de ' + datos.curso });
+      } catch (error: any) {
+        if (error?.name !== 'AbortError') console.error('Error al compartir el PDF', error);
+      }
+      return;
+    }
+    this.exportarPdfDatosPagoService.generarPDF(datos);
+  }
+
+  private async armarDatosPdf(): Promise<DatosPagoPDF | null> {
+    if (!this.datosPago) {
+      Swal.fire('Un momento', 'Todavía se están cargando los datos para el pago.', 'info');
+      return null;
+    }
+    this.generandoPdf = true;
+    const logoBase64 = await this.cargarLogoBase64();
+    this.generandoPdf = false;
+    return { ...this.datosPago, logoBase64 } as DatosPagoPDF;
+  }
+
+  private async cargarLogoBase64(): Promise<string> {
+    try {
+      const respuesta = await fetch(this.institucionConfigService.getLogoUrl());
+      if (!respuesta.ok) return '';
+      const blob = await respuesta.blob();
+      return await new Promise<string>((resolve, reject) => {
+        const lector = new FileReader();
+        lector.onloadend = () => resolve(lector.result as string);
+        lector.onerror = reject;
+        lector.readAsDataURL(blob);
+      });
+    } catch {
+      return '';
+    }
   }
 
   get linkActual(): any {
@@ -342,6 +428,9 @@ export class VerSolicitudInscripcionComponent implements OnInit {
   }
 
   etiquetaEstadoLink(link: any): string {
+    if (link.proveedor === 'transferencia') {
+      return Number(link.saldo_pendiente) <= 0 ? 'Pagado' : 'Esperando la transferencia';
+    }
     const etiquetas: any = { pendiente: 'Pendiente', activo: 'Esperando el pago', pagado: 'Pagado', error: 'No se creó' };
     return etiquetas[link.estado] || link.estado;
   }
@@ -368,7 +457,8 @@ export class VerSolicitudInscripcionComponent implements OnInit {
     this.linksPagoService.reenviarCorreo(this.linkActual.id).subscribe({
       next: () => {
         this.procesando = false;
-        Swal.fire('Correo enviado', `Se le envió el link de pago a ${this.linkActual.correo_destino}.`, 'success');
+        Swal.fire('Correo enviado', (this.esTransferencia ? 'Se le enviaron los datos para transferir a ' : 'Se le envió el link de pago a ') +
+          `${this.linkActual.correo_destino}.`, 'success');
         this.cargarLinks();
       },
       error: (error: any) => {
@@ -407,6 +497,14 @@ export class VerSolicitudInscripcionComponent implements OnInit {
 
   private avisarLink(link: any, titulo: string) {
     if (!link) return;
+    if (link.proveedor === 'transferencia') {
+      if (link.correo_enviado) {
+        Swal.fire(titulo, 'Se le envió el correo con lo que va a pagar y las cuentas para transferir. En la pestaña Pago puedes descargar o compartir el PDF.', 'success');
+      } else {
+        Swal.fire(titulo, 'No salió el correo con los datos para transferir: ' + (link.error_correo || '') + '. En la pestaña Pago puedes reenviarlo o compartir el PDF.', 'warning');
+      }
+      return;
+    }
     if (link.estado === 'activo' && link.correo_enviado) {
       Swal.fire(titulo, 'Se creó el link y se le envió el correo con el botón de pago.', 'success');
     } else if (link.estado === 'activo') {

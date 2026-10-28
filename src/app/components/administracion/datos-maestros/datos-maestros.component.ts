@@ -168,6 +168,12 @@ export class DatosMaestrosComponent implements OnInit {
       case 'conectar-whatsapp':
         this.router.navigate(['/administracion/datos-maestros/conectar-whatsapp']);
         break;
+      case 'configuracion-pasarela-pago':
+        this.router.navigate(['/administracion/datos-maestros/configuracion-pasarela-pago']);
+        break;
+      case 'configuracion-correo':
+        this.router.navigate(['/administracion/datos-maestros/configuracion-correo']);
+        break;
     }
   }
 

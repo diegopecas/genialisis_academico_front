@@ -10,7 +10,8 @@ import { catchError, tap } from 'rxjs/operators';
 import { httpOptions } from './http';
 
 /**
- * Links de pago (Bold) que se envían al aprobar una solicitud del portal.
+ * Cobros que se envían al aprobar una solicitud del portal: link de pago de
+ * la pasarela (Bold) o, sin pasarela, datos para transferir.
  */
 @Injectable({
   providedIn: 'root'
@@ -48,6 +49,22 @@ export class LinksPagoService {
   // Consulta el link en Bold y registra el pago si ya está pagado
   verificar(id: any) {
     return this.put('/verificar', { id: id });
+  }
+
+  // Datos del PDF para transferir: lo mismo del correo y las cuentas bancarias
+  obtenerDatosPago(id: any) {
+    return this.http
+      .get<HttpResponse<Object>>(this.servicio + `/datos-pago/${id}`, { observe: 'response' })
+      .pipe(
+        tap((response: HttpResponse<Object>) => {
+          let respuesta: any = response.body;
+          if (respuesta && respuesta.error) {
+            throw respuesta.error;
+          }
+          return response;
+        }),
+        catchError(this.handleError)
+      );
   }
 
   private put(ruta: string, datos: any) {
