@@ -1,0 +1,23 @@
+<div class="modulo">
+  <app-header-anidado
+    [tituloModulo]="titulo"
+    [path]="path"
+    [mostrarCrear]="true"
+    [accion]="'ConsultarTodos'"
+    [raiz]="raiz"
+    [regresar]="'/colaboradores/opciones/' + idColaborador"
+    [iconoTitulo]="'/assets/images/reportes-correo.png'"
+  ></app-header-anidado>
+
+  <app-tablas
+    [titulos]="titulos"
+    [datos]="datos"
+    [raiz]="raiz"
+    [acciones]="acciones"
+    [accionEditar]="true"
+    [accionEliminar]="true"
+    [mostrarBuscar]="true"
+    [columnasFiltro]="columnasFiltro"
+    (clicAccion)="clicAccion($event)"
+  ></app-tablas>
+</div>

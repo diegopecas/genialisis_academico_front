@@ -1,0 +1,238 @@
+<div class="modulo">
+    <app-header
+        [tituloModulo]="titulo"
+        [mostrarCrear]="false"
+        [accion]="accion"
+        [raiz]="raiz"
+        [regresar]="regresar"
+        [iconoTitulo]="'/assets/images/reportes-correo.png'">
+    </app-header>
+
+    <!-- Pestañas: solo al editar o consultar desde las opciones del colaborador -->
+    <ng-container *ngIf="conPestanas">
+        <!-- Barra de pestañas DESKTOP -->
+        <div class="tabs-container tabs-desktop">
+            <div class="tabs-nav">
+                <button
+                    class="tab-item"
+                    [class.active]="pestanaActiva === 'asignar'"
+                    (click)="seleccionarPestana('asignar')">
+                    <i class="fas fa-envelope-open-text"></i>
+                    {{ etiquetaPestanaAsignar }}
+                </button>
+                <button
+                    class="tab-item"
+                    [class.active]="pestanaActiva === 'tiene'"
+                    (click)="seleccionarPestana('tiene')">
+                    <i class="fas fa-check-circle"></i>
+                    Reportes que ya tiene
+                    <span class="tab-contador">{{ asignados.length }}</span>
+                </button>
+                <button
+                    class="tab-item"
+                    [class.active]="pestanaActiva === 'historial'"
+                    (click)="seleccionarPestana('historial')">
+                    <i class="fas fa-history"></i>
+                    Historial de envíos
+                </button>
+            </div>
+        </div>
+
+        <!-- Barra de pestañas MOVIL (hamburguesa) -->
+        <div class="tabs-container tabs-movil">
+            <div class="tabs-movil-header">
+                <button class="tabs-movil-trigger" (click)="menuMovilAbierto = !menuMovilAbierto">
+                    <i class="fas" [ngClass]="menuMovilAbierto ? 'fa-times' : 'fa-bars'"></i>
+                    <span class="tabs-movil-label">
+                        <ng-container [ngSwitch]="pestanaActiva">
+                            <ng-container *ngSwitchCase="'asignar'"><i class="fas fa-envelope-open-text"></i> {{ etiquetaPestanaAsignar }}</ng-container>
+                            <ng-container *ngSwitchCase="'tiene'"><i class="fas fa-check-circle"></i> Reportes que ya tiene</ng-container>
+                            <ng-container *ngSwitchCase="'historial'"><i class="fas fa-history"></i> Historial de envíos</ng-container>
+                        </ng-container>
+                    </span>
+                    <i class="fas fa-chevron-down tabs-movil-chevron" [class.rotado]="menuMovilAbierto"></i>
+                </button>
+            </div>
+            <div class="tabs-movil-dropdown" *ngIf="menuMovilAbierto">
+                <button
+                    class="tabs-movil-item"
+                    [class.active]="pestanaActiva === 'asignar'"
+                    (click)="seleccionarPestana('asignar')">
+                    <i class="fas fa-envelope-open-text"></i>
+                    {{ etiquetaPestanaAsignar }}
+                </button>
+                <button
+                    class="tabs-movil-item"
+                    [class.active]="pestanaActiva === 'tiene'"
+                    (click)="seleccionarPestana('tiene')">
+                    <i class="fas fa-check-circle"></i>
+                    Reportes que ya tiene ({{ asignados.length }})
+                </button>
+                <button
+                    class="tabs-movil-item"
+                    [class.active]="pestanaActiva === 'historial'"
+                    (click)="seleccionarPestana('historial')">
+                    <i class="fas fa-history"></i>
+                    Historial de envíos
+                </button>
+            </div>
+        </div>
+    </ng-container>
+
+    <!-- Contenido de Asignar (también es la pantalla completa cuando no hay pestañas) -->
+    <div class="tab-content" *ngIf="pestanaActiva === 'asignar'">
+        <div class="container mt-5">
+            <div class="row">
+                <div class="col-md-6 col-12">
+                    <label class="form-label">Colaborador <span class="text-danger">*</span></label>
+                    <!-- Desde las opciones del colaborador, el colaborador viene fijo -->
+                    <input
+                        *ngIf="idColaboradorFijo"
+                        class="form-control form-control-lg"
+                        type="text"
+                        [value]="nombreColaboradorFijo"
+                        disabled>
+                    <app-searchable-dropdown
+                        *ngIf="!idColaboradorFijo && colaboradoresCargados"
+                        [items]="colaboradoresItems"
+                        [ngModel]="model.id_colaborador"
+                        (ngModelChange)="model.id_colaborador = $event"
+                        [disabled]="!editable"
+                        [required]="true"
+                        placeholder="Seleccionar colaborador"
+                        searchPlaceholder="Buscar por nombre o correo..."
+                        emptyMessage="No se encontraron colaboradores activos"
+                        maxHeight="320px"
+                        [clearable]="true"
+                        [showSearch]="true">
+                    </app-searchable-dropdown>
+                    <small class="form-text" [ngClass]="sinCorreo ? 'text-danger' : 'text-muted'">
+                        {{ sinCorreo ? 'Este colaborador no tiene correo registrado en su ficha' : 'El reporte llega al correo de la ficha del colaborador' }}
+                    </small>
+                </div>
+
+                <div class="col-md-6 col-12">
+                    <label for="tipo" class="form-label">Tipo de reporte <span class="text-danger">*</span></label>
+                    <select
+                        class="form-select form-select-lg"
+                        id="tipo"
+                        [(ngModel)]="model.id_tipo_reporte_correo"
+                        [ngClass]="{'is-invalid': !model.id_tipo_reporte_correo && submitted}"
+                        [disabled]="!editable || todosAsignados">
+                        <option [ngValue]="null">Seleccionar...</option>
+                        <option *ngFor="let tipo of tiposDisponibles" [ngValue]="tipo.id">{{ tipo.nombre }}</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- El colaborador ya tiene todos los tipos de reporte disponibles -->
+            <div class="row mt-3" *ngIf="todosAsignados">
+                <div class="col-12">
+                    <div class="aviso-verde">
+                        <i class="fas fa-check-circle me-2"></i>
+                        Este colaborador ya tiene todos los reportes disponibles. Los puedes ver o quitar desde su listado.
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-3">
+                <div class="col-12" *ngIf="tipoSeleccionado">
+                    <div class="tarjeta-glaseada">
+                        <div class="tarjeta-icono">📧</div>
+                        <div>
+                            <div class="tarjeta-titulo">{{ tipoSeleccionado.nombre }}</div>
+                            <div class="tarjeta-texto">{{ tipoSeleccionado.descripcion }}</div>
+                            <div class="tarjeta-nota">Sale todos los días por la tarde. Desde el listado puedes mandarlo ya mismo con "Enviar ahora".</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Estado: al crear queda activo; se puede inactivar al editar -->
+                <div class="col-md-4 col-12 mt-3" *ngIf="accion !== 'crear'">
+                    <label for="activo" class="form-label">Estado</label>
+                    <select
+                        class="form-select form-select-lg"
+                        id="activo"
+                        [(ngModel)]="model.activo"
+                        [disabled]="!editable">
+                        <option [ngValue]="1">Activo</option>
+                        <option [ngValue]="0">Inactivo</option>
+                    </select>
+                    <small class="form-text text-muted">Inactivo no se envía</small>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="container mt-5">
+            <div class="row">
+                <div class="col-sm-6" *ngIf="editable">
+                    <button class="btn btn-lg btn-warning w-100" [disabled]="todosAsignados" (click)="guardar()">
+                        Grabar
+                    </button>
+                </div>
+                <div class="col-sm-6">
+                    <button class="btn btn-lg btn-secondary w-100" (click)="volver()">
+                        Volver
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenido de Reportes que ya tiene -->
+    <div class="tab-content" *ngIf="conPestanas && pestanaActiva === 'tiene'">
+        <div class="container mt-5">
+            <div class="estado-vacio" *ngIf="asignados.length === 0">
+                <i class="fas fa-inbox"></i>
+                <p>Todavía no tiene reportes por correo</p>
+            </div>
+            <app-tablas
+                *ngIf="asignados.length > 0"
+                [titulos]="titulosAsignados"
+                [datos]="asignados"
+                [raiz]="raiz"
+                [accionEliminar]="true"
+                [mostrarBuscar]="false"
+                [exportarExcel]="false"
+                (clicAccion)="clicAsignado($event)"
+            ></app-tablas>
+        </div>
+    </div>
+
+    <!-- Contenido de Historial de envíos -->
+    <div class="tab-content" *ngIf="conPestanas && pestanaActiva === 'historial'">
+        <div class="container mt-5">
+            <div class="filtros-historial">
+                <div class="row g-2 align-items-end">
+                    <div class="col-12 col-sm-6 col-md-4">
+                        <label for="histDesde" class="form-label"><i class="fas fa-calendar"></i> Enviados desde</label>
+                        <app-fecha-input inputId="histDesde" [(ngModel)]="histDesde"></app-fecha-input>
+                    </div>
+                    <div class="col-12 col-sm-6 col-md-4">
+                        <label for="histHasta" class="form-label"><i class="fas fa-calendar"></i> Hasta</label>
+                        <app-fecha-input inputId="histHasta" [(ngModel)]="histHasta"></app-fecha-input>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <button class="btn btn-warning w-100" (click)="cargarHistorial()">
+                            <i class="fas fa-search me-2"></i>Consultar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="estado-vacio" *ngIf="historial.length === 0">
+                <i class="fas fa-paper-plane"></i>
+                <p>No hay envíos en ese rango de fechas</p>
+            </div>
+            <app-tablas
+                *ngIf="historial.length > 0"
+                [titulos]="titulosHistorial"
+                [datos]="historial"
+                [raiz]="raiz"
+                [mostrarBuscar]="true"
+                [columnasFiltro]="['Tipo de reporte', 'Origen', 'Resultado']"
+            ></app-tablas>
+        </div>
+    </div>
+</div>

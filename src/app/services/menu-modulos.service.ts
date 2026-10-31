@@ -335,17 +335,18 @@ export class MenuModulosService {
           {
             id: 'colaboradores',
             titulo: 'Colaboradores',
-            descripcion: 'Reportes de contabilización e historial de actividades',
+            descripcion: 'Reportes de contabilización, historial de actividades y reportes por correo',
             claseIcono: 'colaboradores',
             iconoArbol: '🧑‍💼',
             alt: 'Colaboradores',
             imagen: 'assets/images/colaboradores.png',
-            permisos: ['reportes.asistencia_colaboradores', 'reportes.contabilizaciones', 'reportes.historial_actividades'],
+            permisos: ['reportes.asistencia_colaboradores', 'reportes.contabilizaciones', 'reportes.historial_actividades', 'reportes.historial_reportes_correo'],
             keywords: ['docentes', 'profesoras', 'empleados', 'personal', 'equipo'],
             opciones: [
               { id: 'reporte-contabilizaciones', label: 'Reportes de Contabilización', alt: 'Reportes Contabilización', imagen: 'assets/images/reportes_actividades_colaboradores.png', iconoArbol: '🧾', ruta: '/reportes/reporte-contabilizaciones', permiso: 'reportes.contabilizaciones', keywords: ['horas', 'actividades', 'pagos'] },
               { id: 'historial-actividades', label: 'Historial de Actividades', alt: 'Historial Actividades', imagen: 'assets/images/historial_actividades.png', iconoArbol: '📜', ruta: '/reportes/historial-actividades', permiso: 'reportes.historial_actividades', keywords: ['tareas', 'equipo', 'seguimiento'] },
-              { id: 'asistencia-colaboradores', label: 'Asistencia Colaboradores', alt: 'Asistencia Colaboradores', imagen: 'assets/images/reporte-asistencia-colaboradores.png', iconoArbol: '📋', ruta: '/reportes/asistencia-colaboradores', permiso: 'reportes.asistencia_colaboradores', keywords: ['faltas', 'ingreso', 'marcacion', 'jornada'] }
+              { id: 'asistencia-colaboradores', label: 'Asistencia Colaboradores', alt: 'Asistencia Colaboradores', imagen: 'assets/images/reporte-asistencia-colaboradores.png', iconoArbol: '📋', ruta: '/reportes/asistencia-colaboradores', permiso: 'reportes.asistencia_colaboradores', keywords: ['faltas', 'ingreso', 'marcacion', 'jornada'] },
+              { id: 'historial-reportes-correo', label: 'Historial de Reportes por Correo', alt: 'Historial Reportes por Correo', imagen: 'assets/images/historial-reportes-correo.png', iconoArbol: '📨', ruta: '/reportes/historial-reportes-correo', permiso: 'reportes.historial_reportes_correo', keywords: ['correo', 'email', 'enviados', 'envios', 'resumen', 'coordinadora', 'informes', 'informes diarios'] }
             ]
           },
           {
@@ -540,7 +541,7 @@ export class MenuModulosService {
             iconoArbol: '👥',
             alt: 'Colaboradores',
             imagen: 'assets/images/colaboradores.png',
-            permisos: ['colaboradores.actividades', 'colaboradores.listado'],
+            permisos: ['colaboradores.actividades', 'colaboradores.listado', 'colaboradores.reportes_correo'],
             keywords: ['docentes', 'profesoras', 'empleados', 'equipo'],
             opciones: [
               { id: 'colaboradores', label: 'Gestión', alt: 'Gestión', imagen: 'assets/images/colaboradores.png', iconoArbol: '🧑‍💼', ruta: '/colaboradores', permiso: 'colaboradores.listado', columna: 'col-4', keywords: ['listado', 'empleados', 'personal', 'staff'] },
@@ -559,7 +560,8 @@ export class MenuModulosService {
                   { id: 'colaboradores-aprobacion', label: 'Aprobar Actividades', iconoArbol: '✅', ruta: '/colaboradores/actividades/aprobacion', permiso: 'colaboradores.aprobacion_actividades', keywords: ['aprobar', 'autorizar'] },
                   { id: 'colaboradores-contabilizacion', label: 'Contabilizar Actividades', iconoArbol: '🧮', ruta: '/colaboradores/actividades/contabilizacion', permiso: 'colaboradores.contabilizacion_actividades', keywords: ['contabilizar', 'horas', 'pagos'] }
                 ]
-              }
+              },
+              { id: 'reportes-correo', label: 'Reportes por Correo', alt: 'Reportes por Correo', imagen: 'assets/images/reportes-correo.png', iconoArbol: '📧', ruta: '/colaboradores/reportes-correo', permiso: 'colaboradores.reportes_correo', columna: 'col-4', keywords: ['correo', 'email', 'resumen', 'diario', 'coordinadora', 'reporte', 'envio', 'informes', 'informes diarios'] }
             ]
           },
           {

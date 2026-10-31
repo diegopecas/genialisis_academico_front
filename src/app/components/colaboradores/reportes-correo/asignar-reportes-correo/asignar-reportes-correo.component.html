@@ -1,0 +1,65 @@
+<div class="modulo">
+    <app-header-anidado
+        [tituloModulo]="titulo"
+        [mostrarCrear]="false"
+        [accion]="'crear'"
+        [raiz]="raiz"
+        [regresar]="raiz"
+        [iconoTitulo]="'/assets/images/reportes-correo.png'">
+    </app-header-anidado>
+
+    <div class="container-fluid mt-4">
+        <div class="tarjeta-glaseada">
+            <div class="row align-items-end">
+                <div class="col-md-6 col-12">
+                    <label for="tipo" class="form-label">Tipo de reporte <span class="text-danger">*</span></label>
+                    <select
+                        class="form-select form-select-lg"
+                        id="tipo"
+                        [(ngModel)]="idTipo"
+                        (ngModelChange)="cambiarTipo()">
+                        <option [ngValue]="null">Seleccionar...</option>
+                        <option *ngFor="let tipo of tipos" [ngValue]="tipo.id">{{ tipo.nombre }}</option>
+                    </select>
+                </div>
+                <div class="col-md-6 col-12">
+                    <div class="resumen-seleccion">
+                        <span class="numero">{{ seleccionados.length }}</span> marcados
+                        <span class="separador">·</span>
+                        <span class="numero">{{ disponiblesSeleccionados }}</span> se van a asignar
+                    </div>
+                </div>
+            </div>
+            <small class="form-text text-muted d-block mt-2">
+                Marca los colaboradores en la tabla. Los que ya tienen el reporte se ven en verde y los que no tienen correo en gris; esos no se asignan.
+            </small>
+        </div>
+    </div>
+
+    <app-tablas
+        [titulos]="titulos"
+        [datos]="datos"
+        [raiz]="raiz"
+        [mostrarBuscar]="true"
+        [columnasFiltro]="columnasFiltro"
+        [seleccionMultiple]="true"
+        [campoId]="'id'"
+        [exportarExcel]="false"
+        (seleccionCambiada)="seleccionCambiada($event)"
+    ></app-tablas>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-sm-6">
+                <button class="btn btn-lg btn-warning w-100" [disabled]="guardando" (click)="guardar()">
+                    {{ guardando ? 'Grabando...' : 'Grabar' }}
+                </button>
+            </div>
+            <div class="col-sm-6">
+                <button class="btn btn-lg btn-secondary w-100" (click)="volver()">
+                    Volver
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

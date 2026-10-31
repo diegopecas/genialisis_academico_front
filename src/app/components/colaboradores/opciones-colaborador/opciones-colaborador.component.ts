@@ -46,6 +46,7 @@ export class OpcionesColaboradorComponent implements OnInit {
     { id: 'prestamos', label: 'Préstamos', icono: '/assets/images/prestamos.png', categoria: 'Servicios y cobros', permiso: null, ruta: '/colaboradores/prestamos/' },
     { id: 'contratos', label: 'Contratos', icono: '/assets/images/contratos.png', categoria: 'Servicios y cobros', permiso: 'colaboradores.contratos', ruta: '/colaboradores/contratos/' },
     { id: 'editar', label: 'Editar', icono: '/assets/images/editar.png', categoria: 'Gestión', permiso: null, ruta: '/colaboradores/editar/' },
+    { id: 'reportes_correo', label: 'Reportes por Correo', icono: '/assets/images/reportes-correo.png', categoria: 'Gestión', permiso: 'colaboradores.reportes_correo', ruta: '/colaboradores/reportes-correo/' },
     { id: 'eliminar', label: 'Eliminar', icono: '/assets/images/eliminar.png', categoria: 'Gestión', permiso: null, ruta: null },
   ];
 

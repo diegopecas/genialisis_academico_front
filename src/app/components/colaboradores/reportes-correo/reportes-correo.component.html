@@ -1,0 +1,24 @@
+<div class="modulo">
+  <!-- Crear lleva a la asignación grupal: un tipo de reporte para varios colaboradores -->
+  <app-header-anidado
+    [tituloModulo]="titulo"
+    [path]="raiz + '/asignar'"
+    [mostrarCrear]="true"
+    [accion]="'ConsultarTodos'"
+    [raiz]="raiz"
+    [regresar]="'/colaboradores/gestion'"
+    [iconoTitulo]="'/assets/images/reportes-correo.png'"
+  ></app-header-anidado>
+
+  <app-tablas
+    [titulos]="titulos"
+    [datos]="datos"
+    [raiz]="raiz"
+    [acciones]="acciones"
+    [accionEditar]="true"
+    [accionEliminar]="true"
+    [mostrarBuscar]="true"
+    [columnasFiltro]="columnasFiltro"
+    (clicAccion)="clicAccion($event)"
+  ></app-tablas>
+</div>

@@ -1,0 +1,42 @@
+.modulo {
+  padding: 20px;
+}
+
+// Panel con efecto glaseado en pastel y dorado para escoger el tipo
+.tarjeta-glaseada {
+  padding: 16px 18px;
+  margin-bottom: 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  background: linear-gradient(135deg, rgba(246, 236, 214, 0.75), rgba(228, 238, 246, 0.6));
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 4px 18px rgba(120, 95, 40, 0.08);
+}
+
+.resumen-seleccion {
+  text-align: right;
+  color: #7d725f;
+  font-size: 1rem;
+
+  .numero {
+    font-weight: 700;
+    font-size: 1.3rem;
+    color: #b8892f;
+  }
+
+  .separador {
+    margin: 0 6px;
+  }
+}
+
+@media (max-width: 768px) {
+  .modulo {
+    padding: 12px;
+  }
+
+  .resumen-seleccion {
+    text-align: left;
+    margin-top: 12px;
+  }
+}

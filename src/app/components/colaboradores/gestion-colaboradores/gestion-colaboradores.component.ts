@@ -72,6 +72,9 @@ export class GestionColaboradoresComponent implements OnInit {
       case 'nominas':
         this.router.navigate(['/colaboradores/nominas']);
         break;
+      case 'reportes-correo':
+        this.router.navigate(['/colaboradores/reportes-correo']);
+        break;
     }
   }
 
