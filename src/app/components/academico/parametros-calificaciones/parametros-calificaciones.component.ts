@@ -20,7 +20,7 @@ declare var bootstrap: any;
 export class ParametrosCalificacionesComponent implements OnInit {
 
   titulo = "Parámetros de Calificaciones";
-  public columnasFiltro = ['Nombre'];
+  public columnasFiltro = ['Nombre', 'Estado'];
   public titulos = [] as any[];
   public datos = [] as any[];
   public acciones = [] as any[];
@@ -59,9 +59,13 @@ export class ParametrosCalificacionesComponent implements OnInit {
       const body = response.body as any[];
       console.log("Parámetros de calificaciones", body);
       this.datos = body.map((parametro: any) => {
+        // Apagado: no sale al calificar, pero conserva sus calificaciones
         return {
           id: parametro.id,
-          nombre: parametro.nombre
+          orden: parametro.orden,
+          nombre: parametro.nombre,
+          estado: Number(parametro.activo) === 0 ? 'Apagado' : 'Activo',
+          total_calificaciones: Number(parametro.total_calificaciones) || 0
         };
       });
     });
@@ -75,9 +79,24 @@ export class ParametrosCalificacionesComponent implements OnInit {
         alinear: 'centrado',
       },
       {
+        clave: 'orden',
+        alias: 'Orden',
+        alinear: 'centrado',
+      },
+      {
         clave: 'nombre',
         alias: 'Nombre del Parámetro',
         alinear: 'izquierda',
+      },
+      {
+        clave: 'estado',
+        alias: 'Estado',
+        alinear: 'centrado',
+      },
+      {
+        clave: 'total_calificaciones',
+        alias: 'Calificaciones',
+        alinear: 'centrado',
       }
     ];
   }
@@ -99,6 +118,17 @@ export class ParametrosCalificacionesComponent implements OnInit {
   }
 
   async eliminarParametro(parametro: any) {
+    // Con calificaciones no se puede borrar (se perderían notas reales):
+    // se apaga desde editar para que no salga al calificar
+    if (parametro.total_calificaciones > 0) {
+      Swal.fire({
+        icon: 'info',
+        title: 'No se puede eliminar',
+        text: `El parámetro ${parametro.nombre} tiene ${parametro.total_calificaciones} calificaciones registradas. Si no quieres que salga al calificar, edítalo y apágalo; sus calificaciones se conservan.`
+      });
+      return;
+    }
+
     const result = await Swal.fire({
       title: '¿Está seguro?',
       text: `¿Desea eliminar el parámetro ${parametro.nombre}? Esto eliminará también todos sus valores asociados.`,

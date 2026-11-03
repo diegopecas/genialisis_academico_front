@@ -28,7 +28,7 @@
                             [ngClass]="{'is-invalid': !model.id_parametro_evaluacion && submitted}"
                             [disabled]="!editable">
                             <option [ngValue]="null">Seleccione...</option>
-                            <option *ngFor="let p of parametros" [ngValue]="p.id">{{ p.nombre }}</option>
+                            <option *ngFor="let p of parametrosSelector" [ngValue]="p.id">{{ p.nombre }}{{ p.activo == 0 ? ' (inactivo)' : '' }}</option>
                         </select>
                         <small class="form-text text-muted">
                             Es el único parámetro que aparece en el sprint de evaluación y el que alimenta el boletín

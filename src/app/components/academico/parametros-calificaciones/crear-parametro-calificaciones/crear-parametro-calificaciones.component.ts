@@ -239,9 +239,13 @@ export class CrearParametroCalificacionesComponent implements OnInit {
   }
 
   inicializarFormulario() {
+    // activo: si está apagado no sale al calificar, pero conserva sus calificaciones.
+    // orden: vacío al crear deja el parámetro de último.
     this.formParametro = this.fb.group({
       id: [null],
-      nombre: ['', [Validators.required, Validators.minLength(3)]]
+      nombre: ['', [Validators.required, Validators.minLength(3)]],
+      activo: [true],
+      orden: [null, [Validators.min(1)]]
     });
   }
 
@@ -277,7 +281,10 @@ export class CrearParametroCalificacionesComponent implements OnInit {
     this.parametrosService.obtenerById(this.idParametro).subscribe({
       next: (response: any) => {
         const parametro = response.body;
-        this.formParametro.patchValue(parametro);
+        this.formParametro.patchValue({
+          ...parametro,
+          activo: Number(parametro.activo) !== 0
+        });
         this.formValor.patchValue({
           id_parametros_calificaciones: parametro.id
         });
@@ -305,7 +312,10 @@ export class CrearParametroCalificacionesComponent implements OnInit {
 
   guardar() {
     if (this.formParametro.valid) {
-      const parametro = this.formParametro.value;
+      const parametro = {
+        ...this.formParametro.value,
+        activo: this.formParametro.value.activo ? 1 : 0
+      };
 
       if (this.modoEdicion) {
         this.parametrosService.actualizar(parametro).subscribe({

@@ -191,6 +191,17 @@ export class LoginComponent implements OnInit {
         this.isLoading = false;
         const data = response[0];
 
+        if (data?.error && data?.code === 'TENANT_INACTIVE') {
+          Swal.fire({
+            title: 'Institución inactiva',
+            text: 'Esta institución no está activa en Genialisis. Contacta al administrador.',
+            icon: 'warning',
+            confirmButtonText: 'Entendido',
+            confirmButtonColor: '#FFC107',
+          });
+          return;
+        }
+
         if (data?.error && data?.code === 'USER_INACTIVE') {
           Swal.fire({
             title: 'Usuario inactivo',

@@ -33,6 +33,22 @@ export class ParametrosCalificacionesService {
       );
   }
 
+  /** Solo los parámetros activos, en su orden: los que salen al calificar */
+  obtenerActivos() {
+    return this.http
+      .get<HttpResponse<Object>>(`${this.servicio}/activos`, { observe: 'response' })
+      .pipe(
+        tap((response: HttpResponse<Object>) => {
+          let respuesta: any = response.body;
+          if (respuesta && respuesta.error) {
+            throw respuesta.error;
+          }
+          return response;
+        }),
+        catchError(this.handleError)
+      );
+  }
+
   obtenerById(id: any): Observable<HttpResponse<Object>> {
     return this.http
       .get<HttpResponse<Object>>(`${this.servicio}/${id}`, {

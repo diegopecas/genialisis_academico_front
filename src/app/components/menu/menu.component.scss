@@ -1402,3 +1402,127 @@ $confetti-colors: #FF6B6B, #FFD93D, #6BCB77, #4D96FF, #FF6BD6, #FF8C42, #A66CFF,
   line-height: 20px;
   text-align: center;
 }
+
+// ============================================
+// OPCIONES ENCONTRADAS (lista plana del buscador)
+// ============================================
+.opciones-resultados {
+  max-width: 640px;
+  margin: 0 auto 28px auto;
+}
+
+.opciones-lista {
+  max-height: 60vh;
+  overflow-y: auto;
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 193, 7, 0.25);
+  border-radius: 14px;
+  padding: 6px;
+}
+
+.opcion-resultado {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  margin: 2px 0;
+  border-radius: 10px;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.85);
+  transition: $transition-base;
+
+  &:hover,
+  &.activo {
+    background: $white;
+    box-shadow: 0 3px 12px rgba(255, 193, 7, 0.3);
+    transform: translateX(3px);
+  }
+
+  &.activo .opcion-ir {
+    opacity: 1;
+  }
+}
+
+.opcion-icono {
+  font-size: 20px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.opcion-icono-img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.opcion-textos {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.opcion-label {
+  font-size: 15px;
+  font-weight: 600;
+  color: $black-primary;
+}
+
+.opcion-camino {
+  font-size: 12px;
+  color: #777;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.opcion-ir {
+  font-size: 15px;
+  color: $gold-text-medium;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+
+  @media (max-width: 768px) {
+    display: none;
+  }
+}
+
+// ---- Botón "Ver todo el menú" ----
+.menu-completo-toggle {
+  display: flex;
+  justify-content: center;
+  margin: 0 auto 24px auto;
+}
+
+.btn-menu-completo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 22px;
+  border: 1px solid rgba(255, 193, 7, 0.6);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  color: $ivory;
+  font-size: 15px;
+  font-weight: 600;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+  transition: $transition-base;
+
+  &:hover {
+    background: rgba(255, 193, 7, 0.25);
+    border-color: $gold-primary;
+  }
+
+  .btn-menu-chevron {
+    color: $gold-primary;
+    transition: transform 0.25s ease;
+  }
+
+  &.abierto .btn-menu-chevron {
+    transform: rotate(180deg);
+  }
+}

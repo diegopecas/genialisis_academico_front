@@ -131,6 +131,7 @@
         placeholder="Buscar una opción o una persona..."
         [value]="terminoBusqueda"
         (input)="onBuscar($event)"
+        (keydown)="onTeclaBuscador($event)"
         autocomplete="off"
         autofocus
       />
@@ -155,6 +156,35 @@
       <span class="aviso-icono">💡</span>
       <span>{{ avisoOpcionDeFicha }}</span>
     </div>
+
+    <!-- ====== OPCIONES ENCONTRADAS (lista plana) ====== -->
+    <section class="opciones-resultados" *ngIf="enBusqueda && opcionesEncontradas.length > 0">
+      <div class="personas-header">
+        <span class="personas-titulo">🧭 Opciones</span>
+        <span class="personas-conteo" *ngIf="totalOpcionesEncontradas > opcionesEncontradas.length">
+          Mostrando {{ opcionesEncontradas.length }} de {{ totalOpcionesEncontradas }}
+        </span>
+      </div>
+
+      <div class="opciones-lista" #listaOpciones>
+        <div
+          class="opcion-resultado"
+          *ngFor="let opcion of opcionesEncontradas; let i = index; trackBy: trackByOpcion"
+          [class.activo]="i === indiceActivo"
+          (click)="irAOpcionEncontrada(opcion)"
+          (mouseenter)="indiceActivo = i"
+        >
+          <img *ngIf="opcion.imagen" class="opcion-icono-img" [src]="opcion.imagen" [alt]="opcion.label" loading="lazy" decoding="async" />
+          <span class="opcion-icono" *ngIf="!opcion.imagen">{{ opcion.icono }}</span>
+          <div class="opcion-textos">
+            <span class="opcion-label" [innerHTML]="resaltar(opcion.label)"></span>
+            <span class="opcion-camino" *ngIf="opcion.camino.length > 0">{{ textoCamino(opcion) }}</span>
+          </div>
+          <span class="opcion-ir">↵</span>
+        </div>
+      </div>
+    </section>
+    <!-- ====== FIN OPCIONES ENCONTRADAS ====== -->
 
     <!-- ====== RESULTADOS DE PERSONAS ====== -->
     <section class="personas-resultados" *ngIf="personasVisibles.length > 0">
@@ -223,12 +253,20 @@
     <!-- ====== FIN RESULTADOS DE PERSONAS ====== -->
 
     <!-- Mensaje sin resultados -->
-    <div class="menu-sin-resultados" *ngIf="enBusqueda && arbolVisible.length === 0 && personasVisibles.length === 0 && !avisoOpcionDeFicha">
+    <div class="menu-sin-resultados" *ngIf="enBusqueda && opcionesEncontradas.length === 0 && personasVisibles.length === 0 && !avisoOpcionDeFicha">
       No se encontraron opciones ni personas para "{{ terminoBusqueda }}"
     </div>
 
+    <!-- Botón para ver el árbol completo (no se muestra mientras se busca) -->
+    <div class="menu-completo-toggle" *ngIf="!enBusqueda">
+      <button type="button" class="btn-menu-completo" (click)="alternarMenuCompleto()" [class.abierto]="mostrarMenuCompleto">
+        <span>{{ mostrarMenuCompleto ? 'Ocultar el menú' : 'Ver todo el menú' }}</span>
+        <span class="btn-menu-chevron">▾</span>
+      </button>
+    </div>
+
     <!-- Grilla de secciones raíz (tarjetas de vidrio) -->
-    <div class="menu-secciones">
+    <div class="menu-secciones" *ngIf="!enBusqueda && mostrarMenuCompleto">
       <ng-container *ngFor="let seccion of arbolVisible; trackBy: trackByNodo">
         <div class="menu-seccion-card" [class.es-link]="!esGrupo(seccion)">
 

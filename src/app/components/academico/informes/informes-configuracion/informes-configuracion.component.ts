@@ -67,6 +67,16 @@ export class InformesConfiguracionComponent implements OnInit {
     });
   }
 
+  /**
+   * Parámetros para escoger: los activos y, si el que ya está asignado fue
+   * apagado, también ese, para no perderlo de la configuración.
+   */
+  get parametrosSelector(): any[] {
+    return this.parametros.filter((p: any) =>
+      Number(p.activo) !== 0 || p.id === this.model?.id_parametro_evaluacion
+    );
+  }
+
   cargarConfiguracion() {
     this.informesConfiguracionService.obtenerTodos().subscribe({
       next: (response: any) => {

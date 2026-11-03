@@ -223,7 +223,8 @@
                     </p>
                     <ng-container *ngIf="!reservaAutomatica && horarios.length > 0">
                         <p class="texto-ayuda" *ngIf="esPendiente()">
-                            Marca los horarios en los que va a quedar.
+                            Marca los horarios en los que va a quedar. En los paquetes por sesiones se marca solo el plan que
+                            corresponde (un horario, 4 sesiones; dos horarios, 8 sesiones...) y lo puedes cambiar.
                         </p>
                         <div class="opcion" *ngFor="let h of horarios"
                              [class.marcado]="horariosMarcados.has(h.id)"
@@ -279,6 +280,10 @@
                                            [(ngModel)]="motivosLinea[l.id]" placeholder="Por qué se le cobra menos">
                                 </label>
                             </div>
+                        </div>
+                        <div class="aviso-cuadre" *ngIf="avisoPlanHorarios">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <span>{{ avisoPlanHorarios }} Revisa si es lo que quieres; igual puedes aprobar.</span>
                         </div>
                         <div class="total">
                             <span>Total a cobrar</span>

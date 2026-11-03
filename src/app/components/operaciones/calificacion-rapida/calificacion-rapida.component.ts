@@ -123,7 +123,8 @@ export class CalificacionRapidaComponent implements OnInit, OnDestroy {
       grupos: this.gruposService.obtenerTodos(),
       sprints: this.sprintsService.obtenerTodos(),
       docentes: this.docentesService.obtenerTodos(),
-      parametros: this.parametrosCalificacionesService.obtenerTodos(),
+      // Solo los parámetros activos, en su orden
+      parametros: this.parametrosCalificacionesService.obtenerActivos(),
       valores: this.valoresParametrosCalificacionesService.obtenerTodos()
     }).subscribe({
       next: ({ grupos, sprints, docentes, parametros, valores }: any) => {

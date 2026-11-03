@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
@@ -61,6 +61,26 @@ interface PersonaResultado {
   filtroMostrado: string | null;
 }
 
+/**
+ * Una opción del menú en la lista plana del buscador: la hoja navegable con
+ * el camino de grupos por el que se llega a ella en el árbol.
+ */
+interface OpcionPlana {
+  id: string;
+  label: string;
+  icono: string;
+  imagen?: string;
+  ruta: string;
+  // Grupos por los que se llega a la opción, para mostrar dónde está
+  camino: string[];
+  keywords: string[];
+}
+
+/** Una opción encontrada, con su prioridad en la lista (menor va primero). */
+interface OpcionEncontrada extends OpcionPlana {
+  rango: number;
+}
+
 interface CumpleaneroInfo {
   nombre: string;
   tipo: 'usuario' | 'estudiante' | 'colaborador';
@@ -101,6 +121,23 @@ export class MenuComponent implements OnInit {
   public arbolVisible: MenuNodo[] = [];
   public terminoBusqueda: string = '';
   public enBusqueda: boolean = false;
+
+  // ---- Lista plana de opciones del buscador ----
+  // Todas las opciones navegables del árbol (ya filtrado por permisos) en una
+  // sola lista; se arma una vez y sobre ella se busca.
+  private indiceOpciones: OpcionPlana[] = [];
+  public opcionesEncontradas: OpcionEncontrada[] = [];
+  public totalOpcionesEncontradas: number = 0;
+  // Renglón resaltado con las flechas del teclado (-1 = ninguno)
+  public indiceActivo: number = -1;
+  private readonly MAX_OPCIONES_VISIBLES = 30;
+
+  // El árbol completo solo se ve al pedirlo con el botón "Ver todo el menú".
+  // Se recuerda durante la sesión.
+  public mostrarMenuCompleto: boolean = false;
+  private readonly CLAVE_MENU_COMPLETO = 'menu_completo_abierto';
+
+  @ViewChild('listaOpciones') listaOpciones?: ElementRef<HTMLElement>;
 
   // Ids de grupos expandidos manualmente (cuando NO hay búsqueda activa)
   private expandidos: Set<string> = new Set<string>();
@@ -145,6 +182,7 @@ export class MenuComponent implements OnInit {
     this.verificarCumpleanos();
     this.cargarAccesosRapidos();
     this.cargarArbolMenu();
+    this.cargarEstadoMenuCompleto();
     this.cargarAlertasNoLeidas();
     // Se pide el buscador de personas por debajo. Si el cache de la sesión
     // sigue vigente no genera petición; si está vencido se refresca solo.
@@ -208,6 +246,152 @@ export class MenuComponent implements OnInit {
     const arbolCompleto = this.menuArbolService.getArbol();
     this.arbolMenu = this.filtrarPorPermiso(arbolCompleto);
     this.arbolVisible = this.arbolMenu;
+    this.indiceOpciones = this.aplanar(this.arbolMenu, []);
+  }
+
+  /**
+   * Recorre el árbol y deja una lista con cada nodo que tiene ruta, junto
+   * con el camino de grupos por el que se llega. Si una misma ruta aparece
+   * en dos lugares del árbol, queda una sola vez (la primera).
+   */
+  private aplanar(nodos: MenuNodo[], camino: string[], vistas: Set<string> = new Set<string>()): OpcionPlana[] {
+    const resultado: OpcionPlana[] = [];
+
+    for (const nodo of nodos) {
+      if (nodo.ruta && !vistas.has(nodo.ruta)) {
+        vistas.add(nodo.ruta);
+        resultado.push({
+          id: nodo.id,
+          label: nodo.label,
+          icono: nodo.icono,
+          imagen: nodo.imagen,
+          ruta: nodo.ruta,
+          camino,
+          keywords: nodo.keywords || [],
+        });
+      }
+      if (nodo.hijos && nodo.hijos.length > 0) {
+        resultado.push(...this.aplanar(nodo.hijos, [...camino, nodo.label], vistas));
+      }
+    }
+
+    return resultado;
+  }
+
+  /**
+   * Busca en la lista plana. Orden: primero las que empiezan por lo escrito,
+   * luego las que tienen una palabra que empieza así, luego las que lo
+   * contienen en el nombre, después las que coinciden por palabra clave y al
+   * final las que están dentro de un grupo que coincide.
+   */
+  private buscarOpciones(termino: string): void {
+    const t = this.normalizar(termino);
+    const encontradas: OpcionEncontrada[] = [];
+
+    for (const opcion of this.indiceOpciones) {
+      const label = this.normalizar(opcion.label);
+      let rango = 0;
+
+      if (label.startsWith(t)) {
+        rango = 1;
+      } else if (label.split(/\s+/).some((palabra) => palabra.startsWith(t))) {
+        rango = 2;
+      } else if (label.includes(t)) {
+        rango = 3;
+      } else if (opcion.keywords.some((k) => this.normalizar(k || '').includes(t))) {
+        rango = 4;
+      } else if (opcion.camino.some((grupo) => this.normalizar(grupo).includes(t))) {
+        rango = 5;
+      }
+
+      if (rango > 0) {
+        encontradas.push({ ...opcion, rango });
+      }
+    }
+
+    encontradas.sort((a, b) =>
+      a.rango - b.rango || a.label.localeCompare(b.label, 'es')
+    );
+
+    this.totalOpcionesEncontradas = encontradas.length;
+    this.opcionesEncontradas = encontradas.slice(0, this.MAX_OPCIONES_VISIBLES);
+    this.indiceActivo = this.opcionesEncontradas.length > 0 ? 0 : -1;
+  }
+
+  /** Camino para mostrar debajo del nombre: "Reportes › Académicos" */
+  textoCamino(opcion: OpcionPlana): string {
+    return opcion.camino.join(' › ');
+  }
+
+  irAOpcionEncontrada(opcion: OpcionPlana): void {
+    this.limpiarBusqueda();
+    this.selectOption(opcion.ruta);
+  }
+
+  /**
+   * Teclado en el buscador: flechas para moverse por la lista, Enter para
+   * entrar (a la resaltada, o a la primera) y Escape para limpiar.
+   */
+  onTeclaBuscador(event: KeyboardEvent): void {
+    const total = this.opcionesEncontradas.length;
+
+    switch (event.key) {
+      case 'ArrowDown':
+        if (total > 0) {
+          event.preventDefault();
+          this.indiceActivo = (this.indiceActivo + 1) % total;
+          this.mostrarActivo();
+        }
+        break;
+      case 'ArrowUp':
+        if (total > 0) {
+          event.preventDefault();
+          this.indiceActivo = this.indiceActivo <= 0 ? total - 1 : this.indiceActivo - 1;
+          this.mostrarActivo();
+        }
+        break;
+      case 'Enter':
+        if (total > 0) {
+          event.preventDefault();
+          this.irAOpcionEncontrada(this.opcionesEncontradas[Math.max(this.indiceActivo, 0)]);
+        }
+        break;
+      case 'Escape':
+        this.limpiarBusqueda();
+        break;
+    }
+  }
+
+  /** Deja a la vista el renglón resaltado cuando la lista es larga. */
+  private mostrarActivo(): void {
+    setTimeout(() => {
+      const lista = this.listaOpciones?.nativeElement;
+      const activo = lista?.querySelector('.opcion-resultado.activo') as HTMLElement | null;
+      activo?.scrollIntoView({ block: 'nearest' });
+    });
+  }
+
+  trackByOpcion(_index: number, opcion: OpcionPlana): string {
+    return opcion.id;
+  }
+
+  // ---- Botón "Ver todo el menú" ----
+
+  private cargarEstadoMenuCompleto(): void {
+    try {
+      this.mostrarMenuCompleto = sessionStorage.getItem(this.CLAVE_MENU_COMPLETO) === '1';
+    } catch {
+      this.mostrarMenuCompleto = false;
+    }
+  }
+
+  alternarMenuCompleto(): void {
+    this.mostrarMenuCompleto = !this.mostrarMenuCompleto;
+    try {
+      sessionStorage.setItem(this.CLAVE_MENU_COMPLETO, this.mostrarMenuCompleto ? '1' : '0');
+    } catch {
+      // Sin almacenamiento solo se pierde el recuerdo del estado
+    }
   }
 
   /**
@@ -245,12 +429,14 @@ export class MenuComponent implements OnInit {
     if (termino.length === 0) {
       this.enBusqueda = false;
       this.arbolVisible = this.arbolMenu;
+      this.limpiarOpciones();
       this.limpiarPersonas();
       return;
     }
 
+    // Al buscar, las opciones salen en lista plana; el árbol no se filtra.
     this.enBusqueda = true;
-    this.arbolVisible = this.filtrarPorTexto(this.arbolMenu, termino);
+    this.buscarOpciones(termino);
     this.buscarPersonas(termino);
   }
 
@@ -258,35 +444,14 @@ export class MenuComponent implements OnInit {
     this.terminoBusqueda = '';
     this.enBusqueda = false;
     this.arbolVisible = this.arbolMenu;
+    this.limpiarOpciones();
     this.limpiarPersonas();
   }
 
-  /**
-   * Filtra el árbol dejando los nodos cuyo label coincide con el término y la cadena
-   * de ancestros necesaria para llegar a ellos. Si un grupo coincide por sí mismo,
-   * se conserva con todos sus hijos.
-   */
-  private filtrarPorTexto(nodos: MenuNodo[], termino: string): MenuNodo[] {
-    const resultado: MenuNodo[] = [];
-
-    for (const nodo of nodos) {
-      const coincide = this.coincideTexto(nodo, termino);
-
-      if (nodo.hijos && nodo.hijos.length > 0) {
-        if (coincide) {
-          resultado.push({ ...nodo });
-          continue;
-        }
-        const hijosCoinciden = this.filtrarPorTexto(nodo.hijos, termino);
-        if (hijosCoinciden.length > 0) {
-          resultado.push({ ...nodo, hijos: hijosCoinciden });
-        }
-      } else if (coincide) {
-        resultado.push({ ...nodo });
-      }
-    }
-
-    return resultado;
+  private limpiarOpciones(): void {
+    this.opcionesEncontradas = [];
+    this.totalOpcionesEncontradas = 0;
+    this.indiceActivo = -1;
   }
 
   /**

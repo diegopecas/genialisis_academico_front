@@ -12,7 +12,11 @@ import { CursosExtraService } from '../../../../services/cursos-extra.service';
 import { TarifasCursosExtraService } from '../../../../services/tarifas-cursos-extra.service';
 import { ExportarPdfDatosPagoService, DatosPagoPDF } from '../../../../services/exportar-pdf-datos-pago.service';
 import { InstitucionConfigService } from '../../../../services/institucion-config.service';
-import Swal from 'sweetalert2';
+import SwalBase from 'sweetalert2';
+
+// Alertas con el boton de confirmar en dorado (el de la libreria es morado).
+// Los que ponen su propio color (rechazar en rojo) lo conservan.
+const Swal = SwalBase.mixin({ confirmButtonColor: '#d4af37' });
 
 @Component({
   selector: 'app-ver-solicitud-inscripcion',
@@ -263,7 +267,58 @@ export class VerSolicitudInscripcionComponent implements OnInit {
   textoTipoLinea(linea: any): string {
     const tipos: any = { matricula: 'Matrícula', pension: 'Pensión', paquete: 'Paquete', unico: 'Pago único' };
     const tipo = tipos[linea.tipo] || '';
-    return linea.tipo === 'paquete' && linea.numero_sesiones ? `${tipo} · ${linea.numero_sesiones} sesiones` : tipo;
+    if (linea.tipo !== 'paquete' || !linea.numero_sesiones) {
+      return tipo;
+    }
+    const dias = this.diasPorSemana(linea);
+    const textoDias = dias ? ` · ${dias} ${dias === 1 ? 'día' : 'días'} a la semana` : '';
+    return `${tipo} · ${linea.numero_sesiones} sesiones${textoDias}`;
+  }
+
+  // ===== Plan y horarios: en los paquetes por sesiones van de la mano =====
+  // Un paquete se usa en el mes (4 semanas): 4 sesiones = 1 día a la semana,
+  // 8 = 2 días... Los planes que no son por sesiones (semanas, pago único,
+  // adicionales) no tienen que ver con los horarios.
+  private readonly semanasPorPaquete = 4;
+
+  /** Días a la semana que espera un paquete, o null si no cuadra en semanas */
+  diasPorSemana(linea: any): number | null {
+    const sesiones = Number(linea?.numero_sesiones || 0);
+    if (linea?.tipo !== 'paquete' || sesiones < this.semanasPorPaquete || sesiones % this.semanasPorPaquete !== 0) {
+      return null;
+    }
+    return sesiones / this.semanasPorPaquete;
+  }
+
+  // Al marcar o desmarcar horarios se preselecciona el paquete que
+  // corresponde (horarios x 4 sesiones), si el curso lo tiene. Se puede
+  // cambiar después: es una ayuda, no una regla.
+  private sugerirPlanPorHorarios() {
+    const cantidad = this.horariosMarcados.size;
+    if (cantidad === 0) return;
+    const paquetes = this.lineasTarifa.filter((l: any) => this.diasPorSemana(l) !== null);
+    const sugerido = paquetes.find((l: any) => this.diasPorSemana(l) === cantidad);
+    if (!sugerido) return;
+    paquetes.forEach((l: any) => this.lineasMarcadas.delete(l.id));
+    this.lineasMarcadas.add(sugerido.id);
+  }
+
+  /**
+   * Aviso cuando el paquete marcado no cuadra con los horarios marcados
+   * (por ejemplo 8 sesiones con un solo horario). No bloquea la aprobación:
+   * puede haber casos especiales, como clase doble.
+   */
+  get avisoPlanHorarios(): string {
+    if (this.reservaAutomatica || this.horarios.length === 0) return '';
+    const paquetes = this.lineasTarifa.filter((l: any) => this.lineasMarcadas.has(l.id) && this.diasPorSemana(l) !== null);
+    if (paquetes.length !== 1) return '';
+    const dias = this.diasPorSemana(paquetes[0]) as number;
+    const marcados = this.horariosMarcados.size;
+    if (dias === marcados) return '';
+    const textoDias = `${dias} ${dias === 1 ? 'día' : 'días'} a la semana`;
+    const textoMarcados = marcados === 0 ? 'no marcaste ningún horario'
+      : `marcaste ${marcados} ${marcados === 1 ? 'horario' : 'horarios'}`;
+    return `El plan de ${paquetes[0].numero_sesiones} sesiones es de ${textoDias} y ${textoMarcados}.`;
   }
 
   correoDestino(): string {
@@ -418,6 +473,7 @@ export class VerSolicitudInscripcionComponent implements OnInit {
     } else if (!h.lleno) {
       this.horariosMarcados.add(h.id);
     }
+    this.sugerirPlanPorHorarios();
   }
 
   textoHorario(h: any): string {

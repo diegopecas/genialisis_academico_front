@@ -202,8 +202,9 @@ export class CalificacionEstudiantesComponent implements OnInit {
     return (horaFinal.length === 5 ? horaFinal + ':00' : horaFinal) < horaActual;
   }
 
+  // Solo los parámetros activos, en su orden. Los apagados no se califican.
   private cargarParametrosCalificaciones(): void {
-    this.parametrosCalificacionesService.obtenerTodos().subscribe((response: any) => {
+    this.parametrosCalificacionesService.obtenerActivos().subscribe((response: any) => {
       this.parametrosCalificaciones = response.body;
       this.cargarValoresParametros();
     });

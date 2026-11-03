@@ -344,6 +344,25 @@ $light-gold: rgba(212, 175, 55, 0.1);
 
 .chip-ok { background: #e7f4e4; color: #3f7a35; }
 .chip-alerta { background: #fdecea; color: #b0413e; }
+
+/* Aviso cuando el paquete no cuadra con los horarios marcados */
+.aviso-cuadre {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 8px 0;
+  padding: 9px 12px;
+  border-radius: 10px;
+  background: #fff6dc;
+  border: 1px solid rgba(212, 175, 55, 0.45);
+  color: #7a5c0e;
+  font-size: 0.88rem;
+
+  i {
+    margin-top: 2px;
+    color: $gold;
+  }
+}
 .chip-info { background: rgba(212, 175, 55, 0.18); color: #8a6d12; }
 .chip-gris { background: #f1efea; color: #6b6b6b; }
 
