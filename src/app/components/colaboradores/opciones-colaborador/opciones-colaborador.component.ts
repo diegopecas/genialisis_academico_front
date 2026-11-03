@@ -6,15 +6,7 @@ import Swal from 'sweetalert2';
 import { HeaderComponent } from '../../../common/header/header.component';
 import { ColaboradoresService } from '../../../services/colaboradores.service';
 import { PermisosService } from '../../../services/permisos.service';
-
-interface OpcionColaborador {
-  id: string;
-  label: string;
-  icono: string;
-  categoria: string;
-  permiso: string | null; // null => visible para todos
-  ruta: string | null; // null => acción en sitio (ej. eliminar)
-}
+import { OpcionesColaboradorService, OpcionColaborador } from '../../../services/opciones-colaborador.service';
 
 interface CategoriaOpciones {
   nombre: string;
@@ -38,27 +30,14 @@ export class OpcionesColaboradorComponent implements OnInit {
   // Registro recibido desde el listado por router state (evita re-consultar)
   private registroDesdeState: any = null;
 
-  private opciones: OpcionColaborador[] = [
-    { id: 'asistencia', label: 'Asistencia', icono: '/assets/images/asistencia.png', categoria: 'Tiempo y asistencia', permiso: null, ruta: '/colaboradores/asistencia/' },
-    { id: 'gestion_tiempo', label: 'Gestión Tiempo', icono: '/assets/images/tiempo.png', categoria: 'Tiempo y asistencia', permiso: null, ruta: '/colaboradores/gestion-tiempo/' },
-    { id: 'productos_servicios', label: 'Productos/Servicios', icono: '/assets/images/productos.png', categoria: 'Servicios y cobros', permiso: null, ruta: '/colaboradores/productos-servicios/' },
-    { id: 'pagos_recibidos', label: 'Pagos Recibidos', icono: '/assets/images/pagos.png', categoria: 'Servicios y cobros', permiso: null, ruta: '/colaboradores/pagos-recibidos/' },
-    { id: 'prestamos', label: 'Préstamos', icono: '/assets/images/prestamos.png', categoria: 'Servicios y cobros', permiso: null, ruta: '/colaboradores/prestamos/' },
-    { id: 'contratos', label: 'Contratos', icono: '/assets/images/contratos.png', categoria: 'Servicios y cobros', permiso: 'colaboradores.contratos', ruta: '/colaboradores/contratos/' },
-    { id: 'editar', label: 'Editar', icono: '/assets/images/editar.png', categoria: 'Gestión', permiso: null, ruta: '/colaboradores/editar/' },
-    { id: 'reportes_correo', label: 'Reportes por Correo', icono: '/assets/images/reportes-correo.png', categoria: 'Gestión', permiso: 'colaboradores.reportes_correo', ruta: '/colaboradores/reportes-correo/' },
-    { id: 'eliminar', label: 'Eliminar', icono: '/assets/images/eliminar.png', categoria: 'Gestión', permiso: null, ruta: null },
-  ];
-
-  private ordenCategorias = ['Tiempo y asistencia', 'Servicios y cobros', 'Gestión'];
-
   public categorias: CategoriaOpciones[] = [];
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private colaboradoresService: ColaboradoresService,
-    private permisosService: PermisosService
+    private permisosService: PermisosService,
+    private opcionesColaboradorService: OpcionesColaboradorService
   ) {
     const nav = this.router.getCurrentNavigation();
     const estado: any = nav?.extras?.state;
@@ -73,11 +52,16 @@ export class OpcionesColaboradorComponent implements OnInit {
     });
   }
 
+  /**
+   * Las opciones salen del mismo catálogo que usa el buscador del menú, para
+   * que una opción nueva aparezca en los dos lados.
+   */
   configurarOpciones(): void {
-    this.categorias = this.ordenCategorias
+    const opciones = this.opcionesColaboradorService.getOpciones();
+    this.categorias = this.opcionesColaboradorService.getOrdenCategorias()
       .map((nombre) => ({
         nombre,
-        opciones: this.opciones.filter(
+        opciones: opciones.filter(
           (o) =>
             o.categoria === nombre &&
             (o.permiso === null || this.permisosService.tienePermiso(o.permiso))

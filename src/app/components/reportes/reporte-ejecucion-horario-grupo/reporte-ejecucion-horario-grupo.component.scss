@@ -1,0 +1,775 @@
+@use '../../../common/estilos/grilla-horario' as grilla;
+
+$gold: #d4af37;
+$gold-dark: #b8892f;
+$dark: #2C2C2C;
+$border-color: #dee2e6;
+$bg-light: #f8f9fa;
+
+// Colores vibrantes del resultado de cada franja
+$verde: #16a34a;
+$verde-claro: #22c55e;
+$amarillo: #eab308;
+$amarillo-claro: #facc15;
+$rojo: #e11d48;
+$rojo-claro: #f43f5e;
+$azul: #2563eb;
+$azul-claro: #3b82f6;
+
+// Alto de cada fila de 5 minutos; debe coincidir con altoFila del componente
+$alto-fila: 12px;
+
+.modulo {
+  min-height: 100vh;
+}
+
+// Filtros en tarjeta glaseada
+.tarjeta-filtros {
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 4px 18px rgba(120, 95, 40, 0.06);
+
+  .form-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+
+    i { color: $gold; }
+  }
+}
+
+// Resumen en píldoras pastel
+.resumen-pie {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 0.9rem;
+}
+
+.resumen-item {
+  font-size: 0.82rem;
+  color: #7d725f;
+  background: #f6ecd6;
+  border-radius: 999px;
+  padding: 5px 12px;
+
+  &.exito { background: #e3f1ea; color: #2f6b4f; }
+  &.ambar { background: #fbf1d6; color: #8a6d1f; }
+  &.peligro { background: #f8e4e1; color: #9a4a3f; }
+  &.gris { background: #eef0f2; color: #5f6b76; cursor: help; }
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 3rem 1rem;
+  color: #7d725f;
+}
+
+.estado-vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 2.5rem 1rem;
+  color: #9a8f7a;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px dashed rgba(212, 175, 55, 0.4);
+
+  i { font-size: 2rem; color: $gold; }
+  p { margin: 0; }
+
+  &.estado-vacio-compacto { padding: 0.9rem; }
+}
+
+// Variables de las pestañas (mismas de crear-grupo)
+$gold-tab: #d4af37;
+$black-tab: #222;
+$light-gold-tab: rgba(212, 175, 55, 0.1);
+
+// =============================================
+// Pestañas DESKTOP (mismo estilo de crear-grupo)
+// =============================================
+.tabs-container {
+  margin: 1.2rem 0 0 0;
+  padding: 0 1.5rem;
+}
+
+// Por defecto: desktop visible, móvil oculto
+.tabs-desktop {
+  display: block;
+}
+
+.tabs-movil {
+  display: none;
+}
+
+.tabs-nav {
+  border-bottom: 1px solid $gold-tab;
+  flex-wrap: nowrap;
+  display: flex;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.tab-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  color: $black-tab;
+  font-weight: 500;
+  margin-right: 3px;
+  border: 1px solid transparent;
+  border-radius: 6px 6px 0 0;
+  white-space: nowrap;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  background: none;
+
+  i {
+    color: $gold-tab;
+    font-size: 1.1rem;
+  }
+
+  &:hover:not(.active) {
+    border-color: rgba($gold-tab, 0.3);
+    background-color: $light-gold-tab;
+  }
+
+  &.active {
+    color: $black-tab;
+    border-color: $gold-tab $gold-tab #fff;
+    background-color: #fff;
+    font-weight: 600;
+
+    &:hover {
+      border-color: $gold-tab $gold-tab #fff;
+    }
+  }
+}
+
+// Cantidad de reportes que ya tiene, junto al nombre de la pestaña
+.tab-contador {
+  min-width: 22px;
+  height: 22px;
+  padding: 0 7px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #8a6d1f;
+  background: rgba($gold-tab, 0.18);
+}
+
+.tab-content {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// =============================================
+// Pestañas MOVIL (hamburguesa)
+// =============================================
+.tabs-movil-header {
+  border-bottom: 2px solid $gold-tab;
+}
+
+.tabs-movil-trigger {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 16px;
+  background: #fff;
+  border: none;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: $black-tab;
+
+  > i:first-child {
+    color: $gold-tab;
+    font-size: 1.2rem;
+    width: 24px;
+    text-align: center;
+  }
+
+  .tabs-movil-label {
+    flex: 1;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    i {
+      color: $gold-tab;
+      font-size: 0.95rem;
+    }
+  }
+
+  .tabs-movil-chevron {
+    color: #999;
+    font-size: 0.75rem;
+    transition: transform 0.3s ease;
+
+    &.rotado {
+      transform: rotate(180deg);
+    }
+  }
+}
+
+.tabs-movil-dropdown {
+  background: #fff;
+  border: 1px solid #e9ecef;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tabs-movil-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 20px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #495057;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid #f1f3f5;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  i {
+    color: $gold-tab;
+    font-size: 1rem;
+    width: 20px;
+    text-align: center;
+  }
+
+  &:hover {
+    background-color: $light-gold-tab;
+  }
+
+  &.active {
+    background-color: $light-gold-tab;
+    color: $black-tab;
+    font-weight: 600;
+    border-left: 3px solid $gold-tab;
+    padding-left: 17px;
+  }
+}
+
+// Filtros de la vista (no consultan)
+.filtros-vista {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-bottom: 0.6rem;
+
+  .form-select {
+    width: auto;
+    min-width: 190px;
+  }
+
+  .check-filtro {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.82rem;
+    color: #3a3a3a;
+    cursor: pointer;
+  }
+}
+
+// Lo que no coincide con los filtros queda tenue, no desaparece
+.atenuada {
+  opacity: 0.25;
+}
+
+// ============================================
+// Leyenda
+// ============================================
+.leyenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.78rem;
+  color: #3a3a3a;
+
+  .leyenda-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .leyenda-marca {
+    display: inline-block;
+    width: 18px;
+    height: 12px;
+    border-radius: 4px;
+  }
+}
+
+// ============================================
+// Matriz: usa los estilos compartidos de la grilla de horario; aquí las
+// columnas son los días del rango y cada franja es una sola caja del color
+// de lo que pasó, con el texto adentro.
+// ============================================
+// Un solo contenedor con scroll en los dos sentidos: así el encabezado de
+// los días queda fijo arriba y la columna de horas fija a la izquierda
+.horario-scroll-container {
+  overflow: auto;
+  max-height: 75vh;
+  max-width: 100%;
+  border-radius: 8px;
+  -webkit-overflow-scrolling: touch;
+
+  // Manito para arrastrar solo en escritorio (mouse)
+  @media (hover: hover) and (pointer: fine) {
+    cursor: grab;
+
+    .caja-franja,
+    .bloque-fuera {
+      cursor: grab;
+    }
+
+    &.arrastrando {
+      cursor: grabbing;
+      user-select: none;
+
+      .caja-franja,
+      .bloque-fuera {
+        cursor: grabbing;
+      }
+    }
+  }
+
+  &::-webkit-scrollbar { height: 6px; }
+  &::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 3px; }
+  &::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+}
+
+.horario-grid {
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08);
+  // La grilla compartida trae su propio scroll; aquí lo maneja el contenedor,
+  // si no los encabezados no quedan fijos
+  overflow: visible;
+}
+
+// Encima de las cajas al desplazar: horas (5), encabezado de días (6) y la esquina (7)
+.horario-time-cell { z-index: 5; }
+.horario-time-header { z-index: 7; }
+
+.horario-header-dias {
+  display: grid;
+  grid-template-columns: grilla.$grilla-ancho-hora repeat(auto-fit, minmax(0, 1fr));
+  grid-auto-flow: column;
+  background: #f6f7f8;
+  border-bottom: 2px solid #e4e6e8;
+  position: sticky;
+  top: 0;
+  z-index: 6;
+}
+
+// Filas más altas que en el resto de grillas, para que el texto quepa
+.horario-row {
+  grid-template-columns: grilla.$grilla-ancho-hora repeat(auto-fit, minmax(0, 1fr));
+  grid-auto-flow: column;
+  min-height: $alto-fila;
+  height: $alto-fila;
+}
+
+.encabezado-dia {
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+
+  .encabezado-nombre {
+    font-weight: 700;
+    color: $dark;
+    white-space: nowrap;
+  }
+
+  .encabezado-resumen {
+    font-size: 0.62rem;
+    font-weight: 600;
+    color: #6c757d;
+    white-space: nowrap;
+  }
+}
+
+// Colores vibrantes del resultado: van en la barra lateral y en la leyenda
+.color-verde { background: $verde-claro; }
+.color-amarillo { background: $amarillo; }
+.color-rojo { background: $rojo-claro; }
+.color-azul { background: $azul-claro; }
+.color-gris { background: #94a3b8; }
+
+// Una franja = una caja con el fondo pastel de su área (inline) y la barra
+// lateral del color de lo que pasó. Cada celda de 5 minutos pinta su pedazo
+// y la de inicio lleva el texto, con el alto exacto de la franja.
+.caja-franja {
+  position: relative;
+  flex: 1 1 auto;
+  align-self: stretch;
+  min-width: 0;
+  margin: 0 3px;
+  cursor: pointer;
+  color: $dark;
+  border-left: 6px solid #94a3b8;
+  border-right: 1px solid #eceef0;
+
+  &.barra-verde { border-left-color: $verde-claro; }
+  &.barra-amarillo { border-left-color: $amarillo; }
+  &.barra-rojo { border-left-color: $rojo-claro; }
+  &.barra-azul { border-left-color: $azul-claro; }
+
+  &.es-inicio {
+    margin-top: 2px;
+    border-top: 1px solid #eceef0;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    z-index: 2;
+  }
+
+  &.es-fin {
+    margin-bottom: 2px;
+    border-bottom: 1px solid #eceef0;
+    border-bottom-left-radius: 6px;
+    border-bottom-right-radius: 6px;
+  }
+
+  // Tapa la línea de la media hora que pinta la fila, para que la caja se vea entera
+  &:not(.es-inicio) { margin-top: -1px; }
+
+  &:hover { filter: brightness(0.97); }
+}
+
+.caja-texto {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 3px 6px;
+  overflow: hidden;
+
+  .caja-area {
+    font-size: 0.6rem;
+    font-weight: 800;
+    color: #34424e;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .caja-hora {
+    font-size: 0.55rem;
+    color: #8a97a3;
+    line-height: 1.2;
+  }
+
+  // Las líneas se parten si no caben a lo ancho; lo que no quepa en el
+  // alto de la franja se ve al tocarla
+  .caja-linea {
+    font-size: 0.62rem;
+    font-weight: 600;
+    color: #3a3a3a;
+    line-height: 1.25;
+    margin-top: 1px;
+  }
+}
+
+.barra-verde .caja-linea { color: #15803d; }
+.barra-amarillo .caja-linea { color: #a16207; }
+.barra-rojo .caja-linea { color: #be123c; }
+.barra-azul .caja-linea { color: #1d4ed8; }
+
+// Franja adicional debajo del horario: las clases dictadas fuera de horario
+.fila-fuera {
+  height: auto;
+  border-top: 3px solid #e4e6e8;
+  background: #fbfaf7;
+}
+
+.texto-fuera {
+  font-size: 0.58rem;
+  line-height: 1.15;
+  padding: 8px 4px;
+  color: #6c757d;
+  text-align: center;
+}
+
+.celda-fuera {
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 5px;
+  padding: 6px 3px;
+}
+
+.bloque-fuera {
+  padding: 5px 7px;
+  border-radius: 6px;
+  border-left: 6px solid $amarillo;
+  border-top: 1px solid #eceef0;
+  border-right: 1px solid #eceef0;
+  border-bottom: 1px solid #eceef0;
+  cursor: pointer;
+  font-size: 0.62rem;
+  line-height: 1.3;
+
+  &.cruce { border-left-color: #ca8a04; }
+
+  &:hover { filter: brightness(0.97); }
+
+  .fuera-hora { font-weight: 700; color: #a16207; }
+  .fuera-area {
+    font-weight: 800;
+    color: #34424e;
+    text-transform: uppercase;
+    font-size: 0.58rem;
+  }
+  .fuera-motivo { color: #a16207; font-weight: 600; }
+  .fuera-actividad { color: #5f6b76; }
+}
+
+.linea-detalle {
+  font-size: 0.9rem;
+  padding: 4px 0;
+  border-bottom: 1px dashed #eee;
+}
+
+// ============================================
+// Detalle (modal)
+// ============================================
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+}
+
+.modal-content-franja {
+  background: rgba(255, 255, 255, 0.97);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 15px;
+  width: 100%;
+  max-width: 560px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+.modal-header-custom {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #e0e0e0;
+  border-left: 6px solid $gold;
+
+  &.borde-verde { border-left-color: $verde; }
+  &.borde-amarillo { border-left-color: $amarillo; }
+  &.borde-rojo { border-left-color: $rojo; }
+  &.borde-azul { border-left-color: $azul; }
+  &.borde-gris { border-left-color: #94a3b8; }
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+
+  h3 {
+    margin: 0;
+    color: #333;
+    font-size: 1.05rem;
+    font-weight: 700;
+  }
+
+  .btn-close-custom {
+    background: none;
+    border: none;
+    font-size: 1.3rem;
+    color: #999;
+    cursor: pointer;
+    line-height: 1;
+
+    &:hover { color: #dc3545; }
+  }
+}
+
+.modal-body-custom {
+  padding: 1rem 1.25rem 1.25rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.franja-datos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+
+  .franja-dato {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.2rem;
+    font-size: 0.88rem;
+    color: $dark;
+  }
+
+  .franja-etiqueta {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+}
+
+.franja-subtitulo {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: $gold-dark;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding-bottom: 0.3rem;
+  margin-bottom: 0.6rem;
+  border-bottom: 2px solid rgba(212, 175, 55, 0.35);
+}
+
+.actividad-modal {
+  padding: 0.6rem 0.75rem;
+  border: 1px solid $border-color;
+  border-radius: 0.5rem;
+  background: $bg-light;
+
+  & + & { margin-top: 0.5rem; }
+
+  .actividad-titulo {
+    font-weight: 600;
+    line-height: 1.25;
+  }
+
+  .actividad-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    font-size: 0.78rem;
+    color: #666;
+    margin-top: 0.15rem;
+
+    .hora {
+      font-family: 'Courier New', monospace;
+      font-weight: 600;
+    }
+  }
+}
+
+.badge-estado {
+  display: inline-block;
+  padding: 0.25rem 0.65rem;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.badge-ejecutada { background-color: #d4edda; color: #155724; border-color: rgba(21, 87, 36, 0.2); }
+.badge-en_curso { background-color: #d1ecf1; color: #0c5460; border-color: rgba(12, 84, 96, 0.25); }
+.badge-fuera_hora { background-color: rgba(255, 152, 0, 0.15); color: #8a4b00; border-color: rgba(255, 152, 0, 0.4); }
+.badge-sin_ejecutar { background-color: #f8d7da; color: #721c24; border-color: rgba(114, 28, 36, 0.2); }
+.badge-por_venir { background-color: #e2e3e5; color: #383d41; border-color: rgba(56, 61, 65, 0.2); }
+
+.tag-motivo,
+.tag-tarde,
+.tag-cruce {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 152, 0, 0.4);
+  background: rgba(255, 152, 0, 0.12);
+  color: #8a4b00;
+  white-space: nowrap;
+}
+
+// ============================================
+// Celular: la misma matriz, más angosta y con desplazamiento lateral
+// ============================================
+@media (max-width: 768px) {
+  .tabs-desktop { display: none; }
+  .tabs-movil { display: block; }
+  .tabs-container { padding: 0 12px; }
+
+  .filtros-vista .form-select {
+    min-width: 0;
+    flex: 1 1 100%;
+  }
+
+  .horario-header-dias,
+  .horario-row {
+    grid-template-columns: grilla.$grilla-ancho-hora-movil repeat(auto-fit, minmax(0, 1fr));
+  }
+
+  .horario-row:not(.fila-fuera) {
+    min-height: $alto-fila;
+    height: $alto-fila;
+  }
+
+  .modal-content-franja { max-height: 95vh; }
+}

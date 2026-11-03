@@ -10,6 +10,7 @@ import { AyudaModalService } from '../../services/ayuda-modal.service';
 import { AccesosRapidosService, AccesoRapido } from '../../services/accesos-rapidos.service';
 import { MenuArbolService, MenuNodo } from '../../services/menu-arbol.service';
 import { OpcionesEstudianteService, OpcionEstudiante } from '../../services/opciones-estudiante.service';
+import { OpcionesColaboradorService, OpcionColaborador } from '../../services/opciones-colaborador.service';
 import { DailyMessageComponent } from '../daily-message/daily-message.component';
 import { NotificacionesColaboradoresDestinatariosService } from '../../services/notificaciones-colaboradores-destinatarios.service';
 import { PanelConfiguracionComponent } from '../../common/panel-configuracion/panel-configuracion.component';
@@ -126,6 +127,7 @@ export class MenuComponent implements OnInit {
     private institucionConfigService: InstitucionConfigService,
     private personasService: PersonasService,
     private opcionesEstudianteService: OpcionesEstudianteService,
+    private opcionesColaboradorService: OpcionesColaboradorService,
     public permisosService: PermisosService,
     private ayudaModalService: AyudaModalService,
     private accesosRapidosService: AccesosRapidosService,
@@ -567,12 +569,12 @@ export class MenuComponent implements OnInit {
     }
 
     if (fila.tipo === 'colaborador') {
-      const opciones = this.opcionesEstudianteService
-        .getOpcionesColaboradorNavegables()
-        .filter((opcion: OpcionEstudiante) =>
+      const opciones = this.opcionesColaboradorService
+        .getOpcionesNavegables()
+        .filter((opcion: OpcionColaborador) =>
           !opcion.permiso || this.permisosService.tienePermiso(opcion.permiso)
         )
-        .map((opcion: OpcionEstudiante) => ({
+        .map((opcion: OpcionColaborador) => ({
           id: opcion.id,
           label: opcion.label,
           icono: opcion.icono,
@@ -581,8 +583,8 @@ export class MenuComponent implements OnInit {
 
       // Las secciones del editor no son pantallas: van sobre la misma ruta
       // con la seccion como parametro de consulta.
-      const secciones = this.opcionesEstudianteService
-        .getSeccionesColaborador()
+      const secciones = this.opcionesColaboradorService
+        .getSecciones()
         .map((seccion: { id: string; label: string; icono: string }) => ({
           id: 'seccion_' + seccion.id,
           label: seccion.label,
@@ -624,18 +626,18 @@ export class MenuComponent implements OnInit {
       return '';
     }
 
-    const coincide = (opcion: OpcionEstudiante) =>
+    const coincide = (opcion: OpcionEstudiante | OpcionColaborador) =>
       (!opcion.permiso || this.permisosService.tienePermiso(opcion.permiso))
       && this.normalizarTexto(opcion.label).includes(termino);
 
     const deEstudiante = this.opcionesEstudianteService.getOpcionesNavegables().filter(coincide);
-    const deColaborador = this.opcionesEstudianteService.getOpcionesColaboradorNavegables().filter(coincide);
+    const deColaborador = this.opcionesColaboradorService.getOpcionesNavegables().filter(coincide);
 
     const seccionCoincide = (seccion: { label: string }) =>
       this.normalizarTexto(seccion.label).includes(termino);
 
-    const seccionesColaborador = this.opcionesEstudianteService
-      .getSeccionesColaborador()
+    const seccionesColaborador = this.opcionesColaboradorService
+      .getSecciones()
       .filter(seccionCoincide);
     const seccionesAcudiente = this.opcionesEstudianteService
       .getSeccionesAcudiente()

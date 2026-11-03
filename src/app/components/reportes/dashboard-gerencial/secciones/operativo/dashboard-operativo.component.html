@@ -66,19 +66,14 @@
             </div>
           </div>
 
+          <!-- Temporales: van por días, así que solo se cuenta cuántos vinieron, sin porcentaje -->
           <div class="desglose-item desglose-temporales" *ngIf="resumen.asistencia.total_activos_temporales > 0">
             <div class="desglose-icono">✨</div>
             <div class="desglose-contenido">
               <div class="desglose-valores">
                 <span class="desglose-num">{{ resumen.asistencia.total_asistieron_temporales }}</span>
-                <span class="desglose-sep">/</span>
-                <span class="desglose-tot">{{ resumen.asistencia.total_activos_temporales }}</span>
-                <span class="desglose-pct">{{ resumen.asistencia.porcentaje_temporales }}%</span>
               </div>
-              <div class="desglose-label">Temporales</div>
-            </div>
-            <div class="desglose-barra-contenedor">
-              <div class="desglose-barra desglose-barra-temp" [style.width.%]="resumen.asistencia.porcentaje_temporales"></div>
+              <div class="desglose-label">Temporales vinieron hoy</div>
             </div>
           </div>
         </div>
@@ -112,20 +107,24 @@
               <img *ngIf="grupo.icono" [src]="grupo.icono" class="grupo-icono" />
               <span class="grupo-nombre">{{ grupo.nombre_grupo }}</span>
             </div>
-            <div class="grupo-card-valores">
-              <span class="grupo-numero">{{ grupo.asistieron }}</span>
+            <!-- X/Y y porcentaje solo de permanentes; los temporales que vinieron van aparte -->
+            <div class="grupo-card-valores" *ngIf="grupo.total_permanentes > 0">
+              <span class="grupo-numero">{{ grupo.asistieron_permanentes }}</span>
               <span class="grupo-separador">/</span>
-              <span class="grupo-total">{{ grupo.total }}</span>
+              <span class="grupo-total">{{ grupo.total_permanentes }}</span>
+            </div>
+            <div class="grupo-card-valores" *ngIf="grupo.total_permanentes === 0">
+              <span class="grupo-numero">{{ grupo.asistieron_temporales }}</span>
+              <span class="grupo-total">temporales</span>
             </div>
             <div class="grupo-porcentaje">
-              {{ grupo.porcentaje }}%
+              <ng-container *ngIf="grupo.total_permanentes > 0">{{ grupo.porcentaje }}%</ng-container>
               <span class="grupo-presentes" *ngIf="resumen.asistencia.es_hoy && grupo.presentes_ahora !== grupo.asistieron">
                 · {{ grupo.presentes_ahora }} ahora
               </span>
             </div>
-            <div class="grupo-detalle-tipos" *ngIf="grupo.total_temporales > 0">
-              <span class="tipo-mini">👤 {{ grupo.asistieron_permanentes }}/{{ grupo.total_permanentes }}</span>
-              <span class="tipo-mini">✨ {{ grupo.asistieron_temporales }}/{{ grupo.total_temporales }}</span>
+            <div class="grupo-detalle-tipos" *ngIf="grupo.total_permanentes > 0 && grupo.asistieron_temporales > 0">
+              <span class="tipo-mini">✨ +{{ grupo.asistieron_temporales }} temporal{{ grupo.asistieron_temporales === 1 ? '' : 'es' }}</span>
             </div>
             <div class="grupo-barra-contenedor">
               <div
