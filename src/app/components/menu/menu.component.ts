@@ -473,20 +473,6 @@ export class MenuComponent implements OnInit {
       .toLowerCase();
   }
 
-  /**
-   * Un nodo coincide si el término está en su label o en alguno de sus keywords.
-   */
-  private coincideTexto(nodo: MenuNodo, termino: string): boolean {
-    const t = this.normalizar(termino);
-    if (this.normalizar(nodo.label).includes(t)) {
-      return true;
-    }
-    if (nodo.keywords) {
-      return nodo.keywords.some((k) => this.normalizar(k).includes(t));
-    }
-    return false;
-  }
-
   esGrupo(nodo: MenuNodo): boolean {
     return !!(nodo.hijos && nodo.hijos.length > 0);
   }
