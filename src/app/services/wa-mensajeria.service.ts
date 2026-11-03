@@ -128,11 +128,13 @@ export class WaMensajeriaService {
   // ENVÍO DE MENSAJES
   // =====================================================
 
-  enviarTexto(numeroDestino: string, mensaje: string, idPersonaRemitente: string) {
+  /** idLinea: línea por la que sale; opcional si el jardín tiene una sola */
+  enviarTexto(numeroDestino: string, mensaje: string, idPersonaRemitente: string, idLinea?: number | null) {
     const body = JSON.stringify({
       numero_destino: numeroDestino,
       mensaje,
-      id_persona_remitente: idPersonaRemitente
+      id_persona_remitente: idPersonaRemitente,
+      id_linea: idLinea ?? null
     });
     return this.http.post<any>(this.api + 'wa-enviar/texto', body, silentOptions).pipe(
       tap((respuesta: any) => {
@@ -143,6 +145,7 @@ export class WaMensajeriaService {
     );
   }
 
+  /** El formData lleva id_linea cuando la conversación tiene línea */
   enviarArchivo(formData: FormData) {
     return this.http.post<any>(this.api + 'wa-enviar/archivo', formData, silentFormDataOptions).pipe(
       tap((respuesta: any) => {
@@ -240,12 +243,12 @@ export class WaMensajeriaService {
   }
 
   // =====================================================
-  // TEMPLATES
+  // TEMPLATES (son de la cuenta de negocio de la línea)
   // =====================================================
 
-  obtenerTemplates() {
+  obtenerTemplates(idLinea?: number | null) {
     return this.http
-      .get<HttpResponse<Object>>(this.api + 'wa-templates', { observe: 'response' })
+      .get<HttpResponse<Object>>(this.api + 'wa-templates' + this.paramLinea(idLinea), { observe: 'response' })
       .pipe(
         tap((response: HttpResponse<Object>) => {
           let respuesta: any = response.body;
@@ -256,9 +259,9 @@ export class WaMensajeriaService {
       );
   }
 
-  obtenerTemplatesAprobados() {
+  obtenerTemplatesAprobados(idLinea?: number | null) {
     return this.http
-      .get<HttpResponse<Object>>(this.api + 'wa-templates/aprobados', silentGetOptions)
+      .get<HttpResponse<Object>>(this.api + 'wa-templates/aprobados' + this.paramLinea(idLinea), silentGetOptions)
       .pipe(
         tap((response: HttpResponse<Object>) => {
           let respuesta: any = response.body;
@@ -269,6 +272,7 @@ export class WaMensajeriaService {
       );
   }
 
+  /** data lleva id_linea cuando el jardín tiene varias líneas */
   crearTemplate(data: any) {
     const body = JSON.stringify(data);
     return this.http.post<any>(this.api + 'wa-templates', body, httpOptions).pipe(
@@ -280,8 +284,8 @@ export class WaMensajeriaService {
     );
   }
 
-  eliminarTemplate(name: string) {
-    return this.http.delete<any>(this.api + `wa-templates/${name}`).pipe(
+  eliminarTemplate(name: string, idLinea?: number | null) {
+    return this.http.delete<any>(this.api + `wa-templates/${name}` + this.paramLinea(idLinea)).pipe(
       tap((respuesta: any) => {
         if (respuesta?.error) throw respuesta.error;
         return respuesta;
@@ -295,14 +299,16 @@ export class WaMensajeriaService {
     templateName: string,
     languageCode: string,
     components: any[],
-    idPersonaRemitente: string
+    idPersonaRemitente: string,
+    idLinea?: number | null
   ) {
     const body = JSON.stringify({
       numero_destino: numeroDestino,
       template_name: templateName,
       language_code: languageCode,
       components,
-      id_persona_remitente: idPersonaRemitente
+      id_persona_remitente: idPersonaRemitente,
+      id_linea: idLinea ?? null
     });
     return this.http.post<any>(this.api + 'wa-enviar/template', body, silentOptions).pipe(
       tap((respuesta: any) => {
@@ -311,6 +317,11 @@ export class WaMensajeriaService {
       }),
       catchError(this.handleError)
     );
+  }
+
+  /** Query string de la línea; vacío si no hay línea */
+  private paramLinea(idLinea?: number | null): string {
+    return idLinea ? `?id_linea=${encodeURIComponent(String(idLinea))}` : '';
   }
 
   private handleError(error: HttpErrorResponse) {

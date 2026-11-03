@@ -47,10 +47,22 @@
           </ul>
         </div>
 
+        <div class="campo-nombre-linea">
+          <label for="nombre-primera-linea">Nombre de la línea</label>
+          <input
+            id="nombre-primera-linea"
+            type="text"
+            [(ngModel)]="nombreNuevaLinea"
+            maxlength="60"
+            placeholder="Ej. Principal, Cartera, Académico"
+          />
+          <small>Así la verán en el chat. Después puedes conectar otros números para otros usos.</small>
+        </div>
+
         <div class="estado-acciones">
           <button
             class="btn-conectar"
-            [disabled]="cargandoSdk || procesando"
+            [disabled]="cargandoSdk || procesando || !nombreNuevaLinea.trim()"
             (click)="iniciarConexion()"
           >
             <span *ngIf="!cargandoSdk && !procesando">
@@ -63,58 +75,79 @@
         </div>
       </div>
 
-      <!-- CONECTADO -->
-      <div class="tarjeta-estado conectado" *ngIf="estaConectado()">
-        <div class="estado-header">
-          <div class="estado-icono conectado">
-            <img src="assets/images/whatsapp.png" alt="WhatsApp" />
-            <span class="badge-online">●</span>
-          </div>
-          <div class="estado-info">
-            <h2>WhatsApp conectado</h2>
-            <p>Tu cuenta de WhatsApp Business está activa y sincronizada.</p>
-          </div>
-        </div>
-
-        <div class="datos-conexion">
-          <div class="dato-fila">
-            <span class="dato-label">Número:</span>
-            <span class="dato-valor">{{ estado?.display_phone_number || estado?.phone_number_id }}</span>
-          </div>
-          <div class="dato-fila">
-            <span class="dato-label">Modo:</span>
-            <span class="dato-valor">
-              <span class="badge-modo" *ngIf="estado?.es_coexistence">Coexistence (sincronizado con celular)</span>
-              <span class="badge-modo modo-directo" *ngIf="!estado?.es_coexistence">Directo</span>
-            </span>
-          </div>
-          <div class="dato-fila" *ngIf="estado?.fecha_onboarding">
-            <span class="dato-label">Conectado desde:</span>
-            <span class="dato-valor">{{ estado.fecha_onboarding }}</span>
-          </div>
-          <div class="dato-fila" *ngIf="estado?.fecha_ultima_actividad">
-            <span class="dato-label">Última actividad:</span>
-            <span class="dato-valor">{{ estado.fecha_ultima_actividad }}</span>
-          </div>
-          <div class="dato-fila" *ngIf="estado?.es_coexistence">
-            <span class="dato-label">Historial sincronizado:</span>
-            <span class="dato-valor">
-              <span *ngIf="estado?.historial_sincronizado">✅ Sí ({{ estado?.historial_sync_fecha }})</span>
-              <span *ngIf="!estado?.historial_sincronizado">⏳ Pendiente</span>
-            </span>
-          </div>
-        </div>
-
-        <div class="estado-acciones">
-          <button
-            class="btn-desconectar"
-            [disabled]="procesando"
-            (click)="abrirConfirmarDesconexion()"
-          >
-            🔌 Desconectar WhatsApp
+      <!-- CONECTADO: una tarjeta por línea -->
+      <ng-container *ngIf="estaConectado()">
+        <div class="lineas-toolbar">
+          <span class="lineas-total">{{ lineasConectadas.length }} línea{{ lineasConectadas.length !== 1 ? 's' : '' }} conectada{{ lineasConectadas.length !== 1 ? 's' : '' }}</span>
+          <button class="btn-otra-linea" [disabled]="cargandoSdk || procesando" (click)="abrirModalNuevaLinea()">
+            <span *ngIf="!cargandoSdk && !procesando">➕ Conectar otra línea</span>
+            <span *ngIf="cargandoSdk">Cargando SDK de Facebook...</span>
+            <span *ngIf="procesando">Procesando...</span>
           </button>
         </div>
-      </div>
+
+        <div class="tarjeta-estado conectado" *ngFor="let linea of lineasConectadas">
+          <div class="estado-header">
+            <div class="estado-icono conectado">
+              <img src="assets/images/whatsapp.png" alt="WhatsApp" />
+              <span class="badge-online">●</span>
+            </div>
+            <div class="estado-info">
+              <ng-container *ngIf="idLineaEditando !== linea.id">
+                <h2>{{ linea.nombre || 'Sin nombre' }}</h2>
+                <button class="btn-renombrar" [disabled]="procesando" (click)="editarNombre(linea)">✏️ Cambiar nombre</button>
+              </ng-container>
+              <div class="editar-nombre" *ngIf="idLineaEditando === linea.id">
+                <input
+                  type="text"
+                  [(ngModel)]="nombreEditado"
+                  maxlength="60"
+                  (keydown.enter)="guardarNombre(linea)"
+                  (keydown.escape)="cancelarEdicionNombre()"
+                />
+                <button class="btn-guardar-nombre" [disabled]="!nombreEditado.trim() || procesando" (click)="guardarNombre(linea)">Guardar</button>
+                <button class="btn-cancelar" (click)="cancelarEdicionNombre()">Cancelar</button>
+              </div>
+              <p>{{ linea.display_phone_number || linea.phone_number_id }}</p>
+            </div>
+          </div>
+
+          <div class="datos-conexion">
+            <div class="dato-fila">
+              <span class="dato-label">Modo:</span>
+              <span class="dato-valor">
+                <span class="badge-modo" *ngIf="linea.es_coexistence">Coexistence (sincronizado con celular)</span>
+                <span class="badge-modo modo-directo" *ngIf="!linea.es_coexistence">Directo</span>
+              </span>
+            </div>
+            <div class="dato-fila" *ngIf="linea.fecha_onboarding">
+              <span class="dato-label">Conectado desde:</span>
+              <span class="dato-valor">{{ linea.fecha_onboarding }}</span>
+            </div>
+            <div class="dato-fila" *ngIf="linea.fecha_ultima_actividad">
+              <span class="dato-label">Última actividad:</span>
+              <span class="dato-valor">{{ linea.fecha_ultima_actividad }}</span>
+            </div>
+            <div class="dato-fila" *ngIf="linea.es_coexistence">
+              <span class="dato-label">Historial sincronizado:</span>
+              <span class="dato-valor">
+                <span *ngIf="linea.historial_sincronizado">✅ Sí ({{ linea.historial_sync_fecha }})</span>
+                <span *ngIf="!linea.historial_sincronizado">⏳ Pendiente</span>
+              </span>
+            </div>
+          </div>
+
+          <div class="estado-acciones">
+            <button
+              class="btn-desconectar"
+              [disabled]="procesando"
+              (click)="abrirConfirmarDesconexion(linea)"
+            >
+              🔌 Desconectar línea
+            </button>
+          </div>
+        </div>
+      </ng-container>
 
     </div>
 
@@ -122,13 +155,14 @@
     <div class="modal-overlay" *ngIf="mostrarConfirmarDesconexion" (click)="cerrarConfirmarDesconexion()">
       <div class="modal-panel" (click)="$event.stopPropagation()">
         <div class="modal-header">
-          <h3>¿Desconectar WhatsApp?</h3>
+          <h3>¿Desconectar la línea {{ lineaADesconectar?.nombre }}?</h3>
           <button class="btn-cerrar-modal" (click)="cerrarConfirmarDesconexion()">✕</button>
         </div>
         <div class="modal-body">
-          <p>Si desconectas tu cuenta de WhatsApp:</p>
+          <p>Si desconectas el número {{ lineaADesconectar?.display_phone_number || lineaADesconectar?.phone_number_id }}:</p>
           <ul>
-            <li>Dejarás de enviar y recibir mensajes desde GENIALISIS</li>
+            <li>Dejarás de enviar y recibir mensajes por esta línea desde GENIALISIS</li>
+            <li>Las demás líneas siguen conectadas</li>
             <li>Los mensajes históricos se mantendrán</li>
             <li>Para reconectar, deberás hacer el proceso de Embedded Signup nuevamente</li>
           </ul>
@@ -139,6 +173,34 @@
             <span *ngIf="!procesando">Sí, desconectar</span>
             <span *ngIf="procesando">Procesando...</span>
           </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal nombre de otra línea -->
+    <div class="modal-overlay" *ngIf="mostrarModalNuevaLinea" (click)="cerrarModalNuevaLinea()">
+      <div class="modal-panel" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Conectar otra línea</h3>
+          <button class="btn-cerrar-modal" (click)="cerrarModalNuevaLinea()">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="campo-nombre-linea">
+            <label for="nombre-otra-linea">Nombre de la línea</label>
+            <input
+              id="nombre-otra-linea"
+              type="text"
+              [(ngModel)]="nombreNuevaLinea"
+              maxlength="60"
+              placeholder="Ej. Cartera, Académico, Admisiones"
+              (keydown.enter)="conectarNuevaLinea()"
+            />
+            <small>Después se abre el registro de Meta para escoger el número.</small>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-cancelar" (click)="cerrarModalNuevaLinea()">Cancelar</button>
+          <button class="btn-guardar-nombre" [disabled]="!nombreNuevaLinea.trim()" (click)="conectarNuevaLinea()">Continuar con Meta</button>
         </div>
       </div>
     </div>

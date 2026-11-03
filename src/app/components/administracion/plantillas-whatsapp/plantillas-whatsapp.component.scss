@@ -24,7 +24,24 @@ $wa-green: #25d366;
   .toolbar-info {
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
     gap: 12px;
+  }
+
+  // Línea de WhatsApp cuyas plantillas se ven
+  .selector-linea {
+    border: 1px solid $gold;
+    border-radius: 8px;
+    padding: 8px 12px;
+    background: #fff;
+    font-family: inherit;
+    font-size: 0.9rem;
+    max-width: 100%;
+
+    &:focus {
+      outline: none;
+      box-shadow: 0 0 0 3px $light-gold;
+    }
   }
 
   .total-badge {

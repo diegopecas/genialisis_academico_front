@@ -13,6 +13,7 @@ import { Router, NavigationEnd } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { WaMensajeriaService } from '../../services/wa-mensajeria.service';
+import { LineaWhatsapp, WaLineasService } from '../../services/wa-lineas.service';
 import { PushNotificationService } from '../../services/push-notification.service';
 import { environment } from '../../../environments/environment';
 
@@ -43,6 +44,11 @@ export class WaChatFloatingComponent implements OnInit, OnDestroy, AfterViewChec
   conversacionActiva: any = null;
   totalNoLeidos = 0;
 
+  // Líneas de WhatsApp del jardín (cada número conectado) y filtro de la lista.
+  // 'todas' muestra todo; 'sin' las conversaciones viejas sin línea.
+  lineas: LineaWhatsapp[] = [];
+  filtroLinea: number | 'todas' | 'sin' = 'todas';
+
   // Archivo adjunto
   archivoSeleccionado: File | null = null;
 
@@ -60,6 +66,8 @@ export class WaChatFloatingComponent implements OnInit, OnDestroy, AfterViewChec
   // Selector de plantillas (ventana cerrada)
   mostrarSelectorTemplates = false;
   templatesAprobados: any[] = [];
+  // Las plantillas son de la cuenta de negocio de cada línea: se guardan por línea
+  private templatesPorLinea: { [idLinea: string]: any[] } = {};
   cargandoTemplates = false;
   templateSeleccionado: any = null;
   variablesTemplate: { [key: string]: string } = {};
@@ -117,6 +125,7 @@ export class WaChatFloatingComponent implements OnInit, OnDestroy, AfterViewChec
 
   constructor(
     private waSvc: WaMensajeriaService,
+    private lineasSvc: WaLineasService,
     private pushSvc: PushNotificationService,
     private router: Router
   ) {}
@@ -203,6 +212,7 @@ export class WaChatFloatingComponent implements OnInit, OnDestroy, AfterViewChec
           this.tieneAcceso = true;
           this.chatHabilitado = true;
           this.cargarEtiquetaRemitente();
+          this.cargarLineas();
           this.cargarConversaciones();
           this.iniciarPollingConversaciones();
         } else {
@@ -231,8 +241,11 @@ export class WaChatFloatingComponent implements OnInit, OnDestroy, AfterViewChec
     this.etiquetaCargada = false;
     this.mostrarSelectorTemplates = false;
     this.templatesAprobados = [];
+    this.templatesPorLinea = {};
     this.templateSeleccionado = null;
     this.variablesTemplate = {};
+    this.lineas = [];
+    this.filtroLinea = 'todas';
     this.detenerPolling();
   }
 
@@ -254,6 +267,48 @@ export class WaChatFloatingComponent implements OnInit, OnDestroy, AfterViewChec
   async activarNotificaciones(): Promise<void> {
     await this.pushSvc.inicializar();
     this.notificacionesPush = Notification.permission;
+  }
+
+  // =====================================================
+  // LÍNEAS DE WHATSAPP
+  // =====================================================
+  private cargarLineas(): void {
+    this.lineasSvc.obtenerLineas().subscribe({
+      next: (response: any) => {
+        this.lineas = (response.body as LineaWhatsapp[]) || [];
+      },
+      error: () => {
+        this.lineas = [];
+      }
+    });
+  }
+
+  /** Líneas que se pueden filtrar: las conectadas y las que tienen conversaciones */
+  get lineasFiltro(): LineaWhatsapp[] {
+    return this.lineas.filter(l =>
+      l.activo === 1 || this.conversaciones.some((c: any) => c.id_linea === l.id)
+    );
+  }
+
+  get hayConversacionesSinLinea(): boolean {
+    return this.conversaciones.some((c: any) => !c.id_linea);
+  }
+
+  /** Con una sola línea y nada sin línea, no se muestra el filtro ni el nombre de la línea */
+  get mostrarLineas(): boolean {
+    return this.lineasFiltro.length + (this.hayConversacionesSinLinea ? 1 : 0) > 1;
+  }
+
+  nombreLinea(idLinea: number | null): string {
+    if (!idLinea) return 'Sin línea';
+    const linea = this.lineas.find(l => l.id === idLinea);
+    return linea?.nombre || linea?.display_phone_number || 'Línea';
+  }
+
+  noLeidosLinea(filtro: number | 'sin'): number {
+    return this.conversaciones
+      .filter((c: any) => filtro === 'sin' ? !c.id_linea : c.id_linea === filtro)
+      .reduce((sum: number, c: any) => sum + (parseInt(c.no_leidos) || 0), 0);
   }
 
   // =====================================================
@@ -401,12 +456,17 @@ export class WaChatFloatingComponent implements OnInit, OnDestroy, AfterViewChec
     this.templateSeleccionado = null;
     this.variablesTemplate = {};
 
+    const idLinea = this.conversacionActiva?.id_linea ?? null;
+    const clave = String(idLinea ?? '');
+    this.templatesAprobados = this.templatesPorLinea[clave] || [];
+
     if (this.templatesAprobados.length === 0) {
       this.cargandoTemplates = true;
-      this.waSvc.obtenerTemplatesAprobados().subscribe({
+      this.waSvc.obtenerTemplatesAprobados(idLinea).subscribe({
         next: (response: any) => {
           const data = response.body || response;
           this.templatesAprobados = data.templates || [];
+          this.templatesPorLinea[clave] = this.templatesAprobados;
           this.cargandoTemplates = false;
         },
         error: () => {
@@ -509,7 +569,8 @@ export class WaChatFloatingComponent implements OnInit, OnDestroy, AfterViewChec
       template.name,
       template.language,
       components,
-      usuario.id_persona
+      usuario.id_persona,
+      this.conversacionActiva.id_linea ?? null
     ).subscribe({
       next: (response: any) => {
         const idx = this.mensajes.findIndex((m: any) => m._temporal && m.id === msgTemp.id);
@@ -575,7 +636,12 @@ export class WaChatFloatingComponent implements OnInit, OnDestroy, AfterViewChec
     const usuario = JSON.parse(sessionStorage.getItem('usuario') || '{}');
     const idPersona = usuario.id_persona ?? null;
 
-    this.waSvc.enviarTexto(this.conversacionActiva.numero_telefono, textoConEtiqueta, idPersona!).subscribe({
+    this.waSvc.enviarTexto(
+      this.conversacionActiva.numero_telefono,
+      textoConEtiqueta,
+      idPersona!,
+      this.conversacionActiva.id_linea ?? null
+    ).subscribe({
       next: (response: any) => {
         const idx = this.mensajes.findIndex((m: any) => m._temporal && m.contenido === textoConEtiqueta);
         if (idx >= 0) {
@@ -653,6 +719,9 @@ export class WaChatFloatingComponent implements OnInit, OnDestroy, AfterViewChec
     formData.append('archivo', archivo);
     formData.append('numero_destino', this.conversacionActiva.numero_telefono);
     formData.append('id_persona_remitente', String(usuario.id_persona || ''));
+    if (this.conversacionActiva.id_linea) {
+      formData.append('id_linea', String(this.conversacionActiva.id_linea));
+    }
     if (captionConEtiqueta) {
       formData.append('caption', captionConEtiqueta);
     }
@@ -950,9 +1019,15 @@ export class WaChatFloatingComponent implements OnInit, OnDestroy, AfterViewChec
   }
 
   get conversacionesFiltradas(): any[] {
-    if (!this.buscador.trim()) return this.conversaciones;
+    let lista = this.conversaciones;
+    if (this.filtroLinea === 'sin') {
+      lista = lista.filter((c: any) => !c.id_linea);
+    } else if (this.filtroLinea !== 'todas') {
+      lista = lista.filter((c: any) => c.id_linea === this.filtroLinea);
+    }
+    if (!this.buscador.trim()) return lista;
     const termino = this.buscador.toLowerCase();
-    return this.conversaciones.filter((c: any) =>
+    return lista.filter((c: any) =>
       (c.nombre_display || '').toLowerCase().includes(termino) ||
       (c.numero_telefono || '').includes(termino)
     );

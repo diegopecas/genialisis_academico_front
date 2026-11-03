@@ -39,7 +39,9 @@ export class WaOnboardingService {
 
   /**
    * Procesar el resultado del Embedded Signup.
-   * Recibe code + phone_number_id + waba_id + business_id desde el SDK de Facebook.
+   * Recibe code + phone_number_id + waba_id + business_id desde el SDK de Facebook,
+   * y el nombre de la línea (Cartera, Académico...). Si el número ya era una
+   * línea del jardín, se reconecta; si no, se agrega una línea nueva.
    */
   procesarOnboarding(datos: {
     code: string;
@@ -47,6 +49,7 @@ export class WaOnboardingService {
     waba_id: string;
     business_id?: string;
     es_coexistence: boolean;
+    nombre?: string;
   }) {
     const body = JSON.stringify(datos);
     return this.http.post<any>(this.api + 'wa-onboarding/procesar', body, httpOptions).pipe(
@@ -59,10 +62,11 @@ export class WaOnboardingService {
   }
 
   /**
-   * Desconectar el WhatsApp del tenant.
+   * Desconectar una línea de WhatsApp del tenant. Las demás siguen conectadas.
    */
-  desconectar() {
-    return this.http.post<any>(this.api + 'wa-onboarding/desconectar', '{}', httpOptions).pipe(
+  desconectar(idLinea: number) {
+    const body = JSON.stringify({ id: idLinea });
+    return this.http.post<any>(this.api + 'wa-onboarding/desconectar', body, httpOptions).pipe(
       tap((respuesta: any) => {
         if (respuesta?.error) throw respuesta.error;
         return respuesta;

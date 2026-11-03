@@ -178,6 +178,15 @@ $shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
     }
   }
 
+  // Línea de WhatsApp de la conversación (con varias líneas)
+  .header-linea {
+    font-size: 10px;
+    color: #e6c65c;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
   // Info acudiente (de quién es papá/mamá)
   .header-acudiente {
     font-size: 10px;
@@ -297,6 +306,59 @@ $shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
 }
 
 // =====================================================
+// FILTRO POR LÍNEA DE WHATSAPP
+// =====================================================
+.wa-lineas {
+  display: flex;
+  gap: 6px;
+  padding: 0 14px 10px;
+  overflow-x: auto;
+  flex-shrink: 0;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.chip-linea {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  padding: 5px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  background: transparent;
+  color: $text-muted;
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+
+  &.activo {
+    background: rgba(212, 175, 55, 0.18);
+    border-color: #d4af37;
+    color: #e6c65c;
+  }
+
+  .chip-badge {
+    min-width: 16px;
+    height: 16px;
+    border-radius: 8px;
+    background: $wa-green;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+  }
+}
+
+// =====================================================
 // LISTA DE CONVERSACIONES
 // =====================================================
 .wa-lista {
@@ -387,7 +449,23 @@ $shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
   align-items: center;
 }
 
+.conv-linea {
+  flex-shrink: 0;
+  max-width: 40%;
+  margin-right: 6px;
+  padding: 1px 7px;
+  border-radius: 8px;
+  background: rgba(212, 175, 55, 0.15);
+  color: #e6c65c;
+  font-size: 10px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .conv-preview {
+  flex: 1;
+  min-width: 0;
   font-size: 12px;
   color: $text-muted;
   overflow: hidden;

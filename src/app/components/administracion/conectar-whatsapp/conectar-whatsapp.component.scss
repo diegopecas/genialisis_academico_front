@@ -387,3 +387,143 @@
     font-weight: 600;
   }
 }
+// Líneas de WhatsApp (varios números por jardín)
+.campo-nombre-linea {
+  margin-bottom: 24px;
+
+  label {
+    display: block;
+    color: #2C2C2C;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 15px;
+    box-sizing: border-box;
+
+    &:focus {
+      outline: none;
+      border-color: #d4af37;
+      box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
+    }
+  }
+
+  small {
+    display: block;
+    color: #888;
+    margin-top: 6px;
+  }
+}
+
+.lineas-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+
+  .lineas-total {
+    background: rgba(212, 175, 55, 0.15);
+    color: #a8862a;
+    padding: 6px 14px;
+    border-radius: 14px;
+    font-weight: 600;
+    font-size: 14px;
+  }
+}
+
+.btn-otra-linea {
+  background: #d4af37;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover:not(:disabled) {
+    background: darken(#d4af37, 8%);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.btn-renombrar {
+  background: none;
+  border: none;
+  color: #a8862a;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 6px;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.editar-nombre {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+
+  input {
+    flex: 1 1 180px;
+    padding: 8px 12px;
+    border: 1px solid #d4af37;
+    border-radius: 6px;
+    font-size: 15px;
+  }
+}
+
+.btn-guardar-nombre {
+  background: #d4af37;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+@media (max-width: 600px) {
+  .tarjeta-estado {
+    padding: 20px 16px;
+  }
+
+  .estado-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+
+    .estado-info h2 {
+      font-size: 20px;
+    }
+  }
+
+  .datos-conexion .dato-fila {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .lineas-toolbar .btn-otra-linea {
+    width: 100%;
+  }
+}

@@ -58,6 +58,31 @@
         />
       </div>
 
+      <!-- Filtro por línea (solo con varias líneas) -->
+      <div class="wa-lineas" *ngIf="mostrarLineas">
+        <button class="chip-linea" [class.activo]="filtroLinea === 'todas'" (click)="filtroLinea = 'todas'">
+          Todas
+        </button>
+        <button
+          *ngFor="let linea of lineasFiltro"
+          class="chip-linea"
+          [class.activo]="filtroLinea === linea.id"
+          (click)="filtroLinea = linea.id"
+        >
+          {{ linea.nombre || linea.display_phone_number }}
+          <span class="chip-badge" *ngIf="noLeidosLinea(linea.id) > 0">{{ noLeidosLinea(linea.id) }}</span>
+        </button>
+        <button
+          *ngIf="hayConversacionesSinLinea"
+          class="chip-linea"
+          [class.activo]="filtroLinea === 'sin'"
+          (click)="filtroLinea = 'sin'"
+        >
+          Sin línea
+          <span class="chip-badge" *ngIf="noLeidosLinea('sin') > 0">{{ noLeidosLinea('sin') }}</span>
+        </button>
+      </div>
+
       <div class="wa-lista">
         <div class="wa-estado-vacio" *ngIf="cargandoConversaciones">
           <div class="typing-dots"><span></span><span></span><span></span></div>
@@ -66,7 +91,7 @@
 
         <div
           class="wa-estado-vacio"
-          *ngIf="!cargandoConversaciones && conversaciones.length === 0"
+          *ngIf="!cargandoConversaciones && conversacionesFiltradas.length === 0"
         >
           <span class="vacio-icon">💬</span>
           <p>No hay conversaciones</p>
@@ -95,6 +120,7 @@
               }}</span>
             </div>
             <div class="conv-row-bottom">
+              <span class="conv-linea" *ngIf="mostrarLineas">{{ nombreLinea(conv.id_linea) }}</span>
               <span class="conv-preview" *ngIf="!conv.info_acudiente">{{ getPreviewMensaje(conv) }}</span>
               <span class="conv-preview conv-acudiente" *ngIf="conv.info_acudiente">{{ conv.info_acudiente }}</span>
               <span class="conv-badge" *ngIf="conv.no_leidos > 0">{{
@@ -125,6 +151,9 @@
                 conversacionActiva.nombre_whatsapp ||
                 conversacionActiva.numero_telefono
             }}</span>
+            <span class="header-estado header-linea" *ngIf="mostrarLineas">
+              📱 {{ nombreLinea(conversacionActiva.id_linea) }}
+            </span>
             <span class="header-estado header-acudiente" *ngIf="conversacionActiva.info_acudiente">
               {{ conversacionActiva.info_acudiente }}
             </span>

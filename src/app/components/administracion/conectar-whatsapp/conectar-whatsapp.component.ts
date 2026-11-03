@@ -1,7 +1,9 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, NgZone } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { HeaderComponent } from '../../../common/header/header.component';
 import { WaOnboardingService } from '../../../services/wa-onboarding.service';
+import { LineaWhatsapp, WaLineasService } from '../../../services/wa-lineas.service';
 import { environment } from '../../../../environments/environment';
 
 declare var FB: any;
@@ -10,7 +12,7 @@ declare var window: any;
 @Component({
   selector: 'app-conectar-whatsapp',
   standalone: true,
-  imports: [CommonModule, HeaderComponent],
+  imports: [CommonModule, FormsModule, HeaderComponent],
   templateUrl: './conectar-whatsapp.component.html',
   styleUrl: './conectar-whatsapp.component.scss'
 })
@@ -18,8 +20,17 @@ export class ConectarWhatsappComponent implements OnInit {
   titulo = 'Conexión de WhatsApp';
 
   cargandoEstado = true;
-  estado: any = null;
+  // Líneas del jardín: cada una es un número de WhatsApp conectado
+  lineas: LineaWhatsapp[] = [];
   errorEstado = '';
+
+  // Nombre de la línea que se va a conectar (Cartera, Académico...)
+  nombreNuevaLinea = '';
+  mostrarModalNuevaLinea = false;
+
+  // Cambio de nombre de una línea
+  idLineaEditando: number | null = null;
+  nombreEditado = '';
 
   sdkCargado = false;
   cargandoSdk = false;
@@ -38,9 +49,11 @@ export class ConectarWhatsappComponent implements OnInit {
 
   // Modal confirmar desconexión
   mostrarConfirmarDesconexion = false;
+  lineaADesconectar: LineaWhatsapp | null = null;
 
   constructor(
     private onboardingSvc: WaOnboardingService,
+    private lineasSvc: WaLineasService,
     private ngZone: NgZone
   ) { }
 
@@ -49,14 +62,14 @@ export class ConectarWhatsappComponent implements OnInit {
   }
 
   // =====================================================
-  // ESTADO
+  // ESTADO (líneas del jardín)
   // =====================================================
   cargarEstado(): void {
     this.cargandoEstado = true;
     this.errorEstado = '';
-    this.onboardingSvc.obtenerEstado().subscribe({
+    this.lineasSvc.obtenerLineas().subscribe({
       next: (response: any) => {
-        this.estado = response.body;
+        this.lineas = (response.body as LineaWhatsapp[]) || [];
         this.cargandoEstado = false;
       },
       error: (err: any) => {
@@ -66,8 +79,63 @@ export class ConectarWhatsappComponent implements OnInit {
     });
   }
 
+  /** Solo se listan las líneas conectadas; las desconectadas quedan para el historial del chat */
+  get lineasConectadas(): LineaWhatsapp[] {
+    return this.lineas.filter(l => l.activo === 1 && l.estado_onboarding === 'active');
+  }
+
   estaConectado(): boolean {
-    return this.estado?.estado_onboarding === 'active';
+    return this.lineasConectadas.length > 0;
+  }
+
+  // =====================================================
+  // NUEVA LÍNEA
+  // =====================================================
+  abrirModalNuevaLinea(): void {
+    this.nombreNuevaLinea = '';
+    this.mostrarModalNuevaLinea = true;
+  }
+
+  cerrarModalNuevaLinea(): void {
+    this.mostrarModalNuevaLinea = false;
+  }
+
+  /** Desde el modal de otra línea: cierra el modal y abre el registro de Meta */
+  conectarNuevaLinea(): void {
+    if (!this.nombreNuevaLinea.trim()) return;
+    this.mostrarModalNuevaLinea = false;
+    this.iniciarConexion();
+  }
+
+  // =====================================================
+  // NOMBRE DE LA LÍNEA
+  // =====================================================
+  editarNombre(linea: LineaWhatsapp): void {
+    this.idLineaEditando = linea.id;
+    this.nombreEditado = linea.nombre || '';
+  }
+
+  cancelarEdicionNombre(): void {
+    this.idLineaEditando = null;
+    this.nombreEditado = '';
+  }
+
+  guardarNombre(linea: LineaWhatsapp): void {
+    const nombre = this.nombreEditado.trim();
+    if (!nombre || this.procesando) return;
+
+    this.procesando = true;
+    this.lineasSvc.cambiarNombre(linea.id, nombre).subscribe({
+      next: () => {
+        this.procesando = false;
+        linea.nombre = nombre;
+        this.cancelarEdicionNombre();
+      },
+      error: (err: any) => {
+        this.procesando = false;
+        this.mostrarMensaje(err?.error?.error || 'Error al cambiar el nombre', 'error');
+      }
+    });
   }
 
   // =====================================================
@@ -126,6 +194,10 @@ export class ConectarWhatsappComponent implements OnInit {
   // EMBEDDED SIGNUP
   // =====================================================
   async iniciarConexion(): Promise<void> {
+    if (!this.nombreNuevaLinea.trim()) {
+      this.mostrarMensaje('Escribe el nombre de la línea antes de conectar', 'info');
+      return;
+    }
     try {
       this.datosOnboarding = {};
       await this.cargarSdkFacebook();
@@ -277,12 +349,14 @@ export class ConectarWhatsappComponent implements OnInit {
       phone_number_id: phoneNumberId,
       waba_id: wabaId,
       business_id: businessId,
-      es_coexistence: true
+      es_coexistence: true,
+      nombre: this.nombreNuevaLinea.trim()
     }).subscribe({
       next: (respuesta: any) => {
         console.log('[WA-Onboarding] Backend respondio OK:', respuesta);
         this.procesando = false;
         this.datosOnboarding = {};
+        this.nombreNuevaLinea = '';
         this.mostrarMensaje('WhatsApp conectado exitosamente', 'exito');
         this.cargarEstado();
       },
@@ -298,21 +372,24 @@ export class ConectarWhatsappComponent implements OnInit {
   // =====================================================
   // DESCONEXIÓN
   // =====================================================
-  abrirConfirmarDesconexion(): void {
+  abrirConfirmarDesconexion(linea: LineaWhatsapp): void {
+    this.lineaADesconectar = linea;
     this.mostrarConfirmarDesconexion = true;
   }
 
   cerrarConfirmarDesconexion(): void {
     this.mostrarConfirmarDesconexion = false;
+    this.lineaADesconectar = null;
   }
 
   confirmarDesconexion(): void {
+    if (!this.lineaADesconectar) return;
     this.procesando = true;
-    this.onboardingSvc.desconectar().subscribe({
+    this.onboardingSvc.desconectar(this.lineaADesconectar.id).subscribe({
       next: () => {
         this.procesando = false;
         this.cerrarConfirmarDesconexion();
-        this.mostrarMensaje('WhatsApp desconectado correctamente', 'info');
+        this.mostrarMensaje('Línea desconectada correctamente', 'info');
         this.cargarEstado();
       },
       error: (err: any) => {

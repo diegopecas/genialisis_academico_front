@@ -3,6 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HeaderComponent } from '../../../common/header/header.component';
 import { WaMensajeriaService } from '../../../services/wa-mensajeria.service';
+import { LineaWhatsapp, WaLineasService } from '../../../services/wa-lineas.service';
 
 
 @Component({
@@ -18,6 +19,10 @@ export class PlantillasWhatsappComponent implements OnInit {
   templates: any[] = [];
   cargando = true;
   error = '';
+
+  // Las plantillas son de la cuenta de negocio de cada línea de WhatsApp
+  lineas: LineaWhatsapp[] = [];
+  idLinea: number | null = null;
 
   // Formulario crear
   mostrarFormulario = false;
@@ -40,9 +45,36 @@ export class PlantillasWhatsappComponent implements OnInit {
   mensajeNotificacion = '';
   tipoNotificacion: 'exito' | 'error' | 'info' = 'info';
 
-  constructor(private waSvc: WaMensajeriaService) {}
+  constructor(
+    private waSvc: WaMensajeriaService,
+    private lineasSvc: WaLineasService
+  ) {}
 
   ngOnInit(): void {
+    this.cargarLineas();
+  }
+
+  // =====================================================
+  // LÍNEAS
+  // =====================================================
+  /** Carga las líneas conectadas y deja escogida la primera */
+  cargarLineas(): void {
+    this.cargando = true;
+    this.lineasSvc.obtenerLineas().subscribe({
+      next: (response: any) => {
+        const todas = (response.body as LineaWhatsapp[]) || [];
+        this.lineas = todas.filter(l => l.activo === 1);
+        this.idLinea = this.lineas.length > 0 ? this.lineas[0].id : null;
+        this.cargarTemplates();
+      },
+      error: () => {
+        // Sin líneas se intenta igual: el back responde con la única o con el error
+        this.cargarTemplates();
+      }
+    });
+  }
+
+  cambiarLinea(): void {
     this.cargarTemplates();
   }
 
@@ -66,7 +98,7 @@ export class PlantillasWhatsappComponent implements OnInit {
   cargarTemplates(): void {
     this.cargando = true;
     this.error = '';
-    this.waSvc.obtenerTemplates().subscribe({
+    this.waSvc.obtenerTemplates(this.idLinea).subscribe({
       next: (response: any) => {
         this.templates = response.body || [];
         this.cargando = false;
@@ -139,7 +171,8 @@ export class PlantillasWhatsappComponent implements OnInit {
       name: this.formulario.name,
       category: this.formulario.category,
       language: this.formulario.language,
-      body_text: this.formulario.body_text
+      body_text: this.formulario.body_text,
+      id_linea: this.idLinea
     };
 
     if (this.formulario.header_text.trim()) {
@@ -173,7 +206,7 @@ export class PlantillasWhatsappComponent implements OnInit {
   eliminarTemplate(template: any): void {
     if (!confirm(`¿Eliminar la plantilla "${template.name}"? Esta acción no se puede deshacer.`)) return;
 
-    this.waSvc.eliminarTemplate(template.name).subscribe({
+    this.waSvc.eliminarTemplate(template.name, this.idLinea).subscribe({
       next: () => {
         this.cargarTemplates();
         this.mostrarMensaje(`Plantilla "${template.name}" eliminada.`, 'info');
