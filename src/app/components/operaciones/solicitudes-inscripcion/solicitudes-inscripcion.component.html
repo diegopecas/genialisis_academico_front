@@ -8,6 +8,14 @@
     [iconoTitulo]="'/assets/images/solicitudes-inscripcion.png'"
   ></app-header>
 
+  <!-- Pestañas por estado: abre en Pendientes -->
+  <div class="pestanas-estado">
+    <button type="button" *ngFor="let p of pestanas" class="pestana"
+            [class.activa]="pestanaActiva === p.clave" (click)="seleccionarPestana(p.clave)">
+      {{ p.texto }} <span class="cuenta">{{ contar(p.clave) }}</span>
+    </button>
+  </div>
+
   <!-- El componente de tablas maneja el responsive -->
   <app-tablas
     [titulos]="titulos"

@@ -22,6 +22,18 @@ export class SolicitudesInscripcionComponent implements OnInit {
   public datos = [] as any[];
   public acciones = [] as any[];
 
+  // Todas las solicitudes; en la tabla van solo las de la pestaña activa
+  private todas = [] as any[];
+  // Abre en Pendientes: lo ya atendido no estorba a menos que se busque
+  public pestanaActiva: string = 'pendientes';
+  public pestanas = [
+    { clave: 'pendientes', texto: 'Pendientes' },
+    { clave: 'por_pagar', texto: 'Por pagar' },
+    { clave: 'pagadas', texto: 'Pagadas' },
+    { clave: 'rechazadas', texto: 'Rechazadas' },
+    { clave: 'todas', texto: 'Todas' }
+  ];
+
   constructor(
     private solicitudesService: SolicitudesInscripcionPublicaService,
     private router: Router,
@@ -36,16 +48,23 @@ export class SolicitudesInscripcionComponent implements OnInit {
     this.solicitudesService.obtenerTodos().subscribe({
       next: (response: any) => {
         const body = (response.body || []) as any[];
-        this.datos = body.map((s: any) => ({
-          ...s,
-          nombre_estudiante: (s.nombre_estudiante || '').replace(/\s+/g, ' ').trim(),
-          nombre_acudiente: (s.nombre_acudiente || '').replace(/\s+/g, ' ').trim(),
-          institucion_mostrar: s.nombre_institucion || 'Particular',
-          estado_mostrar: this.etiquetaEstado(s.estado),
-          // Las resueltas se pintan en pastel (verde aprobada, rosado
-          // rechazada) para que resalten las pendientes
-          color: s.estado === 'aprobada' ? '#eaf6e6' : s.estado === 'rechazada' ? '#fcebea' : ''
-        }));
+        this.todas = body.map((s: any) => {
+          const estadoPago = this.estadoPago(s);
+          return {
+            ...s,
+            nombre_estudiante: (s.nombre_estudiante || '').replace(/\s+/g, ' ').trim(),
+            nombre_acudiente: (s.nombre_acudiente || '').replace(/\s+/g, ' ').trim(),
+            institucion_mostrar: s.nombre_institucion || 'Particular',
+            estado_pago: estadoPago,
+            estado_mostrar: this.etiquetaEstado(s.estado, estadoPago),
+            // Las resueltas se pintan en pastel (verde pagada o sin cobro,
+            // amarillo por pagar, rosado rechazada) para que resalten las pendientes
+            color: s.estado === 'rechazada' ? '#fcebea'
+              : estadoPago === 'pagada' || estadoPago === 'sin_cobro' ? '#eaf6e6'
+              : estadoPago === 'por_pagar' || estadoPago === 'pago_parcial' ? '#fff6dc' : ''
+          };
+        });
+        this.aplicarPestana();
       },
       error: (error: any) => {
         console.error("Error al obtener las solicitudes", error);
@@ -54,32 +73,77 @@ export class SolicitudesInscripcionComponent implements OnInit {
     });
   }
 
-  etiquetaEstado(estado: string): string {
-    if (estado === 'aprobada') return 'Aprobada';
+  /**
+   * Estado del cobro de una aprobada, con lo que se cobró al aprobar
+   * (total_cobro) y lo que falta (saldo_cobro). Vacío si no está aprobada.
+   */
+  estadoPago(s: any): string {
+    if (s.estado !== 'aprobada') return '';
+    const total = Number(s.total_cobro || 0);
+    const saldo = Number(s.saldo_cobro || 0);
+    if (total <= 0) return 'sin_cobro';
+    if (saldo <= 0) return 'pagada';
+    if (saldo < total) return 'pago_parcial';
+    return 'por_pagar';
+  }
+
+  etiquetaEstado(estado: string, estadoPago: string = ''): string {
     if (estado === 'rechazada') return 'Rechazada';
-    return 'Pendiente';
+    if (estado !== 'aprobada') return 'Pendiente';
+    const etiquetas: any = { pagada: 'Pagada', pago_parcial: 'Pago parcial', por_pagar: 'Por pagar', sin_cobro: 'Aprobada sin cobro' };
+    return etiquetas[estadoPago] || 'Aprobada';
+  }
+
+  /** Solicitudes de una pestaña. Las aprobadas sin cobro solo salen en Todas. */
+  private dePestana(clave: string): any[] {
+    switch (clave) {
+      case 'pendientes': return this.todas.filter(s => s.estado !== 'aprobada' && s.estado !== 'rechazada');
+      case 'por_pagar': return this.todas.filter(s => s.estado_pago === 'por_pagar' || s.estado_pago === 'pago_parcial');
+      case 'pagadas': return this.todas.filter(s => s.estado_pago === 'pagada');
+      case 'rechazadas': return this.todas.filter(s => s.estado === 'rechazada');
+      default: return this.todas;
+    }
+  }
+
+  contar(clave: string): number {
+    return this.dePestana(clave).length;
+  }
+
+  seleccionarPestana(clave: string) {
+    this.pestanaActiva = clave;
+    this.aplicarPestana();
+  }
+
+  private aplicarPestana() {
+    this.datos = this.dePestana(this.pestanaActiva);
   }
 
   crearTitulos() {
+    // Estudiante, curso y estado primero: es lo que se ve en las tarjetas del celular
     this.titulos = [
-      {
-        clave: 'fecha_registro',
-        alias: 'Recibida',
-        alinear: 'centrado',
-      },
       {
         clave: 'nombre_estudiante',
         alias: 'Estudiante',
         alinear: 'izquierda',
       },
       {
-        clave: 'est_numero_identificacion',
-        alias: 'Documento',
+        clave: 'nombre_curso',
+        alias: 'Curso',
         alinear: 'izquierda',
       },
       {
-        clave: 'nombre_curso',
-        alias: 'Curso',
+        clave: 'estado_mostrar',
+        alias: 'Estado',
+        alinear: 'centrado',
+      },
+      {
+        clave: 'fecha_registro',
+        alias: 'Recibida',
+        alinear: 'centrado',
+      },
+      {
+        clave: 'est_numero_identificacion',
+        alias: 'Documento',
         alinear: 'izquierda',
       },
       {
@@ -96,11 +160,6 @@ export class SolicitudesInscripcionComponent implements OnInit {
         clave: 'acu_telefono',
         alias: 'Teléfono',
         alinear: 'izquierda',
-      },
-      {
-        clave: 'estado_mostrar',
-        alias: 'Estado',
-        alinear: 'centrado',
       },
     ];
   }
