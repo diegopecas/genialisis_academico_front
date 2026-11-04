@@ -28,7 +28,8 @@ $light-gold: rgba(212, 175, 55, 0.1);
   border-left-color: #28a745;
 }
 
-.estado-barra.rechazada {
+.estado-barra.rechazada,
+.estado-barra.cancelada {
   background: rgba(178, 59, 59, 0.12);
   border-left-color: #b23b3b;
 }

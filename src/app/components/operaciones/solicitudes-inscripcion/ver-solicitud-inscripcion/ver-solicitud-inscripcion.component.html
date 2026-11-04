@@ -53,7 +53,7 @@
         <div class="tab-content panel-card" *ngIf="pestanaActiva === 'solicitud'">
             <div class="panel-body">
                 <div class="alert alert-secondary mb-3" *ngIf="solicitud.motivo_rechazo">
-                    <strong>Motivo del rechazo:</strong> {{ solicitud.motivo_rechazo }}
+                    <strong>{{ solicitud.estado === 'cancelada' ? 'Motivo de la cancelación:' : 'Motivo del rechazo:' }}</strong> {{ solicitud.motivo_rechazo }}
                 </div>
                 <div class="dato"><span>Curso que pidió</span><strong>{{ solicitud.nombre_curso }}</strong></div>
                 <div class="dato" *ngIf="solicitud.nombre_institucion">
@@ -372,8 +372,23 @@
 
         <!-- ===== Pago: link de Bold o datos para transferir ===== -->
         <div class="tab-content panel-card" *ngIf="pestanaActiva === 'pago' && linkActual">
+            <!-- Anulado: la solicitud se canceló por no pago -->
+            <div class="panel-body" *ngIf="linkAnulado">
+                <div class="dato">
+                    <span>Estado</span>
+                    <strong><span class="chip chip-gris">Anulado</span></strong>
+                </div>
+                <div class="dato"><span>Valor</span><strong>{{ linkActual.valor | currency:'COP':'symbol-narrow':'1.0-0' }}</strong></div>
+                <p class="texto-ayuda mt-3 mb-0">
+                    La solicitud se canceló por no pago. Si alguien paga con este link, el pago no se registra solo y te llega un aviso por correo.
+                </p>
+                <div class="alert alert-warning mt-3 mb-0" *ngIf="linkActual.ultimo_error">
+                    {{ linkActual.ultimo_error }}
+                </div>
+            </div>
+
             <!-- Sin pasarela: transferencia -->
-            <div class="panel-body" *ngIf="esTransferencia">
+            <div class="panel-body" *ngIf="esTransferencia && !linkAnulado">
                 <div class="dato">
                     <span>Estado</span>
                     <strong>
@@ -420,7 +435,7 @@
             </div>
 
             <!-- Con pasarela: link de pago -->
-            <div class="panel-body" *ngIf="!esTransferencia">
+            <div class="panel-body" *ngIf="!esTransferencia && !linkAnulado">
                 <div class="dato">
                     <span>Estado</span>
                     <strong>
@@ -515,6 +530,11 @@
         </div>
 
         <div class="row mt-4 mb-5" *ngIf="!esPendiente()">
+            <div class="col-12 mb-2" *ngIf="puedeCancelarPorNoPago">
+                <button class="btn btn-lg btn-outline-danger w-100" (click)="cancelarPorNoPago()" [disabled]="procesando">
+                    <i class="fas fa-user-times me-1"></i> {{ procesando ? 'Procesando...' : 'Cancelar inscripción por no pago' }}
+                </button>
+            </div>
             <div class="col-md-6 col-12 mb-2" *ngIf="solicitud.id_estudiante_creado">
                 <button class="btn btn-lg btn-warning w-100" (click)="irAInscripcion()">
                     Ver estudiante

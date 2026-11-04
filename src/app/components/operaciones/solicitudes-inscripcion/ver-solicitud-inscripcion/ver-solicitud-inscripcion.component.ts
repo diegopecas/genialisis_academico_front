@@ -620,7 +620,23 @@ export class VerSolicitudInscripcionComponent implements OnInit {
 
   // Por transferencia se sabe si pagaron por el saldo de sus cuentas
   get transferenciaPagada(): boolean {
-    return this.esTransferencia && Number(this.linkActual?.saldo_pendiente) <= 0;
+    return this.esTransferencia && !this.linkAnulado && Number(this.linkActual?.saldo_pendiente) <= 0;
+  }
+
+  // El link queda anulado cuando la solicitud se cancela por no pago
+  get linkAnulado(): boolean {
+    return this.linkActual?.estado === 'anulado';
+  }
+
+  /**
+   * Aprobada con link y sin un peso pagado (ni en el link ni en las cuotas).
+   * El back vuelve a revisar los pagos antes de cancelar.
+   */
+  get puedeCancelarPorNoPago(): boolean {
+    if (!this.solicitud || this.solicitud.estado !== 'aprobada' || !this.linkActual) return false;
+    if (this.linkActual.estado === 'pagado' || this.linkAnulado) return false;
+    if (Number(this.linkActual.saldo_pendiente) < Number(this.linkActual.valor)) return false;
+    return !this.planes.some((p: any) => (p.cuotas || []).some((c: any) => Number(c.pagado) > 0));
   }
 
   cargarDatosPago() {
@@ -716,7 +732,7 @@ export class VerSolicitudInscripcionComponent implements OnInit {
     if (link.proveedor === 'transferencia') {
       return Number(link.saldo_pendiente) <= 0 ? 'Pagado' : 'Esperando la transferencia';
     }
-    const etiquetas: any = { pendiente: 'Pendiente', activo: 'Esperando el pago', pagado: 'Pagado', error: 'No se creó' };
+    const etiquetas: any = { pendiente: 'Pendiente', activo: 'Esperando el pago', pagado: 'Pagado', error: 'No se creó', anulado: 'Anulado' };
     return etiquetas[link.estado] || link.estado;
   }
 
@@ -823,6 +839,7 @@ export class VerSolicitudInscripcionComponent implements OnInit {
     if (!this.solicitud) return '';
     if (this.solicitud.estado === 'aprobada') return 'Aprobada';
     if (this.solicitud.estado === 'rechazada') return 'Rechazada';
+    if (this.solicitud.estado === 'cancelada') return 'Cancelada por no pago';
     return 'Pendiente';
   }
 
@@ -969,6 +986,43 @@ export class VerSolicitudInscripcionComponent implements OnInit {
         console.error('Error al rechazar la solicitud', error);
         const mensaje = error?.error?.error || 'No se pudo rechazar la solicitud.';
         Swal.fire('Error', mensaje, 'error');
+      }
+    });
+  }
+
+  /**
+   * Cancela la inscripción de una aprobada que no pagó: se retira del curso,
+   * se liberan sus horarios, se anulan las cuentas y el link queda anulado.
+   */
+  async cancelarPorNoPago() {
+    const result = await Swal.fire({
+      title: 'Cancelar inscripción por no pago',
+      html: `<b>${this.solicitud.est_primer_nombre} ${this.solicitud.est_primer_apellido}</b> sale del curso y su horario queda libre. ` +
+        'Las cuentas y el link de pago quedan anulados; si después alguien paga con el link, el pago no se registra solo y te llega un aviso.',
+      input: 'textarea',
+      inputLabel: 'Motivo (opcional)',
+      inputPlaceholder: 'Por ejemplo: no pagó en el plazo acordado',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      confirmButtonText: 'Cancelar inscripción',
+      cancelButtonText: 'Volver'
+    });
+
+    if (!result.isConfirmed) {
+      return;
+    }
+
+    this.procesando = true;
+    this.solicitudesService.cancelarPorNoPago(this.id, result.value || null).subscribe({
+      next: () => {
+        this.procesando = false;
+        Swal.fire('Cancelada', 'La inscripción quedó cancelada y el cupo libre.', 'success');
+        this.cargar();
+      },
+      error: (error: any) => {
+        this.procesando = false;
+        console.error('Error al cancelar la solicitud', error);
+        Swal.fire('No se pudo cancelar', error?.error?.error || 'No se pudo cancelar la inscripción.', 'error');
       }
     });
   }

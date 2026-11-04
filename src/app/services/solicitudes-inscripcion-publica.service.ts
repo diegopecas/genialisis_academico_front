@@ -131,6 +131,21 @@ export class SolicitudesInscripcionPublicaService {
     );
   }
 
+  /**
+   * Cancela una solicitud aprobada que no se pagó: retira la inscripción,
+   * libera el cupo, anula las cuentas y deja anulado el link.
+   */
+  cancelarPorNoPago(id: any, motivo: string | null) {
+    const body = JSON.stringify({ id: id, motivo: motivo });
+    return this.http.put<any>(this.servicio + '/cancelar-no-pago', body, httpOptions).pipe(
+      tap((respuesta: any) => {
+        if (respuesta && respuesta.error) throw respuesta.error;
+        return respuesta;
+      }),
+      catchError(this.handleError)
+    );
+  }
+
   eliminar(id: any) {
     const body = JSON.stringify({ id: id });
     return this.http.delete<any>(this.servicio, { ...httpOptions, body }).pipe(

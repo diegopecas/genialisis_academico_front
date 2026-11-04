@@ -471,6 +471,20 @@ export class TablasComponent implements OnChanges, OnInit {
       return;
     }
 
+    // Lo que la persona ya habia filtrado se conserva cuando cambian los datos
+    // (otra pestaña, recarga despues de editar): los valores que desmarco
+    // siguen desmarcados, la fecha y el rango siguen puestos, y los valores
+    // nuevos entran marcados. Antes los valores nuevos quedaban escondidos.
+    const desmarcadosPrevios: { [clave: string]: any[] } = {};
+    Object.keys(this.opcionesFiltro).forEach(clave => {
+      desmarcadosPrevios[clave] = (this.opcionesFiltro[clave] || [])
+        .filter(opcion => !opcion.seleccionado)
+        .map(opcion => opcion.valor);
+    });
+    const fechaPrevia = this.filtrosFecha;
+    const rangoPrevio = this.filtrosRango;
+    const clavesFecha: string[] = [];
+
     this.opcionesFiltro = {};
     this.filtrosFecha = {};
     this.filtrosRango = {};
@@ -486,8 +500,20 @@ export class TablasComponent implements OnChanges, OnInit {
 
         if (tipoFiltroConfig === 'fecha') {
           this.generarFiltroFecha(clave);
+          const previa = fechaPrevia[clave];
+          const nueva = this.filtrosFecha[clave];
+          if (previa) {
+            nueva.anioSeleccionado = previa.anioSeleccionado !== null && nueva.anios.includes(previa.anioSeleccionado) ? previa.anioSeleccionado : null;
+            nueva.mesSeleccionado = previa.mesSeleccionado !== null && nueva.meses.includes(previa.mesSeleccionado) ? previa.mesSeleccionado : null;
+            nueva.diaSeleccionado = previa.diaSeleccionado !== null && nueva.dias.includes(previa.diaSeleccionado) ? previa.diaSeleccionado : null;
+          }
+          clavesFecha.push(clave);
         } else if (tipoFiltroConfig === 'rango') {
           this.generarFiltroRango(clave, tituloItem.tipo);
+          if (rangoPrevio[clave]) {
+            this.filtrosRango[clave].desde = rangoPrevio[clave].desde;
+            this.filtrosRango[clave].hasta = rangoPrevio[clave].hasta;
+          }
         } else {
           // 'lista': la celda trae varios valores en un solo texto
           // ('Grupo A, Grupo B'). Cada uno entra como opcion independiente para
@@ -523,20 +549,26 @@ export class TablasComponent implements OnChanges, OnInit {
             valoresArray.unshift(null);
           }
 
+          const desmarcados = desmarcadosPrevios[clave] || [];
           this.opcionesFiltro[clave] = valoresArray.map(valor => ({
             valor: valor,
-            seleccionado: true
+            seleccionado: !desmarcados.some(v => v === valor)
           }));
 
           this.filtroAbierto[clave] = false;
-          this.todosSeleccionados[clave] = true;
+          this.todosSeleccionados[clave] = this.opcionesFiltro[clave].every(opcion => opcion.seleccionado);
 
-          if (!this.filtrosActivos[clave]) {
-            this.filtrosActivos[clave] = [...valoresArray];
-          }
+          // Siempre con los valores de los datos actuales
+          this.filtrosActivos[clave] = this.opcionesFiltro[clave]
+            .filter(opcion => opcion.seleccionado)
+            .map(opcion => opcion.valor);
         }
       }
     });
+
+    // Fechas: el filtro se vuelve a calcular con los datos actuales (o se quita
+    // si la fecha que estaba puesta ya no existe)
+    clavesFecha.forEach(clave => this.aplicarFiltroFecha(clave));
 
     // Aplicar prefiltros de exclusión solo la primera vez que se cargan los datos
     if (!this.prefiltrosAplicados && this.prefiltrosExcluir && Object.keys(this.prefiltrosExcluir).length > 0) {

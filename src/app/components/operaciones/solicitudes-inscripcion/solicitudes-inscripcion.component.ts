@@ -58,8 +58,8 @@ export class SolicitudesInscripcionComponent implements OnInit {
             estado_pago: estadoPago,
             estado_mostrar: this.etiquetaEstado(s.estado, estadoPago),
             // Las resueltas se pintan en pastel (verde pagada o sin cobro,
-            // amarillo por pagar, rosado rechazada) para que resalten las pendientes
-            color: s.estado === 'rechazada' ? '#fcebea'
+            // amarillo por pagar, rosado rechazada o cancelada) para que resalten las pendientes
+            color: s.estado === 'rechazada' || s.estado === 'cancelada' ? '#fcebea'
               : estadoPago === 'pagada' || estadoPago === 'sin_cobro' ? '#eaf6e6'
               : estadoPago === 'por_pagar' || estadoPago === 'pago_parcial' ? '#fff6dc' : ''
           };
@@ -89,18 +89,22 @@ export class SolicitudesInscripcionComponent implements OnInit {
 
   etiquetaEstado(estado: string, estadoPago: string = ''): string {
     if (estado === 'rechazada') return 'Rechazada';
+    if (estado === 'cancelada') return 'Cancelada (no pagó)';
     if (estado !== 'aprobada') return 'Pendiente';
     const etiquetas: any = { pagada: 'Pagada', pago_parcial: 'Pago parcial', por_pagar: 'Por pagar', sin_cobro: 'Aprobada sin cobro' };
     return etiquetas[estadoPago] || 'Aprobada';
   }
 
-  /** Solicitudes de una pestaña. Las aprobadas sin cobro solo salen en Todas. */
+  /**
+   * Solicitudes de una pestaña. Las aprobadas sin cobro solo salen en Todas;
+   * las canceladas por no pago salen con las rechazadas.
+   */
   private dePestana(clave: string): any[] {
     switch (clave) {
-      case 'pendientes': return this.todas.filter(s => s.estado !== 'aprobada' && s.estado !== 'rechazada');
+      case 'pendientes': return this.todas.filter(s => s.estado === 'pendiente');
       case 'por_pagar': return this.todas.filter(s => s.estado_pago === 'por_pagar' || s.estado_pago === 'pago_parcial');
       case 'pagadas': return this.todas.filter(s => s.estado_pago === 'pagada');
-      case 'rechazadas': return this.todas.filter(s => s.estado === 'rechazada');
+      case 'rechazadas': return this.todas.filter(s => s.estado === 'rechazada' || s.estado === 'cancelada');
       default: return this.todas;
     }
   }
@@ -178,7 +182,7 @@ export class SolicitudesInscripcionComponent implements OnInit {
   async eliminarSolicitud(solicitud: any) {
     // Una solicitud aprobada es la trazabilidad de como entro ese estudiante,
     // por eso el backend no la deja borrar.
-    if (solicitud.estado === 'aprobada') {
+    if (solicitud.estado === 'aprobada' || solicitud.estado === 'cancelada') {
       Swal.fire('No se puede eliminar', 'Esta solicitud ya fue aprobada y queda como respaldo de la inscripción.', 'warning');
       return;
     }
