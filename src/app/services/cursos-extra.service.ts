@@ -120,6 +120,22 @@ export class CursosExtraService {
     );
   }
 
+  // Inscritos activos de todos los cursos (reporte de cursos extra)
+  obtenerInscritosActivos(): Observable<HttpResponse<Object>> {
+    return this.http
+      .get<HttpResponse<Object>>(`${environment.api}cursos-extra-inscritos-activos`, { observe: 'response' })
+      .pipe(
+        tap((response: HttpResponse<Object>) => {
+          let respuesta: any = response.body;
+          if (respuesta && respuesta.error) {
+            throw respuesta.error;
+          }
+          return response;
+        }),
+        catchError(this.handleError)
+      );
+  }
+
   obtenerInscritos(id: any): Observable<HttpResponse<Object>> {
     return this.http
       .get<HttpResponse<Object>>(`${this.servicio}/${id}/inscritos`, { observe: 'response' })

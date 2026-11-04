@@ -3,22 +3,16 @@
         [iconoTitulo]="'/assets/images/cursos-extra.png'"></app-header>
 
     <div class="container-fluid mt-4 px-4">
-        <div class="row mb-4">
-            <div class="col-md-6 col-12">
-                <label class="form-label fw-bold">Curso extracurricular</label>
-                <select class="form-select form-select-lg" [(ngModel)]="idCursoSeleccionado" (change)="onCursoChange()">
-                    <option [ngValue]="null">-- Seleccione un curso --</option>
-                    <option *ngFor="let c of cursosExtra" [ngValue]="c.id">{{c.nombre}} ({{c.anio}})</option>
-                </select>
-            </div>
-            <div class="col-md-6 col-12 d-flex align-items-end" *ngIf="cursoSeleccionado">
-                <div class="curso-info">
-                    <span class="info-item"><i class="fas fa-calendar me-1"></i> {{ cursoSeleccionado.fecha_inicio ? cursoSeleccionado.fecha_inicio + ' al ' + cursoSeleccionado.fecha_fin : 'Permanente' }}</span>
-                    <!-- El cupo lo ocupan los vigentes: los retirados salen en
-                         la tabla pero ya no cuentan contra el cupo maximo. -->
-                    <span class="info-item" *ngIf="cursoSeleccionado.cupo_maximo"><i class="fas fa-users me-1"></i> Cupo: {{contarActivos()}} / {{cursoSeleccionado.cupo_maximo}}</span>
-                </div>
-            </div>
+        <!-- Una pestana por curso con inscritos activos; Todos de primera.
+             En el celular se deslizan de lado. -->
+        <div class="pestanas-cursos" *ngIf="pestanas.length > 1">
+            <button type="button" *ngFor="let p of pestanas" class="pestana"
+                    [class.activa]="pestanaActiva === p.clave" (click)="seleccionarPestana(p.clave)">
+                {{ p.texto }} <span class="cuenta">{{ p.cantidad }}</span>
+            </button>
+        </div>
+        <div class="curso-info mb-3" *ngIf="pestanaActual && pestanaActual.clave !== 'todos' && pestanaActual.cupo">
+            <span class="info-item"><i class="fas fa-users me-1"></i> Cupo: {{ contarActivos() }} / {{ pestanaActual.cupo }}</span>
         </div>
     </div>
 
@@ -26,7 +20,7 @@
          estilo que el botón genérico de la tabla, que queda apagado. Este
          nombra el archivo con el curso y la fecha, y manda los valores como
          número para poder sumarlos en Excel. -->
-    <div class="container-fluid px-4 mt-3" *ngIf="idCursoSeleccionado && datos.length > 0">
+    <div class="container-fluid px-4 mt-3" *ngIf="datos.length > 0">
         <div class="d-flex justify-content-end w-100">
             <button class="btn-exportar-excel" (click)="exportarExcel()"
                 [disabled]="exportando || cargando || datosVisibles.length === 0">
@@ -36,11 +30,13 @@
         </div>
     </div>
 
-    <app-tablas *ngIf="idCursoSeleccionado"
+    <app-tablas *ngIf="datos.length > 0"
         [titulos]="titulos"
         [datos]="datos"
         [raiz]="'/reportes/cursos-extra'"
         [columnasFiltro]="columnasFiltro"
+        [acciones]="acciones"
+        (clicAccion)="clicAccion($event)"
         [exportarExcel]="false"
         [mostrarBuscar]="true">
     </app-tablas>
@@ -65,13 +61,13 @@
         </div>
     </div>
 
-    <div class="text-center text-muted py-5" *ngIf="!idCursoSeleccionado">
-        <i class="fas fa-chart-bar fa-3x mb-3"></i>
-        <p class="fs-5">Seleccione un curso para ver los estudiantes inscritos</p>
+    <div class="text-center text-muted py-5" *ngIf="cargando">
+        <div class="spinner-border" role="status"></div>
+        <p class="mt-2">Cargando los inscritos...</p>
     </div>
 
-    <div class="text-center text-muted py-4" *ngIf="idCursoSeleccionado && datos.length === 0 && !cargando">
+    <div class="text-center text-muted py-4" *ngIf="datos.length === 0 && !cargando">
         <i class="fas fa-user-graduate fa-2x mb-2"></i>
-        <p>No hay estudiantes inscritos en este curso</p>
+        <p>No hay estudiantes inscritos activos en ningún curso</p>
     </div>
 </div>

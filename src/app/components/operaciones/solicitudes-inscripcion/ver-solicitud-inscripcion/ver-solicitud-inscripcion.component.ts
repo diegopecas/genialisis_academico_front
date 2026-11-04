@@ -558,14 +558,19 @@ export class VerSolicitudInscripcionComponent implements OnInit {
         const body = response.body || {};
         this.reservaAutomatica = !!body.reserva_automatica;
         this.horarios = body.horarios || [];
-        // Pendiente: vienen marcados los que escogió y tienen cupo (solo en
-        // el curso que pidió). Ya resuelta: se muestran los que quedaron asignados.
+        // Pendiente: viene marcado uno solo de los que escogió y tienen cupo
+        // (solo en el curso que pidió): si escogió varios, el que más
+        // inscritos tiene, y si empatan, el primero. Ya resuelta: se muestran
+        // los que quedaron asignados.
         const cursoPedido = this.idCursoElegido === this.solicitud.id_curso_extra;
-        this.horariosMarcados = new Set(
-          this.horarios
-            .filter((h: any) => this.esPendiente() ? (cursoPedido && h.preferido && !h.lleno) : h.asignado)
-            .map((h: any) => h.id)
-        );
+        if (this.esPendiente()) {
+          const opciones = cursoPedido ? this.horarios.filter((h: any) => h.preferido && !h.lleno) : [];
+          const sugerido = opciones.reduce((mejor: any, h: any) =>
+            !mejor || Number(h.ocupados || 0) > Number(mejor.ocupados || 0) ? h : mejor, null);
+          this.horariosMarcados = new Set(sugerido ? [sugerido.id] : []);
+        } else {
+          this.horariosMarcados = new Set(this.horarios.filter((h: any) => h.asignado).map((h: any) => h.id));
+        }
       },
       error: (error: any) => console.error('Error al cargar los horarios', error)
     });
@@ -692,6 +697,11 @@ export class VerSolicitudInscripcionComponent implements OnInit {
       this.horariosMarcados.add(h.id);
     }
     this.sugerirPlanPorHorarios();
+  }
+
+  /** Los horarios que la persona escogió en el portal, para mostrarlos en la ayuda */
+  get textoHorariosEscogidos(): string {
+    return this.horarios.filter((h: any) => h.preferido).map((h: any) => this.textoHorario(h)).join(', ');
   }
 
   textoHorario(h: any): string {

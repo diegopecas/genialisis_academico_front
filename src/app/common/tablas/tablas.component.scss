@@ -625,3 +625,67 @@ select {
     }
   }
 }
+
+// Registros en el celular: cada uno es una tarjeta con borde dorado a la
+// izquierda, para que se distinga donde termina uno y empieza el otro. El
+// color de fila que ponen algunas pantallas (dato.color) queda como fondo.
+.tarjeta-movil {
+  padding: 0.85rem 0.9rem 0.6rem;
+  background-color: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  border-left: 4px solid #d4af37;
+  border-radius: 12px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.07);
+  backdrop-filter: blur(6px);
+
+  .campo-movil {
+    min-width: 0;
+
+    p,
+    a {
+      display: block;
+      margin: 0 0 0.55rem;
+      font-size: 0.92rem;
+      line-height: 1.3;
+      overflow-wrap: anywhere;
+    }
+
+    sub {
+      bottom: 0;
+      font-size: 0.72rem;
+      color: #9a8442;
+      letter-spacing: 0.2px;
+    }
+  }
+
+  // Primera columna: el titulo de la tarjeta, sin etiqueta y en negrilla
+  .campo-titulo {
+    p,
+    a {
+      margin-bottom: 0.65rem;
+      padding-bottom: 0.45rem;
+      border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+      font-size: 1rem;
+      font-weight: 600;
+      color: #3a3a3a;
+    }
+
+    sub,
+    br:first-of-type {
+      display: none;
+    }
+  }
+
+  .acciones-movil {
+    padding-top: 0.2rem;
+
+    .accion {
+      margin: 0;
+      text-align: center;
+    }
+
+    img {
+      width: 40px;
+    }
+  }
+}

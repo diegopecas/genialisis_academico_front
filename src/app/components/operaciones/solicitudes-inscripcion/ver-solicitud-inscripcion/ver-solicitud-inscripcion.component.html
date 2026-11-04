@@ -223,8 +223,9 @@
                     </p>
                     <ng-container *ngIf="!reservaAutomatica && horarios.length > 0">
                         <p class="texto-ayuda" *ngIf="esPendiente()">
-                            Marca los horarios en los que va a quedar. En los paquetes por sesiones se marca solo el plan que
-                            corresponde (un horario, 4 sesiones; dos horarios, 8 sesiones...) y lo puedes cambiar.
+                            Marca los horarios en que va a quedar.
+                            <b *ngIf="textoHorariosEscogidos">En el portal escogió: {{ textoHorariosEscogidos }}.</b>
+                            Al marcar horarios se sugiere el plan que corresponde.
                         </p>
                         <div class="opcion" *ngFor="let h of horarios"
                              [class.marcado]="horariosMarcados.has(h.id)"

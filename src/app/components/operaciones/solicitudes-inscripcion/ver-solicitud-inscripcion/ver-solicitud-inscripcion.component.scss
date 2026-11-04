@@ -345,22 +345,28 @@ $light-gold: rgba(212, 175, 55, 0.1);
 .chip-ok { background: #e7f4e4; color: #3f7a35; }
 .chip-alerta { background: #fdecea; color: #b0413e; }
 
-/* Aviso cuando el paquete no cuadra con los horarios marcados */
+/* Aviso cuando el paquete no cuadra con los horarios marcados (o las
+   cuotas no cuadran): naranja y con borde fuerte para que no se pierda
+   entre los dorados de la pantalla */
 .aviso-cuadre {
   display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  margin: 8px 0;
-  padding: 9px 12px;
+  align-items: center;
+  gap: 10px;
+  margin: 10px 0;
+  padding: 11px 14px;
   border-radius: 10px;
-  background: #fff6dc;
-  border: 1px solid rgba(212, 175, 55, 0.45);
-  color: #7a5c0e;
-  font-size: 0.88rem;
+  background: #fff1e0;
+  border: 1px solid #f0b46a;
+  border-left: 5px solid #e8892b;
+  color: #8a4b0b;
+  font-size: 0.9rem;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(232, 137, 43, 0.15);
 
   i {
-    margin-top: 2px;
-    color: $gold;
+    flex: 0 0 auto;
+    font-size: 1.25rem;
+    color: #e8892b;
   }
 }
 .chip-info { background: rgba(212, 175, 55, 0.18); color: #8a6d12; }

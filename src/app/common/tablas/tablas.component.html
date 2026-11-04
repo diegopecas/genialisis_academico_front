@@ -870,7 +870,7 @@
   <!-- ==================== VISTA MÓVIL ==================== -->
   <ng-container *ngFor="let dato of tabla.paginas[tabla.paginaActual]">
     <div
-      class="form-tablas-sm mb-3 d-block d-sm-none"
+      class="form-tablas-sm tarjeta-movil mb-3 d-block d-sm-none"
       [style]="
         (dato.color ? 'background-color: ' + dato.color + ';' : '') +
         (dato._estiloFila || '')
@@ -897,8 +897,10 @@
         </div>
       </div>
       <div class="row">
-        <ng-container *ngFor="let titulo of tabla.titulos">
-          <div class="col-12 col-md-6">
+        <!-- La primera columna es el titulo de la tarjeta, a todo el ancho;
+             el resto va a dos columnas para que la tarjeta sea mas corta -->
+        <ng-container *ngFor="let titulo of tabla.titulos; let primero = first">
+          <div class="campo-movil" [ngClass]="primero ? 'col-12 campo-titulo' : 'col-6'">
             <!-- Tipo no especificado (texto simple) -->
             <p
               [class]="titulo.alinear"
@@ -1115,7 +1117,7 @@
         </ng-container>
       </div>
       <!-- Vista móvil -->
-      <div class="row">
+      <div class="row acciones-movil">
         <!-- Acción de editar primero (similar al menú desplegable) -->
         <div class="col" *ngIf="accionEditarActivo">
           <p class="accion">
