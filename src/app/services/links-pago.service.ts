@@ -10,8 +10,9 @@ import { catchError, tap } from 'rxjs/operators';
 import { httpOptions } from './http';
 
 /**
- * Cobros que se envían al aprobar una solicitud del portal: link de pago de
- * la pasarela (Bold) o, sin pasarela, datos para transferir.
+ * Cobros con link de pago de la pasarela (Bold) o, sin pasarela, datos para
+ * transferir: los que se envían al aprobar una solicitud del portal y los de
+ * cuentas por cobrar (Cobros programados).
  */
 @Injectable({
   providedIn: 'root'
@@ -65,6 +66,27 @@ export class LinksPagoService {
         }),
         catchError(this.handleError)
       );
+  }
+
+  // Cobros programados: parámetros del cobro automático y cuentas con su estado de cobro
+  obtenerCobrosProgramados(filtro: string) {
+    return this.http
+      .get<HttpResponse<Object>>(this.servicio + `/cobros-programados?filtro=${encodeURIComponent(filtro)}`, { observe: 'response' })
+      .pipe(
+        tap((response: HttpResponse<Object>) => {
+          let respuesta: any = response.body;
+          if (respuesta && respuesta.error) {
+            throw respuesta.error;
+          }
+          return response;
+        }),
+        catchError(this.handleError)
+      );
+  }
+
+  // Cobra ya una cuenta que no está en ningún cobro: arma el link y envía el correo
+  enviarCobro(idCuenta: any) {
+    return this.put('/enviar-cobro', { id_cuenta: idCuenta });
   }
 
   private put(ruta: string, datos: any) {

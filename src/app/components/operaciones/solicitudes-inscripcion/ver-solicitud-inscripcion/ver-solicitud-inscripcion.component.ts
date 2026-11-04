@@ -8,6 +8,7 @@ import { SearchableDropdownComponent, DropdownItem } from '../../../../common/se
 import { FechaInputComponent } from '../../../../common/fecha-input/fecha-input.component';
 import { SolicitudesInscripcionPublicaService } from '../../../../services/solicitudes-inscripcion-publica.service';
 import { LinksPagoService } from '../../../../services/links-pago.service';
+import { PlanesPagoService } from '../../../../services/planes-pago.service';
 import { CursosExtraService } from '../../../../services/cursos-extra.service';
 import { TarifasCursosExtraService } from '../../../../services/tarifas-cursos-extra.service';
 import { ExportarPdfDatosPagoService, DatosPagoPDF } from '../../../../services/exportar-pdf-datos-pago.service';
@@ -17,6 +18,17 @@ import SwalBase from 'sweetalert2';
 // Alertas con el boton de confirmar en dorado (el de la libreria es morado).
 // Los que ponen su propio color (rechazar en rojo) lo conservan.
 const Swal = SwalBase.mixin({ confirmButtonColor: '#d4af37' });
+
+/** Plan de cuotas de una línea de la tarifa, mientras se arma en la aprobación */
+interface PlanCuotas {
+  numero: number;
+  periodicidad: 'mensual' | 'fechas';
+  tipoRecargo: 'ninguno' | 'porcentaje' | 'valor';
+  porcentaje: number | null;
+  // Solo con recargo por valor total: el total que se escribió
+  valorTotal: number;
+  cuotas: { numero: number, fecha: string, valor: number }[];
+}
 
 @Component({
   selector: 'app-ver-solicitud-inscripcion',
@@ -67,6 +79,12 @@ export class VerSolicitudInscripcionComponent implements OnInit {
   // cuando se cobra menos
   public valoresLinea: { [id: string]: number } = {};
   public motivosLinea: { [id: string]: string } = {};
+  // Líneas que se cobran en cuotas, con su plan. Las que no están aquí van de contado.
+  public cuotasLinea: { [id: string]: PlanCuotas } = {};
+  public readonly maximoCuotas = 60;
+
+  // Planes de cuotas ya creados (solicitud aprobada), para la pestaña Pago
+  public planes: any[] = [];
 
   // Desde cuándo empieza las clases: de ahí salen las reservas fijas y el
   // inicio del paquete cuando llegue el pago
@@ -77,6 +95,7 @@ export class VerSolicitudInscripcionComponent implements OnInit {
     private router: Router,
     private solicitudesService: SolicitudesInscripcionPublicaService,
     private linksPagoService: LinksPagoService,
+    private planesPagoService: PlanesPagoService,
     private cursosExtraService: CursosExtraService,
     private tarifasService: TarifasCursosExtraService,
     private exportarPdfDatosPagoService: ExportarPdfDatosPagoService,
@@ -107,6 +126,7 @@ export class VerSolicitudInscripcionComponent implements OnInit {
         this.idCursoElegido = this.solicitud.id_curso_extra;
         this.cargarHorarios();
         this.cargarLinks();
+        this.cargarPlanes();
         if (this.esPendiente()) {
           this.cargarCursos();
         } else if (this.pestanaActiva === 'aprobacion' && this.solicitud.estado === 'rechazada') {
@@ -195,6 +215,7 @@ export class VerSolicitudInscripcionComponent implements OnInit {
     this.lineasMarcadas = new Set<string>();
     this.valoresLinea = {};
     this.motivosLinea = {};
+    this.cuotasLinea = {};
     if (!curso) return;
 
     this.cargandoTarifa = true;
@@ -233,15 +254,172 @@ export class VerSolicitudInscripcionComponent implements OnInit {
   alternarLinea(linea: any) {
     if (this.lineasMarcadas.has(linea.id)) {
       this.lineasMarcadas.delete(linea.id);
+      // Al desmarcarla vuelve a quedar de contado
+      delete this.cuotasLinea[linea.id];
     } else {
       this.lineasMarcadas.add(linea.id);
     }
   }
 
+  // Todo lo que se cobra: de contado más el total de los planes de cuotas (con recargo)
   get totalCobro(): number {
     return this.lineasTarifa
       .filter((l: any) => this.lineasMarcadas.has(l.id))
-      .reduce((suma: number, l: any) => suma + Number(this.valoresLinea[l.id] || 0), 0);
+      .reduce((suma: number, l: any) => suma + (this.enCuotas(l) ? this.totalPlan(l) : Number(this.valoresLinea[l.id] || 0)), 0);
+  }
+
+  // Lo que va en el link de pago: lo de contado y la primera cuota de cada plan
+  get totalAhora(): number {
+    return this.lineasTarifa
+      .filter((l: any) => this.lineasMarcadas.has(l.id))
+      .reduce((suma: number, l: any) => suma + (this.enCuotas(l)
+        ? Number(this.cuotasLinea[l.id].cuotas[0]?.valor || 0)
+        : Number(this.valoresLinea[l.id] || 0)), 0);
+  }
+
+  get hayCuotas(): boolean {
+    return this.lineasTarifa.some((l: any) => this.lineasMarcadas.has(l.id) && this.enCuotas(l));
+  }
+
+  // ===== Cuotas: cualquier línea marcada se puede cobrar en cuotas =====
+  // La primera cuota es hoy y va en el link; las demás quedan como cuentas
+  // por cobrar con su fecha.
+
+  enCuotas(linea: any): boolean {
+    return !!this.cuotasLinea[linea.id];
+  }
+
+  cambiarFormaPago(linea: any, enCuotas: boolean) {
+    if (!enCuotas) {
+      delete this.cuotasLinea[linea.id];
+      return;
+    }
+    if (this.enCuotas(linea) || Number(this.valoresLinea[linea.id] || 0) <= 0) return;
+    this.cuotasLinea[linea.id] = { numero: 2, periodicidad: 'mensual', tipoRecargo: 'ninguno', porcentaje: null, valorTotal: 0, cuotas: [] };
+    this.repartir(linea);
+  }
+
+  /** Total del plan con el recargo, en pesos enteros */
+  totalPlan(linea: any): number {
+    const plan = this.cuotasLinea[linea.id];
+    const valor = Number(this.valoresLinea[linea.id] || 0);
+    if (!plan) return valor;
+    if (plan.tipoRecargo === 'porcentaje') return Math.round(valor * (1 + Number(plan.porcentaje || 0) / 100));
+    if (plan.tipoRecargo === 'valor') return Number(plan.valorTotal || 0);
+    return valor;
+  }
+
+  recargoPlan(linea: any): number {
+    return this.totalPlan(linea) - Number(this.valoresLinea[linea.id] || 0);
+  }
+
+  /**
+   * Arma las cuotas: partes iguales en pesos enteros y la última con el
+   * redondeo. Mensual: la primera hoy y las demás el mismo día de los meses
+   * siguientes. Fechas específicas: la primera hoy y las demás las escribe
+   * quien aprueba (se conservan las que ya había).
+   */
+  repartir(linea: any) {
+    const plan = this.cuotasLinea[linea.id];
+    if (!plan) return;
+    const numero = Math.min(Math.max(Math.floor(Number(plan.numero) || 2), 2), this.maximoCuotas);
+    plan.numero = numero;
+    const total = this.totalPlan(linea);
+    const parte = Math.floor(total / numero);
+    const anteriores = plan.cuotas;
+    plan.cuotas = Array.from({ length: numero }, (_, i) => ({
+      numero: i + 1,
+      fecha: i === 0 ? this.hoyISO()
+        : plan.periodicidad === 'mensual' ? this.sumarMeses(this.hoyISO(), i) : (anteriores[i]?.fecha || ''),
+      valor: i === numero - 1 ? total - parte * (numero - 1) : parte
+    }));
+  }
+
+  onNumeroCuotas(event: any, linea: any) {
+    this.cuotasLinea[linea.id].numero = parseInt(String(event.target.value).replace(/\D/g, ''), 10) || 2;
+    this.repartir(linea);
+    event.target.value = this.cuotasLinea[linea.id].numero;
+  }
+
+  // Con recargo por valor arranca en lo que se cobra, para que solo se suba
+  cambiarRecargo(linea: any) {
+    this.cambiarRecargoSiHaceFalta(linea);
+    this.repartir(linea);
+  }
+
+  onPorcentajeInput(event: any, linea: any) {
+    const texto = String(event.target.value).replace(',', '.').replace(/[^\d.]/g, '');
+    let porcentaje = texto ? parseFloat(texto) : 0;
+    if (isNaN(porcentaje) || porcentaje < 0) porcentaje = 0;
+    if (porcentaje > 100) porcentaje = 100;
+    this.cuotasLinea[linea.id].porcentaje = porcentaje;
+    event.target.value = texto ? String(porcentaje).replace('.', ',') : '';
+    this.repartir(linea);
+  }
+
+  // Total con recargo por valor: nunca menor que lo que se cobra (se corrige al salir del campo)
+  onValorTotalInput(event: any, linea: any) {
+    const texto = String(event.target.value).replace(/\D/g, '');
+    const plan = this.cuotasLinea[linea.id];
+    plan.valorTotal = texto ? parseInt(texto, 10) : 0;
+    event.target.value = plan.valorTotal.toLocaleString('es-CO');
+    this.repartir(linea);
+  }
+
+  onValorTotalBlur(event: any, linea: any) {
+    const plan = this.cuotasLinea[linea.id];
+    const minimo = Number(this.valoresLinea[linea.id] || 0);
+    if (plan.valorTotal < minimo) {
+      plan.valorTotal = minimo;
+      event.target.value = minimo.toLocaleString('es-CO');
+      this.repartir(linea);
+    }
+  }
+
+  // Valor de una cuota: se puede cambiar a mano; si no cuadra con el total sale el aviso
+  onValorCuotaInput(event: any, cuota: any) {
+    const texto = String(event.target.value).replace(/\D/g, '');
+    cuota.valor = texto ? parseInt(texto, 10) : 0;
+    event.target.value = cuota.valor.toLocaleString('es-CO');
+  }
+
+  textoPesos(valor: any): string {
+    return Number(valor || 0).toLocaleString('es-CO');
+  }
+
+  sumaCuotas(linea: any): number {
+    return (this.cuotasLinea[linea.id]?.cuotas || []).reduce((suma, c) => suma + Number(c.valor || 0), 0);
+  }
+
+  /** Lo que le falta al plan para poder aprobar, o '' si está bien */
+  problemaPlan(linea: any): string {
+    const plan = this.cuotasLinea[linea.id];
+    if (!plan) return '';
+    if (plan.tipoRecargo === 'porcentaje' && !(Number(plan.porcentaje) > 0)) return 'Escribe el porcentaje de recargo.';
+    const suma = this.sumaCuotas(linea);
+    const total = this.totalPlan(linea);
+    if (suma !== total) {
+      return `Las cuotas suman ${suma.toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 })} ` +
+        `y el total es ${total.toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 })}.`;
+    }
+    const sinValor = plan.cuotas.find(c => !(Number(c.valor) > 0));
+    if (sinValor) return `La cuota ${sinValor.numero} no tiene valor.`;
+    for (let i = 1; i < plan.cuotas.length; i++) {
+      if (!plan.cuotas[i].fecha) return `Falta la fecha de la cuota ${i + 1}.`;
+      if (plan.cuotas[i].fecha <= plan.cuotas[i - 1].fecha) {
+        return `La fecha de la cuota ${i + 1} tiene que ser posterior a la de la cuota ${i}.`;
+      }
+    }
+    return '';
+  }
+
+  // Mismo día del mes, k meses después; si ese mes no tiene el día, el último día del mes
+  private sumarMeses(fecha: string, meses: number): string {
+    const [anio, mes, dia] = fecha.split('-').map(Number);
+    const destino = new Date(anio, mes - 1 + meses, 1);
+    const ultimoDia = new Date(destino.getFullYear(), destino.getMonth() + 1, 0).getDate();
+    destino.setDate(Math.min(dia, ultimoDia));
+    return `${destino.getFullYear()}-${String(destino.getMonth() + 1).padStart(2, '0')}-${String(destino.getDate()).padStart(2, '0')}`;
   }
 
   // Valor a cobrar: solo números, con separador de miles, nunca mayor que la tarifa
@@ -254,6 +432,23 @@ export class VerSolicitudInscripcionComponent implements OnInit {
     }
     this.valoresLinea[linea.id] = valor;
     event.target.value = valor.toLocaleString('es-CO');
+    // Si va en cuotas se reparte otra vez; en cero ya no se puede partir
+    if (this.enCuotas(linea)) {
+      if (valor <= 0) {
+        delete this.cuotasLinea[linea.id];
+      } else {
+        this.cambiarRecargoSiHaceFalta(linea);
+        this.repartir(linea);
+      }
+    }
+  }
+
+  // Con recargo por valor, el total no puede quedar por debajo de lo que se cobra
+  private cambiarRecargoSiHaceFalta(linea: any) {
+    const plan = this.cuotasLinea[linea.id];
+    if (plan.tipoRecargo === 'valor' && plan.valorTotal < Number(this.valoresLinea[linea.id] || 0)) {
+      plan.valorTotal = Number(this.valoresLinea[linea.id] || 0);
+    }
   }
 
   textoValor(linea: any): string {
@@ -374,6 +569,29 @@ export class VerSolicitudInscripcionComponent implements OnInit {
       },
       error: (error: any) => console.error('Error al cargar los horarios', error)
     });
+  }
+
+  // Planes de cuotas de la solicitud (solo hay si se aprobó con cuotas)
+  cargarPlanes() {
+    if (this.esPendiente()) {
+      this.planes = [];
+      return;
+    }
+    this.planesPagoService.obtenerPorSolicitud(this.id).subscribe({
+      next: (response: any) => this.planes = (response.body || []) as any[],
+      error: (error: any) => console.error('Error al cargar las cuotas', error)
+    });
+  }
+
+  etiquetaCuota(cuota: any): string {
+    if (cuota.estado === 'pendiente' && Number(cuota.pagado) > 0) return 'Pago parcial';
+    const etiquetas: any = { pagada: 'Pagada', pendiente: 'Pendiente', vencida: 'Vencida', anulada: 'Anulada' };
+    return etiquetas[cuota.estado] || cuota.estado;
+  }
+
+  claseCuota(cuota: any): string {
+    const clases: any = { pagada: 'chip-ok', vencida: 'chip-alerta', anulada: 'chip-gris' };
+    return clases[cuota.estado] || 'chip-info';
   }
 
   cargarLinks() {
@@ -632,14 +850,28 @@ export class VerSolicitudInscripcionComponent implements OnInit {
       this.seleccionarPestana('aprobacion');
       return;
     }
-    const valor = this.totalCobro.toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
+    const conProblema = marcadas.find((l: any) => this.problemaPlan(l) !== '');
+    if (conProblema) {
+      Swal.fire('Revisa las cuotas', `${conProblema.nombre_producto}: ${this.problemaPlan(conProblema)}`, 'warning');
+      this.seleccionarPestana('aprobacion');
+      return;
+    }
+    const pesos = (v: number) => v.toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
+    const valor = pesos(this.totalCobro);
     const conDescuento = marcadas.some((l: any) => this.tieneDescuento(l)) ? ' (con descuento)' : '';
+    const destino = this.correoDestino() ? ` a <b>${this.correoDestino()}</b>.` : `, pero la solicitud no tiene correo.`;
+    // Con cuotas: en el link va lo de contado y la primera cuota; el resto queda con su fecha
+    const cuotasDespues = marcadas.filter((l: any) => this.enCuotas(l))
+      .reduce((suma: number, l: any) => suma + this.cuotasLinea[l.id].cuotas.length - 1, 0);
     const textoCobro = this.lineasMarcadas.size === 0
       ? `No marcaste nada para cobrar, así que no se crean cuentas por cobrar ni link de pago.`
       : this.totalCobro === 0
         ? `Se crea la cuenta por cobrar en cero${conDescuento}, así que no se envía link de pago.`
-        : `Se crean las cuentas por cobrar por <b>${valor}</b>${conDescuento} y se envía el link de pago de Bold` +
-          (this.correoDestino() ? ` a <b>${this.correoDestino()}</b>.` : `, pero la solicitud no tiene correo.`);
+        : this.hayCuotas
+          ? `Se crean las cuentas por cobrar por <b>${valor}</b>${conDescuento} y se envía el link de pago por <b>${pesos(this.totalAhora)}</b> ` +
+            `(lo de contado y la primera cuota)` + destino + `<br><br>Quedan <b>${cuotasDespues}</b> ${cuotasDespues === 1 ? 'cuota' : 'cuotas'} más por ` +
+            `<b>${pesos(this.totalCobro - this.totalAhora)}</b>, cada una como cuenta por cobrar con su fecha.`
+          : `Se crean las cuentas por cobrar por <b>${valor}</b>${conDescuento} y se envía el link de pago de Bold` + destino;
     const result = await Swal.fire({
       title: '¿Aprobar la solicitud?',
       html: `Se va a crear el estudiante <b>${this.nombreEstudiante()}</b> y se inscribirá a ` +
@@ -664,7 +896,15 @@ export class VerSolicitudInscripcionComponent implements OnInit {
     const lineasCobro = marcadas.map((l: any) => ({
       id: l.id,
       valor: Number(this.valoresLinea[l.id] || 0),
-      motivo_descuento: this.tieneDescuento(l) ? (this.motivosLinea[l.id] || '').trim() : null
+      motivo_descuento: this.tieneDescuento(l) ? (this.motivosLinea[l.id] || '').trim() : null,
+      // Sin plan va de contado
+      cuotas: this.enCuotas(l) ? {
+        periodicidad: this.cuotasLinea[l.id].periodicidad,
+        tipo_recargo: this.cuotasLinea[l.id].tipoRecargo,
+        porcentaje_recargo: this.cuotasLinea[l.id].tipoRecargo === 'porcentaje' ? this.cuotasLinea[l.id].porcentaje : null,
+        valor_total: this.totalPlan(l),
+        cuotas: this.cuotasLinea[l.id].cuotas.map(c => ({ numero: c.numero, fecha: c.fecha, valor: c.valor }))
+      } : null
     }));
     this.solicitudesService.aprobar(this.id, idsHorarios, this.idCursoElegido, Array.from(this.lineasMarcadas),
       lineasCobro, this.fechaInicioClases).subscribe({

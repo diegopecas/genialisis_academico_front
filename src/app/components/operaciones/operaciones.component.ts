@@ -119,6 +119,9 @@ export class OperacionesComponent implements OnInit {
       case 'recordatorio-pagos':
         this.router.navigate(['/operaciones/recordatorio-pagos']);
         break;
+      case 'cobros-programados':
+        this.router.navigate(['/operaciones/cobros-programados']);
+        break;
       case 'seguimiento-asistencia':
         this.router.navigate(['/operaciones/seguimiento-asistencia']);
         break;

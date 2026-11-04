@@ -14,6 +14,8 @@ export interface DatosPagoPDF {
   fecha_inicio_clases: string | null;
   horarios: { dia: string, hora_inicial: string, hora_final: string }[];
   lineas: { detalle: string, valor: any }[];
+  // Cuotas que quedan para después, si algo se partió en cuotas
+  cuotas?: { detalle: string, fecha_vencimiento: string, valor: any }[];
   valor: number;
   referencia: string;
   // Link de la pasarela, si el cobro tiene uno sin pagar
@@ -128,9 +130,38 @@ export class ExportarPdfDatosPagoService {
     espacio(10);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(12);
-    doc.text('Total', margen, y + 2);
+    const hayCuotas = !!(datos.cuotas && datos.cuotas.length > 0);
+    doc.text(hayCuotas ? 'Total de este pago' : 'Total', margen, y + 2);
     doc.text(this.pesos(datos.valor), ancho - margen, y + 2, { align: 'right' });
     y += 12;
+
+    // ---------- Las siguientes cuotas (planes de cuotas)
+    if (hayCuotas) {
+      espacio(24);
+      this.titulo(doc, 'Las siguientes cuotas', margen, y);
+      y += 7;
+      doc.setFontSize(10);
+      (datos.cuotas || []).forEach(c => {
+        const lineas = doc.splitTextToSize(String(c.detalle || ''), util - 70);
+        espacio(lineas.length * 5 + 3);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(this.oscuro);
+        doc.text(lineas, margen, y);
+        doc.setTextColor(this.gris);
+        doc.text(this.fechaLarga(c.fecha_vencimiento), ancho - margen - 32, y, { align: 'right' });
+        doc.setTextColor(this.oscuro);
+        doc.text(this.pesos(c.valor), ancho - margen, y, { align: 'right' });
+        y += lineas.length * 5 + 2;
+        doc.setDrawColor('#eeeeee');
+        doc.setLineWidth(0.2);
+        doc.line(margen, y - 1, ancho - margen, y - 1);
+        y += 2;
+      });
+      doc.setFontSize(9.5);
+      doc.setTextColor(this.gris);
+      doc.text('Cada cuota se paga a más tardar en su fecha.', margen, y + 2);
+      y += 10;
+    }
 
     // ---------- Como pagar: link de la pasarela (si hay) y cuentas
     espacio(30);

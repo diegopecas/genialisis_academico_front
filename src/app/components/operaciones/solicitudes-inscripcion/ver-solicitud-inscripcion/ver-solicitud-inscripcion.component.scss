@@ -465,3 +465,142 @@ $light-gold: rgba(212, 175, 55, 0.1);
 .cuenta small {
   opacity: 0.7;
 }
+/* De contado o en cuotas, en cada línea marcada */
+
+.forma-pago {
+  flex: 1 1 100%;
+}
+
+.forma-pago-opciones {
+  display: inline-flex;
+  border: 1px solid rgba(212, 175, 55, 0.5);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.opcion-forma {
+  padding: 5px 14px;
+  border: 0;
+  background: rgba(255, 255, 255, 0.8);
+  color: #6b5a1e;
+  font-size: 0.85rem;
+  font-weight: 500;
+
+  &.activa {
+    background: $gold;
+    color: #fff;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+  }
+}
+
+.plan-campos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+
+  label {
+    flex: 1 1 130px;
+    max-width: 200px;
+  }
+}
+
+.plan-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  margin: 10px 0 6px;
+  font-size: 0.9rem;
+
+  small {
+    opacity: 0.7;
+  }
+}
+
+.cuota-fila {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 0;
+  border-top: 1px solid rgba(212, 175, 55, 0.2);
+}
+
+.cuota-numero {
+  flex: 0 0 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(212, 175, 55, 0.18);
+  color: #8a6d12;
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 26px;
+  text-align: center;
+}
+
+.cuota-fecha {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.cuota-hoy {
+  font-size: 0.85rem;
+  opacity: 0.75;
+}
+
+.cuota-valor {
+  flex: 0 0 130px;
+  text-align: right;
+}
+
+.total-ahora {
+  border-top: 0;
+  padding-top: 4px;
+  font-size: 0.95rem;
+  color: #6b5a1e;
+}
+
+/* Cuotas en la pestaña Pago */
+
+.plan-cuotas {
+  border-top: 1px solid rgba(212, 175, 55, 0.3);
+}
+
+.plan-titulo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 8px;
+
+  span {
+    font-size: 0.85rem;
+    opacity: 0.75;
+  }
+}
+
+.cuota-estado {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+
+  .cuota-fecha-texto {
+    flex: 1 1 auto;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .plan-campos label {
+    flex: 1 1 calc(50% - 10px);
+    max-width: none;
+  }
+
+  .cuota-valor {
+    flex: 0 0 110px;
+  }
+}

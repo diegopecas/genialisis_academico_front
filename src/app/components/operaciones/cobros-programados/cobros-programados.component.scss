@@ -1,0 +1,107 @@
+$gold: #d4af37;
+$mobile: 576px;
+
+.modulo {
+  padding: 1rem;
+  background-color: #fff;
+  min-height: 100vh;
+}
+
+/* Estado del cobro automático */
+.estado-automatico {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba($gold, 0.45);
+  background: rgba($gold, 0.1);
+  backdrop-filter: blur(6px);
+  color: #6b5a1e;
+  font-size: 0.92rem;
+
+  i {
+    margin-top: 2px;
+    color: $gold;
+    font-size: 1.1rem;
+  }
+
+  &.apagado {
+    background: #f6f5f2;
+    border-color: #e4e1d8;
+    color: #666;
+
+    i {
+      color: #9a9a9a;
+    }
+  }
+}
+
+/* Filtros: en el celular se deslizan de lado */
+.filtros-cobro {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 2px 2px 14px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.filtro {
+  flex: 0 0 auto;
+  padding: 7px 16px;
+  border: 1px solid rgba($gold, 0.45);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.75);
+  color: #6b5a1e;
+  font-weight: 500;
+  font-size: 0.9rem;
+
+  &.activo {
+    background: $gold;
+    border-color: $gold;
+    color: #fff;
+  }
+}
+
+/* Tarjetas de resumen, como en Recordatorio de pagos pero en pastel */
+.resumen-card {
+  text-align: center;
+  padding: 1rem;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100%;
+  min-height: 92px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+  transition: transform 0.2s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+  }
+
+  .resumen-valor {
+    font-size: 1.45rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 0.2rem;
+
+    @media (max-width: $mobile) {
+      font-size: 1.2rem;
+    }
+  }
+
+  .resumen-label {
+    font-size: 0.82rem;
+    opacity: 0.8;
+    font-weight: 500;
+  }
+}
+
+.por-enviar-bg { background: #fff6dc; color: #8a6d12; }
+.enviados-bg { background: #eaf6e6; color: #3f7a35; }
+.alerta-bg { background: #f1efea; color: #6b6b6b; }
+.vencido-bg { background: #fcebea; color: #b0413e; }
+.saldo-bg { background: rgba($gold, 0.14); color: #6b5a1e; }

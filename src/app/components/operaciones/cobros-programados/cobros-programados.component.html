@@ -1,0 +1,84 @@
+<div class="modulo">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="false"
+    [raiz]="'/operaciones/cobros-programados'"
+    [regresar]="'/operaciones'"
+    [iconoTitulo]="'/assets/images/cobros-programados.png'"
+  ></app-header>
+
+  <!-- Cómo está el cobro automático (se cambia en la configuración global) -->
+  <div class="estado-automatico" [class.apagado]="!activo" *ngIf="!cargando">
+    <i class="fas" [ngClass]="activo ? 'fa-robot' : 'fa-pause-circle'"></i>
+    <span *ngIf="activo">
+      El cobro automático está <b>prendido</b>: cada día sale el correo con el link de pago de las cuentas que vencen
+      en los próximos <b>{{ diasAntes }}</b> {{ diasAntes === 1 ? 'día' : 'días' }}.
+    </span>
+    <span *ngIf="!activo">
+      El cobro automático está <b>apagado</b>: no sale ningún correo solo. Puedes enviar los cobros a mano desde la lista.
+    </span>
+  </div>
+
+  <!-- Qué cuentas se ven -->
+  <div class="filtros-cobro">
+    <button type="button" *ngFor="let f of filtros" class="filtro"
+            [class.activo]="filtro === f.clave" (click)="seleccionarFiltro(f.clave)">
+      {{ f.texto }}<span *ngIf="f.clave === 'proximos' && diasAntes !== null"> ({{ diasAntes }} días)</span>
+    </button>
+  </div>
+
+  <!-- Indicador de carga -->
+  <div *ngIf="cargando" class="text-center py-5">
+    <div class="spinner-border" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+    <p class="mt-2">Cargando los cobros...</p>
+  </div>
+
+  <ng-container *ngIf="!cargando">
+    <!-- Resumen -->
+    <div class="row mb-3">
+      <div class="col-md col-6 mb-3">
+        <div class="resumen-card por-enviar-bg">
+          <span class="resumen-valor">{{ porEnviar }}</span>
+          <span class="resumen-label">Por enviar</span>
+        </div>
+      </div>
+      <div class="col-md col-6 mb-3">
+        <div class="resumen-card enviados-bg">
+          <span class="resumen-valor">{{ enviados }}</span>
+          <span class="resumen-label">Enviados sin pagar</span>
+        </div>
+      </div>
+      <div class="col-md col-6 mb-3">
+        <div class="resumen-card alerta-bg">
+          <span class="resumen-valor">{{ sinCorreo }}</span>
+          <span class="resumen-label">Sin correo</span>
+        </div>
+      </div>
+      <div class="col-md col-6 mb-3">
+        <div class="resumen-card vencido-bg">
+          <span class="resumen-valor">{{ vencidas }}</span>
+          <span class="resumen-label">Vencidas</span>
+        </div>
+      </div>
+      <div class="col-md col-12 mb-3">
+        <div class="resumen-card saldo-bg">
+          <span class="resumen-valor">{{ totalSaldo | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
+          <span class="resumen-label">Saldo de la lista</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- El componente de tablas maneja el responsive -->
+    <app-tablas
+      [titulos]="titulos"
+      [datos]="datos"
+      [raiz]="'/operaciones/cobros-programados'"
+      [acciones]="acciones"
+      [mostrarBuscar]="true"
+      [columnasFiltro]="columnasFiltro"
+      (clicAccion)="clicAccion($event)"
+    ></app-tablas>
+  </ng-container>
+</div>

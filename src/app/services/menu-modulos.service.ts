@@ -515,10 +515,11 @@ export class MenuModulosService {
             iconoArbol: '💵',
             alt: 'Financiero',
             imagen: 'assets/images/finanzas.png',
-            permisos: ['operaciones.recordatorio_pagos'],
+            permisos: ['operaciones.recordatorio_pagos', 'operaciones.cobros_programados'],
             keywords: ['dinero', 'plata', 'cobros', 'cartera'],
             opciones: [
-              { id: 'recordatorio-pagos', label: 'Recordatorio de Pagos', alt: 'Recordatorio de Pagos', imagen: 'assets/images/recordatorio-pagos.png', iconoArbol: '💬', ruta: '/operaciones/recordatorio-pagos', permiso: 'operaciones.recordatorio_pagos', columna: 'col-12', keywords: ['cobro', 'mora', 'cartera', 'whatsapp', 'aviso'] }
+              { id: 'recordatorio-pagos', label: 'Recordatorio de Pagos', alt: 'Recordatorio de Pagos', imagen: 'assets/images/recordatorio-pagos.png', iconoArbol: '💬', ruta: '/operaciones/recordatorio-pagos', permiso: 'operaciones.recordatorio_pagos', keywords: ['cobro', 'mora', 'cartera', 'whatsapp', 'aviso'] },
+              { id: 'cobros-programados', label: 'Cobros Programados', alt: 'Cobros Programados', imagen: 'assets/images/cobros-programados.png', iconoArbol: '📅', ruta: '/operaciones/cobros-programados', permiso: 'operaciones.cobros_programados', keywords: ['cobro automatico', 'link de pago', 'cuotas', 'vencimiento', 'bold', 'correo', 'cartera'] }
             ]
           }
         ]

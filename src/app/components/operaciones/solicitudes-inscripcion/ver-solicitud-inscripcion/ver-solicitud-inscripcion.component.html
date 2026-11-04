@@ -279,6 +279,74 @@
                                            [class.is-invalid]="!(motivosLinea[l.id] || '').trim()"
                                            [(ngModel)]="motivosLinea[l.id]" placeholder="Por qué se le cobra menos">
                                 </label>
+
+                                <!-- De contado o en cuotas: la primera cuota se cobra hoy con el link -->
+                                <div class="forma-pago">
+                                    <div class="forma-pago-opciones">
+                                        <button type="button" class="opcion-forma" [class.activa]="!enCuotas(l)"
+                                                (click)="cambiarFormaPago(l, false)">De contado</button>
+                                        <button type="button" class="opcion-forma" [class.activa]="enCuotas(l)"
+                                                [disabled]="!(valoresLinea[l.id] > 0)" (click)="cambiarFormaPago(l, true)">En cuotas</button>
+                                    </div>
+
+                                    <ng-container *ngIf="cuotasLinea[l.id] as plan">
+                                        <div class="plan-campos">
+                                            <label>
+                                                <span>Cuotas</span>
+                                                <input type="text" inputmode="numeric" class="form-control form-control-sm"
+                                                       [value]="plan.numero" (change)="onNumeroCuotas($event, l)">
+                                            </label>
+                                            <label>
+                                                <span>Fechas</span>
+                                                <select class="form-select form-select-sm" [(ngModel)]="plan.periodicidad" (ngModelChange)="repartir(l)">
+                                                    <option value="mensual">Mensual</option>
+                                                    <option value="fechas">Fechas específicas</option>
+                                                </select>
+                                            </label>
+                                            <label>
+                                                <span>Recargo</span>
+                                                <select class="form-select form-select-sm" [(ngModel)]="plan.tipoRecargo" (ngModelChange)="cambiarRecargo(l)">
+                                                    <option value="ninguno">Sin recargo</option>
+                                                    <option value="porcentaje">Porcentaje</option>
+                                                    <option value="valor">Valor total</option>
+                                                </select>
+                                            </label>
+                                            <label *ngIf="plan.tipoRecargo === 'porcentaje'">
+                                                <span>Porcentaje (%)</span>
+                                                <input type="text" inputmode="decimal" class="form-control form-control-sm"
+                                                       [class.is-invalid]="!(plan.porcentaje! > 0)"
+                                                       [value]="plan.porcentaje ?? ''" (change)="onPorcentajeInput($event, l)">
+                                            </label>
+                                            <label *ngIf="plan.tipoRecargo === 'valor'">
+                                                <span>Total con recargo</span>
+                                                <input type="text" inputmode="numeric" class="form-control form-control-sm"
+                                                       [value]="textoPesos(plan.valorTotal)" (input)="onValorTotalInput($event, l)"
+                                                       (blur)="onValorTotalBlur($event, l)">
+                                            </label>
+                                        </div>
+
+                                        <div class="plan-total">
+                                            <span>Total en cuotas<small *ngIf="recargoPlan(l) > 0"> · recargo de {{ recargoPlan(l) | currency:'COP':'symbol-narrow':'1.0-0' }}</small></span>
+                                            <strong>{{ totalPlan(l) | currency:'COP':'symbol-narrow':'1.0-0' }}</strong>
+                                        </div>
+
+                                        <div class="cuota-fila" *ngFor="let c of plan.cuotas; let i = index">
+                                            <span class="cuota-numero">{{ c.numero }}</span>
+                                            <div class="cuota-fecha">
+                                                <span class="cuota-hoy" *ngIf="i === 0">Hoy, con el link</span>
+                                                <app-fecha-input *ngIf="i > 0" tamano="sm" [(ngModel)]="c.fecha"
+                                                                 [invalido]="!c.fecha"></app-fecha-input>
+                                            </div>
+                                            <input type="text" inputmode="numeric" class="form-control form-control-sm cuota-valor"
+                                                   [value]="textoPesos(c.valor)" (input)="onValorCuotaInput($event, c)">
+                                        </div>
+
+                                        <div class="aviso-cuadre" *ngIf="problemaPlan(l)">
+                                            <i class="fas fa-exclamation-triangle"></i>
+                                            <span>{{ problemaPlan(l) }}</span>
+                                        </div>
+                                    </ng-container>
+                                </div>
                             </div>
                         </div>
                         <div class="aviso-cuadre" *ngIf="avisoPlanHorarios">
@@ -286,8 +354,12 @@
                             <span>{{ avisoPlanHorarios }} Revisa si es lo que quieres; igual puedes aprobar.</span>
                         </div>
                         <div class="total">
-                            <span>Total a cobrar</span>
+                            <span>{{ hayCuotas ? 'Total con las cuotas' : 'Total a cobrar' }}</span>
                             <strong>{{ totalCobro | currency:'COP':'symbol-narrow':'1.0-0' }}</strong>
+                        </div>
+                        <div class="total total-ahora" *ngIf="hayCuotas">
+                            <span>Se cobra ahora con el link</span>
+                            <strong>{{ totalAhora | currency:'COP':'symbol-narrow':'1.0-0' }}</strong>
                         </div>
                         <p class="texto-ayuda mt-2 mb-0" *ngIf="lineasMarcadas.size > 0">
                             El link de pago se envía a {{ correoDestino() || 'ningún correo (la solicitud no tiene)' }}.
@@ -404,6 +476,23 @@
                         </button>
                     </ng-container>
                 </div>
+            </div>
+
+            <!-- Cuotas: las de los planes que se crearon al aprobar -->
+            <div class="panel-body plan-cuotas" *ngFor="let p of planes">
+                <p class="plan-titulo">
+                    <strong>{{ p.descripcion }}</strong>
+                    <span>{{ p.numero_cuotas }} cuotas por {{ p.valor_total | currency:'COP':'symbol-narrow':'1.0-0' }}<span *ngIf="+p.valor_recargo > 0"> · recargo de {{ p.valor_recargo | currency:'COP':'symbol-narrow':'1.0-0' }}</span></span>
+                </p>
+                <div class="cuota-estado" *ngFor="let c of p.cuotas">
+                    <span class="cuota-numero">{{ c.numero }}</span>
+                    <span class="cuota-fecha-texto">{{ c.fecha_vencimiento }}</span>
+                    <strong>{{ c.valor | currency:'COP':'symbol-narrow':'1.0-0' }}</strong>
+                    <span class="chip" [ngClass]="claseCuota(c)">{{ etiquetaCuota(c) }}</span>
+                </div>
+                <p class="texto-ayuda mt-2 mb-0">
+                    La primera cuota va en el link de pago. Las demás se pagan desde los pagos del estudiante.
+                </p>
             </div>
         </div>
 
