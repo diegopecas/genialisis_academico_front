@@ -122,6 +122,9 @@ export class OperacionesComponent implements OnInit {
       case 'cobros-programados':
         this.router.navigate(['/operaciones/cobros-programados']);
         break;
+      case 'novedades-espacios':
+        this.router.navigate(['/operaciones/novedades-espacios']);
+        break;
       case 'seguimiento-asistencia':
         this.router.navigate(['/operaciones/seguimiento-asistencia']);
         break;

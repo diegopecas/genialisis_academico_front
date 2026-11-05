@@ -435,8 +435,8 @@ export class MenuModulosService {
             iconoArbol: '🧼',
             alt: 'Apoyo',
             imagen: 'assets/images/apoyo.png',
-            permisos: ['operaciones.asignacion_onces', 'operaciones.disponibilidad_cocina', 'operaciones.edicion_masiva_limpieza', 'operaciones.entrega_alimentacion', 'operaciones.inventario_alimentacion', 'operaciones.registro_masivo_limpieza', 'operaciones.registro_rapido_limpieza', 'operaciones.registros_limpieza', 'operaciones.reporte_aseo', 'operaciones.supervision_limpieza'],
-            keywords: ['aseo', 'limpieza', 'cocina', 'alimentacion'],
+            permisos: ['operaciones.asignacion_onces', 'operaciones.disponibilidad_cocina', 'operaciones.edicion_masiva_limpieza', 'operaciones.entrega_alimentacion', 'operaciones.inventario_alimentacion', 'operaciones.registro_masivo_limpieza', 'operaciones.registro_rapido_limpieza', 'operaciones.registros_limpieza', 'operaciones.reporte_aseo', 'operaciones.supervision_limpieza', 'operaciones.novedades_espacios'],
+            keywords: ['aseo', 'limpieza', 'cocina', 'alimentacion', 'canchas'],
             opciones: [
               { id: 'registros-limpieza', label: 'Registro de Limpieza', alt: 'Registro de Limpieza', imagen: 'assets/images/limpieza.png', iconoArbol: '🧼', ruta: '/operaciones/registros-limpieza', permiso: 'operaciones.registros_limpieza', keywords: ['aseo', 'desinfeccion', 'areas'] },
               { id: 'registro-rapido-limpieza', label: 'Registro Rápido de Aseo', alt: 'Registro Rápido de Aseo', imagen: 'assets/images/registro_limpieza_rapido.png', iconoArbol: '⚡', ruta: '/operaciones/registro-rapido-limpieza', permiso: 'operaciones.registro_rapido_limpieza', keywords: ['aseo', 'limpieza', 'rapido', 'express'] },
@@ -447,7 +447,8 @@ export class MenuModulosService {
               { id: 'disponibilidad-cocina', label: 'Disponibilidad Cocina', alt: 'Disponibilidad Cocina', imagen: 'assets/images/disponiblidad_cocina.png', iconoArbol: '🍳', ruta: '/operaciones/disponibilidad-cocina', permiso: 'operaciones.disponibilidad_cocina', keywords: ['cocina', 'menu', 'comida'] },
               { id: 'asignacion-onces', label: 'Asignación de Onces', alt: 'Asignación de Onces', imagen: 'assets/images/asignar_alimentacion.png', iconoArbol: '🍱', ruta: '/operaciones/asignacion-onces', permiso: 'operaciones.asignacion_onces', keywords: ['onces', 'refrigerios', 'alimentacion', 'medias nueves'] },
               { id: 'entrega-alimentacion', label: 'Entrega Alimentación', alt: 'Entrega Alimentación', imagen: 'assets/images/entrega_alimentacion.png', iconoArbol: '🍽️', ruta: '/operaciones/entrega-alimentacion', permiso: 'operaciones.entrega_alimentacion', keywords: ['comida', 'almuerzo', 'onces'] },
-              { id: 'inventario-alimentacion', label: 'Inventario Alimentación', alt: 'Inventario Alimentación', imagen: 'assets/images/salidas_alimentacion.png', iconoArbol: '📦', ruta: '/operaciones/inventario-alimentacion', permiso: 'operaciones.inventario_alimentacion', keywords: ['stock', 'comida', 'despensa'] }
+              { id: 'inventario-alimentacion', label: 'Inventario Alimentación', alt: 'Inventario Alimentación', imagen: 'assets/images/salidas_alimentacion.png', iconoArbol: '📦', ruta: '/operaciones/inventario-alimentacion', permiso: 'operaciones.inventario_alimentacion', keywords: ['stock', 'comida', 'despensa'] },
+              { id: 'novedades-espacios', label: 'Novedades de Espacios', alt: 'Novedades de Espacios', imagen: 'assets/images/novedades-espacios.png', iconoArbol: '🌧️', ruta: '/operaciones/novedades-espacios', permiso: 'operaciones.novedades_espacios', keywords: ['canchas', 'lluvia', 'novedades', 'club', 'reporte', 'horas canceladas', 'mantenimiento'] }
             ]
           },
           {
@@ -731,7 +732,7 @@ export class MenuModulosService {
             iconoArbol: '⚙️',
             alt: 'Operaciones',
             imagen: 'assets/images/operaciones.png',
-            permisos: ['admin.gestion_medidas', 'admin.menus', 'admin.calendario_eventos', 'admin.tipos_cursos_extracurriculares', 'admin.lugares_cursos_extra'],
+            permisos: ['admin.gestion_medidas', 'admin.menus', 'admin.calendario_eventos', 'admin.tipos_cursos_extracurriculares', 'admin.lugares_cursos_extra', 'admin.tipos_novedad_espacio'],
             keywords: ['cocina', 'medidas', 'minuta', 'calendario', 'eventos'],
             opciones: [
               {
@@ -778,7 +779,8 @@ export class MenuModulosService {
                 ]
               },
               { id: 'tipos-cursos-extracurriculares', label: 'Tipos de Curso Extracurricular', alt: 'Tipos de Curso Extracurricular', imagen: 'assets/images/tipos-cursos-extra.png', iconoArbol: '🎭', ruta: '/administracion/datos-maestros/tipos-cursos-extracurriculares', permiso: 'admin.tipos_cursos_extracurriculares', keywords: ['extracurriculares', 'talleres', 'natacion', 'ballet', 'futbol', 'agrupador', 'actividades'] },
-              { id: 'lugares-cursos-extra', label: 'Lugares de Cursos Extracurriculares', alt: 'Lugares de Cursos Extracurriculares', imagen: 'assets/images/lugares-cursos-extra.png', iconoArbol: '📍', ruta: '/administracion/datos-maestros/lugares-cursos-extra', permiso: 'admin.lugares_cursos_extra', keywords: ['lugares', 'sitios', 'sedes', 'donde se dicta', 'extracurriculares', 'piscina', 'gimnasio'] }
+              { id: 'lugares-cursos-extra', label: 'Lugares de Cursos Extracurriculares', alt: 'Lugares de Cursos Extracurriculares', imagen: 'assets/images/lugares-cursos-extra.png', iconoArbol: '📍', ruta: '/administracion/datos-maestros/lugares-cursos-extra', permiso: 'admin.lugares_cursos_extra', keywords: ['lugares', 'sitios', 'sedes', 'donde se dicta', 'extracurriculares', 'piscina', 'gimnasio'] },
+              { id: 'tipos-novedad-espacio', label: 'Tipos de Novedad de Espacio', alt: 'Tipos de Novedad de Espacio', imagen: 'assets/images/tipos-novedad-espacio.png', iconoArbol: '🌧️', ruta: '/administracion/datos-maestros/tipos-novedad-espacio', permiso: 'admin.tipos_novedad_espacio', keywords: ['lluvia', 'canchas', 'novedades', 'mantenimiento'] }
             ]
           },
           {

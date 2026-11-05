@@ -1,0 +1,75 @@
+<div class="modulo">
+  <app-header
+    [tituloModulo]="titulo"
+    [mostrarCrear]="true"
+    [accion]="'ConsultarTodos'"
+    [raiz]="'/operaciones/novedades-espacios'"
+    [regresar]="'/operaciones'"
+    [iconoTitulo]="'/assets/images/novedades-espacios.png'"
+  ></app-header>
+
+  <!-- Filtros: lugar y rango de fechas -->
+  <div class="filtros-novedades">
+    <div class="filtro">
+      <label class="form-label">Lugar</label>
+      <select class="form-select" [(ngModel)]="idLugar" (ngModelChange)="cargar()">
+        <option value="">Todos los lugares</option>
+        <option *ngFor="let l of lugares" [value]="l.id">{{ l.nombre }}</option>
+      </select>
+    </div>
+    <ng-container *ngIf="!esReportes">
+      <div class="filtro">
+        <label class="form-label">Desde</label>
+        <app-fecha-input [(ngModel)]="desde" (ngModelChange)="cargar()"></app-fecha-input>
+      </div>
+      <div class="filtro">
+        <label class="form-label">Hasta</label>
+        <app-fecha-input [(ngModel)]="hasta" (ngModelChange)="cargar()"></app-fecha-input>
+      </div>
+    </ng-container>
+  </div>
+
+  <!-- Pestañas por estado y el historial; en el celular se deslizan de lado -->
+  <div class="pestanas-estado">
+    <button type="button" *ngFor="let p of pestanas" class="pestana"
+            [class.activa]="pestanaActiva === p.clave" (click)="seleccionarPestana(p.clave)">
+      <i class="fas fa-history me-1" *ngIf="p.clave === 'reportes'"></i>{{ p.texto }}
+    </button>
+  </div>
+
+  <!-- Lo que se hace con las marcadas -->
+  <div class="acciones-lote" *ngIf="pestanaActiva === 'sin_reportar' || pestanaActiva === 'reportada'">
+    <span class="texto-lote">
+      {{ seleccionadas.length }} {{ seleccionadas.length === 1 ? 'marcada' : 'marcadas' }}
+    </span>
+    <button class="btn btn-warning" *ngIf="pestanaActiva === 'sin_reportar'" (click)="generarReporte()"
+            [disabled]="procesando || seleccionadas.length === 0">
+      <i class="fas fa-file-pdf me-1"></i> Generar reporte para el club
+    </button>
+    <button class="btn btn-warning" *ngIf="pestanaActiva === 'reportada'" (click)="marcarCruzadas()"
+            [disabled]="procesando || seleccionadas.length === 0">
+      <i class="fas fa-check-double me-1"></i> Marcar como cruzadas
+    </button>
+  </div>
+
+  <div class="text-center text-muted py-4" *ngIf="cargando">
+    <div class="spinner-border" role="status"></div>
+  </div>
+
+  <app-tablas *ngIf="!cargando"
+    [titulos]="titulos"
+    [datos]="datos"
+    [raiz]="'/operaciones/novedades-espacios'"
+    [acciones]="acciones"
+    [mostrarBuscar]="true"
+    [columnasFiltro]="columnasFiltro"
+    [seleccionMultiple]="pestanaActiva === 'sin_reportar' || pestanaActiva === 'reportada'"
+    (seleccionCambiada)="onSeleccion($event)"
+    (clicAccion)="clicAccion($event)"
+  ></app-tablas>
+
+  <div class="text-center text-muted py-4" *ngIf="!cargando && datos.length === 0">
+    <i class="fas fa-cloud-sun fa-2x mb-2"></i>
+    <p>{{ esReportes ? 'Todavía no se ha generado ningún reporte.' : 'No hay novedades en este rango.' }}</p>
+  </div>
+</div>

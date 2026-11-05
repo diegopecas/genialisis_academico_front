@@ -1,0 +1,83 @@
+$gold: #d4af37;
+
+.modulo {
+  width: 100%;
+  min-height: 100vh;
+  background-color: #f5f5f7;
+}
+
+/* Filtros: en el celular uno debajo del otro */
+.filtros-novedades {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 14px 16px 4px;
+
+  .filtro {
+    flex: 1 1 180px;
+    max-width: 260px;
+  }
+
+  .form-label {
+    margin-bottom: 4px;
+    font-size: 0.85rem;
+    color: #6b5a1e;
+  }
+}
+
+/* Pestañas: en el celular se deslizan de lado */
+.pestanas-estado {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 10px 16px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.pestana {
+  flex: 0 0 auto;
+  padding: 7px 14px;
+  border: 1px solid rgba($gold, 0.45);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.75);
+  color: #6b5a1e;
+  font-weight: 500;
+  font-size: 0.9rem;
+  white-space: nowrap;
+
+  &.activa {
+    background: $gold;
+    border-color: $gold;
+    color: #fff;
+  }
+}
+
+/* Botones de lo marcado */
+.acciones-lote {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 0 16px 8px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba($gold, 0.35);
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(6px);
+
+  .texto-lote {
+    font-size: 0.9rem;
+    color: #6b5a1e;
+    margin-right: auto;
+  }
+}
+
+@media (max-width: 576px) {
+  .filtros-novedades .filtro {
+    max-width: none;
+  }
+
+  .acciones-lote .btn {
+    width: 100%;
+  }
+}

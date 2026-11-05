@@ -111,6 +111,9 @@ export class DatosMaestrosComponent implements OnInit {
       case 'lugares-cursos-extra':
         this.router.navigate(['/administracion/datos-maestros/lugares-cursos-extra']);
         break;
+      case 'tipos-novedad-espacio':
+        this.router.navigate(['/administracion/datos-maestros/tipos-novedad-espacio']);
+        break;
       case 'configuracion-global':
         this.router.navigate(['/administracion/datos-maestros/configuracion-global']);
         break;

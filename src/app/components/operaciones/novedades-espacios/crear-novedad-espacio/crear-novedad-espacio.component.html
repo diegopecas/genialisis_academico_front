@@ -1,0 +1,102 @@
+<div class="modulo">
+    <app-header
+        [tituloModulo]="titulo"
+        [mostrarCrear]="false"
+        [accion]="accion"
+        [raiz]="'/operaciones/novedades-espacios'"
+        [regresar]="regresar"
+        [iconoTitulo]="'/assets/images/novedades-espacios.png'">
+    </app-header>
+
+    <div class="container mt-4">
+        <div class="card card-formulario mb-4">
+            <div class="card-header-custom">
+                <i class="fas fa-map-marker-alt"></i>
+                <span>Lugar y canchas</span>
+            </div>
+            <div class="card-body-custom">
+                <div class="row g-3">
+                    <div class="col-md-6 col-12">
+                        <label for="lugar" class="form-label">Lugar <span class="text-danger">*</span></label>
+                        <select id="lugar" class="form-select" [(ngModel)]="model.id_lugar" (ngModelChange)="cargarEspacios()"
+                                [disabled]="!editable || accion !== 'crear'" [ngClass]="{'is-invalid': !model.id_lugar && submitted}">
+                            <option value="">-- Escoge el lugar --</option>
+                            <option *ngFor="let l of lugares" [value]="l.id">{{ l.nombre }}</option>
+                        </select>
+                    </div>
+                    <div class="col-12" *ngIf="model.id_lugar">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+                            <label class="form-label mb-0">
+                                {{ accion === 'crear' ? 'Canchas' : 'Cancha' }} <span class="text-danger">*</span>
+                            </label>
+                            <button type="button" class="btn btn-link btn-sm p-0" *ngIf="accion === 'crear' && espacios.length > 1"
+                                    (click)="marcarTodas()">Marcar todas</button>
+                        </div>
+                        <div class="canchas">
+                            <button type="button" class="cancha" *ngFor="let e of espacios"
+                                    [class.marcada]="espaciosMarcados.has(e.id)" [disabled]="!editable"
+                                    (click)="alternarEspacio(e)">
+                                <i class="far" [ngClass]="espaciosMarcados.has(e.id) ? 'fa-check-square' : 'fa-square'"></i>
+                                {{ e.nombre }}
+                            </button>
+                        </div>
+                        <small class="form-text text-muted" *ngIf="accion === 'crear'">Se crea una novedad por cada cancha marcada.</small>
+                        <p class="text-muted mb-0" *ngIf="espacios.length === 0">Este lugar no tiene canchas activas.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card card-formulario mb-4">
+            <div class="card-header-custom">
+                <i class="fas fa-cloud-rain"></i>
+                <span>Novedad</span>
+            </div>
+            <div class="card-body-custom">
+                <div class="row g-3">
+                    <div class="col-md-4 col-12">
+                        <label for="fecha" class="form-label">Fecha <span class="text-danger">*</span></label>
+                        <app-fecha-input inputId="fecha" [(ngModel)]="model.fecha" [invalido]="!model.fecha && submitted"
+                                         [disabled]="!editable"></app-fecha-input>
+                    </div>
+                    <div class="col-md-4 col-6">
+                        <label class="form-label">Desde <span class="text-danger">*</span></label>
+                        <app-hora-input [(ngModel)]="model.hora_inicial" [invalido]="!model.hora_inicial && submitted"
+                                        [disabled]="!editable"></app-hora-input>
+                    </div>
+                    <div class="col-md-4 col-6">
+                        <label class="form-label">Hasta <span class="text-danger">*</span></label>
+                        <app-hora-input [(ngModel)]="model.hora_final" periodoPorDefecto="PM"
+                                        [invalido]="!model.hora_final && submitted" [disabled]="!editable"></app-hora-input>
+                    </div>
+                    <div class="col-md-6 col-12">
+                        <label for="tipo" class="form-label">Tipo de novedad <span class="text-danger">*</span></label>
+                        <select id="tipo" class="form-select" [(ngModel)]="model.id_tipo_novedad_espacio" [disabled]="!editable"
+                                [ngClass]="{'is-invalid': !model.id_tipo_novedad_espacio && submitted}">
+                            <option value="">-- Escoge el tipo --</option>
+                            <option *ngFor="let t of tipos" [value]="t.id">{{ t.nombre }}</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <label for="observaciones" class="form-label">Observación</label>
+                        <textarea id="observaciones" class="form-control" rows="2" maxlength="500" [(ngModel)]="model.observaciones"
+                                  placeholder="Ej: aguacero desde las 3, la cancha quedó encharcada" [disabled]="!editable"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-5">
+            <div class="col-sm-6 mb-2" *ngIf="editable">
+                <button class="btn btn-lg btn-warning w-100" (click)="guardar()" [disabled]="guardando">
+                    <i class="fas fa-save me-2"></i> {{ guardando ? 'Guardando...' : 'Grabar' }}
+                </button>
+            </div>
+            <div class="col-sm-6 mb-2">
+                <button class="btn btn-lg btn-secondary w-100" (click)="volver()">
+                    <i class="fas fa-arrow-left me-2"></i> Volver
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
