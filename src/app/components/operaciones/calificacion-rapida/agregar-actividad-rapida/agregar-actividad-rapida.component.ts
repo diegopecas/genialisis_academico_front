@@ -24,8 +24,9 @@ export interface ActividadAgregada {
  * Es la misma lógica de "Crear actividad" e "Importar del corte" de la lista
  * de actividades de Calificaciones, pero en vez de navegar a la pantalla de
  * calificar, devuelve la tarea creada para que la calificación rápida la
- * ponga en la franja. Siempre es de grupo: los cursos extracurriculares no
- * entran en la calificación rápida.
+ * ponga en la franja. Sirve para un grupo o para un curso extracurricular:
+ * cuando llega idCursoExtra la tarea se graba contra el curso (sin grupo) y
+ * los logros son los del área, igual que en la lista de actividades.
  */
 @Component({
   selector: 'app-agregar-actividad-rapida',
@@ -37,6 +38,9 @@ export interface ActividadAgregada {
 export class AgregarActividadRapidaComponent implements OnInit {
 
   @Input() idGrupo: string = '';
+  // Curso extracurricular: si llega, ocupa el lugar del grupo
+  @Input() idCursoExtra: string = '';
+  // Nombre del grupo o del curso, para el subtítulo y la IA
   @Input() nombreGrupo: string = '';
   @Input() idArea: string = '';
   @Input() nombreArea: string = '';
@@ -96,7 +100,11 @@ export class AgregarActividadRapidaComponent implements OnInit {
     this.tiposActividadesService.obtenerTodos().subscribe((resp: any) => {
       this.tiposActividad = resp.body || [];
     });
-    this.logrosService.obtenerByGrupoAreaConIndicadores(this.idGrupo, this.idArea).subscribe({
+    // En un curso los logros van por nivel y no por grado: se traen todos los del área
+    const peticionLogros = this.idCursoExtra
+      ? this.logrosService.obtenerByAreaConIndicadores(this.idArea)
+      : this.logrosService.obtenerByGrupoAreaConIndicadores(this.idGrupo, this.idArea);
+    peticionLogros.subscribe({
       next: (resp: any) => {
         this.logrosDisponibles = resp.body || [];
         this.logrosCargados = true;
@@ -190,8 +198,8 @@ export class AgregarActividadRapidaComponent implements OnInit {
       descripcion: this.formActividad.descripcion,
       nivel_uno: this.formActividad.nivel_uno,
       nivel_dos: this.formActividad.nivel_dos,
-      id_grupo: this.idGrupo,
-      id_curso_extra: null,
+      id_grupo: this.idCursoExtra ? null : this.idGrupo,
+      id_curso_extra: this.idCursoExtra || null,
       id_area: this.idArea,
       id_sprint: this.idSprint,
       nombre_grupo: this.nombreGrupo,
@@ -281,8 +289,8 @@ export class AgregarActividadRapidaComponent implements OnInit {
 
     const payload = {
       id_sprint: this.idSprint,
-      id_grupo: this.idGrupo,
-      id_curso_extra: null,
+      id_grupo: this.idCursoExtra ? null : this.idGrupo,
+      id_curso_extra: this.idCursoExtra || null,
       id_area: this.idArea,
       es_tarea_adicional: true,
       actividades: [{
@@ -324,12 +332,17 @@ export class AgregarActividadRapidaComponent implements OnInit {
   // ========================================================================
 
   /**
-   * Actividades del mismo grupo y área en los sprints del corte del sprint
-   * actual, menos las que ya están pendientes en el sprint actual.
+   * Actividades del mismo grupo y área (o del mismo curso) en los sprints del
+   * corte del sprint actual, menos las que ya están pendientes en el sprint actual.
    */
   private cargarImportables(): void {
     this.cargandoImportables = true;
-    this.tareasXSprintsService.obtenerParaImportarCorte(this.idSprint, this.idGrupo, this.idArea, null).subscribe({
+    this.tareasXSprintsService.obtenerParaImportarCorte(
+      this.idSprint,
+      this.idCursoExtra ? null : this.idGrupo,
+      this.idCursoExtra ? null : this.idArea,
+      this.idCursoExtra || null
+    ).subscribe({
       next: (resp: any) => {
         this.importables = (resp.body || []).map((act: any) => ({
           ...act,
@@ -373,9 +386,9 @@ export class AgregarActividadRapidaComponent implements OnInit {
     this.tareasXSprintsService.crearLote({
       id_sprint: this.idSprint,
       actividades: [seleccionada.id_actividad_academica],
-      id_grupo: this.idGrupo,
+      id_grupo: this.idCursoExtra ? null : this.idGrupo,
       id_area_academica: this.idArea,
-      id_curso_extra: null,
+      id_curso_extra: this.idCursoExtra || null,
       es_tarea_adicional: 1
     }).subscribe({
       next: (resp: any) => {

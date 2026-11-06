@@ -294,6 +294,32 @@ export class CalificacionesService {
       );
   }
 
+  /**
+   * Grupos y cursos extracurriculares con algo para calificar en la
+   * calificación rápida: { grupos: [], cursos_extra: [] }.
+   */
+  obtenerOpcionesCalificacionRapida() {
+    return this.http
+      .get<HttpResponse<Object>>(environment.api + 'calificaciones-rapida/opciones', { observe: 'response' })
+      .pipe(
+        catchError(this.handleError)
+      );
+  }
+
+  /**
+   * Calificación rápida de un curso extracurricular: inscritos que asistieron
+   * a las clases del curso en la fecha, las clases como franjas, tareas del
+   * sprint actual y lo ya calificado ese día.
+   */
+  obtenerVistaCalificacionRapidaCursoExtra(id_curso_extra: any, fecha: string) {
+    const params = new HttpParams().set('fecha', fecha);
+    return this.http
+      .get<HttpResponse<Object>>(environment.api + `calificaciones-rapida/curso-extra/${id_curso_extra}`, { params, observe: 'response' })
+      .pipe(
+        catchError(this.handleError)
+      );
+  }
+
   /** Guarda en bloque la calificación rápida (actividades, calificaciones y ejecución). */
   guardarCalificacionRapida(datos: any) {
     return this.http.post<any>(environment.api + 'calificaciones-rapida', JSON.stringify(datos), httpOptions).pipe(

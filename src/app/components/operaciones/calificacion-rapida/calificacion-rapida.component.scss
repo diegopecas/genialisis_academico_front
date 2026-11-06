@@ -77,6 +77,38 @@ $fuera-horario: #F4F7FB;
   z-index: 8;
 }
 
+// Grupo o curso extracurricular: solo sale si el jardín tiene de los dos
+.selector-tipo {
+  display: inline-flex;
+  gap: 4px;
+  padding: 3px;
+  margin-bottom: 10px;
+  background: $crema;
+  border: 1px solid rgba($dorado, 0.35);
+  border-radius: 999px;
+  max-width: 100%;
+}
+
+.opcion-tipo {
+  border: none;
+  background: transparent;
+  color: #8B6914;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:hover:not(.activa) { background: $dorado-suave; }
+
+  &.activa {
+    background: linear-gradient(135deg, #FFF8E6, #FFE7AD);
+    color: #6b5a2e;
+    box-shadow: 0 2px 8px rgba($dorado, 0.3);
+  }
+}
+
 .campo-fecha {
   display: flex;
   align-items: stretch;
@@ -476,6 +508,20 @@ $fuera-horario: #F4F7FB;
     min-width: 215px;
   }
 
+  // Curso extracurricular: el estudiante no fue a la clase de esta columna
+  .celda.no-asistio {
+    background: rgba(0, 0, 0, 0.02);
+    vertical-align: middle;
+  }
+
+  .sin-clase {
+    display: block;
+    text-align: center;
+    color: $color-sin-calificar;
+    font-size: 0.78rem;
+    font-style: italic;
+  }
+
   .fuera-horario {
     background: $fuera-horario;
   }
@@ -566,6 +612,10 @@ $fuera-horario: #F4F7FB;
   .tarjeta-glaseada { padding: 12px; }
 
   .info-sprint { text-align: left; }
+
+  // En el celular el selector de tipo ocupa todo el ancho
+  .selector-tipo { display: flex; width: 100%; }
+  .opcion-tipo { flex: 1; padding: 8px 6px; white-space: normal; }
 
   .franja-general .estrella { font-size: 1.45em; }
   .franja-general .estrellas { gap: 6px; }

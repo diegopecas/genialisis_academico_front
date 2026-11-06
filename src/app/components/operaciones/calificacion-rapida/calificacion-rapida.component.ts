@@ -6,7 +6,6 @@ import { HeaderComponent } from '../../../common/header/header.component';
 import { SearchableDropdownComponent, DropdownItem } from '../../../common/searchable-dropdown/searchable-dropdown.component';
 import { HoraInputComponent } from '../../../common/hora-input/hora-input.component';
 import { UtilService } from '../../../common/constantes/util.service';
-import { GruposService } from '../../../services/grupos.service';
 import { SprintsService } from '../../../services/sprints.service';
 import { DocentesService } from '../../../services/docentes.service';
 import { AreasAcademicasService } from '../../../services/areas-academicas.service';
@@ -15,6 +14,9 @@ import { ValoresParametrosCalificacionesService } from '../../../services/valore
 import { CalificacionesService } from '../../../services/calificaciones.service';
 import { AgregarActividadRapidaComponent, ActividadAgregada } from './agregar-actividad-rapida/agregar-actividad-rapida.component';
 import Swal from 'sweetalert2';
+
+/** Qué se califica: un grupo (horario y asistencia del jardín) o un curso extracurricular (sus clases). */
+type TipoCalificacion = 'grupo' | 'curso_extra';
 
 /** Lo que tiene un estudiante en una franja: la actividad y su valor por parámetro. */
 interface CeldaRapida {
@@ -27,11 +29,14 @@ interface CeldaRapida {
 /**
  * Una columna de la calificación rápida. Sale del horario del grupo para el
  * día, o es un área que se agregó fuera del horario (o que ya tenía una
- * actividad ejecutada ese día sin franja asociada).
+ * actividad ejecutada ese día sin franja asociada). En un curso
+ * extracurricular cada clase del día es una franja.
  */
 interface FranjaRapida {
   clave: string;
   id_horario: string | null;
+  // Clase del curso extracurricular; solo tiene celdas para quienes asistieron a ella
+  id_sesion: string | null;
   id_area_academica: string;
   nombre_area: string;
   color_area: string | null;
@@ -68,6 +73,11 @@ export class CalificacionRapidaComponent implements OnInit, OnDestroy {
   public idGrupo: string = '';
   public grupos: any[] = [];
   public gruposItems: DropdownItem[] = [];
+  public idCursoExtra: string = '';
+  public cursos: any[] = [];
+  public cursosItems: DropdownItem[] = [];
+  // Si el jardín solo tiene grupos o solo cursos, entra directo a ese y no se ve el selector
+  public tipo: TipoCalificacion = 'grupo';
 
   // Datos de la vista
   public sprint: any = null;
@@ -102,7 +112,6 @@ export class CalificacionRapidaComponent implements OnInit, OnDestroy {
 
   constructor(
     private utilService: UtilService,
-    private gruposService: GruposService,
     private sprintsService: SprintsService,
     private docentesService: DocentesService,
     private areasAcademicasService: AreasAcademicasService,
@@ -120,17 +129,22 @@ export class CalificacionRapidaComponent implements OnInit, OnDestroy {
     this.consultaMovil.addEventListener('change', this.alCambiarMovil);
 
     forkJoin({
-      grupos: this.gruposService.obtenerTodos(),
+      // Solo los grupos y cursos que tienen algo para calificar
+      opciones: this.calificacionesService.obtenerOpcionesCalificacionRapida(),
       sprints: this.sprintsService.obtenerTodos(),
       docentes: this.docentesService.obtenerTodos(),
       // Solo los parámetros activos, en su orden
       parametros: this.parametrosCalificacionesService.obtenerActivos(),
       valores: this.valoresParametrosCalificacionesService.obtenerTodos()
     }).subscribe({
-      next: ({ grupos, sprints, docentes, parametros, valores }: any) => {
-        // Igual que en Calificaciones: solo los grupos calificables
-        this.grupos = (grupos.body || []).filter((g: any) => Number(g.calificable) === 1);
+      next: ({ opciones, sprints, docentes, parametros, valores }: any) => {
+        // Grupos calificables con estudiantes activos y cursos con área e inscritos activos
+        const cuerpo = opciones.body || {};
+        this.grupos = cuerpo.grupos || [];
         this.gruposItems = this.grupos.map((g: any) => ({ id: g.id, nombre: g.nombre }));
+        this.cursos = cuerpo.cursos_extra || [];
+        this.cursosItems = this.cursos.map((c: any) => ({ id: c.id, nombre: c.nombre, descripcion: c.nombre_area }));
+        this.tipo = this.grupos.length === 0 && this.cursos.length > 0 ? 'curso_extra' : 'grupo';
 
         this.docentesItems = (docentes.body || [])
           .filter((d: any) => Number(d.activo) === 1)
@@ -171,8 +185,36 @@ export class CalificacionRapidaComponent implements OnInit, OnDestroy {
   }
 
   // ========================================================================
-  // FECHA Y GRUPO
+  // FECHA, TIPO, GRUPO Y CURSO
   // ========================================================================
+
+  /** El selector de tipo solo sale si hay grupos y cursos para calificar. */
+  get mostrarSelectorTipo(): boolean {
+    return this.grupos.length > 0 && this.cursos.length > 0;
+  }
+
+  get sinOpciones(): boolean {
+    return this.grupos.length === 0 && this.cursos.length === 0;
+  }
+
+  get esCurso(): boolean {
+    return this.tipo === 'curso_extra';
+  }
+
+  /** El grupo o el curso escogido, según el tipo. */
+  get idDestino(): string {
+    return this.esCurso ? this.idCursoExtra : this.idGrupo;
+  }
+
+  async alCambiarTipo(tipo: TipoCalificacion): Promise<void> {
+    if (tipo === this.tipo) return;
+    if (!(await this.confirmarDescartarCambios())) return;
+    this.tipo = tipo;
+    this.idGrupo = '';
+    this.idCursoExtra = '';
+    this.areasGrupo = [];
+    this.cargarVista();
+  }
 
   /**
    * Solo se pueden escoger fechas del sprint actual y nunca futuras. Por
@@ -328,11 +370,25 @@ export class CalificacionRapidaComponent implements OnInit, OnDestroy {
     this.cargarVista();
   }
 
+  async alCambiarCurso(idCursoExtra: any): Promise<void> {
+    const anterior = this.idCursoExtra;
+    if (idCursoExtra === anterior) return;
+    if (!(await this.confirmarDescartarCambios())) {
+      // Se devuelve el dropdown al curso que estaba
+      this.idCursoExtra = '';
+      setTimeout(() => { this.idCursoExtra = anterior; });
+      return;
+    }
+    this.idCursoExtra = idCursoExtra || '';
+    this.areasGrupo = [];
+    this.cargarVista();
+  }
+
   private async confirmarDescartarCambios(): Promise<boolean> {
     if (!this.hayCambios) return true;
     const respuesta = await Swal.fire({
       title: 'Hay calificaciones sin guardar',
-      text: 'Si cambias la fecha o el grupo se pierden. ¿Quieres descartarlas?',
+      text: 'Si cambias la fecha, el grupo o el curso se pierden. ¿Quieres descartarlas?',
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#F5A623',
@@ -354,7 +410,12 @@ export class CalificacionRapidaComponent implements OnInit, OnDestroy {
     this.franjas = [];
     this.tareas = {};
     this.mostrarAgregarArea = false;
-    if (!this.idGrupo || !this.fecha) return;
+    if (!this.idDestino || !this.fecha) return;
+
+    if (this.esCurso) {
+      this.cargarVistaCurso();
+      return;
+    }
 
     // Las áreas del grupo se necesitan para armar las franjas fuera del
     // horario, así que se piden junto con la vista
@@ -374,6 +435,35 @@ export class CalificacionRapidaComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * En un curso el área es una sola, la del curso: sale de las opciones y no
+   * hace falta pedirla aparte.
+   */
+  private cargarVistaCurso(): void {
+    const curso = this.cursos.find((c: any) => c.id == this.idCursoExtra);
+    this.areasGrupo = curso ? [{
+      id_area_academica: curso.id_area_academica,
+      nombre_area_academica: curso.nombre_area,
+      color: curso.color_area,
+      id_docente: null
+    }] : [];
+
+    this.calificacionesService.obtenerVistaCalificacionRapidaCursoExtra(this.idCursoExtra, this.fecha).subscribe({
+      next: (vista: any) => {
+        this.armarVista(vista.body || {});
+        this.vistaCargada = true;
+      },
+      error: () => {
+        this.vistaCargada = false;
+      }
+    });
+  }
+
+  /** En un curso, el estudiante solo se califica en las clases a las que asistió. */
+  private asistioAFranja(estudiante: any, franja: FranjaRapida): boolean {
+    return !franja.id_sesion || (estudiante.sesiones || []).includes(franja.id_sesion);
+  }
+
+  /**
    * Arma las franjas y las celdas. Lo que ya se ejecutó ese día se ubica en
    * su franja: primero por el horario con el que se inició, luego por el
    * área y la hora, y si no encaja en ninguna, como un área fuera del horario.
@@ -385,7 +475,9 @@ export class CalificacionRapidaComponent implements OnInit, OnDestroy {
       ...e,
       nombre: [e.primer_nombre, e.primer_apellido].filter((x: any) => !!x).join(' '),
       hora_ingreso: e.fecha_ingreso ? String(e.fecha_ingreso).substring(11, 16) : '',
-      hora_salida: e.fecha_salida ? String(e.fecha_salida).substring(11, 16) : ''
+      hora_salida: e.fecha_salida ? String(e.fecha_salida).substring(11, 16) : '',
+      // En un curso: la hora de la (primera) clase a la que asistió
+      hora_clase: this.hhmm(e.hora_clase)
     }));
     const idsEstudiantes = new Set(this.estudiantes.map((e: any) => e.id_estudiante));
 
@@ -395,8 +487,9 @@ export class CalificacionRapidaComponent implements OnInit, OnDestroy {
     });
 
     const franjas: FranjaRapida[] = (vista.franjas || []).map((f: any) => this.nuevaFranja({
-      clave: 'h-' + f.id_horario,
+      clave: f.id_sesion ? 's-' + f.id_sesion : 'h-' + f.id_horario,
       id_horario: f.id_horario,
+      id_sesion: f.id_sesion || null,
       id_area_academica: f.id_area_academica,
       nombre_area: f.nombre_area,
       color_area: f.color_area,
@@ -434,9 +527,10 @@ export class CalificacionRapidaComponent implements OnInit, OnDestroy {
 
     franjas.sort((a, b) => a.hora_inicial.localeCompare(b.hora_inicial));
 
-    // Celdas vacías para todos y luego lo ya registrado
+    // Celdas vacías para todos (en un curso, solo en sus clases) y luego lo ya registrado
     franjas.forEach((f) => {
       this.estudiantes.forEach((e: any) => {
+        if (!this.asistioAFranja(e, f)) return;
         f.celdas[e.id_estudiante] = { id_tarea: null, id_tarea_anterior: null, valores: {} };
       });
     });
@@ -523,6 +617,7 @@ export class CalificacionRapidaComponent implements OnInit, OnDestroy {
     return {
       clave: datos.clave || ('x-' + Date.now()),
       id_horario: datos.id_horario || null,
+      id_sesion: datos.id_sesion || null,
       id_area_academica: datos.id_area_academica || '',
       nombre_area: datos.nombre_area || '',
       color_area: datos.color_area || null,
@@ -698,6 +793,11 @@ export class CalificacionRapidaComponent implements OnInit, OnDestroy {
     return Object.values(franja.celdas).filter((c) => !!c.id_tarea).length;
   }
 
+  /** Estudiantes que se califican en la franja: en un curso, solo los que fueron a esa clase. */
+  totalCeldas(franja: FranjaRapida): number {
+    return Object.keys(franja.celdas).length;
+  }
+
   // ========================================================================
   // NAVEGACIÓN MÓVIL
   // ========================================================================
@@ -836,7 +936,11 @@ export class CalificacionRapidaComponent implements OnInit, OnDestroy {
     Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Actividad lista en la franja', showConfirmButton: false, timer: 1800 });
   }
 
+  /** Nombre del grupo o del curso escogido. */
   get nombreGrupo(): string {
+    if (this.esCurso) {
+      return this.cursos.find((c: any) => c.id == this.idCursoExtra)?.nombre || '';
+    }
     return this.grupos.find((g: any) => g.id == this.idGrupo)?.nombre || '';
   }
 
@@ -906,7 +1010,9 @@ export class CalificacionRapidaComponent implements OnInit, OnDestroy {
 
     const datos = {
       fecha: this.fecha,
-      id_grupo: this.idGrupo,
+      // Uno de los dos: el back califica el grupo o el curso
+      id_grupo: this.esCurso ? null : this.idGrupo,
+      id_curso_extra: this.esCurso ? this.idCursoExtra : null,
       franjas: franjas.map((f) => ({
         id_horario: f.id_horario,
         id_area_academica: f.id_area_academica,

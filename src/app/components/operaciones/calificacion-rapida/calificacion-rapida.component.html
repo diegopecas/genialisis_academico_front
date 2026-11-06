@@ -15,12 +15,26 @@
       No hay un sprint actual en curso. La calificación rápida solo trabaja con fechas del sprint actual.
     </div>
 
-    <ng-container *ngIf="!cargandoInicial && !sinSprint">
+    <div class="aviso-vacio" *ngIf="!cargandoInicial && !sinSprint && sinOpciones">
+      No hay grupos ni cursos para calificar.
+    </div>
+
+    <ng-container *ngIf="!cargandoInicial && !sinSprint && !sinOpciones">
 
       <!-- ============================== -->
       <!-- FILTROS                        -->
       <!-- ============================== -->
       <div class="tarjeta-glaseada filtros">
+        <!-- Solo sale si el jardín tiene grupos y cursos para calificar -->
+        <div class="selector-tipo" *ngIf="mostrarSelectorTipo" role="group" aria-label="Qué calificar">
+          <button type="button" class="opcion-tipo" [class.activa]="tipo === 'grupo'" (click)="alCambiarTipo('grupo')">
+            👥 Grupo
+          </button>
+          <button type="button" class="opcion-tipo" [class.activa]="tipo === 'curso_extra'" (click)="alCambiarTipo('curso_extra')">
+            🏅 Curso extracurricular
+          </button>
+        </div>
+
         <div class="row g-2 align-items-end">
           <div class="col-12 col-md-5 col-lg-4">
             <label class="etiqueta" for="fechaRapida">Fecha <small>({{ nombreDiaFecha }})</small></label>
@@ -55,7 +69,7 @@
             </small>
           </div>
 
-          <div class="col-12 col-md-7 col-lg-5">
+          <div class="col-12 col-md-7 col-lg-5" *ngIf="!esCurso">
             <label class="etiqueta">Grupo</label>
             <app-searchable-dropdown
               [items]="gruposItems"
@@ -68,20 +82,40 @@
             </app-searchable-dropdown>
           </div>
 
+          <div class="col-12 col-md-7 col-lg-5" *ngIf="esCurso">
+            <label class="etiqueta">Curso extracurricular</label>
+            <app-searchable-dropdown
+              [items]="cursosItems"
+              [ngModel]="idCursoExtra"
+              (ngModelChange)="alCambiarCurso($event)"
+              [clearable]="false"
+              placeholder="Selecciona el curso"
+              searchPlaceholder="Buscar curso..."
+              emptyMessage="No hay cursos">
+            </app-searchable-dropdown>
+          </div>
+
           <div class="col-12 col-lg-3 info-sprint" *ngIf="sprint">
             <span>🏃 {{ sprint.nombre_sprint }}</span>
           </div>
         </div>
       </div>
 
-      <div class="aviso-vacio" *ngIf="!idGrupo">
+      <div class="aviso-vacio" *ngIf="!idDestino && !esCurso">
         Selecciona la fecha y el grupo para listar a los estudiantes que tuvieron asistencia ese día.
       </div>
+      <div class="aviso-vacio" *ngIf="!idDestino && esCurso">
+        Selecciona la fecha y el curso para listar a los estudiantes que asistieron a sus clases ese día.
+      </div>
 
-      <ng-container *ngIf="idGrupo && vistaCargada">
+      <ng-container *ngIf="idDestino && vistaCargada">
 
-        <div class="aviso-vacio" *ngIf="estudiantes.length === 0">
+        <div class="aviso-vacio" *ngIf="estudiantes.length === 0 && !esCurso">
           Ningún estudiante del grupo tiene asistencia registrada el {{ fecha | date:'dd/MM/yyyy' }}.
+        </div>
+        <div class="aviso-vacio" *ngIf="estudiantes.length === 0 && esCurso">
+          Nadie quedó como asistió en las clases del curso el {{ fecha | date:'dd/MM/yyyy' }}.
+          La asistencia se registra en Clases del día.
         </div>
 
         <ng-container *ngIf="estudiantes.length > 0">
@@ -97,9 +131,9 @@
                       (click)="seleccionarFranja(i)">
                 <span class="chip-hora">{{ hora12(franja.hora_inicial) }}</span>
                 <span class="chip-area">{{ franja.nombre_area }}</span>
-                <span class="chip-conteo" *ngIf="conActividad(franja) > 0">{{ conActividad(franja) }}/{{ estudiantes.length }}</span>
+                <span class="chip-conteo" *ngIf="conActividad(franja) > 0">{{ conActividad(franja) }}/{{ totalCeldas(franja) }}</span>
               </button>
-              <button type="button" class="chip-franja chip-agregar" [class.activa]="mostrarAgregarArea" (click)="abrirAgregarArea()">
+              <button type="button" class="chip-franja chip-agregar" *ngIf="!esCurso" [class.activa]="mostrarAgregarArea" (click)="abrirAgregarArea()">
                 ➕ Área
               </button>
             </div>
@@ -107,9 +141,9 @@
             <div class="resumen-escritorio" *ngIf="!esMovil">
               <span><strong>{{ estudiantes.length }}</strong> estudiante(s) con asistencia</span>
               <span class="separador">·</span>
-              <span><strong>{{ franjas.length }}</strong> franja(s)</span>
-              <span class="aviso-sin-horario" *ngIf="franjas.length === 0">El grupo no tiene horario este día: agrega las áreas con sus horas.</span>
-              <button type="button" class="btn-secundario ms-auto" (click)="abrirAgregarArea()" *ngIf="!mostrarAgregarArea">
+              <span><strong>{{ franjas.length }}</strong> {{ esCurso ? 'clase(s)' : 'franja(s)' }}</span>
+              <span class="aviso-sin-horario" *ngIf="franjas.length === 0 && !esCurso">El grupo no tiene horario este día: agrega las áreas con sus horas.</span>
+              <button type="button" class="btn-secundario ms-auto" (click)="abrirAgregarArea()" *ngIf="!mostrarAgregarArea && !esCurso">
                 ➕ Agregar área fuera del horario
               </button>
             </div>
@@ -223,12 +257,15 @@
                 <tr *ngFor="let estudiante of estudiantes; trackBy: trackByEstudiante">
                   <td class="col-estudiante">
                     <span class="nombre-estudiante">{{ estudiante.nombre }}</span>
-                    <small class="asistencia">
+                    <small class="asistencia" *ngIf="!esCurso">
                       Entró {{ hora12(estudiante.hora_ingreso) }}
                       <span *ngIf="estudiante.hora_salida"> · salió {{ hora12(estudiante.hora_salida) }}</span>
                     </small>
+                    <small class="asistencia" *ngIf="esCurso">Clase de las {{ hora12(estudiante.hora_clase) }}</small>
                   </td>
-                  <td *ngFor="let franja of franjas; trackBy: trackByFranja" class="celda" [class.fuera-horario]="franja.fuera_horario">
+                  <td *ngFor="let franja of franjas; trackBy: trackByFranja" class="celda" [class.fuera-horario]="franja.fuera_horario"
+                      [class.no-asistio]="!franja.celdas[estudiante.id_estudiante]">
+                    <span class="sin-clase" *ngIf="!franja.celdas[estudiante.id_estudiante]">No fue a esta clase</span>
                     <ng-container *ngIf="franja.celdas[estudiante.id_estudiante] as celda">
                       <app-searchable-dropdown
                         [items]="franja.opciones"
@@ -262,7 +299,7 @@
           <!-- MÓVIL: una franja a la vez               -->
           <!-- ======================================== -->
           <ng-container *ngIf="esMovil && !mostrarAgregarArea">
-            <div class="aviso-vacio" *ngIf="franjas.length === 0">
+            <div class="aviso-vacio" *ngIf="franjas.length === 0 && !esCurso">
               El grupo no tiene horario este día. Toca <strong>➕ Área</strong> para agregar las áreas con sus horas.
             </div>
 
@@ -321,11 +358,13 @@
                 </div>
               </div>
 
-              <div class="tarjeta-estudiante" *ngFor="let estudiante of estudiantes; trackBy: trackByEstudiante">
+              <!-- En un curso solo salen los que fueron a esta clase -->
+              <ng-container *ngFor="let estudiante of estudiantes; trackBy: trackByEstudiante">
+              <div class="tarjeta-estudiante" *ngIf="franja.celdas[estudiante.id_estudiante]">
                 <ng-container *ngIf="franja.celdas[estudiante.id_estudiante] as celda">
                   <div class="estudiante-cabecera">
                     <span class="nombre-estudiante">{{ estudiante.nombre }}</span>
-                    <small class="asistencia">
+                    <small class="asistencia" *ngIf="!esCurso">
                       {{ hora12(estudiante.hora_ingreso) }}<span *ngIf="estudiante.hora_salida"> - {{ hora12(estudiante.hora_salida) }}</span>
                     </small>
                   </div>
@@ -351,6 +390,7 @@
                   </div>
                 </ng-container>
               </div>
+              </ng-container>
             </ng-container>
           </ng-container>
 
@@ -374,7 +414,8 @@
 
   <app-agregar-actividad-rapida
     *ngIf="franjaAgregarActividad && sprint"
-    [idGrupo]="idGrupo"
+    [idGrupo]="esCurso ? '' : idGrupo"
+    [idCursoExtra]="esCurso ? idCursoExtra : ''"
     [nombreGrupo]="nombreGrupo"
     [idArea]="franjaAgregarActividad.id_area_academica"
     [nombreArea]="franjaAgregarActividad.nombre_area"
